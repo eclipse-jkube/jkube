@@ -22,9 +22,7 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -32,23 +30,28 @@ import org.junit.rules.TemporaryFolder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class WildFlyAppSeverHandlerTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mocked
   private GeneratorContext generatorContext;
 
+  private Plugin plugin;
+
+  @Before
+  public void setUp() {
+    generatorContext = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
+    plugin = mock(Plugin.class);
+  }
   @Test
   public void isApplicableHasJmsXmlShouldReturnTrue() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
     assertTrue(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile());
     assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
     // When
@@ -58,16 +61,12 @@ public class WildFlyAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasJmsXmlAndThorntailPluginShouldReturnFalse(@Mocked Plugin plugin) throws IOException {
+  public void isApplicableHasJmsXmlAndThorntailPluginShouldReturnFalse() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot(); minTimes = 0;
-      plugin.getGroupId(); result = "io.thorntail";
-      plugin.getArtifactId(); result = "thorntail-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(plugin.getGroupId()).thenReturn("io.thorntail");
+    when(plugin.getArtifactId()).thenReturn("thorntail-maven-plugin");
+    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
     assertTrue(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile());
     assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
     // When
@@ -79,11 +78,7 @@ public class WildFlyAppSeverHandlerTest {
   @Test
   public void isApplicableHasNoApplicableFilesShouldReturnFalse() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
     assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
@@ -92,15 +87,11 @@ public class WildFlyAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasWildflyPluginShouldReturnTrue(@Mocked Plugin plugin) {
+  public void isApplicableHasWildflyPluginShouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      plugin.getGroupId(); result = "org.wildfly.plugins";
-      plugin.getArtifactId(); result = "wildfly-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
-    }};
-    // @formatter:on
+    when(plugin.getGroupId()).thenReturn("org.wildfly.plugins");
+    when(plugin.getArtifactId()).thenReturn("wildfly-maven-plugin");
+    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -110,11 +101,7 @@ public class WildFlyAppSeverHandlerTest {
   @Test
   public void kubernetes() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.KUBERNETES;
-    }};
-    // @formatter:on
+    when(generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.KUBERNETES);
     // When
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
@@ -127,12 +114,8 @@ public class WildFlyAppSeverHandlerTest {
   @Test
   public void openShiftDockerStrategy() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-      generatorContext.getStrategy(); result = JKubeBuildStrategy.docker;
-    }};
-    // @formatter:on
+    when(generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
+    when(generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.docker);
     // When
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
@@ -145,12 +128,8 @@ public class WildFlyAppSeverHandlerTest {
   @Test
   public void openShiftSourceStrategy() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-      generatorContext.getStrategy(); result = JKubeBuildStrategy.s2i;
-    }};
-    // @formatter:on
+    when(generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
+    when(generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     // When
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then

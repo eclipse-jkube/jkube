@@ -19,32 +19,36 @@ import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
-
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TomcatAppSeverHandlerTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mocked
   private GeneratorContext generatorContext;
+
+  Plugin plugin;
+
+  @Before
+  public void setUp() {
+    generatorContext = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
+    plugin = mock(Plugin.class);
+  }
 
   @Test
   public void isApplicableHasContextXmlShouldReturnTrue() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
     assertTrue(new File(temporaryFolder.newFolder("META-INF"), "context.xml").createNewFile());
     assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
     // When
@@ -56,11 +60,7 @@ public class TomcatAppSeverHandlerTest {
   @Test
   public void isApplicableHasNotContextXmlShouldReturnFalse() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
     assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
@@ -69,16 +69,12 @@ public class TomcatAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasTomcat8PluginShouldReturnTrue(@Mocked Plugin plugin) {
+  public void isApplicableHasTomcat8PluginShouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-      plugin.getGroupId(); result = "org.apache.tomcat.maven";
-      plugin.getArtifactId(); result = "tomcat8-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(plugin.getGroupId()).thenReturn("org.apache.tomcat.maven");
+    when(plugin.getArtifactId()).thenReturn("tomcat8-maven-plugin");
+    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -86,16 +82,12 @@ public class TomcatAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasTomcat1337PluginShouldReturnFalse(@Mocked Plugin plugin) {
+  public void isApplicableHasTomcat1337PluginShouldReturnFalse() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-      plugin.getGroupId(); result = "org.apache.tomcat.maven";
-      plugin.getArtifactId(); result = "tomcat1337-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(plugin.getGroupId()).thenReturn("org.apache.tomcat.maven");
+    when(plugin.getArtifactId()).thenReturn("tomcat1337-maven-plugin");
+    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
