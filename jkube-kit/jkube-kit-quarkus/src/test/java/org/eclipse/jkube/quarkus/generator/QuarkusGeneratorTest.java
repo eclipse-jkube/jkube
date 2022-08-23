@@ -32,9 +32,6 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
@@ -44,6 +41,8 @@ import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author jzuriaga
@@ -57,13 +56,10 @@ public class QuarkusGeneratorTest {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mocked
   private DefaultImageLookup defaultImageLookup;
 
-  @Mocked
   private GeneratorContext ctx;
 
-  @Mocked
   private JavaProject project;
 
   private File baseDir;
@@ -72,25 +68,24 @@ public class QuarkusGeneratorTest {
 
   @Before
   public void setUp() throws IOException {
+    defaultImageLookup = mock(DefaultImageLookup.class);
+    ctx = mock(GeneratorContext.class);
+    project = mock(JavaProject.class);
     config = new ProcessorConfig();
     projectProps = new Properties();
     projectProps.put("jkube.generator.name", "quarkus");
     baseDir = temporaryFolder.newFolder("target");
-    // @formatter:off
-    new Expectations() {{
-      project.getVersion(); result = "0.0.1-SNAPSHOT"; minTimes = 0;
-      project.getBaseDirectory(); result = baseDir; minTimes = 0;
-      project.getBuildDirectory(); result = baseDir.getAbsolutePath(); minTimes = 0;
-      project.getProperties(); result = projectProps;
-      project.getCompileClassPathElements(); result = Collections.emptyList(); minTimes = 0;
-      project.getOutputDirectory(); result = baseDir;
-      ctx.getProject(); result = project;
-      ctx.getConfig(); result = config;
-      ctx.getStrategy(); result = JKubeBuildStrategy.s2i; minTimes = 0;
-      defaultImageLookup.getImageName("java.upstream.docker"); result = "quarkus/docker";
-      defaultImageLookup.getImageName("java.upstream.s2i"); result = "quarkus/s2i";
-    }};
-    // @formatter:on
+    when(project.getVersion()).thenReturn("0.0.1-SNAPSHOT");
+    when(project.getBaseDirectory()).thenReturn(baseDir);
+    when(project.getBuildDirectory()).thenReturn(baseDir.getAbsoluteFile());
+    when(project.getProperties()).thenReturn(projectProps);
+    when(project.getCompileClassPathElements()).thenReturn(Collections.emptyList());
+    when(project.getOutputDirectory()).thenReturn(baseDir);
+    when(ctx.getProject()).thenReturn(project);
+    when(ctx.getConfig()).thenReturn(config);
+    when(ctx.getStrategy()).thenReturn(JKubeBuildStrategy.s2i);
+    when(defaultImageLookup.getImageName("java.upstream.docker")).thenReturn("quarkus/docker");
+    when(defaultImageLookup.getImageName("java.upstream.s2i")).thenReturn("quarkus/s2i");
   }
 
   @Test
@@ -104,14 +99,10 @@ public class QuarkusGeneratorTest {
   @Test
   public void isApplicable_withQuarkusGroupIdPlugin_shouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-          .groupId("io.quarkus")
-          .artifactId("quarkus-maven-plugin")
-          .build());
-    }};
-    // @formatter:on
+    when(project.getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
+            .groupId("io.quarkus")
+            .artifactId("quarkus-maven-plugin")
+            .build()));
     // When
     final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
     // Then
@@ -121,14 +112,10 @@ public class QuarkusGeneratorTest {
   @Test
   public void isApplicable_withQuarkusPlatformGroupIdPlugin_shouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-        .groupId("io.quarkus.platform")
-        .artifactId("quarkus-maven-plugin")
-        .build());
-    }};
-    // @formatter:on
+    when(project.getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
+            .groupId("io.quarkus.platform")
+            .artifactId("quarkus-maven-plugin")
+            .build()));
     // When
     final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
     // Then
@@ -138,15 +125,11 @@ public class QuarkusGeneratorTest {
   @Test
   public void isApplicable_withRedHatBuildOfQuarkusGroupIdPlugin_shouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-          .groupId("com.redhat.quarkus.platform")
-          .artifactId("quarkus-maven-plugin")
-          .version("2.2.5.SP2-redhat-0003")
-          .build());
-    }};
-    // @formatter:on
+    when(project.getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
+            .groupId("com.redhat.quarkus.platform")
+            .artifactId("quarkus-maven-plugin")
+            .version("2.2.5.SP2-redhat-0003")
+            .build()));
     // When
     final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
     // Then
@@ -156,14 +139,10 @@ public class QuarkusGeneratorTest {
   @Test
   public void isApplicable_withQuarkusGradlePlugin_shouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-        .groupId("io.quarkus")
-        .artifactId("io.quarkus.gradle.plugin")
-        .build());
-    }};
-    // @formatter:on
+    when(project.getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
+            .groupId("io.quarkus")
+            .artifactId("io.quarkus.gradle.plugin")
+            .build()));
     // When
     final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
     // Then
@@ -510,11 +489,7 @@ public class QuarkusGeneratorTest {
   }
 
   private void in(RuntimeMode runtimeMode) {
-    // @formatter:off
-    new Expectations() {{
-      ctx.getRuntimeMode(); result = runtimeMode;
-    }};
-    // @formatter:on
+    when(ctx.getRuntimeMode()).thenReturn(runtimeMode);
   }
 
   private void setNativeConfig (boolean fastJAR) throws IOException {
