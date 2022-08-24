@@ -15,6 +15,8 @@ package org.eclipse.jkube.quarkus.generator;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -22,11 +24,9 @@ import java.util.Properties;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.quarkus.generator.QuarkusGeneratorTest.withFastJarInTarget;
@@ -35,10 +35,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class QuarkusGeneratorExposedPortsTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class QuarkusGeneratorExposedPortsTest {
 
   private GeneratorContext ctx;
 
@@ -46,9 +43,9 @@ public class QuarkusGeneratorExposedPortsTest {
   private List<String> compileClassPathElements;
   private Properties projectProperties;
 
-  @Before
-  public void setUp() throws IOException {
-    target = temporaryFolder.newFolder("target");
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
+    target = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     compileClassPathElements = new ArrayList<>();
     ctx = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
     projectProperties = new Properties();
@@ -61,7 +58,7 @@ public class QuarkusGeneratorExposedPortsTest {
   }
 
   @Test
-  public void withDefaults_shouldAddDefaults() throws IOException {
+  void withDefaults_shouldAddDefaults() throws IOException {
     // Given
     withFastJarInTarget(target);
     // When
@@ -75,7 +72,7 @@ public class QuarkusGeneratorExposedPortsTest {
   }
 
   @Test
-  public void withDefaultsInNative_shouldAddDefaultsForNative() throws IOException {
+  void withDefaultsInNative_shouldAddDefaultsForNative() throws IOException {
     // Given
     withNativeBinaryInTarget(target);
     // When
@@ -89,7 +86,7 @@ public class QuarkusGeneratorExposedPortsTest {
   }
 
   @Test
-  public void withApplicationProperties_shouldAddConfigured() throws IOException {
+  void withApplicationProperties_shouldAddConfigured() throws IOException {
     // Given
     withFastJarInTarget(target);
     compileClassPathElements.add(
@@ -105,7 +102,7 @@ public class QuarkusGeneratorExposedPortsTest {
   }
 
   @Test
-  public void withApplicationPropertiesAndProfile_shouldAddConfiguredProfile() throws IOException {
+  void withApplicationPropertiesAndProfile_shouldAddConfiguredProfile() throws IOException {
     // Given
     withFastJarInTarget(target);
     projectProperties.put("quarkus.profile", "dev");
