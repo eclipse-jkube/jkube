@@ -27,31 +27,25 @@ import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-
-import mockit.Expectations;
-import mockit.Injectable;
 import org.junit.Test;
-
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.createDockerFileBuilder;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 
+
 public class AssemblyConfigurationUtilsTest {
 
   @Test
-  public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault(
-          @Injectable final BuildConfiguration buildConfiguration) {
-
+  public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      buildConfiguration.getAssembly(); result = null;
-    }};
-    // @formatter:on
+    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
+    when(mockedBuildConfiguration.getAssembly()).thenReturn(null);
     // When
-    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(mockedBuildConfiguration);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("name", "maven")
@@ -60,18 +54,13 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration(
-          @Injectable final BuildConfiguration buildConfiguration) {
-
+  public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration() {
     // Given
+    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
-    // @formatter:off
-    new Expectations() {{
-      buildConfiguration.getAssembly(); result = configuration;
-    }};
-    // @formatter:on
+    when(mockedBuildConfiguration.getAssembly()).thenReturn(configuration);
     // When
-    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(mockedBuildConfiguration);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("name", "ImageName")
@@ -98,16 +87,12 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets(
-      @Injectable Assembly assembly, @Injectable AssemblyFileSet fileSet) {
-
+  public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      assembly.getFileSets(); result = Collections.singletonList(fileSet);
-      fileSet.getDirectory(); result = "1337";
-    }};
-    // @formatter:on
+    Assembly assembly = mock(Assembly.class);
+    AssemblyFileSet fileSet = mock(AssemblyFileSet.class);
+    when(assembly.getFileSets()).thenReturn(Collections.singletonList(fileSet));
+    when(fileSet.getDirectory()).thenReturn(new File("1337"));
     // When
     final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(assembly);
     // Then
@@ -136,16 +121,12 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void getJKubeAssemblyFilesNotNullShouldReturnFiles(
-      @Injectable Assembly assembly, @Injectable AssemblyFile file) {
-
+  public void getJKubeAssemblyFilesNotNullShouldReturnFiles() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      assembly.getFiles(); result = Collections.singletonList(file);
-      file.getSource(); result = new File("1337");
-    }};
-    // @formatter:on
+    AssemblyFile file =  mock(AssemblyFile.class);
+    Assembly assembly = mock(Assembly.class);
+    when(assembly.getFiles()).thenReturn(Collections.singletonList(file));
+    when(file.getSource()).thenReturn(new File("1337"));
     // When
     final List<AssemblyFile> result = getJKubeAssemblyFiles(assembly);
     // Then

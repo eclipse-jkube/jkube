@@ -23,12 +23,13 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author roland
@@ -36,9 +37,11 @@ import static org.junit.Assert.assertThrows;
  */
 public class FromConfigRegistryAuthHandlerTest {
 
-  @Mocked
   private KitLogger log;
-
+  @Before
+  public void setUp() throws Exception {
+    log = new KitLogger.SilentLogger();
+  }
   @Test
   public void testFromPluginConfiguration() throws IOException {
     FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(setupAuthConfigFactoryWithConfigData(), log);

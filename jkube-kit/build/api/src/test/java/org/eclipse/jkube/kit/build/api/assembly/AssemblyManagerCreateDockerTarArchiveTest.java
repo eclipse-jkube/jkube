@@ -32,8 +32,6 @@ import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-
-import mockit.Mocked;
 import org.assertj.core.api.AbstractFileAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ListAssert;
@@ -42,10 +40,13 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
-
+@RunWith(MockitoJUnitRunner.class)
 public class AssemblyManagerCreateDockerTarArchiveTest {
 
   private static final String DOCKERFILE_DEFAULT_FALLBACK_CONTENT = "FROM busybox\nCOPY /jkube-generated-layer-final-artifact/maven /maven/\nVOLUME [\"/maven\"]";
@@ -53,8 +54,8 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mocked
-  private PrefixedLogger prefixedLogger;
+  @Mock
+  PrefixedLogger prefixedLogger;
 
   private AssemblyManager assemblyManager;
   private File baseDirectory;
