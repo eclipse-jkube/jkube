@@ -28,16 +28,14 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
-import mockit.Expectations;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Check various configurations for spring-boot health checks
@@ -46,20 +44,16 @@ import static org.junit.Assert.assertNull;
  */
 public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
-    @Mocked
     protected JKubeEnricherContext context;
 
     protected SpringBootConfigurationHelper propertyHelper;
 
     @Before
     public void init() {
+        context = mock(JKubeEnricherContext.class);
         String version = getSpringBootVersion();
         this.propertyHelper = new SpringBootConfigurationHelper(Optional.of(version));
-
-        new Expectations() {{
-            context.getDependencyVersion(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID);
-            result = Optional.of(version);
-        }};
+        when(context.getDependencyVersion(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID)).thenReturn(Optional.of(version));
     }
 
     protected abstract String getSpringBootVersion();
@@ -560,18 +554,8 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     public void testDefaultInitialDelayForLivenessAndReadiness() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         withProjectProperties(new Properties());
-
-        new Expectations(){{
-            context.getProjectClassLoaders();
-            result = new ProjectClassLoaders(
-                    new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())) {
-                @Override
-                public boolean isClassInCompileClasspath(boolean all, String... clazz) {
-                    return true;
-                }
-            };
-        }};
-
+        when(context.getProjectClassLoaders()).thenReturn(new ProjectClassLoaders(
+                new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())));
 
         Probe probe = enricher.getReadinessProbe();
         assertNotNull(probe);
@@ -592,19 +576,9 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         enricherConfig.put("timeoutSeconds", "120");
 
         final ProcessorConfig config = new ProcessorConfig(null,null, globalConfig);
-        new Expectations() {
-            {
-                context.getConfiguration();
-                result = Configuration.builder().processorConfig(config).build();
-                context.getProjectClassLoaders();
-                result = new ProjectClassLoaders(
-                        new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())) {
-                    @Override
-                    public boolean isClassInCompileClasspath(boolean all, String... clazz) {
-                        return true;
-                    }
-                };
-            }};
+        when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
+        when(context.getProjectClassLoaders()).thenReturn(new ProjectClassLoaders(
+                        new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())));
         withProjectProperties(new Properties());
 
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
@@ -633,17 +607,9 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         enricherConfig.put("livenessProbePeriodSeconds", "50");
 
         final ProcessorConfig config = new ProcessorConfig(null,null, globalConfig);
-        new Expectations() {{
-            context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
-            context.getProjectClassLoaders();
-            result = new ProjectClassLoaders(
-                    new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())) {
-                @Override
-                public boolean isClassInCompileClasspath(boolean all, String... clazz) {
-                    return true;
-                }
-            };
-        }};
+        when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
+        when(context.getProjectClassLoaders()).thenReturn(new ProjectClassLoaders(
+                new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())));
         withProjectProperties(new Properties());
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
 
