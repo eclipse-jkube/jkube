@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
+
+import mockit.Expectations;
+import mockit.Mocked;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,14 +30,14 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class QuarkusModeTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+  @Mocked
   private JavaProject project;
 
   private File target;
@@ -46,11 +49,14 @@ public class QuarkusModeTest {
     target = temporaryFolder.newFolder("target");
     compileClassPathElements = new ArrayList<>();
     projectProperties = new Properties();
-    project = mock(JavaProject.class);
-    when(project.getCompileClassPathElements()).thenReturn(compileClassPathElements);
-    when(project.getOutputDirectory()).thenReturn(target);
-    when(project.getBuildDirectory()).thenReturn(target);
-    when(project.getProperties()).thenReturn(projectProperties);
+    // @formatter:off
+    new Expectations() {{
+      project.getCompileClassPathElements(); result = compileClassPathElements;
+      project.getOutputDirectory(); result = target;
+      project.getBuildDirectory(); result = target; minTimes = 0;
+      project.getProperties(); result = projectProperties;
+    }};
+    // @formatter:on
   }
 
   @Test

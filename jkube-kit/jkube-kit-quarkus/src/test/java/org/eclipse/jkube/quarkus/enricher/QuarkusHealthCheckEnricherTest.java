@@ -19,6 +19,8 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
+import mockit.Expectations;
+import mockit.Mocked;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.assertj.core.groups.Tuple;
@@ -37,22 +39,22 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class QuarkusHealthCheckEnricherTest {
+
+  @Mocked
   private JKubeEnricherContext context;
+
+  @Mocked
   private JavaProject javaProject;
+
   private Properties properties;
   private ProcessorConfig processorConfig;
   private KubernetesListBuilder klb;
 
   @Before
   public void setUp() {
-    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-    javaProject = mock(JavaProject.class);
     properties = new Properties();
     processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
@@ -71,10 +73,13 @@ public class QuarkusHealthCheckEnricherTest {
           .endTemplate()
         .endSpec()
         .build());
-    when(context.getProperties()).thenReturn(properties);
-    when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
-    when(javaProject.getProperties()).thenReturn(properties);
-    when(javaProject.getOutputDirectory()).thenReturn(new File("/tmp/ignored"));
+    new Expectations() {{
+      context.getProperties(); result = properties;
+      context.getConfiguration().getProcessorConfig(); result = processorConfig;
+      javaProject.getProperties(); result = properties; minTimes = 0;
+      javaProject.getOutputDirectory(); result = new File("/tmp/ignored"); minTimes = 0;
+    }};
+    // @formatter:on
   }
 
   @Test
@@ -287,15 +292,24 @@ public class QuarkusHealthCheckEnricherTest {
   }
 
   private void withQuarkus(String version) {
-    when(javaProject.getDependencies()).thenReturn(Collections.singletonList(Dependency.builder()
-            .groupId("io.quarkus")
-            .artifactId("quarkus-universe-bom")
-            .version(version)
-            .build()));
+    // @formatter:off
+    new Expectations() {{
+      javaProject.getDependencies();
+      result = Collections.singletonList(Dependency.builder()
+              .groupId("io.quarkus")
+              .artifactId("quarkus-universe-bom")
+              .version(version)
+              .build());
+    }};
+    // @formatter:on
   }
 
   private void withSmallryeDependency() {
-    when(context.hasDependency("io.quarkus", "quarkus-smallrye-health")).thenReturn(true);
+    // @formatter:off
+    new Expectations() {{
+      context.hasDependency("io.quarkus", "quarkus-smallrye-health"); result = true;
+    }};
+    // @formatter:on
   }
 
 }
