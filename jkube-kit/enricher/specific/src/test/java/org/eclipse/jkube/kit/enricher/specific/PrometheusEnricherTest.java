@@ -25,31 +25,31 @@ import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unused")
 public class PrometheusEnricherTest {
 
-  @Mocked
   private JKubeEnricherContext context;
   private PrometheusEnricher prometheusEnricher;
 
   @Before
   public void setUp() {
+    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     prometheusEnricher = new PrometheusEnricher(context);
   }
-  @SuppressWarnings("ResultOfMethodCallIgnored")
+
   private void initContext(ProcessorConfig config, ImageConfiguration imageConfiguration) {
-    // @formatter:off
-    new Expectations() {{
-      context.getConfiguration(); result = Configuration.builder().processorConfig(config).image(imageConfiguration).build();
-    }};
-    // @formatter:on
+    when(context.getConfiguration()).thenReturn(Configuration.builder()
+        .processorConfig(config)
+        .image(imageConfiguration)
+        .build());
   }
 
   @Test
