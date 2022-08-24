@@ -201,7 +201,6 @@ class QuarkusHealthCheckEnricherTest {
 
   }
 
-
   @Test
   @DisplayName("and custom absolute non-root property, should return customized paths")
   void create_withQuarkus2_1AndAbsoluteNonApplicationRootPathProperty_shouldReturnCustomizedPaths() {

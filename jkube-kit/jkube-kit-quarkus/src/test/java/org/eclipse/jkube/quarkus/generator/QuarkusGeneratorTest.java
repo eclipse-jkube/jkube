@@ -37,8 +37,6 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -49,9 +47,12 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 /**
  * @author jzuriaga
@@ -63,9 +64,6 @@ class QuarkusGeneratorTest {
 
   @TempDir
   Path temporaryFolder;
-
-  @Mocked
-  private DefaultImageLookup defaultImageLookup;
 
   private File targetDir;
   private ProcessorConfig config;
@@ -93,12 +91,6 @@ class QuarkusGeneratorTest {
       .config(config)
       .strategy(JKubeBuildStrategy.s2i)
       .build();
-    // @formatter:off
-    new Expectations() {{
-      defaultImageLookup.getImageName("java.upstream.docker"); result = "quarkus/docker";
-      defaultImageLookup.getImageName("java.upstream.s2i"); result = "quarkus/s2i";
-    }};
-    // @formatter:on
   }
 
   @Nested
@@ -146,23 +138,29 @@ class QuarkusGeneratorTest {
     @Test
     @DisplayName("in OpenShift, should return image based on s2i")
     void inOpenShift_shouldReturnS2iFrom() {
-      // Given
-      in(RuntimeMode.OPENSHIFT);
-      // When
-      final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
-      // Then
-      assertBuildFrom(result, "quarkus/s2i");
+      try (MockedConstruction<DefaultImageLookup> ignored = mockConstruction(DefaultImageLookup.class,
+        (mock, ctx) ->  when(mock.getImageName("java.upstream.s2i")).thenReturn("quarkus/s2i"))) {
+        // Given
+        in(RuntimeMode.OPENSHIFT);
+        // When
+        final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
+        // Then
+        assertBuildFrom(result, "quarkus/s2i");
+      }
     }
 
     @Test
     @DisplayName("in Kubernetes, should return image based on docker")
     void inKubernetes_shouldReturnDockerFrom() {
-      // Given
-      in(RuntimeMode.KUBERNETES);
-      // When
-      final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
-      // Then
-      assertBuildFrom(result, "quarkus/docker");
+      try (MockedConstruction<DefaultImageLookup> ignored = mockConstruction(DefaultImageLookup.class,
+        (mock, ctx) ->  when(mock.getImageName("java.upstream.docker")).thenReturn("quarkus/docker"))) {
+        // Given
+        in(RuntimeMode.KUBERNETES);
+        // When
+        final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
+        // Then
+        assertBuildFrom(result, "quarkus/docker");
+      }
     }
 
     @Test
