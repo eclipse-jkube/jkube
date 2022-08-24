@@ -15,11 +15,14 @@ package org.eclipse.jkube.quarkus.generator;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.DefaultImageLookup;
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -37,25 +40,26 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author jzuriaga
  */
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
-public class QuarkusGeneratorTest {
+class QuarkusGeneratorTest {
 
   private static final String BASE_JAVA_IMAGE = "java:latest";
   private static final String BASE_NATIVE_IMAGE = "fedora:latest";
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  Path temporaryFolder;
 
   @Mocked
   private DefaultImageLookup defaultImageLookup;
@@ -70,12 +74,12 @@ public class QuarkusGeneratorTest {
   private ProcessorConfig config;
   private Properties projectProps;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     config = new ProcessorConfig();
     projectProps = new Properties();
     projectProps.put("jkube.generator.name", "quarkus");
-    baseDir = temporaryFolder.newFolder("target");
+    baseDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     // @formatter:off
     new Expectations() {{
       project.getVersion(); result = "0.0.1-SNAPSHOT"; minTimes = 0;
@@ -94,38 +98,22 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void isApplicable_withNoDependencies_shouldReturnFalse() {
+  void isApplicable_withNoDependencies_shouldReturnFalse() {
     // When
     final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
     // Then
     assertThat(result).isFalse();
   }
 
-  @Test
-  public void isApplicable_withQuarkusGroupIdPlugin_shouldReturnTrue() {
+  @ParameterizedTest(name = "With  ''{0}''  groupID and  ''{1}''  artifactID should be true")
+  @MethodSource("isApplicableTestData")
+  void isApplicable(String groupID, String artifactID) {
     // Given
     // @formatter:off
     new Expectations() {{
       project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-          .groupId("io.quarkus")
-          .artifactId("quarkus-maven-plugin")
-          .build());
-    }};
-    // @formatter:on
-    // When
-    final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
-    // Then
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  public void isApplicable_withQuarkusPlatformGroupIdPlugin_shouldReturnTrue() {
-    // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-        .groupId("io.quarkus.platform")
-        .artifactId("quarkus-maven-plugin")
+        .groupId(groupID)
+        .artifactId(artifactID)
         .build());
     }};
     // @formatter:on
@@ -135,43 +123,17 @@ public class QuarkusGeneratorTest {
     assertThat(result).isTrue();
   }
 
-  @Test
-  public void isApplicable_withRedHatBuildOfQuarkusGroupIdPlugin_shouldReturnTrue() {
-    // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-          .groupId("com.redhat.quarkus.platform")
-          .artifactId("quarkus-maven-plugin")
-          .version("2.2.5.SP2-redhat-0003")
-          .build());
-    }};
-    // @formatter:on
-    // When
-    final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
-    // Then
-    assertThat(result).isTrue();
+  public static Stream<Arguments> isApplicableTestData() {
+    return Stream.of(
+            Arguments.of("io.quarkus", "quarkus-maven-plugin"),
+            Arguments.of("io.quarkus.platform", "quarkus-maven-plugin"),
+            Arguments.of("com.redhat.quarkus.platform", "quarkus-maven-plugin"),
+            Arguments.of("io.quarkus", "io.quarkus.gradle.plugin")
+    );
   }
 
   @Test
-  public void isApplicable_withQuarkusGradlePlugin_shouldReturnTrue() {
-    // Given
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = Collections.singletonList(Plugin.builder()
-        .groupId("io.quarkus")
-        .artifactId("io.quarkus.gradle.plugin")
-        .build());
-    }};
-    // @formatter:on
-    // When
-    final boolean result = new QuarkusGenerator(ctx).isApplicable(new ArrayList<>());
-    // Then
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  public void customize_inOpenShift_shouldReturnS2iFrom() {
+  void customize_inOpenShift_shouldReturnS2iFrom() {
     // Given
     in(RuntimeMode.OPENSHIFT);
     // When
@@ -181,7 +143,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void customize_inKubernetes_shouldReturnDockerFrom() {
+  void customize_inKubernetes_shouldReturnDockerFrom() {
     // Given
     in(RuntimeMode.KUBERNETES);
     // When
@@ -191,7 +153,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void customize_inOpenShift_shouldReturnNativeS2iFrom() throws IOException {
+  void customize_inOpenShift_shouldReturnNativeS2iFrom() throws IOException {
     // Given
     in(RuntimeMode.OPENSHIFT);
     setNativeConfig(false);
@@ -202,7 +164,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void customize_inKubernetes_shouldReturnNativeUbiFrom() throws IOException {
+  void customize_inKubernetes_shouldReturnNativeUbiFrom() throws IOException {
     // Given
     in(RuntimeMode.KUBERNETES);
     setNativeConfig(false);
@@ -213,7 +175,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void customize_withConfiguredImage_shouldReturnConfigured() {
+  void customize_withConfiguredImage_shouldReturnConfigured() {
     config.getConfig().put("quarkus", Collections.singletonMap("from", BASE_JAVA_IMAGE));
     QuarkusGenerator generator = new QuarkusGenerator(ctx);
     List<ImageConfiguration> existingImages = new ArrayList<>();
@@ -224,7 +186,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void customize_withConfiguredNativeImage_shouldReturnConfiguredNative() throws IOException {
+  void customize_withConfiguredNativeImage_shouldReturnConfiguredNative() throws IOException {
     setNativeConfig(false);
     config.getConfig().put("quarkus", Collections.singletonMap("from", BASE_NATIVE_IMAGE));
 
@@ -237,7 +199,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void customize_withConfiguredInProperties_shouldReturnConfigured() {
+  void customize_withConfiguredInProperties_shouldReturnConfigured() {
     projectProps.put("jkube.generator.quarkus.from", BASE_JAVA_IMAGE);
 
     QuarkusGenerator generator = new QuarkusGenerator(ctx);
@@ -250,7 +212,7 @@ public class QuarkusGeneratorTest {
 
 
   @Test
-  public void customize_withConfiguredNativeInProperties_shouldReturnConfiguredNative() throws IOException {
+  void customize_withConfiguredNativeInProperties_shouldReturnConfiguredNative() throws IOException {
     setNativeConfig(false);
     projectProps.put("jkube.generator.quarkus.from", BASE_NATIVE_IMAGE);
 
@@ -263,7 +225,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void isFatJar_withDefaults_shouldBeFalse() {
+  void isFatJar_withDefaults_shouldBeFalse() {
     // When
     final boolean result = new QuarkusGenerator(ctx).isFatJar();
     // Then
@@ -271,7 +233,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_withFastJarInTarget_shouldReturnFastJarAssemblyInImage() throws IOException {
+  void assembly_withFastJarInTarget_shouldReturnFastJarAssemblyInImage() throws IOException {
     // Given
     withFastJarInTarget(baseDir);
     // When
@@ -280,8 +242,7 @@ public class QuarkusGeneratorTest {
     // Then
     assertThat(resultImages)
         .isNotNull()
-        .hasSize(1)
-        .element(0)
+        .singleElement()
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
@@ -306,7 +267,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_manualNativeSettings_shouldReturnNativeAssemblyInImage() throws IOException {
+  void assembly_manualNativeSettings_shouldReturnNativeAssemblyInImage() throws IOException {
     // Given
     setNativeConfig(false);
     // When
@@ -315,13 +276,12 @@ public class QuarkusGeneratorTest {
     // Then
     assertThat(resultImages)
         .isNotNull()
-        .hasSize(1)
-        .element(0)
+        .singleElement()
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/")
         .extracting(AssemblyConfiguration::getLayers)
-        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+        .asList().singleElement().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)
@@ -330,7 +290,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_withNativeBinaryInTarget_shouldReturnNativeAssemblyInImage() throws IOException {
+  void assembly_withNativeBinaryInTarget_shouldReturnNativeAssemblyInImage() throws IOException {
     // Given
     withNativeBinaryInTarget(baseDir);
     // When
@@ -339,13 +299,12 @@ public class QuarkusGeneratorTest {
     // Then
     assertThat(resultImages)
         .isNotNull()
-        .hasSize(1)
-        .element(0)
+        .singleElement()
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/")
         .extracting(AssemblyConfiguration::getLayers)
-        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+        .asList().singleElement().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)
@@ -354,7 +313,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_withLegacyJarInTarget_shouldReturnDefaultAssemblyInImage() throws IOException {
+  void assembly_withLegacyJarInTarget_shouldReturnDefaultAssemblyInImage() throws IOException {
     // Given
     withLegacyJarInTarget();
     // When
@@ -363,8 +322,7 @@ public class QuarkusGeneratorTest {
     // Then
     assertThat(resultImages)
         .isNotNull()
-        .hasSize(1)
-        .element(0)
+        .singleElement()
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
@@ -388,21 +346,19 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_withConfiguredPackagingAndNoJar_shouldThrowException() {
+  void assembly_withConfiguredPackagingAndNoJar_shouldThrowException() {
     // Given
     projectProps.put("quarkus.package.type", "legacy-jar");
     final QuarkusGenerator quarkusGenerator = new QuarkusGenerator(ctx);
     final List<ImageConfiguration> list = new ArrayList<>();
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class, () ->
-        quarkusGenerator.customize(list, false));
-    // Then
-    assertThat(result)
-        .hasMessageContaining("Can't find single file with suffix '-runner.jar'");
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(() -> quarkusGenerator.customize(list, false))
+        .withMessageContaining("Can't find single file with suffix '-runner.jar'");
   }
 
   @Test
-  public void assembly_withUberJarInTarget_shouldReturnAssemblyWithSingleJar() throws IOException {
+  void assembly_withUberJarInTarget_shouldReturnAssemblyWithSingleJar() throws IOException {
     // Given
 //    projectProps.put("quarkus.package.type", "uber-jar");
     withUberJarInTarget();
@@ -412,13 +368,12 @@ public class QuarkusGeneratorTest {
     // Then
     assertThat(resultImages)
         .isNotNull()
-        .hasSize(1)
-        .element(0)
+        .singleElement()
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
         .extracting(AssemblyConfiguration::getLayers)
-        .asList().hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+        .asList().singleElement().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
         .asList()
         .hasSize(1)
@@ -427,7 +382,7 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_withManualConfigAndFastJarAndLegacyInTarget_shouldReturnAssemblyForQuarkusAppInImage() throws IOException {
+  void assembly_withManualConfigAndFastJarAndLegacyInTarget_shouldReturnAssemblyForQuarkusAppInImage() throws IOException {
     // Given
     projectProps.put("quarkus.package.type", "fast-jar");
     withFastJarInTarget(baseDir);
@@ -438,8 +393,7 @@ public class QuarkusGeneratorTest {
     // Then
     assertThat(resultImages)
         .isNotNull()
-        .hasSize(1)
-        .element(0)
+        .singleElement()
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
@@ -464,17 +418,16 @@ public class QuarkusGeneratorTest {
   }
 
   @Test
-  public void assembly_withManualFastJarConfigAndLegacyInTarget_shouldThrowException() throws IOException {
+  void assembly_withManualFastJarConfigAndLegacyInTarget_shouldThrowException() throws IOException {
     // Given
     projectProps.put("quarkus.package.type", "fast-jar");
     withLegacyJarInTarget();
     final QuarkusGenerator qg = new QuarkusGenerator(ctx);
     final List<ImageConfiguration> configs = Collections.emptyList();
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class, () ->
-        qg.customize(configs, false));
-    // Then
-    assertThat(result).hasMessageContaining("The quarkus-app directory required in Quarkus Fast Jar mode was not found");
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(() -> qg.customize(configs, false))
+        .withMessageContaining("The quarkus-app directory required in Quarkus Fast Jar mode was not found");
   }
 
   private void assertBuildFrom (List<ImageConfiguration> resultImages, String baseImage) {
@@ -524,7 +477,7 @@ public class QuarkusGeneratorTest {
 
   private void createFakeNativeImage (boolean fastJAR) throws IOException {
     File runnerExec = new File(
-        fastJAR ? temporaryFolder.newFolder("target/quarkus-app") : baseDir,
+        fastJAR ? Files.createDirectories(temporaryFolder.resolve("target").resolve("quarkus-app")).toFile() : baseDir,
         "sample-runner");
     runnerExec.createNewFile();
   }
