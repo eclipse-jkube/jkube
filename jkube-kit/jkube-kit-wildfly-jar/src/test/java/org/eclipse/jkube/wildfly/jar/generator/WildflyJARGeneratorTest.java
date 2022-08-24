@@ -14,6 +14,11 @@
 package org.eclipse.jkube.wildfly.jar.generator;
 
 import java.io.File;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,8 +34,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,19 +42,25 @@ import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.PLUGIN_OPTIONS;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  */
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class WildflyJARGeneratorTest {
 
-    @Mocked
+
     private GeneratorContext context;
 
-    @Mocked
+
     private JavaProject project;
+    @Before
+    public void setUp() throws Exception {
+        context = mock(GeneratorContext.class);
+        project = mock(JavaProject.class);
+    }
 
     @Test
     public void notApplicable() throws IOException {
@@ -76,7 +85,8 @@ public class WildflyJARGeneratorTest {
     }
     
     @Test
-    public void slimServer(@Mocked final JavaProject project) throws IOException {
+    public void slimServer() throws IOException {
+        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
@@ -108,7 +118,8 @@ public class WildflyJARGeneratorTest {
     }
     
     @Test
-    public void slimServerAbsoluteDir(@Mocked final JavaProject project) throws IOException {
+    public void slimServerAbsoluteDir() throws IOException {
+        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-project2");
@@ -138,7 +149,8 @@ public class WildflyJARGeneratorTest {
     }
     
     @Test
-    public void slimServerNoDir(@Mocked final JavaProject project) throws Exception {
+    public void slimServerNoDir() throws Exception {
+        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-project2");
@@ -166,7 +178,8 @@ public class WildflyJARGeneratorTest {
     }
     
     @Test
-    public void slimServerNoRepo(@Mocked final JavaProject project) {
+    public void slimServerNoRepo() throws IOException {
+        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
@@ -179,7 +192,8 @@ public class WildflyJARGeneratorTest {
     }
     
     @Test
-    public void slimServerNoDist(@Mocked final JavaProject project) {
+    public void slimServerNoDist() throws IOException {
+        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
@@ -191,7 +205,8 @@ public class WildflyJARGeneratorTest {
     }
     
     @Test
-    public void slimServerFalseDist(@Mocked final JavaProject project) {
+    public void slimServerFalseDist() throws IOException {
+        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
@@ -204,7 +219,8 @@ public class WildflyJARGeneratorTest {
     }
     
     @Test
-    public void slimServerTrueDist(@Mocked final JavaProject project) {
+    public void slimServerTrueDist() throws IOException {
+        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
@@ -226,37 +242,22 @@ public class WildflyJARGeneratorTest {
         lst.add(plugin);
         ProcessorConfig c = new ProcessorConfig(null, null, Collections.emptyMap());
         if (dir == null) {
-            new Expectations() {
-                {
-                    project.getPlugins();
-                    result = lst;
-                    context.getProject();
-                    result = project;
-                }
-            };
+            when(project.getPlugins()).thenReturn(lst);
+            when(context.getProject()).thenReturn(project);
         } else {
-            new Expectations() {
-                {
-                    project.getPlugins();
-                    result = lst;
-                    project.getBaseDirectory();
-                    result = dir.toFile();
-                    context.getProject();
-                    result = project;
-                }
-            };
+            when(project.getPlugins()).thenReturn(lst);
+            when(project.getBaseDirectory()).thenReturn(dir.toFile());
+            when(context.getProject()).thenReturn(project);
         }
         return context;
     }
 
     private GeneratorContext createGeneratorContext() throws IOException {
-        new Expectations() {{
-            context.getProject(); result = project;
+            when(context.getProject()).thenReturn(project);
             String tempDir = Files.createTempDirectory("wildfly-jar-test-project").toFile().getAbsolutePath();
-            project.getOutputDirectory(); result = tempDir;
-            project.getPlugins(); result = Collections.emptyList(); minTimes = 0;
-            project.getVersion(); result = "1.0.0"; minTimes = 0;
-        }};
+            when(project.getOutputDirectory()).thenReturn(new File(tempDir));
+            when(project.getPlugins()).thenReturn(Collections.emptyList());
+            when(project.getVersion()).thenReturn("1.0.0");
         return context;
     }
 }
