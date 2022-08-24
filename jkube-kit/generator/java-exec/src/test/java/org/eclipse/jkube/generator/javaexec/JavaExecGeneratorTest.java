@@ -23,34 +23,29 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.Plugin;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 class JavaExecGeneratorTest {
-
-  @Mocked
   private GeneratorContext generatorContext;
   private List<Plugin> plugins;
   private Properties properties;
 
+
   @BeforeEach
   void setUp() {
+    generatorContext = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
     properties = new Properties();
     plugins = new ArrayList<>();
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getProperties(); result = properties; minTimes = 0;
-      generatorContext.getProject().getPlugins(); result = plugins; minTimes = 0;
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getProperties()).thenReturn(properties);
+    when(generatorContext.getProject().getPlugins()).thenReturn(plugins);
   }
 
   @Test
@@ -95,17 +90,14 @@ class JavaExecGeneratorTest {
   }
 
   @Test
-  void createAssemblyWithFatJarShouldAddDefaultFileSetsAndFatJar(
-      @Mocked FatJarDetector fatJarDetector, @Mocked FatJarDetector.Result fjResult) {
+  void createAssemblyWithFatJarShouldAddDefaultFileSetsAndFatJar() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildPackageDirectory(); result = new File("");
-      generatorContext.getProject().getBaseDirectory(); result = new File("");
-      fjResult.getArchiveFile(); result = new File("fat.jar");
-      fatJarDetector.scan(); result = fjResult;
-    }};
-    // @formatter:on
+    FatJarDetector fatJarDetector = mock(FatJarDetector.class);
+    FatJarDetector.Result fjResult = mock(FatJarDetector.Result.class);
+    when(generatorContext.getProject().getBuildPackageDirectory()).thenReturn(new File(""));
+    when(generatorContext.getProject().getBaseDirectory()).thenReturn(new File(""));
+    when(fjResult.getArchiveFile()).thenReturn(new File("fat.jar"));
+    when(fatJarDetector.scan()).thenReturn(fjResult);
     // When
     final AssemblyConfiguration result = new JavaExecGenerator(generatorContext).createAssembly();
     // Then

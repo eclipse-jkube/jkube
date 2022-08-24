@@ -29,14 +29,13 @@ import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Checking how the JavaExecGenerator checks the need to set a main class as environment variable JAVA_MAIN_CLASS
@@ -44,31 +43,23 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Oliver Weise
  */
-
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 class JavaExecGeneratorMainClassDeterminationTest {
-
-    @Mocked
     private KitLogger log;
-    @Mocked
     private JavaProject project;
-    @Mocked
     private FatJarDetector fatJarDetector;
-    @Mocked
     private FatJarDetector.Result fatJarDetectorResult;
-    @Mocked
     private MainClassDetector mainClassDetector;
     private ProcessorConfig processorConfig;
-
     @BeforeEach
-    void setUp() {
+    public void setUp() {
+        log = mock(KitLogger.class);
+        project = mock(JavaProject.class);
+        fatJarDetector = mock(FatJarDetector.class);
+        fatJarDetectorResult = mock(FatJarDetector.Result.class);
+        mainClassDetector = mock(MainClassDetector.class);
         processorConfig = new ProcessorConfig();
-        // @formatter:off
-        new Expectations() {{
-            project.getVersion(); result = "1.33.7-SNAPSHOT";
-            project.getOutputDirectory(); result = "/the/output/directory";
-        }};
-        // @formatter:on
+        when(project.getVersion()).thenReturn("1.33.7-SNAPSHOT");
+        when(project.getOutputDirectory()).thenReturn(new File("/the/output/directory"));
     }
 
     /**
@@ -107,17 +98,12 @@ class JavaExecGeneratorMainClassDeterminationTest {
      *
      */
     @Test
-    void testMainClassDeterminationFromDetectionOnNonFatJar(@Injectable File baseDir) {
+    void testMainClassDeterminationFromDetectionOnNonFatJar() {
+        File baseDir = mock(File.class);
         processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheNonFatJarImageName"));
-        new Expectations() {{
-            project.getBaseDirectory();
-            result = baseDir;
-            fatJarDetector.scan();
-            result = null;
-            mainClassDetector.getMainClass();
-            result = "the.detected.MainClass";
-        }};
-
+        when(project.getBaseDirectory()).thenReturn(baseDir);
+        when(fatJarDetector.scan()).thenReturn(null);
+        when(mainClassDetector.getMainClass()).thenReturn("the.detected.MainClass");
         final GeneratorContext generatorContext = GeneratorContext.builder()
                 .project(project)
                 .config(processorConfig)
@@ -143,19 +129,17 @@ class JavaExecGeneratorMainClassDeterminationTest {
      *
      */
     @Test
-    void testMainClassDeterminationFromFatJar(
-            @Mocked FileUtil fileUtil, @Injectable File baseDir, @Injectable File fatJarArchive) {
+    void testMainClassDeterminationFromFatJar() {
+        FileUtil fileUtil = mock(FileUtil.class);
+        File baseDir = mock(File.class);
+        File fatJarArchive = mock(File.class);
         processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheFatJarImageName"));
-        new Expectations() {{
-            project.getBaseDirectory();
-            result = baseDir;
-            fileUtil.getRelativePath(withInstanceOf(File.class), withInstanceOf(File.class));
-            result = baseDir;
-            fatJarDetector.scan();
-            result = fatJarDetectorResult;
-            fatJarDetectorResult.getArchiveFile();
-            result = fatJarArchive;
-        }};
+        when(project.getBaseDirectory()).thenReturn(baseDir);
+        when(fileUtil.getRelativePath(any(File.class), any(File.class))).thenReturn(baseDir);
+        when(fatJarDetector.scan()).thenReturn(fatJarDetectorResult);
+        when(fatJarDetectorResult.getArchiveFile()).thenReturn(fatJarArchive);
+        when(fatJarDetector.scan()).thenReturn(fatJarDetectorResult);
+        when(fatJarDetectorResult.getArchiveFile()).thenReturn(fatJarArchive);
         final GeneratorContext generatorContext = GeneratorContext.builder()
                 .project(project)
                 .config(processorConfig)

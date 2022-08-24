@@ -27,11 +27,12 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
@@ -40,9 +41,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 class JavaRunGeneratorTest {
 
-  @Mocked
   GeneratorContext ctx;
-
+  @BeforeEach
+  public void setUp() {
+    ctx = mock(GeneratorContext.class);
+  }
   @Test
   void fromSelector() throws IOException {
     final List<TestCase> testCases = Arrays.asList(
@@ -71,12 +74,8 @@ class JavaRunGeneratorTest {
           Plugin.builder().groupId("org.eclipse.jkube").artifactId("openshift-maven-plugin")
               .version(testCase.version).configuration(Collections.emptyMap()).build()));
     }
-    new Expectations() {{
-      ctx.getRuntimeMode();
-      result = testCase.mode;
-      ctx.getStrategy();
-      result = testCase.strategy;
-    }};
+    when(ctx.getRuntimeMode()).thenReturn(testCase.mode);
+    when(ctx.getStrategy()).thenReturn(testCase.strategy);
   }
 
   private Properties getDefaultImageProps() throws IOException {
