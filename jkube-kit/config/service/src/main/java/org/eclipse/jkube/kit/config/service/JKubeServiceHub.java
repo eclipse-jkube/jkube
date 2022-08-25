@@ -33,6 +33,7 @@ import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
+import org.eclipse.jkube.kit.config.service.plugins.PluginManager;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 
 import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
@@ -55,6 +56,7 @@ public class JKubeServiceHub implements Closeable {
     @Setter
     private RuntimeMode platformMode;
     private LazyBuilder<BuildServiceManager> buildServiceManager;
+    private LazyBuilder<PluginManager> pluginManager;
     private final LazyBuilder<ResourceService> resourceService;
     private LazyBuilder<PortForwardService> portForwardService;
     private LazyBuilder<ApplyService> applyService;
@@ -102,6 +104,7 @@ public class JKubeServiceHub implements Closeable {
         clusterAccessLazyBuilder = new LazyBuilder<>(this::initClusterAccessIfNecessary);
         kubernetesClientLazyBuilder = new LazyBuilder<>(() -> getClusterAccess().createDefaultClient());
         buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
+        pluginManager = new LazyBuilder<>(() -> new PluginManager(this));
         applyService = new LazyBuilder<>(() -> new ApplyService(getClient(), log));
         portForwardService = new LazyBuilder<>(() -> {
             getClient();
@@ -137,6 +140,10 @@ public class JKubeServiceHub implements Closeable {
 
     public BuildService getBuildService() {
         return buildServiceManager.get().resolveBuildService();
+    }
+
+    public PluginManager getPluginManager() {
+        return pluginManager.get();
     }
 
     public ResourceService getResourceService() {
