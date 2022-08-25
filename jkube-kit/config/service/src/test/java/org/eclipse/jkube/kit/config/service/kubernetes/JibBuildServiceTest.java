@@ -55,6 +55,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -238,6 +239,18 @@ public class JibBuildServiceTest {
         new JibBuildService(mockedServiceHub).build(imageConfiguration);
         // Then
         jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.buildContainer(any(), any(), any()), times(0));
+    }
+
+    @Test
+    public void build_shouldCallPluginServiceAddFiles() throws JKubeServiceException {
+        // Given
+        imageConfiguration = ImageConfiguration.builder()
+          .name("test/foo:latest")
+          .build();
+        // When
+        new JibBuildService(mockedServiceHub).build(imageConfiguration);
+        // Then
+        verify(mockedServiceHub.getPluginManager().resolvePluginService(), times(1)).addExtraFiles();
     }
 
     private static JKubeConfiguration createJKubeConfiguration(File projectBaseDir) {

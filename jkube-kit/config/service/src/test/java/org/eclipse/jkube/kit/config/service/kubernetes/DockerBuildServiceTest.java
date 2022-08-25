@@ -94,6 +94,15 @@ public class DockerBuildServiceTest {
   }
 
   @Test
+  public void build_withValidConfiguration_shouldCallPluginServiceAddFiles() throws Exception {
+    // When
+    new DockerBuildService(mockedJKubeServiceHub).build(image);
+    // Then
+    verify(mockedJKubeServiceHub.getPluginManager().resolvePluginService(), times(1))
+      .addExtraFiles();
+  }
+
+  @Test
   public void build_withImageBuildConfigurationSkipEnabled_shouldNotBuildAndTag() throws Exception {
     // When
     new DockerBuildService(mockedJKubeServiceHub).build(imageWithSkipEnabled);

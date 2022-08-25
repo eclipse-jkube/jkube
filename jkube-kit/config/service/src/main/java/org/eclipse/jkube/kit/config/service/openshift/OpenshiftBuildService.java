@@ -34,8 +34,6 @@ import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;

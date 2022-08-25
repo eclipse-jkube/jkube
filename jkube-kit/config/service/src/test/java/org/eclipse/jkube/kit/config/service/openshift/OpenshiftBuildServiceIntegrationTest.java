@@ -81,6 +81,8 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class OpenshiftBuildServiceIntegrationTest {
@@ -201,6 +203,17 @@ public class OpenshiftBuildServiceIntegrationTest {
     assertEquals("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i-suffix2\",\"namespace\":\"ns1\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}", collector.getBodies().get(1));
     collector.assertEventsNotRecorded("patch-build-config");
     assertTrue(containsRequest("imagestreams"));
+  }
+
+  @Test
+  public void build_shouldCallPluginServiceAddFiles() throws JKubeServiceException {
+    // Given
+    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
+    prepareMockServer(config, true, false, false, false);
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+    // Then
+    verify(jKubeServiceHub.getPluginManager().resolvePluginService(), times(1)).addExtraFiles();
   }
 
   @Test
