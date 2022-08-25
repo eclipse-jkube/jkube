@@ -13,10 +13,10 @@
  */
 package org.eclipse.jkube.micronaut.enricher;
 
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
-
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -33,22 +33,23 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 
 public class MicronautHealthCheckEnricherTest {
 
   private JKubeEnricherContext context;
-  private MicronautUtils micronautUtils;
-
+  private MockedStatic<MicronautUtils> micronautUtils;
   private Properties properties;
   private ProcessorConfig processorConfig;
   private KubernetesListBuilder klb;
@@ -57,7 +58,7 @@ public class MicronautHealthCheckEnricherTest {
   @Before
   public void setUp() {
     context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
-    micronautUtils = mock(MicronautUtils.class,RETURNS_DEEP_STUBS);
+    micronautUtils = Mockito.mockStatic(MicronautUtils.class);
     properties = new Properties();
     processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
@@ -67,6 +68,10 @@ public class MicronautHealthCheckEnricherTest {
     when(context.getProperties()).thenReturn(properties);
     when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
     micronautHealthCheckEnricher = new MicronautHealthCheckEnricher(context);
+  }
+  @After
+  public void tearDown() {
+    micronautUtils.close();
   }
 
   @Test
@@ -170,9 +175,9 @@ public class MicronautHealthCheckEnricherTest {
         .contains("/health", "/health", 1337);
   }
 
-  @SuppressWarnings({"AccessStaticViaInstance", "ConstantConditions"})
+
   private void withHealthEnabled() {
-    when(micronautUtils.isHealthEnabled(any())).thenReturn(true);
+    micronautUtils.when(() -> MicronautUtils.isHealthEnabled(any())).thenReturn(true);
   }
   private void withMicronautMavenPlugin() {
     when(context.hasPlugin("io.micronaut.build", "micronaut-maven-plugin")).thenReturn(true);
