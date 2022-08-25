@@ -67,6 +67,7 @@ public class MicronautHealthCheckEnricherTest {
         .build());
     when(context.getProperties()).thenReturn(properties);
     when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
+    when(context.getConfiguration().getImages()).thenReturn(Collections.emptyList());
     micronautHealthCheckEnricher = new MicronautHealthCheckEnricher(context);
   }
   @After
