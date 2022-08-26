@@ -40,7 +40,6 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 class JavaRunGeneratorTest {
-
   GeneratorContext ctx;
   @BeforeEach
   public void setUp() {

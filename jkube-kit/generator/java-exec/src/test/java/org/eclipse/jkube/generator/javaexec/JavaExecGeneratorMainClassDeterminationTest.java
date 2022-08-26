@@ -31,6 +31,8 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,6 +63,7 @@ class JavaExecGeneratorMainClassDeterminationTest {
         when(project.getVersion()).thenReturn("1.33.7-SNAPSHOT");
         when(project.getOutputDirectory()).thenReturn(new File("/the/output/directory"));
     }
+
 
     /**
      * The main class is determined via config in a non-fat-jar deployment
@@ -130,34 +133,35 @@ class JavaExecGeneratorMainClassDeterminationTest {
      */
     @Test
     void testMainClassDeterminationFromFatJar() {
-        FileUtil fileUtil = mock(FileUtil.class);
-        File baseDir = mock(File.class);
-        File fatJarArchive = mock(File.class);
-        processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheFatJarImageName"));
-        when(project.getBaseDirectory()).thenReturn(baseDir);
-        when(fileUtil.getRelativePath(any(File.class), any(File.class))).thenReturn(baseDir);
-        when(fatJarDetector.scan()).thenReturn(fatJarDetectorResult);
-        when(fatJarDetectorResult.getArchiveFile()).thenReturn(fatJarArchive);
-        when(fatJarDetector.scan()).thenReturn(fatJarDetectorResult);
-        when(fatJarDetectorResult.getArchiveFile()).thenReturn(fatJarArchive);
-        final GeneratorContext generatorContext = GeneratorContext.builder()
-                .project(project)
-                .config(processorConfig)
-                .strategy(JKubeBuildStrategy.docker)
-                .logger(log)
-                .build();
+        try(MockedStatic<FileUtil> fileUtil = Mockito.mockStatic(FileUtil.class)){
+            File baseDir = mock(File.class);
+            File fatJarArchive = mock(File.class);
+            processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheFatJarImageName"));
+            when(project.getBaseDirectory()).thenReturn(baseDir);
+            fileUtil.when(() -> FileUtil.getRelativePath(any(File.class), any(File.class))).thenReturn(baseDir);
+            when(fatJarDetector.scan()).thenReturn(fatJarDetectorResult);
+            when(fatJarDetectorResult.getArchiveFile()).thenReturn(fatJarArchive);
+            when(fatJarDetector.scan()).thenReturn(fatJarDetectorResult);
+            when(fatJarDetectorResult.getArchiveFile()).thenReturn(fatJarArchive);
+            final GeneratorContext generatorContext = GeneratorContext.builder()
+                    .project(project)
+                    .config(processorConfig)
+                    .strategy(JKubeBuildStrategy.docker)
+                    .logger(log)
+                    .build();
 
-        JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
+            JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
 
-        List<ImageConfiguration> customized = generator.customize(new ArrayList<>(), false);
+            List<ImageConfiguration> customized = generator.customize(new ArrayList<>(), false);
 
-        assertThat(customized).singleElement()
-                .hasFieldOrPropertyWithValue("name", "TheFatJarImageName")
-                .extracting(ImageConfiguration::getBuildConfiguration)
-                .extracting(BuildConfiguration::getEnv)
-                .asInstanceOf(InstanceOfAssertFactories.MAP)
-                .as("Main Class is NOT set as environment variable#")
-                .doesNotContainEntry("JAVA_MAIN_CLASS", null);
+            assertThat(customized).singleElement()
+                    .hasFieldOrPropertyWithValue("name", "TheFatJarImageName")
+                    .extracting(ImageConfiguration::getBuildConfiguration)
+                    .extracting(BuildConfiguration::getEnv)
+                    .asInstanceOf(InstanceOfAssertFactories.MAP)
+                    .as("Main Class is NOT set as environment variable#")
+                    .doesNotContainEntry("JAVA_MAIN_CLASS", null);
+        }
     }
 
 }
