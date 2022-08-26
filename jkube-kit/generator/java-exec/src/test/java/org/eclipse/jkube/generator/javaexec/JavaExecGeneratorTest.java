@@ -26,11 +26,13 @@ import org.eclipse.jkube.kit.common.Plugin;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 class JavaExecGeneratorTest {
@@ -41,7 +43,7 @@ class JavaExecGeneratorTest {
 
   @BeforeEach
   void setUp() {
-    generatorContext = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
+    generatorContext = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
     properties = new Properties();
     plugins = new ArrayList<>();
     when(generatorContext.getProject().getProperties()).thenReturn(properties);
@@ -91,27 +93,31 @@ class JavaExecGeneratorTest {
 
   @Test
   void createAssemblyWithFatJarShouldAddDefaultFileSetsAndFatJar() {
-    // Given
-    FatJarDetector fatJarDetector = mock(FatJarDetector.class);
-    FatJarDetector.Result fjResult = mock(FatJarDetector.Result.class);
-    when(generatorContext.getProject().getBuildPackageDirectory()).thenReturn(new File(""));
-    when(generatorContext.getProject().getBaseDirectory()).thenReturn(new File(""));
-    when(fjResult.getArchiveFile()).thenReturn(new File("fat.jar"));
-    when(fatJarDetector.scan()).thenReturn(fjResult);
-    // When
-    final AssemblyConfiguration result = new JavaExecGenerator(generatorContext).createAssembly();
-    // Then
-    assertThat(result)
-        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
-        .extracting(AssemblyConfiguration::getLayers).asList().hasSize(1)
-        .first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
-        .extracting(Assembly::getFileSets).asList()
-        .hasSize(3)
-        .extracting("directory", "includes")
-        .containsExactlyInAnyOrder(
-            tuple(new File("src/main/jkube-includes"), Collections.emptyList()),
-            tuple(new File("src/main/jkube-includes/bin"), Collections.emptyList()),
-            tuple(new File(""), Collections.singletonList("fat.jar"))
-        );
+    try (MockedConstruction<FatJarDetector> fatJarDetector = mockConstruction(FatJarDetector.class,
+        (mock, ctx) -> {
+          FatJarDetector.Result mockedResult = mock(FatJarDetector.Result.class);
+          when(mockedResult.getArchiveFile()).thenReturn(new File("fat.jar"));
+          when(mock.scan()).thenReturn(mockedResult);
+        })) {
+      // Given
+      when(generatorContext.getProject().getBuildPackageDirectory()).thenReturn(new File(""));
+      when(generatorContext.getProject().getBaseDirectory()).thenReturn(new File(""));
+      // When
+      final AssemblyConfiguration result = new JavaExecGenerator(generatorContext).createAssembly();
+      // Then
+      assertThat(fatJarDetector.constructed()).hasSize(1);
+      assertThat(result)
+          .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
+          .extracting(AssemblyConfiguration::getLayers).asList().hasSize(1)
+          .first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+          .extracting(Assembly::getFileSets).asList()
+          .hasSize(3)
+          .extracting("directory", "includes")
+          .containsExactlyInAnyOrder(
+              tuple(new File("src/main/jkube-includes"), Collections.emptyList()),
+              tuple(new File("src/main/jkube-includes/bin"), Collections.emptyList()),
+              tuple(new File(""), Collections.singletonList("fat.jar"))
+          );
+    }
   }
 }
