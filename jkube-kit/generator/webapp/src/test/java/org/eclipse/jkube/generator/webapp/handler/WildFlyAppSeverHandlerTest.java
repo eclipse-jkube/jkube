@@ -27,9 +27,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -52,12 +52,12 @@ public class WildFlyAppSeverHandlerTest {
   public void isApplicableHasJmsXmlShouldReturnTrue() throws IOException {
     // Given
     when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    assertThat(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile()).isTrue();
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -67,8 +67,8 @@ public class WildFlyAppSeverHandlerTest {
     when(plugin.getGroupId()).thenReturn("io.thorntail");
     when(plugin.getArtifactId()).thenReturn("thorntail-maven-plugin");
     when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
-    assertTrue(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    assertThat(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile()).isTrue();
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -79,7 +79,7 @@ public class WildFlyAppSeverHandlerTest {
   public void isApplicableHasNoApplicableFilesShouldReturnFalse() throws IOException {
     // Given
     when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -95,7 +95,7 @@ public class WildFlyAppSeverHandlerTest {
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -108,7 +108,7 @@ public class WildFlyAppSeverHandlerTest {
     assertCommonValues(handler);
     assertEquals("jboss/wildfly:25.0.0.Final", handler.getFrom());
     assertEquals("/opt/jboss/wildfly/standalone/deployments", handler.getDeploymentDir());
-    assertTrue(handler.runCmds().isEmpty());
+    assertThat(handler.runCmds()).isEmpty();
   }
 
   @Test
@@ -136,11 +136,12 @@ public class WildFlyAppSeverHandlerTest {
     assertCommonValues(handler);
     assertEquals("quay.io/wildfly/wildfly-centos7:26.0", handler.getFrom());
     assertEquals("/deployments", handler.getDeploymentDir());
-    assertTrue(handler.runCmds().isEmpty());
+    assertThat(handler.runCmds()).isEmpty();
   }
 
   private static void assertCommonValues(WildFlyAppSeverHandler handler) {
-    assertTrue(handler.supportsS2iBuild());
+
+    assertThat(handler.supportsS2iBuild()).isTrue();
     assertEquals("deployments", handler.getAssemblyName());
     assertEquals("/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0", handler.getCommand());
     assertEquals("jboss:jboss:jboss", handler.getUser());

@@ -25,7 +25,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,7 +36,7 @@ public class TomcatAppSeverHandlerTest {
 
   private GeneratorContext generatorContext;
 
-  Plugin plugin;
+  private Plugin plugin;
 
   @Before
   public void setUp() {
@@ -49,8 +48,8 @@ public class TomcatAppSeverHandlerTest {
   public void isApplicableHasContextXmlShouldReturnTrue() throws IOException {
     // Given
     when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF"), "context.xml").createNewFile());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    assertThat(new File(temporaryFolder.newFolder("META-INF"), "context.xml").createNewFile()).isTrue();
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -61,7 +60,7 @@ public class TomcatAppSeverHandlerTest {
   public void isApplicableHasNotContextXmlShouldReturnFalse() throws IOException {
     // Given
     when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
