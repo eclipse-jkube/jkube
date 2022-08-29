@@ -37,7 +37,6 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 class KarafGeneratorTest {
   @TempDir
   File temporaryFolder;
@@ -91,37 +90,37 @@ class KarafGeneratorTest {
     // Then
     assertThat(originalImageConfigurations).isSameAs(result);
     assertThat(result)
-            .singleElement()
-            .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
-            .hasFieldOrPropertyWithValue("alias", "karaf")
-            .extracting(ImageConfiguration::getBuildConfiguration)
-            .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
-            .hasFieldOrPropertyWithValue("ports", Arrays.asList("8181", "8778"))
-            .extracting(BuildConfiguration::getEnv)
-            .asInstanceOf(InstanceOfAssertFactories.MAP)
-            .containsOnly(
-                    entry("DEPLOYMENTS_DIR", "/deployments"),
-                    entry("KARAF_HOME", "/deployments/karaf")
-            );
+        .singleElement()
+        .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
+        .hasFieldOrPropertyWithValue("alias", "karaf")
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
+        .hasFieldOrPropertyWithValue("ports", Arrays.asList("8181", "8778"))
+        .extracting(BuildConfiguration::getEnv)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsOnly(
+             entry("DEPLOYMENTS_DIR", "/deployments"),
+             entry("KARAF_HOME", "/deployments/karaf")
+        );
     assertThat(result.iterator().next().getBuildConfiguration().getAssembly())
-            .hasFieldOrPropertyWithValue("name", "deployments")
-            .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", false)
-            .extracting(AssemblyConfiguration::getLayers).asList()
-            .singleElement()
-            .extracting("fileSets").asList()
-            .extracting("directory", "outputDirectory", "directoryMode", "fileMode")
-            .containsExactly(
-                    tuple(
-                            new File(temporaryFolder, "assembly"),
-                            new File("karaf"),
-                            "0775",
-                            null),
-                    tuple(
-                            temporaryFolder.toPath().resolve("assembly").resolve("bin").toFile(),
-                            new File("karaf", "bin"),
-                            "0775",
-                            "0777")
-            );
+        .hasFieldOrPropertyWithValue("name", "deployments")
+        .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", false)
+        .extracting(AssemblyConfiguration::getLayers).asList()
+        .singleElement()
+        .extracting("fileSets").asList()
+        .extracting("directory", "outputDirectory", "directoryMode", "fileMode")
+        .containsExactly(
+            tuple(
+         new File(temporaryFolder, "assembly"),
+                new File("karaf"),
+                "0775",
+                null),
+            tuple(
+         temporaryFolder.toPath().resolve("assembly").resolve("bin").toFile(),
+                new File("karaf", "bin"),
+                "0775",
+                "0777")
+        );
   }
 
   @Test
@@ -136,11 +135,13 @@ class KarafGeneratorTest {
     when(generatorContext.getProject().getProperties()).thenReturn(props);
     // When
     final List<ImageConfiguration> result = new KarafGenerator(generatorContext)
-            .customize(originalImageConfigurations, false);
+        .customize(originalImageConfigurations, false);
     // Then
-    assertThat(result).hasSize(1);
-    final ImageConfiguration imageConfiguration = result.iterator().next();
-    assertThat(imageConfiguration.getBuildConfiguration().getPorts()).contains("8080", "8778");
-    assertThat(imageConfiguration.getBuildConfiguration().getEnv()).containsEntry("DEPLOYMENTS_DIR","/other-dir");
+    assertThat(result).singleElement()
+            .extracting(ImageConfiguration::getBuildConfiguration)
+            .hasFieldOrPropertyWithValue("ports", Arrays.asList("8080", "8778"))
+            .extracting(BuildConfiguration::getEnv)
+            .asInstanceOf(InstanceOfAssertFactories.MAP)
+            .containsEntry("DEPLOYMENTS_DIR", "/other-dir");
   }
 }
