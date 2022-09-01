@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.config.image.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -24,11 +23,9 @@ import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.Fail.fail;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
@@ -159,10 +156,10 @@ public class BuildConfigurationTest {
   @Test
   public void compressionStringInvalid() {
     final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
-    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> builder.compressionString("bzip"));
-    assertThat(result)
-        .hasMessageStartingWith("No enum constant")
-        .hasMessageEndingWith("ArchiveCompression.bzip");
+    Assertions.assertThatThrownBy(() ->builder.compressionString("bzip")).
+            isInstanceOf(IllegalArgumentException.class)
+            .hasMessageStartingWith("No enum constant")
+            .hasMessageEndingWith("ArchiveCompression.bzip");
   }
 
   @Test

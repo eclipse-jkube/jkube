@@ -14,8 +14,9 @@
 package org.eclipse.jkube.kit.config.image.build;
 
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests the health check configuration
@@ -100,7 +101,8 @@ public class HealthCheckConfigTest {
                 .mode(HealthCheckMode.none)
                 .interval("2s")
                 .build();
-        Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        assertThatThrownBy(healthCheckConfiguration::validate).
+                isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -109,7 +111,8 @@ public class HealthCheckConfigTest {
                 .mode(HealthCheckMode.none)
                 .retries(1)
                 .build();
-        Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        assertThatThrownBy(healthCheckConfiguration::validate).
+                isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -118,7 +121,8 @@ public class HealthCheckConfigTest {
                 .mode(HealthCheckMode.none)
                 .timeout("3s")
                 .build();
-        Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        assertThatThrownBy(healthCheckConfiguration::validate).
+        isInstanceOf(IllegalArgumentException.class);
 
     }
 
@@ -129,7 +133,8 @@ public class HealthCheckConfigTest {
                 .startPeriod("30s")
                 .cmd(Arguments.builder().shell("echo a").build())
                 .build();
-        Assertions.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        assertThatThrownBy(healthCheckConfiguration::validate).
+                isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -138,14 +143,16 @@ public class HealthCheckConfigTest {
                 .mode(HealthCheckMode.none)
                 .cmd(Arguments.builder().shell("echo a").build())
                 .build();
-        Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        assertThatThrownBy(healthCheckConfiguration::validate)
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void testBadHealthCheck6() {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .build();
-        Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        assertThatThrownBy(healthCheckConfiguration::validate)
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -153,7 +160,8 @@ public class HealthCheckConfigTest {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.cmd)
                 .build();
-        Assert.assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        assertThatThrownBy(healthCheckConfiguration::validate).
+                isInstanceOf(IllegalArgumentException.class);
     }
 
 }
