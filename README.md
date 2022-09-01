@@ -109,7 +109,7 @@ $ mvn k8s:log
 
 ## Troubleshooting
 
-If you experience problems using minikube that pod's status shows 'ImagePullBackOff' and not 'Completed' you must share the minikube's docker deamon environment with your shell with:
+If you experience problems using minikube that pod's status shows 'ImagePullBackOff' and not 'Completed' you must share the minikube's docker daemon environment with your shell with:
 ```shell script
 $ eval $(minikube docker-env)
 ```
