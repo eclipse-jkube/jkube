@@ -84,6 +84,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <version.asciidoctor-maven-plugin>2.2.1</version.asciidoctor-maven-plugin>
     <version.asciidoctorj>2.2.0</version.asciidoctorj>
+    <version.assertj-core>3.23.1</version.assertj-core>
     <version.citrus>3.2.1</version.citrus>
     <version.commons-io>2.8.0</version.commons-io>
     <version.gradle>6.1.1</version.gradle>
@@ -95,7 +96,8 @@
     <version.json-smart>2.4.8</version.json-smart> <!-- Transitive dependency  required by citrus -->
     <version.junit5>5.8.2</version.junit5>
     <version.junit>4.13.2</version.junit>
-    <version.assertj-core>3.23.1</version.assertj-core>
+    <version.kubernetes-client>6.1.1</version.kubernetes-client>
+    <version.license-maven-plugin>3.0</version.license-maven-plugin>
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
@@ -112,7 +114,6 @@
     <version.mockito>4.6.1</version.mockito>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
-    <version.license-maven-plugin>3.0</version.license-maven-plugin>
     <project.build.outputTimestamp>2022-05-24T08:06:45Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>

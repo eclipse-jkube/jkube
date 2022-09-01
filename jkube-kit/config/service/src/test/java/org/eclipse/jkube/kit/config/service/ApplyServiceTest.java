@@ -322,21 +322,25 @@ public class ApplyServiceTest {
                 .build())
             .once();
         mockServer.expect().delete()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
-                .andReply(collector.record("delete-cr-virtualservice").andReturn(HTTP_OK, "{\"kind\":\"Status\",\"status\":\"Success\"}"))
-                .once();
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
+            .andReply(collector.record("delete-cr-virtualservice")
+            .andReturn(HTTP_OK, "{\"kind\":\"Status\",\"apiVersion\":\"v1\",\"status\":\"Success\"}"))
+            .once();
         mockServer.expect().delete()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
-                .andReply(collector.record("delete-cr-gateway").andReturn(HTTP_OK, "{\"kind\":\"Status\",\"status\":\"Success\"}"))
-                .once();
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
+            .andReply(collector.record("delete-cr-gateway")
+            .andReturn(HTTP_OK, "{\"kind\":\"Status\",\"apiVersion\":\"v1\",\"status\":\"Success\"}"))
+            .once();
         mockServer.expect().post()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices")
-                .andReply(collector.record("post-cr-virtualservice").andReturn(HTTP_OK, "{}"))
-                .once();
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices")
+            .andReply(collector.record("post-cr-virtualservice")
+            .andReturn(HTTP_OK, "{\"kind\":\"VirtualService\",\"apiVersion\":\"networking.istio.io/v1alpha3\"}"))
+            .once();
         mockServer.expect().post()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways")
-                .andReply(collector.record("post-cr-gateway").andReturn(HTTP_OK, "{}"))
-                .once();
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways")
+            .andReply(collector.record("post-cr-gateway")
+            .andReturn(HTTP_OK, "{\"kind\":\"Gateway\",\"apiVersion\":\"networking.istio.io/v1alpha3\"}"))
+            .once();
         applyService.setRecreateMode(true);
 
         // When
