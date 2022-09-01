@@ -43,6 +43,7 @@ Usage:
 * Fix #1670: Bump Quarkus native base image to ubi-minimal:8.6
 * Fix #1679: Bump jib-core to 0.21.0
 * Fix #1689: Bump JKube maintained base images to 0.0.16
+* Fix #1736: Bump Fabric8 Kubernetes Client to 6.1.1
 
 _**Note**_:
 - Enricher configuration `jkube.enricher.jkube-controller.pullPolicy` has been marked as deprecated, use `jkube.imagePullPolicy` property instead.
