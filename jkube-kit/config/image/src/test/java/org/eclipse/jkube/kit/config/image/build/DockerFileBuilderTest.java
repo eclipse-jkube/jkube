@@ -312,8 +312,7 @@ class DockerFileBuilderTest {
     ;
 
     String expected = loadFile("docker/Dockerfile_multistage.test");
-    System.out.println(dockerfileFinalFile);
-    System.out.println("--------------------");
+
     assertThat(stripCR(dockerfileFinalFile)).isEqualTo(expected);
   }
 
