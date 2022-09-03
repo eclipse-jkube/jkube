@@ -17,7 +17,6 @@ package org.eclipse.jkube.generator.webapp.handler;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
@@ -26,10 +25,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -72,7 +68,7 @@ public class WildFlyAppSeverHandlerTest {
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertFalse(result);
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -83,7 +79,7 @@ public class WildFlyAppSeverHandlerTest {
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertFalse(result);
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -106,8 +102,8 @@ public class WildFlyAppSeverHandlerTest {
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
     assertCommonValues(handler);
-    assertEquals("jboss/wildfly:25.0.0.Final", handler.getFrom());
-    assertEquals("/opt/jboss/wildfly/standalone/deployments", handler.getDeploymentDir());
+    assertThat((handler.getFrom())).isEqualTo("jboss/wildfly:25.0.0.Final");
+    assertThat(handler.getDeploymentDir()).isEqualTo("/opt/jboss/wildfly/standalone/deployments");
     assertThat(handler.runCmds()).isEmpty();
   }
 
@@ -120,9 +116,9 @@ public class WildFlyAppSeverHandlerTest {
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
     assertCommonValues(handler);
-    assertEquals("jboss/wildfly:25.0.0.Final", handler.getFrom());
-    assertEquals("/opt/jboss/wildfly/standalone/deployments", handler.getDeploymentDir());
-    assertEquals(Collections.singletonList("chmod -R a+rw /opt/jboss/wildfly/standalone/"), handler.runCmds());
+    assertThat(handler.getFrom()).isEqualTo("jboss/wildfly:25.0.0.Final");
+    assertThat(handler.getDeploymentDir()).isEqualTo("/opt/jboss/wildfly/standalone/deployments");
+    assertThat(handler.runCmds()).isEqualTo(Collections.singletonList("chmod -R a+rw /opt/jboss/wildfly/standalone/"));
   }
 
   @Test
@@ -134,18 +130,18 @@ public class WildFlyAppSeverHandlerTest {
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
     assertCommonValues(handler);
-    assertEquals("quay.io/wildfly/wildfly-centos7:26.0", handler.getFrom());
-    assertEquals("/deployments", handler.getDeploymentDir());
+    assertThat(handler.getFrom()).isEqualTo("quay.io/wildfly/wildfly-centos7:26.0");
+    assertThat(handler.getDeploymentDir()).isEqualTo("/deployments");
     assertThat(handler.runCmds()).isEmpty();
   }
 
   private static void assertCommonValues(WildFlyAppSeverHandler handler) {
 
     assertThat(handler.supportsS2iBuild()).isTrue();
-    assertEquals("deployments", handler.getAssemblyName());
-    assertEquals("/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0", handler.getCommand());
-    assertEquals("jboss:jboss:jboss", handler.getUser());
-    assertEquals(Collections.singletonMap("GALLEON_PROVISION_LAYERS", "cloud-server,web-clustering"), handler.getEnv());
-    assertEquals(Collections.singletonList("8080"), handler.exposedPorts());
+    assertThat(handler.getAssemblyName()).isEqualTo("deployments");
+    assertThat(handler.getCommand()).isEqualTo("/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0");
+    assertThat(handler.getUser()).isEqualTo("jboss:jboss:jboss");
+    assertThat(handler.getEnv()).isEqualTo(Collections.singletonMap("GALLEON_PROVISION_LAYERS", "cloud-server,web-clustering"));
+    assertThat(handler.exposedPorts()).isEqualTo(Collections.singletonList("8080")).isEqualTo( handler.exposedPorts());
   }
 }
