@@ -20,23 +20,21 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.ParameterBuilder;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.interpolateTemplateVariables;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
-@SuppressWarnings({"AccessStaticViaInstance", "ConstantConditions", "unused"})
 class TemplateUtilTest {
-
-  @Mocked
   private FileUtils fileUtils;
 
   private KubernetesListBuilder klb;
@@ -44,6 +42,7 @@ class TemplateUtilTest {
   @BeforeEach
   void initGlobalVariables() {
     klb = new KubernetesListBuilder();
+    fileUtils = mock(FileUtils.class);
   }
 
   @Test
@@ -127,12 +126,7 @@ class TemplateUtilTest {
         .addToParameters(new ParameterBuilder().withName("param1").withValue("value1").build())
         .build());
     mockReadFileToString("One parameter: ${param1}, and non-existent ${oops}");
-    // @formatter:off
-    new Expectations() {{
-      fileUtils.writeStringToFile(null, anyString, Charset.defaultCharset());
-      result = new IOException();
-    }};
-    // @formatter:on
+    doNothing().when(fileUtils).writeStringToFile(null, anyString(), Charset.defaultCharset());
     // When
     final IOException result = assertThrows(IOException.class, () -> {
       interpolateTemplateVariables(klb.build(), null);
@@ -145,22 +139,14 @@ class TemplateUtilTest {
   }
 
   private void mockReadFileToString(Object readString) throws IOException {
-    // @formatter:off
-    new Expectations() {{
-      fileUtils.readFileToString(null, Charset.defaultCharset()); result = readString;
-    }};
-    // @formatter:on
+    doNothing().when(fileUtils).readFileToString(null, Charset.defaultCharset());
   }
 
   private void verifyWriteStringToFile(int numTimes, String expectedString) throws IOException {
-    // @formatter:off
-    new Verifications() {{
-      String s;
-      fileUtils.writeStringToFile(null, s = withCapture(), Charset.defaultCharset()); times = numTimes;
-      if (numTimes > 0) {
-        assertThat(s).isEqualTo(expectedString);
-      }
-    }};
-    // @formatter:on
+    ArgumentCaptor<String> s = ArgumentCaptor.forClass(String.class);
+    doNothing().when(fileUtils).writeStringToFile(null, s.capture(), Charset.defaultCharset());
+    if (numTimes > 0) {
+      assertThat(s).isEqualTo(expectedString);
+    }
   }
 }

@@ -32,25 +32,24 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("unused")
 class DefaultResourceServiceTest {
 
-  @Mocked
   private EnricherManager enricherManager;
-  @Mocked
   private KitLogger kitLogger;
-  @Mocked
   private ResourceConfig resourceConfig;
-  @Mocked
   private JavaProject project;
 
   private File targetDir;
@@ -59,6 +58,10 @@ class DefaultResourceServiceTest {
 
   @BeforeEach
   void init(@TempDir Path temporaryFolder) throws IOException {
+    enricherManager = mock(EnricherManager.class);
+    kitLogger = mock(KitLogger.class);
+    resourceConfig = mock(ResourceConfig.class);
+    project = mock(JavaProject.class);
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     resourceServiceConfig = ResourceServiceConfig.builder()
         .interpolateTemplateParameters(true)
@@ -110,18 +113,14 @@ class DefaultResourceServiceTest {
 
   @SuppressWarnings("AccessStaticViaInstance")
   @Test
-  void writeResources(@Mocked WriteUtil writeUtil, @Mocked TemplateUtil templateUtil) throws IOException {
+  void writeResources() throws IOException {
+    WriteUtil writeUtil = mock(WriteUtil.class);
+    TemplateUtil templateUtil = mock(TemplateUtil.class);
     // When
     defaultResourceService.writeResources(null, ResourceClassifier.KUBERNETES, kitLogger);
     // Then
-    // @formatter:off
-    new Verifications() {{
-      writeUtil.writeResourcesIndividualAndComposite(
-          null, new File(targetDir, "kubernetes"), ResourceFileType.yaml, kitLogger);
-      times = 1;
-      templateUtil.interpolateTemplateVariables(null, (File)any);
-      times = 1;
-    }};
-    // @formatter:on
+    verify(writeUtil.writeResourcesIndividualAndComposite(null, new File(targetDir, "kubernetes"), ResourceFileType.yaml, kitLogger),times(1));
+    doNothing().when(templateUtil).interpolateTemplateVariables(null, any());
+
   }
 }
