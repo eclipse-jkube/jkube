@@ -25,24 +25,23 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"ConstantConditions", "AccessStaticViaInstance", "unused"})
 class WriteUtilTest {
 
   @TempDir
   File temporaryFolder;
-  @Mocked
   private KitLogger log;
-  @Mocked
   private ResourceUtil resourceUtil;
 
   private KubernetesListBuilder klb;
@@ -50,6 +49,8 @@ class WriteUtilTest {
 
   @BeforeEach
   void initGlobalVariables()  {
+    log = mock(KitLogger.class);
+    resourceUtil = mock(ResourceUtil.class);
     klb = new KubernetesListBuilder();
     resourceFileBase = temporaryFolder;
   }
@@ -130,20 +131,11 @@ class WriteUtilTest {
   }
 
   private void mockResourceUtilSave(Object returnValue) throws IOException {
-    // @formatter:off
-    new Expectations() {{
-      resourceUtil.save((File)any, null, null); result = returnValue;
-    }};
-    // @formatter:on
+    when(resourceUtil.save(any(), null, null)).thenReturn((File) returnValue);
   }
 
   private void verifyResourceUtilSave(File file, int numTimes) throws IOException {
-    // @formatter:off
-    new Verifications() {{
-      String s;
-      resourceUtil.save(file, any, null); times = numTimes;
-    }};
-    // @formatter:on
+    verify(resourceUtil,times(numTimes)).save(file, any(), null);
   }
 
   private static GenericKubernetesResource genericCustomResource(String kind, String name) {
