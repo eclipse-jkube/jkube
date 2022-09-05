@@ -231,8 +231,7 @@ public class QuarkusUtils {
   }
 
   static String findQuarkusVersion(JavaProject javaProject) {
-    return Optional.ofNullable(JKubeProjectUtil.getAnyDependencyVersionWithGroupId(javaProject, QUARKUS_GROUP_ID))
-        .orElse(null);
+    return JKubeProjectUtil.getAnyDependencyVersionWithGroupId(javaProject, QUARKUS_GROUP_ID);
   }
 
   private static boolean isAbsolutePath(String path) {

@@ -29,8 +29,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.quarkus.generator.QuarkusGeneratorTest.withFastJarInTarget;
-import static org.eclipse.jkube.quarkus.generator.QuarkusGeneratorTest.withNativeBinaryInTarget;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -60,7 +58,7 @@ class QuarkusGeneratorExposedPortsTest {
   @Test
   void withDefaults_shouldAddDefaults() throws IOException {
     // Given
-    withFastJarInTarget(target);
+    withFastJarInTarget();
     // When
     final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), false);
     // Then
@@ -74,7 +72,7 @@ class QuarkusGeneratorExposedPortsTest {
   @Test
   void withDefaultsInNative_shouldAddDefaultsForNative() throws IOException {
     // Given
-    withNativeBinaryInTarget(target);
+    withNativeBinaryInTarget();
     // When
     final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), false);
     // Then
@@ -88,7 +86,7 @@ class QuarkusGeneratorExposedPortsTest {
   @Test
   void withApplicationProperties_shouldAddConfigured() throws IOException {
     // Given
-    withFastJarInTarget(target);
+    withFastJarInTarget();
     compileClassPathElements.add(
         QuarkusGeneratorExposedPortsTest.class.getResource("/generator-extract-ports").getPath());
     // When
@@ -104,7 +102,7 @@ class QuarkusGeneratorExposedPortsTest {
   @Test
   void withApplicationPropertiesAndProfile_shouldAddConfiguredProfile() throws IOException {
     // Given
-    withFastJarInTarget(target);
+    withFastJarInTarget();
     projectProperties.put("quarkus.profile", "dev");
     compileClassPathElements.add(
         QuarkusGeneratorExposedPortsTest.class.getResource("/generator-extract-ports").getPath());
@@ -116,5 +114,18 @@ class QuarkusGeneratorExposedPortsTest {
         .extracting(BuildConfiguration::getPorts)
         .asList()
         .containsExactly("31337", "8778", "9779");
+  }
+
+  private void withNativeBinaryInTarget() throws IOException {
+    Files.createFile(target.toPath().resolve("sample-runner"));
+  }
+
+  private void withFastJarInTarget() throws IOException {
+    final Path quarkusApp = target.toPath().resolve("quarkus-app");
+    Files.createDirectory(quarkusApp);
+    Files.createDirectory(quarkusApp.resolve("app"));
+    Files.createDirectory(quarkusApp.resolve("lib"));
+    Files.createDirectory(quarkusApp.resolve("quarkus"));
+    Files.createFile(quarkusApp.resolve("quarkus-run.jar"));
   }
 }
