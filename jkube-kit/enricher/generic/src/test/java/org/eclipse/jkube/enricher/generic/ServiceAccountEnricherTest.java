@@ -30,7 +30,6 @@ import org.junit.Test;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -38,7 +37,9 @@ public class ServiceAccountEnricherTest {
     private JKubeEnricherContext context;
     @Before
     public void setUp() {
-        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+        Configuration configuration = mock(Configuration.class);
+        context = mock(JKubeEnricherContext.class);
+        when(context.getConfiguration()).thenReturn(configuration);
     }
     @Override
     protected Object clone() throws CloneNotSupportedException {

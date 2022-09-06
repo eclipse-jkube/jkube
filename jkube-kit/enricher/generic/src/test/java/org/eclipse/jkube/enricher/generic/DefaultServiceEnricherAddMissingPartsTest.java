@@ -18,23 +18,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.assertj.core.groups.Tuple;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 public class DefaultServiceEnricherAddMissingPartsTest {
-  private JKubeEnricherContext context;
 
   private Properties properties;
   private List<ImageConfiguration> images;
@@ -42,16 +43,21 @@ public class DefaultServiceEnricherAddMissingPartsTest {
 
   @Before
   public void setUp() {
-    context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    JKubeEnricherContext context = mock(JKubeEnricherContext.class);
+    Configuration configuration = mock(Configuration.class);
+    GroupArtifactVersion groupArtifactVersion = mock(GroupArtifactVersion.class);
     properties = new Properties();
     images = new ArrayList<>();
     images.add(ImageConfiguration.builder()
         .name("test-image")
         .build(new BuildConfiguration())
         .build());
+    when(configuration.getImages()).thenReturn(images);
+    when(groupArtifactVersion.getSanitizedArtifactId()).thenReturn("artifact-id");
+    when(context.getConfiguration()).thenReturn(configuration);
     when(context.getProperties()).thenReturn(properties);
-    when(context.getConfiguration().getImages()).thenReturn(images);
-    when(context.getGav().getSanitizedArtifactId()).thenReturn("artifact-id");
+    when(context.getGav()).thenReturn(groupArtifactVersion);
+    when(context.getLog()).thenReturn(new KitLogger.SilentLogger());
     enricher = new DefaultServiceEnricher(context);
   }
 

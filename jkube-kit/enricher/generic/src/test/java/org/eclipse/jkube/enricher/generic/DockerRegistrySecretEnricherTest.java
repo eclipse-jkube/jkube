@@ -20,11 +20,13 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import org.apache.commons.codec.binary.Base64;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -43,10 +45,10 @@ import static org.mockito.Mockito.when;
 public class DockerRegistrySecretEnricherTest {
     private JKubeEnricherContext context;
 
-    private String dockerUrl = "docker.io";
-    private String annotation = "jkube.eclipse.org/dockerServerId";
+    private final String ANNOTATION = "jkube.eclipse.org/dockerServerId";
 
-    private void setupExpectations() {
+    @Before
+    public void setupExpectations() {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
         when(context.getConfiguration()).thenReturn(Configuration.builder()
                 .secretConfigLookup(
@@ -57,14 +59,14 @@ public class DockerRegistrySecretEnricherTest {
                             return Optional.of(ret);
                         })
                 .build());
+        when(context.getLog()).thenReturn(new KitLogger.SilentLogger());
     }
 
     @Test
     public void testDockerRegistry() {
-        setupExpectations();
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
-        Secret secretEnriched = createBaseSecret(true, annotation);
+        Secret secretEnriched = createBaseSecret(true, ANNOTATION);
         builder.addToSecretItems(secretEnriched);
         enricher.create(PlatformMode.kubernetes, builder);
 
@@ -84,7 +86,6 @@ public class DockerRegistrySecretEnricherTest {
 
     @Test
     public void testDockerRegistryWithDeprecatedAnnotation() {
-        setupExpectations();
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
         Secret secretEnriched = createBaseSecret(true, "maven.jkube.io/dockerServerId");
@@ -107,12 +108,11 @@ public class DockerRegistrySecretEnricherTest {
 
     @Test
     public void testDockerRegistryWithBadKind() {
-        setupExpectations();
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
-        Secret secret = createBaseSecret(true, annotation);
+        Secret secret = createBaseSecret(true, ANNOTATION);
         secret.setKind("Secrets");
-        builder.addToSecretItems(createBaseSecret(true, annotation));
+        builder.addToSecretItems(createBaseSecret(true, ANNOTATION));
         KubernetesList expected = builder.build();
 
         enricher.create(PlatformMode.kubernetes, builder);
@@ -122,11 +122,10 @@ public class DockerRegistrySecretEnricherTest {
     @Test
     public void testDockerRegistryWithBadAnnotation() {
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
-        setupExpectations();
         KubernetesListBuilder builder = new KubernetesListBuilder();
-        Secret secret = createBaseSecret(true, annotation);
-        secret.getMetadata().getAnnotations().put(annotation, "docker1.io");
-        builder.addToSecretItems(createBaseSecret(true, annotation));
+        Secret secret = createBaseSecret(true, ANNOTATION);
+        secret.getMetadata().getAnnotations().put(ANNOTATION, "docker1.io");
+        builder.addToSecretItems(createBaseSecret(true, ANNOTATION));
 
         KubernetesList expected = builder.build();
 
@@ -140,7 +139,7 @@ public class DockerRegistrySecretEnricherTest {
 
         if (withAnnotation) {
             Map<String, String> annotations = new HashMap<>();
-            annotations.put(annotationValue, dockerUrl);
+            annotations.put(annotationValue, "docker.io");
             metaBuilder = metaBuilder.withAnnotations(annotations);
         }
 

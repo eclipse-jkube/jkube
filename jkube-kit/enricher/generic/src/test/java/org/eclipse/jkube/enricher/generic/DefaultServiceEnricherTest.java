@@ -34,8 +34,6 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -221,7 +219,7 @@ public class DefaultServiceEnricherTest {
 
         // Validate that the generated resource contains
         KubernetesList list = builder.build();
-        assertTrue(list.getItems().isEmpty());
+        assertThat(list.getItems()).isEmpty();
     }
 
     @Test
@@ -240,6 +238,10 @@ public class DefaultServiceEnricherTest {
         ImageConfiguration imageConfigurationWithLabels = ImageConfiguration.builder()
                 .name("test-label")
                 .alias("test")
+                .build(BuildConfiguration.builder()
+                    .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
+                    .ports(Arrays.asList("80", "53/UDP"))
+                    .build())
                 .build();
         final TreeMap<String, Object> config = new TreeMap<>();
         config.put("type", "LoadBalancer");
@@ -249,10 +251,6 @@ public class DefaultServiceEnricherTest {
                     .build();
         when(groupArtifactVersion.getSanitizedArtifactId()).thenReturn("jkube-service");
         when(context.getConfiguration()).thenReturn(configuration);
-        when(imageConfigurationWithLabels.getBuildConfiguration()).thenReturn(BuildConfiguration.builder()
-                .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
-                .ports(Arrays.asList("80", "53/UDP"))
-                .build());
         HasMetadata object = enrich();
         assertPort(object, 0, 9090, 9090, "http", "TCP");
     }
@@ -307,7 +305,7 @@ public class DefaultServiceEnricherTest {
 
         // Validate that the generated resource contains
         KubernetesList list = builder.build();
-        assertEquals(1, list.getItems().size());
+        assertThat(list.getItems()).hasSize(1);
         return list.getItems().get(0);
     }
 

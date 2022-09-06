@@ -18,9 +18,10 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.junit.Before;
@@ -44,7 +45,6 @@ public class DependencyEnricherTest {
 
     private JKubeEnricherContext context;
 
-    private ImageConfiguration imageConfiguration;
     private JavaProject project;
 
     // Some resource files related to test case placed in resources/ directory:
@@ -54,7 +54,9 @@ public class DependencyEnricherTest {
     @Before
     public void setUp() {
         context = mock(JKubeEnricherContext.class);
-        imageConfiguration = mock(ImageConfiguration.class);
+        Configuration configuration = mock(Configuration.class);
+        when(context.getConfiguration()).thenReturn(configuration);
+        when(context.getLog()).thenReturn(new KitLogger.SilentLogger());
         project =mock(JavaProject.class);
     }
     @Test
