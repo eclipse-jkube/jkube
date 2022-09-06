@@ -24,8 +24,6 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
@@ -35,34 +33,30 @@ import java.util.Optional;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author yuwzho
  */
 public class DockerRegistrySecretEnricherTest {
-
-    @Mocked
     private JKubeEnricherContext context;
 
     private String dockerUrl = "docker.io";
     private String annotation = "jkube.eclipse.org/dockerServerId";
 
     private void setupExpectations() {
-        new Expectations() {
-            {{
-                context.getConfiguration();
-                result = Configuration.builder()
-                    .secretConfigLookup(
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+        when(context.getConfiguration()).thenReturn(Configuration.builder()
+                .secretConfigLookup(
                         id -> {
                             Map<String, Object> ret = new HashMap<>();
                             ret.put("username", "username");
                             ret.put("password", "password");
                             return Optional.of(ret);
                         })
-                    .build();
-            }}
-
-        };
+                .build());
     }
 
     @Test

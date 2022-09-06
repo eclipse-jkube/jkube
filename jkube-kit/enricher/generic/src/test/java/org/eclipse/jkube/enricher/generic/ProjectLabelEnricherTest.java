@@ -17,6 +17,9 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Map;
 import java.util.Properties;
@@ -38,8 +41,6 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 
 /**
  * Test label generation.
@@ -47,8 +48,6 @@ import mockit.Mocked;
  * @author Tue Dissing
  */
 public class ProjectLabelEnricherTest {
-
-  @Mocked
   private JKubeEnricherContext context;
 
   private Properties properties;
@@ -56,15 +55,11 @@ public class ProjectLabelEnricherTest {
 
   @Before
   public void setupExpectations() {
+    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     projectLabelEnricher = new ProjectLabelEnricher(context);
     properties = new Properties();
-    // @formatter:off
-    new Expectations() {{
-      context.getProperties(); result = properties;
-      context.getGav();
-      result = new GroupArtifactVersion("groupId", "artifactId", "version");
-    }};
-    // @formatter:on
+    when(context.getProperties()).thenReturn(properties);
+    when(context.getGav()).thenReturn(new GroupArtifactVersion("groupId", "artifactId", "version"));
   }
 
   @Test

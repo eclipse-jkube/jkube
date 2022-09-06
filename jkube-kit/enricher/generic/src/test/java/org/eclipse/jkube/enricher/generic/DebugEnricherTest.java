@@ -25,16 +25,15 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DebugEnricherTest {
-
-  @Mocked
   private JKubeEnricherContext context;
 
   private Properties properties;
@@ -43,10 +42,10 @@ public class DebugEnricherTest {
 
   @Before
   public void setUp() {
+    context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     properties = new Properties();
     processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
-    // @formatter:off
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
           .editOrNewTemplate()
@@ -61,11 +60,8 @@ public class DebugEnricherTest {
           .endTemplate()
         .endSpec()
         .build());
-    new Expectations() {{
-      context.getProperties(); result = properties;
-      context.getConfiguration().getProcessorConfig(); result = processorConfig;
-    }};
-    // @formatter:on
+    when(context.getProperties()).thenReturn(properties);
+    when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
   }
 
   @Test

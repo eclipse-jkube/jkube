@@ -19,8 +19,6 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder;
 import io.fabric8.openshift.api.model.RouteBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -33,12 +31,11 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class DefaultMetadataEnricherTest {
-
-  @SuppressWarnings("unused")
-  @Mocked
   private JKubeEnricherContext buildContext;
 
   private DefaultMetadataEnricher defaultMetadataEnricher;
@@ -53,6 +50,7 @@ public class DefaultMetadataEnricherTest {
 
   @Before
   public void setUp() throws Exception {
+    buildContext = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     Configuration configuration = Configuration.builder()
         .resource(ResourceConfig.builder()
             .annotations(MetaDataConfig.builder()
@@ -71,11 +69,7 @@ public class DefaultMetadataEnricherTest {
                 .build())
             .build())
         .build();
-    // @formatter:off
-    new Expectations() {{
-      buildContext.getConfiguration(); result = configuration;
-    }};
-    // @formatter:on
+    when(buildContext.getConfiguration()).thenReturn(configuration);
     defaultMetadataEnricher = new DefaultMetadataEnricher(buildContext);
     configMap = new ConfigMapBuilder().withNewMetadata().endMetadata();
     deployment = new DeploymentBuilder();

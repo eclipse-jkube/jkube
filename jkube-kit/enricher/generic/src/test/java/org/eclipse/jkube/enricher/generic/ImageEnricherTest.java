@@ -26,38 +26,34 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author nicola
  */
 public class ImageEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
-
-    @Mocked
     ImageConfiguration imageConfiguration;
 
     private ImageEnricher imageEnricher;
 
     @Before
     public void prepareMock() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+        imageConfiguration = mock(ImageConfiguration.class,RETURNS_DEEP_STUBS);
         // Setup mock behaviour
         givenResourceConfigWithEnvVar("MY_KEY", "MY_VALUE");
-        // @formatter:off
-        new Expectations() {{
-            imageConfiguration.getName(); result = "busybox";
-            imageConfiguration.getAlias(); result = "busybox";
-        }};
-        // @formatter:on
+        when(imageConfiguration.getName()).thenReturn("busybox");
+        when(imageConfiguration.getAlias()).thenReturn("busybox");
 
         imageEnricher = new ImageEnricher(context);
     }
@@ -166,16 +162,12 @@ public class ImageEnricherTest {
     }
 
     private void givenResourceConfigWithEnvVar(String name, String value) {
-        // @formatter:off
-        new Expectations() {{
-            Configuration configuration = Configuration.builder()
-              .resource(ResourceConfig.builder()
-                .env(Collections.singletonMap(name, value))
-                .build())
-              .image(imageConfiguration)
-              .build();
-            context.getConfiguration(); result = configuration;
-        }};
-        // @formatter:on
+        Configuration configuration = Configuration.builder()
+                .resource(ResourceConfig.builder()
+                        .env(Collections.singletonMap(name, value))
+                        .build())
+                .image(imageConfiguration)
+                .build();
+        when(context.getConfiguration()).thenReturn(configuration);
     }
 }

@@ -41,30 +41,30 @@ import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressTLSBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.CREATE_EXTERNAL_URLS;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 public class IngressEnricherTest {
-    @Mocked
     private JKubeEnricherContext context;
 
-    @Mocked
     private KitLogger logger;
 
-    @Mocked
     ImageConfiguration imageConfiguration;
 
     private IngressEnricher ingressEnricher;
 
     @Before
     public void setUp() throws Exception {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+        logger = mock(KitLogger.class);
+        imageConfiguration = mock(ImageConfiguration.class);
         ingressEnricher = new IngressEnricher(context);
     }
 
@@ -100,16 +100,8 @@ public class IngressEnricherTest {
                         .build())
                 .build()
             ).build();
-        // @formatter:off
-        new Expectations() {{
-            // Enable creation of Ingress for Service of type LoadBalancer
-            context.getProperty(CREATE_EXTERNAL_URLS);
-            result = "true";
-
-            context.getConfiguration().getResource();
-            result = resourceConfig;
-        }};
-        // @formatter:on
+        when(context.getProperty(CREATE_EXTERNAL_URLS)).thenReturn("true");
+        when(context.getConfiguration().getResource()).thenReturn(resourceConfig);
 
         Service providedService = initTestService().build();
         KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(providedService);
@@ -156,14 +148,9 @@ public class IngressEnricherTest {
     @Test
     public void testGetRouteDomainFromResourceConfig() {
         // Given
-        // @formatter:off
-        new Expectations() {{
-            context.getConfiguration().getResource();
-            result = ResourceConfig.builder()
-              .routeDomain("org.eclipse.jkube")
-              .build();
-        }};
-
+        when(context.getConfiguration().getResource()).thenReturn(ResourceConfig.builder()
+                .routeDomain("org.eclipse.jkube")
+                .build());
         // When
         String result = ingressEnricher.getRouteDomain();
 
@@ -174,13 +161,7 @@ public class IngressEnricherTest {
     @Test
     public void testGetRouteDomainFromProperty() {
         // Given
-        // @formatter:off
-        new Expectations() {{
-            context.getProperty("jkube.domain");
-            result = "org.eclipse.jkube.property";
-        }};
-        // @formatter:on
-
+        when(context.getProperty("jkube.domain")).thenReturn("org.eclipse.jkube.property");
         // When
         String result = ingressEnricher.getRouteDomain();
 
@@ -248,18 +229,13 @@ public class IngressEnricherTest {
         final TreeMap<String, Object> config = new TreeMap<>();
         config.put("host", "test.192.168.39.25.nip.io");
         config.put("targetApiVersion", "networking.k8s.io/v1");
-        new Expectations() {{
-            Configuration configuration = Configuration.builder()
-                    .image(imageConfiguration)
-                    .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-ingress", config)))
-                    .build();
+        Configuration configuration = Configuration.builder()
+                .image(imageConfiguration)
+                .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-ingress", config)))
+                .build();
+        when(context.getConfiguration()).thenReturn(configuration);
+        when(context.getProperty("jkube.createExternalUrls")).thenReturn("true");
 
-            context.getConfiguration();
-            result = configuration;
-
-            context.getProperty("jkube.createExternalUrls");
-            result = "true";
-        }};
         KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
         kubernetesListBuilder.addToItems(initTestService().build());
 

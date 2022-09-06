@@ -22,9 +22,6 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,6 +31,9 @@ import java.util.Properties;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test label generation.
@@ -41,16 +41,12 @@ import static org.junit.Assert.assertNull;
  * @author nicola
  */
 public class MavenProjectEnricherTest {
-
-    @Mocked
     private JKubeEnricherContext context;
 
     @Before
     public void setupExpectations() {
-        new Expectations() {{
-            context.getGav();
-            result = new GroupArtifactVersion("groupId", "artifactId", "version");
-        }};
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+        when(context.getGav()).thenReturn(new GroupArtifactVersion("groupId", "artifactId", "version"));
     }
 
     @Test
@@ -85,11 +81,7 @@ public class MavenProjectEnricherTest {
 
         final Properties properties = new Properties();
         properties.setProperty("jkube.enricher.jkube-project-label.useProjectLabel", "true");
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); result = properties;
-        }};
-        // @formatter:on
+        when(context.getProperties()).thenReturn(properties);
 
         ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
 

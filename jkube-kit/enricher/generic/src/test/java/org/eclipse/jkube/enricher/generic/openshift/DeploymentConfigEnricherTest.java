@@ -15,7 +15,6 @@ package org.eclipse.jkube.enricher.generic.openshift;
 
 import java.util.Properties;
 import java.util.function.Consumer;
-
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
@@ -23,17 +22,15 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfig;
-import mockit.Delegate;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DeploymentConfigEnricherTest {
-
-  @Mocked
   private JKubeEnricherContext context;
 
   private Properties properties;
@@ -42,15 +39,10 @@ public class DeploymentConfigEnricherTest {
 
   @Before
   public void setUp() throws Exception {
+    context = mock(JKubeEnricherContext.class);
     properties = new Properties();
-    // @formatter:off
-    new Expectations() {{
-      context.getProperties(); result = properties; minTimes = 0;
-      context.getProperty(anyString);
-      result = new Delegate<String>() {String delegate(String arg) {return properties.getProperty(arg);}};
-      minTimes = 0;
-    }};
-    // @formatter:on
+    when(context.getProperties()).thenReturn(properties);
+    //when(context.getProperty(anyString())).thenReturn(new Delegate<String>() {String delegate(String arg) {return properties.getProperty(arg);}});
     deploymentConfigEnricher = new DeploymentConfigEnricher(context);
     kubernetesListBuilder = new KubernetesListBuilder();
   }

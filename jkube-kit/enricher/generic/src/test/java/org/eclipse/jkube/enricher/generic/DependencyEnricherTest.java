@@ -23,8 +23,7 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -38,22 +37,26 @@ import java.util.Map;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DependencyEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
 
-    @Mocked
     private ImageConfiguration imageConfiguration;
-
-    @Mocked
     private JavaProject project;
 
     // Some resource files related to test case placed in resources/ directory:
     private static final String OVERRIDE_FRAGMENT_FILE = "/jenkins-kubernetes-cm.yml";
     private static final String ARTIFACT_FILE_PATH = "/jenkins-4.0.41.jar";
 
+    @Before
+    public void setUp() {
+        context = mock(JKubeEnricherContext.class);
+        imageConfiguration = mock(ImageConfiguration.class);
+        project =mock(JavaProject.class);
+    }
     @Test
     public void checkDuplicatesInResource() throws Exception {
         // Generate given Resources
@@ -93,11 +96,7 @@ public class DependencyEnricherTest {
 
     private void setupExpectations() {
         // Setup Mock behaviour
-        new Expectations() {{
-
-            context.getDependencies(true);
-            result = getDummyArtifacts();
-        }};
+        when(context.getDependencies(true)).thenReturn(getDummyArtifacts());
     }
 
     private List<Dependency> getDummyArtifacts() {

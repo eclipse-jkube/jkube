@@ -26,19 +26,17 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.Volume;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -46,10 +44,11 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AutoTLSEnricherTest {
-
-    @Mocked
     private JKubeEnricherContext context;
 
     @AllArgsConstructor
@@ -64,6 +63,10 @@ public class AutoTLSEnricherTest {
         private final String tlsSecretVolumeName;
         private final String jksVolumeNameConfig;
         private final String jksVolumeName;
+    }
+    @Before
+    public void setup() throws Exception {
+         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     }
 
     @Test
@@ -91,16 +94,11 @@ public class AutoTLSEnricherTest {
 
             final Properties properties = new Properties();
             properties.put(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, tc.mode.name());
-
-            // @formatter:off
-            new Expectations() {{
-                Configuration configuration = Configuration.builder()
+            Configuration configuration = Configuration.builder()
                     .processorConfig(config)
                     .build();
-                context.getProperties(); result = properties;
-                context.getConfiguration(); result = configuration;
-            }};
-            // @formatter:on
+            when(context.getProperties()).thenReturn(properties);
+            when(context.getConfiguration()).thenReturn(configuration);
 
             AutoTLSEnricher enricher = new AutoTLSEnricher(context);
             KubernetesListBuilder klb = new KubernetesListBuilder()

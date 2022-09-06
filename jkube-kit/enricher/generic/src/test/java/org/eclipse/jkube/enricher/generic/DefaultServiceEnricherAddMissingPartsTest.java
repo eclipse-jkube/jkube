@@ -25,18 +25,15 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
-@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 public class DefaultServiceEnricherAddMissingPartsTest {
-
-  @Mocked
   private JKubeEnricherContext context;
 
   private Properties properties;
@@ -45,19 +42,16 @@ public class DefaultServiceEnricherAddMissingPartsTest {
 
   @Before
   public void setUp() {
+    context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     properties = new Properties();
     images = new ArrayList<>();
     images.add(ImageConfiguration.builder()
         .name("test-image")
         .build(new BuildConfiguration())
         .build());
-    // @formatter:off
-    new Expectations() {{
-      context.getProperties(); result = properties;
-      context.getConfiguration().getImages(); result = images;
-      context.getGav().getSanitizedArtifactId(); result = "artifact-id";
-    }};
-    // @formatter:on
+    when(context.getProperties()).thenReturn(properties);
+    when(context.getConfiguration().getImages()).thenReturn(images);
+    when(context.getGav().getSanitizedArtifactId()).thenReturn("artifact-id");
     enricher = new DefaultServiceEnricher(context);
   }
 

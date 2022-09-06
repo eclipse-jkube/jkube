@@ -24,18 +24,22 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ServiceAccountEnricherTest {
-    @Mocked
     private JKubeEnricherContext context;
-
+    @Before
+    public void setUp() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    }
     @Override
     protected Object clone() throws CloneNotSupportedException {
         return super.clone();
@@ -140,20 +144,14 @@ public class ServiceAccountEnricherTest {
     }
 
     private void givenServiceAccountConfiguredInResourceConfiguration() {
-        new Expectations() {{
-            context.getConfiguration();
-            result = Configuration.builder()
+        when(context.getConfiguration()).thenReturn(Configuration.builder()
                 .resource(ResourceConfig.builder()
-                    .serviceAccount(ServiceAccountConfig.builder().name("ribbon").deploymentRef("cheese").build()).build())
-                .build();
-        }};
+                        .serviceAccount(ServiceAccountConfig.builder().name("ribbon").deploymentRef("cheese").build()).build())
+                .build());
     }
 
     private void givenProperties(Properties properties) {
-        new Expectations() {{
-            context.getProperties();
-            result = properties;
-        }};
+        when(context.getProperties()).thenReturn(properties);
     }
 
     private DeploymentBuilder createNewDeploymentFragment() {

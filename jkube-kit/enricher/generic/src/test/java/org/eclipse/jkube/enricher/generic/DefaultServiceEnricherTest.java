@@ -29,29 +29,33 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  */
 public class DefaultServiceEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
 
-    @Mocked
     ImageConfiguration imageConfiguration;
 
-    @Mocked
     GroupArtifactVersion groupArtifactVersion;
-
+    @Before
+    public void setUp() {
+        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+        imageConfiguration = mock(ImageConfiguration.class);
+        groupArtifactVersion = mock(GroupArtifactVersion.class);
+    }
     @Test
     public void checkDefaultConfiguration() {
         setupExpectations("type", "LoadBalancer");
@@ -239,27 +243,16 @@ public class DefaultServiceEnricherTest {
                 .build();
         final TreeMap<String, Object> config = new TreeMap<>();
         config.put("type", "LoadBalancer");
-
-        new Expectations() {{
-
-            Configuration configuration = Configuration.builder()
+        Configuration configuration = Configuration.builder()
                     .image(imageConfigurationWithLabels)
                     .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-service", config)))
                     .build();
-
-            groupArtifactVersion.getSanitizedArtifactId();
-            result = "jkube-service";
-
-            context.getConfiguration();
-            result = configuration;
-
-            imageConfigurationWithLabels.getBuildConfiguration();
-            result = BuildConfiguration.builder()
-                    .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
-                    .ports(Arrays.asList("80", "53/UDP"))
-                    .build();
-        }};
-
+        when(groupArtifactVersion.getSanitizedArtifactId()).thenReturn("jkube-service");
+        when(context.getConfiguration()).thenReturn(configuration);
+        when(imageConfigurationWithLabels.getBuildConfiguration()).thenReturn(BuildConfiguration.builder()
+                .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
+                .ports(Arrays.asList("80", "53/UDP"))
+                .build());
         HasMetadata object = enrich();
         assertPort(object, 0, 9090, 9090, "http", "TCP");
     }
@@ -339,20 +332,13 @@ public class DefaultServiceEnricherTest {
         for (int i = 0; i < configParams.length; i += 2) {
                 config.put(configParams[i],configParams[i+1]);
         }
-
-        new Expectations() {{
-
-            Configuration configuration = Configuration.builder()
+        Configuration configuration = Configuration.builder()
                 .image(imageConfiguration)
                 .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-service", config)))
                 .build();
 
-            context.getConfiguration();
-            result = configuration;
-
-            imageConfiguration.getBuildConfiguration();
-            result = initBuildConfig(withPorts);
-        }};
+        when(context.getConfiguration()).thenReturn(configuration);
+        when(imageConfiguration.getBuildConfiguration()).thenReturn(initBuildConfig(withPorts));
     }
 
     private BuildConfiguration initBuildConfig(boolean withPorts) {
