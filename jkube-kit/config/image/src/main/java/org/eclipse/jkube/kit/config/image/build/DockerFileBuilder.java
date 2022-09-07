@@ -43,8 +43,7 @@ public class DockerFileBuilder {
 
   // Base image to use as from
   private String baseImage;
-  //alias for stage
-  private String alias;
+
 
   //List of stages
   private List<DockerFileBuilder> stages = new ArrayList<>();
@@ -377,12 +376,11 @@ public class DockerFileBuilder {
 
   // ==========================================================================
   // Builder stuff ....
-  public DockerFileBuilder() {
-  }
+  public DockerFileBuilder() {}
 
   public DockerFileBuilder alias(String alias) {
     if (alias != null) {
-      this.alias = alias;
+     
       this.baseImage = this.baseImage + " AS " + alias;
     }
     return this;
@@ -395,7 +393,7 @@ public class DockerFileBuilder {
     }
     return this;
   }
-
+ 
   public DockerFileBuilder baseImage(String baseImage) {
     if (baseImage != null) {
       this.baseImage = baseImage;
@@ -454,9 +452,9 @@ public class DockerFileBuilder {
     return this;
   }
   
-  public DockerFileBuilder addFromStage(String source, String destination,String Stage) {
-    if (Stage!=null)
-    this.copyEntries.add(new CopyEntry(source, destination, Stage));
+  public DockerFileBuilder addFromStage(String source, String destination,String stage) {
+    if (stage!=null)
+      this.copyEntries.add(new CopyEntry(source, destination, stage));
     return this;
   }
 

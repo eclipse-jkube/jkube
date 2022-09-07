@@ -280,6 +280,7 @@ class DockerFileBuilderTest {
    * dockerFileSage2 copy from the first stage
    * 
    */
+  @Test
   void testBuildDockerFileMultiStage() throws Exception {
     Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
     DockerFileBuilder dockerfileStage2 = new DockerFileBuilder()
