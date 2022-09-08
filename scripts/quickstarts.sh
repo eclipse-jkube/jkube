@@ -38,7 +38,9 @@ function gradleVersion() {
     -exec sed -i "s/id(\"org.eclipse.jkube.openshift\") version .*$/id(\"org.eclipse.jkube.openshift\") version \"${JKUBE_VERSION}\"/g" {} \;    \
     -exec sed -i "s/\:org.eclipse.jkube.openshift.gradle.plugin\:.*$/\:org.eclipse.jkube.openshift.gradle.plugin\:$JKUBE_VERSION'/g" {} \;       \
     -exec sed -i "s/\:org.eclipse.jkube.kubernetes.gradle.plugin\:.*$/:org.eclipse.jkube.kubernetes.gradle.plugin\:$JKUBE_VERSION'/g" {} \;      \
-    -exec sed -i "s/\:jkube-kit-enricher-api\:.*$/\:jkube-kit-enricher-api\:$JKUBE_VERSION'/g" {} \;
+    -exec sed -i "s/\:jkube-kit-api\:.*$/\:jkube-kit-api\:$JKUBE_VERSION'/g" {} \;                                                               \
+    -exec sed -i "s/\:jkube-kit-enricher-api\:.*$/\:jkube-kit-enricher-api\:$JKUBE_VERSION'/g" {} \;                                             \
+    -exec sed -i "s/\:jkube-kit-generator-api\:.*$/\:jkube-kit-generator-api\:$JKUBE_VERSION'/g" {} \;
 
 }
 
