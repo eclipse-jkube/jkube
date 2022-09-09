@@ -26,7 +26,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>spring-boot-camel-complete</artifactId>
-  <version>1.8.0</version>
+  <version>1.9.0</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Camel</name>
   <packaging>jar</packaging>
 
