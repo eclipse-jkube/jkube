@@ -45,8 +45,9 @@ body:
       label: Eclipse JKube version
       description: Eclipse JKube version (can be found in pom.xml dependency or build.gradle implementation section)
       options:
-        - "1.8.0"
+        - "1.9.0"
         - "SNAPSHOT"
+        - "1.8.0"
         - "1.7.0"
         - "1.6.0"
         - "1.5.1"
