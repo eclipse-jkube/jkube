@@ -73,6 +73,7 @@ public class OpenshiftUndeployServiceTest {
     // @formatter:off
     new Expectations() {{
       jKubeServiceHub.getClient().adapt(OpenShiftClient.class); result = openShiftClient;
+      openShiftClient.isSupported(); result = true;
     }};
     // @formatter:on
   }
@@ -126,7 +127,8 @@ public class OpenshiftUndeployServiceTest {
     withLoadedEntities(entity);
     // @formatter:off
     new Expectations() {{
-      jKubeServiceHub.getClient().adapt(OpenShiftClient.class); result = null;
+      jKubeServiceHub.getClient().adapt(OpenShiftClient.class); result = openShiftClient;
+      openShiftClient.isSupported(); result = false;
     }};
     // @formatter:on
     // When

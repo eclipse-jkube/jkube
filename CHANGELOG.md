@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.10-SNAPSHOT
+* Fix #1747: Upgrading from 1.8.0 to 1.9.0 and now failing with Message: Not Found
 
 ### 1.9.0 (2022-09-09)
 * Fix #777: `k8s:build` with Dockerfile throws `Connection reset by peer` error on old docker daemons

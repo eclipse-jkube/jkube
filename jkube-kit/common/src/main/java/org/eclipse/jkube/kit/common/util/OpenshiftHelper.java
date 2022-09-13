@@ -23,12 +23,10 @@ import java.util.Set;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Parameter;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.client.OpenShiftClient;
-import io.fabric8.openshift.client.OpenShiftNotAvailableException;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -44,11 +42,11 @@ public class OpenshiftHelper {
         if (client instanceof OpenShiftClient) {
             return (OpenShiftClient) client;
         }
-        try {
+
+        if (isOpenShift(client)) {
             return client.adapt(OpenShiftClient.class);
-        } catch (KubernetesClientException | OpenShiftNotAvailableException e) {
-            return null;
         }
+        return null;
     }
 
     public static boolean isOpenShift(KubernetesClient client) {
