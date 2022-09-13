@@ -52,7 +52,7 @@ public class DefaultEnricherManagerTest {
 
   @Test
   public void constructor() {
-    verify(logger).verbose("- %s", "fake-enricher",times(1));
+    verify(logger,times(1)).verbose("- %s", "fake-enricher");
   }
 
   @Test
