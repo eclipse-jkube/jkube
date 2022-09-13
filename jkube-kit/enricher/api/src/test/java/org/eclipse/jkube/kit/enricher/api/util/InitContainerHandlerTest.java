@@ -23,8 +23,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,6 +31,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author roland
@@ -40,13 +41,14 @@ import static org.junit.Assert.fail;
 
 public class InitContainerHandlerTest {
 
-    @Mocked
+
     KitLogger log;
 
     InitContainerHandler handler;
 
     @Before
     public void setUp() {
+        log = mock(KitLogger.class);
         handler = new InitContainerHandler(log);
     }
 
@@ -92,10 +94,7 @@ public class InitContainerHandlerTest {
 
     @Test
     public void existingSame() {
-        new Expectations() {{
-            log.warn(anyString, withSubstring("blub"));
-        }};
-
+        doNothing().when(log).warn(anyString(), anyString());
         PodTemplateSpecBuilder builder = getPodTemplateBuilder("blub", "foo/blub");
         assertTrue(handler.hasInitContainer(builder, "blub"));
         Container initContainer = createInitContainer("blub", "foo/blub");

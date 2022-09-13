@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -24,8 +24,6 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,13 +32,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.mock;
 
 public class JobHandlerTest {
 
-    @Mocked
+
     ProbeHandler probeHandler;
 
-    @Mocked
+
     JavaProject project;
 
     List<String> mounts = new ArrayList<>();
@@ -56,7 +55,8 @@ public class JobHandlerTest {
 
     @Before
     public void before(){
-
+        probeHandler = mock(ProbeHandler.class);
+        project = mock(JavaProject.class);
         //volume config with name and multiple mount
         mounts.add("/path/system");
         mounts.add("/path/sys");

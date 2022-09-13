@@ -23,22 +23,23 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class DefaultEnricherManagerTest {
 
-  @Mocked
   KitLogger logger;
 
   private EnricherManager enricherManager;
 
   @Before
   public void setUp() throws Exception {
+    logger = mock(KitLogger.class);
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-enricher"));
     final EnricherContext enricherContext = JKubeEnricherContext.builder()
@@ -51,11 +52,7 @@ public class DefaultEnricherManagerTest {
 
   @Test
   public void constructor() {
-    // @formatter:off
-    new Verifications() {{
-      logger.verbose("- %s", "fake-enricher"); times = 1;
-    }};
-    // @formatter:on
+    verify(logger).verbose("- %s", "fake-enricher",times(1));
   }
 
   @Test

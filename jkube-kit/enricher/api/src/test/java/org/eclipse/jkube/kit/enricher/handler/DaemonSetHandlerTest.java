@@ -25,7 +25,6 @@ import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,10 +32,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 public class DaemonSetHandlerTest {
 
-    @Mocked
+
     ProbeHandler probeHandler;
 
     JavaProject project = JavaProject.builder().build();
@@ -54,7 +54,7 @@ public class DaemonSetHandlerTest {
 
     @Before
     public void before(){
-
+        probeHandler = mock(ProbeHandler.class);
         //volume config with name and multiple mount
         mounts.add("/path/system");
         mounts.add("/path/sys");

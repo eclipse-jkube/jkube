@@ -15,14 +15,14 @@ package org.eclipse.jkube.kit.enricher.api;
 
 import java.util.Collections;
 import java.util.Map;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
@@ -30,19 +30,15 @@ import static org.junit.Assert.assertEquals;
 public class EnricherConfigTest {
 
   private enum Config implements Configs.Config {
-    TYPE;
+    TYPE
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test
-  public void simple(@Mocked EnricherContext context) {
+  public void simple() {
+    EnricherContext context = mock(EnricherContext.class,RETURNS_DEEP_STUBS);
     Map<String, Map<String, Object>> configMap = Collections.singletonMap("default.service",
         Collections.singletonMap("TYPE", "LoadBalancer"));
-    // @formatter:off
-    new Expectations() {{
-      context.getConfiguration().getProcessorConfig(); result = new ProcessorConfig(null, null, configMap);
-    }};
-    // @formatter:on
+    when(context.getConfiguration().getProcessorConfig()).thenReturn(new ProcessorConfig(null, null, configMap));
     EnricherConfig config = new EnricherConfig("default.service", context);
     assertEquals("LoadBalancer", config.get(EnricherConfigTest.Config.TYPE));
   }

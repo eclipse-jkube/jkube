@@ -26,7 +26,6 @@ import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,13 +33,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
 
 public class StatefulSetHandlerTest {
 
-    @Mocked
     ProbeHandler probeHandler;
 
-    @Mocked
     JavaProject project;
 
     List<String> mounts = new ArrayList<>();
@@ -56,7 +54,8 @@ public class StatefulSetHandlerTest {
 
     @Before
     public void before(){
-
+        probeHandler = mock(ProbeHandler.class);
+        project = mock(JavaProject.class);
         //volume config with name and multiple mount
         mounts.add("/path/system");
         mounts.add("/path/sys");

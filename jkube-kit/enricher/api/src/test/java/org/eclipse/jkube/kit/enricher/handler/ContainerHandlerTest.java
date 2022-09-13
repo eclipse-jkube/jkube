@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
-import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,10 +34,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 public class ContainerHandlerTest {
 
-    @Mocked
     ProbeHandler probeHandler;
 
     private List<Container> containers;
@@ -72,6 +71,7 @@ public class ContainerHandlerTest {
 
     @Before
     public void setUp() {
+        probeHandler = mock(ProbeHandler.class);
         project = JavaProject.builder().properties(new Properties()).build();
         project1 = JavaProject.builder().properties(new Properties()).build();
         project2 = JavaProject.builder().properties(new Properties()).build();
