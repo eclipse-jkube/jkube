@@ -163,7 +163,7 @@ public class ApplyService {
         } else if (dto instanceof DeploymentConfig) {
             DeploymentConfig resource = (DeploymentConfig) dto;
             OpenShiftClient openShiftClient = getOpenShiftClient();
-            if (openShiftClient != null) {
+            if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
                 applyResource(resource, sourceName, openShiftClient.deploymentConfigs());
             } else {
                 log.warn("Not connected to OpenShift cluster so cannot apply entity %s", dto);
@@ -244,7 +244,7 @@ public class ApplyService {
 
     public void applyOAuthClient(OAuthClient entity, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null && supportOAuthClients) {
+        if (OpenshiftHelper.isOpenShift(kubernetesClient) && supportOAuthClients) {
             String id = getName(entity);
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
             if (isServicesOnlyMode()) {
@@ -284,7 +284,7 @@ public class ApplyService {
 
     protected void doCreateOAuthClient(OAuthClient entity, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null) {
+        if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             try {
                 openShiftClient.oAuthClients().create(entity);
             } catch (Exception e) {
@@ -306,7 +306,7 @@ public class ApplyService {
      */
     public void installTemplate(Template entity, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient == null) {
+        if (!OpenshiftHelper.isOpenShift(kubernetesClient)) {
             // lets not install the template on Kubernetes!
             return;
         }
@@ -351,7 +351,7 @@ public class ApplyService {
 
     protected void doCreateTemplate(Template entity, String namespace, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null) {
+        if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             log.info("Creating a Template from " + sourceName + " namespace " + namespace + " name " + getName(entity));
             try {
                 final Template answer = openShiftClient.templates().inNamespace(namespace).create(entity);
@@ -617,7 +617,7 @@ public class ApplyService {
 
     public void applyRoute(Route entity, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null) {
+        if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             String id = getName(entity);
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
             String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
@@ -650,21 +650,23 @@ public class ApplyService {
 
     private void doCreateRoute(Route entity, String namespace, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        String id = getName(entity);
-        try {
-            log.info("Creating Route " + namespace + ":" + id + " " +
+        if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
+            String id = getName(entity);
+            try {
+                log.info("Creating Route " + namespace + ":" + id + " " +
                     (entity.getSpec() != null ?
-                            "host: " + entity.getSpec().getHost() :
-                            "No Spec !"));
-            openShiftClient.routes().inNamespace(namespace).create(entity);
-        } catch (Exception e) {
-            onApplyError("Failed to create Route from " + sourceName + ". " + e + ". " + entity, e);
+                        "host: " + entity.getSpec().getHost() :
+                        "No Spec !"));
+                openShiftClient.routes().inNamespace(namespace).create(entity);
+            } catch (Exception e) {
+                onApplyError("Failed to create Route from " + sourceName + ". " + e + ". " + entity, e);
+            }
         }
     }
 
     public void applyBuildConfig(BuildConfig entity, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null) {
+        if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             String id = getName(entity);
 
             Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
@@ -695,7 +697,7 @@ public class ApplyService {
 
     public void doCreateBuildConfig(BuildConfig entity, String namespace , String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null) {
+        if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             try {
                 openShiftClient.buildConfigs().inNamespace(namespace).create(entity);
             } catch (Exception e) {
@@ -753,7 +755,7 @@ public class ApplyService {
 
     public void applyImageStream(ImageStream entity, String sourceName) {
         OpenShiftClient openShiftClient = getOpenShiftClient();
-        if (openShiftClient != null) {
+        if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             String kind = getKind(entity);
             String name = getName(entity);
             String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
@@ -933,7 +935,7 @@ public class ApplyService {
             return false;
         }
         OpenShiftClient openshiftClient = getOpenShiftClient();
-        if (openshiftClient != null) {
+        if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             // It is preferable to iterate on the list of projects as regular user with the 'basic-role' bound
             // are not granted permission get operation on non-existing project resource that returns 403
             // instead of 404. Only more privileged roles like 'view' or 'cluster-reader' are granted this permission.
@@ -959,11 +961,11 @@ public class ApplyService {
             return;
         }
         OpenShiftClient openshiftClient = getOpenShiftClient();
-        if (openshiftClient != null) {
+        if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             ProjectRequest entity = new ProjectRequest();
             ObjectMeta metadata = getOrCreateMetadata(entity);
             metadata.setName(namespaceName);
-            String kubernetesClientNamespace = kubernetesClient.getNamespace();
+            String kubernetesClientNamespace = openshiftClient.getNamespace();
             if (isNotBlank(kubernetesClientNamespace)) {
                 Map<String, String> entityLabels = getOrCreateLabels(entity);
                 if (labels != null) {
@@ -1038,7 +1040,7 @@ public class ApplyService {
         String name = getName(entity);
         Objects.requireNonNull(name, "No name for " + entity);
         OpenShiftClient openshiftClient = getOpenShiftClient();
-        if (openshiftClient == null) {
+        if (!OpenshiftHelper.isOpenShift(kubernetesClient)) {
             log.warn("Cannot check for Project " + currentNamespace + " as not running against OpenShift!");
             return false;
         }
