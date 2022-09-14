@@ -20,12 +20,12 @@
   <parent>
     <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.9.0</version>
+    <version>1.9.1</version>
   </parent>
 
   <artifactId>app</artifactId>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Plugin :: App</name>
-  <version>1.9.0</version>
+  <version>1.9.1</version>
 
   <properties>
     <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>

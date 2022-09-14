@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id("org.eclipse.jkube.kubernetes") version "1.9.0"
+    id("org.eclipse.jkube.kubernetes") version "1.9.1"
 }
 
 version = "1.5.1"
