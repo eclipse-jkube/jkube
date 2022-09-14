@@ -20,7 +20,7 @@ buildscript {
     dependencies {
         classpath 'org.fusesource.jansi:jansi:1.18'
         classpath 'io.openliberty.tools:liberty-gradle-plugin:3.2'
-        classpath('org.eclipse.jkube.kubernetes:org.eclipse.jkube.kubernetes.gradle.plugin:1.9.0'
+        classpath('org.eclipse.jkube.kubernetes:org.eclipse.jkube.kubernetes.gradle.plugin:1.9.1'
             exclude group: 'org.fusesource.jansi', module: 'jansi'
         }
     }
