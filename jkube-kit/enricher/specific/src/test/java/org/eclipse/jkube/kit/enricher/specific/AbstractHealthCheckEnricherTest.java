@@ -25,8 +25,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Map;
@@ -41,17 +41,17 @@ import static org.mockito.Mockito.spy;
  *
  * @author Nicola
  */
-public class AbstractHealthCheckEnricherTest {
+class AbstractHealthCheckEnricherTest {
 
-    KitLogger log;
+    private KitLogger log;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() {
         log = spy(new KitLogger.SilentLogger());
     }
 
     @Test
-    public void enrichSingleContainer() {
+    void enrichSingleContainer() {
         KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
             .withNewSpec()
             .withNewTemplate()
@@ -83,7 +83,7 @@ public class AbstractHealthCheckEnricherTest {
     }
 
     @Test
-    public void enrichContainerWithSidecar() {
+    void enrichContainerWithSidecar() {
         KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
             .withNewSpec()
                 .withNewTemplate()
@@ -114,9 +114,10 @@ public class AbstractHealthCheckEnricherTest {
                     assertThat(container.getStartupProbe()).isNotNull();
                     containerFound.incrementAndGet();
                 } else if (container.getName().equals("sidecar")) {
-                    assertThat(container.getLivenessProbe()).isNull();
-                    assertThat(container.getReadinessProbe()).isNull();
-                    assertThat(container.getStartupProbe()).isNull();
+                    assertThat(container)
+                            .hasFieldOrPropertyWithValue("livenessProbe", null)
+                            .hasFieldOrPropertyWithValue("readinessProbe", null)
+                            .hasFieldOrPropertyWithValue("startupProbe", null);
                     containerFound.incrementAndGet();
                 }
             }
@@ -126,7 +127,7 @@ public class AbstractHealthCheckEnricherTest {
     }
 
     @Test
-    public void enrichSpecificContainers() {
+    void enrichSpecificContainers() {
         final Properties properties = new Properties();
         properties.put(AbstractHealthCheckEnricher.ENRICH_CONTAINERS, "app2,app3");
 
@@ -151,7 +152,7 @@ public class AbstractHealthCheckEnricherTest {
             .endSpec()
             .build());
 
-        createEnricher(properties, Collections.emptyMap()).create(PlatformMode.kubernetes,list);
+        createEnricher(properties, Collections.emptyMap()).create(PlatformMode.kubernetes, list);
 
         final AtomicInteger containerFound = new AtomicInteger(0);
         list.accept(new TypedVisitor<ContainerBuilder>() {
@@ -160,9 +161,10 @@ public class AbstractHealthCheckEnricherTest {
                 Container container = containerBuilder.build();
                 switch (container.getName()) {
                     case "app":
-                        assertThat(container.getLivenessProbe()).isNull();
-                        assertThat(container.getReadinessProbe()).isNull();
-                        assertThat(container.getStartupProbe()).isNull();
+                        assertThat(container)
+                                .hasFieldOrPropertyWithValue("livenessProbe", null)
+                                .hasFieldOrPropertyWithValue("readinessProbe", null)
+                                .hasFieldOrPropertyWithValue("startupProbe", null);
                         containerFound.incrementAndGet();
                         break;
                     case "app2":
@@ -180,7 +182,7 @@ public class AbstractHealthCheckEnricherTest {
     }
 
     @Test
-    public void enrichAllContainers() {
+    void enrichAllContainers() {
         final Properties properties = new Properties();
         properties.put(AbstractHealthCheckEnricher.ENRICH_ALL_CONTAINERS, "true");
 
@@ -238,7 +240,7 @@ public class AbstractHealthCheckEnricherTest {
         }
         EnricherContext context = enricherContextBuilder.build();
 
-        AbstractHealthCheckEnricher enricher = new AbstractHealthCheckEnricher(context, "basic") {
+        return new AbstractHealthCheckEnricher(context, "basic") {
             @Override
             protected Probe getLivenessProbe() {
                 return getReadinessProbe();
@@ -259,7 +261,6 @@ public class AbstractHealthCheckEnricherTest {
                         .build();
             }
         };
-        return enricher;
     }
 
 }

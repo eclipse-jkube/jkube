@@ -13,24 +13,24 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
-import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Probe;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class WebAppHealthCheckEnricherTest {
+class WebAppHealthCheckEnricherTest {
 
     private JKubeEnricherContext context;
-    @Before
-    public void setUp() {
+
+    @BeforeEach
+    void setUp() {
         context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     }
 
@@ -40,7 +40,7 @@ public class WebAppHealthCheckEnricherTest {
     }
 
     @Test
-    public void noEnrichmentIfNoPath() {
+    void noEnrichmentIfNoPath() {
         // given
         WebAppHealthCheckEnricher enricher = new WebAppHealthCheckEnricher(context);
         setupExpectations(new Properties());
@@ -54,7 +54,7 @@ public class WebAppHealthCheckEnricherTest {
     }
 
     @Test
-    public void enrichmentWithDefaultsIfPath() {
+    void enrichmentWithDefaultsIfPath() {
         // given
         Properties properties = new Properties();
         properties.put("jkube.enricher.jkube-healthcheck-webapp.path", "/health");
@@ -69,13 +69,13 @@ public class WebAppHealthCheckEnricherTest {
         // then
         assertThat(probeLiveness)
             .isNotNull()
-            .hasFieldOrPropertyWithValue("httpGet.port", new IntOrString(8080))
+            .hasFieldOrPropertyWithValue("httpGet.port.intVal", 8080)
             .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTP")
             .hasFieldOrPropertyWithValue("httpGet.path", "/health")
             .hasFieldOrPropertyWithValue("initialDelaySeconds", 180);
         assertThat(probeReadiness)
             .isNotNull()
-            .hasFieldOrPropertyWithValue("httpGet.port", new IntOrString(8080))
+            .hasFieldOrPropertyWithValue("httpGet.port.intVal", 8080)
             .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTP")
             .hasFieldOrPropertyWithValue("httpGet.path", "/health")
             .hasFieldOrPropertyWithValue("initialDelaySeconds", 10);
