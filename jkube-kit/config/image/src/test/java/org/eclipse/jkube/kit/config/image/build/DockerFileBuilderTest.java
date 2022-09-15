@@ -25,6 +25,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -275,11 +276,8 @@ class DockerFileBuilderTest {
     assertThat(b).hasToString("USER roland\n");
   }
 
-  /*
-   * Test Multistage DockerFile By creating two dockerFile stages
-   * dockerFileSage2 copy from the first stage
-   * 
-   */
+ 
+  @DisplayName("Test  Multistage DockerFile, expected ok")
   @Test
   void testBuildDockerFileMultiStage() throws Exception {
     Arguments a = Arguments.builder().execArgument("c1").execArgument("c2").build();
