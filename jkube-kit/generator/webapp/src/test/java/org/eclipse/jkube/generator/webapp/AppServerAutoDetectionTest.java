@@ -15,27 +15,29 @@ package org.eclipse.jkube.generator.webapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author kameshs
  */
-public class AppServerAutoDetectionTest {
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+class AppServerAutoDetectionTest {
+
+    @TempDir
+    Path folder;
 
     @Test
-    public void testIsWildFly() throws Exception {
+    void isWildFly() throws Exception {
         Object[] descriptorNames = new Object[] {
             "WEB-INF/jboss-deployment-structure.xml", true,
             "META-INF/jboss-deployment-structure.xml", true,
@@ -66,7 +68,7 @@ public class AppServerAutoDetectionTest {
     }
 
     @Test
-    public void testIsTomcat() throws Exception {
+    void isTomcat() throws Exception {
         Object[] descriptorNames = new Object[] {
             "META-INF/context.xml", true,
             "META-INF/non-existent-descriptor.xml", false,
@@ -82,7 +84,7 @@ public class AppServerAutoDetectionTest {
     }
 
     @Test
-    public void testWithSpecifiedServer() {
+    void detect_withSpecifiedServer_shouldReturnSpecifiedServer() {
         GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder().build()).build();
 
         AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("tomcat");
@@ -91,7 +93,7 @@ public class AppServerAutoDetectionTest {
 
 
     @Test
-    public void testIsJetty() throws Exception {
+    void isJetty() throws Exception {
         Object[] descriptorNames = new Object[] {
             "META-INF/jetty-logging.properties", true,
             "WEB-INF/jetty-web.xml", true,
@@ -108,8 +110,8 @@ public class AppServerAutoDetectionTest {
     }
 
     @Test
-    public void testDefaultServer() throws IOException {
-        File appDir = folder.newFolder("webapp");
+    void detect_withDefaultServer_shouldReturnTomcat() throws IOException {
+        File appDir = Files.createDirectory(folder.resolve("webapp")).toFile();
         GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder()
             .buildDirectory(appDir)
             .plugins(Collections.singletonList(Plugin.builder()
@@ -124,47 +126,46 @@ public class AppServerAutoDetectionTest {
     }
 
     private void assertAppServerDescriptorApplicability(Object[] descriptors) throws IOException {
-        for (int i = 0; i < descriptors.length; i += 2) {
-            String descriptor = (String) descriptors[i];
-            boolean expected = (boolean) descriptors[i + 1];
+      for (int i = 0; i < descriptors.length; i += 2) {
+        String[] descriptor = descriptors[i].toString().split("/");
+        String appDir = descriptor[0];
+        String file = descriptor[1];
+        boolean expected = (boolean) descriptors[i + 1];
 
-            File appDir = folder.newFolder("webapp" + i);
-            assertThat(new File(appDir, "META-INF/").mkdirs()).isTrue();
-            assertThat(new File(appDir, "WEB-INF/").mkdirs()).isTrue();
-            assertThat(new File(appDir, descriptor).createNewFile()).isTrue();
+        Path webInf = Files.createDirectories(folder.resolve("webapp" + i).resolve(appDir));
+        Files.createFile(webInf.resolve(file));
 
-            GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder()
-                .buildDirectory(appDir)
-                .plugins(Collections.emptyList())
-                .build()).build();
+        GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder()
+            .buildDirectory(webInf.toFile())
+            .plugins(Collections.emptyList())
+            .build()).build();
 
-            AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
+        AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
 
-            String message = String.format("Expected descriptor %s to make isApplicable() return %s", descriptor, expected);
-            assertThat(appServerHandler.isApplicable()).as(message).isEqualTo(expected);
-        }
+        String message = String.format("Expected descriptor %s to make isApplicable() return %s", descriptor, expected);
+        assertThat(appServerHandler.isApplicable()).as(message).isEqualTo(expected);
+      }
     }
 
     private void assertPluginApplicability(Object[] plugins) {
-        for (int i = 0; i < plugins.length; i += 2) {
-            String pluginCoordinate = (String) plugins[i];
-            String groupId = pluginCoordinate.split(":")[0];
-            String artifactId = pluginCoordinate.split(":")[1];
-            boolean expected = (boolean) plugins[i + 1];
+      for (int i = 0; i < plugins.length; i += 2) {
+        String[] pluginCoordinate = plugins[i].toString().split(":");
+        String groupId = pluginCoordinate[0];
+        String artifactId = pluginCoordinate[1];
+        boolean expected = (boolean) plugins[i + 1];
 
-            GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder()
-                .buildDirectory(folder.getRoot())
-                .plugins(Collections.singletonList(Plugin.builder()
-                    .groupId(groupId).artifactId(artifactId)
-                    .version("testversion")
-                    .configuration(Collections.emptyMap()).build()))
-                .build()).build();
+        GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder()
+            .buildDirectory(folder.toFile())
+            .plugins(Collections.singletonList(Plugin.builder()
+                .groupId(groupId).artifactId(artifactId)
+                .version("testversion")
+                .configuration(Collections.emptyMap()).build()))
+            .build()).build();
 
-            AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
+        AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
 
-            String message = String.format("Expected plugin %s to make isApplicable() return %s", pluginCoordinate, expected);
-            assertThat(appServerHandler.isApplicable()).as(message).isEqualTo(expected);
-
-        }
+        String message = String.format("Expected plugin %s to make isApplicable() return %s", pluginCoordinate, expected);
+        assertThat(appServerHandler.isApplicable()).as(message).isEqualTo(expected);
+      }
     }
 }

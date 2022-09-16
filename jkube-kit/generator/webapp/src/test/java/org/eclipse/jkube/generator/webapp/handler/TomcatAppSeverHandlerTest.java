@@ -15,41 +15,46 @@ package org.eclipse.jkube.generator.webapp.handler;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class TomcatAppSeverHandlerTest {
+class TomcatAppSeverHandlerTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  File temporaryFolder;
 
   private GeneratorContext generatorContext;
 
   private Plugin plugin;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     generatorContext = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
     plugin = mock(Plugin.class);
   }
 
   @Test
-  public void isApplicableHasContextXmlShouldReturnTrue() throws IOException {
+  void isApplicable_withContextXml_shouldReturnTrue() throws IOException {
     // Given
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
-    assertThat(new File(temporaryFolder.newFolder("META-INF"), "context.xml").createNewFile()).isTrue();
-    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
+
+    Path metaInf = Files.createDirectories(temporaryFolder.toPath().resolve("META-INF"));
+    Files.createFile(metaInf.resolve("context.xml"));
+
+    Path invalidMetaInf = Files.createDirectories(temporaryFolder.toPath().resolve("META-INF-1337"));
+    Files.createFile(invalidMetaInf.resolve("context.xml"));
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -57,10 +62,11 @@ public class TomcatAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasNotContextXmlShouldReturnFalse() throws IOException {
+  void isApplicable_withNoContextXml_shouldReturnFalse() throws IOException {
     // Given
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
-    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
+    Path invalidMetaInf = Files.createDirectories(temporaryFolder.toPath().resolve("META-INF-1337"));
+    Files.createFile(invalidMetaInf.resolve("context.xml"));
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -68,9 +74,9 @@ public class TomcatAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasTomcat8PluginShouldReturnTrue() {
+  void isApplicable_withTomcat8Plugin_shouldReturnTrue() {
     // Given
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
     when(plugin.getGroupId()).thenReturn("org.apache.tomcat.maven");
     when(plugin.getArtifactId()).thenReturn("tomcat8-maven-plugin");
     when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
@@ -81,9 +87,9 @@ public class TomcatAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasTomcat1337PluginShouldReturnFalse() {
+  void isApplicable_withInvalidTomcatPlugin_shouldReturnFalse() {
     // Given
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
     when(plugin.getGroupId()).thenReturn("org.apache.tomcat.maven");
     when(plugin.getArtifactId()).thenReturn("tomcat1337-maven-plugin");
     when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
@@ -94,7 +100,7 @@ public class TomcatAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasNoPluginShouldReturnFalse() {
+  void isApplicable_withNoPlugin_shouldReturnFalse() {
     // When
     final boolean result = new TomcatAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -102,16 +108,17 @@ public class TomcatAppSeverHandlerTest {
   }
 
   @Test
-  public void handlerSettings() {
+  void handlerSettings() {
     // When
     final TomcatAppSeverHandler handler = new TomcatAppSeverHandler(generatorContext);
     // Then
-    assertThat(handler.getFrom()).startsWith("quay.io/jkube/jkube-tomcat:");
-    assertThat(handler.exposedPorts()).contains("8080");
-    assertThat(handler.getDeploymentDir()).isEqualTo("/deployments");
-    assertThat(handler.getAssemblyName()).isEqualTo("deployments");
-    assertThat(handler.getCommand()).isEqualTo("/usr/local/s2i/run");
-    assertThat(handler.getUser()).isNull();
-    assertThat(handler.supportsS2iBuild()).isTrue();
+    assertThat(handler)
+        .satisfies(h -> assertThat(h.getFrom()).startsWith("quay.io/jkube/jkube-tomcat:"))
+        .returns(Collections.singletonList("8080"), TomcatAppSeverHandler::exposedPorts)
+        .returns("/deployments", TomcatAppSeverHandler::getDeploymentDir)
+        .returns("deployments", TomcatAppSeverHandler::getAssemblyName)
+        .returns("/usr/local/s2i/run", TomcatAppSeverHandler::getCommand)
+        .returns(null, TomcatAppSeverHandler::getUser)
+        .returns(true, TomcatAppSeverHandler::supportsS2iBuild);
   }
 }
