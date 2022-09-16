@@ -15,40 +15,47 @@ package org.eclipse.jkube.generator.webapp.handler;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class JettyAppSeverHandlerTest {
+class JettyAppSeverHandlerTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  File temporaryFolder;
 
   private GeneratorContext generatorContext;
 
   private Plugin plugin;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     generatorContext = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
     plugin = mock(Plugin.class);
   }
+
   @Test
-  public void isApplicableHasJettyLoggingShouldReturnTrue() throws IOException {
+  void isApplicable_withJettyLogging_shouldReturnTrue() throws IOException {
     // Given
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
-    assertThat(new File(temporaryFolder.newFolder("META-INF"), "jetty-logging.properties").createNewFile()).isTrue();
-    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
+
+    Path metaInf = Files.createDirectories(temporaryFolder.toPath().resolve("META-INF"));
+    Files.createFile(metaInf.resolve("jetty-logging.properties"));
+
+    Path invalidMetaInf = Files.createDirectories(temporaryFolder.toPath().resolve("META-INF-1337"));
+    Files.createFile(invalidMetaInf.resolve("context.xml"));
     // When
     final boolean result = new JettyAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -56,10 +63,11 @@ public class JettyAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasNotJettyLoggingShouldReturnFalse() throws IOException {
+  void isApplicable_withNotJettyLogging_shouldReturnFalse() throws IOException {
     // Given
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
-    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
+    Path invalidMetaInf = Files.createDirectories(temporaryFolder.toPath().resolve("META-INF-1337"));
+    Files.createFile(invalidMetaInf.resolve("context.xml"));
     // When
     final boolean result = new JettyAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -67,9 +75,9 @@ public class JettyAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasJettyMavenPluginShouldReturnTrue() {
+  void isApplicable_withJettyMavenPlugin_shouldReturnTrue() {
     // Given
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
     when(plugin.getGroupId()).thenReturn("org.eclipse.jetty");
     when(plugin.getArtifactId()).thenReturn("jetty-maven-plugin");
     when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
@@ -80,9 +88,9 @@ public class JettyAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasJetty1337MavenPluginShouldReturnFalse() {
+  void isApplicable_withInvalidJettyMavenPlugin_shouldReturnFalse() {
     // Given
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
     when(plugin.getGroupId()).thenReturn("org.eclipse.jetty");
     when(plugin.getArtifactId()).thenReturn("jetty1337-maven-plugin");
     when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
@@ -93,16 +101,17 @@ public class JettyAppSeverHandlerTest {
   }
 
   @Test
-  public void handlerSettings() {
+  void handlerSettings() {
     // When
     final JettyAppSeverHandler handler = new JettyAppSeverHandler(generatorContext);
     // Then
-    assertThat(handler.getFrom()).startsWith("quay.io/jkube/jkube-jetty9:");
-    assertThat(handler.exposedPorts()).contains("8080");
-    assertThat(handler.getDeploymentDir()).isEqualTo("/deployments");
-    assertThat(handler.getAssemblyName()).isEqualTo("deployments");
-    assertThat(handler.getCommand()).isEqualTo("/usr/local/s2i/run");
-    assertThat(handler.getUser()).isNull();
-    assertThat(handler.supportsS2iBuild()).isTrue();
+    assertThat(handler)
+        .satisfies(h -> assertThat(h.getFrom()).startsWith("quay.io/jkube/jkube-jetty9:"))
+        .returns(Collections.singletonList("8080"), JettyAppSeverHandler::exposedPorts)
+        .returns("/deployments", JettyAppSeverHandler::getDeploymentDir)
+        .returns("deployments", JettyAppSeverHandler::getAssemblyName)
+        .returns("/usr/local/s2i/run", JettyAppSeverHandler::getCommand)
+        .returns(null, JettyAppSeverHandler::getUser)
+        .returns(true, JettyAppSeverHandler::supportsS2iBuild);
   }
 }
