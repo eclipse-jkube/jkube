@@ -26,10 +26,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Test;
-
+import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Properties;
-
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class ImagePullPolicyEnricherTest {
 

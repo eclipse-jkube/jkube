@@ -19,14 +19,11 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Map;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -57,13 +54,10 @@ public class MavenScmEnricherTest {
         mavenScmEnricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertNotNull(scmAnnotations);
-
-        Assert.assertEquals(2, scmAnnotations.size());
-        assertEquals("HEAD",
-                scmAnnotations.get(JKubeAnnotations.SCM_TAG.value()));
-        assertEquals("git://github.com/jkubeio/kubernetes-maven-plugin.git",
-                scmAnnotations.get(JKubeAnnotations.SCM_URL.value()));
+        assertThat(scmAnnotations).isNotNull();
+        assertThat(scmAnnotations.size()).isEqualTo(2);
+        assertThat(scmAnnotations.get(JKubeAnnotations.SCM_TAG.value())).isEqualTo("HEAD");
+        assertThat(scmAnnotations.get(JKubeAnnotations.SCM_URL.value())).isEqualTo("git://github.com/jkubeio/kubernetes-maven-plugin.git");
 
     }
 
@@ -82,11 +76,11 @@ public class MavenScmEnricherTest {
         mavenScmEnricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertNotNull(scmAnnotations);
+        assertThat(scmAnnotations).isNotNull();
 
-        Assert.assertEquals(1, scmAnnotations.size());
-        Assert.assertFalse(scmAnnotations.containsKey(JKubeAnnotations.SCM_TAG.value()));
-        Assert.assertEquals("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git", scmAnnotations.get(JKubeAnnotations.SCM_URL.value()));
+        assertThat( scmAnnotations.size()).isEqualTo(1);
+        assertThat(scmAnnotations.containsKey(JKubeAnnotations.SCM_TAG.value())).isFalse();
+        assertThat( scmAnnotations.get(JKubeAnnotations.SCM_URL.value())).isEqualTo("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git");
 
     }
 
@@ -105,12 +99,11 @@ public class MavenScmEnricherTest {
         mavenScmEnricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertNotNull(scmAnnotations);
+        assertThat(scmAnnotations).isNotNull();
 
-        Assert.assertEquals(1, scmAnnotations.size());
-        assertEquals("git://github.com/jkubeio/kubernetes-maven-plugin.git",
-                scmAnnotations.get(JKubeAnnotations.SCM_URL.value()));
-        Assert.assertFalse(scmAnnotations.containsKey(JKubeAnnotations.SCM_TAG.value()));
+        assertThat(scmAnnotations.size()).isEqualTo(1);
+        assertThat(scmAnnotations.get(JKubeAnnotations.SCM_URL.value())).isEqualTo("git://github.com/jkubeio/kubernetes-maven-plugin.git");
+        assertThat(scmAnnotations.containsKey(JKubeAnnotations.SCM_TAG.value())).isFalse();
     }
 
     @Test
@@ -128,11 +121,11 @@ public class MavenScmEnricherTest {
         mavenScmEnricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertNotNull(scmAnnotations);
+        assertThat(scmAnnotations).isNotNull();
 
-        Assert.assertEquals(1, scmAnnotations.size());
-        Assert.assertFalse(scmAnnotations.containsKey(JKubeAnnotations.SCM_TAG.value()));
-        Assert.assertEquals("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git", scmAnnotations.get(JKubeAnnotations.SCM_URL.value()));
+        assertThat(scmAnnotations.size()).isEqualTo(1);
+        assertThat(scmAnnotations.containsKey(JKubeAnnotations.SCM_TAG.value())).isFalse();
+        assertThat(scmAnnotations.get(JKubeAnnotations.SCM_URL.value())).isEqualTo("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git");
     }
 
     @Test
@@ -148,7 +141,7 @@ public class MavenScmEnricherTest {
         mavenScmEnricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertNotNull(scmAnnotations);
+        assertThat(scmAnnotations).isNotNull();
 
     }
 

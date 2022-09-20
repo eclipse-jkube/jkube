@@ -28,9 +28,7 @@ import org.junit.Test;
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,21 +57,21 @@ public class MavenProjectEnricherTest {
 
         Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
 
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals("artifactId", labels.get("app"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("project"));
+        assertThat(labels).isNotNull();
+        assertThat(labels.get("group")).isEqualTo("groupId");
+        assertThat(labels.get("app")).isEqualTo("artifactId");
+        assertThat(labels.get("version")).isEqualTo("version");
+        assertThat(labels.get("project")).isNull();
 
         builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
         projectEnricher.create(PlatformMode.kubernetes, builder);
 
         Deployment deployment = (Deployment)builder.buildFirstItem();
         Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals("artifactId", selectors.get("app"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("project"));
+        assertThat( selectors.get("group")).isEqualTo("groupId");
+        assertThat(selectors.get("app")).isEqualTo("artifactId");
+        assertThat(selectors.get("version")).isNull();
+        assertThat(selectors.get("project")).isNull();
     }
 
     @Test
@@ -90,22 +88,21 @@ public class MavenProjectEnricherTest {
         KubernetesList list = builder.build();
 
         Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals("artifactId", labels.get("project"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("app"));
+        assertThat(labels).isNotNull();
+        assertThat(labels.get("project")).isEqualTo("artifactId");
+        assertThat(labels.get("version")).isEqualTo("version");
+        assertThat(labels.get("group")).isEqualTo("groupId");
+        assertThat(labels.get("app")).isNull();
 
         builder = new KubernetesListBuilder().withItems(new DeploymentConfigBuilder().build());
         projectEnricher.create(PlatformMode.kubernetes, builder);
 
         DeploymentConfig deploymentConfig = (DeploymentConfig)builder.buildFirstItem();
         Map<String, String> selectors = deploymentConfig.getSpec().getSelector();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals("artifactId", selectors.get("project"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("app"));
+        assertThat(selectors.get("group")).isEqualTo("groupId");
+        assertThat( selectors.get("project")).isEqualTo("artifactId");
+        assertThat(selectors.get("version")).isNull();
+        assertThat(selectors.get("app")).isNull();
     }
 
     private KubernetesListBuilder createListWithDeploymentConfig() {

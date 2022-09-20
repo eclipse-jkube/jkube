@@ -36,8 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,8 +65,8 @@ public class DependencyEnricherTest {
         // Enrich
         KubernetesList aResourceList = enrichResources(aBuilder);
         // Assert
-        assertNotNull(aResourceList.getItems());
-        assertTrue(checkUniqueResources(aResourceList.getItems()));
+        assertThat(aResourceList.getItems()).isNotNull();
+        assertThat(checkUniqueResources(aResourceList.getItems())).isTrue();
     }
 
     private KubernetesList enrichResources(KubernetesListBuilder aBuilder) throws URISyntaxException {

@@ -25,9 +25,7 @@ import org.junit.Test;
 
 import java.util.Map;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -56,14 +54,11 @@ public class MavenIssueManagementEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertNotNull(scmAnnotations);
+        assertThat(scmAnnotations).isNotNull();
         Assert.assertEquals(2, scmAnnotations.size());
-        assertEquals("GitHub",
-                scmAnnotations.get(JKubeAnnotations.ISSUE_SYSTEM.value()));
-        assertEquals("https://github.com/reactiverse/vertx-maven-plugin/issues/",
-                scmAnnotations.get(JKubeAnnotations.ISSUE_TRACKER_URL.value()));
+        assertThat(scmAnnotations).containsEntry(JKubeAnnotations.ISSUE_SYSTEM.value(), "GitHub")
+                .containsEntry(JKubeAnnotations.ISSUE_TRACKER_URL.value(), "https://github.com/reactiverse/vertx-maven-plugin/issues/");
     }
-
     @Test
     public void testMavenIssueManagementOnlySystem() {
 
@@ -77,8 +72,7 @@ public class MavenIssueManagementEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertNotNull(scmAnnotations);
-        assertTrue(scmAnnotations.isEmpty());
+        assertThat(scmAnnotations).isNotNull().isEmpty();
     }
 
     @Test
@@ -94,8 +88,7 @@ public class MavenIssueManagementEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertNotNull(scmAnnotations);
-        assertTrue(scmAnnotations.isEmpty());
+        assertThat(scmAnnotations).isNotNull().isEmpty();
     }
 
 
@@ -111,8 +104,8 @@ public class MavenIssueManagementEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertNotNull(scmAnnotations);
-        assertTrue(scmAnnotations.isEmpty());
+        assertThat(scmAnnotations).isNotNull();
+        assertThat(scmAnnotations).isEmpty();
     }
 
 

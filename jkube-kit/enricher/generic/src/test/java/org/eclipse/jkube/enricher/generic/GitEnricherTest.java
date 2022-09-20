@@ -20,8 +20,8 @@ import org.junit.Test;
 
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class GitEnricherTest {
 
@@ -51,8 +51,9 @@ public class GitEnricherTest {
 
         // Then
         assertJkubeAnnotations(annotations);
-        assertEquals(GIT_BRANCH, annotations.get(OpenShiftAnnotations.VCS_REF.value()));
-        assertEquals(GIT_REMOTE_URL, annotations.get(OpenShiftAnnotations.VCS_URI.value()));
+        assertThat(annotations).containsEntry(OpenShiftAnnotations.VCS_REF.value(),GIT_BRANCH)
+                .containsEntry(OpenShiftAnnotations.VCS_URI.value(),GIT_REMOTE_URL);
+
     }
 
     @Test
@@ -64,7 +65,7 @@ public class GitEnricherTest {
         annotations = GitEnricher.getAnnotations(PlatformMode.kubernetes, null, null, null);
 
         // Then
-        assertTrue(annotations.isEmpty());
+        assertThat(annotations).isEmpty();
     }
 
     @Test
@@ -81,11 +82,11 @@ public class GitEnricherTest {
 
     private void assertJkubeAnnotations(Map<String, String> annotations) {
         assertJkubeAnnotationsRemoteUrlAndBranch(annotations);
-        assertEquals(GIT_COMMIT_ID, annotations.get(JKubeAnnotations.GIT_COMMIT.value()));
+        assertThat(annotations).containsEntry(JKubeAnnotations.GIT_COMMIT.value(),GIT_COMMIT_ID);
     }
 
     private void assertJkubeAnnotationsRemoteUrlAndBranch(Map<String, String> annotations) {
-        assertEquals(GIT_REMOTE_URL, annotations.get(JKubeAnnotations.GIT_URL.value()));
-        assertEquals(GIT_BRANCH, annotations.get(JKubeAnnotations.GIT_BRANCH.value()));
+        assertThat(annotations).containsEntry(JKubeAnnotations.GIT_URL.value(),GIT_REMOTE_URL);
+        assertThat(annotations).containsEntry(JKubeAnnotations.GIT_BRANCH.value(),GIT_BRANCH);
     }
 }
