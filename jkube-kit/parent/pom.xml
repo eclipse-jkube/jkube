@@ -266,6 +266,12 @@
         <version>${project.version}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-remote-dev</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
       <!-- == Fabric8 Kubernetes Client ===================================== -->
       <dependency>
         <groupId>io.fabric8</groupId>
@@ -558,6 +564,12 @@
         <version>${version.ow2.asm}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.apache.sshd</groupId>
+        <artifactId>sshd-core</artifactId>
+        <version>${version.sshd}</version>
+      </dependency>
+
       <!-- == maven ===================================== -->
       <dependency>
         <groupId>org.apache.maven</groupId>
@@ -732,14 +744,6 @@
         <version>${version.kubernetes-client}</version>
         <scope>test</scope>
         <exclusions>
-          <exclusion>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.fabric8</groupId>
-            <artifactId>mockwebserver</artifactId>
-          </exclusion>
           <exclusion>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
