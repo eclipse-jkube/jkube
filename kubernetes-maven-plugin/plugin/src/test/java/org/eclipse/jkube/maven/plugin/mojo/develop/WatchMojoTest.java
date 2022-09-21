@@ -32,11 +32,10 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -46,9 +45,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-public class WatchMojoTest {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class WatchMojoTest {
   private File kubernetesManifestFile;
 
   private JKubeServiceHub mockedJKubeServiceHub;
@@ -63,9 +60,9 @@ public class WatchMojoTest {
 
   private WatchMojo watchMojo;
 
-  @Before
-  public void setUp() throws IOException {
-    kubernetesManifestFile = temporaryFolder.newFile("kubernetes.yml");
+  @BeforeEach
+  void setUp(@TempDir File temporaryFolder) throws IOException {
+    kubernetesManifestFile =  File.createTempFile("kubernetes", ".yml", temporaryFolder);
     mockedJKubeServiceHub = mock(JKubeServiceHub.class);
     mavenProject = mock(MavenProject.class);
     mavenSettings = mock(Settings.class);
@@ -88,15 +85,15 @@ public class WatchMojoTest {
     when(mockedClusterAccess.getNamespace()).thenReturn("namespace-from-config");
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     mavenProject = null;
     watchMojo = null;
     watcherManagerMockedStatic.close();
   }
 
   @Test
-  public void executeInternal_whenNoNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws MojoExecutionException {
+  void executeInternal_whenNoNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws MojoExecutionException {
     // Given
     // @formatter:off
     watchMojo = new WatchMojo() {{
@@ -120,7 +117,7 @@ public class WatchMojoTest {
   }
 
   @Test
-  public void executeInternal_whenNamespaceConfiguredInResourceConfig_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws MojoExecutionException {
+  void executeInternal_whenNamespaceConfiguredInResourceConfig_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws MojoExecutionException {
     // Given
     ResourceConfig mockedResourceConfig = mock(ResourceConfig.class);
     when(mockedResourceConfig.getNamespace()).thenReturn("namespace-from-resourceconfig");
@@ -147,7 +144,7 @@ public class WatchMojoTest {
   }
 
   @Test
-  public void executeInternal_whenNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws MojoExecutionException {
+  void executeInternal_whenNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws MojoExecutionException {
     // Given
     // @formatter:off
     watchMojo = new WatchMojo() {{

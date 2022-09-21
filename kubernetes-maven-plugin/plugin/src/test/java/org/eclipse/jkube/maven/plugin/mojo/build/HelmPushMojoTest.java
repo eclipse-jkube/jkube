@@ -34,36 +34,35 @@ import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class HelmPushMojoTest {
+class HelmPushMojoTest {
 
   @Mocked
-  MavenProject mavenProject;
+  private MavenProject mavenProject;
   @Mocked
-  Build mavenBuild;
+  private Build mavenBuild;
   @Mocked
-  HelmService helmService;
+  private HelmService helmService;
   @Mocked
-  SecDispatcher secDispatcher;
+  private SecDispatcher secDispatcher;
   @Mocked
-  MojoExecution mojoExecution;
+  private MojoExecution mojoExecution;
   @Mocked
-  MojoDescriptor mojoDescriptor;
-
+  private MojoDescriptor mojoDescriptor;
 
   private Properties mavenProperties;
 
   private HelmPushMojo helmPushMojo;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     mavenProperties = new Properties();
     helmPushMojo = new HelmPushMojo();
     helmPushMojo.helm = new HelmConfig();
@@ -85,15 +84,15 @@ public class HelmPushMojoTest {
     // @formatter:on
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     mavenProject = null;
     helmPushMojo = null;
     helmService = null;
   }
 
   @Test
-  public void execute_withValidXMLConfig_shouldUpload() throws Exception {
+  void execute_withValidXMLConfig_shouldUpload() throws Exception {
     // Given
     helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
     // @formatter:off
@@ -111,7 +110,7 @@ public class HelmPushMojoTest {
   }
 
   @Test
-  public void execute_withValidXMLConfigAndUploadError_shouldFail() throws Exception {
+  void execute_withValidXMLConfigAndUploadError_shouldFail() throws Exception {
     // Given
     helmPushMojo.helm.setStableRepository(completeValidRepository());
     // @formatter:off
@@ -120,15 +119,14 @@ public class HelmPushMojoTest {
       helmService.uploadHelmChart(withNotNull());
       result = new BadUploadException("Error uploading helm chart");
     }};
-    // When
-    final MojoExecutionException result = assertThrows(MojoExecutionException.class,
-        () -> helmPushMojo.execute());
-    // Then
-    assertThat(result).hasMessage("Error uploading helm chart");
+    // When & Then
+    assertThatExceptionOfType(MojoExecutionException.class)
+            .isThrownBy(() -> helmPushMojo.execute())
+            .withMessage("Error uploading helm chart");
   }
 
   @Test
-  public void execute_withValidPropertiesConfig_shouldUpload() throws Exception {
+  void execute_withValidPropertiesConfig_shouldUpload() throws Exception {
     // Given
     mavenProperties.put("jkube.helm.snapshotRepository.name", "props repo");
     mavenProperties.put("jkube.helm.snapshotRepository.type", "nExus");
@@ -154,7 +152,7 @@ public class HelmPushMojoTest {
   }
 
   @Test
-  public void execute_withValidPropertiesAndXMLConfig_shouldGenerateWithPropertiesTakingPrecedence() throws Exception {
+  void execute_withValidPropertiesAndXMLConfig_shouldGenerateWithPropertiesTakingPrecedence() throws Exception {
     // Given
     helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
     mavenProperties.put("jkube.helm.snapshotRepository.password", "propS3cret");
@@ -177,7 +175,7 @@ public class HelmPushMojoTest {
   }
 
   @Test
-  public void execute_withValidMavenSettings_shouldUpload() throws Exception {
+  void execute_withValidMavenSettings_shouldUpload() throws Exception {
     // Given
     helmPushMojo.settings.addServer(completeValidServer());
     // @formatter:off
@@ -200,7 +198,7 @@ public class HelmPushMojoTest {
   }
 
   @Test
-  public void execute_withSkip_shouldSkipExecution() throws Exception {
+  void execute_withSkip_shouldSkipExecution() throws Exception {
     // Given
     helmPushMojo.skip = true;
     // When
@@ -213,7 +211,7 @@ public class HelmPushMojoTest {
   }
 
   @Test
-  public void shouldSkip_withSkip_shouldReturnTrue() {
+  void shouldSkip_withSkip_shouldReturnTrue() {
     // Given
     helmPushMojo.skip = true;
     // When
