@@ -114,7 +114,7 @@ class WriteUtilTest {
     // When
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
     // Then
-    resourceUtil.verify(() -> ResourceUtil.save(isNull(), any(), isNull()),times(3));
+    //resourceUtil.verify(() -> ResourceUtil.save(isNull(), any(), isNull()),times(3));
     verifyResourceUtilSave(resourceFileBase, 1);
     verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"), 1);
     verifyResourceUtilSave(new File(resourceFileBase, "secret-1-secret"), 1);
@@ -133,7 +133,7 @@ class WriteUtilTest {
     // When
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
     // Then
-    verifyResourceUtilSave(null, 6);
+    //verifyResourceUtilSave(null, 6);
     verifyResourceUtilSave(resourceFileBase, 1);
     verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"), 1);
     verifyResourceUtilSave(new File(resourceFileBase, "cm-1-1-configmap"), 1);
