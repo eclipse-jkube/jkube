@@ -21,6 +21,8 @@ What types of changes does your code introduce? Put an `x` in all the boxes that
  - [ ] I have read the [contributing guidelines](https://www.eclipse.org/jkube/contributing)
  - [ ] I signed-off my commit with a user that has signed the [Eclipse Contributor Agreement](https://www.eclipse.org/legal/ECA.php)
  - [ ] My code follows the style guidelines of this project
+ - [ ] I Keep It Small and Simple: The smaller the PR is, the easier it is to review and have it merged
+ - [ ] I use [conventional commits](https://www.conventionalcommits.org/) in my commit messages
  - [ ] I have performed a self-review of my code
  - [ ] I Added [CHANGELOG](../CHANGELOG.md) entry
  - [ ] I have updated the [documentation](../kubernetes-maven-plugin/doc) accordingly
