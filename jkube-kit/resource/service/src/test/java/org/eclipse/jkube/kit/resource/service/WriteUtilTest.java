@@ -15,24 +15,32 @@ package org.eclipse.jkube.kit.resource.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,7 +50,7 @@ class WriteUtilTest {
   @TempDir
   File temporaryFolder;
   private KitLogger log;
-  private ResourceUtil resourceUtil;
+  private MockedStatic<ResourceUtil> resourceUtil;
 
   private KubernetesListBuilder klb;
   private File resourceFileBase;
@@ -50,11 +58,14 @@ class WriteUtilTest {
   @BeforeEach
   void initGlobalVariables()  {
     log = mock(KitLogger.class);
-    resourceUtil = mock(ResourceUtil.class);
+    resourceUtil = mockStatic(ResourceUtil.class);
     klb = new KubernetesListBuilder();
     resourceFileBase = temporaryFolder;
   }
-
+  @AfterEach
+  public void close() {
+    resourceUtil.close();
+  }
   @Test
   void writeResource() throws IOException {
     // Given
@@ -71,7 +82,8 @@ class WriteUtilTest {
     // Given
     final File resource =
             Files.createDirectory(temporaryFolder.toPath().resolve("resource-base")).toFile();
-    mockResourceUtilSave(new IOException("Message"));
+    resourceUtil.when(() -> ResourceUtil.save(any(), isNull(), isNull())).thenThrow(new IOException("Message"));
+
     // When
     final IOException result = assertThrows(IOException.class,
         () -> WriteUtil.writeResource(resource, null, null)
@@ -102,7 +114,7 @@ class WriteUtilTest {
     // When
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
     // Then
-    verifyResourceUtilSave(null, 3);
+    resourceUtil.verify(() -> ResourceUtil.save(isNull(), any(), isNull()),times(3));
     verifyResourceUtilSave(resourceFileBase, 1);
     verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"), 1);
     verifyResourceUtilSave(new File(resourceFileBase, "secret-1-secret"), 1);
@@ -131,11 +143,13 @@ class WriteUtilTest {
   }
 
   private void mockResourceUtilSave(Object returnValue) throws IOException {
-    when(resourceUtil.save(any(), null, null)).thenReturn((File) returnValue);
+    resourceUtil.when(() -> ResourceUtil.save(any(), isNull(), isNull())).thenReturn((File) returnValue);
+
   }
 
   private void verifyResourceUtilSave(File file, int numTimes) throws IOException {
-    verify(resourceUtil,times(numTimes)).save(file, any(), null);
+    resourceUtil.verify(() -> ResourceUtil.save(eq(file), any(), isNull()),times(numTimes));
+
   }
 
   private static GenericKubernetesResource genericCustomResource(String kind, String name) {

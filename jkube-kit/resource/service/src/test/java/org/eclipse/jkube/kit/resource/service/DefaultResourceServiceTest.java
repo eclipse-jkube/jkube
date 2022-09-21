@@ -36,13 +36,15 @@ import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("unused")
 class DefaultResourceServiceTest {
@@ -114,13 +116,14 @@ class DefaultResourceServiceTest {
   @SuppressWarnings("AccessStaticViaInstance")
   @Test
   void writeResources() throws IOException {
-    WriteUtil writeUtil = mock(WriteUtil.class);
-    TemplateUtil templateUtil = mock(TemplateUtil.class);
+    MockedStatic<WriteUtil> writeUtil = mockStatic(WriteUtil.class);
+    MockedStatic<TemplateUtil> templateUtil = mockStatic(TemplateUtil.class);
     // When
     defaultResourceService.writeResources(null, ResourceClassifier.KUBERNETES, kitLogger);
     // Then
-    verify(writeUtil.writeResourcesIndividualAndComposite(null, new File(targetDir, "kubernetes"), ResourceFileType.yaml, kitLogger),times(1));
-    doNothing().when(templateUtil).interpolateTemplateVariables(null, any());
+    writeUtil.verify(() -> WriteUtil.writeResourcesIndividualAndComposite(isNull(), eq(new File(targetDir, "kubernetes")), eq(ResourceFileType.yaml), eq(kitLogger)),times(1));
+    templateUtil.verify(() -> TemplateUtil.interpolateTemplateVariables(isNull(), any()),times(1));
+
 
   }
 }
