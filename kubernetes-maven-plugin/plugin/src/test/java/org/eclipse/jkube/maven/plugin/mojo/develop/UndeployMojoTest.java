@@ -15,6 +15,8 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -28,19 +30,15 @@ import mockit.Mocked;
 import mockit.Verifications;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("unused")
-public class UndeployMojoTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class UndeployMojoTest {
   @Mocked
   private JKubeServiceHub jKubeServiceHub;
   @Mocked
@@ -55,10 +53,10 @@ public class UndeployMojoTest {
   private File mockResourceDir;
   private UndeployMojo undeployMojo;
 
-  @Before
-  public void setUp() throws IOException {
-    mockManifest = temporaryFolder.newFile();
-    mockResourceDir = temporaryFolder.newFolder();
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
+    mockManifest = File.createTempFile("junit", "ext", temporaryFolder.toFile());
+    mockResourceDir = Files.createDirectory(temporaryFolder.resolve("resources")).toFile();
     // @formatter:off
     undeployMojo = new UndeployMojo() {{
       resourceDir = mockResourceDir;
@@ -74,13 +72,13 @@ public class UndeployMojoTest {
     // @formatter:on
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     undeployMojo = null;
   }
 
   @Test
-  public void execute() throws Exception {
+  void execute() throws Exception {
     // When
     undeployMojo.execute();
     // Then
@@ -88,7 +86,7 @@ public class UndeployMojoTest {
   }
 
   @Test
-  public void execute_whenSkipUndeployEnabled_thenUndeployServiceNotCalled() throws Exception {
+  void execute_whenSkipUndeployEnabled_thenUndeployServiceNotCalled() throws Exception {
     // Given
     undeployMojo.skipUndeploy = true;
     new Expectations() {{
@@ -103,7 +101,7 @@ public class UndeployMojoTest {
   }
 
   @Test
-  public void executeWithCustomProperties() throws Exception {
+  void execute_withCustomProperties() throws Exception {
     // Given
     undeployMojo.namespace = "  custom-namespace  ";
     // When
