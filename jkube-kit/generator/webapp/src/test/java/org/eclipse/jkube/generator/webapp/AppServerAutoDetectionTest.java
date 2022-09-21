@@ -24,8 +24,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author kameshs
@@ -87,7 +86,7 @@ public class AppServerAutoDetectionTest {
         GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder().build()).build();
 
         AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("tomcat");
-        assertEquals("tomcat", appServerHandler.getName());
+        assertThat(appServerHandler.getName()).isEqualTo("tomcat");
     }
 
 
@@ -121,7 +120,7 @@ public class AppServerAutoDetectionTest {
             .build()).build();
 
         AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
-        assertEquals("tomcat", appServerHandler.getName());
+        assertThat(appServerHandler.getName()).isEqualTo("tomcat");
     }
 
     private void assertAppServerDescriptorApplicability(Object[] descriptors) throws IOException {
@@ -130,9 +129,9 @@ public class AppServerAutoDetectionTest {
             boolean expected = (boolean) descriptors[i + 1];
 
             File appDir = folder.newFolder("webapp" + i);
-            assertTrue(new File(appDir, "META-INF/").mkdirs());
-            assertTrue(new File(appDir, "WEB-INF/").mkdirs());
-            assertTrue(new File(appDir, descriptor).createNewFile());
+            assertThat(new File(appDir, "META-INF/").mkdirs()).isTrue();
+            assertThat(new File(appDir, "WEB-INF/").mkdirs()).isTrue();
+            assertThat(new File(appDir, descriptor).createNewFile()).isTrue();
 
             GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder()
                 .buildDirectory(appDir)
@@ -142,7 +141,7 @@ public class AppServerAutoDetectionTest {
             AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
 
             String message = String.format("Expected descriptor %s to make isApplicable() return %s", descriptor, expected);
-            assertEquals(message, expected, appServerHandler.isApplicable());
+            assertThat(appServerHandler.isApplicable()).as(message).isEqualTo(expected);
         }
     }
 
@@ -164,7 +163,8 @@ public class AppServerAutoDetectionTest {
             AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect(null);
 
             String message = String.format("Expected plugin %s to make isApplicable() return %s", pluginCoordinate, expected);
-            assertEquals(message, expected, appServerHandler.isApplicable());
+            assertThat(appServerHandler.isApplicable()).as(message).isEqualTo(expected);
+
         }
     }
 }

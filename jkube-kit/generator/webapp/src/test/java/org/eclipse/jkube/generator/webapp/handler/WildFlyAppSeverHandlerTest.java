@@ -142,6 +142,6 @@ public class WildFlyAppSeverHandlerTest {
     assertThat(handler.getCommand()).isEqualTo("/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0");
     assertThat(handler.getUser()).isEqualTo("jboss:jboss:jboss");
     assertThat(handler.getEnv()).isEqualTo(Collections.singletonMap("GALLEON_PROVISION_LAYERS", "cloud-server,web-clustering"));
-    assertThat(handler.exposedPorts()).isEqualTo(Collections.singletonList("8080")).isEqualTo( handler.exposedPorts());
+    assertThat(handler.exposedPorts()).isEqualTo(Collections.singletonList("8080"));
   }
 }
