@@ -27,7 +27,7 @@ public class KindFilenameMapperUtilTest {
     void shouldLoadMappings() {
         // given
         // source: test/resources/**/kind-file-type-mappings-default.ascii
-        Map<String, List<String>> serializedMappings = new HashMap<String, List<String>>() {{
+        Map<String, List<String>> expectedSerializedMappigs = new HashMap<String, List<String>>() {{
             put("BuildConfig", Arrays.asList("bc", "buildconfig"));
             put("ClusterRole", Arrays.asList("cr", "crole", "clusterrole"));
             put("ConfigMap", Arrays.asList("cm", "configmap"));
@@ -35,7 +35,7 @@ public class KindFilenameMapperUtilTest {
         }};
 
         // source: test/resources/**/kind-file-type-mappings-default.properties
-        Map<String, List<String>> propertiesMappings =  new HashMap<String, List<String>>() {{
+        Map<String, List<String>> expectedPropertiesMappings =  new HashMap<String, List<String>>() {{
             put("Pod", Arrays.asList("pd", "pod"));
         }};
 
@@ -44,7 +44,7 @@ public class KindFilenameMapperUtilTest {
 
         // then
         assertThat(defaultMappings)
-                .containsAllEntriesOf(serializedMappings)
-                .containsAllEntriesOf(propertiesMappings);
+                .containsAllEntriesOf(expectedSerializedMappigs)
+                .containsAllEntriesOf(expectedPropertiesMappings);
     }
 }
