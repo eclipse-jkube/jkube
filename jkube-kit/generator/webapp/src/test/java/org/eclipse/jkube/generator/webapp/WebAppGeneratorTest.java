@@ -37,7 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Fail.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.when;
 
@@ -77,7 +77,7 @@ public class WebAppGeneratorTest {
     assertThat(result).isTrue();
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void customizeDoesNotSupportS2iBuildShouldThrowException() {
     // Given
     final Properties projectProperties = new Properties();
@@ -86,10 +86,9 @@ public class WebAppGeneratorTest {
     when(generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
 
-    // When
-    new WebAppGenerator(generatorContext).customize(Collections.emptyList(), false);
-    // Then - Exception thrown
-    fail("exception");
+    // When + Then - Exception thrown
+    assertThatIllegalArgumentException()
+            .isThrownBy(() -> new WebAppGenerator(generatorContext).customize(Collections.emptyList(), false));
   }
 
   @Test
@@ -99,7 +98,6 @@ public class WebAppGeneratorTest {
     final File buildDirectory = temporaryFolder.newFolder("build");
     final File artifactFile = new File(buildDirectory, "artifact.war");
     assertThat(artifactFile.createNewFile()).isTrue();
-
     when(generatorContext.getProject().getBuildDirectory()).thenReturn(buildDirectory);
     when(generatorContext.getProject().getBuildFinalName()).thenReturn("artifact");
     when(generatorContext.getProject().getPackaging()).thenReturn("war");
@@ -214,9 +212,12 @@ public class WebAppGeneratorTest {
     // when
     Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
     // then
-    assertThat( extractedVariables.get("GALLEON_PROVISION_LAYERS")).isEqualTo("web-server,ejb-lite,jsf,jpa,h2-driver");
-    assertThat( extractedVariables.get("IMAGE_STREAM_NAMESPACE")).isEqualTo("myproject");
+    assertThat(extractedVariables)
+            .containsEntry("GALLEON_PROVISION_LAYERS", "web-server,ejb-lite,jsf,jpa,h2-driver")
+            .containsEntry("IMAGE_STREAM_NAMESPACE", "myproject");
+
   }
+
 
   @Test
   public void extractEnvVariables_withSingleEnvVariable_shouldExtractIt() {
@@ -225,7 +226,8 @@ public class WebAppGeneratorTest {
     // when
     Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
     // then
-    assertThat(extractedVariables.get("GALLEON_PROVISION_LAYERS")).isEqualTo("web-server,ejb-lite,jsf,jpa,h2-driver");
+    assertThat(extractedVariables)
+            .containsEntry("GALLEON_PROVISION_LAYERS", "web-server,ejb-lite,jsf,jpa,h2-driver");
   }
 
   @Test
@@ -237,17 +239,16 @@ public class WebAppGeneratorTest {
     // when
     Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
     // then
-    assertThat( extractedVariables.get("ENV_WITH_SPACES")).isEqualTo("This is an environment variable with spaces");
-    assertThat( extractedVariables.get("ENV_WITH_SEMICOLON")).isEqualTo("/path;/other/path");
-    assertThat(extractedVariables.get("ENV_WITH_COMMAS")).isEqualTo("layer1,layer2");
+    assertThat(extractedVariables)
+            .containsEntry("ENV_WITH_SPACES", "This is an environment variable with spaces")
+            .containsEntry("ENV_WITH_SEMICOLON", "/path;/other/path")
+            .containsEntry("ENV_WITH_COMMAS", "layer1,layer2");
   }
 
   @Test
   public void extractEnvVariables_withEnvNull_shouldReturnAnEmptyMap() {
-    // Given
-    String envConfig = null;
     // when
-    Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
+    Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(null);
     // then
     assertThat(extractedVariables).isEmpty();
   }
