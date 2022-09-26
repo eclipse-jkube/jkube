@@ -17,155 +17,131 @@ package org.eclipse.jkube.generator.webapp.handler;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class WildFlyAppSeverHandlerTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mocked
   private GeneratorContext generatorContext;
 
+  private Plugin plugin;
+
+  @Before
+  public void setUp() {
+    generatorContext = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
+    plugin = mock(Plugin.class);
+  }
   @Test
   public void isApplicableHasJmsXmlShouldReturnTrue() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-    }};
-    // @formatter:on
-    assertTrue(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    assertThat(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile()).isTrue();
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
   @Test
-  public void isApplicableHasJmsXmlAndThorntailPluginShouldReturnFalse(@Mocked Plugin plugin) throws IOException {
+  public void isApplicableHasJmsXmlAndThorntailPluginShouldReturnFalse() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot(); minTimes = 0;
-      plugin.getGroupId(); result = "io.thorntail";
-      plugin.getArtifactId(); result = "thorntail-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
-    }};
-    // @formatter:on
-    assertTrue(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(plugin.getGroupId()).thenReturn("io.thorntail");
+    when(plugin.getArtifactId()).thenReturn("thorntail-maven-plugin");
+    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
+    assertThat(new File(temporaryFolder.newFolder("META-INF"), "some-file-with-jms.xml").createNewFile()).isTrue();
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertFalse(result);
+    assertThat(result).isFalse();
   }
 
   @Test
   public void isApplicableHasNoApplicableFilesShouldReturnFalse() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-    }};
-    // @formatter:on
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertFalse(result);
+    assertThat(result).isFalse();
   }
 
   @Test
-  public void isApplicableHasWildflyPluginShouldReturnTrue(@Mocked Plugin plugin) {
+  public void isApplicableHasWildflyPluginShouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      plugin.getGroupId(); result = "org.wildfly.plugins";
-      plugin.getArtifactId(); result = "wildfly-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
-    }};
-    // @formatter:on
+    when(plugin.getGroupId()).thenReturn("org.wildfly.plugins");
+    when(plugin.getArtifactId()).thenReturn("wildfly-maven-plugin");
+    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
     // When
     final boolean result = new WildFlyAppSeverHandler(generatorContext).isApplicable();
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
   @Test
   public void kubernetes() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.KUBERNETES;
-    }};
-    // @formatter:on
+    when(generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.KUBERNETES);
     // When
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
     assertCommonValues(handler);
-    assertEquals("jboss/wildfly:25.0.0.Final", handler.getFrom());
-    assertEquals("/opt/jboss/wildfly/standalone/deployments", handler.getDeploymentDir());
-    assertTrue(handler.runCmds().isEmpty());
+    assertThat((handler.getFrom())).isEqualTo("jboss/wildfly:25.0.0.Final");
+    assertThat(handler.getDeploymentDir()).isEqualTo("/opt/jboss/wildfly/standalone/deployments");
+    assertThat(handler.runCmds()).isEmpty();
   }
 
   @Test
   public void openShiftDockerStrategy() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-      generatorContext.getStrategy(); result = JKubeBuildStrategy.docker;
-    }};
-    // @formatter:on
+    when(generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
+    when(generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.docker);
     // When
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
     assertCommonValues(handler);
-    assertEquals("jboss/wildfly:25.0.0.Final", handler.getFrom());
-    assertEquals("/opt/jboss/wildfly/standalone/deployments", handler.getDeploymentDir());
-    assertEquals(Collections.singletonList("chmod -R a+rw /opt/jboss/wildfly/standalone/"), handler.runCmds());
+    assertThat(handler.getFrom()).isEqualTo("jboss/wildfly:25.0.0.Final");
+    assertThat(handler.getDeploymentDir()).isEqualTo("/opt/jboss/wildfly/standalone/deployments");
+    assertThat(handler.runCmds()).isEqualTo(Collections.singletonList("chmod -R a+rw /opt/jboss/wildfly/standalone/"));
   }
 
   @Test
   public void openShiftSourceStrategy() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getRuntimeMode(); result = RuntimeMode.OPENSHIFT;
-      generatorContext.getStrategy(); result = JKubeBuildStrategy.s2i;
-    }};
-    // @formatter:on
+    when(generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
+    when(generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     // When
     final WildFlyAppSeverHandler handler = new WildFlyAppSeverHandler(generatorContext);
     // Then
     assertCommonValues(handler);
-    assertEquals("quay.io/wildfly/wildfly-centos7:26.0", handler.getFrom());
-    assertEquals("/deployments", handler.getDeploymentDir());
-    assertTrue(handler.runCmds().isEmpty());
+    assertThat(handler.getFrom()).isEqualTo("quay.io/wildfly/wildfly-centos7:26.0");
+    assertThat(handler.getDeploymentDir()).isEqualTo("/deployments");
+    assertThat(handler.runCmds()).isEmpty();
   }
 
   private static void assertCommonValues(WildFlyAppSeverHandler handler) {
-    assertTrue(handler.supportsS2iBuild());
-    assertEquals("deployments", handler.getAssemblyName());
-    assertEquals("/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0", handler.getCommand());
-    assertEquals("jboss:jboss:jboss", handler.getUser());
-    assertEquals(Collections.singletonMap("GALLEON_PROVISION_LAYERS", "cloud-server,web-clustering"), handler.getEnv());
-    assertEquals(Collections.singletonList("8080"), handler.exposedPorts());
+
+    assertThat(handler.supportsS2iBuild()).isTrue();
+    assertThat(handler.getAssemblyName()).isEqualTo("deployments");
+    assertThat(handler.getCommand()).isEqualTo("/opt/jboss/wildfly/bin/standalone.sh -b 0.0.0.0");
+    assertThat(handler.getUser()).isEqualTo("jboss:jboss:jboss");
+    assertThat(handler.getEnv()).isEqualTo(Collections.singletonMap("GALLEON_PROVISION_LAYERS", "cloud-server,web-clustering"));
+    assertThat(handler.exposedPorts()).isEqualTo(Collections.singletonList("8080"));
   }
 }

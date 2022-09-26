@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -38,9 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.when;
 
@@ -80,7 +77,7 @@ public class WebAppGeneratorTest {
     assertThat(result).isTrue();
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void customizeDoesNotSupportS2iBuildShouldThrowException() {
     // Given
     final Properties projectProperties = new Properties();
@@ -89,10 +86,9 @@ public class WebAppGeneratorTest {
     when(generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
 
-    // When
-    new WebAppGenerator(generatorContext).customize(Collections.emptyList(), false);
-    // Then - Exception thrown
-    fail();
+    // When + Then - Exception thrown
+    assertThatIllegalArgumentException()
+            .isThrownBy(() -> new WebAppGenerator(generatorContext).customize(Collections.emptyList(), false));
   }
 
   @Test
@@ -101,8 +97,7 @@ public class WebAppGeneratorTest {
     final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
     final File buildDirectory = temporaryFolder.newFolder("build");
     final File artifactFile = new File(buildDirectory, "artifact.war");
-    assertTrue(artifactFile.createNewFile());
-
+    assertThat(artifactFile.createNewFile()).isTrue();
     when(generatorContext.getProject().getBuildDirectory()).thenReturn(buildDirectory);
     when(generatorContext.getProject().getBuildFinalName()).thenReturn("artifact");
     when(generatorContext.getProject().getPackaging()).thenReturn("war");
@@ -139,7 +134,7 @@ public class WebAppGeneratorTest {
     final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
     final File buildDirectory = temporaryFolder.newFolder("build");
     final File artifactFile = new File(buildDirectory, "artifact.war");
-    assertTrue(artifactFile.createNewFile());
+    assertThat(artifactFile.createNewFile()).isTrue();
     final Properties projectProperties = new Properties();
     projectProperties.put("jkube.generator.webapp.targetDir", "/other-dir");
     projectProperties.put("jkube.generator.webapp.user", "root");
@@ -184,7 +179,7 @@ public class WebAppGeneratorTest {
     final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
     final File buildDirectory = temporaryFolder.newFolder("build");
     final File artifactFile = new File(buildDirectory, "artifact.war");
-    assertTrue(artifactFile.createNewFile());
+    assertThat(artifactFile.createNewFile()).isTrue();
     final Properties projectProperties = new Properties();
     projectProperties.put("jkube.generator.webapp.targetDir", "/usr/local/tomcat/webapps");
     projectProperties.put("jkube.generator.webapp.from", "tomcat:jdk11-openjdk-slim");
@@ -217,9 +212,12 @@ public class WebAppGeneratorTest {
     // when
     Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
     // then
-    assertEquals("web-server,ejb-lite,jsf,jpa,h2-driver", extractedVariables.get("GALLEON_PROVISION_LAYERS"));
-    assertEquals("myproject", extractedVariables.get("IMAGE_STREAM_NAMESPACE"));
+    assertThat(extractedVariables)
+            .containsEntry("GALLEON_PROVISION_LAYERS", "web-server,ejb-lite,jsf,jpa,h2-driver")
+            .containsEntry("IMAGE_STREAM_NAMESPACE", "myproject");
+
   }
+
 
   @Test
   public void extractEnvVariables_withSingleEnvVariable_shouldExtractIt() {
@@ -228,7 +226,8 @@ public class WebAppGeneratorTest {
     // when
     Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
     // then
-    assertEquals("web-server,ejb-lite,jsf,jpa,h2-driver", extractedVariables.get("GALLEON_PROVISION_LAYERS"));
+    assertThat(extractedVariables)
+            .containsEntry("GALLEON_PROVISION_LAYERS", "web-server,ejb-lite,jsf,jpa,h2-driver");
   }
 
   @Test
@@ -240,19 +239,18 @@ public class WebAppGeneratorTest {
     // when
     Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
     // then
-    assertEquals("This is an environment variable with spaces", extractedVariables.get("ENV_WITH_SPACES"));
-    assertEquals("/path;/other/path", extractedVariables.get("ENV_WITH_SEMICOLON"));
-    assertEquals("layer1,layer2", extractedVariables.get("ENV_WITH_COMMAS"));
+    assertThat(extractedVariables)
+            .containsEntry("ENV_WITH_SPACES", "This is an environment variable with spaces")
+            .containsEntry("ENV_WITH_SEMICOLON", "/path;/other/path")
+            .containsEntry("ENV_WITH_COMMAS", "layer1,layer2");
   }
 
   @Test
   public void extractEnvVariables_withEnvNull_shouldReturnAnEmptyMap() {
-    // Given
-    String envConfig = null;
     // when
-    Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
+    Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(null);
     // then
-    assertTrue(extractedVariables.isEmpty());
+    assertThat(extractedVariables).isEmpty();
   }
 
 }

@@ -19,34 +19,36 @@ import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Plugin;
-
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class JettyAppSeverHandlerTest {
 
   @Rule
   public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-  @Mocked
   private GeneratorContext generatorContext;
 
+  private Plugin plugin;
+
+  @Before
+  public void setUp() {
+    generatorContext = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
+    plugin = mock(Plugin.class);
+  }
   @Test
   public void isApplicableHasJettyLoggingShouldReturnTrue() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-    }};
-    // @formatter:on
-    assertTrue(new File(temporaryFolder.newFolder("META-INF"), "jetty-logging.properties").createNewFile());
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    assertThat(new File(temporaryFolder.newFolder("META-INF"), "jetty-logging.properties").createNewFile()).isTrue();
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new JettyAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -56,12 +58,8 @@ public class JettyAppSeverHandlerTest {
   @Test
   public void isApplicableHasNotJettyLoggingShouldReturnFalse() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-    }};
-    // @formatter:on
-    assertTrue(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile());
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    assertThat(new File(temporaryFolder.newFolder("META-INF-1337"), "context.xml").createNewFile()).isTrue();
     // When
     final boolean result = new JettyAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -69,16 +67,12 @@ public class JettyAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasJettyMavenPluginShouldReturnTrue(@Mocked Plugin plugin) {
+  public void isApplicableHasJettyMavenPluginShouldReturnTrue() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-      plugin.getGroupId(); result = "org.eclipse.jetty";
-      plugin.getArtifactId(); result = "jetty-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(plugin.getGroupId()).thenReturn("org.eclipse.jetty");
+    when(plugin.getArtifactId()).thenReturn("jetty-maven-plugin");
+    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
     // When
     final boolean result = new JettyAppSeverHandler(generatorContext).isApplicable();
     // Then
@@ -86,16 +80,12 @@ public class JettyAppSeverHandlerTest {
   }
 
   @Test
-  public void isApplicableHasJetty1337MavenPluginShouldReturnFalse(@Mocked Plugin plugin) {
+  public void isApplicableHasJetty1337MavenPluginShouldReturnFalse() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      generatorContext.getProject().getBuildDirectory(); result = temporaryFolder.getRoot();
-      plugin.getGroupId(); result = "org.eclipse.jetty";
-      plugin.getArtifactId(); result = "jetty1337-maven-plugin";
-      generatorContext.getProject().getPlugins(); result = Collections.singletonList(plugin);
-    }};
-    // @formatter:on
+    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder.getRoot());
+    when(plugin.getGroupId()).thenReturn("org.eclipse.jetty");
+    when(plugin.getArtifactId()).thenReturn("jetty1337-maven-plugin");
+    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
     // When
     final boolean result = new JettyAppSeverHandler(generatorContext).isApplicable();
     // Then
