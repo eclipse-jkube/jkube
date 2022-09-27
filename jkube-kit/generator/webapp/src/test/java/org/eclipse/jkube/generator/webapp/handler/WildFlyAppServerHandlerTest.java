@@ -33,7 +33,7 @@ import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class WildFlyAppSeverHandlerTest {
+class WildFlyAppServerHandlerTest {
 
   @TempDir
   Path temporaryFolder;

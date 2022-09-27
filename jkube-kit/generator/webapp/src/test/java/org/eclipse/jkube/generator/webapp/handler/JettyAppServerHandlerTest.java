@@ -31,7 +31,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class JettyAppSeverHandlerTest {
+class JettyAppServerHandlerTest {
 
   @TempDir
   File temporaryFolder;
