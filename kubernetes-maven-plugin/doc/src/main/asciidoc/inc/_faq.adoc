@@ -13,7 +13,7 @@ spec:
   template:
     spec:
       containers:
-        -env:
+        - env:
           - name: FOO
             value: bar
 ----
