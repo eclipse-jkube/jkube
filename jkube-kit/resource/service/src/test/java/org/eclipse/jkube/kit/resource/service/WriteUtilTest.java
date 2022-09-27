@@ -15,14 +15,11 @@ package org.eclipse.jkube.kit.resource.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -35,15 +32,13 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class WriteUtilTest {
 
@@ -85,14 +80,10 @@ class WriteUtilTest {
     resourceUtil.when(() -> ResourceUtil.save(any(), isNull(), isNull())).thenThrow(new IOException("Message"));
 
     // When
-    final IOException result = assertThrows(IOException.class,
-        () -> WriteUtil.writeResource(resource, null, null)
-    );
-    // Then
-    assertThat(result)
-        .isNotNull()
-        .hasMessageStartingWith("Failed to write resource to ")
-        .hasMessageEndingWith("resource-base.");
+    assertThatIOException()
+            .isThrownBy(() -> WriteUtil.writeResource(resource, null, null))
+            .withMessageStartingWith("Failed to write resource to ")
+            .withMessageEndingWith("resource-base.");
   }
 
   @Test
@@ -100,7 +91,7 @@ class WriteUtilTest {
     // When
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
     // Then
-    verifyResourceUtilSave(resourceFileBase, 1);
+    verifyResourceUtilSave(resourceFileBase);
   }
 
   @Test
@@ -115,9 +106,9 @@ class WriteUtilTest {
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
     // Then
     //resourceUtil.verify(() -> ResourceUtil.save(isNull(), any(), isNull()),times(3));
-    verifyResourceUtilSave(resourceFileBase, 1);
-    verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"), 1);
-    verifyResourceUtilSave(new File(resourceFileBase, "secret-1-secret"), 1);
+    verifyResourceUtilSave(resourceFileBase);
+    verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"));
+    verifyResourceUtilSave(new File(resourceFileBase, "secret-1-secret"));
   }
 
   @Test
@@ -126,36 +117,36 @@ class WriteUtilTest {
     klb.addToItems(
         new ConfigMapBuilder().withNewMetadata().withNamespace("default").withName("cm-1").endMetadata().build(),
         new ConfigMapBuilder().withNewMetadata().withNamespace("different").withName("cm-1").endMetadata().build(),
-        genericCustomResource("CustomResourceOfKind1","repeated"),
-        genericCustomResource("CustomResourceOfKind2","repeated"),
-        genericCustomResource("CustomResourceOfKind3","repeated")
+        genericCustomResource("CustomResourceOfKind1"),
+        genericCustomResource("CustomResourceOfKind2"),
+        genericCustomResource("CustomResourceOfKind3")
     );
     // When
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
     // Then
     //verifyResourceUtilSave(null, 6);
-    verifyResourceUtilSave(resourceFileBase, 1);
-    verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"), 1);
-    verifyResourceUtilSave(new File(resourceFileBase, "cm-1-1-configmap"), 1);
-    verifyResourceUtilSave(new File(resourceFileBase, "repeated-cr"), 1);
-    verifyResourceUtilSave(new File(resourceFileBase, "repeated-1-cr"), 1);
-    verifyResourceUtilSave(new File(resourceFileBase, "repeated-2-cr"), 1);
+    verifyResourceUtilSave(resourceFileBase);
+    verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"));
+    verifyResourceUtilSave(new File(resourceFileBase, "cm-1-1-configmap"));
+    verifyResourceUtilSave(new File(resourceFileBase, "repeated-cr"));
+    verifyResourceUtilSave(new File(resourceFileBase, "repeated-1-cr"));
+    verifyResourceUtilSave(new File(resourceFileBase, "repeated-2-cr"));
   }
 
-  private void mockResourceUtilSave(Object returnValue) throws IOException {
-    resourceUtil.when(() -> ResourceUtil.save(any(), isNull(), isNull())).thenReturn((File) returnValue);
-
-  }
-
-  private void verifyResourceUtilSave(File file, int numTimes) throws IOException {
-    resourceUtil.verify(() -> ResourceUtil.save(eq(file), any(), isNull()),times(numTimes));
+  private void mockResourceUtilSave(Object returnValue) {
+    resourceUtil.when(() -> ResourceUtil.save(any(), isNull(), isNull())).thenReturn(returnValue);
 
   }
 
-  private static GenericKubernetesResource genericCustomResource(String kind, String name) {
+  private void verifyResourceUtilSave(File file) {
+    resourceUtil.verify(() -> ResourceUtil.save(eq(file), any(), isNull()),times(1));
+
+  }
+
+  private static GenericKubernetesResource genericCustomResource(String kind) {
     final GenericKubernetesResource gcr = new GenericKubernetesResource();
     gcr.setKind(kind);
-    gcr.setMetadata(new ObjectMetaBuilder().withName(name).build());
+    gcr.setMetadata(new ObjectMetaBuilder().withName("repeated").build());
     return gcr;
   }
 }

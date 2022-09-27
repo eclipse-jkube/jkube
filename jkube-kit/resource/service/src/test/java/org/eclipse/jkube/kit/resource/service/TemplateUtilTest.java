@@ -21,7 +21,6 @@ import io.fabric8.openshift.api.model.ParameterBuilder;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateBuilder;
 import org.apache.commons.io.FileUtils;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,19 +28,14 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.interpolateTemplateVariables;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class TemplateUtilTest {
   private MockedStatic<FileUtils> fileUtils;
@@ -115,47 +109,40 @@ class TemplateUtilTest {
   }
 
   @Test
-  void interpolateTemplateVariablesWithReadFileException() throws IOException {
+  void interpolateTemplateVariablesWithReadFileException() {
     // Given
     klb.addToItems(new TemplateBuilder()
         .addToParameters(new ParameterBuilder().withName("param1").withValue("value1").build())
         .build());
     fileUtils.when(() -> FileUtils.readFileToString(isNull(),  eq(Charset.defaultCharset()))).thenThrow(new IOException());
     // When
-    final IOException result = assertThrows(IOException.class, () -> {
-      interpolateTemplateVariables(klb.build(), null);
-      fail();
-    });
-    // Then
-    assertThat(result)
-        .isNotNull()
-        .hasMessage("Failed to load null for template variable replacement");
+    assertThatIOException()
+            .isThrownBy(() -> interpolateTemplateVariables(klb.build(), null))
+            .isNotNull()
+            .withMessage("Failed to load null for template variable replacement");
   }
 
   @Test
-  void interpolateTemplateVariablesWithWriteFileException() throws IOException {
+  void interpolateTemplateVariablesWithWriteFileException() {
     // Given
     klb.addToItems(new TemplateBuilder()
         .addToParameters(new ParameterBuilder().withName("param1").withValue("value1").build())
         .build());
     mockReadFileToString("One parameter: ${param1}, and non-existent ${oops}");
     fileUtils.when(() -> FileUtils.writeStringToFile(isNull(), anyString(), eq(Charset.defaultCharset()))).thenThrow(new IOException());
-    // When
-    final IOException result = assertThrows(IOException.class, () -> {
-      interpolateTemplateVariables(klb.build(), null);
-      fail();
-    });
-    // Then
-    assertThat(result)
-        .isNotNull()
-        .hasMessage("Failed to save null after replacing template expressions");
+    // When + Then
+    assertThatIOException()
+            .isThrownBy(() -> interpolateTemplateVariables(klb.build(), null))
+            .isNotNull()
+            .withMessage("Failed to save null after replacing template expressions");
+
   }
 
-  private void mockReadFileToString(Object readString) throws IOException {
-    fileUtils.when(() -> FileUtils.readFileToString(isNull(),  eq(Charset.defaultCharset()))).thenReturn((String) readString);
+  private void mockReadFileToString(Object readString)  {
+    fileUtils.when(() -> FileUtils.readFileToString(isNull(),  eq(Charset.defaultCharset()))).thenReturn(readString);
   }
 
-  private void verifyWriteStringToFile(int numTimes, String expectedString) throws IOException {
+  private void verifyWriteStringToFile(int numTimes, String expectedString){
     ArgumentCaptor<String> s = ArgumentCaptor.forClass(String.class);
     fileUtils.verify(() -> FileUtils.writeStringToFile(isNull(), s.capture(), eq(Charset.defaultCharset())),times(numTimes));
     if (numTimes > 0) {
