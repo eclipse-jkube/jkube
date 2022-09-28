@@ -16,33 +16,31 @@ package org.eclipse.jkube.kit.build.api.helper;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.build.api.helper.KubernetesConfigAuthUtil.readKubeConfigAuth;
 
-public class KubernetesConfigAuthUtilTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class KubernetesConfigAuthUtilTest {
 
   private File home;
 
-  @Before
-  public void setUp() throws Exception {
-    home = temporaryFolder.newFolder("home");
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws Exception {
+    home = Files.createDirectory(temporaryFolder.resolve("home")).toFile();
   }
 
   @Test
-  public void readKubeConfigAuth_withNoKubeConfig() {
+  void readKubeConfigAuth_withNoKubeConfig() {
     executeWithTempSystemUserHome(() -> {
       final AuthConfig result = readKubeConfigAuth();
       assertThat(result).isNull();
@@ -50,7 +48,7 @@ public class KubernetesConfigAuthUtilTest {
   }
 
   @Test
-  public void readKubeConfigAuth_withEmptyFile() throws IOException {
+  void readKubeConfigAuth_withEmptyFile() throws IOException {
     withKubeConfig("kube-config-empty.yaml");
     executeWithTempSystemUserHome(() -> {
       final AuthConfig result = readKubeConfigAuth();
@@ -59,7 +57,7 @@ public class KubernetesConfigAuthUtilTest {
   }
 
   @Test
-  public void readKubeConfigAuth_withMissingCurrentContext() throws IOException {
+  void readKubeConfigAuth_withMissingCurrentContext() throws IOException {
     withKubeConfig("kube-config-missing-current-context.yaml");
     executeWithTempSystemUserHome(() -> {
       final AuthConfig result = readKubeConfigAuth();
@@ -68,7 +66,7 @@ public class KubernetesConfigAuthUtilTest {
   }
 
   @Test
-  public void readKubeConfigAuth_withValidKubeConfig() throws IOException {
+  void readKubeConfigAuth_withValidKubeConfig() throws IOException {
     withKubeConfig("kube-config.yaml");
     executeWithTempSystemUserHome(() -> {
       final AuthConfig result = readKubeConfigAuth();
@@ -85,7 +83,7 @@ public class KubernetesConfigAuthUtilTest {
     IOUtils.copy(
         KubernetesConfigAuthUtilTest.class.getResourceAsStream(
             "/org/eclipse/jkube/kit/build/api/helper/kubernetes-config-auth/" + kubeConfigFile),
-        new FileOutputStream(kubeConfig)
+            Files.newOutputStream(kubeConfig.toPath())
     );
   }
   private void executeWithTempSystemUserHome(Runnable executor) {
