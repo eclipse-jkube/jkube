@@ -16,7 +16,7 @@ package org.eclipse.jkube.kit.build.api.helper;
 import java.io.File;
 import java.io.IOException;
 
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Utility methods and constants for path-related tests
@@ -144,11 +144,11 @@ public class PathTestUtil {
     public static File createTmpFile(String nameHint, TMP_FILE_PRESERVE_MODE preserveMode) {
         try {
             File tmpFile = File.createTempFile(nameHint, ".tmp");
-            assertTrue("The created temporary file " + tmpFile + " is not absolute!", tmpFile.isAbsolute());
+            assertThat(tmpFile).isAbsolute();
             if (preserveMode != null) {
                 switch (preserveMode) {
                     case DELETE_IMMEDIATELY:
-                        assertTrue("Unable to delete temporary file " + tmpFile, tmpFile.delete());
+                        assertThat(tmpFile.delete()).isTrue();
                         break;
                     case DELETE_ON_EXIT:
                         tmpFile.deleteOnExit();
