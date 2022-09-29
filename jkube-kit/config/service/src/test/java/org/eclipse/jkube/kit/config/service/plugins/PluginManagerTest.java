@@ -21,25 +21,25 @@ import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PluginManagerTest {
+class PluginManagerTest {
 
   private JKubeServiceHub jKubeServiceHub;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     jKubeServiceHub = new JKubeServiceHub(null, RuntimeMode.KUBERNETES, new KitLogger.StdoutLogger(),
       null, new JKubeConfiguration(), new BuildServiceConfig(), new LazyBuilder<>(() -> null), true);
   }
 
   @Test
-  public void pluginsCanBeLoadedInOrder() {
+  void pluginsCanBeLoadedInOrder() {
     // When
     final List<JKubePlugin> result = jKubeServiceHub.getPluginManager().getPlugins();
     // Then
@@ -50,7 +50,7 @@ public class PluginManagerTest {
   }
 
   @Test
-  public void defaultPluginServiceIsLoaded() {
+  void defaultPluginServiceIsLoaded() {
     // When
     final PluginService pluginService = jKubeServiceHub.getPluginManager().resolvePluginService();
     // Then

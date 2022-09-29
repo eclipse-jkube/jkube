@@ -24,55 +24,55 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class PluginServiceTest {
+class PluginServiceTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  File temporaryFolder;
 
   private KitLogger logger;
   private JKubeServiceHub jKubeServiceHub;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     logger = spy(new KitLogger.SilentLogger());
     jKubeServiceHub = new JKubeServiceHub(null, RuntimeMode.KUBERNETES, logger, null,
       JKubeConfiguration.builder()
         .project(JavaProject.builder()
-          .outputDirectory(temporaryFolder.getRoot())
+          .outputDirectory(temporaryFolder)
           .build())
         .build(),
       new BuildServiceConfig(), new LazyBuilder<>(() -> null), true);
   }
 
   @Test
-  public void addFiles_failsIfCantCreateExtraDirectory() throws IOException {
+  void addFiles_failsIfCantCreateExtraDirectory() throws IOException {
     // Given
-    temporaryFolder.newFile("jkube-extra");
+    Files.createFile(temporaryFolder.toPath().resolve("jkube-extra"));
     final PluginService pluginService = jKubeServiceHub.getPluginManager().resolvePluginService();
-    // When
-    final JKubeServiceException result = assertThrows(JKubeServiceException.class, pluginService::addExtraFiles);
-    // Then
-    assertThat(result).hasMessageContaining("Unable to create the jkube-extra directory");
+    // When & Then
+    assertThatExceptionOfType(JKubeServiceException.class)
+        .isThrownBy(pluginService::addExtraFiles)
+        .withMessageContaining("Unable to create the jkube-extra directory");
   }
 
   @Test
-  public void addFiles_shouldLogDebugMessages() throws JKubeServiceException {
+  void addFiles_shouldLogDebugMessages() throws JKubeServiceException {
     // When
     jKubeServiceHub.getPluginManager().resolvePluginService().addExtraFiles();
     // Then
@@ -85,11 +85,11 @@ public class PluginServiceTest {
   }
 
   @Test
-  public void addFiles_shouldProcessFiles() throws JKubeServiceException {
+  void addFiles_shouldProcessFiles() throws JKubeServiceException {
     // When
     jKubeServiceHub.getPluginManager().resolvePluginService().addExtraFiles();
     // Then
-    assertThat(new File(temporaryFolder.getRoot(), "jkube-extra"))
+    assertThat(new File(temporaryFolder, "jkube-extra"))
       .isDirectoryContaining(f -> f.getName().equals("file-added"));
   }
 

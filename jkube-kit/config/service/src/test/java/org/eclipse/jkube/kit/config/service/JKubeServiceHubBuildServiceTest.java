@@ -13,8 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -25,43 +24,35 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
-@RunWith(Parameterized.class)
-public class JKubeServiceHubBuildServiceTest {
+class JKubeServiceHubBuildServiceTest {
 
-  @Parameterized.Parameters(name = "{index}: {0} with {1} build strategy should create {2}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[]{RuntimeMode.KUBERNETES, null, DockerBuildService.class},
-        new Object[]{RuntimeMode.KUBERNETES, JKubeBuildStrategy.docker, DockerBuildService.class},
-        new Object[]{RuntimeMode.KUBERNETES, JKubeBuildStrategy.s2i, DockerBuildService.class},
-        new Object[]{RuntimeMode.KUBERNETES, JKubeBuildStrategy.jib, JibBuildService.class},
-        new Object[]{RuntimeMode.OPENSHIFT, null, OpenshiftBuildService.class},
-        new Object[]{RuntimeMode.OPENSHIFT, JKubeBuildStrategy.docker, OpenshiftBuildService.class},
-        new Object[]{RuntimeMode.OPENSHIFT, JKubeBuildStrategy.s2i, OpenshiftBuildService.class},
-        new Object[]{RuntimeMode.OPENSHIFT, JKubeBuildStrategy.jib, JibBuildService.class}
-    );
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments(RuntimeMode.KUBERNETES, null, DockerBuildService.class),
+        arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.docker, DockerBuildService.class),
+        arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.s2i, DockerBuildService.class),
+        arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.jib, JibBuildService.class),
+        arguments(RuntimeMode.OPENSHIFT, null, OpenshiftBuildService.class),
+        arguments(RuntimeMode.OPENSHIFT, JKubeBuildStrategy.docker, OpenshiftBuildService.class),
+        arguments(RuntimeMode.OPENSHIFT, JKubeBuildStrategy.s2i, OpenshiftBuildService.class),
+        arguments(RuntimeMode.OPENSHIFT, JKubeBuildStrategy.jib, JibBuildService.class));
   }
 
-  @Parameterized.Parameter
-  public RuntimeMode runtimeMode;
-
-  @Parameterized.Parameter(1)
-  public JKubeBuildStrategy buildStrategy;
-
-  @Parameterized.Parameter(2)
-  public Class<? extends BuildService> buildServiceClass;
-
-  @Test
-  public void getBuildService() {
+  @DisplayName("get build service")
+  @ParameterizedTest(name = "{index}: {0} with {1} build strategy should create {2}")
+  @MethodSource("data")
+  void getBuildService(RuntimeMode runtimeMode, JKubeBuildStrategy buildStrategy,
+      Class<? extends BuildService> buildServiceClass) {
     // Given
     final BuildServiceConfig config = BuildServiceConfig.builder().jKubeBuildStrategy(buildStrategy).build();
     final JKubeServiceHub jKubeServiceHub = new JKubeServiceHub(null, runtimeMode, new KitLogger.StdoutLogger(),

@@ -38,16 +38,12 @@ import io.fabric8.kubernetes.api.model.Service;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "AccessStaticViaInstance", "unused"})
-public class KubernetesUndeployServiceTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class KubernetesUndeployServiceTest {
   @Mocked
   private KitLogger logger;
   @Mocked
@@ -56,13 +52,13 @@ public class KubernetesUndeployServiceTest {
   private KubernetesHelper kubernetesHelper;
   private KubernetesUndeployService kubernetesUndeployService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     kubernetesUndeployService = new KubernetesUndeployService(jKubeServiceHub, logger);
   }
 
   @Test
-  public void undeployWithNonexistentManifestShouldDoNothing() throws Exception {
+  void undeploy_withNonexistentManifest_shouldDoNothing() throws Exception {
     // Given
     final File nonexistent = new File("I don't exist");
     // When
@@ -76,7 +72,7 @@ public class KubernetesUndeployServiceTest {
   }
 
   @Test
-  public void undeployWithManifestShouldDeleteAllEntities(@Mocked File file) throws Exception {
+  void undeploy_withManifest_shouldDeleteAllEntities(@Mocked File file) throws Exception {
     // Given
     final ResourceConfig resourceConfig = ResourceConfig.builder().namespace("default").build();
     final Namespace namespace = new NamespaceBuilder().withNewMetadata().withName("default").endMetadata().build();
@@ -109,11 +105,11 @@ public class KubernetesUndeployServiceTest {
   }
 
   @Test
-  public void undeployWithManifestAndCustomResourcesShouldDeleteAllEntities(
+  void undeploy_withManifestAndCustomResources_shouldDeleteAllEntities(@TempDir File temporaryFolder,
       @Mocked ResourceConfig resourceConfig) throws Exception {
     // Given
-    final File manifest = temporaryFolder.newFile("temp.yml");
-    final File crManifest = temporaryFolder.newFile("temp-cr.yml");
+    final File manifest = File.createTempFile("temp", ".yml", temporaryFolder);
+    final File crManifest = File.createTempFile("temp-cr", ".yml", temporaryFolder);
     final String crdId = "org.eclipse.jkube/v1alpha1#Crd";
     final Service service = new Service();
     final GenericKubernetesResource customResource = new GenericKubernetesResourceBuilder()
@@ -147,7 +143,7 @@ public class KubernetesUndeployServiceTest {
   }
 
   @Test
-  public void undeployWithManifestShouldDeleteEntitiesInMultipleNamespaces(@Mocked File file) throws Exception {
+  void undeploy_withManifest_shouldDeleteEntitiesInMultipleNamespaces(@Mocked File file) throws Exception {
     // Given
     final ResourceConfig resourceConfig = ResourceConfig.builder().build();
     final ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata().build();

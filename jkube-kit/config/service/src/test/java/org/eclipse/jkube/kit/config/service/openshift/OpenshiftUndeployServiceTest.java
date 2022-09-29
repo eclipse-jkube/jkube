@@ -44,17 +44,16 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 @SuppressWarnings({"AccessStaticViaInstance", "unused"})
-public class OpenshiftUndeployServiceTest {
+class OpenshiftUndeployServiceTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  File temporaryFolder;
   @Mocked
   private KitLogger logger;
   @Mocked
@@ -67,8 +66,8 @@ public class OpenshiftUndeployServiceTest {
   private KubernetesHelper kubernetesHelper;
   private OpenshiftUndeployService openshiftUndeployService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, logger);
     // @formatter:off
     new Expectations() {{
@@ -78,8 +77,8 @@ public class OpenshiftUndeployServiceTest {
     // @formatter:on
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     openshiftUndeployService = null;
   }
 
@@ -121,7 +120,7 @@ public class OpenshiftUndeployServiceTest {
   }
 
   @Test
-  public void deleteWithKubernetesClientShouldOnlyDeleteProvidedEntity() throws Exception {
+  void deleteWithKubernetesClient_shouldOnlyDeleteProvidedEntity() throws Exception {
     // Given
     final Pod entity = new Pod();
     withLoadedEntities(entity);
@@ -132,26 +131,26 @@ public class OpenshiftUndeployServiceTest {
     }};
     // @formatter:on
     // When
-    openshiftUndeployService.undeploy(null, ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null, ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(1);
     assertDeleted(entity);
   }
 
   @Test
-  public void deleteWithOpenShiftClientAndNoImageStreamShouldOnlyDeleteProvidedEntity() throws Exception {
+  void deleteWithOpenShiftClientAndNoImageStream_shouldOnlyDeleteProvidedEntity() throws Exception {
     // Given
     final Pod entity = new Pod();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(1);
     assertDeleted(entity);
   }
 
   @Test
-  public void deleteWithOpenShiftClientAndImageStreamShouldDeleteProvidedImageStream() throws Exception {
+  void deleteWithOpenShiftClientAndImageStream_shouldDeleteProvidedImageStream() throws Exception {
     // Given
     final ImageStream entity = new ImageStreamBuilder()
         .withNewMetadata().withName("image").endMetadata()
@@ -159,14 +158,14 @@ public class OpenshiftUndeployServiceTest {
         .build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(1);
     assertDeleted(entity);
   }
 
   @Test
-  public void deleteWithOpenShiftClientAndImageStreamShouldDeleteProvidedImageStreamAndRelatedBuildEntities()
+  void deleteWithOpenShiftClientAndImageStream_shouldDeleteProvidedImageStreamAndRelatedBuildEntities()
       throws Exception {
 
     // Given
@@ -181,7 +180,7 @@ public class OpenshiftUndeployServiceTest {
         .build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(3);
     assertDeleted(entity);
@@ -191,7 +190,7 @@ public class OpenshiftUndeployServiceTest {
 
 
   @Test
-  public void deleteWithOpenShiftClientAndDeploymentConfigShouldDeleteProvidedDeploymentConfigAndRelatedBuildEntities()
+  void deleteWithOpenShiftClientAndDeploymentConfig_shouldDeleteProvidedDeploymentConfigAndRelatedBuildEntities()
       throws Exception {
 
     // Given
@@ -215,7 +214,7 @@ public class OpenshiftUndeployServiceTest {
         .endSpec().build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(3);
     assertDeleted(entity);
@@ -224,7 +223,7 @@ public class OpenshiftUndeployServiceTest {
   }
 
   @Test
-  public void deleteWithOpenShiftClientAndDeploymentConfigNoMatchingLabelShouldDeleteProvidedDeploymentConfigOnly()
+  void deleteWithOpenShiftClientAndDeploymentConfigNoMatchingLabel_shouldDeleteProvidedDeploymentConfigOnly()
       throws Exception {
 
     // Given
@@ -250,14 +249,14 @@ public class OpenshiftUndeployServiceTest {
         .endSpec().build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(1);
     assertDeleted(entity);
   }
 
   @Test
-  public void deleteWithOpenShiftClientAndDeploymentConfigShouldDeleteProvidedDeploymentConfigAndRelatedMatchingBuildEntities()
+  void deleteWithOpenShiftClientAndDeploymentConfig_shouldDeleteProvidedDeploymentConfigAndRelatedMatchingBuildEntities()
       throws Exception {
 
     // Given
@@ -285,7 +284,7 @@ public class OpenshiftUndeployServiceTest {
         .endSpec().build();
     withLoadedEntities(entity);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), temporaryFolder.newFile());
+    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(2);
     assertDeleted(entity);
