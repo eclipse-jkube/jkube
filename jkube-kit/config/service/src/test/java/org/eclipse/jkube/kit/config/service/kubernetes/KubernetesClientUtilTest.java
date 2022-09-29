@@ -22,7 +22,7 @@ import mockit.Mocked;
 import mockit.Verifications;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.doDeleteAndWait;
@@ -30,13 +30,13 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class KubernetesClientUtilTest {
+class KubernetesClientUtilTest {
 
   @Mocked
   private KubernetesClient kubernetesClient;
 
   @Test
-  public void doDeleteAndWait_withExistingResource_shouldDeleteAndReachWaitLimit() {
+  void doDeleteAndWait_withExistingResource_shouldDeleteAndReachWaitLimit() {
     // Given
     GenericKubernetesResource resource = new GenericKubernetesResourceBuilder()
         .withApiVersion("org.eclipse.jkube/v1beta1")
@@ -54,7 +54,7 @@ public class KubernetesClientUtilTest {
   }
 
   @Test
-  public void applicableNamespace_whenNamespaceProvidedViaConfiguration_shouldReturnProvidedNamespace() {
+  void applicableNamespace_whenNamespaceProvidedViaConfiguration_shouldReturnProvidedNamespace() {
     // Given
     String namespaceViaPluginConfigOrJkubeNamespaceProperty = "ns1";
 
@@ -66,7 +66,7 @@ public class KubernetesClientUtilTest {
   }
 
   @Test
-  public void applicableNamespace_whenNamespaceInResourceMetadata_shouldReturnProvidedNamespace() {
+  void applicableNamespace_whenNamespaceInResourceMetadata_shouldReturnProvidedNamespace() {
     // Given
     Pod pod = new PodBuilder()
         .withNewMetadata().withNamespace("test").endMetadata()
@@ -80,7 +80,7 @@ public class KubernetesClientUtilTest {
   }
 
   @Test
-  public void applicableNamespace_whenNamespaceProvidedViaClusterAccess_shouldReturnProvidedNamespace() {
+  void applicableNamespace_whenNamespaceProvidedViaClusterAccess_shouldReturnProvidedNamespace() {
     // Given
     ClusterAccess mockedClusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
     when(mockedClusterAccess.getNamespace()).thenReturn("ns1");
@@ -93,7 +93,7 @@ public class KubernetesClientUtilTest {
   }
 
   @Test
-  public void applicableNamespace_whenNamespaceProvidedViaResourceConfiguration_shouldReturnProvidedNamespace() {
+  void applicableNamespace_whenNamespaceProvidedViaResourceConfiguration_shouldReturnProvidedNamespace() {
     // Given
     ResourceConfig resourceConfig = ResourceConfig.builder().namespace("ns1").build();
 
@@ -105,7 +105,7 @@ public class KubernetesClientUtilTest {
   }
 
   @Test
-  public void resolveFallbackNamespace_whenNamespaceProvidedViaResourceConfiguration_shouldReturnProvidedNamespace() {
+  void resolveFallbackNamespace_whenNamespaceProvidedViaResourceConfiguration_shouldReturnProvidedNamespace() {
     // Given
     ResourceConfig resourceConfig = ResourceConfig.builder().namespace("ns1").build();
 
@@ -117,7 +117,7 @@ public class KubernetesClientUtilTest {
   }
 
   @Test
-  public void resolveFallbackNamespace_whenNamespaceProvidedViaClusterAccess_shouldReturnProvidedNamespace() {
+  void resolveFallbackNamespace_whenNamespaceProvidedViaClusterAccess_shouldReturnProvidedNamespace() {
     // Given
     ClusterAccess mockedClusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
     when(mockedClusterAccess.getNamespace()).thenReturn("ns1");
