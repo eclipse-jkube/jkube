@@ -123,7 +123,6 @@ class WriteUtilTest {
     // When
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
     // Then
-    //verifyResourceUtilSave(null, 6);
     verifyResourceUtilSave(resourceFileBase);
     verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"));
     verifyResourceUtilSave(new File(resourceFileBase, "cm-1-1-configmap"));
@@ -134,7 +133,6 @@ class WriteUtilTest {
 
   private void mockResourceUtilSave(Object returnValue) {
     resourceUtil.when(() -> ResourceUtil.save(any(), isNull(), isNull())).thenReturn(returnValue);
-
   }
 
   private void verifyResourceUtilSave(File file) {
