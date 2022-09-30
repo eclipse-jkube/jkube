@@ -105,7 +105,6 @@ class WriteUtilTest {
     // When
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
     // Then
-    //resourceUtil.verify(() -> ResourceUtil.save(isNull(), any(), isNull()),times(3));
     verifyResourceUtilSave(resourceFileBase);
     verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"));
     verifyResourceUtilSave(new File(resourceFileBase, "secret-1-secret"));
