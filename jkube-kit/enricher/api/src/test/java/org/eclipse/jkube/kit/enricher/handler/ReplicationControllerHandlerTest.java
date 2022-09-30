@@ -30,9 +30,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 public class ReplicationControllerHandlerTest {
@@ -100,19 +97,19 @@ public class ReplicationControllerHandlerTest {
         ReplicationController replicationController = replicationControllerHandler.get(config,images);
 
         //Assertion
-        assertNotNull(replicationController.getSpec());
-        assertNotNull(replicationController.getMetadata());
-        assertEquals(5,replicationController.getSpec().getReplicas().intValue());
-        assertNotNull(replicationController.getSpec().getTemplate());
-        assertEquals("testing",replicationController.getMetadata().getName());
-        assertEquals("test-account",replicationController.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(replicationController.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",replicationController.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",replicationController.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(replicationController.getSpec().getTemplate().getSpec().getContainers());
+        assertThat(replicationController.getSpec()).isNotNull();
+        assertThat(replicationController.getMetadata()).isNotNull();
+        assertThat(replicationController.getSpec().getReplicas().intValue()).isEqualTo(5);
+        assertThat(replicationController.getSpec().getTemplate()).isNotNull();
+        assertThat(replicationController.getMetadata().getName()).isEqualTo("testing");
+        assertThat(replicationController.getSpec().getTemplate()
+                .getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(replicationController.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
+        assertThat(replicationController.getSpec().getTemplate().getSpec().
+                getVolumes().get(0).getName()).isEqualTo("test");
+        assertThat(replicationController.getSpec().getTemplate()
+                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
+        assertThat(replicationController.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
 
     }
 

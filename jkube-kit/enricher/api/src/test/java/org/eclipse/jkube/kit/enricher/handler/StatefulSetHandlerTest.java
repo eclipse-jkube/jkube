@@ -30,9 +30,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 public class StatefulSetHandlerTest {
@@ -98,20 +95,20 @@ public class StatefulSetHandlerTest {
         StatefulSet statefulSet = statefulSetHandler.get(config,images);
 
         //Assertion
-        assertNotNull(statefulSet.getSpec());
-        assertNotNull(statefulSet.getMetadata());
-        assertEquals(5,statefulSet.getSpec().getReplicas().intValue());
-        assertNotNull(statefulSet.getSpec().getTemplate());
-        assertEquals("testing",statefulSet.getMetadata().getName());
-        assertEquals("testing",statefulSet.getSpec().getServiceName());
-        assertEquals("test-account",statefulSet.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(statefulSet.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",statefulSet.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",statefulSet.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(statefulSet.getSpec().getTemplate().getSpec().getContainers());
+        assertThat(statefulSet.getSpec()).isNotNull();
+        assertThat(statefulSet.getMetadata()).isNotNull();
+        assertThat(statefulSet.getSpec().getReplicas().intValue()).isEqualTo(5);
+        assertThat(statefulSet.getSpec().getTemplate()).isNotNull();
+        assertThat(statefulSet.getMetadata().getName()).isEqualTo("testing");
+        assertThat(statefulSet.getSpec().getServiceName()).isEqualTo("testing");
+        assertThat(statefulSet.getSpec().getTemplate()
+                .getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(statefulSet.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
+        assertThat(statefulSet.getSpec().getTemplate().getSpec().
+                getVolumes().get(0).getName()).isEqualTo("test");
+        assertThat(statefulSet.getSpec().getTemplate()
+                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
+        assertThat(statefulSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
 
     }
 

@@ -20,11 +20,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ServiceHandlerTest {
 
@@ -62,16 +58,16 @@ public class ServiceHandlerTest {
         services = serviceHandler.getServices(serviceConfigs);
 
         //Assertion
-        assertNotNull(services);
-        assertEquals("TCP", services.get(0).getSpec().getPorts().get(0).getProtocol());
-        assertEquals("port-test", services.get(0).getSpec().getPorts().get(0).getName());
-        assertEquals(50, services.get(0).getSpec().getPorts().get(0).getNodePort().intValue());
-        assertEquals(80, services.get(0).getSpec().getPorts().get(0).getTargetPort().getIntVal().intValue());
-        assertEquals(8080, services.get(0).getSpec().getPorts().get(0).getPort().intValue());
-        assertEquals("NodePort", services.get(0).getSpec().getType());
+        assertThat(services).isNotNull();
+        assertThat(services.get(0).getSpec().getPorts().get(0).getProtocol()).isEqualTo("TCP");
+        assertThat(services.get(0).getSpec().getPorts().get(0).getName()).isEqualTo("port-test");
+        assertThat(services.get(0).getSpec().getPorts().get(0).getNodePort().intValue()).isEqualTo(50);
+        assertThat(services.get(0).getSpec().getPorts().get(0).getTargetPort().getIntVal().intValue()).isEqualTo(80);
+        assertThat(services.get(0).getSpec().getPorts().get(0).getPort().intValue()).isEqualTo(8080);
+        assertThat(services.get(0).getSpec().getType()).isEqualTo("NodePort");
 
-        assertTrue(services.get(0).getMetadata().getLabels().get("expose").equalsIgnoreCase("true"));
-        assertTrue(services.get(0).getMetadata().getName().equalsIgnoreCase("service-test"));
+        assertThat(services.get(0).getMetadata().getLabels().get("expose")).isEqualToIgnoringCase("true");
+        assertThat(services.get(0).getMetadata().getName()).isEqualToIgnoringCase("service-test");
     }
 
     @Test
@@ -87,7 +83,7 @@ public class ServiceHandlerTest {
 
         //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
-        assertTrue(services.isEmpty());
+        assertThat(services).isEmpty();
     }
 
     @Test
@@ -105,11 +101,11 @@ public class ServiceHandlerTest {
         services = serviceHandler.getServices(serviceConfigs);
 
         //Assertion
-        assertFalse(services.isEmpty());
-        assertEquals("NodePort",services.get(0).getSpec().getType());
-        assertEquals("None",services.get(0).getSpec().getClusterIP());
-        assertTrue(services.get(0).getMetadata().getLabels().get("expose").equalsIgnoreCase("true"));
-        assertTrue(services.get(0).getMetadata().getName().equalsIgnoreCase("service-test"));
+        assertThat(services).isNotEmpty();
+        assertThat(services.get(0).getSpec().getType()).isEqualTo("NodePort");
+        assertThat(services.get(0).getSpec().getClusterIP()).isEqualTo("None");
+        assertThat(services.get(0).getMetadata().getLabels().get("expose")).isEqualToIgnoringCase("true");
+        assertThat(services.get(0).getMetadata().getName()).isEqualToIgnoringCase("service-test");
     }
 
     @Test
@@ -131,15 +127,15 @@ public class ServiceHandlerTest {
         services = serviceHandler.getServices(serviceConfigs);
 
         //Assertion
-        assertEquals("TCP",services.get(0).getSpec().getPorts().get(0).getProtocol());
-        assertEquals("port-test",services.get(0).getSpec().getPorts().get(0).getName());
-        assertEquals(50,services.get(0).getSpec().getPorts().get(0).getNodePort().intValue());
-        assertEquals(80,services.get(0).getSpec().getPorts().get(0).getTargetPort().getIntVal().intValue());
-        assertEquals(8080,services.get(0).getSpec().getPorts().get(0).getPort().intValue());
-        assertEquals("NodePort",services.get(0).getSpec().getType());
-        assertEquals("None",services.get(0).getSpec().getClusterIP());
-        assertTrue(services.get(0).getMetadata().getLabels().get("expose").equalsIgnoreCase("true"));
-        assertTrue(services.get(0).getMetadata().getName().equalsIgnoreCase("service-test"));
+        assertThat(services.get(0).getSpec().getPorts().get(0).getProtocol()).isEqualTo("TCP");
+        assertThat(services.get(0).getSpec().getPorts().get(0).getName()).isEqualTo("port-test");
+        assertThat(services.get(0).getSpec().getPorts().get(0).getNodePort().intValue()).isEqualTo(50);
+        assertThat(services.get(0).getSpec().getPorts().get(0).getTargetPort().getIntVal().intValue()).isEqualTo(80);
+        assertThat(services.get(0).getSpec().getPorts().get(0).getPort().intValue()).isEqualTo(8080);
+        assertThat(services.get(0).getSpec().getType()).isEqualTo("NodePort");
+        assertThat(services.get(0).getSpec().getClusterIP()).isEqualTo("None");
+        assertThat(services.get(0).getMetadata().getLabels().get("expose")).isEqualToIgnoringCase("true");
+        assertThat(services.get(0).getMetadata().getName()).isEqualToIgnoringCase("service-test");
     }
 
     @Test
@@ -160,7 +156,7 @@ public class ServiceHandlerTest {
 
         //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
-        assertEquals("TCP",services.get(0).getSpec().getPorts().get(0).getProtocol());
+        assertThat(services.get(0).getSpec().getPorts().get(0).getProtocol()).isEqualTo("TCP");
     }
 
     @Test
@@ -179,7 +175,7 @@ public class ServiceHandlerTest {
 
         //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
-        assertEquals("UDP",services.get(0).getSpec().getPorts().get(0).getProtocol());
+        assertThat(services.get(0).getSpec().getPorts().get(0).getProtocol()).isEqualTo("UDP");
     }
 
     @Test
@@ -198,7 +194,7 @@ public class ServiceHandlerTest {
 
         //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
-        assertEquals("TCP",services.get(0).getSpec().getPorts().get(0).getProtocol());
+        assertThat(services.get(0).getSpec().getPorts().get(0).getProtocol()).isEqualTo("TCP");
     }
 
     @Test
@@ -218,7 +214,7 @@ public class ServiceHandlerTest {
 
         //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
-        assertNull(services.get(0).getSpec().getType());
+        assertThat(services.get(0).getSpec().getType()).isNull();
 
     }
 }

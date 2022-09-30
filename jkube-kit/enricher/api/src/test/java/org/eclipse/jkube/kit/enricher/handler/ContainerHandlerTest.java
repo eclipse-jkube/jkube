@@ -30,10 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class ContainerHandlerTest {
@@ -118,10 +115,10 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         containers = handler.getContainers(config, images);
-        assertNotNull(containers);
-        assertEquals("test-app", containers.get(0).getName());
-        assertEquals("docker.io/test/test-app:1.2", containers.get(0).getImage());
-        assertEquals("IfNotPresent", containers.get(0).getImagePullPolicy());
+        assertThat(containers).isNotNull();
+        assertThat( containers.get(0).getName()).isEqualTo("test-app");
+        assertThat( containers.get(0).getImage()).isEqualTo("docker.io/test/test-app:1.2");
+        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
     }
 
     @Test
@@ -182,8 +179,8 @@ public class ContainerHandlerTest {
             images.add(imageConfiguration);
 
             containers = handler.getContainers(config, images);
-            assertNotNull(containers);
-            assertEquals(testData[i+4], containers.get(0).getImage());
+            assertThat(containers).isNotNull();
+            assertThat( containers.get(0).getImage()).isEqualTo(testData[i+4]);
         }
     }
 
@@ -220,10 +217,10 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         containers = handler.getContainers(config, images);
-        assertNotNull(containers);
-        assertEquals("test-group-test-artifact", containers.get(0).getName());
-        assertEquals("docker.io/test:latest", containers.get(0).getImage());
-        assertEquals("IfNotPresent", containers.get(0).getImagePullPolicy());
+        assertThat(containers).isNotNull();
+        assertThat( containers.get(0).getName()).isEqualTo("test-group-test-artifact");
+        assertThat( containers.get(0).getImage()).isEqualTo("docker.io/test:latest");
+        assertThat( containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
     }
     @Test
     public void getContainerTestWithUser(){
@@ -250,10 +247,10 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         containers = handler.getContainers(config, images);
-        assertNotNull(containers);
-        assertEquals("user-test-artifact",containers.get(0).getName());
-        assertEquals("docker.io/user/test:latest",containers.get(0).getImage());
-        assertEquals("IfNotPresent",containers.get(0).getImagePullPolicy());
+        assertThat(containers).isNotNull();
+        assertThat(containers.get(0).getName()).isEqualTo("user-test-artifact");
+        assertThat(containers.get(0).getImage()).isEqualTo("docker.io/user/test:latest");
+        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
     }
 
     @Test
@@ -275,10 +272,10 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration1);
 
         containers = handler1.getContainers(config1, images);
-        assertEquals("IfNotPresent", containers.get(0).getImagePullPolicy());
+        assertThat( containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
 
         containers = handler2.getContainers(config1, images);
-        assertEquals("IfNotPresent", containers.get(0).getImagePullPolicy());
+        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
     }
     @Test
     public void imagePullPolicyWithoutPolicySetTest(){
@@ -304,13 +301,13 @@ public class ContainerHandlerTest {
                 .imagePullPolicy("").build();
 
         containers = handler1.getContainers(config2, images);
-        assertEquals("PullAlways",containers.get(0).getImagePullPolicy());
+        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("PullAlways");
 
         containers = handler2.getContainers(config2, images);
-        assertEquals("",containers.get(0).getImagePullPolicy());
+        assertThat(containers.get(0).getImagePullPolicy()).isEmpty();
 
         containers = handler3.getContainers(config2, images);
-        assertEquals("",containers.get(0).getImagePullPolicy());
+        assertThat(containers.get(0).getImagePullPolicy()).isEmpty();
 
     }
 
@@ -339,10 +336,10 @@ public class ContainerHandlerTest {
 
         containers = handler.getContainers(config1, images);
 
-        assertEquals("docker.io/test:latest",containers.get(0).getImage());
-        assertEquals("test:latest",containers.get(1).getImage());
-        assertNull(containers.get(2).getImage());
-        assertNull(containers.get(3).getImage());
+        assertThat(containers.get(0).getImage()).isEqualTo("docker.io/test:latest");
+        assertThat(containers.get(1).getImage()).isEqualTo("test:latest");
+        assertThat(containers.get(2).getImage()).isNull();
+        assertThat(containers.get(3).getImage()).isNull();
     }
 
     @Test
@@ -361,7 +358,7 @@ public class ContainerHandlerTest {
         containers = handler.getContainers(config1, images);
 
         project1.getProperties().remove("jkube.docker.pull.registry");
-        assertEquals("push.me/test:latest", containers.get(0).getImage());
+        assertThat(containers.get(0).getImage()).isEqualTo("push.me/test:latest");
     }
 
     @Test
@@ -376,7 +373,7 @@ public class ContainerHandlerTest {
         volumes1.add(volumeConfig1);
         ResourceConfig config1 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config1, images);
-        assertTrue(containers.get(0).getVolumeMounts().isEmpty());
+        assertThat(containers.get(0).getVolumeMounts()).isEmpty();
     }
 
     @Test
@@ -397,9 +394,9 @@ public class ContainerHandlerTest {
 
         ResourceConfig config2 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config2, images);
-        assertEquals(1, containers.get(0).getVolumeMounts().size());
-        assertNull(containers.get(0).getVolumeMounts().get(0).getName());
-        assertEquals("/path/etc", containers.get(0).getVolumeMounts().get(0).getMountPath());
+        assertThat(containers.get(0).getVolumeMounts()).hasSize(1);
+        assertThat(containers.get(0).getVolumeMounts().get(0).getName()).isNull();
+        assertThat( containers.get(0).getVolumeMounts().get(0).getMountPath()).isEqualTo("/path/etc");
     }
 
     @Test
@@ -418,9 +415,9 @@ public class ContainerHandlerTest {
         volumes1.add(volumeConfig3);
         ResourceConfig config3 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config3, images);
-        assertEquals(1, containers.get(0).getVolumeMounts().size());
-        assertEquals("third", containers.get(0).getVolumeMounts().get(0).getName());
-        assertEquals("/path/etc", containers.get(0).getVolumeMounts().get(0).getMountPath());
+        assertThat(containers.get(0).getVolumeMounts()).hasSize(1);
+        assertThat(containers.get(0).getVolumeMounts().get(0).getName()).isEqualTo("third");
+        assertThat(containers.get(0).getVolumeMounts().get(0).getMountPath()).isEqualTo("/path/etc");
     }
 
     @Test
@@ -441,9 +438,9 @@ public class ContainerHandlerTest {
         volumes1.add(volumeConfig4);
         ResourceConfig config4 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config4, images);
-        assertEquals(3, containers.get(0).getVolumeMounts().size());
+        assertThat(containers.get(0).getVolumeMounts()).hasSize(3);
         for (int i = 0; i <= 2; i++)
-            assertEquals("test", containers.get(0).getVolumeMounts().get(i).getName());
+            assertThat(containers.get(0).getVolumeMounts().get(i).getName()).isEqualTo("test");
     }
 
     @Test
@@ -456,7 +453,7 @@ public class ContainerHandlerTest {
         //empty volume
         ResourceConfig config5 = ResourceConfig.builder().volumes(volumes2).build();
         containers = handler.getContainers(config5, images);
-        assertTrue(containers.get(0).getVolumeMounts().isEmpty());
+        assertThat(containers.get(0).getVolumeMounts()).isEmpty();
     }
 
     @Test
@@ -468,7 +465,7 @@ public class ContainerHandlerTest {
 
         //Empty Ports
         containers = handler.getContainers(config, images);
-        assertNull(containers.get(0).getPorts());
+        assertThat(containers.get(0).getPorts()).isNull();
     }
 
     @Test
@@ -487,7 +484,7 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration2);
 
         containers = handler.getContainers(config, images);
-        assertNull(containers.get(0).getPorts());
+        assertThat(containers.get(0).getPorts()).isNull();
     }
 
     @Test
@@ -516,7 +513,7 @@ public class ContainerHandlerTest {
 
         containers = handler.getContainers(config, images);
         List<ContainerPort> outputports = containers.get(0).getPorts();
-        assertEquals(9,outputports.size());
+        assertThat(outputports).hasSize(9);
         int protocolCount=0,tcpCount=0,udpCount=0,containerPortCount=0,hostIPCount=0,hostPortCount=0;
         for(int i=0;i<9;i++){
             if(!StringUtils.isBlank(outputports.get(i).getProtocol())){
@@ -538,12 +535,12 @@ public class ContainerHandlerTest {
                 hostPortCount++;
             }
         }
-        assertEquals(9,protocolCount);
-        assertEquals(7,tcpCount);
-        assertEquals(2,udpCount);
-        assertEquals(3,hostIPCount);
-        assertEquals(9,containerPortCount);
-        assertEquals(4,hostPortCount);
+        assertThat(protocolCount).isEqualTo(9);
+        assertThat(tcpCount).isEqualTo(7);
+        assertThat(udpCount).isEqualTo(2);
+        assertThat(hostIPCount).isEqualTo(3);
+        assertThat(containerPortCount).isEqualTo(9);
+        assertThat(hostPortCount).isEqualTo(4);
     }
 
     @Test
@@ -566,9 +563,8 @@ public class ContainerHandlerTest {
         List<Container> containers = containerHandler.getContainers(config, imageConfigurations);
 
         // Then
-        assertNotNull(containers);
-        assertEquals(1, containers.size());
+        assertThat(containers).isNotNull().hasSize(1);
         Container container = containers.get(0);
-        assertEquals("quay.io/roman.gordill/customer-service-cache:latest", container.getImage());
+        assertThat(container.getImage()).isEqualTo("quay.io/roman.gordill/customer-service-cache:latest");
     }
 }

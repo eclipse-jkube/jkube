@@ -26,11 +26,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -55,40 +52,40 @@ public class InitContainerHandlerTest {
     @Test
     public void simple() {
         PodTemplateSpecBuilder builder = getPodTemplateBuilder();
-        assertFalse(handler.hasInitContainer(builder, "blub"));
+        assertThat(handler.hasInitContainer(builder, "blub")).isFalse();
         Container initContainer = createInitContainer("blub", "foo/blub");
         handler.appendInitContainer(builder, initContainer);
-        assertTrue(handler.hasInitContainer(builder, "blub"));
+        assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
         verifyBuilder(builder, Collections.singletonList(initContainer));
     }
 
     @Test
     public void append() {
         PodTemplateSpecBuilder builder = getPodTemplateBuilder("bla", "foo/bla");
-        assertFalse(handler.hasInitContainer(builder, "blub"));
+        assertThat(handler.hasInitContainer(builder, "blub")).isFalse();
         Container initContainer = createInitContainer("blub", "foo/blub");
         handler.appendInitContainer(builder, initContainer);
-        assertTrue(handler.hasInitContainer(builder, "blub"));
+        assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
         verifyBuilder(builder, Arrays.asList(createInitContainer("bla", "foo/bla"), initContainer));
     }
 
     @Test
     public void removeAll() {
         PodTemplateSpecBuilder builder = getPodTemplateBuilder("bla", "foo/bla");
-        assertTrue(handler.hasInitContainer(builder, "bla"));
+        assertThat(handler.hasInitContainer(builder, "bla")).isTrue();
         handler.removeInitContainer(builder, "bla");
-        assertFalse(handler.hasInitContainer(builder, "bla"));
+        assertThat(handler.hasInitContainer(builder, "bla")).isFalse();
         verifyBuilder(builder, null);
     }
 
     @Test
     public void removeOne() {
         PodTemplateSpecBuilder builder = getPodTemplateBuilder("bla", "foo/bla", "blub", "foo/blub");
-        assertTrue(handler.hasInitContainer(builder, "bla"));
-        assertTrue(handler.hasInitContainer(builder, "blub"));
+        assertThat(handler.hasInitContainer(builder, "bla")).isTrue();
+        assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
         handler.removeInitContainer(builder, "bla");
-        assertFalse(handler.hasInitContainer(builder, "bla"));
-        assertTrue(handler.hasInitContainer(builder, "blub"));
+        assertThat(handler.hasInitContainer(builder, "bla")).isFalse();
+        assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
         verifyBuilder(builder, Collections.singletonList(createInitContainer("blub", "foo/blub")));
     }
 
@@ -96,10 +93,10 @@ public class InitContainerHandlerTest {
     public void existingSame() {
         doNothing().when(log).warn(anyString(), anyString());
         PodTemplateSpecBuilder builder = getPodTemplateBuilder("blub", "foo/blub");
-        assertTrue(handler.hasInitContainer(builder, "blub"));
+        assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
         Container initContainer = createInitContainer("blub", "foo/blub");
         handler.appendInitContainer(builder, initContainer);
-        assertTrue(handler.hasInitContainer(builder, "blub"));
+        assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
         verifyBuilder(builder, Collections.singletonList(initContainer));
     }
 
@@ -107,12 +104,13 @@ public class InitContainerHandlerTest {
     public void existingDifferent() {
         try {
             PodTemplateSpecBuilder builder = getPodTemplateBuilder("blub", "foo/bla");
-            assertTrue(handler.hasInitContainer(builder, "blub"));
+            assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
             Container initContainer = createInitContainer("blub", "foo/blub");
-            handler.appendInitContainer(builder, initContainer);
-            fail();
+            assertThatIllegalArgumentException()
+                    .isThrownBy(() -> handler.appendInitContainer(builder, initContainer));
+
         } catch (IllegalArgumentException exp) {
-            assertTrue(exp.getMessage().contains("blub"));
+            assertThat(exp.getMessage()).contains("blub");
         }
     }
 
@@ -120,11 +118,11 @@ public class InitContainerHandlerTest {
         PodTemplateSpec spec = builder.build();
         List<Container> initContainersInSpec = spec.getSpec().getInitContainers();
         if (initContainersInSpec.size() == 0) {
-            assertNull(initContainers);
+            assertThat(initContainers).isNull();
         } else {
-            assertEquals(initContainersInSpec.size(), initContainers.size());
+            assertThat(initContainersInSpec).hasSameSizeAs(initContainers);
             for (int i = 0; i < initContainers.size(); i++) {
-                assertEquals(initContainersInSpec.get(i), initContainers.get(i));
+                assertThat(initContainersInSpec.get(i)).isEqualTo(initContainers.get(i));
             }
         }
     }

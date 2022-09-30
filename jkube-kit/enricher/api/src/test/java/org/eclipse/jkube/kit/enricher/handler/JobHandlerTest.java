@@ -28,10 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 
 public class JobHandlerTest {
@@ -99,19 +96,19 @@ public class JobHandlerTest {
         Job job = jobHandler.get(config,images);
 
         //Assertion
-        assertNotNull(job.getSpec());
-        assertNotNull(job.getMetadata());
-        assertNotNull(job.getSpec().getTemplate());
-        assertEquals("testing",job.getMetadata().getName());
-        assertEquals("test-account",job.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(job.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("OnFailure", job.getSpec().getTemplate().getSpec().getRestartPolicy());
-        assertEquals("test",job.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",job.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(job.getSpec().getTemplate().getSpec().getContainers());
+        assertThat(job.getSpec()).isNotNull();
+        assertThat(job.getMetadata()).isNotNull();
+        assertThat(job.getSpec().getTemplate()).isNotNull();
+        assertThat(job.getMetadata().getName()).isEqualTo("testing");
+        assertThat(job.getSpec().getTemplate()
+                .getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(job.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
+        assertThat(job.getSpec().getTemplate().getSpec().getRestartPolicy()).isEqualTo("OnFailure");
+        assertThat(job.getSpec().getTemplate().getSpec().
+                getVolumes().get(0).getName()).isEqualTo("test");
+        assertThat(job.getSpec().getTemplate()
+                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
+        assertThat(job.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
 
     }
 
@@ -124,8 +121,8 @@ public class JobHandlerTest {
               .serviceAccount("test-account")
               .volumes(volumes1)
               .build();
-
-        assertThrows(IllegalArgumentException.class, () -> jobHandler.get(config, images));
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> jobHandler.get(config, images));
     }
 
     @Test
@@ -136,8 +133,8 @@ public class JobHandlerTest {
               .serviceAccount("test-account")
               .volumes(volumes1)
               .build();
-
-        assertThrows(IllegalArgumentException.class, () -> jobHandler.get(config, images));
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> jobHandler.get(config, images));
     }
 
     @Test

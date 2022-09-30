@@ -29,9 +29,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 public class DaemonSetHandlerTest {
@@ -96,18 +93,18 @@ public class DaemonSetHandlerTest {
         DaemonSet daemonSet = daemonSetHandler.get(config, images);
 
         //Assertion
-        assertNotNull(daemonSet.getSpec());
-        assertNotNull(daemonSet.getMetadata());
-        assertNotNull(daemonSet.getSpec().getTemplate());
-        assertEquals("testing",daemonSet.getMetadata().getName());
-        assertEquals("test-account",daemonSet.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(daemonSet.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",daemonSet.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",daemonSet.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(daemonSet.getSpec().getTemplate().getSpec().getContainers());
+        assertThat(daemonSet.getSpec()).isNotNull();
+        assertThat(daemonSet.getMetadata()).isNotNull();
+        assertThat(daemonSet.getSpec().getTemplate()).isNotNull();
+        assertThat(daemonSet.getMetadata().getName()).isEqualTo("testing");
+        assertThat(daemonSet.getSpec().getTemplate()
+                .getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(daemonSet.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
+        assertThat(daemonSet.getSpec().getTemplate().getSpec().
+                getVolumes().get(0).getName()).isEqualTo("test");
+        assertThat(daemonSet.getSpec().getTemplate()
+                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
+        assertThat(daemonSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
 
     }
 

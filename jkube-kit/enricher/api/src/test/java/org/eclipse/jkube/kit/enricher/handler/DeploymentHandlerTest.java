@@ -30,9 +30,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 public class DeploymentHandlerTest {
@@ -98,19 +95,19 @@ public class DeploymentHandlerTest {
         Deployment deployment = deploymentHandler.get(config, images);
 
         //Assertion
-        assertNotNull(deployment.getSpec());
-        assertNotNull(deployment.getMetadata());
-        assertEquals(5,deployment.getSpec().getReplicas().intValue());
-        assertNotNull(deployment.getSpec().getTemplate());
-        assertEquals("testing",deployment.getMetadata().getName());
-        assertEquals("test-account",deployment.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(deployment.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",deployment.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",deployment.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(deployment.getSpec().getTemplate().getSpec().getContainers());
+        assertThat(deployment.getSpec()).isNotNull();
+        assertThat(deployment.getMetadata()).isNotNull();
+        assertThat(deployment.getSpec().getReplicas().intValue()).isEqualTo(5);
+        assertThat(deployment.getSpec().getTemplate()).isNotNull();
+        assertThat(deployment.getMetadata().getName()).isEqualTo("testing");
+        assertThat(deployment.getSpec().getTemplate()
+                .getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(deployment.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
+        assertThat(deployment.getSpec().getTemplate().getSpec().
+                getVolumes().get(0).getName()).isEqualTo("test");
+        assertThat(deployment.getSpec().getTemplate()
+                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
+        assertThat(deployment.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
 
     }
 

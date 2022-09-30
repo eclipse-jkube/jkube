@@ -21,11 +21,8 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
 
 public class ProbeHandlerTest {
     Probe probe;
@@ -41,7 +38,7 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
 
-        assertNull(probe);
+        assertThat(probe).isNull();
     }
 
     @Test
@@ -52,7 +49,7 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
 
-        assertNull(probe);
+        assertThat(probe).isNull();
     }
 
     @Test
@@ -66,16 +63,16 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNotNull(probe);
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals("www.healthcheck.com",probe.getHttpGet().getHost());
-        assertNull(probe.getHttpGet().getHttpHeaders());
-        assertEquals("/healthz",probe.getHttpGet().getPath());
-        assertEquals(8080,probe.getHttpGet().getPort().getIntVal().intValue());
-        assertEquals("HTTP",probe.getHttpGet().getScheme());
-        assertNull(probe.getExec());
-        assertNull(probe.getTcpSocket());
+        assertThat(probe).isNotNull();
+        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getTimeoutSeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getHttpGet().getHost()).isEqualTo("www.healthcheck.com");
+        assertThat(probe.getHttpGet().getHttpHeaders()).isNull();
+        assertThat(probe.getHttpGet().getPath()).isEqualTo("/healthz");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8080);
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTP");
+        assertThat(probe.getExec()).isNull();
+        assertThat(probe.getTcpSocket()).isNull();
     }
 
     @Test
@@ -86,11 +83,8 @@ public class ProbeHandlerTest {
                 .build();
 
         // When
-        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> probeHandler.getProbe(probeConfig));
-
-        // Then
-        assertThat(illegalArgumentException)
-            .hasMessageContaining("Invalid URL ");
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> probeHandler.getProbe(probeConfig)).withMessage("Invalid URL httphealthcheck.com:8080/healthz given for HTTP GET readiness check");
     }
 
     @Test
@@ -103,7 +97,7 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNull(probe);
+        assertThat(probe).isNull();
     }
 
     @Test
@@ -116,14 +110,14 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNotNull(probe);
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertNotNull(probe.getExec());
-        assertEquals(2,probe.getExec().getCommand().size());
-        assertEquals("[cat, /tmp/probe]",probe.getExec().getCommand().toString());
-        assertNull(probe.getHttpGet());
-        assertNull(probe.getTcpSocket());
+        assertThat(probe).isNotNull();
+        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getTimeoutSeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getExec()).isNotNull();
+        assertThat(probe.getExec().getCommand().size()).isEqualTo(2);
+        assertThat(probe.getExec().getCommand()).hasToString("[cat, /tmp/probe]");
+        assertThat(probe.getHttpGet()).isNull();
+        assertThat(probe.getTcpSocket()).isNull();
     }
 
     @Test
@@ -136,7 +130,7 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNull(probe);
+        assertThat(probe).isNull();
     }
 
     @Test
@@ -149,14 +143,14 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNotNull(probe);
-        assertNull(probe.getHttpGet());
-        assertNotNull(probe.getTcpSocket());
-        assertEquals(80,probe.getTcpSocket().getPort().getIntVal().intValue());
-        assertNull(probe.getTcpSocket().getHost());
-        assertNull(probe.getExec());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
+        assertThat(probe).isNotNull();
+        assertThat(probe.getHttpGet()).isNull();
+        assertThat(probe.getTcpSocket()).isNotNull();
+        assertThat(probe.getTcpSocket().getPort().getIntVal().intValue()).isEqualTo(80);
+        assertThat(probe.getTcpSocket().getHost()).isNull();
+        assertThat(probe.getExec()).isNull();
+        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getTimeoutSeconds().intValue()).isEqualTo(5);
     }
 
     @Test
@@ -170,17 +164,18 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNotNull(probe);
         assertNotNull(probe.getHttpGet());
-        assertNull(probe.getTcpSocket());
-        assertNull(probe.getExec());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals("www.healthcheck.com",probe.getHttpGet().getHost());
-        assertNull(probe.getHttpGet().getHttpHeaders());
-        assertEquals("/healthz",probe.getHttpGet().getPath());
-        assertEquals(8080,probe.getHttpGet().getPort().getIntVal().intValue());
-        assertEquals("HTTP",probe.getHttpGet().getScheme());
+        assertThat(probe).isNotNull();
+        assertThat(probe.getHttpGet()).isNotNull();
+        assertThat(probe.getTcpSocket()).isNull();
+        assertThat(probe.getExec()).isNull();
+        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getTimeoutSeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getHttpGet().getHost()).isEqualTo("www.healthcheck.com");
+        assertThat(probe.getHttpGet().getHttpHeaders()).isNull();
+        assertThat(probe.getHttpGet().getPath()).isEqualTo("/healthz");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8080);
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTP");
     }
 
     @Test
@@ -195,16 +190,17 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNotNull(probe);
-        assertNull(probe.getHttpGet());
-        assertNotNull(probe.getTcpSocket());
-        assertNull(probe.getExec());
-        assertEquals(80, probe.getTcpSocket().getPort().getIntVal().intValue());
-        assertEquals("www.healthcheck.com",probe.getTcpSocket().getHost());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals(3, probe.getFailureThreshold().intValue());
-        assertEquals(1, probe.getSuccessThreshold().intValue());
+
+        assertThat(probe).isNotNull();
+        assertThat(probe.getHttpGet()).isNull();
+        assertThat(probe.getTcpSocket()).isNotNull();
+        assertThat(probe.getExec()).isNull();
+        assertThat( probe.getTcpSocket().getPort().getIntVal().intValue()).isEqualTo(80);
+        assertThat(probe.getTcpSocket().getHost()).isEqualTo("www.healthcheck.com");
+        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getTimeoutSeconds().intValue()).isEqualTo(5);
+        assertThat( probe.getFailureThreshold().intValue()).isEqualTo(3);
+        assertThat( probe.getSuccessThreshold().intValue()).isEqualTo(1);
     }
 
     @Test
@@ -220,16 +216,16 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNotNull(probe);
-        assertNull(probe.getHttpGet());
-        assertNotNull(probe.getTcpSocket());
-        assertNull(probe.getExec());
-        assertEquals("httpPort", probe.getTcpSocket().getPort().getStrVal());
-        assertEquals("www.healthcheck.com",probe.getTcpSocket().getHost());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals(3, probe.getFailureThreshold().intValue());
-        assertEquals(1, probe.getSuccessThreshold().intValue());
+        assertThat(probe).isNotNull();
+        assertThat(probe.getHttpGet()).isNull();
+        assertThat(probe.getTcpSocket()).isNotNull();
+        assertThat(probe.getExec()).isNull();
+        assertThat(probe.getTcpSocket().getPort().getStrVal()).isEqualTo("httpPort");
+        assertThat(probe.getTcpSocket().getHost()).isEqualTo("www.healthcheck.com");
+        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getTimeoutSeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getFailureThreshold().intValue()).isEqualTo(3);
+        assertThat(probe.getSuccessThreshold().intValue()).isEqualTo(1);
     }
 
     @Test
@@ -243,17 +239,17 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNotNull(probe);
-        assertNotNull(probe.getHttpGet());
-        assertNull(probe.getTcpSocket());
-        assertNull(probe.getExec());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals("www.healthcheck.com",probe.getHttpGet().getHost());
-        assertNull(probe.getHttpGet().getHttpHeaders());
-        assertEquals("/healthz",probe.getHttpGet().getPath());
-        assertEquals(8080,probe.getHttpGet().getPort().getIntVal().intValue());
-        assertEquals("HTTP",probe.getHttpGet().getScheme());
+        assertThat(probe).isNotNull();
+        assertThat(probe.getHttpGet()).isNotNull();
+        assertThat(probe.getTcpSocket()).isNull();
+        assertThat(probe.getExec()).isNull();
+        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getTimeoutSeconds().intValue()).isEqualTo(5);
+        assertThat(probe.getHttpGet().getHost()).isEqualTo("www.healthcheck.com");
+        assertThat(probe.getHttpGet().getHttpHeaders()).isNull();
+        assertThat(probe.getHttpGet().getPath()).isEqualTo("/healthz");
+        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8080);
+        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTP");
     }
 
     @Test(expected = IllegalArgumentException.class)

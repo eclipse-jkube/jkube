@@ -17,9 +17,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class KindAndNameTest {
 
@@ -30,32 +28,25 @@ public class KindAndNameTest {
 
         KindAndName kindAndName = new KindAndName(configMap);
 
-        assertEquals("ConfigMap",kindAndName.getKind());
-        assertEquals("CMTest",kindAndName.getName());
+        assertThat(kindAndName.getKind()).isEqualTo("ConfigMap");
+        assertThat(kindAndName.getName()).isEqualTo("CMTest");
     }
 
     @Test
     public void equalsTest(){
 
         KindAndName kindAndName = new KindAndName("kindTest","nameTest");
-        KindAndName secondKindAndName = new KindAndName("kindTest","nameTest");
         KindAndName thirdKindAndName = new KindAndName("kindTest1","nameTest1");
         KindAndName fourthKindAndName = new KindAndName("kindTest1","nameTest");
         KindAndName fifthKindAndName = new KindAndName("kindTest","nameTest1");
 
         //if checking same object
-        assertEquals(kindAndName, kindAndName);
-
-        //if one null is passed
-        assertNotNull(kindAndName);
-
-        //if two different are checked with same value
-        assertEquals(kindAndName, secondKindAndName);
+        assertThat(kindAndName).isEqualTo(kindAndName).isNotNull().isEqualTo(kindAndName);
 
         //if two different are passsed with different combinations of value
-        assertNotEquals(kindAndName, thirdKindAndName);
-        assertNotEquals(kindAndName, fourthKindAndName);
-        assertNotEquals(kindAndName, fifthKindAndName);
+        assertThat(thirdKindAndName).isNotEqualTo(kindAndName);
+        assertThat(fourthKindAndName).isNotEqualTo(kindAndName);
+        assertThat(fifthKindAndName).isNotEqualTo(kindAndName);
     }
 
     @Test
@@ -63,7 +54,7 @@ public class KindAndNameTest {
         KindAndName kindAndName = new KindAndName("kindTest","nameTest");
         KindAndName secondKindAndName = new KindAndName("","");
 
-        assertEquals(1812739127,kindAndName.hashCode());
-        assertEquals(0,secondKindAndName.hashCode());
+        assertThat(kindAndName.hashCode()).isEqualTo(1812739127);
+        assertThat(secondKindAndName.hashCode()).isZero();
     }
 }

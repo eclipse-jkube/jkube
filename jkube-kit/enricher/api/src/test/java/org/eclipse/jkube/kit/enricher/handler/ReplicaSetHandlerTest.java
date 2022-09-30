@@ -29,9 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 public class ReplicaSetHandlerTest {
@@ -97,19 +94,19 @@ public class ReplicaSetHandlerTest {
         ReplicaSet replicaSet = replicaSetHandler.get(config,images);
 
         //Assertion
-        assertNotNull(replicaSet.getSpec());
-        assertNotNull(replicaSet.getMetadata());
-        assertEquals(5,replicaSet.getSpec().getReplicas().intValue());
-        assertNotNull(replicaSet.getSpec().getTemplate());
-        assertEquals("testing",replicaSet.getMetadata().getName());
-        assertEquals("test-account",replicaSet.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(replicaSet.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",replicaSet.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",replicaSet.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(replicaSet.getSpec().getTemplate().getSpec().getContainers());
+        assertThat(replicaSet.getSpec()).isNotNull();
+        assertThat(replicaSet.getMetadata()).isNotNull();
+        assertThat(replicaSet.getSpec().getReplicas().intValue()).isEqualTo(5);
+        assertThat(replicaSet.getSpec().getTemplate()).isNotNull();
+        assertThat(replicaSet.getMetadata().getName()).isEqualTo("testing");
+        assertThat(replicaSet.getSpec().getTemplate()
+                .getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(replicaSet.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
+        assertThat(replicaSet.getSpec().getTemplate().getSpec().
+                getVolumes().get(0).getName()).isEqualTo("test");
+        assertThat(replicaSet.getSpec().getTemplate()
+                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
+        assertThat(replicaSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
 
     }
 

@@ -27,11 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
@@ -91,15 +86,15 @@ public class PodTemplateHandlerTest {
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
 
         //Assertion
-        assertEquals("test-account", podTemplateSpec.getSpec().getServiceAccountName());
-        assertTrue(podTemplateSpec.getSpec().getVolumes().isEmpty());
-        assertNotNull(podTemplateSpec.getSpec().getContainers());
-        assertEquals("test-app", podTemplateSpec.getSpec()
-                .getContainers().get(0).getName());
-        assertEquals("docker.io/test:latest", podTemplateSpec.getSpec()
-                .getContainers().get(0).getImage());
-        assertEquals("IfNotPresent", podTemplateSpec.getSpec()
-                .getContainers().get(0).getImagePullPolicy());
+        assertThat( podTemplateSpec.getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(podTemplateSpec.getSpec().getVolumes()).isEmpty();
+        assertThat(podTemplateSpec.getSpec().getContainers()).isNotNull();
+        assertThat( podTemplateSpec.getSpec()
+                .getContainers().get(0).getName()).isEqualTo("test-app");
+        assertThat(podTemplateSpec.getSpec()
+                .getContainers().get(0).getImage()).isEqualTo("docker.io/test:latest");
+        assertThat(podTemplateSpec.getSpec()
+                .getContainers().get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
     }
 
     @Test
@@ -115,9 +110,9 @@ public class PodTemplateHandlerTest {
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
 
         //Assertion
-        assertNull(podTemplateSpec.getSpec().getServiceAccountName());
-        assertTrue(podTemplateSpec.getSpec().getVolumes().isEmpty());
-        assertNotNull(podTemplateSpec.getSpec().getContainers());
+        assertThat(podTemplateSpec.getSpec().getServiceAccountName()).isNull();
+        assertThat(podTemplateSpec.getSpec().getVolumes()).isEmpty();
+        assertThat(podTemplateSpec.getSpec().getContainers()).isNotNull();
     }
 
     @Test
@@ -140,13 +135,13 @@ public class PodTemplateHandlerTest {
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
 
         //Assertion
-        assertEquals("test-account",podTemplateSpec.getSpec().getServiceAccountName());
-        assertFalse(podTemplateSpec.getSpec().getVolumes().isEmpty());
-        assertEquals("test",podTemplateSpec.getSpec()
-                .getVolumes().get(0).getName());
-        assertEquals("/test/path",podTemplateSpec.getSpec()
-                .getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(podTemplateSpec.getSpec().getContainers());
+        assertThat(podTemplateSpec.getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(podTemplateSpec.getSpec().getVolumes()).isNotEmpty();
+        assertThat(podTemplateSpec.getSpec()
+                .getVolumes().get(0).getName()).isEqualTo("test");
+        assertThat(podTemplateSpec.getSpec()
+                .getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
+        assertThat(podTemplateSpec.getSpec().getContainers()).isNotNull();
     }
 
     @Test
@@ -168,9 +163,9 @@ public class PodTemplateHandlerTest {
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
 
         //Assertion
-        assertEquals("test-account",podTemplateSpec.getSpec().getServiceAccountName());
-        assertTrue(podTemplateSpec.getSpec().getVolumes().isEmpty());
-        assertNotNull(podTemplateSpec.getSpec().getContainers());
+        assertThat(podTemplateSpec.getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(podTemplateSpec.getSpec().getVolumes()).isEmpty();
+        assertThat(podTemplateSpec.getSpec().getContainers()).isNotNull();
     }
 
     @Test
@@ -191,9 +186,9 @@ public class PodTemplateHandlerTest {
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
 
         //Assertion
-        assertEquals("test-account",podTemplateSpec.getSpec().getServiceAccountName());
-        assertTrue(podTemplateSpec.getSpec().getVolumes().isEmpty());
-        assertNotNull(podTemplateSpec.getSpec().getContainers());
+        assertThat(podTemplateSpec.getSpec().getServiceAccountName()).isEqualTo("test-account");
+        assertThat(podTemplateSpec.getSpec().getVolumes()).isEmpty();
+        assertThat(podTemplateSpec.getSpec().getContainers()).isNotNull();
     }
 
     @Test

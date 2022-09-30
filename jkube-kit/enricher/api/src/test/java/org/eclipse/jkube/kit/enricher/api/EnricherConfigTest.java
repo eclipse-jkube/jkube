@@ -19,7 +19,7 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -40,6 +40,6 @@ public class EnricherConfigTest {
         Collections.singletonMap("TYPE", "LoadBalancer"));
     when(context.getConfiguration().getProcessorConfig()).thenReturn(new ProcessorConfig(null, null, configMap));
     EnricherConfig config = new EnricherConfig("default.service", context);
-    assertEquals("LoadBalancer", config.get(EnricherConfigTest.Config.TYPE));
+    assertThat(config.get(EnricherConfigTest.Config.TYPE)).isEqualTo("LoadBalancer");
   }
 }
