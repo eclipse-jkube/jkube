@@ -46,7 +46,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 
-@SuppressWarnings("unused")
 class DefaultResourceServiceTest {
 
   private EnricherManager enricherManager;
@@ -113,7 +112,6 @@ class DefaultResourceServiceTest {
                 .build());
   }
 
-  @SuppressWarnings("AccessStaticViaInstance")
   @Test
   void writeResources() throws IOException {
     MockedStatic<WriteUtil> writeUtil = mockStatic(WriteUtil.class);
