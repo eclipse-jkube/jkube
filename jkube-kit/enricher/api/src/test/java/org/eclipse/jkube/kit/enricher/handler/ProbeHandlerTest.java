@@ -164,7 +164,7 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNotNull(probe.getHttpGet());
+        assertThat(probe.getHttpGet()).isNotNull();
         assertThat(probe).isNotNull();
         assertThat(probe.getHttpGet()).isNotNull();
         assertThat(probe.getTcpSocket()).isNull();
