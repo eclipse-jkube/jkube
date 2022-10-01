@@ -56,11 +56,11 @@ public class MavenProjectEnricherTest {
         KubernetesList list = builder.build();
 
         Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-
-        assertThat(labels).isNotNull();
-        assertThat(labels.get("group")).isEqualTo("groupId");
-        assertThat(labels.get("app")).isEqualTo("artifactId");
-        assertThat(labels.get("version")).isEqualTo("version");
+        assertThat(labels)
+                .isNotNull()
+                .containsEntry("group","groupId")
+                .containsEntry("app","artifactId")
+                .containsEntry("version","version");
         assertThat(labels.get("project")).isNull();
 
         builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
@@ -68,8 +68,7 @@ public class MavenProjectEnricherTest {
 
         Deployment deployment = (Deployment)builder.buildFirstItem();
         Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertThat( selectors.get("group")).isEqualTo("groupId");
-        assertThat(selectors.get("app")).isEqualTo("artifactId");
+        assertThat(selectors).containsEntry("group","groupId").containsEntry("app","artifactId");
         assertThat(selectors.get("version")).isNull();
         assertThat(selectors.get("project")).isNull();
     }
@@ -88,10 +87,10 @@ public class MavenProjectEnricherTest {
         KubernetesList list = builder.build();
 
         Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-        assertThat(labels).isNotNull();
-        assertThat(labels.get("project")).isEqualTo("artifactId");
-        assertThat(labels.get("version")).isEqualTo("version");
-        assertThat(labels.get("group")).isEqualTo("groupId");
+        assertThat(labels).isNotNull()
+                .containsEntry("project","artifactId")
+                .containsEntry("version","version")
+                .containsEntry("group","groupId");
         assertThat(labels.get("app")).isNull();
 
         builder = new KubernetesListBuilder().withItems(new DeploymentConfigBuilder().build());
@@ -99,8 +98,7 @@ public class MavenProjectEnricherTest {
 
         DeploymentConfig deploymentConfig = (DeploymentConfig)builder.buildFirstItem();
         Map<String, String> selectors = deploymentConfig.getSpec().getSelector();
-        assertThat(selectors.get("group")).isEqualTo("groupId");
-        assertThat( selectors.get("project")).isEqualTo("artifactId");
+        assertThat(selectors).containsEntry("group","groupId").containsEntry("project","artifactId");
         assertThat(selectors.get("version")).isNull();
         assertThat(selectors.get("app")).isNull();
     }

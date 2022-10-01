@@ -104,8 +104,7 @@ public class MavenIssueManagementEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertThat(scmAnnotations).isNotNull();
-        assertThat(scmAnnotations).isEmpty();
+        assertThat(scmAnnotations).isNotNull().isEmpty();
     }
 
 

@@ -72,9 +72,9 @@ public class ProjectLabelEnricherTest {
     assertThat(labels.get("project")).isNull();
 
     assertThat(labels).isNotNull()
-            .containsEntry(labels.get("group"),"groupId")
-            .containsEntry(labels.get("app"),"my-custom-app-name")
-            .containsEntry(labels.get("version"),"version");
+            .containsEntry("group","groupId")
+            .containsEntry("app","my-custom-app-name")
+            .containsEntry("version","version");
 
 
     builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
@@ -83,8 +83,8 @@ public class ProjectLabelEnricherTest {
     Deployment deployment = (Deployment) builder.buildFirstItem();
     Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
     assertThat(selectors)
-            .containsEntry(selectors.get("group"),"groupId")
-            .containsEntry(selectors.get("app"),"my-custom-app-name");
+            .containsEntry("group","groupId")
+            .containsEntry("app","my-custom-app-name");
     assertThat(selectors.get("version")).isNull();
     assertThat(selectors.get("project")).isNull();
   }
@@ -101,20 +101,20 @@ public class ProjectLabelEnricherTest {
     Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
 
 
-    assertThat(labels.get("project")).isNotNull();
+    assertThat(labels.get("project")).isNull();
     assertThat(labels)
             .isNotNull()
-            .containsEntry(labels.get("group"),"groupId")
-            .containsEntry(labels.get("app"),"")
-            .containsEntry(labels.get("version"),"version");
+            .containsEntry("group","groupId")
+            .containsEntry("app","")
+            .containsEntry("version","version");
     builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
     projectLabelEnricher.create(PlatformMode.kubernetes, builder);
 
     Deployment deployment = (Deployment) builder.buildFirstItem();
     Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
     assertThat(selectors)
-            .containsEntry(selectors.get("group"),"groupId")
-            .containsEntry(labels.get("app"),"");
+            .containsEntry("group","groupId")
+            .containsEntry("app","");
     assertThat(selectors.get("version")).isNull();
     assertThat(selectors.get("project")).isNull();
   }
@@ -128,8 +128,8 @@ public class ProjectLabelEnricherTest {
     Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
 
     assertThat(labels).isNotNull()
-            .containsEntry(labels.get("group"),"groupId")
-            .containsEntry(labels.get("app"),"artifactId").containsEntry(labels.get("version"),"version");
+            .containsEntry("group","groupId")
+            .containsEntry("app","artifactId").containsEntry("version","version");
     assertThat(labels.get("project")).isNull();
 
     builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
@@ -138,8 +138,8 @@ public class ProjectLabelEnricherTest {
     Deployment deployment = (Deployment) builder.buildFirstItem();
     Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
     assertThat(selectors)
-            .containsEntry(selectors.get("group"),"groupId")
-            .containsEntry(labels.get("app"),"artifactId");
+            .containsEntry("group","groupId")
+            .containsEntry("app","artifactId");
 
     assertThat(selectors.get("version")).isNull();
     assertThat(selectors.get("project")).isNull();
@@ -154,7 +154,7 @@ public class ProjectLabelEnricherTest {
 
     Map<String, String> labels = builder.build().getItems().get(0).getMetadata().getLabels();
     assertThat(labels).isNotNull()
-            .containsEntry(labels.get("provider"),"my-custom-provider");
+            .containsEntry("provider","my-custom-provider");
   }
 
   @Test
@@ -167,7 +167,7 @@ public class ProjectLabelEnricherTest {
     Deployment deployment = (Deployment) builder.buildFirstItem();
     Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
     assertThat(selectors)
-            .containsEntry(selectors.get("provider"),"jkube");
+            .containsEntry("provider","my-custom-provider");
   }
 
   @Test
@@ -178,7 +178,7 @@ public class ProjectLabelEnricherTest {
 
     Map<String, String> labels = builder.build().getItems().get(0).getMetadata().getLabels();
     assertThat(labels).isNotNull()
-            .containsEntry(labels.get("provider"),"jkube");
+            .containsEntry("provider","jkube");
 
   }
 
@@ -191,7 +191,7 @@ public class ProjectLabelEnricherTest {
     Deployment deployment = (Deployment) builder.buildFirstItem();
     Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
     assertThat(selectors)
-            .containsEntry(selectors.get("provider"),"jkube");
+            .containsEntry("provider","jkube");
   }
 
   @Test

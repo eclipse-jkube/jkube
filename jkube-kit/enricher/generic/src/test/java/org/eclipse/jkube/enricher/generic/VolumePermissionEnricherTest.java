@@ -72,7 +72,7 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void alreadyExistingInitContainer() throws Exception {
+    public void alreadyExistingInitContainer() {
         final ProcessorConfig config = mock(ProcessorConfig.class);
         when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
         PodTemplateBuilder ptb = createEmptyPodTemplate();
