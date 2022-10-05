@@ -32,7 +32,7 @@ import java.util.List;
 public class ArchiveService {
 
     private final KitLogger log;
-    private AssemblyManager assemblyManager;
+    private final AssemblyManager assemblyManager;
 
     public ArchiveService(AssemblyManager assemblyManager, KitLogger log) {
         this.log = log;
