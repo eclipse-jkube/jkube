@@ -16,35 +16,31 @@ package org.eclipse.jkube.kit.common.util;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
-public class KindFilenameMapperUtilTest {
+class KindFilenameMapperUtilTest {
     @Test
     void shouldLoadMappings() {
         // given
-        // source: test/resources/**/kind-file-type-mappings-default.ascii
-        Map<String, List<String>> expectedSerializedMappigs = new HashMap<String, List<String>>() {{
-            put("BuildConfig", Arrays.asList("bc", "buildconfig"));
-            put("ClusterRole", Arrays.asList("cr", "crole", "clusterrole"));
-            put("ConfigMap", Arrays.asList("cm", "configmap"));
-            put("CronJob", Arrays.asList("cj", "cronjob"));
-        }};
 
+        // source: test/resources/**/kind-file-type-mappings-default.ascii
         // source: test/resources/**/kind-file-type-mappings-default.properties
-        Map<String, List<String>> expectedPropertiesMappings =  new HashMap<String, List<String>>() {{
-            put("Pod", Arrays.asList("pd", "pod"));
-        }};
 
         // when
         Map<String, List<String>> defaultMappings = KindFilenameMapperUtil.loadMappings();
 
         // then
         assertThat(defaultMappings)
-                .containsAllEntriesOf(expectedSerializedMappigs)
-                .containsAllEntriesOf(expectedPropertiesMappings);
+          .containsOnly(
+            entry("BuildConfig", Arrays.asList("bc", "buildconfig")),
+            entry("ClusterRole", Arrays.asList("cr", "crole", "clusterrole")),
+            entry("ConfigMap", Arrays.asList("cm", "configmap")),
+            entry("CronJob", Arrays.asList("cj", "cronjob")),
+            entry("Pod", Arrays.asList("pd", "pod"))
+          );
     }
 }
