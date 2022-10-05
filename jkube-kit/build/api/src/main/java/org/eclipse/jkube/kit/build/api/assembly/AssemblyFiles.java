@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 public class AssemblyFiles {
 
     private final File assemblyDirectory;
-    private List<AssemblyFileEntry> entries = new ArrayList<>();
+    private final List<AssemblyFileEntry> entries = new ArrayList<>();
 
     /**
      * Create a collection of assembly files
