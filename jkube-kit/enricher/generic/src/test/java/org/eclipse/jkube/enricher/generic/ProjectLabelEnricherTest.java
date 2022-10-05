@@ -69,9 +69,8 @@ public class ProjectLabelEnricherTest {
     KubernetesList list = builder.build();
 
     Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-    assertThat(labels.get("project")).isNull();
-
     assertThat(labels).isNotNull()
+            .doesNotContainKey("project")
             .containsEntry("group","groupId")
             .containsEntry("app","my-custom-app-name")
             .containsEntry("version","version");
@@ -83,10 +82,10 @@ public class ProjectLabelEnricherTest {
     Deployment deployment = (Deployment) builder.buildFirstItem();
     Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
     assertThat(selectors)
+            .doesNotContainKey("version")
+            .doesNotContainKey("project")
             .containsEntry("group","groupId")
             .containsEntry("app","my-custom-app-name");
-    assertThat(selectors.get("version")).isNull();
-    assertThat(selectors.get("project")).isNull();
   }
 
   @Test
@@ -99,11 +98,9 @@ public class ProjectLabelEnricherTest {
     KubernetesList list = builder.build();
 
     Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-
-
-    assertThat(labels.get("project")).isNull();
     assertThat(labels)
             .isNotNull()
+            .doesNotContainKey("project")
             .containsEntry("group","groupId")
             .containsEntry("app","")
             .containsEntry("version","version");
@@ -113,10 +110,10 @@ public class ProjectLabelEnricherTest {
     Deployment deployment = (Deployment) builder.buildFirstItem();
     Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
     assertThat(selectors)
+            .doesNotContainKey("version")
+            .doesNotContainKey("project")
             .containsEntry("group","groupId")
             .containsEntry("app","");
-    assertThat(selectors.get("version")).isNull();
-    assertThat(selectors.get("project")).isNull();
   }
 
   @Test
@@ -128,9 +125,9 @@ public class ProjectLabelEnricherTest {
     Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
 
     assertThat(labels).isNotNull()
+            .doesNotContainKey("project")
             .containsEntry("group","groupId")
             .containsEntry("app","artifactId").containsEntry("version","version");
-    assertThat(labels.get("project")).isNull();
 
     builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
     projectLabelEnricher.create(PlatformMode.kubernetes, builder);
@@ -138,11 +135,10 @@ public class ProjectLabelEnricherTest {
     Deployment deployment = (Deployment) builder.buildFirstItem();
     Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
     assertThat(selectors)
+            .doesNotContainKey("version")
+            .doesNotContainKey("project")
             .containsEntry("group","groupId")
             .containsEntry("app","artifactId");
-
-    assertThat(selectors.get("version")).isNull();
-    assertThat(selectors.get("project")).isNull();
   }
 
   @Test

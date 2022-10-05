@@ -77,9 +77,10 @@ public class MavenScmEnricherTest {
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
 
-        assertThat(scmAnnotations).isNotNull().hasSize(1)
-                .containsEntry(JKubeAnnotations.SCM_URL.value(),"scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git");
-        assertThat(scmAnnotations.containsKey(JKubeAnnotations.SCM_TAG.value())).isFalse();
+        assertThat(scmAnnotations).isNotNull()
+                .hasSize(1)
+                .containsEntry(JKubeAnnotations.SCM_URL.value(),"scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
+                .doesNotContainKey(JKubeAnnotations.SCM_TAG.value());
 
     }
 
@@ -99,8 +100,8 @@ public class MavenScmEnricherTest {
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
         assertThat(scmAnnotations).isNotNull().hasSize(1)
-                .containsEntry(JKubeAnnotations.SCM_URL.value(),"git://github.com/jkubeio/kubernetes-maven-plugin.git");
-        assertThat(scmAnnotations.containsKey(JKubeAnnotations.SCM_TAG.value())).isFalse();
+                .containsEntry(JKubeAnnotations.SCM_URL.value(),"git://github.com/jkubeio/kubernetes-maven-plugin.git")
+                .doesNotContainKey(JKubeAnnotations.SCM_TAG.value());
     }
 
     @Test
@@ -120,8 +121,8 @@ public class MavenScmEnricherTest {
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
 
         assertThat(scmAnnotations).isNotNull().hasSize(1)
-                .containsEntry(JKubeAnnotations.SCM_URL.value(),"scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git");
-        assertThat(scmAnnotations.containsKey(JKubeAnnotations.SCM_TAG.value())).isFalse();
+                .containsEntry(JKubeAnnotations.SCM_URL.value(),"scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
+                .doesNotContainKey(JKubeAnnotations.SCM_TAG.value());
     }
 
     @Test
