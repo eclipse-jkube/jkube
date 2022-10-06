@@ -22,15 +22,15 @@ import java.util.Optional;
 
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.GStringImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.invokeOrParseClosureList;
 
-@SuppressWarnings({ "unused", "serial" })
-public class GroovyUtilTest {
+@SuppressWarnings("unused")
+class GroovyUtilTest {
 
   /**
    * <pre>
@@ -45,7 +45,7 @@ public class GroovyUtilTest {
    * </pre>
    */
   @Test
-  public void closureTo_withNestedClosure_shouldReturnStructuredClass() {
+  void closureTo_withNestedClosure_shouldReturnStructuredClass() {
     // Given
     final Closure<?> closure = closure(this,
         "property", new GStringImpl(new Object[] { "lue" }, new String[] { "va" }),
@@ -67,7 +67,7 @@ public class GroovyUtilTest {
    */
   @SuppressWarnings("unchecked")
   @Test
-  public void closureTo_withNestedClosureCollection_shouldReturnMap() {
+  void closureTo_withNestedClosureCollection_shouldReturnMap() {
     // Given
     final Closure<?> closure = closure(this,
         "array", Arrays.asList("one", "two", closure(this, "nested", "closure")));
@@ -95,7 +95,7 @@ public class GroovyUtilTest {
    * </pre>
    */
   @Test
-  public void invokeOrParseClosureList_namedClosureListTo_withNamedListNestedClosure_shouldReturnOrderedList() {
+  void invokeOrParseClosureList_namedClosureListTo_withNamedListNestedClosure_shouldReturnOrderedList() {
     // Given
     final Closure<?> element1 = closure(this, "property", "value",
         "nested", closure(this, "nestedProperty", "nestedValue"));

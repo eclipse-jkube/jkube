@@ -23,10 +23,10 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.watcher.api.WatcherManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
@@ -43,10 +43,10 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-public class KubernetesWatchTaskTest {
+class KubernetesWatchTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<DockerAccessFactory> dockerAccessFactoryMockedConstruction;
   private MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction;
@@ -55,8 +55,8 @@ public class KubernetesWatchTaskTest {
   private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
   private TestKubernetesExtension extension;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     // Mock required for environments with no DOCKER available (don't remove)
     dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class,
         (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
@@ -76,8 +76,8 @@ public class KubernetesWatchTaskTest {
     extension.isFailOnNoKubernetesJson = false;
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     watcherManagerMockedStatic.close();
     kubernetesHelperMockedStatic.close();
     clusterAccessMockedConstruction.close();
@@ -86,21 +86,20 @@ public class KubernetesWatchTaskTest {
   }
 
   @Test
-  public void runTask_withNoManifest_shouldThrowException() {
+  void runTask_withNoManifest_shouldThrowException() {
     // Given
     extension.isFailOnNoKubernetesJson = true;
     final KubernetesWatchTask watchTask = new KubernetesWatchTask(KubernetesExtension.class);
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class, watchTask::runTask);
-    // Then
-    AssertionsForClassTypes.assertThat(watchTask.jKubeServiceHub.getBuildService()).isNotNull()
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(watchTask::runTask)
+        .withMessageContaining("An error has occurred while while trying to watch the resources");
+    assertThat(watchTask.jKubeServiceHub.getBuildService()).isNotNull()
         .isInstanceOf(DockerBuildService.class);
-    assertThat(result)
-        .hasMessageContaining("An error has occurred while while trying to watch the resources");
   }
 
   @Test
-  public void runTask_withManifest_shouldWatchEntities() throws Exception {
+  void runTask_withManifest_shouldWatchEntities() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
     final KubernetesWatchTask watchTask = new KubernetesWatchTask(KubernetesExtension.class);

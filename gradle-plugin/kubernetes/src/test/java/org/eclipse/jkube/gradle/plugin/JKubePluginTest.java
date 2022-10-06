@@ -17,16 +17,16 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.gradle.api.Task;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class JKubePluginTest {
+class JKubePluginTest {
 
   @Test
-  public void getTaskPrecedence_withDefaults_shouldReturnEmpty() {
+  void getTaskPrecedence_withDefaults_shouldReturnEmpty() {
     // Given
     final JKubePlugin partial = mock(JKubePlugin.class);
     when(partial.getTaskPrecedence()).thenCallRealMethod();

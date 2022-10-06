@@ -27,31 +27,31 @@ import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KubernetesUndeployTaskTest {
+class KubernetesUndeployTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<KubernetesUndeployService> kubernetesUndeployServiceMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private TestKubernetesExtension extension;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       final KubernetesClient kubernetesClient = mock(KubernetesClient.class);
       when(mock.createDefaultClient()).thenReturn(kubernetesClient);
@@ -62,28 +62,26 @@ public class KubernetesUndeployTaskTest {
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     kubernetesUndeployServiceMockedConstruction.close();
     clusterAccessMockedConstruction.close();
   }
 
   @Test
-  public void runTask_withOffline_shouldThrowException() {
+  void runTask_withOffline_shouldThrowException() {
     // Given
     extension.isOffline = true;
     final KubernetesUndeployTask undeployTask = new KubernetesUndeployTask(KubernetesExtension.class);
 
-    // When
-    IllegalArgumentException illegalStateException = assertThrows(IllegalArgumentException.class, undeployTask::runTask);
-
-    // Then
-    assertThat(illegalStateException)
-        .hasMessage("Connection to Cluster required. Please check if offline mode is set to false");
+    // When & Then
+    assertThatIllegalArgumentException()
+        .isThrownBy(undeployTask::runTask)
+        .withMessage("Connection to Cluster required. Please check if offline mode is set to false");
   }
 
   @Test
-  public void runTask_withOfflineTrue_shouldUndeployResources() throws IOException {
+  void runTask_withOfflineTrue_shouldUndeployResources() throws IOException {
     // Given
     final KubernetesUndeployTask undeployTask = new KubernetesUndeployTask(KubernetesExtension.class);
 
@@ -102,7 +100,7 @@ public class KubernetesUndeployTaskTest {
   }
 
   @Test
-  public void runTask_withSkipUndeploy_shouldDoNothing() {
+  void runTask_withSkipUndeploy_shouldDoNothing() {
     // Given
     extension = new TestKubernetesExtension() {
       @Override

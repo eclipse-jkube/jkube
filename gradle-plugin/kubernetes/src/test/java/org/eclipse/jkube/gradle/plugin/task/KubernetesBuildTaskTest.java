@@ -16,7 +16,6 @@ package org.eclipse.jkube.gradle.plugin.task;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -29,14 +28,15 @@ import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -45,10 +45,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KubernetesBuildTaskTest {
+class KubernetesBuildTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<DockerAccessFactory> dockerAccessFactoryMockedConstruction;
   private MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction;
@@ -56,8 +56,8 @@ public class KubernetesBuildTaskTest {
   private boolean isBuildServiceApplicable;
   private boolean isBuildError;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     // Mock required for environments with no DOCKER available (don't remove)
     dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class,
         (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
@@ -79,14 +79,14 @@ public class KubernetesBuildTaskTest {
         .build());
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     dockerBuildServiceMockedConstruction.close();
     dockerAccessFactoryMockedConstruction.close();
   }
 
   @Test
-  public void runTask_withImageConfiguration_shouldRunBuild() throws JKubeServiceException {
+  void runTask_withImageConfiguration_shouldRunBuild() throws JKubeServiceException {
     // Given
     final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
     // When
@@ -98,31 +98,29 @@ public class KubernetesBuildTaskTest {
   }
 
   @Test
-  public void runTask_withImageConfigurationAndNoApplicableService_shouldThrowException() {
+  void runTask_withImageConfigurationAndNoApplicableService_shouldThrowException() {
     // Given
     isBuildServiceApplicable = false;
     final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class, buildTask::runTask);
-    // Then
-    assertThat(result)
-        .hasMessage("No suitable Build Service was found for your current configuration");
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(buildTask::runTask)
+        .withMessage("No suitable Build Service was found for your current configuration");
   }
 
   @Test
-  public void runTask_withImageConfigurationAndBuildError_shouldThrowException() {
+  void runTask_withImageConfigurationAndBuildError_shouldThrowException() {
     // Given
     isBuildError = true;
     final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
-    // When
-    final GradleException result = assertThrows(GradleException.class, buildTask::runTask);
-    // Then
-    assertThat(result)
-        .hasMessage("Exception during Build");
+    // When & Then
+    assertThatExceptionOfType(GradleException.class)
+        .isThrownBy(buildTask::runTask)
+        .withMessage("Exception during Build");
   }
 
   @Test
-  public void runTask_withSkipBuild_shouldDoNothing() throws JKubeServiceException {
+  void runTask_withSkipBuild_shouldDoNothing() throws JKubeServiceException {
     // Given
     extension = new TestKubernetesExtension() {
       @Override
@@ -137,7 +135,7 @@ public class KubernetesBuildTaskTest {
     buildTask.runTask();
 
     // Then
-    Assertions.assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
+    assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
     verify(buildTask.jKubeServiceHub.getBuildService(), times(0)).build(any());
   }
 }

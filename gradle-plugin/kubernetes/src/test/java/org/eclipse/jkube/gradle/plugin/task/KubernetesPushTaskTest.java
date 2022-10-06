@@ -16,7 +16,6 @@ package org.eclipse.jkube.gradle.plugin.task;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.assertj.core.api.Assertions;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -28,10 +27,10 @@ import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -46,17 +45,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KubernetesPushTaskTest {
+class KubernetesPushTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<DockerAccessFactory> dockerAccessFactoryMockedConstruction;
   private MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction;
   private KubernetesExtension extension;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     // Mock required for environments with no DOCKER available (don't remove)
     dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class,
         (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
@@ -72,14 +71,14 @@ public class KubernetesPushTaskTest {
       .build());
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     dockerBuildServiceMockedConstruction.close();
     dockerAccessFactoryMockedConstruction.close();
   }
 
   @Test
-  public void run_withImageConfiguration_shouldPushImage() throws JKubeServiceException {
+  void run_withImageConfiguration_shouldPushImage() throws JKubeServiceException {
     // Given
     final KubernetesPushTask kubernetesPushTask = new KubernetesPushTask(KubernetesExtension.class);
 
@@ -94,7 +93,7 @@ public class KubernetesPushTaskTest {
 
 
   @Test
-  public void runTask_withSkipPush_shouldDoNothing() throws JKubeServiceException {
+  void runTask_withSkipPush_shouldDoNothing() throws JKubeServiceException {
     // Given
     extension = new TestKubernetesExtension() {
       @Override
@@ -110,7 +109,7 @@ public class KubernetesPushTaskTest {
     pushTask.runTask();
 
     // Then
-    Assertions.assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
+    assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
     verify(pushTask.jKubeServiceHub.getBuildService(), times(0)).push(any(), anyInt(), any(), anyBoolean());
     verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sPush` task is skipped."));
 

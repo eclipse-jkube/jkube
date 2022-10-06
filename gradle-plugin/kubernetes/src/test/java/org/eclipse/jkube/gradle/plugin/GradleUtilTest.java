@@ -16,6 +16,7 @@ package org.eclipse.jkube.gradle.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,10 +44,9 @@ import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,10 +58,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unused")
-public class GradleUtilTest {
+class GradleUtilTest {
 
-  @Rule
-  public TemporaryFolder folder = new TemporaryFolder();
+  @TempDir
+  Path folder;
 
   private Project project;
 
@@ -69,8 +69,8 @@ public class GradleUtilTest {
 
   private List<Configuration> projectConfigurations;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
     javaPlugin = mock(JavaPluginConvention.class, RETURNS_DEEP_STUBS);
     when(javaPlugin.getSourceSets().stream()).thenReturn(Stream.empty());
@@ -83,13 +83,13 @@ public class GradleUtilTest {
 
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getProperties()).thenReturn(Collections.emptyMap());
-    when(project.getBuildDir()).thenReturn(folder.newFolder("build"));
+    when(project.getBuildDir()).thenReturn(Files.createDirectory(folder.resolve("build")).toFile());
     when(project.getPlugins()).thenReturn(new DefaultPluginContainer(null, null, null));
     when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(javaPlugin);
   }
 
   @Test
-  public void extractProperties_withComplexMap_shouldReturnValidProperties() {
+  void extractProperties_withComplexMap_shouldReturnValidProperties() {
     // Given
     final Map<String, Object> complexProperties = new HashMap<>();
     when(project.getProperties()).thenAnswer(i -> complexProperties);
@@ -106,7 +106,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void extractProperties_shouldContainSystemProperties() {
+  void extractProperties_shouldContainSystemProperties() {
     // Given
     System.setProperty("foo.property", "somevalue");
     when(project.getProperties()).thenReturn(Collections.emptyMap());
@@ -121,7 +121,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void extractProperties_whenBothSystemAndGradlePropertyProvided_thenSystemPropertyShouldHaveMorePrecedence() {
+  void extractProperties_whenBothSystemAndGradlePropertyProvided_thenSystemPropertyShouldHaveMorePrecedence() {
     // Given
     final Map<String, Object> gradleProperties = new HashMap<>();
     gradleProperties.put("foo.property", "gradlevalue");
@@ -138,7 +138,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void extractDependencies_withMultipleAndDuplicateDependencies_shouldReturnValidDependencies() {
+  void extractDependencies_withMultipleAndDuplicateDependencies_shouldReturnValidDependencies() {
     // Given
     final Function<String[], Configuration> mockConfiguration = configurationDependencyMock();
     projectConfigurations.add(mockConfiguration.apply(new String[] { "api", "com.example", "artifact", null }));
@@ -164,7 +164,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void extractPlugins_withMultipleAndBuildScriptDuplicateDependencies_shouldReturnValidPlugins() {
+  void extractPlugins_withMultipleAndBuildScriptDuplicateDependencies_shouldReturnValidPlugins() {
     // Given
     final ConfigurationContainer cc = mock(ConfigurationContainer.class);
     when(project.getBuildscript().getConfigurations()).thenReturn(cc);
@@ -196,7 +196,7 @@ public class GradleUtilTest {
    * into an ArrayList.
    */
   @Test
-  public void convertGradleProject_withConcurrentConfigurationModifications_shouldReturnValidProject() {
+  void convertGradleProject_withConcurrentConfigurationModifications_shouldReturnValidProject() {
     // Given
     final Configuration mockConfiguration = mock(Configuration.class, RETURNS_DEEP_STUBS);
     projectConfigurations.add(mockConfiguration);
@@ -216,18 +216,18 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void findClassesOutputDirectory_withNotFoundSourceSet_shouldReturnDefault() {
+  void findClassesOutputDirectory_withNotFoundSourceSet_shouldReturnDefault() {
     // Given
     when(javaPlugin.getSourceSets().getByName("main")).thenThrow(new UnknownDomainObjectException("Not found"));
     // When
     final JavaProject result = convertGradleProject(project);
     // Then
     assertThat(result.getOutputDirectory())
-        .isEqualTo(folder.getRoot().toPath().resolve("build").resolve("classes").resolve("java").resolve("main").toFile());
+        .isEqualTo(folder.resolve("build").resolve("classes").resolve("java").resolve("main").toFile());
   }
 
   @Test
-  public void findClassesOutputDirectory_withValidSourceSet_shouldReturnFromSourceSet() {
+  void findClassesOutputDirectory_withValidSourceSet_shouldReturnFromSourceSet() {
     // Given
     when(javaPlugin.getSourceSets().getByName("main").getJava().getDestinationDirectory().getAsFile())
         .thenReturn(new DefaultProvider<>(() -> new File("classes")));
@@ -238,23 +238,23 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void findClassesOutputDirectory_withNoSourceSets_shouldReturnDefault() {
+  void findClassesOutputDirectory_withNoSourceSets_shouldReturnDefault() {
     // Given
     when(javaPlugin.getSourceSets()).thenReturn(null);
     // When
     final JavaProject result = convertGradleProject(project);
     // Then
     assertThat(result.getOutputDirectory())
-        .isEqualTo(folder.getRoot().toPath().resolve("build").resolve("classes").resolve("java").resolve("main").toFile());
+        .isEqualTo(folder.resolve("build").resolve("classes").resolve("java").resolve("main").toFile());
   }
 
   @Test
-  public void findArtifact_withExistentFile_shouldReturnValidArtifact() throws IOException {
+  void findArtifact_withExistentFile_shouldReturnValidArtifact() throws IOException {
     // Given
     final Configuration c = mock(Configuration.class, RETURNS_DEEP_STUBS);
     when(c.getAllDependencies().stream()).thenAnswer(i -> Stream.empty());
     when(c.getOutgoing().getArtifacts().getFiles().getFiles()).thenReturn(Stream.of(
-        folder.newFile("final-artifact.jar")
+        Files.createFile(folder.resolve("final-artifact.jar")).toFile()
     ).collect(Collectors.toSet()));
     projectConfigurations.add(c);
     // When
@@ -264,12 +264,12 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void findArtifact_withMultipleExistentFiles_shouldReturnArtifactWithLargestSize() throws IOException {
+  void findArtifact_withMultipleExistentFiles_shouldReturnArtifactWithLargestSize() throws IOException {
     // Given
     final Configuration c = mock(Configuration.class, RETURNS_DEEP_STUBS);
-    File jar1 = folder.newFile("final-artifact.jar");
+    File jar1 = Files.createFile(folder.resolve("final-artifact.jar")).toFile();
     Files.write(jar1.toPath(), "FatJar".getBytes());
-    File jar2 = folder.newFile("final-artifact-plain.jar");
+    File jar2 = Files.createFile(folder.resolve("final-artifact-plain.jar")).toFile();
     when(c.getAllDependencies().stream()).thenAnswer(i -> Stream.empty());
     when(c.getOutgoing().getArtifacts().getFiles().getFiles()).thenReturn(Stream.of(
         jar2, jar1
@@ -282,12 +282,12 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void findArtifact_withMultipleArchiveFiles_shouldReturnJavaArchiveOnly() throws IOException {
+  void findArtifact_withMultipleArchiveFiles_shouldReturnJavaArchiveOnly() throws IOException {
     // Given
     final Configuration c = mock(Configuration.class, RETURNS_DEEP_STUBS);
-    File jar1 = folder.newFile("final-artifact.jar");
-    File jar2 = folder.newFile("final-artifact.tar");
-    File jar3 = folder.newFile("final-artifact.zip");
+    File jar1 = Files.createFile(folder.resolve("final-artifact.jar")).toFile();
+    File jar2 = Files.createFile(folder.resolve("final-artifact.tar")).toFile();
+    File jar3 = Files.createFile(folder.resolve("final-artifact.zip")).toFile();
     when(c.getAllDependencies().stream()).thenAnswer(i -> Stream.empty());
     when(c.getOutgoing().getArtifacts().getFiles().getFiles()).thenReturn(Stream.of(jar1, jar2, jar3).collect(Collectors.toSet()));
     projectConfigurations.add(c);
@@ -298,7 +298,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void canBeResolved_withDeprecatedAndResolutionAlternatives_shouldReturnFalse() {
+  void canBeResolved_withDeprecatedAndResolutionAlternatives_shouldReturnFalse() {
     // Given
     final DeprecatableConfiguration c = mock(DeprecatableConfiguration.class);
     when(c.getResolutionAlternatives()).thenReturn(Collections.emptyList());
@@ -309,7 +309,7 @@ public class GradleUtilTest {
   }
 
   @Test
-  public void canBeResolved_DeprecatedAndNullResolutionAlternativesAndResolvable_shouldReturnTrue() {
+  void canBeResolved_DeprecatedAndNullResolutionAlternativesAndResolvable_shouldReturnTrue() {
     // Given
     final DeprecatableConfiguration c = mock(DeprecatableConfiguration.class);
     when(c.isCanBeResolved()).thenReturn(true);
