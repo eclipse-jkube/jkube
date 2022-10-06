@@ -30,8 +30,8 @@ public enum AutoPullMode {
     OFF(false, "off", "false"),
     ALWAYS(true, "always");
 
-    private Set<String> values = new HashSet<>();
-    private boolean doPullIfNotPresent;
+    private final Set<String> values = new HashSet<>();
+    private final boolean doPullIfNotPresent;
 
     AutoPullMode(boolean doPullIfNotPresent, String... vals) {
         this.doPullIfNotPresent = doPullIfNotPresent;
