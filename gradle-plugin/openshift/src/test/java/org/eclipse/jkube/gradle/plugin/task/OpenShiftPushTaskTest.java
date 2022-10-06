@@ -22,10 +22,10 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -35,16 +35,16 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenShiftPushTaskTest {
+class OpenShiftPushTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<OpenshiftBuildService> openshiftBuildServiceMockedConstruction;
   private TestOpenShiftExtension extension;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     openshiftBuildServiceMockedConstruction = mockConstruction(OpenshiftBuildService.class,
         (mock, ctx) -> when(mock.isApplicable()).thenReturn(true));
     extension = new TestOpenShiftExtension();
@@ -57,13 +57,13 @@ public class OpenShiftPushTaskTest {
       .build());
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     openshiftBuildServiceMockedConstruction.close();
   }
 
   @Test
-  public void run_withImageConfigurationAndS2IBuildStrategy_shouldPushImage() throws JKubeServiceException {
+  void run_withImageConfigurationAndS2IBuildStrategy_shouldPushImage() throws JKubeServiceException {
       // Given
       final OpenShiftPushTask openShiftPushTask = new OpenShiftPushTask(OpenShiftExtension.class);
       // When
@@ -75,7 +75,7 @@ public class OpenShiftPushTaskTest {
   }
 
   @Test
-  public void run_withSkipPush_shouldNotPushImage() {
+  void run_withSkipPush_shouldNotPushImage() {
     // Given
     extension.isSkipPush = true;
     final OpenShiftPushTask openShiftPushTask = new OpenShiftPushTask(OpenShiftExtension.class);
