@@ -13,8 +13,7 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
@@ -30,50 +29,44 @@ import org.eclipse.jkube.gradle.plugin.task.OpenShiftUndeployTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftWatchTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(Parameterized.class)
-public class OpenShiftPluginRegisterTaskTest {
+class OpenShiftPluginRegisterTaskTest {
 
-  @Parameterized.Parameters(name = "{index} {0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "ocApply", OpenShiftApplyTask.class },
-        new Object[] { "ocBuild", OpenShiftBuildTask.class },
-        new Object[] { "ocConfigView", KubernetesConfigViewTask.class },
-        new Object[] { "ocDebug", OpenShiftDebugTask.class },
-        new Object[] { "ocLog", KubernetesLogTask.class },
-        new Object[] { "ocPush", OpenShiftPushTask.class },
-        new Object[] { "ocResource", OpenShiftResourceTask.class },
-        new Object[] { "ocUndeploy", OpenShiftUndeployTask.class },
-        new Object[] { "ocHelm", OpenShiftHelmTask.class},
-        new Object[] { "ocHelmPush", OpenShiftHelmPushTask.class},
-        new Object[] { "ocWatch", OpenShiftWatchTask.class});
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("ocApply", OpenShiftApplyTask.class),
+        arguments("ocBuild", OpenShiftBuildTask.class),
+        arguments("ocConfigView", KubernetesConfigViewTask.class),
+        arguments("ocDebug", OpenShiftDebugTask.class),
+        arguments("ocLog", KubernetesLogTask.class),
+        arguments("ocPush", OpenShiftPushTask.class),
+        arguments("ocResource", OpenShiftResourceTask.class),
+        arguments("ocUndeploy", OpenShiftUndeployTask.class),
+        arguments("ocHelm", OpenShiftHelmTask.class),
+        arguments("ocHelmPush", OpenShiftHelmPushTask.class),
+        arguments("ocWatch", OpenShiftWatchTask.class));
   }
-
-  @Parameterized.Parameter
-  public String task;
-
-  @Parameterized.Parameter(1)
-  public Class<Task> taskClass;
 
   private Project project;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
   }
 
-  @Test
-  public void apply_withValidProject_shouldCreateExtensionAndRegisterTask() {
+  @ParameterizedTest(name = "{index}: with valid project, should create extension and register task ''{0}''")
+  @MethodSource("data")
+  void apply_withValidProject_shouldCreateExtensionAndRegisterTask(String task, Class<Task> taskClass) {
     // When
     new OpenShiftPlugin().apply(project);
     // Then

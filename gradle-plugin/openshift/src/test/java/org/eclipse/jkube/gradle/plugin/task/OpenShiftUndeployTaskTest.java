@@ -17,7 +17,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 
-import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
@@ -27,31 +26,31 @@ import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenShiftUndeployTaskTest {
+class OpenShiftUndeployTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<OpenshiftUndeployService> openshiftUndeployServiceMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private TestOpenShiftExtension extension;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       final OpenShiftClient openShiftClient = mock(OpenShiftClient.class);
       when(mock.createDefaultClient()).thenReturn(openShiftClient);
@@ -64,28 +63,26 @@ public class OpenShiftUndeployTaskTest {
     when(taskEnvironment.project.getName()).thenReturn("test-project");
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     openshiftUndeployServiceMockedConstruction.close();
     clusterAccessMockedConstruction.close();
   }
 
   @Test
-  public void runTask_withOffline_shouldThrowException() {
+  void runTask_withOffline_shouldThrowException() {
     // Given
     extension.isOffline = true;
     final OpenShiftUndeployTask undeployTask = new OpenShiftUndeployTask(OpenShiftExtension.class);
 
-    // When
-    IllegalArgumentException illegalStateException = assertThrows(IllegalArgumentException.class, undeployTask::runTask);
-
-    // Then
-    assertThat(illegalStateException)
-      .hasMessage("Connection to Cluster required. Please check if offline mode is set to false");
+    // When & Then
+    assertThatIllegalArgumentException()
+        .isThrownBy(undeployTask::runTask)
+        .withMessage("Connection to Cluster required. Please check if offline mode is set to false");
   }
 
   @Test
-  public void runTask_withOfflineTrue_shouldUndeployResources() throws IOException {
+  void runTask_withOfflineTrue_shouldUndeployResources() throws IOException {
     // Given
     final OpenShiftUndeployTask undeployTask = new OpenShiftUndeployTask(OpenShiftExtension.class);
 
@@ -105,7 +102,7 @@ public class OpenShiftUndeployTaskTest {
   }
 
   @Test
-  public void runTask_withSkipUndeploy_shouldDoNothing() {
+  void runTask_withSkipUndeploy_shouldDoNothing() {
     // Given
     extension = new TestOpenShiftExtension() {
       @Override

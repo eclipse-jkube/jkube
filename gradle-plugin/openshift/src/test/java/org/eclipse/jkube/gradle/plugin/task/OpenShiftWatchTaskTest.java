@@ -19,18 +19,16 @@ import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.watcher.api.WatcherManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
-import java.io.IOException;
 import java.net.URL;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
@@ -39,18 +37,18 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
-public class OpenShiftWatchTaskTest {
+class OpenShiftWatchTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
   private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
   private TestOpenShiftExtension extension;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       final OpenShiftClient openShiftClient = mock(OpenShiftClient.class);
       when(openShiftClient.getMasterUrl()).thenReturn(new URL("http://openshiftapps.com:6443"));
@@ -65,27 +63,26 @@ public class OpenShiftWatchTaskTest {
     extension.isFailOnNoKubernetesJson = false;
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     watcherManagerMockedStatic.close();
     clusterAccessMockedConstruction.close();
     kubernetesHelperMockedStatic.close();
   }
 
   @Test
-  public void runTask_withNoManifest_shouldThrowException() {
+  void runTask_withNoManifest_shouldThrowException() {
     // Given
     extension.isFailOnNoKubernetesJson = true;
     final OpenShiftWatchTask watchTask = new OpenShiftWatchTask(OpenShiftExtension.class);
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class, watchTask::runTask);
-    // Then
-    assertThat(result)
-        .hasMessageContaining("An error has occurred while while trying to watch the resources");
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(watchTask::runTask)
+        .withMessageContaining("An error has occurred while while trying to watch the resources");
   }
 
   @Test
-  public void runTask_withManifest_shouldWatchEntities() throws Exception {
+  void runTask_withManifest_shouldWatchEntities() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
     final OpenShiftWatchTask watchTask = new OpenShiftWatchTask(OpenShiftExtension.class);

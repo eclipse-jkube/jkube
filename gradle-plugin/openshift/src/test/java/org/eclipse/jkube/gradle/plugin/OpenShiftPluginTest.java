@@ -27,14 +27,14 @@ import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 
 import org.gradle.api.Task;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class OpenShiftPluginTest {
+class OpenShiftPluginTest {
 
   @Test
-  public void configurePrecedence_withValidProject_shouldReturnTaskPrecedence() {
+  void configurePrecedence_withValidProject_shouldReturnTaskPrecedence() {
     //When
     final Map<String, Collection<Class<? extends Task>>> result = new OpenShiftPlugin().getTaskPrecedence();
     // Then
