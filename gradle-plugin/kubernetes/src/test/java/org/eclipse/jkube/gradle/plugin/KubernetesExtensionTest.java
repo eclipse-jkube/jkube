@@ -20,17 +20,17 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import groovy.lang.Closure;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({ "serial", "unused" })
-public class KubernetesExtensionTest {
+@SuppressWarnings("unused")
+class KubernetesExtensionTest {
 
   @Test
-  public void getRuntimeMode_withDefaults_shouldReturnKubernetes() {
+  void getRuntimeMode_withDefaults_shouldReturnKubernetes() {
     // Given
     final KubernetesExtension partial = mock(KubernetesExtension.class);
     when(partial.getRuntimeMode()).thenCallRealMethod();
@@ -41,14 +41,14 @@ public class KubernetesExtensionTest {
   }
 
   @Test
-  public void getBuildStrategy_withDefaults_shouldReturnDocker() {
+  void getBuildStrategy_withDefaults_shouldReturnDocker() {
     assertThat(new TestKubernetesExtension())
         .extracting(TestKubernetesExtension::getBuildStrategyOrDefault)
         .isEqualTo(JKubeBuildStrategy.docker);
   }
 
   @Test
-  public void images_withCallableClosure_shouldSetImagesInClosureExecution() {
+  void images_withCallableClosure_shouldSetImagesInClosureExecution() {
     // Given
     final KubernetesExtension extension = new TestKubernetesExtension();
     // When
@@ -69,7 +69,7 @@ public class KubernetesExtensionTest {
   }
 
   @Test
-  public void images_withMapListClosure_shouldSetImagesUsingConfigObjectParsing() {
+  void images_withMapListClosure_shouldSetImagesUsingConfigObjectParsing() {
     // Given
     final KubernetesExtension extension = new TestKubernetesExtension();
     // When
@@ -97,7 +97,7 @@ public class KubernetesExtensionTest {
   }
 
   @Test
-  public void images_withListOfClosures_shouldSetImages() {
+  void images_withListOfClosures_shouldSetImages() {
     // Given
     final KubernetesExtension extension = new TestKubernetesExtension();
     // When

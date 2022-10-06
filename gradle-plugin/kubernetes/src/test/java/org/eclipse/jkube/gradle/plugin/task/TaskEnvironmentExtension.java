@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import org.eclipse.jgit.util.FileUtils;
+import org.apache.commons.io.FileUtils;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -21,11 +21,14 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 import org.mockito.MockedConstruction;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -35,24 +38,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
-public class TaskEnvironment extends TemporaryFolder {
-
-  private MockedConstruction<DefaultTask> defaultTaskMockedConstruction;
-  Logger logger;
+public class TaskEnvironmentExtension implements BeforeEachCallback, AfterEachCallback {
   Project project;
+  Logger logger;
+  private File temporaryFolder;
+  private MockedConstruction<DefaultTask> defaultTaskMockedConstruction;
 
   @Override
-  protected void before() throws Throwable {
-    super.before();
+  public void beforeEach(ExtensionContext context) throws Exception {
+    temporaryFolder = Files.createTempDirectory("junit").toFile();
     project = mock(Project.class, RETURNS_DEEP_STUBS);
     logger = mock(Logger.class);
-    when(project.getProjectDir()).thenReturn(getRoot());
-    when(project.getBuildDir()).thenReturn(newFolder("build"));
+    when(project.getProjectDir()).thenReturn(temporaryFolder);
+    when(project.getBuildDir()).thenReturn(Files.createDirectory(temporaryFolder.toPath().resolve("build")).toFile());
     when(project.getPlugins()).thenReturn(new DefaultPluginContainer(null, null, null));
 
     final ConfigurationContainer cc = mock(ConfigurationContainer.class);
     when(project.getConfigurations()).thenReturn(cc);
-    List<Configuration> projectConfigurations = new ArrayList<Configuration>();
+    List<Configuration> projectConfigurations = new ArrayList<>();
     when(cc.stream()).thenAnswer(i -> projectConfigurations.stream());
     when(cc.toArray()).thenAnswer(i -> projectConfigurations.toArray());
 
@@ -65,17 +68,26 @@ public class TaskEnvironment extends TemporaryFolder {
   }
 
   @Override
-  protected void after() {
-    super.after();
+  public void afterEach(ExtensionContext context) throws Exception {
     defaultTaskMockedConstruction.close();
+    FileUtils.deleteDirectory(temporaryFolder);
+  }
+
+  public File getRoot() {
+    return temporaryFolder;
   }
 
   public void withKubernetesManifest() throws IOException {
-    final File manifestsDir = newFolder("build", "classes", "java", "main", "META-INF", "jkube");
-    FileUtils.touch(new File(manifestsDir, "kubernetes.yml").toPath());
+    final File manifestsDir = Files
+        .createDirectories(temporaryFolder.toPath().resolve("build").resolve("classes").resolve("java")
+            .resolve("main").resolve("META-INF").resolve("jkube"))
+        .toFile();
+    Files.createFile(manifestsDir.toPath().resolve("kubernetes.yml"));
   }
 
   public void withKubernetesTemplate() throws IOException {
-    newFolder("build", "classes", "java", "main", "META-INF", "jkube", "kubernetes");
+    Files.createDirectories(temporaryFolder.toPath().resolve("build").resolve("classes").resolve("java")
+        .resolve("main").resolve("META-INF").resolve("jkube").resolve("kubernetes"));
   }
+
 }
