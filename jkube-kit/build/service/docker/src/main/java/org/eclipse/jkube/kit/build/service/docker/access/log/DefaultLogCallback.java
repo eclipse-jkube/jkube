@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class DefaultLogCallback implements LogCallback {
 
-    private static Map<String, SharedPrintStream> printStreamMap = new HashMap<>();
+    private static final Map<String, SharedPrintStream> printStreamMap = new HashMap<>();
 
     private final LogOutputSpec outputSpec;
     private SharedPrintStream sps;
