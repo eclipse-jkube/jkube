@@ -19,7 +19,7 @@ import java.util.List;
 public class ConfigMap {
 
     private String name;
-    private List<ConfigMapEntry> entries = new ArrayList<>();
+    private final List<ConfigMapEntry> entries = new ArrayList<>();
 
     public void addEntry(ConfigMapEntry configMapEntry) {
         this.entries.add(configMapEntry);
