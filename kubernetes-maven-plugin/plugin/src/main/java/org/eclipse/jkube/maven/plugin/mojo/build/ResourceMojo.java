@@ -296,6 +296,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         throws IOException {
 
         JKubeEnricherContext.JKubeEnricherContextBuilder ctxBuilder = JKubeEnricherContext.builder()
+                .jKubeBuildStrategy(buildStrategy)
                 .project(javaProject)
                 .processorConfig(extractEnricherConfig())
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))

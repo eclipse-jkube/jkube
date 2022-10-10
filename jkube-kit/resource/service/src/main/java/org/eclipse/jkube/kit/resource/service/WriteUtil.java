@@ -14,7 +14,9 @@
 package org.eclipse.jkube.kit.resource.service;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -32,21 +34,25 @@ import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTe
 
 class WriteUtil {
 
+  private static final HasMetadataComparator COMPARATOR = new HasMetadataComparator();
+
   private WriteUtil(){ }
 
   static File writeResourcesIndividualAndComposite(
       KubernetesList resources, File resourceFileBase, ResourceFileType resourceFileType, KitLogger log) throws IOException {
 
+    resources.getItems().sort(COMPARATOR);
     // entity is object which will be sent to writeResource for openshift.yml
     // if generateRoute is false, this will be set to resources with new list
     // otherwise it will be set to resources with old list.
-    Object entity = resources;
+    KubernetesResource entity = resources;
 
     // if the list contains a single Template lets unwrap it
     // in resources already new or old as per condition is set.
     // no need to worry about this for dropping Route.
-    Template template = getSingletonTemplate(resources);
+    final Template template = getSingletonTemplate(resources);
     if (template != null) {
+      template.getObjects().sort(COMPARATOR);
       entity = template;
     }
 
@@ -79,7 +85,7 @@ class WriteUtil {
     }
   }
 
-  static File writeResource(File resourceFileBase, Object entity, ResourceFileType resourceFileType)
+  static File writeResource(File resourceFileBase, KubernetesResource entity, ResourceFileType resourceFileType)
       throws IOException {
     try {
       return ResourceUtil.save(resourceFileBase, entity, resourceFileType);

@@ -19,28 +19,34 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
-
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import static org.eclipse.jkube.kit.common.Configs.asBoolean;
+import static org.eclipse.jkube.kit.common.Configs.asInt;
+import static org.eclipse.jkube.wildfly.jar.WildflyJarUtils.BOOTABLE_JAR_ARTIFACT_ID;
+import static org.eclipse.jkube.wildfly.jar.WildflyJarUtils.BOOTABLE_JAR_GROUP_ID;
+import static org.eclipse.jkube.wildfly.jar.WildflyJarUtils.DEFAULT_LIVENESS_PATH;
+import static org.eclipse.jkube.wildfly.jar.WildflyJarUtils.DEFAULT_READINESS_PATH;
+import static org.eclipse.jkube.wildfly.jar.WildflyJarUtils.DEFAULT_STARTUP_PATH;
+import static org.eclipse.jkube.wildfly.jar.WildflyJarUtils.isStartupEndpointSupported;
 
 /**
  * Enriches wildfly-jar containers with health checks if the bootable JAR has
  * been configured for cloud.
  */
 public class WildflyJARHealthCheckEnricher extends AbstractHealthCheckEnricher {
-
-    public static final String BOOTABLE_JAR_GROUP_ID = "org.wildfly.plugins";
-    public static final String BOOTABLE_JAR_ARTIFACT_ID = "wildfly-jar-maven-plugin";
 
     public WildflyJARHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-wildfly-jar");
@@ -51,13 +57,16 @@ public class WildflyJARHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
         SCHEME("scheme", "HTTP"),
         PORT("port", "9990"),
-        FAILURETHRESHOLD("failureThreshold","3"),
-        SUCCESSTHRESHOLD("successThreshold","1"),
-        LIVENESSINITIALDELAY("livenessInitialDelay", "60"),
-        READINESSINITIALDELAY("readinessInitialDelay", "10"),
-        READINESSPATH("readinessPath", "/health/ready"),
-        LIVENESSPATH("livenessPath", "/health/live"),
-        ENFORCEPROBES("enforceProbes","false");
+        FAILURE_THRESHOLD("failureThreshold","3"),
+        SUCCESS_THRESHOLD("successThreshold","1"),
+        LIVENESS_INITIAL_DELAY("livenessInitialDelay", "60"),
+        READINESS_INITIAL_DELAY("readinessInitialDelay", "10"),
+        STARTUP_INITIAL_DELAY("startupInitialDelay", "10"),
+        READINESS_PATH("readinessPath", DEFAULT_READINESS_PATH),
+        LIVENESS_PATH("livenessPath", DEFAULT_LIVENESS_PATH),
+        STARTUP_PATH("startupPath", DEFAULT_STARTUP_PATH),
+        PERIOD_SECONDS("periodSeconds", "10"),
+        ENFORCE_PROBES("enforceProbes","false");
 
         @Getter
         protected String key;
@@ -67,12 +76,40 @@ public class WildflyJARHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     @Override
     protected Probe getReadinessProbe() {
-        return discoverWildflyJARHealthCheck(true);
+        return discoverWildflyJARHealthCheck(Config.READINESS_PATH, Config.READINESS_INITIAL_DELAY);
     }
 
     @Override
     protected Probe getLivenessProbe() {
-        return discoverWildflyJARHealthCheck(false);
+        return discoverWildflyJARHealthCheck(Config.LIVENESS_PATH, Config.LIVENESS_INITIAL_DELAY);
+    }
+
+    @Override
+    protected Probe getStartupProbe() {
+      if (isStartupEndpointSupported(getContext().getProject())) {
+          return discoverWildflyJARHealthCheck(Config.STARTUP_PATH, Config.STARTUP_INITIAL_DELAY);
+      }
+      return null;
+    }
+
+    private Probe discoverWildflyJARHealthCheck(Config path, Config initialDelay) {
+        if (isAvailable()) {
+            int port = asInt(getConfig(Config.PORT));
+            if (port <= 0) {
+                return null;
+            }
+            return new ProbeBuilder()
+                    .withNewHttpGet().withNewPort(port)
+                    .withPath(getConfig(path))
+                    .withScheme(getConfig(Config.SCHEME).toUpperCase())
+                    .endHttpGet()
+                    .withFailureThreshold(asInt(getConfig(Config.FAILURE_THRESHOLD)))
+                    .withSuccessThreshold(asInt(getConfig(Config.SUCCESS_THRESHOLD)))
+                    .withInitialDelaySeconds(asInt(getConfig(initialDelay)))
+                    .withPeriodSeconds(asInt(getConfig(Config.PERIOD_SECONDS)))
+                    .build();
+        }
+        return null;
     }
 
     @Override
@@ -100,32 +137,11 @@ public class WildflyJARHealthCheckEnricher extends AbstractHealthCheckEnricher {
         super.create(platformMode, builder);
     }
 
-    private Probe discoverWildflyJARHealthCheck(boolean isReadiness) {
-
-        if (isAvailable()) {
-            Integer port = getPort();
-            if (port <= 0) {
-                return null;
-            }
-            int initialDelay = isReadiness ? getReadinessInitialDelay() : getLivenessInitialDelay();
-            // scheme must be in upper case in k8s
-            String scheme = getScheme().toUpperCase();
-            String path = isReadiness ? getReadinessPath() : getLivenessPath();
-
-            return new ProbeBuilder()
-                    .withNewHttpGet().withNewPort(port).withPath(path).withScheme(scheme).endHttpGet()
-                    .withFailureThreshold(getFailureThreshold())
-                    .withSuccessThreshold(getSuccessThreshold())
-                    .withInitialDelaySeconds(initialDelay).build();
-        }
-        return null;
-    }
-
     private boolean isAvailable() {
-        if (isProbeEnforced()) {
+        if (asBoolean(getConfig(Config.ENFORCE_PROBES))) {
             return true;
         }
-        JavaProject project = ((JKubeEnricherContext) getContext()).getProject();
+        JavaProject project = getContext().getProject();
         Plugin plugin = JKubeProjectUtil.getPlugin(project, BOOTABLE_JAR_GROUP_ID, BOOTABLE_JAR_ARTIFACT_ID);
         if (plugin == null) {
             return false;
@@ -134,39 +150,4 @@ public class WildflyJARHealthCheckEnricher extends AbstractHealthCheckEnricher {
         return config.containsKey("cloud");
     }
 
-    protected int getFailureThreshold() {
-        return Configs.asInteger(getConfig(Config.FAILURETHRESHOLD));
-    }
-
-    protected boolean isProbeEnforced() {
-        return Configs.asBoolean(getConfig(Config.ENFORCEPROBES));
-    }
-
-    protected int getSuccessThreshold() {
-        return Configs.asInteger(getConfig(Config.SUCCESSTHRESHOLD));
-    }
-
-    protected String getScheme() {
-        return Configs.asString(getConfig(Config.SCHEME));
-    }
-
-    protected int getPort() {
-        return Configs.asInt(getConfig(Config.PORT));
-    }
-
-    protected String getLivenessPath() {
-        return Configs.asString(getConfig(Config.LIVENESSPATH));
-    }
-
-    protected int getLivenessInitialDelay() {
-        return Configs.asInt(getConfig(Config.LIVENESSINITIALDELAY));
-    }
-
-    protected String getReadinessPath() {
-        return Configs.asString(getConfig(Config.READINESSPATH));
-    }
-
-    protected int getReadinessInitialDelay() {
-        return Configs.asInt(getConfig(Config.READINESSINITIALDELAY));
-    }
 }

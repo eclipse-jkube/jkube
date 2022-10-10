@@ -29,98 +29,94 @@ import org.eclipse.jkube.kit.config.image.build.HealthCheckMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author nicola
  */
-public class DockerHealthCheckEnricherTest {
+class DockerHealthCheckEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
 
-    @Test
-    public void testEnrichFromSingleImage() {
-        // Setup mock behaviour
-        new Expectations() {{
-            List<ImageConfiguration> images =  Arrays.asList(ImageConfiguration.builder()
-                            .alias("myImage")
-                            .build(BuildConfiguration.builder()
-                                    .healthCheck(HealthCheckConfiguration.builder()
-                                            .mode(HealthCheckMode.cmd)
-                                            .cmd(Arguments.builder().shell("/bin/check").build())
-                                            .timeout("1s")
-                                            .interval("1h1s")
-                                            .retries(3)
-                                            .build())
-                                    .build())
-                            .build(),
-                ImageConfiguration.builder()
-                            .alias("myImage2")
-                            .build(BuildConfiguration.builder()
-                                    .healthCheck(HealthCheckConfiguration.builder()
-                                            .mode(HealthCheckMode.cmd)
-                                            .cmd(Arguments.builder().shell("/xxx/check").build())
-                                            .timeout("3s")
-                                            .interval("3h1s")
-                                            .retries(9)
-                                            .build())
-                                    .build())
-                            .build());
-            context.getConfiguration();
-            result = Configuration.builder().images(images).build();
-        }};
+    @BeforeEach
+    void setUp() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    }
 
+    @Test
+    void enrichFromSingleImage() {
+        DockerHealthCheckEnricher enricher = new DockerHealthCheckEnricher(context);
+        // Setup mock behaviour
+        List<ImageConfiguration> images = Arrays.asList(ImageConfiguration.builder()
+                .alias("myImage")
+                .build(BuildConfiguration.builder()
+                    .healthCheck(HealthCheckConfiguration.builder()
+                        .mode(HealthCheckMode.cmd)
+                        .cmd(Arguments.builder().shell("/bin/check").build())
+                        .timeout("1s")
+                        .interval("1h1s")
+                        .retries(3)
+                        .build())
+                    .build())
+                .build(),
+            ImageConfiguration.builder()
+                .alias("myImage2")
+                .build(BuildConfiguration.builder()
+                    .healthCheck(HealthCheckConfiguration.builder()
+                        .mode(HealthCheckMode.cmd)
+                        .cmd(Arguments.builder().shell("/xxx/check").build())
+                        .timeout("3s")
+                        .interval("3h1s")
+                        .retries(9)
+                        .build())
+                    .build())
+                .build());
+        when(context.getConfiguration()).thenReturn(Configuration.builder().images(images).build());
         KubernetesListBuilder builder = createDeployment("myImage");
 
-        DockerHealthCheckEnricher enricher = new DockerHealthCheckEnricher(context);
         enricher.create(PlatformMode.kubernetes, builder);
 
         KubernetesList list = builder.build();
-        assertEquals(1, list.getItems().size());
+        assertThat(list.getItems()).hasSize(1);
         assertHealthCheckMatching(builder.build().getItems().get(0), "livenessProbe", "/bin/check", 1, 3601, 3);
         assertHealthCheckMatching(builder.build().getItems().get(0), "readinessProbe", "/bin/check", 1, 3601, 3);
     }
 
     @Test
-    public void testEnrichFromDoubleImage() {
+    void enrichFromDoubleImage() {
         // Setup mock behaviour
-        new Expectations() {{
-            List<ImageConfiguration> images = Arrays.asList(ImageConfiguration.builder()
-                            .alias("myImage")
-                            .build(BuildConfiguration.builder()
-                                    .healthCheck(HealthCheckConfiguration.builder()
-                                            .mode(HealthCheckMode.cmd)
-                                            .cmd(Arguments.builder().shell("/bin/check").build())
-                                            .timeout("1s")
-                                            .interval("1h1s")
-                                            .retries(3)
-                                            .build())
-                                    .build())
-                            .build(),
-                ImageConfiguration.builder()
-                            .alias("myImage2")
-                            .build(BuildConfiguration.builder()
-                                    .healthCheck(HealthCheckConfiguration.builder()
-                                            .mode(HealthCheckMode.cmd)
-                                            .cmd(Arguments.builder().shell("/xxx/check").build())
-                                            .timeout("3s")
-                                            .interval("3h1s")
-                                            .retries(9)
-                                            .build())
-                                    .build())
-                            .build());
-            context.getConfiguration();
-            result = Configuration.builder().images(images).build();
-
-            context.getProcessingInstructions();
-            result = Collections.singletonMap("FABRIC8_GENERATED_CONTAINERS", "myImage,myImage2");
-        }};
+        List<ImageConfiguration> images = Arrays.asList(ImageConfiguration.builder()
+                .alias("myImage")
+                .build(BuildConfiguration.builder()
+                    .healthCheck(HealthCheckConfiguration.builder()
+                        .mode(HealthCheckMode.cmd)
+                        .cmd(Arguments.builder().shell("/bin/check").build())
+                        .timeout("1s")
+                        .interval("1h1s")
+                        .retries(3)
+                        .build())
+                    .build())
+                .build(),
+            ImageConfiguration.builder()
+                .alias("myImage2")
+                .build(BuildConfiguration.builder()
+                    .healthCheck(HealthCheckConfiguration.builder()
+                        .mode(HealthCheckMode.cmd)
+                        .cmd(Arguments.builder().shell("/xxx/check").build())
+                        .timeout("3s")
+                        .interval("3h1s")
+                        .retries(9)
+                        .build())
+                    .build())
+                .build());
+        when(context.getConfiguration()).thenReturn(Configuration.builder().images(images).build());
+        when(context.getProcessingInstructions()).thenReturn(Collections.singletonMap("FABRIC8_GENERATED_CONTAINERS", "myImage,myImage2"));
 
         KubernetesListBuilder builder = addDeployment(createDeployment("myImage"), "myImage2");
 
@@ -128,7 +124,7 @@ public class DockerHealthCheckEnricherTest {
         enricher.create(PlatformMode.kubernetes, builder);
 
         KubernetesList list = builder.build();
-        assertEquals(2, list.getItems().size());
+        assertThat(list.getItems()).hasSize(2);
         assertHealthCheckMatching(builder.build().getItems().get(0), "livenessProbe", "/bin/check", 1, 3601, 3);
         assertHealthCheckMatching(builder.build().getItems().get(0), "readinessProbe", "/bin/check", 1, 3601, 3);
         assertHealthCheckMatching(builder.build().getItems().get(1), "livenessProbe", "/xxx/check", 3, 10801, 9);
@@ -136,59 +132,50 @@ public class DockerHealthCheckEnricherTest {
     }
 
     @Test
-    public void testInvalidHealthCheck() {
-        // Setup mock behaviour
-        new Expectations() {{
-            final ImageConfiguration image = ImageConfiguration.builder()
-                    .alias("myImage")
-                    .build(BuildConfiguration.builder()
-                            .healthCheck(HealthCheckConfiguration.builder()
-                                    .mode(HealthCheckMode.none)
-                                    .build())
-                            .build())
-                    .build();
-            context.getConfiguration();
-            result = Configuration.builder().image(image).build();
-        }};
+    void invalidHealthCheck() {
 
+        // Setup mock behaviour
+        final ImageConfiguration image = ImageConfiguration.builder()
+            .alias("myImage")
+            .build(BuildConfiguration.builder()
+                .healthCheck(HealthCheckConfiguration.builder()
+                    .mode(HealthCheckMode.none)
+                    .build())
+                .build())
+            .build();
+        when(context.getConfiguration()).thenReturn( Configuration.builder().image(image).build());
         KubernetesListBuilder builder = createDeployment("myImage");
 
         DockerHealthCheckEnricher enricher = new DockerHealthCheckEnricher(context);
         enricher.create(PlatformMode.kubernetes, builder);
 
         KubernetesList list = builder.build();
-        assertEquals(1, list.getItems().size());
-        assertNoProbes(list.getItems().get(0));
+        assertNoProbes(list);
     }
 
     @Test
-    public void testUnmatchingHealthCheck() {
+    void unmatchingHealthCheck() {
         // Setup mock behaviour
-        new Expectations() {{
-            final ImageConfiguration image = ImageConfiguration.builder()
-                    .alias("myImage")
-                    .build(BuildConfiguration.builder()
-                            .healthCheck(HealthCheckConfiguration.builder()
-                                    .mode(HealthCheckMode.cmd)
-                                    .cmd(Arguments.builder().shell("/bin/check").build())
-                                    .timeout("1s")
-                                    .interval("1h1s")
-                                    .retries(3)
-                                    .build())
-                            .build())
-                    .build();
-            context.getConfiguration();
-            result = Configuration.builder().image(image).build();
-        }};
-
+        final ImageConfiguration image = ImageConfiguration.builder()
+            .alias("myImage")
+            .build(BuildConfiguration.builder()
+                .healthCheck(HealthCheckConfiguration.builder()
+                    .mode(HealthCheckMode.cmd)
+                    .cmd(Arguments.builder().shell("/bin/check").build())
+                    .timeout("1s")
+                    .interval("1h1s")
+                    .retries(3)
+                    .build())
+                .build())
+            .build();
+        when(context.getConfiguration()).thenReturn(Configuration.builder().image(image).build());
         KubernetesListBuilder builder = createDeployment("myUnmatchingImage");
 
         DockerHealthCheckEnricher enricher = new DockerHealthCheckEnricher(context);
         enricher.create(PlatformMode.kubernetes, builder);
 
         KubernetesList list = builder.build();
-        assertEquals(1, list.getItems().size());
-        assertNoProbes(list.getItems().get(0));
+        assertNoProbes(list);
     }
 
     private KubernetesListBuilder createDeployment(String name) {
@@ -212,56 +199,27 @@ public class DockerHealthCheckEnricherTest {
             .build());
     }
 
-    private void assertNoProbes(HasMetadata object) {
-        assertThat(object)
-                .extracting("spec.template.spec.containers")
-                .asList()
-                .first()
-                .hasFieldOrPropertyWithValue("livenessProbe", null)
-                .hasFieldOrPropertyWithValue("readinessProbe", null);
+    private void assertNoProbes(KubernetesList list) {
+      assertThat(list.getItems()).singleElement()
+          .extracting("spec.template.spec.containers")
+          .asList()
+          .first()
+          .hasFieldOrPropertyWithValue("livenessProbe", null)
+          .hasFieldOrPropertyWithValue("readinessProbe", null);
     }
 
-    private void assertHealthCheckMatching(HasMetadata object, String type, String command, Integer timeoutSeconds, Integer periodSeconds, Integer failureThreshold) {
-        assertThat(object)
-                .extracting("spec.template.spec.containers")
-                .asList()
-                .first()
-                .hasFieldOrProperty(type);
-
-        if (command != null){
-            assertThat(object)
-                    .extracting("spec.template.spec.containers")
-                    .asList()
-                    .first()
-                    .extracting(type + ".exec.command")
-                    .asList()
-                    .first()
-                    .isEqualTo(command);
-        }
-        if (timeoutSeconds != null){
-            assertThat(object)
-                    .extracting("spec.template.spec.containers")
-                    .asList()
-                    .first()
-                    .extracting(type)
-                    .hasFieldOrPropertyWithValue("timeoutSeconds", timeoutSeconds);
-        }
-        if (periodSeconds != null){
-            assertThat(object)
-                    .extracting("spec.template.spec.containers")
-                    .asList()
-                    .first()
-                    .extracting(type)
-                    .hasFieldOrPropertyWithValue("periodSeconds", periodSeconds);
-        }
-        if (failureThreshold != null){
-          assertThat(object)
-              .extracting("spec.template.spec.containers")
-              .asList()
+    private void assertHealthCheckMatching(HasMetadata resource, String type, String command, int timeoutSeconds, int periodSeconds, int failureThreshold) {
+      assertThat(resource)
+          .extracting("spec.template.spec.containers").asList()
+          .first()
+          .extracting(type).isNotNull()
+          .hasFieldOrPropertyWithValue("timeoutSeconds", timeoutSeconds)
+          .hasFieldOrPropertyWithValue("periodSeconds", periodSeconds)
+          .hasFieldOrPropertyWithValue("failureThreshold", failureThreshold)
+          .satisfies(r -> assertThat(r)
+              .extracting("exec.command").asList()
               .first()
-              .extracting(type)
-              .hasFieldOrPropertyWithValue("failureThreshold", failureThreshold);
-        }
+              .isEqualTo(command));
     }
 
 }

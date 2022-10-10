@@ -39,9 +39,8 @@ import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
 import com.google.cloud.tools.jib.api.buildplan.Port;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,18 +50,15 @@ import static org.mockito.Mockito.mockConstructionWithAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class JibServiceUtilTest {
-
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class JibServiceUtilTest {
 
     @Test
-    public void testGetBaseImageWithNullBuildConfig() {
+    void testGetBaseImageWithNullBuildConfig() {
         assertThat(JibServiceUtil.getBaseImage(ImageConfiguration.builder().build())).isEqualTo("busybox:latest");
     }
 
     @Test
-    public void testGetBaseImageWithNotNullBuildConfig() {
+    void testGetBaseImageWithNotNullBuildConfig() {
         // Given
         final ImageConfiguration imageConfiguration = ImageConfiguration.builder()
             .build(BuildConfiguration.builder()
@@ -76,7 +72,7 @@ public class JibServiceUtilTest {
     }
 
     @Test
-    public void testContainerFromImageConfiguration()  throws Exception {
+    void testContainerFromImageConfiguration()  throws Exception {
           try (MockedConstruction<JibContainerBuilder> ignore = mockConstructionWithAnswer(JibContainerBuilder.class, RETURNS_SELF)) {
             // Given
             ImageConfiguration imageConfiguration = getSampleImageConfiguration();
@@ -95,7 +91,7 @@ public class JibServiceUtilTest {
     }
 
     @Test
-    public void testAppendOriginalImageNameTagIfApplicable() {
+    void testAppendOriginalImageNameTagIfApplicable() {
         // Given
         List<String> imageTagList = Arrays.asList("0.0.1", "0.0.1-SNAPSHOT");
         // When
@@ -108,19 +104,19 @@ public class JibServiceUtilTest {
     }
 
     @Test
-    public void testGetFullImageNameWithDefaultTag() {
+    void testGetFullImageNameWithDefaultTag() {
         assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), null))
             .isEqualTo("test/test-project:latest");
     }
 
     @Test
-    public void testGetFullImageNameWithProvidedTag() {
+    void testGetFullImageNameWithProvidedTag() {
         assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), "0.0.1"))
             .isEqualTo("test/test-project:0.0.1");
     }
 
     @Test
-    public void layers_withEmptyLayers_shouldReturnEmpty() {
+    void layers_withEmptyLayers_shouldReturnEmpty() {
         // When
         final List<FileEntriesLayer> result = JibServiceUtil.layers(null, Collections.emptyMap());
         // Then
@@ -128,28 +124,28 @@ public class JibServiceUtilTest {
     }
 
     @Test
-    public void layers_withMultipleLayers_shouldReturnTransformedLayers() throws IOException {
+    void layers_withMultipleLayers_shouldReturnTransformedLayers(@TempDir File temporaryFolder) throws IOException {
         // Given
         final BuildDirs buildDirs = new BuildDirs("layers-test", JKubeConfiguration.builder()
             .outputDirectory("target/docker")
-            .project(JavaProject.builder().baseDirectory(temporaryFolder.getRoot()).build())
+            .project(JavaProject.builder().baseDirectory(temporaryFolder).build())
             .build());
         final Map<Assembly, List<AssemblyFileEntry>> originalLayers = new LinkedHashMap<>();
         originalLayers.put(Assembly.builder().id("layer-1").build(), Arrays.asList(
-            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+            AssemblyFileEntry.builder().source(File.createTempFile("junit", "ext", temporaryFolder))
                 .dest(buildDirs.getOutputDirectory().toPath().resolve("layer-1").resolve("l1.1.txt").toFile()).build(),
-            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+            AssemblyFileEntry.builder().source(File.createTempFile("junit", "ext", temporaryFolder))
                 .dest(buildDirs.getOutputDirectory().toPath().resolve("layer-1").resolve("l1.2.txt").toFile()).build()
         ));
         originalLayers.put(Assembly.builder().build(), Arrays.asList(
-            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+            AssemblyFileEntry.builder().source(File.createTempFile("junit", "ext", temporaryFolder))
                 .dest(new File(buildDirs.getOutputDirectory(),"l2.1.txt")).build(),
-            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+            AssemblyFileEntry.builder().source(File.createTempFile("junit", "ext", temporaryFolder))
                 .dest(new File(buildDirs.getOutputDirectory(),"l2.2.txt")).build()
         ));
         // Creates a denormalized path in JDK 8
         originalLayers.put(Assembly.builder().id("jkube-generated-layer-final-artifact").build(), Collections.singletonList(
-            AssemblyFileEntry.builder().source(temporaryFolder.newFile())
+            AssemblyFileEntry.builder().source(File.createTempFile("junit", "ext", temporaryFolder))
                     .dest(buildDirs.getOutputDirectory().toPath().resolve("jkube-generated-layer-final-artifact")
                         .resolve("deployments").resolve(".").resolve("edge.case").toFile()).build()
         ));

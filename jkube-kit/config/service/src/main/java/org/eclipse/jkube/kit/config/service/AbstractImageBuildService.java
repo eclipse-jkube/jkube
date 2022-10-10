@@ -29,8 +29,10 @@ public abstract class AbstractImageBuildService implements BuildService {
 
   protected abstract void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException;
 
+  /** {@inheritDoc} */
   @Override
   public final void build(ImageConfiguration... imageConfigurations) throws JKubeServiceException {
+    jKubeServiceHub.getPluginManager().resolvePluginService().addExtraFiles();
     processImage(this::buildSingleImage, "Skipped building", imageConfigurations);
   }
 
@@ -49,6 +51,8 @@ public abstract class AbstractImageBuildService implements BuildService {
       for (ImageConfiguration imageConfiguration : imageConfigurations) {
         if (imageConfiguration.getBuildConfiguration() != null && imageConfiguration.getBuildConfiguration().getSkip()) {
           jKubeServiceHub.getLog().info("%s : %s", imageConfiguration.getDescription(), skipMessage);
+        } else if (imageConfiguration.getBuildConfiguration() == null) {
+          jKubeServiceHub.getLog().info("%s : %s (Image configuration has no build settings)", imageConfiguration.getDescription(), skipMessage);
         } else {
           imageConfigurationConsumer.process(imageConfiguration);
         }

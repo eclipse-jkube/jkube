@@ -28,7 +28,6 @@ items:
       app.openshift.io/vcs-uri: "@ignore@"
       jkube.io/git-commit: "@ignore@"
     labels:
-      expose: "true"
       keyinall: valueinall
       keyinservice: valueinservice
       app: metadata

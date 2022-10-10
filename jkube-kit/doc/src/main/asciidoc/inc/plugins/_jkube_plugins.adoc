@@ -1,0 +1,94 @@
+[[jkube-plugin]]
+= JKube Plugins
+
+This plugin supports so call *jkube-plugins* which have entry points that can be bound to the different JKube operation phases.
+jkube-plugins are enabled by just declaring a dependency in the plugin declaration:
+
+
+ifeval::["{plugin-type}" == "gradle"]
+The following example is from https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/plugin[quickstarts/gradle/plugin]
+
+JKube Plugin is defined under Gradle's `buildSrc` directory which is automatically added to build script classpath by Gradle.
+
+[source]
+----
+.
+├── app
+├── buildSrc
+  ├── build.gradle
+  └── src
+      └── main
+          ├── java
+          │ └── org
+          │     └── eclipse
+          │         └── jkube
+          │             └── quickstart
+          │                 └── plugin
+          │                     └── SimpleJKubePlugin.java
+          └── resources
+              └── META-INF
+                  └── jkube
+                      └── plugin
+----
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+The following example is from https://github.com/eclipse/jkube/tree/master/quickstarts/maven/plugin[quickstarts/maven/plugin]
+
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+      <artifactId>plugin</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
+</plugin>
+----
+endif::[]
+
+JKubePlugins are automatically loaded by JKube by declaring a dependency to a module that contains a descriptor file at
+`META-INF/jkube/plugin` with class names line by line, for example:
+
+.src/main/resources/META-INF/jkube/plugin
+[source]
+----
+org.eclipse.jkube.quickstart.plugin.SimpleJKubePlugin
+----
+
+At the moment descriptor files are looked up in these locations:
+
+- `META-INF/maven/io.fabric8/dmp-plugin` (Deprecated, kept for backward compatibility)
+- `META-INF/jkube/plugin`
+- `META-INF/jkube-plugin`
+
+ifeval::["{plugin-type}" == "gradle"]
+During a build with `{task-prefix}Build`, those classes are loaded and certain fixed method are called.
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+During a build with `{goal-prefix}:build`, those classes are loaded and certain fixed method are called.
+endif::[]
+
+JKube plugin would need to implement `org.eclipse.jkube.api.JKubePlugin` interface. At the moment, The following methods are supported:
+
+[[build-plugin-methods]]
+[cols="1,5"]
+|===
+| Method | Description
+
+| *addExtraFiles*
+| A method called by {plugin} with a single `File` argument. This will point to a directory `jkube-extra` which can be referenced easily by a Dockerfile or an assembly. A {plugin} plugin typically will create an own subdirectory to avoid a clash with other jkube-plugins.
+|===
+
+
+
+ifeval::["{plugin-type}" == "gradle"]
+Check out https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/plugin[`quickstarts/gradle/plugin`] for a fully working example.
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+Check out https://github.com/eclipse/jkube/tree/master/quickstarts/maven/plugin[`quickstarts/maven/plugin`] for a fully working example.
+endif::[]

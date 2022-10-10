@@ -48,6 +48,11 @@ public class KubernetesUndeployTask extends AbstractJKubeTask {
     }
   }
 
+  @Override
+  protected boolean shouldSkip() {
+    return super.shouldSkip() || kubernetesExtension.getSkipUndeployOrDefault();
+  }
+
   protected List<File> findManifestsToUndeploy() {
     final List<File> ret = new ArrayList<>();
     ret.add(kubernetesExtension.getKubernetesManifestOrDefault());

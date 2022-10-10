@@ -23,6 +23,9 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -36,6 +39,7 @@ import org.eclipse.jkube.kit.enricher.api.util.InitContainerHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -56,7 +60,12 @@ public class VolumePermissionEnricher extends BaseEnricher {
     enum Config implements Configs.Config {
         IMAGE_NAME("imageName", "busybox"),
         PERMISSION("permission", "777"),
-        DEFAULT_STORAGE_CLASS("defaultStorageClass", null);
+        DEFAULT_STORAGE_CLASS("defaultStorageClass", null),
+        USE_ANNOTATION("useStorageClassAnnotation", "false"),
+        CPU_LIMIT("cpuLimit", null),
+        CPU_REQUEST("cpuRequest", null),
+        MEMORY_LIMIT("memoryLimit", null),
+        MEMORY_REQUEST("memoryRequest", null);
 
         @Getter
         protected String key;
@@ -117,6 +126,10 @@ public class VolumePermissionEnricher extends BaseEnricher {
                         .withImagePullPolicy("IfNotPresent")
                         .withCommand(createChmodCommandArray(mountPoints))
                         .withVolumeMounts(createMounts(mountPoints))
+                        .withResources(new ResourceRequirementsBuilder()
+                            .withLimits(createResourcesMap(Config.CPU_LIMIT, Config.MEMORY_LIMIT))
+                            .withRequests(createResourcesMap(Config.CPU_REQUEST, Config.MEMORY_REQUEST))
+                            .build())
                         .build();
             }
 
@@ -177,6 +190,18 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 throw new IllegalArgumentException("No matching volume mount found for volume "+ name);
             }
 
+            private Map<String, Quantity> createResourcesMap(Configs.Config cpu, Configs.Config memory) {
+                Map<String, Quantity> resourcesMap = new HashMap<>();
+                String cpuValue = getConfig(cpu);
+                if (StringUtils.isNotBlank(cpuValue)) {
+                    resourcesMap.put("cpu", new Quantity(cpuValue));
+                }
+                String memoryValue = getConfig(memory);
+                if (StringUtils.isNotBlank(memoryValue)) {
+                    resourcesMap.put("memory", new Quantity(memoryValue));
+                }
+                return resourcesMap;
+            }
         });
 
         builder.accept(new TypedVisitor<PersistentVolumeClaimBuilder>() {
@@ -188,7 +213,11 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 }
                 String storageClass = getConfig(Config.DEFAULT_STORAGE_CLASS);
                 if (StringUtils.isNotBlank(storageClass)) {
-                    pvcBuilder.editMetadata().addToAnnotations(VOLUME_STORAGE_CLASS_ANNOTATION, storageClass).endMetadata();
+                    if (Boolean.parseBoolean(getConfig(Config.USE_ANNOTATION))) {
+                        pvcBuilder.editMetadata().addToAnnotations(VOLUME_STORAGE_CLASS_ANNOTATION, storageClass).endMetadata();
+                    } else {
+                        pvcBuilder.editSpec().withStorageClassName(storageClass).endSpec();
+                    }
                 }
             }
         });

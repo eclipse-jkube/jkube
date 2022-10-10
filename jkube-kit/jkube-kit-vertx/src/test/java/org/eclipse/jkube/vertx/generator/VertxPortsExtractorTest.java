@@ -20,15 +20,21 @@ import java.util.Map;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
 public class VertxPortsExtractorTest {
-  @Mocked
   PrefixedLogger log;
+
+  @Before
+  public void setUp() {
+    log = mock(PrefixedLogger.class,RETURNS_DEEP_STUBS);
+  }
 
   @Test
   public void testVertxConfigPathFromProject() {

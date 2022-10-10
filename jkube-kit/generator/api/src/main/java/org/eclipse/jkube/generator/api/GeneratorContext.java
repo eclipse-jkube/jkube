@@ -30,7 +30,7 @@ import java.util.Optional;
 /**
  * @author roland
  */
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @Getter

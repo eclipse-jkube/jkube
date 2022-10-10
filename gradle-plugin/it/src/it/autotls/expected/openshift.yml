@@ -13,7 +13,6 @@ items:
         app.openshift.io/vcs-uri: "@ignore@"
         jkube.io/git-commit: "@ignore@"
       labels:
-        expose: "true"
         app: autotls
         provider: jkube
         version: "@ignore@"

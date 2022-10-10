@@ -14,18 +14,19 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.util.Properties;
-import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import org.junit.jupiter.api.Test;
 
-public class ThorntailUtilTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+
+class ThorntailUtilTest {
 
   @Test
-  public void testReadThorntailPort() {
+  void testReadThorntailPort() {
     Properties props = YamlUtil.getPropertiesFromYamlResource(ThorntailUtilTest.class.getResource("/util/project-default.yml"));
-    assertNotNull(props);
-    assertEquals("8082", props.getProperty("thorntail.http.port"));
+    assertThat(props).isNotNull()
+            .containsOnly(entry("thorntail.http.port", "8082"));
   }
 
 }

@@ -19,28 +19,28 @@ import org.apache.maven.monitor.logging.DefaultLog;
 import org.codehaus.plexus.logging.console.ConsoleLogger;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.fusesource.jansi.Ansi.Color.BLUE;
 import static org.fusesource.jansi.Ansi.Color.GREEN;
 import static org.fusesource.jansi.Ansi.Color.RED;
 import static org.fusesource.jansi.Ansi.Color.YELLOW;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
  * @since 07/10/16
  */
-public class AnsiLoggerTest {
-    @BeforeClass
+class AnsiLoggerTest {
+    @BeforeAll
     public static void installAnsi() {
         AnsiConsole.systemInstall();
     }
 
-    @Before
+    @BeforeEach
     public void forceAnsiPassthrough() {
         // Because the AnsiConsole keeps a per-VM counter of calls to systemInstall, it is
         // difficult to force it to pass through escapes to stdout during test.
@@ -48,19 +48,19 @@ public class AnsiLoggerTest {
         // code may have already initialized or manipulated the AnsiConsole.
         // Hence we just reset the stdout/stderr references to those captured by AnsiConsole
         // during its static initialization and restore them after tests.
-        System.setOut(AnsiConsole.system_out);
-        System.setErr(AnsiConsole.system_err);
+        System.setOut(AnsiConsole.sysOut());
+        System.setErr(AnsiConsole.sysErr());
     }
 
-    @AfterClass
+    @AfterAll
     public static void restoreAnsiPassthrough() {
         AnsiConsole.systemUninstall();
-        System.setOut(AnsiConsole.out);
-        System.setErr(AnsiConsole.err);
+        System.setOut(AnsiConsole.out());
+        System.setErr(AnsiConsole.err());
     }
 
     @Test
-    public void emphasizeDebug() {
+    void emphasizeDebug() {
         TestLog testLog = new TestLog() {
             @Override
             public boolean isDebugEnabled() {
@@ -70,12 +70,11 @@ public class AnsiLoggerTest {
 
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         logger.debug("Debug messages do not interpret [[*]]%s[[*]]", "emphasis");
-        assertEquals("T>Debug messages do not interpret [[*]]emphasis[[*]]",
-                testLog.getMessage());
+        assertThat(testLog.getMessage()).isEqualTo("T>Debug messages do not interpret [[*]]emphasis[[*]]");
     }
 
     @Test
-    public void emphasizeInfoWithDebugEnabled() {
+    void emphasizeInfoWithDebugEnabled() {
         TestLog testLog = new TestLog() {
             @Override
             public boolean isDebugEnabled() {
@@ -85,12 +84,11 @@ public class AnsiLoggerTest {
 
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         logger.info("Info messages do not apply [[*]]%s[[*]] when debug is enabled", "color codes");
-        assertEquals("T>Info messages do not apply color codes when debug is enabled",
-                testLog.getMessage());
+        assertThat(testLog.getMessage()).isEqualTo("T>Info messages do not apply color codes when debug is enabled");
     }
 
     @Test
-    public void verboseEnabled() {
+    void verboseEnabled() {
         String[] data = {
                 "build", "Test",
                 "api", null,
@@ -104,113 +102,118 @@ public class AnsiLoggerTest {
             TestLog testLog = new TestLog();
             AnsiLogger logger = new AnsiLogger(testLog, false, data[i], false, "");
             logger.verbose( KitLogger.LogVerboseCategory.BUILD, "Test");
-            assertEquals(data[i+1], testLog.getMessage());
+            assertThat(testLog.getMessage()).isEqualTo(data[i+1]);
         }
     }
-    @Test
 
-    public void emphasizeInfo() {
+    @Test
+    void emphasizeInfo() {
         TestLog testLog = new TestLog();
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = Ansi.ansi();
         logger.info("Yet another [[*]]Test[[*]] %s", "emphasis");
-        assertEquals(ansi.fg(GREEN)
+        assertThat(testLog.getMessage()).isEqualTo(
+                ansi.fg(GREEN)
                         .a("T>")
                         .a("Yet another ")
             .fgBright(BLUE)
                         .a("Test")
             .fg(GREEN)
                         .a(" emphasis")
-                        .reset().toString(),
-                testLog.getMessage());
+                        .reset().toString()
+        );
     }
 
     @Test
-    public void emphasizeInfoSpecificColor() {
+    void emphasizeInfoSpecificColor() {
         TestLog testLog = new TestLog();
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = new Ansi();
         logger.info("Specific [[C]]color[[C]] %s","is possible");
-        assertEquals(ansi.fg(GREEN)
+        assertThat(testLog.getMessage()).isEqualTo(
+                ansi.fg(GREEN)
                         .a("T>")
                         .a("Specific ")
                         .fg(Ansi.Color.CYAN)
                         .a("color")
             .fg(GREEN)
                         .a(" is possible")
-                        .reset().toString(),
-                testLog.getMessage());
+                        .reset().toString()
+        );
     }
 
     @Test
-    public void emphasizeInfoIgnoringEmpties() {
+    void emphasizeInfoIgnoringEmpties() {
         TestLog testLog = new TestLog();
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = new Ansi();
         // Note that the closing part of the emphasis does not need to match the opening.
         // E.g. [[b]]Blue[[*]] works just like [[b]]Blue[[b]]
         logger.info("[[b]][[*]]Skip[[*]][[*]]ping [[m]]empty strings[[/]] %s[[*]][[c]][[c]][[*]]","is possible");
-        assertEquals(ansi.fg(GREEN)
+        assertThat(testLog.getMessage()).isEqualTo(
+                ansi.fg(GREEN)
                         .a("T>")
                         .a("Skipping ")
                         .fgBright(Ansi.Color.MAGENTA)
                         .a("empty strings")
             .fg(GREEN)
                         .a(" is possible")
-                        .reset().toString(),
-                testLog.getMessage());
+                        .reset().toString()
+        );
     }
 
     @Test
-    public void emphasizeInfoSpecificBrightColor() {
+    void emphasizeInfoSpecificBrightColor() {
         TestLog testLog = new TestLog();
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = new Ansi();
         logger.info("Lowercase enables [[c]]bright version[[c]] of %d colors",Ansi.Color.values().length - 1);
-        assertEquals(ansi.fg(GREEN)
+        assertThat(testLog.getMessage()).isEqualTo(
+                ansi.fg(GREEN)
                         .a("T>")
                         .a("Lowercase enables ")
                         .fgBright(Ansi.Color.CYAN)
                         .a("bright version")
             .fg(GREEN)
                         .a(" of 8 colors")
-                        .reset().toString(),
-                testLog.getMessage());
+                        .reset().toString()
+        );
     }
 
     @Test
-    public void emphasizeInfoWithoutColor() {
+    void emphasizeInfoWithoutColor() {
         TestLog testLog = new TestLog();
         AnsiLogger logger = new AnsiLogger(testLog, false, null, false, "T>");
         logger.info("Disabling color causes logger to [[*]]interpret and remove[[*]] %s","emphasis");
-        assertEquals("T>Disabling color causes logger to interpret and remove emphasis",
-                testLog.getMessage());
+        assertThat(testLog.getMessage()).isEqualTo("T>Disabling color causes logger to interpret and remove emphasis");
     }
 
     @Test
-    public void emphasizeWarning() {
+    void emphasizeWarning() {
         TestLog testLog = new TestLog();
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = new Ansi();
         logger.warn("%s messages support [[*]]emphasis[[*]] too","Warning");
-        assertEquals(ansi.fg(YELLOW)
+        assertThat(testLog.getMessage()).isEqualTo(
+                ansi.fg(YELLOW)
                         .a("T>")
                         .a("Warning messages support ")
             .fgBright(BLUE)
                         .a("emphasis")
             .fg(YELLOW)
                         .a(" too")
-                        .reset().toString(),
-                testLog.getMessage());
+                        .reset().toString()
+        );
     }
 
     @Test
-    public void emphasizeError() {
+    void emphasizeError() {
         TestLog testLog = new TestLog();
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         Ansi ansi = new Ansi();
         logger.error("Error [[*]]messages[[*]] could emphasise [[*]]%s[[*]]","many things");
-        assertEquals(ansi.fg(RED)
+        assertThat(testLog.getMessage()).isEqualTo(
+                ansi.fg(RED)
                         .a("T>")
                         .a("Error ")
             .fgBright(BLUE)
@@ -220,8 +223,8 @@ public class AnsiLoggerTest {
             .fgBright(BLUE)
                         .a("many things")
                         .reset()
-                        .toString(),
-                testLog.getMessage());
+                        .toString()
+        );
     }
 
 

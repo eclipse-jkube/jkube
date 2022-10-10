@@ -15,20 +15,21 @@ package org.eclipse.jkube.kit.common;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
-import static org.junit.Assume.assumeFalse;
+import static org.assertj.core.api.Assertions.entry;
 
-public class JKubeConfigurationTest {
+class JKubeConfigurationTest {
 
   @Test
-  public void getBaseDir_withJavaProject_shouldReturnJavaProjectBaseDirectory() {
+  void getBaseDir_withJavaProject_shouldReturnJavaProjectBaseDirectory() {
     // Given
     final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder()
         .baseDirectory(new File("base-directory")).build()).build();
@@ -39,7 +40,7 @@ public class JKubeConfigurationTest {
   }
 
   @Test
-  public void getProperties_withJavaProject_shouldReturnJavaProjectProperties() {
+  void getProperties_withJavaProject_shouldReturnJavaProjectProperties() {
     // Given
     final Properties props = new Properties();
     props.put("property", "value");
@@ -48,13 +49,13 @@ public class JKubeConfigurationTest {
     // When
     final Properties result = configuration.getProperties();
     // Then
-    assertThat(result).hasFieldOrPropertyWithValue("property", "value");
+    assertThat(result).containsOnly(entry("property", "value"));
   }
 
   @Test
-  public void inOutputDir_withAbsolutePath_shouldReturnPath() {
+  @DisabledOnOs(OS.WINDOWS)
+  void inOutputDir_withAbsolutePath_shouldReturnPath() {
     // Given
-    assumeFalse(isWindows());
     final JKubeConfiguration configuration = JKubeConfiguration.builder()
         .project(JavaProject.builder().baseDirectory(new File("/")).build())
         .outputDirectory("target").build();
@@ -65,7 +66,7 @@ public class JKubeConfigurationTest {
   }
 
   @Test
-  public void inOutputDir_withRelativePath_shouldReturnResolvedPath() {
+  void inOutputDir_withRelativePath_shouldReturnResolvedPath() {
     // Given
     final JKubeConfiguration configuration = JKubeConfiguration.builder()
         .project(JavaProject.builder().baseDirectory(new File("/base")).build())
@@ -77,7 +78,7 @@ public class JKubeConfigurationTest {
   }
 
   @Test
-  public void inSourceDir_withRelativePath_shouldReturnResolvedPath() {
+  void inSourceDir_withRelativePath_shouldReturnResolvedPath() {
     // Given
     final JKubeConfiguration configuration = JKubeConfiguration.builder()
         .project(JavaProject.builder().baseDirectory(new File("/")).build())
@@ -92,7 +93,7 @@ public class JKubeConfigurationTest {
    * Verifies that deserialization works for raw deserialization disregarding annotations.
    */
   @Test
-  public void rawDeserialization() throws IOException {
+  void rawDeserialization() throws IOException {
     // Given
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(MapperFeature.USE_ANNOTATIONS, false);

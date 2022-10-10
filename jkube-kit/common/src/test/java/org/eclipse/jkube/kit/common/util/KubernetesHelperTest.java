@@ -19,30 +19,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import io.fabric8.kubernetes.api.model.ServiceList;
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
-import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
-import io.fabric8.kubernetes.api.model.HTTPHeader;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.ServiceResource;
+
 import org.eclipse.jkube.kit.common.KitLogger;
+
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
+import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -50,34 +45,26 @@ import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Template;
-import org.junit.Before;
-import org.junit.Test;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class KubernetesHelperTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
+
+class KubernetesHelperTest {
 
     private KitLogger logger;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         logger = new KitLogger.SilentLogger();
     }
 
     @Test
-    public void testListResourceFragments() {
+    void testListResourceFragments() {
         // Given
         File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
 
@@ -86,7 +73,7 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testResourceFragmentsWithRemotes() {
+    void testResourceFragmentsWithRemotes() {
         // Given
         List<String> remoteStrList = getRemoteFragments();
         File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
@@ -96,12 +83,12 @@ public class KubernetesHelperTest {
 
         // Then
         assertLocalFragments(fragments, 4);
-        assertTrue(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("deployment.yaml")));
-        assertTrue(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("sa.yml")));
+        assertThat(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("deployment.yaml"))).isTrue();
+        assertThat(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("sa.yml"))).isTrue();
     }
 
     @Test
-    public void testGetResourceFragmentFromSourceWithSomeResourceDirAndNullRemotes() {
+    void testGetResourceFragmentFromSourceWithSomeResourceDirAndNullRemotes() {
         // Given
         File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
 
@@ -109,18 +96,18 @@ public class KubernetesHelperTest {
         File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(localResourceDir, Collections.emptyList(), "service.yml", logger);
 
         // Then
-        assertNotNull(fragmentFile);
-        assertTrue(fragmentFile.exists());
-        assertEquals("service.yml", fragmentFile.getName());
+        assertThat(fragmentFile).isNotNull()
+                .exists()
+                .hasName("service.yml");
     }
 
     @Test
-    public void testGetResourceFragmentWithNullResourceDirAndNullRemotes() {
-        assertNull(KubernetesHelper.getResourceFragmentFromSource(null, null, "service.yml", logger));
+    void testGetResourceFragmentWithNullResourceDirAndNullRemotes() {
+        assertThat(KubernetesHelper.getResourceFragmentFromSource(null, null, "service.yml", logger)).isNull();
     }
 
     @Test
-    public void testGetResourceFragmentFromSourceWithNullResourceDirAndSomeRemotes() {
+    void testGetResourceFragmentFromSourceWithNullResourceDirAndSomeRemotes() {
         // Given
         List<String> remotes = getRemoteFragments();
 
@@ -128,13 +115,13 @@ public class KubernetesHelperTest {
         File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(null, remotes, "deployment.yaml", logger);
 
         // Then
-        assertNotNull(fragmentFile);
-        assertTrue(fragmentFile.exists());
-        assertEquals("deployment.yaml", fragmentFile.getName());
+        assertThat(fragmentFile).isNotNull()
+                .exists()
+                .hasName("deployment.yaml");
     }
 
     @Test
-    public void testGetResourceFragmentFromSourceWithSomeResourceDirAndSomeRemotes() {
+    void testGetResourceFragmentFromSourceWithSomeResourceDirAndSomeRemotes() {
         // Given
         File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
         List<String> remotes = getRemoteFragments();
@@ -143,13 +130,13 @@ public class KubernetesHelperTest {
         File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(localResourceDir, remotes, "sa.yml", logger);
 
         // Then
-        assertNotNull(fragmentFile);
-        assertTrue(fragmentFile.exists());
-        assertEquals("sa.yml", fragmentFile.getName());
+        assertThat(fragmentFile).isNotNull()
+                .exists()
+                .hasName("sa.yml");
     }
 
     @Test
-    public void testGetQuantityFromString() {
+    void testGetQuantityFromString() {
         // Given
         Map<String, String> limitsAsStr = new HashMap<>();
         limitsAsStr.put("cpu", "200m");
@@ -159,14 +146,15 @@ public class KubernetesHelperTest {
         Map<String, Quantity> limitAsQuantity = KubernetesHelper.getQuantityFromString(limitsAsStr);
 
         // Then
-        assertNotNull(limitAsQuantity);
-        assertEquals(2, limitAsQuantity.size());
-        assertEquals(new Quantity("200m"), limitAsQuantity.get("cpu"));
-        assertEquals(new Quantity("1Gi"), limitAsQuantity.get("memory"));
+        assertThat(limitAsQuantity).isNotNull()
+                .hasSize(2)
+                .contains(
+                        entry("cpu", new Quantity("200m")),
+                        entry("memory", new Quantity("1Gi")));
     }
 
     @Test
-    public void testGetEnvVar() {
+    void testGetEnvVar() {
         // Given
         List<EnvVar> envVarList = prepareEnvVarList();
 
@@ -177,14 +165,14 @@ public class KubernetesHelperTest {
         String value4 = KubernetesHelper.getEnvVar(envVarList, "UNKNOWN", "defaultValue");
 
         // Then
-        assertEquals("value1", value1);
-        assertEquals("-Dfoo=bar -Dxyz=abc", value2);
-        assertEquals("BAR", value3);
-        assertEquals("defaultValue", value4);
+        assertThat(value1).isEqualTo("value1");
+        assertThat(value2).isEqualTo("-Dfoo=bar -Dxyz=abc");
+        assertThat(value3).isEqualTo("BAR");
+        assertThat(value4).isEqualTo("defaultValue");
     }
 
     @Test
-    public void testSetEnvVar() {
+    void testSetEnvVar() {
         // Given
         List<EnvVar> envVarList = prepareEnvVarList();
 
@@ -193,14 +181,14 @@ public class KubernetesHelperTest {
         boolean statusCode2 = KubernetesHelper.setEnvVar(envVarList, "UNKNOWN_KEY", "UNKNOWN_VALUE");
 
         // Then
-        assertTrue(statusCode1);
-        assertEquals("NEW_BAR", KubernetesHelper.getEnvVar(envVarList, "FOO", "defaultValue"));
-        assertTrue(statusCode2);
-        assertEquals("UNKNOWN_VALUE", KubernetesHelper.getEnvVar(envVarList, "UNKNOWN_KEY", "defaultValue"));
+        assertThat(statusCode1).isTrue();
+        assertThat(statusCode2).isTrue();
+        assertThat(KubernetesHelper.getEnvVar(envVarList, "FOO", "defaultValue")).isEqualTo("NEW_BAR");
+        assertThat(KubernetesHelper.getEnvVar(envVarList, "UNKNOWN_KEY", "defaultValue")).isEqualTo("UNKNOWN_VALUE");
     }
 
     @Test
-    public void testRemoveEnvVar() {
+    void testRemoveEnvVar() {
         // Given
         List<EnvVar> envVarList = prepareEnvVarList();
 
@@ -208,41 +196,12 @@ public class KubernetesHelperTest {
         boolean statusCode1 = KubernetesHelper.removeEnvVar(envVarList, "FOO");
 
         // Then
-        assertTrue(statusCode1);
-        assertEquals("defaultValue", KubernetesHelper.getEnvVar(envVarList, "FOO", "defaultValue"));
+        assertThat(statusCode1).isTrue();
+        assertThat(KubernetesHelper.getEnvVar(envVarList, "FOO", "defaultValue")).isEqualTo("defaultValue");
     }
 
     @Test
-    public void testIsExposedServiceReturnsTrue() {
-        // Given
-        Service service = new ServiceBuilder()
-                .withNewMetadata()
-                .addToLabels("expose", "true")
-                .withName("svc1")
-                .endMetadata()
-                .build();
-
-        // When
-        boolean result = KubernetesHelper.isExposeService(service);
-
-        // Then
-        assertTrue(result);
-    }
-
-    @Test
-    public void testIsExposedServiceReturnsFalse() {
-        // Given
-        Service service = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
-
-        // When
-        boolean result = KubernetesHelper.isExposeService(service);
-
-        // Then
-        assertFalse(result);
-    }
-
-    @Test
-    public void testGetAnnotationValue() {
+    void testGetAnnotationValue() {
         // Given
         Service svc = new ServiceBuilder()
                 .withNewMetadata()
@@ -259,14 +218,14 @@ public class KubernetesHelperTest {
         String result4 = KubernetesHelper.getAnnotationValue(svc2, "expose");
 
         // Then
-        assertEquals("true", result1);
-        assertEquals("http://12.4.1.4:8223/test", result2);
-        assertNull(result3);
-        assertNull(result4);
+        assertThat(result1).isEqualTo("true");
+        assertThat(result2).isEqualTo("http://12.4.1.4:8223/test");
+        assertThat(result3).isNull();
+        assertThat(result4).isNull();
     }
 
     @Test
-    public void testConvertToEnvVarList() {
+    void testConvertToEnvVarList() {
         // Given
         Map<String, String> envVarAsStringMap = new HashMap<>();
         envVarAsStringMap.put("env1", "value1");
@@ -277,72 +236,15 @@ public class KubernetesHelperTest {
         List<EnvVar> envVarList = KubernetesHelper.convertToEnvVarList(envVarAsStringMap);
 
         // Then
-        assertNotNull(envVarList);
-        assertEquals(3, envVarList.size());
-        assertEquals("value1", KubernetesHelper.getEnvVar(envVarList, "env1", "defaultValue"));
-        assertEquals("-Dfoo=bar -Dxyz=abc", KubernetesHelper.getEnvVar(envVarList, "JAVA_OPTIONS", "defaultValue"));
-        assertEquals("BAR", KubernetesHelper.getEnvVar(envVarList, "FOO", "defaultValue"));
+        assertThat(envVarList).isNotNull().hasSize(3);
+        assertThat(KubernetesHelper.getEnvVar(envVarList, "env1", "defaultValue")).isEqualTo("value1");
+        assertThat(KubernetesHelper.getEnvVar(envVarList, "JAVA_OPTIONS", "defaultValue")).isEqualTo("-Dfoo=bar -Dxyz=abc");
+        assertThat(KubernetesHelper.getEnvVar(envVarList, "FOO", "defaultValue")).isEqualTo("BAR");
 
     }
 
     @Test
-    public void testGetServiceExposeUrlReturnsUrlFromAnnotation() throws InterruptedException {
-        // Given
-        Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
-        Set<HasMetadata> entities = new HashSet<>();
-        entities.add(svc);
-        ServiceResource svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
-        KubernetesClient kubernetesClient = mock(KubernetesClient.class);
-        NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> svcNonNamespaceOp = mock(NonNamespaceOperation.class, RETURNS_DEEP_STUBS);
-        MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class, RETURNS_DEEP_STUBS);
-        when(kubernetesClient.services()).thenReturn(svcMixedOp);
-        when(svcMixedOp.inNamespace("ns1")).thenReturn(svcNonNamespaceOp);
-        when(svcNonNamespaceOp.withName("svc1")).thenReturn((ServiceResource<Service>) svcResource);
-        when(svcResource.get()).thenReturn( new ServiceBuilder()
-                .withNewMetadata()
-                .withName("svc1")
-                .addToAnnotations("exposeUrl", "http://example.com")
-                .endMetadata()
-                .build());
-
-        // When
-        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, "ns1", entities, 3, "exposeUrl");
-
-        // Then
-        assertEquals("http://example.com", result);
-        verify(kubernetesClient, times(1)).services();
-        verify(svcResource,times(1)).get();
-    }
-
-    @Test
-    public void testGetServiceExposeUrlReturnsNull() throws InterruptedException {
-        // Given
-        Service svc = new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build();
-        Set<HasMetadata> entities = new HashSet<>();
-        entities.add(svc);
-        ServiceResource svcResource = mock(ServiceResource.class,RETURNS_DEEP_STUBS);
-        KubernetesClient kubernetesClient = mock(KubernetesClient.class);
-        NonNamespaceOperation<Service, ServiceList, ServiceResource<Service>> svcNonNamespaceOp = mock(NonNamespaceOperation.class, RETURNS_DEEP_STUBS);
-        MixedOperation<Service,ServiceList, ServiceResource<Service>> svcMixedOp = mock(MixedOperation.class, RETURNS_DEEP_STUBS);
-        when(kubernetesClient.services()).thenReturn(svcMixedOp);
-        when(svcMixedOp.inNamespace("ns1")).thenReturn(svcNonNamespaceOp);
-        when(svcNonNamespaceOp.withName("svc1")).thenReturn((ServiceResource<Service>) svcResource);        when(svcResource.get()).thenReturn(new ServiceBuilder()
-                .withNewMetadata()
-                .withName("svc1")
-                .endMetadata()
-                .build());
-
-        // When
-        String result = KubernetesHelper.getServiceExposeUrl(kubernetesClient, "ns1", entities, 1, "exposeUrl");
-
-        // Then
-        assertNull(result);
-        verify(kubernetesClient, times(1)).services();
-        verify(svcResource,times(1)).get();
-    }
-
-    @Test
-    public void testGetFullyQualifiedApiGroupWithKind() {
+    void testGetFullyQualifiedApiGroupWithKind() {
         // Given
         GenericKubernetesResource cr1 = new GenericKubernetesResourceBuilder()
             .withApiVersion("networking.istio.io/v1alpha3")
@@ -358,12 +260,12 @@ public class KubernetesHelperTest {
         String result2 = KubernetesHelper.getFullyQualifiedApiGroupWithKind(cr2);
 
         // Then
-        assertEquals("networking.istio.io/v1alpha3#VirtualService", result1);
-        assertEquals("networking.istio.io/v1alpha3#Gateway", result2);
+        assertThat(result1).isEqualTo("networking.istio.io/v1alpha3#VirtualService");
+        assertThat(result2).isEqualTo("networking.istio.io/v1alpha3#Gateway");
     }
 
     @Test
-    public void testContainsPort() {
+    void testContainsPort() {
         // Given
         List<ContainerPort> ports = new ArrayList<>();
         ports.add(new ContainerPortBuilder().withName("p1").withContainerPort(8001).build());
@@ -374,44 +276,44 @@ public class KubernetesHelperTest {
         boolean result2 = KubernetesHelper.containsPort(ports, "8002");
 
         // Then
-        assertTrue(result1);
-        assertTrue(result2);
+        assertThat(result1).isTrue();
+        assertThat(result2).isTrue();
     }
 
     @Test
-    public void testAddPort() {
+    void testAddPort() {
         // When
         ContainerPort result = KubernetesHelper.addPort("8001", "p1", logger);
 
         // Then
-        assertNotNull(result);
-        assertEquals("p1", result.getName());
-        assertEquals(8001, result.getContainerPort().intValue());
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo("p1");
+        assertThat(result.getContainerPort().intValue()).isEqualTo(8001);
     }
 
     @Test
-    public void testAddPortNullPortNumber() {
-        assertNull(KubernetesHelper.addPort("", "", logger));
+    void testAddPortNullPortNumber() {
+        assertThat(KubernetesHelper.addPort("", "", logger)).isNull();
     }
 
     @Test
-    public void testAddPortWithInvalidPortNumber() {
-        assertNull(KubernetesHelper.addPort("90invalid", "", logger));
+    void testAddPortWithInvalidPortNumber() {
+        assertThat(KubernetesHelper.addPort("90invalid", "", logger)).isNull();
     }
 
     @Test
-    public void testIsControllerResource() {
-        assertTrue(KubernetesHelper.isControllerResource(new DeploymentBuilder().build()));
-        assertTrue(KubernetesHelper.isControllerResource(new StatefulSetBuilder().build()));
-        assertTrue(KubernetesHelper.isControllerResource(new ReplicationControllerBuilder().build()));
-        assertTrue(KubernetesHelper.isControllerResource(new ReplicaSetBuilder().build()));
-        assertTrue(KubernetesHelper.isControllerResource(new DeploymentConfigBuilder().build()));
-        assertTrue(KubernetesHelper.isControllerResource(new DaemonSetBuilder().build()));
-        assertFalse(KubernetesHelper.isControllerResource(new ConfigMapBuilder().build()));
+    void testIsControllerResource() {
+        assertThat(KubernetesHelper.isControllerResource(new DeploymentBuilder().build())).isTrue();
+        assertThat(KubernetesHelper.isControllerResource(new StatefulSetBuilder().build())).isTrue();
+        assertThat(KubernetesHelper.isControllerResource(new ReplicationControllerBuilder().build())).isTrue();
+        assertThat(KubernetesHelper.isControllerResource(new ReplicaSetBuilder().build())).isTrue();
+        assertThat(KubernetesHelper.isControllerResource(new DeploymentConfigBuilder().build())).isTrue();
+        assertThat(KubernetesHelper.isControllerResource(new DaemonSetBuilder().build())).isTrue();
+        assertThat(KubernetesHelper.isControllerResource(new ConfigMapBuilder().build())).isFalse();
     }
 
     @Test
-    public void loadResourcesWithNestedTemplateAndDuplicateResources() throws IOException {
+    void loadResourcesWithNestedTemplateAndDuplicateResources() throws IOException {
         // Given
         final File manifest = new File(KubernetesHelperTest.class.getResource(
             "/util/kubernetes-helper/list-with-duplicates-and-template.yml").getFile());
@@ -426,7 +328,7 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void loadResourcesWithDuplicateAndSameNameCustomResources() throws IOException {
+    void loadResourcesWithDuplicateAndSameNameCustomResources() throws IOException {
         // Given
         final File manifest = new File(KubernetesHelperTest.class.getResource(
             "/util/kubernetes-helper/list-with-duplicates-and-same-name-custom-resource.yml").getFile());
@@ -441,7 +343,7 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void testConvertMapToHTTPHeaderList() {
+    void testConvertMapToHTTPHeaderList() {
         // Given
         Map<String, String> headerAsMap = new HashMap<>();
         headerAsMap.put("Accept", "application/json");
@@ -461,7 +363,7 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void extractPodLabelSelector_withJobWithSelector_shouldReturnSelector() {
+    void extractPodLabelSelector_withJobWithSelector_shouldReturnSelector() {
         // Given
         final KubernetesList list = new KubernetesListBuilder()
             .addToItems(new JobBuilder()
@@ -480,7 +382,7 @@ public class KubernetesHelperTest {
     }
 
     @Test
-    public void extractPodLabelSelector_withJobWithNoSelector_shouldReturnTemplateLabels() {
+    void extractPodLabelSelector_withJobWithNoSelector_shouldReturnTemplateLabels() {
         // Given
         final KubernetesList list = new KubernetesListBuilder()
             .addToItems(new JobBuilder()
@@ -498,9 +400,9 @@ public class KubernetesHelperTest {
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {
-        assertEquals(expectedSize, fragments.length);
-        assertTrue(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("deployment.yml")));
-        assertTrue(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("service.yml")));
+        assertThat(fragments).hasSize(expectedSize);
+        assertThat(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("deployment.yml"))).isTrue();
+        assertThat(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("service.yml"))).isTrue();
     }
 
     private List<EnvVar> prepareEnvVarList() {

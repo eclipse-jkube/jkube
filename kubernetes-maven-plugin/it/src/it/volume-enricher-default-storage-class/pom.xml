@@ -32,6 +32,18 @@
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>kubernetes-maven-plugin</artifactId>
         <version>@jkube.version@</version>
+        <configuration>
+            <enricher>
+                <config>
+                    <jkube-volume-permission>
+                        <cpuRequest>250m</cpuRequest>
+                        <memoryRequest>64Mi</memoryRequest>
+                        <cpuLimit>500m</cpuLimit>
+                        <memoryLimit>128Mi</memoryLimit>
+                    </jkube-volume-permission>
+                </config>
+            </enricher>
+        </configuration>
       </plugin>
 
     </plugins>

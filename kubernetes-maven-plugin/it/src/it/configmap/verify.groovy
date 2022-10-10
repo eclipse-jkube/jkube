@@ -25,6 +25,6 @@ Map selector = Verify.readWithPath(
         new File(basedir, "/target/classes/META-INF/jkube/kubernetes/jkube-maven-sample-config-map-deployment.yml"),
         "spec.selector.matchLabels")
 
-assertThat(selector).isNotNull().extracting("version").isNull()
+assertThat(selector).isNotNull().doesNotContainKey("version")
 
 true

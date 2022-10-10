@@ -13,40 +13,34 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.jkube.kit.common.util.SemanticVersionUtil.isVersionAtLeast;
 
-public class SemanticVersionUtilTest {
-  @Test
-  public void isVersionAtLeast_withLargerMajorVersion_shouldBeFalse() {
-    assertThat(isVersionAtLeast(2, 1, "1.13.7.Final")).isFalse();
+class SemanticVersionUtilTest {
+
+  @DisplayName("Major-Minor version tests")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("versionTestData")
+  void versionTest(String testDesc, int majorVersion, int minorVersion, String version, boolean expected) {
+    assertThat(isVersionAtLeast(majorVersion, minorVersion, version)).isEqualTo(expected);
   }
 
-  @Test
-  public void isVersionAtLeast_withSameMajorAndLargerMinorVersion_shouldBeFalse() {
-    assertThat(isVersionAtLeast(1, 14, "1.13.7.Final")).isFalse();
-  }
-
-  @Test
-  public void isVersionAtLeast_withSameMajorAndMinorVersion_shouldBeTrue() {
-    assertThat(isVersionAtLeast(1, 13, "1.13.7.Final")).isTrue();
-  }
-
-  @Test
-  public void isVersionAtLeast_withSameMajorAndSmallerMinorVersion_shouldBeTrue() {
-    assertThat(isVersionAtLeast(1, 12, "1.13.7.Final")).isTrue();
-  }
-
-  @Test
-  public void isVersionAtLeast_withSmallerMajorMinorVersion_shouldBeTrue() {
-    assertThat(isVersionAtLeast(0, 12, "1.13.7.Final")).isTrue();
-  }
-
-  @Test
-  public void isVersionAtLeast_withSmallerMajorAndIncompleteVersion_shouldBeTrue() {
-    assertThat(isVersionAtLeast(0, 12, "1.Final")).isTrue();
+  public static Stream<Arguments> versionTestData() {
+    return Stream.of(
+            Arguments.arguments("With larger major version should return false", 2, 1, "1.13.7.Final", false),
+            Arguments.arguments("With same major and larger minor version should return false", 1, 14, "1.13.7.Final", false),
+            Arguments.arguments("With same major and minor version should return true", 1, 13, "1.13.7.Final", true),
+            Arguments.arguments("With same major and smaller minor version should return true", 1, 12, "1.13.7.Final", true),
+            Arguments.arguments("With smaller major and larger minor version should return true", 0, 12, "1.13.7.Final", true),
+            Arguments.arguments("With smaller major and incomplete version should return true", 0, 12, "1.Final", true)
+    );
   }
 
 }

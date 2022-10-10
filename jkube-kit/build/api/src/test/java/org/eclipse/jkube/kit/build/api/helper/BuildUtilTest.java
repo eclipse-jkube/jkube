@@ -13,12 +13,11 @@
  */
 package org.eclipse.jkube.kit.build.api.helper;
 
-
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
@@ -26,10 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
 import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDockerfile;
 
-public class BuildUtilTest {
+class BuildUtilTest {
 
   @Test
-  public void extractBaseFromConfiguration_withEmptyBuildConfiguration_shouldReturnData() {
+  void extractBaseFromConfiguration_withEmptyBuildConfiguration_shouldReturnData() {
     // When
     final String result = extractBaseFromConfiguration(new BuildConfiguration());
     // Then
@@ -37,7 +36,7 @@ public class BuildUtilTest {
   }
 
   @Test
-  public void extractBaseFromConfiguration_withBuildConfigurationAssemblyAndNoFrom_shouldReturnNull() {
+  void extractBaseFromConfiguration_withBuildConfigurationAssemblyAndNoFrom_shouldReturnNull() {
     // Given
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder()
         .assembly(new AssemblyConfiguration()).build();
@@ -48,7 +47,7 @@ public class BuildUtilTest {
   }
 
   @Test
-  public void extractBaseFromConfiguration_withBuildConfigurationAssemblyAndFrom_shouldReturnFrom() {
+  void extractBaseFromConfiguration_withBuildConfigurationAssemblyAndFrom_shouldReturnFrom() {
     // Given
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder()
         .from("alpine:latest")
@@ -61,7 +60,7 @@ public class BuildUtilTest {
   }
 
   @Test
-  public void extractBaseFromDockerfile_withNonExistentDockerfile_shouldReturnNull() {
+  void extractBaseFromDockerfile_withNonExistentDockerfile_shouldReturnNull() {
     // Given
     final JKubeConfiguration jKubeConfiguration = JKubeConfiguration.builder()
         .sourceDirectory("src")

@@ -37,26 +37,26 @@ import org.apache.maven.model.Developer;
 import org.apache.maven.model.Scm;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-public class HelmMojoTest {
+class HelmMojoTest {
 
   @Mocked
-  MavenProject mavenProject;
+  private MavenProject mavenProject;
   @Mocked
-  JKubeServiceHub jKubeServiceHub;
+  private JKubeServiceHub jKubeServiceHub;
   @Mocked
-  HelmService helmService;
+  private HelmService helmService;
 
   private HelmMojo helmMojo;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     helmMojo = new HelmMojo();
     helmMojo.offline = true;
     helmMojo.project = mavenProject;
@@ -72,15 +72,15 @@ public class HelmMojoTest {
     // @formatter:on
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     mavenProject = null;
     helmMojo = null;
     helmService = null;
   }
 
   @Test
-  public void executeInternalWithNoConfigShouldInitConfigWithDefaultValuesAndGenerate(
+  void executeInternal_withNoConfig_shouldInitConfigWithDefaultValuesAndGenerate(
       @Mocked Scm scm, @Mocked Developer developer) throws Exception {
 
     // Given
@@ -102,31 +102,31 @@ public class HelmMojoTest {
     // When
     helmMojo.execute();
     // Then
-    assertThat(helmMojo.helm).isNotNull();
-    assertThat(helmMojo.helm.getChart()).isEqualTo("artifact-id");
-    assertThat(helmMojo.helm.getChartExtension()).isEqualTo("tar.gz");
-    assertThat(helmMojo.helm.getVersion()).isEqualTo("1337");
-    assertThat(helmMojo.helm.getDescription()).isEqualTo("A description from Maven");
-    assertThat(helmMojo.helm.getHome()).isEqualTo("https://project.url");
-    assertThat(helmMojo.helm.getSources()).contains("https://scm.url");
-    assertThat(helmMojo.helm.getMaintainers()).contains(
-        new Maintainer("John", "john@example.com")
-    );
-    assertThat(helmMojo.helm.getIcon()).isNull();
-    assertThat(helmMojo.helm.getAdditionalFiles()).isEmpty();
-    assertThat(helmMojo.helm.getParameterTemplates()).isEmpty();
-    assertThat(helmMojo.helm.getTypes()).contains(HelmConfig.HelmType.KUBERNETES);
-    assertThat(helmMojo.helm.getSourceDir()).isEqualTo("target/classes/META-INF/jkube/");
-    assertThat(helmMojo.helm.getOutputDir()).isEqualTo("target/jkube/helm/artifact-id");
-    assertThat(helmMojo.helm.getTarballOutputDir()).endsWith("/target");
+    assertThat(helmMojo.helm).isNotNull()
+        .hasFieldOrPropertyWithValue("chart", "artifact-id")
+        .hasFieldOrPropertyWithValue("chartExtension", "tar.gz")
+        .hasFieldOrPropertyWithValue("version", "1337")
+        .hasFieldOrPropertyWithValue("description", "A description from Maven")
+        .hasFieldOrPropertyWithValue("home", "https://project.url")
+        .hasFieldOrPropertyWithValue("icon", null)
+        .hasFieldOrPropertyWithValue("sourceDir", "target/classes/META-INF/jkube/")
+        .hasFieldOrPropertyWithValue("outputDir", "target/jkube/helm/artifact-id")
+        .satisfies(h -> assertThat(h.getSources()).contains("https://scm.url"))
+        .satisfies(h -> assertThat(h.getMaintainers()).contains(
+            new Maintainer("John", "john@example.com")))
+        .satisfies(h -> assertThat(h.getAdditionalFiles()).isEmpty())
+        .satisfies(h -> assertThat(h.getParameterTemplates()).isEmpty())
+        .satisfies(h -> assertThat(h.getTypes()).contains(HelmConfig.HelmType.KUBERNETES))
+        .satisfies(h -> assertThat(h.getTarballOutputDir()).endsWith("/target"));
+
     new Verifications() {{
       helmService.generateHelmCharts(helmMojo.helm);
       times = 1;
     }};
   }
 
-  @Test(expected = MojoExecutionException.class)
-  public void executeInternalWithNoConfigGenerateThrowsExceptionShouldRethrowWithMojoExecutionException()
+  @Test
+  void executeInternal_withNoConfigGenerateThrowsException_shouldRethrowWithMojoExecutionException()
       throws Exception {
 
     // Given
@@ -136,14 +136,13 @@ public class HelmMojoTest {
       result = new IOException("Exception is thrown");
     }};
     // formatter:on
-    // When
-    helmMojo.execute();
-    // Then
-    fail();
+    // When & Then
+    assertThatExceptionOfType(MojoExecutionException.class)
+            .isThrownBy(() -> helmMojo.execute());
   }
 
   @Test
-  public void executeInternalFindTemplatesFromProvidedFile(
+  void executeInternal_findTemplatesFromProvidedFile(
       @Mocked File kubernetesTemplate, @Mocked ResourceUtil resourceUtil, @Mocked Template template) throws Exception {
 
     // Given
@@ -159,7 +158,7 @@ public class HelmMojoTest {
   }
 
   @Test
-  public void executeInternalFindIconUrlFromProvidedFile(
+  void executeInternal_findIconUrlFromProvidedFile(
       @Mocked File kubernetesManifest, @Mocked ResourceUtil resourceUtil, @Mocked HasMetadata listEntry) throws Exception {
 
     // Given

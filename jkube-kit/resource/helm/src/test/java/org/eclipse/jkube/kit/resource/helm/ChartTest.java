@@ -14,30 +14,30 @@
 package org.eclipse.jkube.kit.resource.helm;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ChartTest {
+class ChartTest {
 
   private ObjectMapper objectMapper;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     objectMapper = new ObjectMapper();
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     objectMapper = null;
   }
 
   @Test
-  public void deserialize() throws Exception {
+  void deserialize() throws Exception {
     // Given
     final String serializedChart = "{" +
         "\"name\":\"chart\"," +
@@ -57,7 +57,7 @@ public class ChartTest {
   }
 
   @Test
-  public void builder() {
+  void builder() {
     // Given
     final Chart.ChartBuilder builder = Chart.builder()
         .name("chart")
@@ -76,7 +76,7 @@ public class ChartTest {
   }
 
   @Test
-  public void equals() {
+  void equals() {
     // Given
     final Chart chart1 = Chart.builder()
         .name("chart")

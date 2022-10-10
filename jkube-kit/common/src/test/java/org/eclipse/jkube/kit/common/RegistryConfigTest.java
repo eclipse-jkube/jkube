@@ -17,18 +17,18 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
-public class RegistryConfigTest {
+class RegistryConfigTest {
 
   /**
    * Verifies that deserialization works for raw deserialization disregarding annotations.
    */
   @Test
-  public void rawDeserialization() throws IOException {
+  void rawDeserialization() throws IOException {
     // Given
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(MapperFeature.USE_ANNOTATIONS, false);

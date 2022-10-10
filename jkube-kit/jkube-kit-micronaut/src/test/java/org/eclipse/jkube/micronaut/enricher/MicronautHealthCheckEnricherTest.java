@@ -13,16 +13,19 @@
  */
 package org.eclipse.jkube.micronaut.enricher;
 
-
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Properties;
+import java.io.File;
+import java.util.Collections;
+
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.micronaut.MicronautUtils;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -33,11 +36,11 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,17 +49,20 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
-public class MicronautHealthCheckEnricherTest {
 
-  private JKubeEnricherContext context;
+class MicronautHealthCheckEnricherTest {
   private MockedStatic<MicronautUtils> micronautUtils;
   private Properties properties;
   private ProcessorConfig processorConfig;
+  private JKubeEnricherContext context;
+  private JavaProject project;
   private KubernetesListBuilder klb;
-  private MicronautHealthCheckEnricher micronautHealthCheckEnricher;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
+    project = JavaProject.builder()
+        .outputDirectory(new File("target"))
+        .build();
     context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     micronautUtils = Mockito.mockStatic(MicronautUtils.class);
     properties = new Properties();
@@ -70,15 +76,15 @@ public class MicronautHealthCheckEnricherTest {
     when(context.getConfiguration().getImages()).thenReturn(Collections.emptyList());
     micronautHealthCheckEnricher = new MicronautHealthCheckEnricher(context);
   }
-  @After
+  @AfterEach
   public void tearDown() {
     micronautUtils.close();
   }
 
   @Test
-  public void createWithNoDeployment() {
+  void createWithNoDeployment() {
     // When
-    micronautHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
+    new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
         .hasSize(1)
@@ -87,11 +93,11 @@ public class MicronautHealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithDeploymentAndNoPlugin() {
+  void createWithDeploymentAndNoPlugin() {
     // Given
     klb.addToItems(emptyDeployment());
     // When
-    micronautHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
+    new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
         .hasSize(2)
@@ -106,12 +112,12 @@ public class MicronautHealthCheckEnricherTest {
         .hasFieldOrPropertyWithValue("readinessProbe", null);
   }
   @Test
-  public void createWithDeploymentAndPluginAndNoHealth() {
+  void createWithDeploymentAndPluginAndNoHealth() {
     // Given
     klb.addToItems(emptyDeployment());
     withMicronautMavenPlugin();
     // When
-    micronautHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
+    new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
         .hasSize(2)
@@ -127,13 +133,13 @@ public class MicronautHealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithDeploymentAndPluginAndHealth() {
+  void createWithDeploymentAndPluginAndHealth() throws Exception {
     // Given
     klb.addToItems(emptyDeployment());
     withHealthEnabled();
     withMicronautMavenPlugin();
     // When
-    micronautHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
+    new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
         .hasSize(2)
@@ -150,7 +156,30 @@ public class MicronautHealthCheckEnricherTest {
   }
 
   @Test
-  public void createWithDeploymentAndPluginAndImageConfig() {
+  void createWithDeploymentAndGradlePluginAndHealth() throws Exception {
+    // Given
+    klb.addToItems(emptyDeployment());
+    withHealthEnabled();
+    withMicronautGradlePlugin();
+    // When
+    new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertThat(klb.build().getItems())
+        .hasSize(2)
+        .element(1, InstanceOfAssertFactories.type(Deployment.class))
+        .extracting("spec.template.spec.containers")
+        .asList()
+        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .extracting(
+            "livenessProbe.httpGet.path",
+            "readinessProbe.httpGet.path",
+            "readinessProbe.httpGet.port.IntVal"
+        )
+        .contains("/health", "/health", null);
+  }
+
+  @Test
+  void createWithDeploymentAndPluginAndImageConfig() throws Exception {
     // Given
     klb.addToItems(emptyDeployment());
     withHealthEnabled();
@@ -160,7 +189,7 @@ public class MicronautHealthCheckEnricherTest {
             ImageConfiguration.builder().build(BuildConfiguration.builder().port("8082").build()).build()
     ));
     // When
-    micronautHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
+    new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
         .hasSize(2)
@@ -176,14 +205,19 @@ public class MicronautHealthCheckEnricherTest {
         .contains("/health", "/health", 1337);
   }
 
-
   private void withHealthEnabled() {
     micronautUtils.when(() -> MicronautUtils.isHealthEnabled(any())).thenReturn(true);
+
   }
+
   private void withMicronautMavenPlugin() {
     when(context.hasPlugin("io.micronaut.build", "micronaut-maven-plugin")).thenReturn(true);
     when(context.getProject().getCompileClassPathElements()).thenReturn(Collections.emptyList());
     when(context.getProject().getOutputDirectory().getAbsolutePath()).thenReturn("");
+  }
+
+  private void withMicronautGradlePlugin() {
+    when(context.hasPlugin("io.micronaut.application", "io.micronaut.application.gradle.plugin")).thenReturn(true);
   }
 
   private static DeploymentBuilder emptyDeployment() {

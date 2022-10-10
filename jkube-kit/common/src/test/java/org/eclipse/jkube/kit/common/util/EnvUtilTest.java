@@ -22,146 +22,41 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import org.junit.Ignore;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import java.util.stream.Stream;
+
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.firstRegistryOf;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.loadTimestamp;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.storeTimestamp;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
 
-public class EnvUtilTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class EnvUtilTest {
 
     @Test
-    public void testConvertTcpToHttpsUrl() {
-        // Given
-        String urlWithHttpsPort = "tcp://0.0.0.0:2376";
-        // When
-        String result1 = EnvUtil.convertTcpToHttpUrl(urlWithHttpsPort);
-        // Then
-        assertThat(result1).isEqualTo("https://0.0.0.0:2376");
-    }
-
-    @Test
-    public void testConvertTcpToHttpUrl() {
-        // Given
-        String urlWithHttpPort="tcp://0.0.0.0:2375";
-        // When
-        String result2 = EnvUtil.convertTcpToHttpUrl(urlWithHttpPort);
-        // Then
-        assertThat(result2).isEqualTo("http://0.0.0.0:2375");
-    }
-
-    @Test
-    public void testConvertTcpToHttpUrlShouldDefaultToHttps() {
-        // Given
-        String url = "tcp://127.0.0.1:32770";
-        // When
-        String result = EnvUtil.convertTcpToHttpUrl(url);
-        // Then
-        assertThat(result).isEqualTo("https://127.0.0.1:32770");
-    }
-
-    @Test
-    public void testExtractLargerVersionWhenBothNull(){
-        assertThat(EnvUtil.extractLargerVersion(null,null)).isNull();
-    }
-    @Test
-    public void testExtractLargerVersionWhenBIsNull() {
-        //Given
-        String versionA = "4.0.2";
-        //When
-        String result = EnvUtil.extractLargerVersion(versionA,null);
-        //Then
-        assertThat(versionA).isEqualTo(result);
-    }
-    @Test
-    public void testExtractLargerVersionWhenAIsNull() {
-        //Given
-        String versionB = "3.1.1.0";
-        //When
-        String result = EnvUtil.extractLargerVersion(null,versionB);
-        //Then
-        assertThat(versionB).isEqualTo(result);
-    }
-
-    @Test
-    public void testExtractLargerVersion() {
-        //Given
-        //When
-        String result = EnvUtil.extractLargerVersion("4.0.0.1","4.0.0");
-        //Then
-        assertThat(result).isEqualTo("4.0.0.1");
-    }
-
-    @Test
-    public void testGreaterOrEqualsVersionWhenTrue() {
-        //Given
-        String versionA = "4.0.2";
-        String versionB = "3.1.1.0";
-        //When
-        boolean result1 = EnvUtil.greaterOrEqualsVersion(versionA,versionB);
-        //Then
-        assertThat(result1).isTrue();
-    }
-
-    @Test
-    public void testGreaterOrEqualsVersionWhenEqual() {
-        //Given
-        String versionA = "4.0.2";
-        //When
-        boolean result2 = EnvUtil.greaterOrEqualsVersion("4.0.2", versionA);
-        //Then
-        assertThat(result2).isTrue();
-    }
-
-
-    @Test
-    public void testGreaterOrEqualsVersionWhenFalse() {
-        //Given
-        String versionA = "4.0.2";
-        String versionB = "3.1.1.0";
-        //When
-        boolean result3 = EnvUtil.greaterOrEqualsVersion(versionB,versionA);
-        //Then
-        assertThat(result3).isFalse();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    @Ignore
-// TODO: Remove when implementation is fixed
-    public void testGreaterOrEqualsVersionCornerCase() {
-        //Given
-        String versionA = "asdw4.0.2";
-        String versionB = "3.1.1.0{0.1}";
-        //When
-        String result = EnvUtil.extractLargerVersion(versionA, versionB);
-        //Then
-        fail("Exception should have thrown");
-    }
-
-    @Test
-    public void testSplitOnLastColonWhenNotNull() {
+    void testSplitOnLastColonWhenNotNull() {
         // Given
         List<String> list1 = Collections.singletonList("element1:element2");
         // When
         List<String[]> result1 = EnvUtil.splitOnLastColon(list1);
         // Then
-        assertThat(result1).hasSize(1);
-        assertThat(result1.get(0)).hasSize(2);
-        assertThat(result1.get(0)).isEqualTo(new String[]{"element1", "element2"});
+        assertThat(result1)
+                .hasSize(1)
+                .first(InstanceOfAssertFactories.type(String[].class))
+                .isEqualTo(new String[]{"element1", "element2"});
     }
 
     @Test
-    public void testSplitOnLastColonWhenNull() {
+    void testSplitOnLastColonWhenNull() {
         // Given
         List<String> list2 = null;
         // When
@@ -171,7 +66,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testRemoveEmptyEntriesWhenNotNull(){
+    void testRemoveEmptyEntriesWhenNotNull(){
         //Given
         List<String>  string1 = new ArrayList<>();
         string1.add(" set ");
@@ -184,7 +79,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testRemoveEmptyEntriesWhenNull(){
+    void testRemoveEmptyEntriesWhenNull(){
         //Given
         List<String>  string2 = new ArrayList<>();
         string2.add(null);
@@ -196,7 +91,7 @@ public class EnvUtilTest {
 
 
     @Test
-    public void testSplitAtCommasAndTrimWhenNotNull(){
+    void testSplitAtCommasAndTrimWhenNotNull(){
         //Given
         Iterable<String>  strings1 = Collections.singleton("hello,world");
         //When
@@ -208,7 +103,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testSplitAtCommasAndTrimWhenNull(){
+    void testSplitAtCommasAndTrimWhenNull(){
         //Given
         Iterable<String>  strings2 = Collections.singleton(null);
         //When
@@ -218,7 +113,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testExtractFromPropertiesAsList() {
+    void testExtractFromPropertiesAsList() {
         //Given
         String string = "key";
         Properties properties = new Properties();
@@ -236,7 +131,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testExtractFromPropertiesAsMap(){
+    void testExtractFromPropertiesAsMap(){
         //Given
         String prefix = "key";
         Properties properties = new Properties();
@@ -254,27 +149,27 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testFormatDurationTill() {
+    void testFormatDurationTill() {
         long startTime = System.currentTimeMillis() - 200L;
         assertThat(EnvUtil.formatDurationTill(startTime)).contains("milliseconds");
     }
 
     @Test
-    public void testFormatDurationTillHoursMinutesAndSeconds() {
+    void testFormatDurationTillHoursMinutesAndSeconds() {
         long startTime = System.currentTimeMillis() - (60*60*1000 + 60*1000 + 1000);
         String formattedDuration = EnvUtil.formatDurationTill(startTime);
         assertThat(formattedDuration).contains("1 hour, 1 minute and 1 second");
     }
 
     @Test
-    public void testFirstRegistryOf() {
+    void testFirstRegistryOf() {
         assertThat(firstRegistryOf("quay.io", "docker.io", "registry.access.redhat.io")).isEqualTo("quay.io");
         assertThat(firstRegistryOf(null, null, "registry.access.redhat.io")).isEqualTo("registry.access.redhat.io");
     }
 
     @Test
-    public void testPrepareAbsolutePath() {
-        assumeFalse(isWindows());
+    @DisabledOnOs(OS.WINDOWS)
+    void testPrepareAbsolutePath() {
         assertThat(EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "bar").getPath())
                 .isEqualTo("test-project/target/testDir/bar");
         assertThat(EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "/home/redhat/jkube").getPath())
@@ -282,8 +177,8 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testPrepareAbsolutePathWindows() {
-        assumeTrue(isWindows());
+    @EnabledOnOs(OS.WINDOWS)
+    void testPrepareAbsolutePathWindows() {
         assertThat( EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "bar").getPath())
                 .isEqualTo("test-project\\target\\testDir\\bar");
         assertThat(EnvUtil.prepareAbsoluteOutputDirPath("target", "test-project", "testDir", "C:\\users\\redhat\\jkube").getPath())
@@ -291,8 +186,8 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testPrepareAbsoluteSourceDirPath() {
-        assumeFalse(isWindows());
+    @DisabledOnOs(OS.WINDOWS)
+    void testPrepareAbsoluteSourceDirPath() {
         assertThat(EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "testDir").getPath())
                 .isEqualTo("test-project/target/testDir");
         assertThat(EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "/home/redhat/jkube").getPath())
@@ -300,8 +195,8 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testPrepareAbsoluteSourceDirPathWindows() {
-        assumeTrue(isWindows());
+    @EnabledOnOs(OS.WINDOWS)
+    void testPrepareAbsoluteSourceDirPathWindows() {
         assertThat(EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "testDir").getPath())
                 .isEqualTo("test-project\\target\\testDir");
         assertThat(EnvUtil.prepareAbsoluteSourceDirPath("target", "test-project", "C:\\users\\redhat\\jkube").getPath())
@@ -309,7 +204,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testStringJoin(){
+    void testStringJoin(){
         //Given
         List<String> list = new ArrayList<>();
         String separator = ",";
@@ -322,13 +217,13 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testExtractMavenPropertyName() {
+    void testExtractMavenPropertyName() {
         assertThat(EnvUtil.extractMavenPropertyName("${project.baseDir}")).isEqualTo("project.baseDir");
         assertThat(EnvUtil.extractMavenPropertyName("roject.notbaseDi")).isNull();
     }
 
     @Test
-    public void testFixupPathWhenNotWindows(){
+    void testFixupPathWhenNotWindows(){
         //Given
         String test2 = "/etc/ip/";
         //When
@@ -338,7 +233,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testFixupPathWhenWindows(){
+    void testFixupPathWhenWindows(){
         //Given
         String test1 = "c:\\...\\";
         //When
@@ -348,7 +243,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testEnsureRegistryHttpUrlIsTrue(){
+    void testEnsureRegistryHttpUrlIsTrue(){
         //Given
         String url1 = "http://registor";
         //When
@@ -358,7 +253,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testEnsureRegistryHttpUrlIsNotHttp(){
+    void testEnsureRegistryHttpUrlIsNotHttp(){
         //Given
         String url2 = "registerurl";
         //When
@@ -368,9 +263,9 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testStoreTimestamp() throws IOException {
+    void testStoreTimestamp(@TempDir File temporaryFolder) throws IOException {
         // Given
-        final File fileToStoreTimestamp = new File(temporaryFolder.getRoot(), UUID.randomUUID().toString());
+        final File fileToStoreTimestamp = new File(temporaryFolder, UUID.randomUUID().toString());
         final Date date = new Date(1445385600000L);
         // When
         storeTimestamp(fileToStoreTimestamp, date);
@@ -381,7 +276,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testLoadTimestampShouldLoadFromFile() throws Exception {
+    void testLoadTimestampShouldLoadFromFile() throws Exception {
         // Given
         final File file = new File(EnvUtilTest.class.getResource("/util/loadTimestamp.timestamp").getFile());
         // When
@@ -391,7 +286,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public  void testIsWindowsFalse(){
+    void testIsWindowsFalse(){
         String oldOsName = System.getProperty("os.name");
         try {
           //Given
@@ -407,7 +302,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public  void testIsWindows(){
+    void testIsWindows(){
       String oldOsName = System.getProperty("os.name");
       try {
         //Given
@@ -423,7 +318,7 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testSystemPropertyRead() {
+    void testSystemPropertyRead() {
         System.setProperty("testProperty", "testPropertyValue");
         try {
           String propertyValue =
@@ -435,9 +330,67 @@ public class EnvUtilTest {
     }
 
     @Test
-    public void testDefaultSystemPropertyRead() {
+    void testDefaultSystemPropertyRead() {
         String propertyValue =
                 EnvUtil.getEnvVarOrSystemProperty("testProperty", "defaultValue");
         assertThat(propertyValue).isEqualTo("defaultValue");
+    }
+
+    @DisplayName("URL Conversion tests")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("urlTestData")
+    void urlTest(String testDesc, String givenURL, String expectedURL) {
+        // Given & When
+        String url = EnvUtil.convertTcpToHttpUrl(givenURL);
+        // Then
+        assertThat(url).isEqualTo(expectedURL);
+    }
+
+    public static Stream<Arguments> urlTestData() {
+        return Stream.of(
+                Arguments.of("Convert TCP to HTTPS URL", "tcp://0.0.0.0:2376", "https://0.0.0.0:2376"),
+                Arguments.of("Convert TCP to HTTP URL", "tcp://0.0.0.0:2375", "http://0.0.0.0:2375"),
+                Arguments.of("Convert TCP to HTTP URL should default to HTTPS", "tcp://127.0.0.1:32770", "https://127.0.0.1:32770")
+        );
+    }
+
+    @DisplayName("Larger version extraction Tests")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("extractLargerVersionTestData")
+    void extractLargerVersionTest(String testDesc, String versionA, String versionB, String result) {
+        // Given & When
+        String version = EnvUtil.extractLargerVersion(versionA, versionB);
+        // Then
+        assertThat(version).isEqualTo(result);
+    }
+
+    public static Stream<Arguments> extractLargerVersionTestData() {
+        return Stream.of(
+                Arguments.arguments("When A is null should return B", null, "3.1.1.0", "3.1.1.0"),
+                Arguments.arguments("When B is null should return A", "4.0.2", null, "4.0.2"),
+                Arguments.arguments("When both are null should return null", null, null, null),
+                Arguments.arguments("When both are given should return larger version", "4.0.0.1", "4.0.0", "4.0.0.1"),
+                Arguments.arguments("When both are invalid should return null", "asdw4.0.2", "3.1.1.0{0.1}", null),
+                Arguments.arguments("When A is invalid should return B", "3.a.b.c", "4.0.2", "4.0.2"),
+                Arguments.arguments("When B is invalid should return A", "4.0.2", "3.a.b.c", "4.0.2")
+        );
+    }
+
+    @DisplayName("Greater or equal version tests")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("greaterOrEqualVersionTestData")
+    void greaterOrEqualTest(String testDesc, String versionA, String versionB, boolean expected) {
+        // Given & When
+        boolean result = EnvUtil.greaterOrEqualsVersion(versionA, versionB);
+        // Then
+        assertThat(result).isEqualTo(expected);
+    }
+
+    public static Stream<Arguments> greaterOrEqualVersionTestData(){
+        return Stream.of(
+                Arguments.arguments("Greater or Equal version when true", "4.0.2", "3.1.1.0", true),
+                Arguments.arguments("Greater or Equal version when equal", "4.0.2", "4.0.2", true),
+                Arguments.arguments("Greater or Equal version when false", "3.1.1.0", "4.0.2", false)
+        );
     }
 }

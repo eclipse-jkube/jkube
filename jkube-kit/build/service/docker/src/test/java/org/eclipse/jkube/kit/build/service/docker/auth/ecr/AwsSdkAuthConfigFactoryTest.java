@@ -17,15 +17,13 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static java.util.UUID.randomUUID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class AwsSdkAuthConfigFactoryTest {
+class AwsSdkAuthConfigFactoryTest {
     @Mocked
     private KitLogger log;
 
@@ -34,20 +32,20 @@ public class AwsSdkAuthConfigFactoryTest {
 
     private AwsSdkAuthConfigFactory objectUnderTest;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         objectUnderTest = new AwsSdkAuthConfigFactory(log, awsSdkHelper);
     }
 
     @Test
-    public void nullValueIsPassedOn() {
+    void nullValueIsPassedOn() {
         AuthConfig authConfig = objectUnderTest.createAuthConfig();
 
-        assertNull(authConfig);
+        assertThat(authConfig).isNull();
     }
 
     @Test
-    public void reflectionWorksForBasicCredentials() throws Exception {
+    void reflectionWorksForBasicCredentials() throws Exception {
         String accessKey = randomUUID().toString();
         String secretKey = randomUUID().toString();
         Object credentials = new Object();
@@ -62,15 +60,15 @@ public class AwsSdkAuthConfigFactoryTest {
 
         AuthConfig authConfig = objectUnderTest.createAuthConfig();
 
-        assertNotNull(authConfig);
-        assertEquals(accessKey, authConfig.getUsername());
-        assertEquals(secretKey, authConfig.getPassword());
-        assertNull(authConfig.getAuth());
-        assertNull(authConfig.getIdentityToken());
+        assertThat(authConfig).isNotNull()
+                .hasFieldOrPropertyWithValue("username", accessKey)
+                .hasFieldOrPropertyWithValue("password", secretKey)
+                .hasFieldOrPropertyWithValue("auth", null)
+                .hasFieldOrPropertyWithValue("identityToken", null);
     }
 
     @Test
-    public void reflectionWorksForSessionCredentials() throws Exception {
+    void reflectionWorksForSessionCredentials() throws Exception {
         String accessKey = randomUUID().toString();
         String secretKey = randomUUID().toString();
         String sessionToken = randomUUID().toString();
@@ -87,11 +85,11 @@ public class AwsSdkAuthConfigFactoryTest {
         }};
         AuthConfig authConfig = objectUnderTest.createAuthConfig();
 
-        assertNotNull(authConfig);
-        assertEquals(accessKey, authConfig.getUsername());
-        assertEquals(secretKey, authConfig.getPassword());
-        assertEquals(sessionToken, authConfig.getAuth());
-        assertNull(authConfig.getIdentityToken());
+        assertThat(authConfig).isNotNull()
+                .hasFieldOrPropertyWithValue("username", accessKey)
+                .hasFieldOrPropertyWithValue("password", secretKey)
+                .hasFieldOrPropertyWithValue("auth", sessionToken)
+                .hasFieldOrPropertyWithValue("identityToken", null);
     }
 
 }

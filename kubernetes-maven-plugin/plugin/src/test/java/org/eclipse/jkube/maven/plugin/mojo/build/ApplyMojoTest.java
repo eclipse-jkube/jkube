@@ -16,57 +16,61 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
-public class ApplyMojoTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class ApplyMojoTest {
 
   private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private File kubernetesManifestFile;
   private MavenProject mavenProject;
-  private DefaultKubernetesClient defaultKubernetesClient;
+  private NamespacedOpenShiftClient defaultKubernetesClient;
   private String kubeConfigNamespace;
 
   private ApplyMojo applyMojo;
 
-  @Before
-  public void setUp() throws IOException {
-    jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class, (mock, context) -> {
-        when(mock.getClient()).thenReturn(defaultKubernetesClient);
-        when(mock.getApplyService()).thenReturn(new ApplyService(defaultKubernetesClient, new KitLogger.SilentLogger()));
-    });
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
+    jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
+        withSettings().defaultAnswer(RETURNS_DEEP_STUBS), (mock, context) -> {
+          when(mock.getClient()).thenReturn(defaultKubernetesClient);
+          when(mock.getClusterAccess().createDefaultClient()).thenReturn(defaultKubernetesClient);
+          when(mock.getApplyService()).thenReturn(new ApplyService(defaultKubernetesClient, new KitLogger.SilentLogger()));
+        });
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, context) ->
         when(mock.getNamespace()).thenAnswer(invocation -> kubeConfigNamespace));
-    kubernetesManifestFile = temporaryFolder.newFile("kubernetes.yml");
+    kubernetesManifestFile = Files.createFile(temporaryFolder.resolve("kubernetes.yml")).toFile();
     mavenProject = mock(MavenProject.class);
-    defaultKubernetesClient = mock(DefaultKubernetesClient.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
+    defaultKubernetesClient = mock(NamespacedOpenShiftClient.class);
+    when(defaultKubernetesClient.adapt(any())).thenReturn(defaultKubernetesClient);
     when(defaultKubernetesClient.getMasterUrl()).thenReturn(URI.create("https://www.example.com").toURL());
     // @formatter:off
     applyMojo = new ApplyMojo() {{
@@ -77,8 +81,8 @@ public class ApplyMojoTest {
     // @formatter:on
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     clusterAccessMockedConstruction.close();
     jKubeServiceHubMockedConstruction.close();
     mavenProject = null;
@@ -86,7 +90,7 @@ public class ApplyMojoTest {
   }
 
   @Test
-  public void executeInternalWithDefaults() throws Exception {
+  void executeInternal_withDefaults() throws Exception {
     // When
     applyMojo.execute();
     // Then
@@ -95,7 +99,7 @@ public class ApplyMojoTest {
   }
 
   @Test
-  public void executeInternalWithProperties() throws Exception {
+  void executeInternal_withProperties() throws Exception {
     // Given
     applyMojo.recreate = true;
     applyMojo.namespace = "custom-namespace";
@@ -108,36 +112,39 @@ public class ApplyMojoTest {
   }
 
   @Test
-  public void testResolveEffectiveNamespaceWhenNamespacePropertySet() throws MojoExecutionException, MojoFailureException {
+  void resolveEffectiveNamespace_whenNamespacePropertySet() throws MojoExecutionException, MojoFailureException {
     // Given
     applyMojo.namespace = "configured-namespace";
     // When
     applyMojo.execute();
     // Then
-    assertThat(applyMojo.applyService.getNamespace()).isEqualTo("configured-namespace");
-    assertThat(applyMojo.applyService.getFallbackNamespace()).isEqualTo("configured-namespace");
+    assertThat(applyMojo.applyService)
+        .hasFieldOrPropertyWithValue("namespace", "configured-namespace")
+        .hasFieldOrPropertyWithValue("fallbackNamespace", "configured-namespace");
   }
 
   @Test
-  public void testResolveEffectiveNamespaceWhenNamespaceSetInResourceConfig() throws MojoExecutionException, MojoFailureException {
+  void resolveEffectiveNamespace_whenNamespaceSetInResourceConfig() throws MojoExecutionException, MojoFailureException {
     // Given
     applyMojo.resources = ResourceConfig.builder().namespace("xml-namespace").build();
     // When
     applyMojo.execute();
     // Then
-    assertThat(applyMojo.applyService.getNamespace()).isNull();
-    assertThat(applyMojo.applyService.getFallbackNamespace()).isEqualTo("xml-namespace");
+    assertThat(applyMojo.applyService)
+        .hasFieldOrPropertyWithValue("namespace", null)
+        .hasFieldOrPropertyWithValue("fallbackNamespace", "xml-namespace");
   }
 
   @Test
-  public void testResolveEffectiveNamespaceWhenNoNamespaceConfigured() throws MojoExecutionException, MojoFailureException {
+  void resolveEffectiveNamespace_whenNoNamespaceConfigured() throws MojoExecutionException, MojoFailureException {
     // Given
     kubeConfigNamespace = "clusteraccess-namespace";
     // When
     applyMojo.execute();
     // Then
-    assertThat(applyMojo.applyService.getNamespace()).isNull();
-    assertThat(applyMojo.applyService.getFallbackNamespace()).isEqualTo("clusteraccess-namespace");
+    assertThat(applyMojo.applyService)
+        .hasFieldOrPropertyWithValue("namespace", null)
+        .hasFieldOrPropertyWithValue("fallbackNamespace", "clusteraccess-namespace");
   }
 
 }

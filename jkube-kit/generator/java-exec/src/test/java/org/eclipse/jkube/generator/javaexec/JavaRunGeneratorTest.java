@@ -27,22 +27,26 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  */
-public class JavaRunGeneratorTest {
 
-  @Mocked
+@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
+class JavaRunGeneratorTest {
   GeneratorContext ctx;
-
+  @BeforeEach
+  public void setUp() {
+    ctx = mock(GeneratorContext.class);
+  }
   @Test
-  public void fromSelector() throws IOException {
+  void fromSelector() throws IOException {
     final List<TestCase> testCases = Arrays.asList(
         new TestCase("3.1.123", false, RuntimeMode.KUBERNETES, null, "java.upstream.docker"),
         new TestCase("3.1.redhat-101", true, RuntimeMode.KUBERNETES, null, "java.upstream.docker"),
@@ -58,7 +62,7 @@ public class JavaRunGeneratorTest {
       final GeneratorContext context = ctx;
       FromSelector selector = new FromSelector.Default(context, "java");
       String from = selector.getFrom();
-      assertEquals(imageProps.getProperty(tc.expectedFrom), from);
+      assertThat(from).isEqualTo(imageProps.getProperty(tc.expectedFrom));
     }
   }
 
@@ -69,12 +73,8 @@ public class JavaRunGeneratorTest {
           Plugin.builder().groupId("org.eclipse.jkube").artifactId("openshift-maven-plugin")
               .version(testCase.version).configuration(Collections.emptyMap()).build()));
     }
-    new Expectations() {{
-      ctx.getRuntimeMode();
-      result = testCase.mode;
-      ctx.getStrategy();
-      result = testCase.strategy;
-    }};
+    when(ctx.getRuntimeMode()).thenReturn(testCase.mode);
+    when(ctx.getStrategy()).thenReturn(testCase.strategy);
   }
 
   private Properties getDefaultImageProps() throws IOException {

@@ -15,14 +15,8 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -98,10 +92,6 @@ import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAUL
 public abstract class AbstractDockerMojo extends AbstractMojo
     implements ConfigHelper.Customizer, Contextualizable, KitLoggerProvider {
 
-    public static final String DMP_PLUGIN_DESCRIPTOR = "META-INF/maven/org.eclipse.jkube/k8s-plugin";
-    public static final String DOCKER_EXTRA_DIR = "docker-extra";
-
-    // Key holding the log dispatcher
     public static final String CONTEXT_KEY_LOG_DISPATCHER = "CONTEXT_KEY_DOCKER_LOG_DISPATCHER";
 
     // Key under which the build timestamp is stored so that other mojos can reuse it
@@ -490,35 +480,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             .build();
     }
 
-    protected File getAndEnsureOutputDirectory() {
-        File outputDir = new File(new File(project.getBuild().getDirectory()), DOCKER_EXTRA_DIR);
-        if (!outputDir.exists()) {
-            outputDir.mkdirs();
-        }
-        return outputDir;
-    }
-
-    protected void processDmpPluginDescription(URL pluginDesc, File outputDir) throws IOException {
-        String line = null;
-        try (LineNumberReader reader =
-                     new LineNumberReader(new InputStreamReader(pluginDesc.openStream(), StandardCharsets.UTF_8))) {
-            line = reader.readLine();
-            while (line != null) {
-                if (line.matches("^\\s*#")) {
-                    // Skip comments
-                    continue;
-                }
-                callBuildPlugin(outputDir, line);
-                line = reader.readLine();
-            }
-        } catch (ClassNotFoundException e) {
-            // Not declared as dependency, so just ignoring ...
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            log.verbose("Found dmp-plugin %s but could not be called : %s",
-                    line,
-                    e.getMessage());
-        }
-    }
 
     protected RegistryConfig getRegistryConfig(String specificRegistry) {
         return RegistryConfig.builder()
@@ -544,16 +505,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 }).build();
     }
 
-    protected void callBuildPlugin(File outputDir, String buildPluginClass) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        Class buildPlugin = Class.forName(buildPluginClass);
-        try {
-            Method method = buildPlugin.getMethod("addExtraFiles", File.class);
-            method.invoke(null, outputDir);
-            log.info("Extra files from %s extracted", buildPluginClass);
-        } catch (NoSuchMethodException exp) {
-            log.verbose("Build plugin %s does not support 'addExtraFiles' method", buildPluginClass);
-        }
-    }
 
     protected void logException(Exception exp) {
         if (exp.getCause() != null) {
@@ -594,10 +545,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         if (skipBuild) {
             return;
         }
-
-        // Check for build plugins
-        executeBuildPlugins();
-
         buildAndTag(getResolvedImages());
     }
 
@@ -723,21 +670,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), enricher);
         } catch (IOException e) {
             throw new IllegalArgumentException("Cannot extract enricher config: " + e, e);
-        }
-    }
-
-    // check for a run-java.sh dependency an extract the script to target/ if found
-    protected void executeBuildPlugins() {
-        try {
-            Enumeration<URL> dmpPlugins = Thread.currentThread().getContextClassLoader().getResources(DMP_PLUGIN_DESCRIPTOR);
-            while (dmpPlugins.hasMoreElements()) {
-
-                URL dmpPlugin = dmpPlugins.nextElement();
-                File outputDir = getAndEnsureOutputDirectory();
-                processDmpPluginDescription(dmpPlugin, outputDir);
-            }
-        } catch (IOException e) {
-            log.error("Cannot load dmp-plugins from %s", DMP_PLUGIN_DESCRIPTOR);
         }
     }
 

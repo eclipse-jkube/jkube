@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.openshift.api.model.DeploymentConfig;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -39,10 +40,6 @@ import java.util.Properties;
  * @author roland
  */
 public class BaseEnricher implements Enricher {
-
-    private final EnricherConfig config;
-    private final String name;
-    protected EnricherContext enricherContext;
     public static final String FABRIC8_GENERATED_CONTAINERS = "FABRIC8_GENERATED_CONTAINERS";
     public static final String NEED_IMAGECHANGE_TRIGGERS = "IMAGECHANGE_TRIGGER";
     public static final String IMAGE_CHANGE_TRIGGERS = "jkube.openshift.imageChangeTriggers";
@@ -55,6 +52,12 @@ public class BaseEnricher implements Enricher {
     public static final String CREATE_EXTERNAL_URLS = "jkube.createExternalUrls";
     public static final String JKUBE_DOMAIN = "jkube.domain";
     public static final String JKUBE_ENFORCED_REPLICAS = "jkube.replicas";
+    public static final String JKUBE_DEFAULT_IMAGE_PULL_POLICY = "IfNotPresent";
+    public static final String JKUBE_ENFORCED_IMAGE_PULL_POLICY = "jkube.imagePullPolicy";
+
+    private final EnricherConfig config;
+    private final String name;
+    protected EnricherContext enricherContext;
 
     protected KitLogger log;
 
@@ -76,6 +79,12 @@ public class BaseEnricher implements Enricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) { }
+
+
+    @Override
+    public EnricherContext getContext() {
+        return enricherContext;
+    }
 
     protected KitLogger getLog() {
         return log;
@@ -109,9 +118,6 @@ public class BaseEnricher implements Enricher {
         return defaultVal;
     }
 
-    protected EnricherContext getContext() {
-        return enricherContext;
-    }
 
     /**
      * Returns true if we are in OpenShift S2I binary building mode
@@ -155,14 +161,33 @@ public class BaseEnricher implements Enricher {
      * XML config.
      *
      * @param resourceConfig resource config from plugin configuration
-     * @param defaultValue default value
+     * @param enricherConfig Enricher specific configuration for ImagePullPolicy
      * @return string as image pull policy
      */
-    protected static String getImagePullPolicy(ResourceConfig resourceConfig, String defaultValue) {
-        if(resourceConfig != null) {
-            return resourceConfig.getImagePullPolicy() != null ? resourceConfig.getImagePullPolicy() : defaultValue;
+    protected String getImagePullPolicy(ResourceConfig resourceConfig, Configs.Config enricherConfig) {
+        String imagePullPolicyFromProperty = getValueFromConfig(JKUBE_ENFORCED_IMAGE_PULL_POLICY, null);
+        if (StringUtils.isNotBlank(imagePullPolicyFromProperty)) {
+            return imagePullPolicyFromProperty;
         }
-        return defaultValue;
+        if (resourceConfig != null && StringUtils.isNotBlank(resourceConfig.getImagePullPolicy())) {
+            return resourceConfig.getImagePullPolicy();
+        }
+        final String imagePullPolicyFromEnricherConfig = enricherConfig != null ? getConfig(enricherConfig) : null;
+        if (StringUtils.isNotBlank(imagePullPolicyFromEnricherConfig)) {
+            return imagePullPolicyFromEnricherConfig;
+        }
+        return JKUBE_DEFAULT_IMAGE_PULL_POLICY;
+    }
+
+    protected boolean getCreateExternalUrls() {
+        final String propertyValue = getContext().getProperty(CREATE_EXTERNAL_URLS);
+        if (StringUtils.isNotBlank(propertyValue)) {
+            return Boolean.parseBoolean(propertyValue);
+        }
+        if (getConfiguration().getResource().getCreateExternalUrls() != null) {
+            return getConfiguration().getResource().getCreateExternalUrls();
+        }
+        return false;
     }
 
     /**

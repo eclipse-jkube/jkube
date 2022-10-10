@@ -19,8 +19,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class RegistryServiceTest {
+class RegistryServiceTest {
 
   private DockerAccess dockerAccess;
   private QueryService queryService;
@@ -46,8 +46,8 @@ public class RegistryServiceTest {
   private ImageConfiguration imageConfiguration;
   private RegistryConfig mockedRegistryConfig;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     imageConfiguration = ImageConfiguration.builder()
         .name("foo/bar:0.0.1")
         .build(BuildConfiguration.builder()
@@ -63,7 +63,7 @@ public class RegistryServiceTest {
   }
 
   @Test
-  public void pullImageWithPolicy_pullPolicyNeverAndNoImage_shouldThrowException() {
+  void pullImageWithPolicy_pullPolicyNeverAndNoImage_shouldThrowException() {
     // When
     final IOException result = assertThrows(IOException.class, () -> registryService.pullImageWithPolicy("image",
         ImagePullManager.createImagePullManager("Never", "", new Properties()), null, null));
@@ -72,7 +72,7 @@ public class RegistryServiceTest {
   }
 
   @Test
-  public void pullImageWithPolicy_pullPolicyNeverAndImage_shouldDoNothing() throws Exception {
+  void pullImageWithPolicy_pullPolicyNeverAndImage_shouldDoNothing() throws Exception {
     // Given
     when(queryService.hasImage("image")).thenReturn(true);
     // When
@@ -83,7 +83,7 @@ public class RegistryServiceTest {
   }
 
   @Test
-  public void pullImageWithPolicy_pullPolicyAlways_shouldPull() throws Exception {
+  void pullImageWithPolicy_pullPolicyAlways_shouldPull() throws Exception {
     // Given
     final ArgumentCaptor<CreateImageOptions>  createImageOptionsCaptor = ArgumentCaptor.forClass(CreateImageOptions.class);
     // When
@@ -98,7 +98,7 @@ public class RegistryServiceTest {
   }
 
   @Test
-  public void pullImageWithPolicy_pullPolicyAlwaysAndBuildConfiguration_shouldPull() throws Exception {
+  void pullImageWithPolicy_pullPolicyAlwaysAndBuildConfiguration_shouldPull() throws Exception {
     // Given
     final BuildConfiguration bc = BuildConfiguration.builder()
         .createImageOptions(Collections.singletonMap("platform", "linux/amd64")).build();
@@ -115,7 +115,7 @@ public class RegistryServiceTest {
   }
 
   @Test
-  public void pushImage_whenValidImageConfigurationProvidedWithSkipTag_shouldNotPushAdditionalTags() throws IOException {
+  void pushImage_whenValidImageConfigurationProvidedWithSkipTag_shouldNotPushAdditionalTags() throws IOException {
     // When
     registryService.pushImage(imageConfiguration, 1, mockedRegistryConfig, true);
 
@@ -127,7 +127,7 @@ public class RegistryServiceTest {
   }
 
   @Test
-  public void pushImage_whenValidImageConfigurationProvided_shouldPushApplicableTags() throws IOException {
+  void pushImage_whenValidImageConfigurationProvided_shouldPushApplicableTags() throws IOException {
     // When
     registryService.pushImage(imageConfiguration, 1, mockedRegistryConfig, false);
 

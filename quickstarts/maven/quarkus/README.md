@@ -39,7 +39,7 @@ $ mvn package k8s:build
 [INFO] k8s: Building Docker image in Kubernetes mode
 [INFO] k8s: Running generator quarkus
 [INFO] k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
-[INFO] k8s: Pulling from jkube/jkube-java-binary-s2i
+[INFO] k8s: Pulling from jkube/jkube-java
 [INFO] k8s: Digest: sha256:dd5c9f44a86e19438662d293e180acc8d864887cf19c165c1b24ae703b16c2d4
 [INFO] k8s: Status: Downloaded newer image for quay.io/jkube/jkube-java:0.0.13
 [INFO] k8s: Pulled quay.io/jkube/jkube-java:0.0.13 in 21 seconds 

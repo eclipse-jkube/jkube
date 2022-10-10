@@ -43,6 +43,8 @@ include::inc/_authentication.adoc[]
 // TODO - Add when support is complete
 // include::inc/_profiles.adoc[]
 
+include::{kitdoc-path}/inc/plugins/_jkube_plugins.adoc[]
+
 include::inc/_kind-filename-type-mapping.adoc[]
 
 

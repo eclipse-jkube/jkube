@@ -25,4 +25,26 @@ Defaults to `777`.
 | *defaultStorageClass*
 | PersistentVolume storage class.
 | `jkube.enricher.jkube-volume-permission.defaultStorageClass`
+
+| *useStorageClassAnnotation*
+| If enabled, storage class would be added to PersistentVolumeClaim metadata as `volume.beta.kubernetes.io/storage-class=<storageClassName>` annotation rather than `.spec.storageClassName`
+
+Defaults to `false`
+| `jkube.enricher.jkube-volume-permission.useStorageClassAnnotation`
+
+| *cpuLimit*
+| Set PersistentVolume *initContainer*'s `.resources` CPU limit
+| `jkube.enricher.jkube-volume-permission.cpuLimit`
+
+| *memoryLimit*
+| Set PersistentVolume *initContainer*'s `.resources` memory limit
+| `jkube.enricher.jkube-volume-permission.memoryLimit`
+
+| *cpuRequest*
+| Set PersistentVolume *initContainer*'s `.resources` CPU request
+| `jkube.enricher.jkube-volume-permission.cpuRequest`
+
+| *memoryRequest*
+| Set PersistentVolume *initContainer*'s `.resources` memory request
+| `jkube.enricher.jkube-volume-permission.memoryRequest`
 |===

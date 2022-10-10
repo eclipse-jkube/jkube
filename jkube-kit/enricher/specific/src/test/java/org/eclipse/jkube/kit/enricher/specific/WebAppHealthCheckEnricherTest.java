@@ -14,44 +14,37 @@
 package org.eclipse.jkube.kit.enricher.specific;
 
 import io.fabric8.kubernetes.api.model.Probe;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.BiFunction;
-
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public class WebAppHealthCheckEnricherTest {
+class WebAppHealthCheckEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
 
-    private void setupExpectations(Map<String, Object> config) {
-        new Expectations() {{
-            context.hasPlugin("org.apache.maven.plugins", "maven-war-plugin");
-            result = true;
+    @BeforeEach
+    void setUp() {
+        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+    }
 
-            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
-            configBuilder.pluginConfigLookup(getProjectLookup(config));
-        }};
+    private void setupExpectations(Properties properties) {
+        when(context.hasPlugin("org.apache.maven.plugins", "maven-war-plugin")).thenReturn(true);
+        when(context.getProperties()).thenReturn(properties);
     }
 
     @Test
-    public void noEnrichmentIfNoPath() {
-
+    void noEnrichmentIfNoPath() {
         // given
-
         WebAppHealthCheckEnricher enricher = new WebAppHealthCheckEnricher(context);
-        setupExpectations(new HashMap<>());
-
+        setupExpectations(new Properties());
         // when
-
         Probe probeLiveness = enricher.getLivenessProbe();
         Probe probeReadiness = enricher.getReadinessProbe();
 
@@ -61,46 +54,30 @@ public class WebAppHealthCheckEnricherTest {
     }
 
     @Test
-    public void enrichmentWithDefaultsIfPath() {
-
+    void enrichmentWithDefaultsIfPath() {
         // given
-
-        final Map<String, Object> config = createFakeConfig(
-            "<path>/health</path>");
-        setupExpectations(config);
+        Properties properties = new Properties();
+        properties.put("jkube.enricher.jkube-healthcheck-webapp.path", "/health");
+        setupExpectations(properties);
 
         WebAppHealthCheckEnricher enricher = new WebAppHealthCheckEnricher(context);
 
         // when
-
         Probe probeLiveness = enricher.getLivenessProbe();
         Probe probeReadiness = enricher.getReadinessProbe();
 
         // then
-        assertThat(probeLiveness).isNull();
-        assertThat(probeReadiness).isNull();
+        assertThat(probeLiveness)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("httpGet.port.intVal", 8080)
+            .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTP")
+            .hasFieldOrPropertyWithValue("httpGet.path", "/health")
+            .hasFieldOrPropertyWithValue("initialDelaySeconds", 180);
+        assertThat(probeReadiness)
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("httpGet.port.intVal", 8080)
+            .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTP")
+            .hasFieldOrPropertyWithValue("httpGet.path", "/health")
+            .hasFieldOrPropertyWithValue("initialDelaySeconds", 10);
     }
-
-    private BiFunction<String, String, Optional<Map<String, Object>>> getProjectLookup(Map<String, Object> config) {
-        return (s,i) -> {
-            assertThat(s).isEqualTo("maven");
-            assertThat(i).isEqualTo("org.eclipse.jkube:jkube-maven-plugin");
-            return Optional.ofNullable(config);
-        };
-    }
-
-    private Map<String, Object> createFakeConfig(String config) {
-
-        Map<String, Object> jkubeHealthCheckWebapp = new HashMap<>();
-        jkubeHealthCheckWebapp.put("jkube-healthcheck-webapp", config);
-
-        Map<String, Object> enricherConfigHashMap = new HashMap<>();
-        enricherConfigHashMap.put("config", jkubeHealthCheckWebapp);
-
-        Map<String, Object> configurationHashmap = new HashMap<>();
-        configurationHashmap.put("enricher", enricherConfigHashMap);
-
-        return configurationHashmap;
-    }
-
 }

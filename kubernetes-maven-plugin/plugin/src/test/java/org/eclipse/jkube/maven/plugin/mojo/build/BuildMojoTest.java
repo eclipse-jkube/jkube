@@ -19,19 +19,19 @@ import org.apache.maven.project.MavenProject;
 import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BuildMojoTest {
+class BuildMojoTest {
     @Mocked
     private MavenProject mavenProject;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         // @formatter:off
         new Expectations(){{
             mavenProject.getBuild().getDirectory(); result = "target";
@@ -40,7 +40,7 @@ public class BuildMojoTest {
     }
 
     @Test
-    public void testBuildServiceConfigBuilderReturnsNonNullResourceConfigIfConfigured() {
+    void buildServiceConfigBuilder_shouldReturnNonNullResourceConfigIfConfigured() {
         // Given
         BuildMojo buildMojo = new BuildMojo();
         buildMojo.project = mavenProject;
@@ -54,15 +54,12 @@ public class BuildMojoTest {
 
         // When
         BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder = buildMojo.buildServiceConfigBuilder();
-
         // Then
-        assertThat(buildServiceConfigBuilder).isNotNull();
-        BuildServiceConfig buildServiceConfig = buildServiceConfigBuilder.build();
-        assertThat(buildServiceConfig).isNotNull();
-        assertThat(buildServiceConfig.getResourceConfig()).isNotNull();
-        assertThat(buildServiceConfig.getResourceConfig().getOpenshiftBuildConfig()).isNotNull();
-        assertThat(buildServiceConfig.getResourceConfig().getOpenshiftBuildConfig().getLimits()).containsEntry("cpu", "200m");
-        assertThat(buildServiceConfig.getResourceConfig().getOpenshiftBuildConfig().getRequests()).containsEntry("memory", "1Gi");
-        assertThat(buildServiceConfig.getResourceDir().getPath()).isEqualTo("src/main/jkube");
+        assertThat(buildServiceConfigBuilder.build()).isNotNull()
+            .returns("src/main/jkube", c -> c.getResourceDir().getPath())
+            .extracting(BuildServiceConfig::getResourceConfig)
+            .extracting(ResourceConfig::getOpenshiftBuildConfig)
+            .returns("200m", c -> c.getLimits().get("cpu"))
+            .returns("1Gi", c -> c.getRequests().get("memory"));
     }
 }

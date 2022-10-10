@@ -25,33 +25,31 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OpenShiftResourceMojoTest {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
+class OpenShiftResourceMojoTest {
   private ClusterAccess mockedClusterAccess;
   private ImageConfigResolver mockedImageConfigResolver;
 
   private OpenshiftResourceMojo openShiftResourceMojo;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
     mockedClusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
     mockedImageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
     Properties properties = new Properties();
@@ -74,15 +72,15 @@ public class OpenShiftResourceMojoTest {
     this.openShiftResourceMojo.imageConfigResolver = mockedImageConfigResolver;
     this.openShiftResourceMojo.javaProject = javaProject;
     this.openShiftResourceMojo.interpolateTemplateParameters = true;
-    this.openShiftResourceMojo.resourceDir = temporaryFolder.newFolder("src", "main", "jkube");
+    this.openShiftResourceMojo.resourceDir = Files.createDirectories(temporaryFolder.resolve("src").resolve("main").resolve("jkube")).toFile();
 
     when(mockedMavenProject.getProperties()).thenReturn(properties);
     when(mockedJKubeServiceHub.getConfiguration().getProject()).thenReturn(javaProject);
-    when(mockedJKubeServiceHub.getConfiguration().getBasedir()).thenReturn(temporaryFolder.getRoot());
+    when(mockedJKubeServiceHub.getConfiguration().getBasedir()).thenReturn(temporaryFolder.toFile());
   }
 
   @Test
-  public void executeInternal_resolvesGroupInImageNameToClusterAccessNamespace_whenNamespaceDetected() throws MojoExecutionException, MojoFailureException {
+  void executeInternal_resolvesGroupInImageNameToClusterAccessNamespace_whenNamespaceDetected() throws MojoExecutionException, MojoFailureException {
     // Given
     ImageConfiguration imageConfiguration = ImageConfiguration.builder()
       .name("%g/%a")
@@ -92,7 +90,7 @@ public class OpenShiftResourceMojoTest {
       .build();
     when(mockedClusterAccess.getNamespace()).thenReturn("test-custom-namespace");
     when(mockedImageConfigResolver.resolve(eq(imageConfiguration), any())).thenReturn(Collections.singletonList(imageConfiguration));
-    this.openShiftResourceMojo.images = Collections.singletonList(imageConfiguration);
+    openShiftResourceMojo.images = Collections.singletonList(imageConfiguration);
     openShiftResourceMojo.skip = true;
 
     // When
@@ -100,12 +98,12 @@ public class OpenShiftResourceMojoTest {
     openShiftResourceMojo.executeInternal();
 
     // Then
-    assertEquals(1, openShiftResourceMojo.resolvedImages.size());
-    assertEquals("test-custom-namespace/test-project", openShiftResourceMojo.resolvedImages.get(0).getName());
+    assertThat(openShiftResourceMojo.resolvedImages).singleElement()
+            .hasFieldOrPropertyWithValue("name", "test-custom-namespace/test-project");
   }
 
   @Test
-  public void executeInternal_resolvesGroupInImageNameToNamespaceSetViaConfiguration_whenNoNamespaceDetected() throws Exception {
+  void executeInternal_resolvesGroupInImageNameToNamespaceSetViaConfiguration_whenNoNamespaceDetected() throws Exception {
     // Given
     ImageConfiguration imageConfiguration = ImageConfiguration.builder()
       .name("%g/%a")
@@ -123,7 +121,7 @@ public class OpenShiftResourceMojoTest {
     openShiftResourceMojo.executeInternal();
 
     // Then
-    assertEquals(1, openShiftResourceMojo.resolvedImages.size());
-    assertEquals("namespace-configured-via-plugin/test-project", openShiftResourceMojo.resolvedImages.get(0).getName());
+    assertThat(openShiftResourceMojo.resolvedImages).singleElement()
+            .hasFieldOrPropertyWithValue("name", "namespace-configured-via-plugin/test-project");
   }
 }

@@ -1,0 +1,18 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+    <config>
+        <jkube-healthcheck-vertx>
+            <initialDelay>3</initialDelay>
+            <period>3</period>
+            <liveness>
+                <type>tcp</type>
+                <port>8081</port>
+            </liveness>
+            <readiness>
+                <!-- use HTTP Get probe -->
+                <path>/ping</path>
+                <port>8080</port>
+            </readiness>
+        </jkube-healthcheck-vertx>
+    </config>
+----

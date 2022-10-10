@@ -19,8 +19,6 @@ package org.eclipse.jkube.kit.config.resource;
  */
 public enum JKubeAnnotations {
 
-    SERVICE_EXPOSE_URL("exposeUrl"),
-
     BUILD_ID("build-id"),
     BUILD_URL("build-url"),
 

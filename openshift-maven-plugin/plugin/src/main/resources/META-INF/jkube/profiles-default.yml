@@ -56,8 +56,6 @@
     - jkube-healthcheck-micronaut
     - jkube-healthcheck-openliberty
 
-    # Route exposure
-    - jkube-openshift-service-expose
     # DeploymentConfigEnricher converts Deployment into DeploymentConfig
     - jkube-openshift-deploymentconfig
     - jkube-openshift-route
@@ -79,6 +77,8 @@
     - jkube-name
       # ReplicaCountEnricher overrides .spec.replicas field of any resource (even dependencies)
     - jkube-replicas
+      # ImagePullPolicyEnricher overrides .spec.containers[0].imagePullPolicy for controllers
+    - jkube-imagepullpolicy
 
   generator:
     # The order given in "includes" is the order in which generators are called
@@ -147,5 +147,4 @@
   generator:
     excludes: []
   enricher:
-    excludes:
-      - jkube-openshift-service-expose
+    excludes: []

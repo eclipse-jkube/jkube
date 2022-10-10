@@ -24,7 +24,6 @@ items:
       app: volume-enricher-custom-storage-class
       version: 0.1-SNAPSHOT
       group: org.eclipse.jkube.devops.apps
-      expose: "true"
     name: jkube-docker-registry
   spec:
     ports:
@@ -38,8 +37,6 @@ items:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    annotations:
-      volume.beta.kubernetes.io/storage-class: cheese
     labels:
       app: volume-enricher-custom-storage-class
       provider: jkube
@@ -47,6 +44,7 @@ items:
       group: org.eclipse.jkube
     name: jkube-docker-registry-storage
   spec:
+    storageClassName: cheese
     accessModes:
     - ReadWriteOnce
     resources:
@@ -108,6 +106,13 @@ items:
           image: busybox
           imagePullPolicy: IfNotPresent
           name: jkube-volume-permission
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 500m
+            requests:
+              memory: 64Mi
+              cpu: 250m
           volumeMounts:
           - mountPath: /var/lib/registry
             name: jkube-docker-registry-storage

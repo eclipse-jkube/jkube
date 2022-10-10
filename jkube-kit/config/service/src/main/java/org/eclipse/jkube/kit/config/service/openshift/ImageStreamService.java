@@ -259,4 +259,9 @@ public class ImageStreamService {
     protected static String resolveImageStreamName(ImageName name) {
         return name.getSimpleName().replace("/", "-");
     }
+
+    protected static String resolveImageStreamTagName(ImageName name) {
+        return resolveImageStreamName(name) + ":" +
+            (StringUtils.isBlank(name.getTag()) ?  "latest" : name.getTag());
+    }
 }

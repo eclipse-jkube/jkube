@@ -19,14 +19,13 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -35,15 +34,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class BuildServiceTest {
+class BuildServiceTest {
   private DockerAccess mockedDockerAccess;
   private BuildService buildService;
   private ImageConfiguration imageConfiguration;
   private ImagePullManager mockedImagePullManager;
   private JKubeConfiguration mockedJKubeConfiguration;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     mockedDockerAccess = mock(DockerAccess.class, RETURNS_DEEP_STUBS);
     ArchiveService mockedArchiveService = mock(ArchiveService.class, RETURNS_DEEP_STUBS);
     RegistryService mockedRegistryService = mock(RegistryService.class, RETURNS_DEEP_STUBS);
@@ -62,7 +61,7 @@ public class BuildServiceTest {
   }
 
   @Test
-  public void buildImage_whenValidImageConfigurationProvidedAndDockerDaemonReturnsValidId_shouldBuildImage() throws IOException {
+  void buildImage_whenValidImageConfigurationProvidedAndDockerDaemonReturnsValidId_shouldBuildImage() throws IOException {
     // Given
     when(mockedDockerAccess.getImageId("image-name")).thenReturn("c8003cb6f5db");
 
@@ -75,21 +74,17 @@ public class BuildServiceTest {
   }
 
   @Test
-  public void buildImage_whenValidImageConfigurationProvidedAndDockerDaemonReturnsNull_shouldBuildImage() throws IOException {
+  void buildImage_whenValidImageConfigurationProvidedAndDockerDaemonReturnsNull_shouldBuildImage() throws IOException {
     // Given
     when(mockedDockerAccess.getImageId("image-name")).thenReturn(null);
-
-    // When
-    IllegalStateException illegalStateException = assertThrows(IllegalStateException.class,
-        () -> buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration));
-
-    // Then
-    assertThat(illegalStateException)
-        .hasMessage("Failure in building image, unable to find image built with name image-name");
+    // When & Then
+    assertThatIllegalStateException()
+            .isThrownBy(() -> buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration))
+            .withMessage("Failure in building image, unable to find image built with name image-name");
   }
 
   @Test
-  public void tagImage_whenValidImageConfigurationProvided_shouldTagImage() throws DockerAccessException {
+  void tagImage_whenValidImageConfigurationProvided_shouldTagImage() throws DockerAccessException {
     // When
     buildService.tagImage("image-name", imageConfiguration);
 

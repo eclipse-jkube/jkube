@@ -13,22 +13,20 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.hc;
 
-import org.apache.http.HttpVersion;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.message.BasicHttpResponse;
 import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.util.ClientBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -38,13 +36,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class DockerAccessWithHcClientMockitoTest {
+class DockerAccessWithHcClientMockitoTest {
 
   private ApacheHttpClientDelegate mockDelegate;
   private DockerAccessWithHcClient client;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     mockDelegate = mock(ApacheHttpClientDelegate.class, RETURNS_DEEP_STUBS);
     when(mockDelegate.getHttpClient().execute(any(HttpGet.class))).thenReturn(mock(CloseableHttpResponse.class));
     client = new DockerAccessWithHcClient("tcp://1.2.3.4:2375", null, 1, new KitLogger.SilentLogger()) {
@@ -56,7 +54,7 @@ public class DockerAccessWithHcClientMockitoTest {
   }
 
   @Test
-  public void pullImage() throws Exception {
+  void pullImage() throws Exception {
     // When
     client.pullImage("name", null, "registry", new CreateImageOptions());
     // Then
@@ -65,7 +63,7 @@ public class DockerAccessWithHcClientMockitoTest {
   }
 
   @Test
-  public void pullImageThrowsException() throws Exception {
+  void pullImageThrowsException() throws Exception {
     // Given
     when(mockDelegate.post(eq("tcp://1.2.3.4:2375/v1.18/images/create"), isNull(), any(Map.class), any(HcChunkedResponseHandlerWrapper.class), eq(200)))
         .thenThrow(new IOException("Problem with images/create"));

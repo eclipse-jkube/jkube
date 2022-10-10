@@ -107,7 +107,7 @@ public class CredentialHelperClient {
     // echo <registryToLookup> | docker-credential-XXX get
     private class GetCommand extends ExternalCommand {
 
-        private List<String> reply = new LinkedList<>();
+        private final List<String> reply = new LinkedList<>();
 
         GetCommand() {
             super(CredentialHelperClient.this.log);

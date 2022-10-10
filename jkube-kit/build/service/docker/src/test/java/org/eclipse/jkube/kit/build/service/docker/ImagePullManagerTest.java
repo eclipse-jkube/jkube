@@ -14,67 +14,35 @@
 package org.eclipse.jkube.kit.build.service.docker;
 
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
-import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class ImagePullManagerTest {
+class ImagePullManagerTest {
 
-  @Test
-  public void testCreateImagePullManagerWithNotNullImagePullPolicy() {
-    // Given + When
-    ImagePullManager imagePullManager = ImagePullManager.createImagePullManager("Always", null, new Properties());
-
+  @ParameterizedTest(name = "With ''{0}'' imagePullPolicy and ''{1}'' autoPull mode imagePullPolicy should be ''{2}''")
+  @MethodSource("createImagePullManagerTestData")
+  void createImagePullManager(String imagePullPolicy, String autoPull, ImagePullPolicy expectedImagePullPolicy) {
+    // Given & When
+    ImagePullManager imagePullManager = ImagePullManager.createImagePullManager(imagePullPolicy, autoPull, new Properties());
     // Then
     assertThat(imagePullManager)
-        .hasFieldOrPropertyWithValue("imagePullPolicy", ImagePullPolicy.Always)
+        .hasFieldOrPropertyWithValue("imagePullPolicy", expectedImagePullPolicy)
         .extracting("cacheStore").isNotNull();
   }
 
-  @Test
-  public void testCreateImagePullManagerWithAutoPullModeOnce() {
-    // Given + When
-    ImagePullManager imagePullManager = ImagePullManager.createImagePullManager(null, "always", new Properties());
-
-    // Then
-    assertThat(imagePullManager)
-        .hasFieldOrPropertyWithValue("imagePullPolicy", ImagePullPolicy.Always)
-        .extracting("cacheStore").isNotNull();
+  public static Stream<Arguments> createImagePullManagerTestData() {
+    return Stream.of(
+            Arguments.of("Always", null, ImagePullPolicy.Always),
+            Arguments.of(null, "always", ImagePullPolicy.Always),
+            Arguments.of(null, "off", ImagePullPolicy.Never),
+            Arguments.of(null, "always", ImagePullPolicy.Always),
+            Arguments.of(null, null, ImagePullPolicy.IfNotPresent)
+    );
   }
-
-  @Test
-  public void testCreateImagePullManagerWithAutoPullModeOff() {
-    // Given + When
-    ImagePullManager imagePullManager = ImagePullManager.createImagePullManager(null, "off", new Properties());
-
-    // Then
-    assertThat(imagePullManager)
-        .hasFieldOrPropertyWithValue("imagePullPolicy", ImagePullPolicy.Never)
-        .extracting("cacheStore").isNotNull();
-  }
-
-  @Test
-  public void testCreateImagePullManagerWithAutoPullModeAlways() {
-    // Given + When
-    ImagePullManager imagePullManager = ImagePullManager.createImagePullManager(null, "always", new Properties());
-
-    // Then
-    assertThat(imagePullManager)
-        .hasFieldOrPropertyWithValue("imagePullPolicy", ImagePullPolicy.Always)
-        .extracting("cacheStore").isNotNull();
-  }
-
-  @Test
-  public void testCreateImagePullManagerWithNullImagePullPolicyNullAutoPullMode() {
-    // Given + When
-    ImagePullManager imagePullManager = ImagePullManager.createImagePullManager(null, null, new Properties());
-
-    // Then
-    assertThat(imagePullManager)
-        .hasFieldOrPropertyWithValue("imagePullPolicy", ImagePullPolicy.IfNotPresent)
-        .extracting("cacheStore").isNotNull();
-  }
-
 }

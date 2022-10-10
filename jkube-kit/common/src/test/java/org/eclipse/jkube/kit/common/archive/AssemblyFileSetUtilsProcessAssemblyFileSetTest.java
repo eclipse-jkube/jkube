@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.common.archive;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -26,32 +27,31 @@ import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.processAssemblyFileSet;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.resolveSourceDirectory;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
-import static org.junit.Assume.assumeFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
-public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
+class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
 
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
+  @TempDir
+  File temp;
 
   private File baseDirectory;
   private File sourceDirectory;
   private File outputDirectory;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     assumeFalse(isWindows());
-    baseDirectory = temp.newFolder("base");
+    baseDirectory = new File(temp, "base");
     sourceDirectory = new File(baseDirectory, "source-directory");
     final List<File> sourceSubdirectories = Stream.of("one", "two", "three")
         .map(s -> new File(sourceDirectory, s)).collect(Collectors.toList());
@@ -59,10 +59,10 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
       FileUtils.forceMkdir(directory);
       populateSampleFiles(directory);
     }
-    outputDirectory = temp.newFolder("output");
+    outputDirectory = new File(temp, "output");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     outputDirectory = null;
     sourceDirectory = null;
@@ -76,9 +76,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void resolveSourceDirectoryIsAbsoluteShouldReturnAbsolute() throws Exception {
+  void resolveSourceDirectoryIsAbsoluteShouldReturnAbsolute() {
     // Given
-    final File directory = temp.newFolder("absolute-path-out-of-base");
+    final File directory = new File(temp, "absolute-path-out-of-base");
     final AssemblyFileSet afs = AssemblyFileSet.builder().directory(directory).build();
     // When
     final File result = resolveSourceDirectory(baseDirectory, afs);
@@ -90,7 +90,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void resolveSourceDirectoryIsRelativeShouldReturnRelative() {
+  void resolveSourceDirectoryIsRelativeShouldReturnRelative() {
     // Given
     final File relativeDirectory = new File("source-directory");
     final AssemblyFileSet afs = AssemblyFileSet.builder().directory(relativeDirectory).build();
@@ -104,7 +104,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void assemblyFileSetHasNoDirectory_shouldThrowException() {
+  void assemblyFileSetHasNoDirectory_shouldThrowException() {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().build();
     final Assembly layer = new Assembly();
@@ -112,7 +112,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
         .name("deployments")
         .build();
     // When
-    final NullPointerException result = Assert.assertThrows(NullPointerException.class, () ->
+    final NullPointerException result = assertThrows(NullPointerException.class, () ->
       processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac)
     );
     // Then
@@ -121,7 +121,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void assemblyConfigurationHasNoTargetDir_shouldThrowException() {
+  void assemblyConfigurationHasNoTargetDir_shouldThrowException() {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -129,7 +129,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
     final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().build();
     // When
-    final NullPointerException result = Assert.assertThrows(NullPointerException.class, () ->
+    final NullPointerException result = assertThrows(NullPointerException.class, () ->
         processAssemblyFileSet(baseDirectory, outputDirectory, afs, layer, ac)
     );
     // Then
@@ -145,7 +145,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
    * n.b. this is the only case where the source directory and not its contents is copied.
    */
   @Test
-  public void minimumRequiredFields() throws Exception {
+  void minimumRequiredFields() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -173,7 +173,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
    * @see #minimumRequiredFields()
    */
   @Test
-  public void minimumRequiredFieldsWithAssemblyId() throws Exception {
+  void minimumRequiredFieldsWithAssemblyId() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -206,7 +206,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
    * Should do nothing.
    */
   @Test
-  public void sourceDoesNotExist() throws Exception {
+  void sourceDoesNotExist() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(new File(sourceDirectory, "non-existent"))
@@ -230,7 +230,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
    * AssemblyConfiguration#targetDir.
    */
   @Test
-  public void fileSetDirectoryAndOutputDirectoryResolvingToSelf() throws Exception {
+  void fileSetDirectoryAndOutputDirectoryResolvingToSelf() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -264,9 +264,9 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
    * Should copy contents of AssemblyFileSet#directory to the absoluteOutputDirectory.
    */
   @Test
-  public void fileSetDirectoryAndAbsoluteOutputDirectory() throws Exception {
+  void fileSetDirectoryAndAbsoluteOutputDirectory() throws Exception {
     // Given
-    final File absoluteOutputDirectory = temp.newFolder("absolute-output");
+    final File absoluteOutputDirectory = Files.createDirectories(temp.toPath().resolve("absolute-output")).toFile();
     assertThat(absoluteOutputDirectory).isEmptyDirectory();
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -300,7 +300,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
    * composed of AssemblyConfiguration#targetDir and the relative outputDirectory.
    */
   @Test
-  public void fileSetDirectoryAndRelativeOutputDirectory() throws Exception {
+  void fileSetDirectoryAndRelativeOutputDirectory() throws Exception {
     // Given
     final File relativeOutputDirectory = new File("relative-output");
     final AssemblyFileSet afs = AssemblyFileSet.builder()
@@ -335,7 +335,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
    * Should copy contents of AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the AssemblyConfiguration#targetDir.
    */
   @Test
-  public void hierarchicalInclude() throws Exception {
+  void hierarchicalInclude() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -369,7 +369,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
    * Should copy contents of AssemblyFileSet#directory to the outputDirectory in a subdirectory named as the AssemblyConfiguration#targetDir.
    */
   @Test
-  public void hierarchicalIncludeInRelativeDirectory() throws Exception {
+  void hierarchicalIncludeInRelativeDirectory() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -397,7 +397,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void wildcardInclude() throws IOException {
+  void wildcardInclude() throws IOException {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -422,7 +422,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void wildcardIncludeAcrossDirectories() throws IOException {
+  void wildcardIncludeAcrossDirectories() throws IOException {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -450,7 +450,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void wildcardHierarchicalInclude() throws IOException {
+  void wildcardHierarchicalInclude() throws IOException {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -478,7 +478,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void wildcardIncludeAndExcludeAcrossDirectories() throws IOException {
+  void wildcardIncludeAndExcludeAcrossDirectories() throws IOException {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -507,7 +507,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void directoryExcludes() throws Exception {
+  void directoryExcludes() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder()
         .directory(sourceDirectory)
@@ -535,7 +535,7 @@ public class AssemblyFileSetUtilsProcessAssemblyFileSetTest {
   }
 
   @Test
-  public void withRelativeSourceAndDirectoryExcludes() throws Exception {
+  void withRelativeSourceAndDirectoryExcludes() throws Exception {
     // Given
     final File quickstartDirectory = new File(sourceDirectory, "quickstarts/directory");
     FileUtils.forceMkdir(quickstartDirectory);

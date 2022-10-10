@@ -84,9 +84,6 @@ org.eclipse.jkube.enricher.generic.openshift.DeploymentConfigEnricher
 # Add a Project from Namespace when on OpenShift
 org.eclipse.jkube.enricher.generic.openshift.ProjectEnricher
 
-# Add an "expose" label to every service (TODO: Combine this with a Route/Ingress enricher)
-org.eclipse.jkube.enricher.generic.openshift.ExposeEnricher
-
 # Enhance a given controller with the configuration information presented in the plugin configuration.
 org.eclipse.jkube.enricher.generic.ControllerViaPluginConfigurationEnricher
 
@@ -103,3 +100,6 @@ org.eclipse.jkube.enricher.generic.IngressEnricher
 org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptionsMergeEnricher
 
 org.eclipse.jkube.enricher.generic.ReplicaCountEnricher
+
+# Set ImagePullPolicy on a Controller's container
+org.eclipse.jkube.enricher.generic.ImagePullPolicyEnricher

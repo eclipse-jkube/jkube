@@ -1,0 +1,165 @@
+
+The `assembly` element within `build` element defines how build artifacts and other files
+can be added to the Docker image. The files which are supposed to be added via `assembly` should be
+present in project directory. It's also possible to add file from external source using your own custom
+logic (see <<jkube-plugin, JKube Plugin>> for more details).
+
+[[config-image-build-assembly]]
+.Assembly Configuration (<<config-image, image >> : <<config-image-build, build >>)
+[cols="1,5"]
+|===
+| Element | Description
+
+| *name*
+| Assembly name, which is `maven` by default. This name is used for the archives and directories created during the build.
+  This directory holds the files specified by the assembly. If an <<external-dockerfile,external Dockerfile>> is used then
+  this name is also the relative directory which contains the assembly files.
+
+| *targetDir*
+| Directory under which the files and artifacts contained in the assembly will be copied within the container.
+  The default value for this is `${assembly.name}`, so `/maven` if *name* is not set to a different value.
+
+| <<build-assembly-layer, *inline*>>
+| _Deprecated: Use layers instead_
+  Inlined assembly descriptor as described in <<build-assembly-layer,Assembly - Inline>> below.
+
+| <<build-assembly-layer, *layers*>>
+| Each of the layers that the assembly will contain as described in
+  <<build-assembly-layer, Assembly - Layer>> below.
+
+| *exportTargetDir*
+| Specification whether the `targetDir` should be exported as a volume. This value is `true` by default except in the
+  case the `targetDir` is set to the container root (`/`). It is also `false` by default when a base image is used with
+  `from` since exporting makes no sense in this case and will waste disk space unnecessarily.
+
+| *excludeFinalOutputArtifact*
+| By default, the project's final artifact will be included in the assembly, set this flag to true in case the
+  artifact should be excluded from the assembly.
+
+| *mode*
+a| Mode how the assembled files should be collected:
+
+* `dir` : Files are simply copied (default),
+* `tar` : Transfer via tar archive
+* `tgz` : Transfer via compressed tar archive
+* `zip` : Transfer via ZIP archive
+
+The archive formats have the advantage that file permission can be preserved better (since the copying is independent from the underlying files systems)
+
+| *permissions*
+a| Permission of the files to add:
+
+* `ignore` to use the permission as found on files regardless on any
+assembly configuration
+* `keep` to respect the assembly provided permissions
+* `exec` for setting the executable bit on all files (required for Windows when using an assembly mode `dir`)
+* `auto` to let the plugin select `exec` on Windows and `keep` on others.
+
+`keep` is the default value.
+
+| *tarLongFileMode*
+| Sets the TarArchiver behaviour on file paths with more than 100 characters length. Valid values are: "warn"(default), "fail", "truncate", "gnu", "posix", "posix_warn" or "omit"
+
+| *user*
+a| User and/or group under which the files should be added. The user must already exist in the base image.
+
+It has the general format `user[:group[:run-user]]`. The user and group can be given either as numeric user- and group-id or as names. The group id is optional.
+
+If a third part is given, then the build changes to user `root` before changing the ownerships, changes the ownerships and then change to user `run-user` which is then used for the final command to execute. This feature might be needed, if the base image already changed the user (e.g. to 'jboss') so that a `chown` from root to this user would fail.
+
+For example, the image `jboss/wildfly` use a "jboss" user under which all commands are executed. Adding files in Docker always happens under the UID root. These files can only be changed to "jboss" is the `chown` command is executed as root. For the following commands to be run again as "jboss" (like the final `standalone.sh`), the plugin switches back to user `jboss` (this is this "run-user") after changing the file ownership. For this example a specification of
+`jboss:jboss:jboss` would be required.
+|===
+
+In the event you do not need to include any artifacts with the image, you may safely omit this element from the configuration.
+
+[[build-assembly-layer]]
+=== Assembly - Inline/Layer
+
+Inlined assembly description with a format very similar to
+https://maven.apache.org/plugins/maven-assembly-plugin/assembly.html[Maven Assembly Plugin].
+
+.Partial configuration example of an inline/layer element
+ifeval::["{plugin-type}" == "gradle"]
+[source,groovy,subs="attributes+"]
+----
+assembly {
+    targetDir = "/deployments"
+    layers = [{
+        fileSets = [{
+            directory = file("${project.rootDir}/build/dependencies")
+            outputDirectory = "static"
+       }]
+    }]
+}
+----
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<assembly>
+  <!-- ... -->
+  <layers>
+    <layer>
+      <id>static-files</id>
+      <fileSets>
+        <fileSet>
+          <directory>src/static</directory>
+          <outputDirectory>static</outputDirectory>
+        </fileSet>
+      </fileSets>
+    </layer>
+  </layers>
+</assembly>
+----
+endif::[]
+
+
+The `layers` element within the `assembly` element can have one or more
+`layer` elements with a {plugin-configuration-type} structure that supports the following configuration options:
+
+.Assembly - Inline/Layer (<<config-image, image >> : <<config-image-build, build >> : <<config-image-build-assembly, assembly >>)
+[cols="1,5"]
+|===
+| Element | Description
+
+| *id*
+| Unique ID for the layer.
+
+| *files*
+a| List of files for the layer.
+
+Each file has the following fields:
+
+* `source`: Absolute or relative path from the project's directory of the file to be included in the assembly.
+* `outputDirectory`: Output directory relative to the root of the root directory of the assembly.
+* `destName`: Destination filename in the outputDirectory.
+* `fileMode`: Similar to a UNIX permission, sets the file mode of the file included.
+
+| *fileSets*
+a| List of filesets for the layer.
+
+Each fileset has the following fields:
+
+* `directory`: Absolute or relative location from the project's directory.
+* `outputDirectory`: Output directory relative to the root of the root directory of the assembly fileSet.
+* `includes`:  A set of files and directories to include.
+**  If none is present, then everything is included.
+** Files can be referenced by using their complete path name.
+** Wildcards are also supported, patterns will be matched using
+   https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)[
+   FileSystem#getPathMatcher] `glob` syntax.
+* `excludes`: A set of files and directory to exclude.
+** If none is present, then there are no exclusions.
+** Wildcards are also supported, patterns will be matched using
+https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String)[
+FileSystem#getPathMatcher] `glob` syntax.
+* `fileMode`: Similar to a UNIX permission, sets the file mode of the files included.
+* `directoryMode`: Similar to a UNIX permission, sets the directory mode of the directories included.
+
+| *baseDirectory*
+| Base directory from which to resolve the Assembly's layer files and filesets.
+
+|===
+
+

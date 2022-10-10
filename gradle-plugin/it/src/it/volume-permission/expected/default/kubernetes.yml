@@ -14,7 +14,6 @@ items:
       app: volume-permission
       provider: jkube
       version: "@ignore@"
-      expose: "true"
       group: org.eclipse.jkube.devops.apps
     name: jkube-docker-registry
   spec:
@@ -106,6 +105,13 @@ items:
           image: busybox
           imagePullPolicy: IfNotPresent
           name: jkube-volume-permission
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 500m
+            requests:
+              memory: 64Mi
+              cpu: 250m
           volumeMounts:
           - mountPath: /var/lib/registry
             name: jkube-docker-registry-storage

@@ -29,7 +29,7 @@ $ ./gradlew build k8sResource
 
 > Task :k8sResource
 k8s: Running generator quarkus
-k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
+k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.16 as base / builder
 k8s: Using resource templates from /home/anurag/Work/jkube/quickstarts/gradle/quarkus/src/main/jkube
 k8s: jkube-controller: Adding a default Deployment
 k8s: jkube-service: Adding a default service 'quarkus' with ports [8080]
@@ -48,7 +48,7 @@ $ ./gradlew k8sBuild
 
 > Task :k8sBuild
 k8s: Running generator quarkus
-k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
+k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.16 as base / builder
 k8s: Building container image in Kubernetes mode
 k8s: [gradle/quarkus:1.7.0] "quarkus": Created docker-build.tar in 378 milliseconds
 k8s: [gradle/quarkus:1.7.0] "quarkus": Built image sha256:c1df2
@@ -65,7 +65,7 @@ $ ./gradlew k8sApply
 
 > Task :k8sApply
 k8s: Running generator quarkus7s]
-k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.13 as base / builder
+k8s: quarkus: Using Docker image quay.io/jkube/jkube-java:0.0.16 as base / builder
 k8s: Using Kubernetes at https://192.168.49.2:8443/ in namespace null with manifest /home/anurag/Work/jkube/quickstarts/gradle/quarkus/build/classes/java/main/META-INF/jkube/kubernetes.yml k8sApply
 k8s: Updating Service from kubernetes.yml
 k8s: Updated Service: build/jkube/applyJson/default/service-quarkus-2.json

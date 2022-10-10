@@ -10,7 +10,6 @@ items:
       jkube.io/git-commit: "@ignore@"
       jkube.io/git-branch: "@ignore@"
     labels:
-      expose: "true"
       app: "project-label"
       provider: "jkube"
       version: "0.1.0"

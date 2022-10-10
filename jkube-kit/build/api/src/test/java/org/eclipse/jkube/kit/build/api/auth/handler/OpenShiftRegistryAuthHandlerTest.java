@@ -16,6 +16,8 @@ package org.eclipse.jkube.kit.build.api.auth.handler;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Base64;
 import java.util.function.Consumer;
 
@@ -25,33 +27,26 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import mockit.Mocked;
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.api.Assertions;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertEquals;
-
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author roland
  */
-public class OpenShiftRegistryAuthHandlerTest {
+class OpenShiftRegistryAuthHandlerTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  Path temporaryFolder;
+  private KitLogger log;
+  private OpenShiftRegistryAuthHandler handler;
 
-  KitLogger log;
-
-  OpenShiftRegistryAuthHandler handler;
-
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     log = new KitLogger.SilentLogger();
     RegistryAuthConfig registryAuthConfig = RegistryAuthConfig.builder()
         .skipExtendedAuthentication(false)
@@ -64,7 +59,7 @@ public class OpenShiftRegistryAuthHandlerTest {
   }
 
   @Test
-  public void testOpenShiftConfigFromPluginConfig() throws Exception {
+  void openShiftConfigFromPluginConfig() throws IOException {
 
     executeWithTempHomeDir(homeDir -> {
       createOpenShiftConfig(homeDir, "openshift_simple_config.yaml");
@@ -74,7 +69,7 @@ public class OpenShiftRegistryAuthHandlerTest {
   }
 
   @Test
-  public void testOpenShiftConfigFromSystemProps() throws Exception {
+  void openShiftConfigFromSystemProps() throws IOException {
 
     try {
       System.setProperty("docker.useOpenShiftAuth", "true");
@@ -89,13 +84,13 @@ public class OpenShiftRegistryAuthHandlerTest {
   }
 
   @Test
-  public void testOpenShiftConfigFromSystemPropsNegative() throws Exception {
+  void openShiftConfigFromSystemPropsNegative() throws IOException {
     try {
       System.setProperty("docker.useOpenShiftAuth", "false");
       executeWithTempHomeDir(homeDir -> {
         createOpenShiftConfig(homeDir, "openshift_simple_config.yaml");
         AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s -> s);
-        assertNull(config);
+        assertThat(config).isNull();
       });
     } finally {
       System.getProperties().remove("docker.useOpenShiftAuth");
@@ -103,12 +98,12 @@ public class OpenShiftRegistryAuthHandlerTest {
   }
 
   @Test
-  public void testOpenShiftConfigNotLoggedIn() throws Exception {
+  void openShiftConfigNotLoggedIn() throws IOException {
     executeWithTempHomeDir(homeDir -> {
       createOpenShiftConfig(homeDir, "openshift_nologin_config.yaml");
-      IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-          () -> handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s -> s));
-      Assertions.assertThat(exception).hasMessageContaining("~/.kube/config");
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> handler.create(RegistryAuthConfig.Kind.PUSH, "roland", null, s -> s))
+          .withMessageContaining("~/.kube/config");
     });
 
   }
@@ -116,7 +111,7 @@ public class OpenShiftRegistryAuthHandlerTest {
   private void executeWithTempHomeDir(Consumer<File> executor) throws IOException {
     String userHome = System.getProperty("user.home");
     try {
-      File tempDir = temporaryFolder.newFolder("d-m-p");
+      File tempDir = Files.createDirectory(temporaryFolder.resolve("d-m-p")).toFile();
       System.setProperty("user.home", tempDir.getAbsolutePath());
       executor.accept(tempDir);
     } finally {
@@ -139,10 +134,11 @@ public class OpenShiftRegistryAuthHandlerTest {
   private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
     JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())),
         JsonObject.class);
-    assertEquals(username, params.get("username").getAsString());
-    assertEquals(password, params.get("password").getAsString());
+    assertThat(params)
+        .returns(username, j -> j.get("username").getAsString())
+        .returns(password, j -> j.get("password").getAsString());
     if (email != null) {
-      assertEquals(email, params.get("email").getAsString());
+      assertThat(params.get("email").getAsString()).isEqualTo(email);
     }
   }
 

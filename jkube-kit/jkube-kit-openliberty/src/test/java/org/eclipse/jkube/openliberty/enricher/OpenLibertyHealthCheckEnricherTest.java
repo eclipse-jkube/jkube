@@ -24,8 +24,8 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.openliberty.OpenLibertyUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -39,14 +39,14 @@ import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class OpenLibertyHealthCheckEnricherTest {
+class OpenLibertyHealthCheckEnricherTest {
   private JKubeEnricherContext context;
   private JavaProject javaProject;
   private Properties properties;
   private KubernetesListBuilder klb;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     properties = new Properties();
     ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
@@ -76,7 +76,7 @@ public class OpenLibertyHealthCheckEnricherTest {
   }
 
   @Test
-  public void create_withNoMicroprofileDependency_shouldNotAddProbes() {
+  void create_withNoMicroprofileDependency_shouldNotAddProbes() {
     // Given
     OpenLibertyHealthCheckEnricher openLibertyHealthCheckEnricher = new OpenLibertyHealthCheckEnricher(context);
 
@@ -88,7 +88,7 @@ public class OpenLibertyHealthCheckEnricherTest {
   }
 
   @Test
-  public void create_withMicroprofileDependencyAndMicroprofileFeatureDisabled_shouldNotAddProbes() {
+  void create_withMicroprofileDependencyAndMicroprofileFeatureDisabled_shouldNotAddProbes() {
     // Given
     withMicroprofileDependency("5.0");
     OpenLibertyHealthCheckEnricher openLibertyHealthCheckEnricher = new OpenLibertyHealthCheckEnricher(context);
@@ -101,7 +101,7 @@ public class OpenLibertyHealthCheckEnricherTest {
   }
 
   @Test
-  public void create_withMicroprofileDependencyAndMicroprofileFeatureEnabled_shouldAddProbes() {
+  void create_withMicroprofileDependencyAndMicroprofileFeatureEnabled_shouldAddProbes() {
     try (MockedStatic<OpenLibertyUtils> mockStatic = Mockito.mockStatic(OpenLibertyUtils.class)) {
       // Given
       mockStatic.when(() -> OpenLibertyUtils.hasAnyFeatureMatching(javaProject, "mpHealth-")).thenReturn(true);
@@ -116,7 +116,7 @@ public class OpenLibertyHealthCheckEnricherTest {
   }
 
   @Test
-  public void create_withLegacyMicroprofileDependencyAndMicroprofileFeatureEnabled_shouldOnlyAddLivenessReadinessProbes() {
+  void create_withLegacyMicroprofileDependencyAndMicroprofileFeatureEnabled_shouldOnlyAddLivenessReadinessProbes() {
     try (MockedStatic<OpenLibertyUtils> mockStatic = Mockito.mockStatic(OpenLibertyUtils.class)) {
       // Given
       mockStatic.when(() -> OpenLibertyUtils.hasAnyFeatureMatching(javaProject, "mpHealth-")).thenReturn(true);
@@ -134,7 +134,7 @@ public class OpenLibertyHealthCheckEnricherTest {
   }
 
   @Test
-  public void create_withMicroprofileEnabledAndEnricherConfiguration_shouldProbesAsConfigured() {
+  void create_withMicroprofileEnabledAndEnricherConfiguration_shouldProbesAsConfigured() {
     try (MockedStatic<OpenLibertyUtils> mockStatic = Mockito.mockStatic(OpenLibertyUtils.class)) {
       // Given
       mockStatic.when(() -> OpenLibertyUtils.hasAnyFeatureMatching(javaProject, "mpHealth-")).thenReturn(true);

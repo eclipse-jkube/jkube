@@ -13,7 +13,6 @@ items:
       jkube.io/git-url: "@ignore@"
       jkube.io/git-commit: "@ignore@"
     labels:
-      expose: "true"
       app: probes-groovy-dsl-config
       provider: jkube
       version: "@ignore@"

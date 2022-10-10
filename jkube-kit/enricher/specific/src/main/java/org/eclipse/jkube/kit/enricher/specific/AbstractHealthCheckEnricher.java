@@ -60,7 +60,7 @@ public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
         }
 
         for(ContainerBuilder container : getContainersToEnrich(builder)) {
-            if (!container.hasReadinessProbe()) {
+            if (Boolean.FALSE.equals(container.hasReadinessProbe())) {
                 Probe probe = getReadinessProbe(container);
                 if (probe != null) {
                     log.info("Adding readiness " + describe(probe));
@@ -68,7 +68,7 @@ public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
                 }
             }
 
-            if (!container.hasLivenessProbe()) {
+            if (Boolean.FALSE.equals(container.hasLivenessProbe())) {
                 Probe probe = getLivenessProbe(container);
                 if (probe != null) {
                     log.info("Adding liveness " + describe(probe));

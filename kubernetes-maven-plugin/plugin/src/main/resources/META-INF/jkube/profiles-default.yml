@@ -41,7 +41,6 @@
     - jkube-secret-file
 
     # Route exposure
-    - jkube-openshift-service-expose
     - jkube-openshift-route
     - jkube-openshift-project
 
@@ -77,6 +76,8 @@
     - jkube-name
     # ReplicaCountEnricher overrides .spec.replicas field of any resource (even dependencies)
     - jkube-replicas
+    # ImagePullPolicyEnricher overrides .spec.containers[0].imagePullPolicy for controllers
+    - jkube-imagepullpolicy
 
   generator:
     # The order given in "includes" is the order in which generators are called
@@ -132,7 +133,6 @@
     - jkube-controller-from-configuration
     - jkube-openshift-deploymentconfig
     - jkube-openshift-project
-    - jkube-openshift-service-expose
     - jkube-openshift-route
   # Only dependencies, no build, use other resources raw
 - name: aggregate
@@ -152,5 +152,4 @@
   generator:
     excludes: []
   enricher:
-    excludes:
-      - jkube-openshift-service-expose
+    excludes: []

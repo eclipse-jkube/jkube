@@ -81,10 +81,17 @@ public class EnvUtil {
     public static String extractLargerVersion(String versionA, String versionB) {
         if (versionB == null || versionA == null) {
             return versionA == null ? versionB : versionA;
-        } else {
+        }
+
+        boolean isVersionAValid = isValid(versionA);
+        boolean isVersionBValid = isValid(versionB);
+
+        if (!isVersionAValid && !isVersionBValid) {
+            return null;
+        } else if (isVersionAValid && isVersionBValid) {
             String[] partsA = versionA.split("\\.");
             String[] partsB = versionB.split("\\.");
-            for (int i = 0; i < (partsA.length < partsB.length ? partsA.length : partsB.length); i++) {
+            for (int i = 0; i < (Math.min(partsA.length, partsB.length)); i++) {
                 int pA = Integer.parseInt(partsA[i]);
                 int pB = Integer.parseInt(partsB[i]);
                 if (pA > pB) {
@@ -95,6 +102,20 @@ public class EnvUtil {
             }
             return partsA.length > partsB.length ? versionA : versionB;
         }
+        return isVersionAValid ? versionA : versionB;
+    }
+
+    private static boolean isValid(String version) {
+        if (StringUtils.isNotBlank(version) && version.contains(".")) {
+            try {
+                version = version.replace(".", "");
+                Integer.parseInt(version);
+                return true;
+            } catch (NumberFormatException exception) {
+                return false;
+            }
+        }
+        return false;
     }
 
     /**

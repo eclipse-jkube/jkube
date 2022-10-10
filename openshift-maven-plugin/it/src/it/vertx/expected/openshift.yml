@@ -20,7 +20,6 @@ items:
   kind: Service
   metadata:
     labels:
-      expose: "true"
       provider: jkube
       app: jkube-maven-sample-vertx
       version: "@ignore@"

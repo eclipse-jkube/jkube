@@ -17,20 +17,19 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Tested;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author roland
  */
-@SuppressWarnings("ResultOfMethodCallIgnored")
-public class ImageNameFormatterTest {
+@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
+class ImageNameFormatterTest {
 
     @Injectable
     private JavaProject project;
@@ -42,21 +41,19 @@ public class ImageNameFormatterTest {
     private ImageNameFormatter formatter;
 
     @Test
-    public void simple() {
+    void simple() {
         assertThat(formatter.format("bla")).isEqualTo("bla");
     }
 
     @Test
-    public void invalidFormatChar() {
-        final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> {
-            formatter.format("bla %z");
-            fail();
-        });
-        assertThat(result).hasMessageContaining("No image name format element '%z' known");
+    void invalidFormatChar() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> formatter.format("bla %z"))
+                .withMessage("No image name format element '%z' known");
     }
 
     @Test
-    public void defaultUserName() {
+    void defaultUserName() {
 
         final String[] data = {
             "io.fabric8", "fabric8",
@@ -81,7 +78,7 @@ public class ImageNameFormatterTest {
     }
 
     @Test
-    public void artifact() {
+    void artifact() {
         new Expectations() {{
             project.getArtifactId(); result = "Docker....Maven.....Plugin";
         }};
@@ -90,7 +87,7 @@ public class ImageNameFormatterTest {
     }
 
     @Test
-    public void tagWithProperty() {
+    void tagWithProperty() {
         // Given
         final Properties props = new Properties();
         props.put("jkube.image.tag","1.2.3");
@@ -106,7 +103,7 @@ public class ImageNameFormatterTest {
     }
 
     @Test
-    public void tag() {
+    void tag() {
         new Expectations() {{
             project.getArtifactId(); result = "docker-maven-plugin";
             project.getGroupId(); result = "io.fabric8";
@@ -119,7 +116,7 @@ public class ImageNameFormatterTest {
     }
 
     @Test
-    public void nonSnapshotArtifact() {
+    void nonSnapshotArtifact() {
         new Expectations() {{
             project.getArtifactId(); result = "docker-maven-plugin";
             project.getGroupId(); result = "io.fabric8";
@@ -133,7 +130,7 @@ public class ImageNameFormatterTest {
     }
 
     @Test
-    public void groupIdWithProperty() {
+    void groupIdWithProperty() {
         // Given
         Properties props = new Properties();
         props.put("jkube.image.user","this.it..is");

@@ -13,33 +13,36 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
+import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplate;
 import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import mockit.Expectations;
+import mockit.Mocked;
+import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.TreeMap;
+import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Map;
 
 public class VolumePermissionEnricherTest {
 
@@ -83,11 +86,22 @@ public class VolumePermissionEnricherTest {
         VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
         enricher.enrich(PlatformMode.kubernetes,klb);
 
-        List<Container> initS = ((PodTemplate) klb.build().getItems().get(0)).getTemplate().getSpec().getInitContainers();
-        assertNotNull(initS);
-        assertEquals(1, initS.size());
-        Container actualInitContainer = initS.get(0);
-        assertEquals("blub", actualInitContainer.getVolumeMounts().get(0).getMountPath());
+        assertThat(klb.buildItems())
+            .hasSize(1)
+            .first(InstanceOfAssertFactories.type(PodTemplate.class))
+            .extracting(PodTemplate::getTemplate)
+            .extracting(PodTemplateSpec::getSpec)
+            .extracting(PodSpec::getInitContainers)
+            .asList()
+            .hasSize(1)
+            .first(InstanceOfAssertFactories.type(Container.class))
+            .hasFieldOrPropertyWithValue("resources", null)
+            .extracting(Container::getVolumeMounts)
+            .asList()
+            .hasSize(1)
+            .first(InstanceOfAssertFactories.type(VolumeMount.class))
+            .extracting(VolumeMount::getMountPath)
+            .isEqualTo("blub");
     }
 
     @Test
@@ -125,27 +139,114 @@ public class VolumePermissionEnricherTest {
 
             List<Container> initContainers = pt.getTemplate().getSpec().getInitContainers();
             boolean shouldHaveInitContainer = tc.volumeNames.length > 0;
-            assertEquals(shouldHaveInitContainer, !initContainers.isEmpty());
+            assertThat(shouldHaveInitContainer).isNotEqualTo(initContainers.isEmpty());
             if (!shouldHaveInitContainer) {
                 continue;
             }
 
-            Gson gson = new Gson();
-            JsonArray ja = new JsonParser().parse(gson.toJson(initContainers, new TypeToken<Collection<Container>>() {}.getType())).getAsJsonArray();
-            assertEquals(1, ja.size());
-
-            JsonObject jo = ja.get(0).getAsJsonObject();
-            assertEquals(tc.initContainerName, jo.get("name").getAsString());
-            assertEquals(tc.imageName, jo.get("image").getAsString());
-            String permission = StringUtils.isBlank(tc.permission) ? "777" : tc.permission;
-            JsonArray chmodCmd = new JsonArray();
-            chmodCmd.add("chmod");
-            chmodCmd.add(permission);
-            for (String vn : tc.volumeNames) {
-              chmodCmd.add("/tmp/" + vn);
-            }
-            assertEquals(chmodCmd.toString(), jo.getAsJsonArray("command").toString());
+            assertThat(pt)
+                .extracting(PodTemplate::getTemplate)
+                .extracting(PodTemplateSpec::getSpec)
+                .extracting(PodSpec::getInitContainers)
+                .asList()
+                .hasSize(1)
+                .first(InstanceOfAssertFactories.type(Container.class))
+                .hasFieldOrPropertyWithValue("image", tc.imageName)
+                .hasFieldOrPropertyWithValue("name", tc.initContainerName)
+                .hasFieldOrPropertyWithValue("command", getExpectedCommand(tc))
+                .hasFieldOrPropertyWithValue("resources.limits", Collections.emptyMap())
+                .hasFieldOrPropertyWithValue("resources.requests", Collections.emptyMap());
         }
+    }
+
+    @Test
+    public void enrich_withPersistentVolumeClaim_shouldAddStorageClassToSpec() {
+        // Given
+        Properties properties = new Properties();
+        properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
+        new Expectations() {{
+            context.getProperties();
+            result = properties;
+        }};
+        VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
+        KubernetesListBuilder klb = new KubernetesListBuilder();
+        klb.addToItems(createNewPersistentVolumeClaim("pv1"));
+
+        // When
+        volumePermissionEnricher.enrich(PlatformMode.kubernetes, klb);
+
+        // Then
+        assertThat(klb.buildItems())
+            .hasSize(1)
+            .first(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
+            .hasFieldOrPropertyWithValue("spec.storageClassName", "standard")
+            .extracting("metadata.annotations")
+            .asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
+            .isNullOrEmpty();
+    }
+
+    @Test
+    public void enrich_withPersistentVolumeClaimAndUseAnnotationEnabled_shouldAddStorageClassAnnotation() {
+        // Given
+        Properties properties = new Properties();
+        properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
+        properties.put("jkube.enricher.jkube-volume-permission.useStorageClassAnnotation", "true");
+        new Expectations() {{
+            context.getProperties();
+            result = properties;
+        }};
+        VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
+        KubernetesListBuilder klb = new KubernetesListBuilder();
+        klb.addToItems(createNewPersistentVolumeClaim("pv1"));
+
+        // When
+        volumePermissionEnricher.enrich(PlatformMode.kubernetes, klb);
+
+        // Then
+        assertThat(klb.buildItems())
+            .hasSize(1)
+            .first(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
+            .hasFieldOrPropertyWithValue("metadata.annotations", Collections.singletonMap("volume.beta.kubernetes.io/storage-class", "standard"))
+            .hasFieldOrPropertyWithValue("spec.storageClassName", null);
+    }
+
+    @Test
+    public void enrich_withResourcesEnabledInConfiguration_shouldAddRequestsLimitsToVolumeInitContainer() {
+        // Given
+        Properties properties = new Properties();
+        Map<String, Quantity> limitMap = new HashMap<>();
+        limitMap.put("cpu", new Quantity("500m"));
+        limitMap.put("memory", new Quantity("128Mi"));
+        Map<String, Quantity> requestsMap = new HashMap<>();
+        requestsMap.put("cpu", new Quantity("250m"));
+        requestsMap.put("memory", new Quantity("64Mi"));
+        properties.put("jkube.enricher.jkube-volume-permission.cpuLimit", "500m");
+        properties.put("jkube.enricher.jkube-volume-permission.memoryLimit", "128Mi");
+        properties.put("jkube.enricher.jkube-volume-permission.cpuRequest", "250m");
+        properties.put("jkube.enricher.jkube-volume-permission.memoryRequest", "64Mi");
+        new Expectations() {{
+            context.getProperties(); result = properties;
+        }};
+        VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
+        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
+        kubernetesListBuilder.addToPodTemplateItems(addVolume(createEmptyPodTemplate(), "volumeC").build());
+
+        // When
+        enricher.enrich(PlatformMode.kubernetes, kubernetesListBuilder);
+
+        // Then
+        assertThat(kubernetesListBuilder.buildItems())
+            .hasSize(1)
+            .first(InstanceOfAssertFactories.type(PodTemplate.class))
+            .extracting(PodTemplate::getTemplate)
+            .extracting(PodTemplateSpec::getSpec)
+            .extracting(PodSpec::getInitContainers)
+            .asList()
+            .hasSize(1)
+            .first(InstanceOfAssertFactories.type(Container.class))
+            .extracting(Container::getResources)
+            .hasFieldOrPropertyWithValue("requests", requestsMap)
+            .hasFieldOrPropertyWithValue("limits", limitMap);
     }
 
     public PodTemplateBuilder addVolume(PodTemplateBuilder ptb, String vn) {
@@ -169,5 +270,23 @@ public class VolumePermissionEnricherTest {
                                   .withNewMetadata().endMetadata()
                                   .withNewSpec().addNewContainer().endContainer().endSpec()
                                 .endTemplate();
+    }
+
+    private PersistentVolumeClaim createNewPersistentVolumeClaim(String name) {
+        return new PersistentVolumeClaimBuilder()
+            .withNewMetadata().withName(name).endMetadata()
+            .withNewSpec().endSpec()
+            .build();
+    }
+
+    private List<String> getExpectedCommand(TestConfig tc) {
+        String permission = StringUtils.isBlank(tc.permission) ? "777" : tc.permission;
+        List<String> expectedCommandStr = new ArrayList<>();
+        expectedCommandStr.add("chmod");
+        expectedCommandStr.add(permission);
+        for (String vn : tc.volumeNames) {
+            expectedCommandStr.add("/tmp/" + vn);
+        }
+        return expectedCommandStr;
     }
 }
