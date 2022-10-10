@@ -21,16 +21,16 @@ import java.io.File;
 public class Dependency {
 
     // GAV coordinates of dependency
-    private GroupArtifactVersion gav;
+    private final GroupArtifactVersion gav;
 
     // Dependency type ("jar", "war", ...)
-    private String type;
+    private final String type;
 
     // Scope of the dependency ("compile", "runtime", ...)
-    private String scope;
+    private final String scope;
 
     // Location where the dependent jar is located
-    private File location;
+    private final File location;
 
     public Dependency(GroupArtifactVersion gav, String type, String scope, File location) {
         this.gav = gav;
