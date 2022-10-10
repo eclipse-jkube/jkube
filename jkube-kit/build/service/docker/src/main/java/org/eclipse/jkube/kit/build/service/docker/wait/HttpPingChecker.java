@@ -39,10 +39,10 @@ import java.util.regex.Pattern;
  */
 public class HttpPingChecker implements WaitChecker {
 
-    private int statusMin;
-    private int statusMax;
-    private String url;
-    private String method;
+    private final int statusMin;
+    private final int statusMax;
+    private final String url;
+    private final String method;
     private boolean allowAllHosts;
 
     // Disable HTTP client retries by default.
