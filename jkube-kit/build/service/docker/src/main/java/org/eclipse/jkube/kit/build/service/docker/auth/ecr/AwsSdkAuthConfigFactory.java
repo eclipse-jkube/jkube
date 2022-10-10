@@ -24,7 +24,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class AwsSdkAuthConfigFactory {
 
     private final KitLogger log;
-    private AwsSdkHelper awsSdkHelper;
+    private final AwsSdkHelper awsSdkHelper;
 
     public AwsSdkAuthConfigFactory(KitLogger log, AwsSdkHelper awsSdkHelper) {
         this.log = log;
