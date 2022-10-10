@@ -32,15 +32,16 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Properties;
 
@@ -55,9 +56,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ResourceMojoTest {
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class ResourceMojoTest {
 
   private MockedConstruction<DefaultEnricherManager> defaultEnricherManagerMockedConstruction;
   private MockedStatic<MavenUtil> mavenUtilMockedStatic;
@@ -65,8 +64,8 @@ public class ResourceMojoTest {
   private JKubeServiceHub mockedJKubeServiceHub;
   private ResourceService mockedResourceService;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
     ImageConfigResolver mockedImageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
     Properties properties = new Properties();
     MavenProject mockedMavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
@@ -104,23 +103,23 @@ public class ResourceMojoTest {
     this.resourceMojo.imageConfigResolver = mockedImageConfigResolver;
     this.resourceMojo.javaProject = javaProject;
     this.resourceMojo.interpolateTemplateParameters = true;
-    this.resourceMojo.resourceDir = temporaryFolder.newFolder("src", "main", "jkube");
+    this.resourceMojo.resourceDir = Files.createDirectories(temporaryFolder.resolve("src").resolve("main").resolve("jkube")).toFile();
     resourceMojo.mojoExecution = mockedMojoExecution;
 
     when(mockedMavenProject.getProperties()).thenReturn(properties);
     when(mockedJKubeServiceHub.getConfiguration().getProject()).thenReturn(javaProject);
-    when(mockedJKubeServiceHub.getConfiguration().getBasedir()).thenReturn(temporaryFolder.getRoot());
+    when(mockedJKubeServiceHub.getConfiguration().getBasedir()).thenReturn(temporaryFolder.toFile());
     when(mockedJKubeServiceHub.getResourceService()).thenReturn(mockedResourceService);
   }
 
-  @After
-  public void cleanUp() {
+  @AfterEach
+  void cleanUp() {
     defaultEnricherManagerMockedConstruction.close();
     mavenUtilMockedStatic.close();
   }
 
   @Test
-  public void executeInternal_whenInvoked_shouldDelegateResourceGenerationToResourceService() throws MojoExecutionException, MojoFailureException, IOException {
+  void executeInternal_whenInvoked_shouldDelegateResourceGenerationToResourceService() throws MojoExecutionException, MojoFailureException, IOException {
     // Given + When
     resourceMojo.initJKubeServiceHubBuilder(resourceMojo.javaProject);
     resourceMojo.executeInternal();
@@ -139,7 +138,7 @@ public class ResourceMojoTest {
   }
 
   @Test
-  public void executeInternal_whenSkipTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException, IOException {
+  void executeInternal_whenSkipTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException, IOException {
     // Given
     this.resourceMojo.skip = true;
 
@@ -154,7 +153,7 @@ public class ResourceMojoTest {
   }
 
   @Test
-  public void executeInternal_whenSkipResourceTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException, IOException {
+  void executeInternal_whenSkipResourceTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException, IOException {
     // Given
     this.resourceMojo.skipResource = true;
 

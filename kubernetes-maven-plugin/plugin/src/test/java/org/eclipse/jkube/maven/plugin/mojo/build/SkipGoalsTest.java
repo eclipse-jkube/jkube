@@ -13,23 +13,22 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(MockitoJUnitRunner.class)
-public class SkipGoalsTest {
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.openMocks;
+
+class SkipGoalsTest {
 
     @Mock
     private KitLogger log;
@@ -41,14 +40,19 @@ public class SkipGoalsTest {
     @InjectMocks
     BuildMojo buildMojo;
 
-    public void setupBuildGoal() throws Exception {
-        doNothing().when(buildMojo).init();
-        doNothing().when(buildMojo).doExecute();
-        when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:build");
+    @BeforeEach
+    void setUp() {
+      openMocks(this);
+    }
+
+    private void setupBuildGoal() throws Exception {
+      doNothing().when(buildMojo).init();
+      doNothing().when(buildMojo).doExecute();
+      when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:build");
     }
 
     @Test
-    public void should_execute_build_goal_if_skip_false() throws Exception {
+    void should_execute_build_goal_if_skip_false() throws Exception {
         setupBuildGoal();
         // given
         buildMojo.skip = false;
@@ -59,7 +63,7 @@ public class SkipGoalsTest {
     }
 
     @Test
-    public void should_log_informative_message_when_build_goal_is_skipped() throws Exception {
+    void should_log_informative_message_when_build_goal_is_skipped() throws Exception {
         setupBuildGoal();
         // given
         buildMojo.skip = true;
@@ -74,14 +78,14 @@ public class SkipGoalsTest {
     @InjectMocks
     ApplyMojo applyMojo;
 
-    public void setupApplyGoal() throws Exception {
-        doNothing().when(applyMojo).init();
-        doNothing().when(applyMojo).executeInternal();
-        when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:apply");
+    private void setupApplyGoal() throws Exception {
+      doNothing().when(applyMojo).init();
+      doNothing().when(applyMojo).executeInternal();
+      when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:apply");
     }
 
     @Test
-    public void should_execute_apply_goal_if_skip_false() throws Exception {
+    void should_execute_apply_goal_if_skip_false() throws Exception {
         setupApplyGoal();
         // given
         applyMojo.skip = false;
@@ -92,7 +96,7 @@ public class SkipGoalsTest {
     }
 
     @Test
-    public void should_log_informative_message_when_apply_goal_is_skipped() throws Exception {
+    void should_log_informative_message_when_apply_goal_is_skipped() throws Exception {
         setupApplyGoal();
         // given
         applyMojo.skip = true;

@@ -20,24 +20,22 @@ import java.util.stream.Collectors;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-public class GeneratorManagerTest {
+class GeneratorManagerTest {
 
-  KitLogger logger;
+  private KitLogger logger;
 
   private GeneratorContext generatorContext;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     logger = spy(new KitLogger.SilentLogger());
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-generator"));
@@ -48,7 +46,7 @@ public class GeneratorManagerTest {
   }
 
   @Test
-  public void generate_withTestGenerator_shouldProcessImages() {
+  void generate_withTestGenerator_shouldProcessImages() {
     // Given
     final List<ImageConfiguration> images = Collections.singletonList(new ImageConfiguration());
     // When

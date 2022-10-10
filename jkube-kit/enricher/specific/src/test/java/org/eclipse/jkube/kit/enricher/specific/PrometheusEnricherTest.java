@@ -13,34 +13,32 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
-import java.util.Arrays;
-import java.util.Collections;
-
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import java.util.Arrays;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings("unused")
-public class PrometheusEnricherTest {
+class PrometheusEnricherTest {
 
   private JKubeEnricherContext context;
   private PrometheusEnricher prometheusEnricher;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     prometheusEnricher = new PrometheusEnricher(context);
   }
@@ -53,7 +51,7 @@ public class PrometheusEnricherTest {
   }
 
   @Test
-  public void testCustomPrometheusPort() {
+  void customPrometheusPort() {
     // Given
     initContext(new ProcessorConfig(
         null,
@@ -74,7 +72,7 @@ public class PrometheusEnricherTest {
   }
 
   @Test
-  public void testDetectPrometheusPort() {
+  void detectPrometheusPort() {
     // Given
     initContext(null,
         ImageConfiguration.builder().build(
@@ -96,7 +94,7 @@ public class PrometheusEnricherTest {
   }
 
   @Test
-  public void testNoDefinedPrometheusPort() {
+  void noDefinedPrometheusPort() {
     // Given
     initContext(null,
         ImageConfiguration.builder().build(
@@ -114,7 +112,7 @@ public class PrometheusEnricherTest {
   }
 
   @Test
-  public void testCustomPrometheusPath() {
+  void customPrometheusPath() {
     // Given
     initContext(new ProcessorConfig(
         null,

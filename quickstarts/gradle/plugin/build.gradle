@@ -1,0 +1,10 @@
+allprojects {
+    project.group = 'org.eclipse.jkube.quickstarts.gradle'
+    project.version = '1.9.0-SNAPSHOT'
+
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        mavenLocal()
+    }
+}

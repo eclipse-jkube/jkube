@@ -15,111 +15,104 @@ package org.eclipse.jkube.generator.api.support;
 
 import java.util.Map;
 
-import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.PortsExtractor;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.mock;
 
-public class AbstractPortsExtractorTest {
+class AbstractPortsExtractorTest {
 
-    JavaProject project;
-    PrefixedLogger logger;
+    private JavaProject project;
+    private PrefixedLogger logger;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() {
         project = mock(JavaProject.class);
         logger = new PrefixedLogger("test", new KitLogger.SilentLogger());
     }
 
-    @Test
-    public void testReadConfigFromFile() {
-        for (String path : new String[] { ".json", ".yaml",
-                "-nested.yaml",
-                ".properties",
-                "++suffix.yaml"}) {
-            Map<String, Integer> map = extractFromFile("vertx.config", getClass().getSimpleName() + path);
-            assertThat(map).contains(
-                    entry("http.port", 80),
-                    entry("https.port", 443)
-            );
-        }
-    }
+    @Nested
+    @DisplayName("read config")
+    class ReadConfig {
 
-    @Test
-    public void testKeyPatterns() {
-        Map<String, Integer> map = extractFromFile("vertx.config", getClass().getSimpleName() + "-pattern-keys.yml");
+      @DisplayName("from valid file")
+      @ParameterizedTest(name = "''{0}'' file, config should be added")
+      @ValueSource(strings = { ".json", ".yaml", "-nested.yaml", ".properties", "++suffix.yaml" })
+      void readConfig(String path) {
+        Map<String, Integer> map = extractFromFile("vertx.config", "AbstractPortsExtractorTest" + path);
+        assertThat(map)
+            .containsEntry("http.port", 80)
+            .containsEntry("https.port", 443);
+      }
 
-        Object[] testData = {
-                "web.port", true,
-                "web_port", true,
-                "webPort", true,
-                "ssl.support", false,
-                "ports", false,
-                "ports.http", false,
-                "ports.https", false
-        };
+      @Test
+      @DisplayName("from invalid extension file, should throw exception")
+      void fromInvalidFileExtension_shouldThrowException() {
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> extractFromFile("vertx.config.test", "AbstractPortsExtractorTest" + ".bla"))
+            .withMessageContaining("Unknown file extension.");
+      }
 
-        for (int i = 0; i < testData.length; i +=2 ) {
-            assertEquals(testData[i+1], map.containsKey(testData[i]));
-        }
-    }
-
-    @Test
-    public void testAddPortToList() {
-        Map<String, Integer> map = extractFromFile("vertx.config", getClass().getSimpleName() + "-pattern-values.yml");
-
-        Object[] testData = {
-                "http.port", 8080,
-                "https.port", 443,
-                "ssh.port", 22,
-                "ssl.enabled", null
-        };
-        for (int i = 0; i < testData.length; i +=2 ) {
-            assertEquals(testData[i+1], map.get(testData[i]));
-        }
-    }
-
-    @Test
-    public void testNoProperty() {
-        Map<String, Integer> map = extractFromFile(null, getClass().getSimpleName() + ".yml");
-        assertNotNull(map);
-        assertEquals(0,map.size());
-    }
-
-    @Test
-    public void testNoFile() {
+      @Test
+      @DisplayName("without file, config should be empty")
+      void withNoFile_shouldBeEmpty() {
         Map<String, Integer> map = extractFromFile("vertx.config", null);
-        assertNotNull(map);
-        assertEquals(0,map.size());
-    }
+        assertThat(map).isNotNull().isEmpty();
+      }
 
-    @Test
-    public void testConfigFileDoesNotExist() {
+      @Test
+      @DisplayName("from non-existing file, config should be empty")
+      void configFileDoesNotExist_shouldBeEmpty() {
         final String nonExistingFile = "/bla/blub/lalala/config.yml";
         System.setProperty("vertx.config.test", nonExistingFile);
         try {
-            Map<String, Integer> map = extractFromFile("vertx.config.test", null);
-            assertNotNull(map);
-            assertEquals(0,map.size());
+          Map<String, Integer> map = extractFromFile("vertx.config.test", null);
+          assertThat(map).isNotNull().isEmpty();
         } finally {
-            System.getProperties().remove("vertx.config.test");
+          System.getProperties().remove("vertx.config.test");
         }
+      }
+    }
+
+    @Test
+    void keyPatterns() {
+      Map<String, Integer> map = extractFromFile("vertx.config", getClass().getSimpleName() + "-pattern-keys.yml");
+      assertThat(map)
+          .containsKey("web.port")
+          .containsKey("web_port")
+          .containsKey("webPort")
+          .doesNotContainKey("ssl.support")
+          .doesNotContainKey("ports")
+          .doesNotContainKey("ports.http")
+          .doesNotContainKey("ports.https");
+    }
+
+    @Test
+    void addPortToList() {
+      Map<String, Integer> map = extractFromFile("vertx.config", getClass().getSimpleName() + "-pattern-values.yml");
+      assertThat(map)
+          .containsEntry("http.port", 8080)
+          .containsEntry("https.port", 443)
+          .containsEntry("ssh.port", 22)
+          .doesNotContainKey("ssh.enabled");
+    }
+
+    @Test
+    @DisplayName("without property, config should be empty")
+    void noProperty_shouldBeEmpty() {
+        Map<String, Integer> map = extractFromFile(null, getClass().getSimpleName() + ".yml");
+        assertThat(map).isNotNull().isEmpty();
     }
 
     // ===========================================================================================================

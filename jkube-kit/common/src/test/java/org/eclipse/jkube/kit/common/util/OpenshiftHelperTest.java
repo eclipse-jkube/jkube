@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -30,7 +29,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +45,7 @@ class OpenshiftHelperTest {
     @Test
     void testAsOpenShiftClientWithNoOpenShift() {
         // Given
-        doThrow(new KubernetesClientException("")).when(kc).adapt(OpenShiftClient.class);
+        when(kc.adapt(OpenShiftClient.class)).thenReturn(oc);
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(kc);
         //Then
@@ -57,6 +55,7 @@ class OpenshiftHelperTest {
     @Test
     void testOpenShiftClientWithAdaptableToOpenShift() {
         // Given
+        when(oc.isSupported()).thenReturn(true);
         doReturn(oc).when(kc).adapt(OpenShiftClient.class);
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(kc);

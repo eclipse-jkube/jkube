@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.config.service.openshift;
 import io.fabric8.mockwebserver.utils.ResponseProvider;
 import okhttp3.Headers;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static org.assertj.core.api.Assertions.fail;
 
 /**
  * A utility class to record http request events.
@@ -45,7 +46,7 @@ public class WebServerEventCollector {
     public void assertEventsRecorded(String... expectedEvents) {
         for (String exp : expectedEvents) {
             if (!events.contains(exp)) {
-                Assert.fail("Event '" + exp + "' was not found. Expected: " + Arrays.asList(expectedEvents) + ", found: " + this.events);
+                fail("Event '" + exp + "' was not found. Expected: " + Arrays.asList(expectedEvents) + ", found: " + this.events);
             }
         }
     }
@@ -53,7 +54,7 @@ public class WebServerEventCollector {
     public void assertEventsNotRecorded(String... expectedEvents) {
         for (String exp : expectedEvents) {
             if (events.contains(exp)) {
-                Assert.fail("Event '" + exp + "' was found. Expected not to find: " + Arrays.asList(expectedEvents) + ", found: " + this.events);
+                fail("Event '" + exp + "' was found. Expected not to find: " + Arrays.asList(expectedEvents) + ", found: " + this.events);
             }
         }
     }
@@ -68,7 +69,7 @@ public class WebServerEventCollector {
             }
 
             if (!found) {
-                Assert.fail("Event '" + exp + "' was not found in order. Expected: " + Arrays.asList(expectedEvents) + ", found: " + this.events);
+                fail("Event '" + exp + "' was not found in order. Expected: " + Arrays.asList(expectedEvents) + ", found: " + this.events);
             }
         }
     }

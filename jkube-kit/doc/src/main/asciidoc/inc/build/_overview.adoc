@@ -11,7 +11,12 @@ Alternatively an external Dockerfile template or Docker archive can be used. Thi
 * *dockerFile* specifies a specific Dockerfile path. The Docker build context directory is set to `contextDir` if given. If not the directory by default is the directory in which the Dockerfile is stored.
 * *dockerArchive* specifies a previously saved image archive to load directly. If a `dockerArchive` is provided, no `dockerFile` must be given.
 
+ifeval::["{plugin-type}" == "gradle"]
 All paths can be either absolute or relative paths. A relative path is looked up in `$projectDir/src/main/docker` by default. You can make it easily an absolute path by using `$projectDir` in your configuration.
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+All paths can be either absolute or relative paths. A relative path is looked up in `${project.basedir}/src/main/docker` by default. You can make it easily an absolute path by using `${project.basedir}` in your configuration.
+endif::[]
 
 However, you need to add the files on your own in the Dockerfile with an `ADD` or `COPY` command.
 The files of the assembly are stored in a build context relative directory `maven/` but can be changed by changing the assembly name with the option `name` in the assembly configuration.
@@ -41,11 +46,20 @@ It is similar to `.dockerignore` when using Docker but has a slightly different 
 [[ex-build-dockerexclude]]
 .Example `.jkube-dockerexclude` or `.jkube-dockerignore`
 ====
+ifeval::["{plugin-type}" == "gradle"]
 [source]
 ----
 build/classes/**  # <1>
 ----
 <1> Exclude all compiled classes
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+[source]
+----
+target/classes/**  # <1>
+----
+<1> Exclude all compiled classes
+endif::[]
 ====
 
 If this directory contains a `.jkube-dockerinclude` file, then it is used for including only those files for the build.
@@ -61,6 +75,7 @@ FileSystem#getPathMatcher] `glob` syntax.
 
 [[ex-build-dockerinclude]]
 .Example `.jkube-dockerinclude`
+ifeval::["{plugin-type}" == "gradle"]
 ====
 [source]
 ----
@@ -68,30 +83,45 @@ build/libs/*.jar # <1>
 ----
 <1> Only add jar file to you Docker build context.
 ====
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+====
+[source]
+----
+target/*.jar  # <1>
+----
+<1> Only add jar file to you Docker build context.
+====
+endif::[]
 
 Except for the <<build-assembly,assembly configuration>> all other configuration options are ignored for now.
 
 [[simple-dockerfile-build]]
 .Simple Dockerfile build
 
-When only a single image should be built with a Dockerfile no Groovy DSL configuration is needed at all.
+When only a single image should be built with a Dockerfile no {plugin-configuration-type} configuration is needed at all.
+ifeval::["{plugin-type}" == "gradle"]
 All what need to be done is to place a `Dockerfile` into the top-level module directory, alongside to `build.gradle`.
-You can still configure <<global-configuration, global aspects>> in the plugin configuration, but as soon as you add an `image` in the Groovy DSL configuration, you need to configure also the build explicitly.
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+All what need to be done is to place a `Dockerfile` into the top-level module directory, alongside to `pom.xml`.
+endif::[]
+You can still configure <<global-configuration, global aspects>> in the plugin configuration, but as soon as you add an `image` in the {plugin-configuration-type} configuration, you need to configure also the build explicitly.
 
-The image name is by default set from the Gradle coordinates (`%g/%a:%l`, see <<image-name,Image Name >> for an explanation of the params which are essentially the Gradle's group, project name and project version)
+The image name is by default set from the {plugin-type} coordinates (`%g/%a:%l`, see <<image-name,Image Name >> for an explanation of the params which are essentially the Gradle's group, project name and project version)
 This name can be set with the property `jkube.image.name` in `gradle.properties`.
 
 [[build-filtering]]
 .Filtering
-{plugin} filters given Dockerfile with Gradle properties, much like the `maven-resource-plugin` does. Filtering is enabled by default and can be switched off with a build config `filter='false'`. Properties which we want to replace are specified with the `${..}` syntax.
+{plugin} filters given Dockerfile with {plugin-type} properties, much like the `maven-resource-plugin` does. Filtering is enabled by default and can be switched off with a build config `filter='false'`. Properties which we want to replace are specified with the `${..}` syntax.
 Replacement includes properties set in the build, command-line properties, and system properties. Unresolved properties remain untouched.
 
 This partial replacement means that you can easily mix it with Docker build arguments and environment variable reference, but you need to be careful.
-If you want to be more explicit about the property delimiter to clearly separate Docker properties and Gradle properties you can redefine the delimiter.
+If you want to be more explicit about the property delimiter to clearly separate Docker properties and {plugin-type} properties you can redefine the delimiter.
 In general, the `filter` option can be specified the same way as delimiters in the resource plugin.
 In particular,  if this configuration contains a * then the parts left, and right of the asterisks are used as delimiters.
 
-For example, the default `filter='${*}'` parse Gradle properties in the format that we know.
+For example, the default `filter='${*}'` parse {plugin-type} properties in the format that we know.
 If you specify a single character for `filter` then this delimiter is taken for both, the start and the end.
 E.g a `filter='@'` triggers on parameters in the format `@...@`.
 Use something like this if you want to clearly separate from Docker builds args.
@@ -100,6 +130,8 @@ For replacing other data in other files targeted for the Docker image, please us
 
 .Example
 The following example replaces all properties in the format `@property@` within the Dockerfile.
+
+ifeval::["{plugin-type}" == "gradle"]
 [source,groovy,indent=0,subs="verbatim,quotes,attributes"]
 ----
 {pluginExtension} {
@@ -113,3 +145,22 @@ The following example replaces all properties in the format `@property@` within 
     }
 }
 ----
+endif::[]
+ifeval::["{plugin-type}" == "maven"]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+ <configuration>
+   <images>
+     <image>
+       <name>user/demo</name>
+       <build>
+         <filter>@</filter>
+       </build>
+     </image>
+   </images>
+ </configuration>
+ ...
+</plugin>
+----
+endif::[]

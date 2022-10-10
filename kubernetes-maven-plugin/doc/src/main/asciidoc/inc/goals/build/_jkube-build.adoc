@@ -1,3 +1,4 @@
+:kitdoc-path: ../../../../../jkube-kit/doc/src/main/asciidoc
 
 [[jkube:build]]
 == *{goal-prefix}:build*
@@ -439,17 +440,7 @@ The `<build>` section is mandatory and is explained in <<build-configuration, be
 include::../../image/_naming.adoc[]
 include::../../image/_example.adoc[]
 
-[[build-configuration]]
-=== Build Configuration
-
-include::../../build/_overview.adoc[]
-
-include::../../build/_configuration.adoc[]
-
-[[build-assembly]]
-=== Assembly
-
-include::../../build/_assembly.adoc[]
+include::../../../{kitdoc-path}/inc/build/_index.adoc[]
 
 [[misc-env]]
 === Environment and Labels
@@ -462,14 +453,4 @@ include::../../misc/_env.adoc[]
 include::../../misc/_startup.adoc[]
 
 INFO:: Startup arguments are not used in S2I builds
-
-[[build-buildargs]]
-=== Build Args
-
-include::../../build/_buildargs.adoc[]
-
-[[build-healthcheck]]
-=== Healthcheck
-
-include::../../build/_healthcheck.adoc[]
 

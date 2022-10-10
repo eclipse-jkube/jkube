@@ -46,7 +46,7 @@ public class AutoTLSEnricher extends BaseEnricher {
     static final String ENRICHER_NAME = "jkube-openshift-autotls";
     static final String AUTOTLS_ANNOTATION_KEY = "service.alpha.openshift.io/serving-cert-secret-name";
 
-    private String secretName;
+    private final String secretName;
 
     private final InitContainerHandler initContainerHandler;
 
