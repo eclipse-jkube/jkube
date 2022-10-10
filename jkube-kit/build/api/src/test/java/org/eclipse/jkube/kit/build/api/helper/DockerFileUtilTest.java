@@ -16,7 +16,12 @@ package org.eclipse.jkube.kit.build.api.helper;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,55 +31,49 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.stream.Stream;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * @author roland
  */
-public class DockerFileUtilTest {
+class DockerFileUtilTest {
 
     @Test
-    public void testSimple() throws Exception {
+    void simple() throws Exception {
         File toTest = copyToTempDir("Dockerfile_from_simple");
-        assertEquals("fabric8/s2i-java", DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER, Collections.emptyMap()).get(0));
+        assertThat(DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER, Collections.emptyMap()).get(0))
+            .isEqualTo("fabric8/s2i-java");
     }
 
-    @Test
-    public void testMultiStage() throws Exception {
-        File toTest = copyToTempDir("Dockerfile_multi_stage");
-        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER, Collections.emptyMap()).iterator();
-
-        assertEquals("fabric8/s2i-java", fromClauses.next());
-        assertEquals("fabric8/s1i-java", fromClauses.next());
-        assertFalse(fromClauses.hasNext());
+    @DisplayName("extract base images")
+    @ParameterizedTest(name = "from ''{0}'' dockerfile")
+    @MethodSource("dockerFiles")
+    void extractBaseImages(String testDesc, String resource, int expectedSize, List<String> expectedImages)
+        throws IOException {
+      // Given
+      File toTest = copyToTempDir(resource);
+      // When
+      List<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER,
+          Collections.emptyMap());
+      // Then
+      assertThat(fromClauses).hasSize(expectedSize)
+          .isEqualTo(expectedImages);
     }
 
-    @Test
-    public void testMultiStageNamed() throws Exception {
-        File toTest = copyToTempDir("Dockerfile_multi_stage_named_build_stages");
-        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER, Collections.emptyMap()).iterator();
-
-        assertEquals("fabric8/s2i-java", fromClauses.next());
-        assertFalse(fromClauses.hasNext());
-    }
-
-    @Test
-    public void testMultiStageNamedWithDuplicates() throws Exception {
-        File toTest = copyToTempDir("Dockerfile_multi_stage_named_redundant_build_stages");
-        Iterator<String> fromClauses = DockerFileUtil.extractBaseImages(toTest, new Properties(), BuildConfiguration.DEFAULT_FILTER, Collections.emptyMap()).iterator();
-
-        assertEquals("centos", fromClauses.next());
-        assertFalse(fromClauses.hasNext());
-
+    static Stream<Arguments> dockerFiles() {
+      return Stream.of(
+          Arguments.of("multi stage", "Dockerfile_multi_stage", 2, Arrays.asList("fabric8/s2i-java", "fabric8/s1i-java")),
+          Arguments.of("multi stage named", "Dockerfile_multi_stage_named_build_stages", 1, Collections.singletonList("fabric8/s2i-java")),
+          Arguments.of("multi stage name with duplicates", "Dockerfile_multi_stage_named_redundant_build_stages", 1, Collections.singletonList("centos")));
     }
 
     private File copyToTempDir(String resource) throws IOException {
@@ -87,7 +86,7 @@ public class DockerFileUtilTest {
     }
 
     @Test
-    public void interpolate() throws Exception {
+    void interpolate() throws Exception {
         Properties projectProperties = new Properties();
         projectProperties.put("base", "java");
         projectProperties.put("name", "guenther");
@@ -101,11 +100,12 @@ public class DockerFileUtilTest {
         File actualDockerFile = PathTestUtil.createTmpFile(dockerFile.getName());
         FileUtils.write(actualDockerFile, DockerFileUtil.interpolate(dockerFile, projectProperties, BuildConfiguration.DEFAULT_FILTER), "UTF-8");
         // Compare text lines without regard to EOL delimiters
-        assertEquals(FileUtils.readLines(expectedDockerFile, StandardCharsets.UTF_8), FileUtils.readLines(actualDockerFile, StandardCharsets.UTF_8));
+        assertThat(FileUtils.readLines(actualDockerFile, StandardCharsets.UTF_8))
+            .isEqualTo(FileUtils.readLines(expectedDockerFile, StandardCharsets.UTF_8));
     }
 
     @Test
-    public void interpolateWithNullFilterShouldPickDefaultFilter() throws IOException {
+    void interpolate_withNullFilter_shouldPickDefaultFilter() throws IOException {
         // Given
         Properties properties = new Properties();
         properties.put("project.base-image.uri", "openjdk:latest");
@@ -116,30 +116,34 @@ public class DockerFileUtilTest {
 
         // Then
         String[] lines = result.split("\n");
-        assertNotNull(result);
-        assertEquals(2, lines.length);
-        assertEquals("FROM openjdk:latest", lines[0]);
-        assertEquals("ENTRYPOINT [\"java\", \"-jar\", \"target/docker-file-simple.jar\"]", lines[1]);
+        assertThat(result).isNotNull();
+        assertThat(lines).hasSize(2)
+            .containsExactly("FROM openjdk:latest",
+                "ENTRYPOINT [\"java\", \"-jar\", \"target/docker-file-simple.jar\"]");
     }
 
     @Test
-    public void testCreateSimpleDockerfileConfig() throws IOException {
+    void createSimpleDockerfileConfig() throws IOException {
         // Given
         File dockerFile = File.createTempFile("Dockerfile", "-test");
         // When
         ImageConfiguration imageConfiguration1 = DockerFileUtil.createSimpleDockerfileConfig(dockerFile, null);
         ImageConfiguration imageConfiguration2 = DockerFileUtil.createSimpleDockerfileConfig(dockerFile, "someImage:0.0.1");
         // Then
-        assertNotNull(imageConfiguration1);
-        assertEquals("%g/%a:%l", imageConfiguration1.getName());
-        assertEquals(dockerFile.getPath(), imageConfiguration1.getBuild().getDockerFileRaw());
-        assertNotNull(imageConfiguration2);
-        assertEquals("someImage:0.0.1", imageConfiguration2.getName());
-        assertEquals(dockerFile.getPath(), imageConfiguration2.getBuild().getDockerFileRaw());
+        assertThat(imageConfiguration1).isNotNull()
+            .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
+            .extracting(ImageConfiguration::getBuild)
+            .extracting(BuildConfiguration::getDockerFileRaw)
+            .isEqualTo(dockerFile.getPath());
+        assertThat(imageConfiguration2).isNotNull()
+            .hasFieldOrPropertyWithValue("name", "someImage:0.0.1")
+            .extracting(ImageConfiguration::getBuild)
+            .extracting(BuildConfiguration::getDockerFileRaw)
+            .isEqualTo(dockerFile.getPath());
     }
 
     @Test
-    public void testAddSimpleDockerfileConfig() throws IOException {
+    void addSimpleDockerfileConfig() throws IOException {
         // Given
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("test-image")
@@ -150,12 +154,13 @@ public class DockerFileUtilTest {
         ImageConfiguration result = DockerFileUtil.addSimpleDockerfileConfig(imageConfiguration, dockerFile);
 
         // Then
-        assertNotNull(result.getBuild());
-        assertEquals(dockerFile.getPath(), result.getBuild().getDockerFileRaw());
+        assertThat(result.getBuild()).isNotNull()
+            .extracting(BuildConfiguration::getDockerFileRaw)
+            .isEqualTo(dockerFile.getPath());
     }
 
     @Test
-    public void testCustomInterpolation() throws IOException {
+    void customInterpolation() throws IOException {
         // Given
         Map<File, String> input = new HashMap<>();
         input.put(new File(getClass().getResource("/interpolate/at/Dockerfile_1").getFile()), "@");
@@ -176,104 +181,119 @@ public class DockerFileUtilTest {
             File expectedDockerfile = new File(e.getKey().getParent(), "Dockerfile_1.expected");
             String actualContents = new String(Files.readAllBytes(expectedDockerfile.toPath()));
             // Then
-            assertEquals(actualContents, value);
+            assertThat(value).isEqualTo(actualContents);
         }
     }
 
     @Test
-    public void testMultiStageWithArgs() throws Exception {
+    void extractBaseImages_withMultiStageWithArgs() throws Exception {
         File toTest = copyToTempDir("Dockerfile_multi_stage_with_args");
         assertThat(DockerFileUtil.extractBaseImages(toTest, new Properties(), "${*}", Collections.emptyMap()))
             .containsExactly("fabric8/s2i-java:latest", "busybox:latest", "docker.io/library/openjdk:latest");
     }
 
     @Test
-    public void testExtractArgsFromDockerfile() {
-        assertEquals("{VERSION=latest, FULL_IMAGE=busybox:latest}", DockerFileUtil.extractArgsFromLines(Arrays.asList(new String[]{"ARG", "VERSION:latest"}, new String[] {"ARG", "FULL_IMAGE=busybox:latest"}), Collections.emptyMap()).toString());
-        assertEquals("{user1=someuser, buildno=1}", DockerFileUtil.extractArgsFromLines(Arrays.asList(new String[]{"ARG", "user1=someuser"}, new String[]{"ARG", "buildno=1"}), Collections.emptyMap()).toString());
-        assertEquals("{NPM_VERSION=latest, NODE_VERSION=latest}", DockerFileUtil.extractArgsFromLines(Arrays.asList(new String[]{"ARG","NODE_VERSION=\"latest\""}, new String[]{"ARG",  "NPM_VERSION=\"latest\""}), Collections.emptyMap()).toString());
-        assertEquals("{NPM_VERSION=latest, NODE_VERSION=latest}", DockerFileUtil.extractArgsFromLines(Arrays.asList(new String[]{"ARG","NODE_VERSION='latest'"}, new String[]{"ARG",  "NPM_VERSION='latest'"}), Collections.emptyMap()).toString());
-        assertEquals("{MESSAGE=argument with spaces}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] {"ARG", "MESSAGE='argument with spaces'"}), Collections.emptyMap()).toString());
-        assertEquals("{MESSAGE=argument with spaces}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] {"ARG", "MESSAGE=\"argument with spaces\""}), Collections.emptyMap()).toString());
-        assertEquals("{TARGETPLATFORM=}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "TARGETPLATFORM"}), Collections.emptyMap()).toString());
-        assertEquals("{TARGETPLATFORM=}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "TARGETPLATFORM="}), Collections.emptyMap()).toString());
-        assertEquals("{TARGETPLATFORM=}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "TARGETPLATFORM:"}), Collections.emptyMap()).toString());
-        assertEquals("{MESSAGE=argument:two}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "MESSAGE=argument:two"}), Collections.emptyMap()).toString());
-        assertEquals("{MESSAGE2=argument=two}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "MESSAGE2=argument=two"}), Collections.emptyMap()).toString());
-        assertEquals("{VER=0.0.3}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "VER=0.0.3"}), Collections.emptyMap()).toString());
-        assertEquals("{VER={0.0.3}}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "VER={0.0.3}"}), Collections.emptyMap()).toString());
-        assertEquals("{VER=[0.0.3]}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "VER=[0.0.3]"}), Collections.emptyMap()).toString());
-        assertEquals("{VER={5,6}}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "VER={5,6}"}), Collections.emptyMap()).toString());
-        assertEquals("{VER={5,6}}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "VER={5,6}"}), Collections.emptyMap()).toString());
-        assertEquals("{VER={}}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "VER={}"}), Collections.emptyMap()).toString());
-        assertEquals("{VER=====}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "VER====="}), Collections.emptyMap()).toString());
-        assertEquals("{MESSAGE=:message}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "MESSAGE=:message"}), Collections.emptyMap()).toString());
-        assertEquals("{MYAPP_IMAGE=myorg/myapp:latest}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "MYAPP_IMAGE=myorg/myapp:latest"}), Collections.emptyMap()).toString());
-        assertEquals("{busyboxVersion=latest}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "busyboxVersion"}), Collections.singletonMap("busyboxVersion", "latest")).toString());
-        assertEquals("{busyboxVersion=slim}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "busyboxVersion=latest"}), Collections.singletonMap("busyboxVersion", "slim")).toString());
-        assertEquals("{busyboxVersion=latest}", DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "busyboxVersion=latest"}), null).toString());
+    void extractArgsFromDockerfile() {
+      assertAll(
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Arrays.asList(new String[] { "ARG", "VERSION:latest" }, new String[] { "ARG", "FULL_IMAGE=busybox:latest" }), Collections.emptyMap())).hasToString("{VERSION=latest, FULL_IMAGE=busybox:latest}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Arrays.asList(new String[] { "ARG", "user1=someuser" }, new String[] { "ARG", "buildno=1" }), Collections.emptyMap())).hasToString("{user1=someuser, buildno=1}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Arrays.asList(new String[] { "ARG", "NODE_VERSION=\"latest\"" }, new String[] { "ARG", "NPM_VERSION=\"latest\"" }), Collections.emptyMap())).hasToString("{NPM_VERSION=latest, NODE_VERSION=latest}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Arrays.asList(new String[] { "ARG", "NODE_VERSION='latest'" }, new String[] { "ARG", "NPM_VERSION='latest'" }), Collections.emptyMap())).hasToString("{NPM_VERSION=latest, NODE_VERSION=latest}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "MESSAGE='argument with spaces'" }), Collections.emptyMap())).hasToString("{MESSAGE=argument with spaces}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "MESSAGE=\"argument with spaces\"" }), Collections.emptyMap())).hasToString("{MESSAGE=argument with spaces}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "TARGETPLATFORM" }), Collections.emptyMap())).hasToString("{TARGETPLATFORM=}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "TARGETPLATFORM=" }), Collections.emptyMap())).hasToString("{TARGETPLATFORM=}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "TARGETPLATFORM:" }), Collections.emptyMap())).hasToString("{TARGETPLATFORM=}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "MESSAGE=argument:two" }), Collections.emptyMap())).hasToString("{MESSAGE=argument:two}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "MESSAGE2=argument=two" }), Collections.emptyMap())).hasToString("{MESSAGE2=argument=two}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "VER=0.0.3" }), Collections.emptyMap())).hasToString("{VER=0.0.3}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "VER={0.0.3}" }), Collections.emptyMap())).hasToString("{VER={0.0.3}}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "VER=[0.0.3]" }), Collections.emptyMap())).hasToString("{VER=[0.0.3]}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "VER={5,6}" }), Collections.emptyMap())).hasToString("{VER={5,6}}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "VER={5,6}" }), Collections.emptyMap())).hasToString("{VER={5,6}}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "VER={}" }), Collections.emptyMap())).hasToString("{VER={}}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "VER=====" }), Collections.emptyMap())).hasToString("{VER=====}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "MESSAGE=:message" }), Collections.emptyMap())).hasToString("{MESSAGE=:message}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "MYAPP_IMAGE=myorg/myapp:latest" }), Collections.emptyMap())).hasToString("{MYAPP_IMAGE=myorg/myapp:latest}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "busyboxVersion" }), Collections.singletonMap("busyboxVersion", "latest"))).hasToString("{busyboxVersion=latest}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "busyboxVersion=latest" }), Collections.singletonMap("busyboxVersion", "slim"))).hasToString("{busyboxVersion=slim}"),
+          () -> assertThat(DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[] { "ARG", "busyboxVersion=latest" }), null)).hasToString("{busyboxVersion=latest}")
+      );
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidArgWithSpacesFromDockerfile() {
-        DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "MY_IMAGE image with spaces"}), Collections.emptyMap());
+    @DisplayName("extract arguments from lines")
+    @ParameterizedTest(name = "invalid Argument having {0} in dockerfile, should throw exception")
+    @MethodSource("invalidArguments")
+    void extractArgsFromLines(String testDesc, String[] args) {
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> DockerFileUtil.extractArgsFromLines(Collections.singletonList(args), Collections.emptyMap()))
+          .withMessageContaining("Dockerfile parse error: ARG requires exactly one argument");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidArgWithTrailingArgumentFromDockerfile() {
-        DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "MESSAGE=foo bar"}), Collections.emptyMap());
+    static Stream<Arguments> invalidArguments() {
+      return Stream.of(
+          arguments("spaces", new String[] { "ARG", "MY_IMAGE image with spaces" }),
+          arguments("trailing argument", new String[] { "ARG", "MESSAGE=foo bar" }),
+          arguments("array with space", new String[] { "ARG", "MESSAGE=[5, 6]" }));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidArgWithArrayWithSpaceFromDockerfile() {
-        DockerFileUtil.extractArgsFromLines(Collections.singletonList(new String[]{"ARG", "MESSAGE=[5, 6]"}), Collections.emptyMap());
+    @DisplayName("resolve argument value from image tag string containing key")
+    @ParameterizedTest(name = "from image tag ''{0}'', should return ''{2}''")
+    @MethodSource("args")
+    void resolveArgValueFromStrContainingArgKey(String imageTagString, Map<String, String> args, String expected) {
+      assertThat(DockerFileUtil.resolveImageTagFromArgs(imageTagString, args))
+          .isEqualTo(expected);
+    }
+
+    static Stream<Arguments> args() {
+      return Stream.of(
+          arguments("$VERSION", Collections.singletonMap("VERSION", "latest"), "latest"),
+          arguments("${project.scope}", Collections.singletonMap("project.scope", "test"), "test"),
+          arguments("$ad", Collections.singletonMap("ad", "test"), "test"),
+          arguments("bla$ad", Collections.singletonMap("ad", "test"), "blatest"),
+          arguments("${foo}bar", Collections.singletonMap("foo", "test"), "testbar"),
+          arguments("bar${foo}", Collections.singletonMap("foo", "test"), "bartest"),
+          arguments("$ad", Collections.emptyMap(), "$ad")
+      );
     }
 
     @Test
-    public void testResolveArgValueFromStrContainingArgKey() {
-        assertEquals("latest", DockerFileUtil.resolveImageTagFromArgs("$VERSION", Collections.singletonMap("VERSION", "latest")));
-        assertEquals("test", DockerFileUtil.resolveImageTagFromArgs("${project.scope}", Collections.singletonMap("project.scope", "test")));
-        assertEquals("test", DockerFileUtil.resolveImageTagFromArgs("$ad", Collections.singletonMap("ad", "test")));
-        assertEquals("blatest", DockerFileUtil.resolveImageTagFromArgs("bla$ad", Collections.singletonMap("ad", "test")));
-        assertEquals("testbar", DockerFileUtil.resolveImageTagFromArgs("${foo}bar", Collections.singletonMap("foo", "test")));
-        assertEquals("bartest", DockerFileUtil.resolveImageTagFromArgs("bar${foo}", Collections.singletonMap("foo", "test")));
-        assertEquals("$ad", DockerFileUtil.resolveImageTagFromArgs("$ad", Collections.emptyMap()));
-    }
-
-    @Test
-    public void testFindAllArgsDefinedInString() {
+    void findAllArgs_definedInString() {
         assertThat(DockerFileUtil.findAllArgs("$REPO_1/bar${IMAGE-1}foo:$VERSION"))
             .containsExactlyInAnyOrder("REPO_1", "IMAGE-1", "VERSION");
-        assertThat(DockerFileUtil.findAllArgs("${invalidArg"))
-            .isEmpty();
     }
 
     @Test
-    public void testCreateSimpleDockerfileConfigWithPorts() {
+    void findAllArgs_fromInvalidArg_shouldBeEmpty() {
+        assertThat(DockerFileUtil.findAllArgs("${invalidArg")).isEmpty();
+    }
+
+    @Test
+    void createSimpleDockerfileConfig_withPorts() {
         // Given
         File dockerFile = new File(getClass().getResource("/docker/Dockerfile_expose_ports").getFile());
         // When
         ImageConfiguration imageConfiguration1 = DockerFileUtil.createSimpleDockerfileConfig(dockerFile, null);
         // Then
-        assertNotNull(imageConfiguration1);
-        assertEquals("%g/%a:%l", imageConfiguration1.getName());
-        assertEquals(dockerFile.getPath(), imageConfiguration1.getBuild().getDockerFileRaw());
-        assertNotNull(imageConfiguration1.getBuild().getPorts());
-        assertEquals(5, imageConfiguration1.getBuild().getPorts().size());
-        assertEquals("80/tcp", imageConfiguration1.getBuild().getPorts().get(0));
-        assertEquals("8080/udp", imageConfiguration1.getBuild().getPorts().get(1));
-        assertEquals("80", imageConfiguration1.getBuild().getPorts().get(2));
-        assertEquals("8080", imageConfiguration1.getBuild().getPorts().get(3));
-        assertEquals("99/udp", imageConfiguration1.getBuild().getPorts().get(4));
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testGetPortsFromDockerFileShouldThrowExceptionOnInvalidFile() {
-        DockerFileUtil.extractPorts(new File("iDoNotExist"));
+        assertThat(imageConfiguration1.getBuild().getDockerFileRaw()).isEqualTo(dockerFile.getPath());
+        assertThat(imageConfiguration1).isNotNull()
+            .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
+            .extracting(ImageConfiguration::getBuild)
+            .extracting(BuildConfiguration::getPorts).isNotNull()
+            .asList()
+            .hasSize(5)
+            .containsExactly("80/tcp", "8080/udp", "80", "8080", "99/udp");
     }
 
     @Test
-    public void testGetPortsFromDockerFileLines() {
+    void extractPorts_fromInvalidDockerFile_shouldThrowException() {
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> DockerFileUtil.extractPorts(new File("iDoNotExist")))
+          .withMessage("Error in reading Dockerfile");
+    }
+
+    @Test
+    void extractPorts_fromDockerFileLines() {
         // Given
         List<String[]> input1 = Arrays.asList(new String[]{"EXPOSE", "8080", "9090", "9999"} , new String[]{"EXPOSE", "9010"});
         List<String[]> input2 = Arrays.asList(new String[]{"EXPOSE", "9001"}, new String[]{"EXPOSE", null});
@@ -285,15 +305,15 @@ public class DockerFileUtilTest {
         List<String> result3 = DockerFileUtil.extractPorts(input3);
 
         // Then
-        assertEquals(Arrays.asList("9090", "8080", "9999", "9010"), result1);
-        assertEquals(Collections.singletonList("9001"), result2);
-        assertEquals(Collections.singletonList("8001"), result3);
+        assertThat(result1).containsExactly("9090", "8080", "9999", "9010");
+        assertThat(result2).containsExactly("9001");
+        assertThat(result3).containsExactly("8001");
     }
 
     @Test
-    public void testResolveDockerfileFilter() {
-        assertEquals(BuildConfiguration.DEFAULT_FILTER, DockerFileUtil.resolveDockerfileFilter(null));
-        assertEquals("@*@", DockerFileUtil.resolveDockerfileFilter("@*@"));
+    void resolveDockerfileFilter() {
+        assertThat(DockerFileUtil.resolveDockerfileFilter(null)).isEqualTo(BuildConfiguration.DEFAULT_FILTER);
+        assertThat(DockerFileUtil.resolveDockerfileFilter("@*@")).isEqualTo("@*@");
     }
 
     private File getDockerfilePath(String dir) {

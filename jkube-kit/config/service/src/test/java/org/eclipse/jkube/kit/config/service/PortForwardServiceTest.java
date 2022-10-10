@@ -17,6 +17,9 @@ import java.io.Closeable;
 import java.util.Collections;
 
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.openshift.client.OpenShiftClient;
 import mockit.Verifications;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -27,23 +30,22 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.WatchEvent;
 import io.fabric8.kubernetes.client.LocalPortForward;
-import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class PortForwardServiceTest {
+@EnableKubernetesMockClient
+class PortForwardServiceTest {
 
-    @Rule
-    public final OpenShiftServer mockServer = new OpenShiftServer(false);
+    KubernetesMockServer mockServer;
+    OpenShiftClient openShiftClient;
 
     @SuppressWarnings("unused")
     @Mocked
     private KitLogger logger;
 
     @Test
-    public void testSimpleScenario() throws Exception {
+    void simpleScenario() throws Exception {
         // Cannot test more complex scenarios due to errors in mockwebserver
 
         Pod pod1 = new PodBuilder()
@@ -78,7 +80,7 @@ public class PortForwardServiceTest {
                 .andEmit(new WatchEvent(pod1, "MODIFIED"))
                 .done().always();
 
-        final NamespacedKubernetesClient client = mockServer.getOpenshiftClient()
+        final NamespacedKubernetesClient client = openShiftClient
             .adapt(NamespacedKubernetesClient.class).inNamespace("ns1");
         PortForwardService service = new PortForwardService(logger);
 
@@ -88,7 +90,7 @@ public class PortForwardServiceTest {
     }
 
     @Test
-    public void startPortForward(
+    void startPortForward(
         @Mocked NamespacedKubernetesClient kubernetesClient, @Mocked KitLogger logger,
         @Mocked LocalPortForward lpf, @Mocked PortForwardTask pft
     ) {

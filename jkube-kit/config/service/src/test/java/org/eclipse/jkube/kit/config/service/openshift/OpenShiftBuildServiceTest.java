@@ -22,14 +22,14 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unused")
-public class OpenShiftBuildServiceTest {
+class OpenShiftBuildServiceTest {
 
   private JKubeServiceHub jKubeServiceHub;
 
@@ -49,8 +49,8 @@ public class OpenShiftBuildServiceTest {
 
   private ImageConfiguration imageConfigurationWithSkipEnabled;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     kitLogger = spy(new KitLogger.SilentLogger());
     jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     final OpenShiftClient oc = mock(OpenShiftClient.class);
@@ -76,7 +76,7 @@ public class OpenShiftBuildServiceTest {
   }
 
   @Test
-  public void push_withEmptyList_shouldNotLogWarning() throws JKubeServiceException {
+  void push_withEmptyList_shouldNotLogWarning() throws JKubeServiceException {
     // Given
     when(jKubeServiceHub.getLog()).thenReturn(kitLogger);
 
@@ -87,7 +87,7 @@ public class OpenShiftBuildServiceTest {
   }
 
   @Test
-  public void push_withValidImage_shouldLogWarning() throws JKubeServiceException {
+  void push_withValidImage_shouldLogWarning() throws JKubeServiceException {
     // Given
     when(jKubeServiceHub.getLog()).thenReturn(kitLogger);
 
@@ -98,19 +98,18 @@ public class OpenShiftBuildServiceTest {
   }
 
   @Test
-  public void initClient_withNoOpenShift_shouldThrowException() {
+  void initClient_withNoOpenShift_shouldThrowException() {
     // Given
     when(jKubeServiceHub.getClient().adapt(OpenShiftClient.class).isSupported()).thenReturn(false);
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
-    // When
-    IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, () -> openshiftBuildService.build(imageConfiguration));
-    // Then
-    assertThat(illegalStateException.getMessage())
-        .isEqualTo("OpenShift platform has been specified but OpenShift has not been detected!");
+    // When + Then
+    assertThatIllegalStateException()
+        .isThrownBy(() -> openshiftBuildService.build(imageConfiguration))
+        .withMessage("OpenShift platform has been specified but OpenShift has not been detected!");
   }
 
   @Test
-  public void build_withImageBuildConfigurationSkipEnabled_shouldNotBuildImage() throws JKubeServiceException, IOException {
+  void build_withImageBuildConfigurationSkipEnabled_shouldNotBuildImage() throws JKubeServiceException, IOException {
     // Given
     ArchiveService mockedArchiveService = mock(ArchiveService.class, RETURNS_DEEP_STUBS);
     when(jKubeServiceHub.getDockerServiceHub().getArchiveService()).thenReturn(mockedArchiveService);
@@ -125,7 +124,7 @@ public class OpenShiftBuildServiceTest {
   }
 
   @Test
-  public void getApplicableImageConfiguration_withRegistryInImageConfigurationAndDockerImageBuildOutput_shouldAppendRegistryToImageName() {
+  void getApplicableImageConfiguration_withRegistryInImageConfigurationAndDockerImageBuildOutput_shouldAppendRegistryToImageName() {
     // Given
     when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(BuildServiceConfig.builder()
             .buildOutputKind("DockerImage")
@@ -141,7 +140,7 @@ public class OpenShiftBuildServiceTest {
   }
 
   @Test
-  public void getApplicableImageConfiguration_withRegistryInImageConfiguration_shouldNotAppendRegistryToImageName() {
+  void getApplicableImageConfiguration_withRegistryInImageConfiguration_shouldNotAppendRegistryToImageName() {
     // Given
     when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(BuildServiceConfig.builder()
         .buildOutputKind("ImageStreamTag")
