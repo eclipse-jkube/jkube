@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 import java.util.List;
 import java.util.Properties;
