@@ -36,9 +36,9 @@ import java.util.Objects;
 
 public class ImageChangeTriggerEnricher extends BaseEnricher {
     private static final String ENRICHER_NAME = "jkube-openshift-imageChangeTrigger";
-    private Boolean enableAutomaticTrigger;
-    private Boolean enableImageChangeTrigger;
-    private Boolean trimImageInContainerSpecFlag;
+    private final Boolean enableAutomaticTrigger;
+    private final Boolean enableImageChangeTrigger;
+    private final Boolean trimImageInContainerSpecFlag;
 
 
     @AllArgsConstructor
