@@ -28,9 +28,9 @@ import org.eclipse.jkube.kit.common.util.FileUtil;
 public class JKubeBuildTarArchiver {
 
     public static final String ARCHIVE_FILE_NAME = "docker-build.";
-    private Map<File, String> filesToIncludeNameMap = new HashMap<>();
-    private Map<File, String> fileModeMap = new HashMap<>();
-    private List<String> filesNamesToExclude = new ArrayList<>();
+    private final Map<File, String> filesToIncludeNameMap = new HashMap<>();
+    private final Map<File, String> fileModeMap = new HashMap<>();
+    private final List<String> filesNamesToExclude = new ArrayList<>();
 
     public void includeFile(File inputFile, String destinationFileName) {
         filesToIncludeNameMap.put(inputFile, destinationFileName);
