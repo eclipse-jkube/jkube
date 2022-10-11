@@ -69,22 +69,22 @@ public class DockerFileBuilder {
     // List of files to add. Source and destination follow except that destination
     // in interpreted as a relative path to the exportDir
     // See also http://docs.docker.io/reference/builder/#copy
-    private List<CopyEntry> copyEntries = new ArrayList<>();
+    private final List<CopyEntry> copyEntries = new ArrayList<>();
 
     // list of ports to expose and environments to use
-    private List<String> ports = new ArrayList<>();
+    private final List<String> ports = new ArrayList<>();
 
     // list of RUN Commands to run along with image build see issue #191 on github
-    private List<String> runCmds = new ArrayList<>();
+    private final List<String> runCmds = new ArrayList<>();
 
     // environment
-    private Map<String,String> envEntries = new LinkedHashMap<>();
+    private final Map<String,String> envEntries = new LinkedHashMap<>();
 
     // image labels
-    private Map<String, String> labels = new LinkedHashMap<>();
+    private final Map<String, String> labels = new LinkedHashMap<>();
 
     // exposed volumes
-    private List<String> volumes = new ArrayList<>();
+    private final List<String> volumes = new ArrayList<>();
 
     // whether the Dockerfile should be optimised. i.e. compressing run statements into a single statement
     private boolean shouldOptimise = false;
