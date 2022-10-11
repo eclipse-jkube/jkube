@@ -50,6 +50,7 @@ public class RemoteDevelopmentService {
   private SshClient sshClient;
   private KubernetesSshServiceForwarder kubernetesSshServiceForwarder;
   private PortForwarder portForwarder;
+  private LocalServiceManager localServiceManager;
 
   public RemoteDevelopmentService(JKubeServiceHub jKubeServiceHub,
     RemoteDevelopmentConfig remoteDevelopmentConfig // Should be provided by JKubeServiceHub
@@ -68,17 +69,21 @@ public class RemoteDevelopmentService {
     kubernetesSshServiceForwarder = new KubernetesSshServiceForwarder(
       jKubeServiceHub, remoteDevelopmentConfig, sshService);
     portForwarder = new PortForwarder(jKubeServiceHub, sshClient, remoteDevelopmentConfig);
+    localServiceManager = new LocalServiceManager(jKubeServiceHub, remoteDevelopmentConfig);
     executorService = Executors.newFixedThreadPool(2);
     executorService.submit(kubernetesSshServiceForwarder);
     executorService.submit(portForwarder);
   }
 
   public void stop() {
+    jKubeServiceHub.getLog().info("Stopping remote development service...");
+    localServiceManager.tearDownServices();
     portForwarder.stop();
     kubernetesSshServiceForwarder.stop();
     executorService.shutdownNow();
     sshClient.stop();
     jKubeServiceHub.getClient().resource(sshService).delete();
+    jKubeServiceHub.getLog().info("Remote development service stopped");
   }
 
   private void checkEnvironment() {

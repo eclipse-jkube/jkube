@@ -21,6 +21,11 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +38,8 @@ import static org.assertj.core.api.Assertions.entry;
 @EnableKubernetesMockClient(crud = true)
 class LocalServiceManagerTest {
 
+
+  private static JKubeServiceHub jKubeServiceHub;
   @SuppressWarnings("unused")
   private KubernetesMockServer mockServer;
   @SuppressWarnings("unused")
@@ -41,6 +48,18 @@ class LocalServiceManagerTest {
   @BeforeEach
   void setUp() {
     mockServer.reset();
+    jKubeServiceHub = JKubeServiceHub.builder()
+      .platformMode(RuntimeMode.KUBERNETES)
+      .log(new KitLogger.StdoutLogger())
+      .configuration(JKubeConfiguration.builder().build())
+      .clusterAccess(new ClusterAccess(null, null) {
+        @SuppressWarnings("unchecked")
+        @Override
+        public KubernetesClient createDefaultClient() {
+          return kubernetesClient;
+        }
+      })
+      .build();
   }
 
   @Test
@@ -50,7 +69,7 @@ class LocalServiceManagerTest {
       .localService(LocalService.builder().serviceName("service").type("NodePort").port(1337).build())
       .build();
     // When
-    new LocalServiceManager(config, kubernetesClient).createOrReplaceServices();
+    new LocalServiceManager(jKubeServiceHub, config).createOrReplaceServices();
     // Then
     assertThat(kubernetesClient.services().withName("service").get())
       .hasFieldOrPropertyWithValue("metadata.name", "service")
@@ -73,7 +92,7 @@ class LocalServiceManagerTest {
       .localService(LocalService.builder().serviceName("service").port(1337).build())
       .build();
     // When
-    new LocalServiceManager(config, kubernetesClient).createOrReplaceServices();
+    new LocalServiceManager(jKubeServiceHub, config).createOrReplaceServices();
     // Then
     assertThat(kubernetesClient.services().withName("service").get())
       .hasFieldOrPropertyWithValue("metadata.name", "service")
@@ -97,7 +116,7 @@ class LocalServiceManagerTest {
       .localService(LocalService.builder().serviceName("service").port(1337).build())
       .build();
     // When
-    new LocalServiceManager(config, kubernetesClient).tearDownServices();
+    new LocalServiceManager(jKubeServiceHub, config).tearDownServices();
     // Then
     assertThat(kubernetesClient.services().withName("service")
       .waitUntilCondition(Objects::isNull, 1, TimeUnit.SECONDS))
@@ -121,7 +140,7 @@ class LocalServiceManagerTest {
       .localService(LocalService.builder().serviceName("service").port(1337).build())
       .build();
     // When
-    new LocalServiceManager(config, kubernetesClient).tearDownServices();
+    new LocalServiceManager(jKubeServiceHub, config).tearDownServices();
     // Then
     assertThat(kubernetesClient.services().withName("service").get())
       .extracting("spec.selector")
