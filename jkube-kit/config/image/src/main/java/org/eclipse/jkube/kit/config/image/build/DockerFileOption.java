@@ -23,7 +23,7 @@ public enum DockerFileOption
     HEALTHCHECK_START_PERIOD("start-period"),
     HEALTHCHECK_RETRIES("retries");
 
-    private String key;
+    private final String key;
 
     DockerFileOption(String key) {
         this.key = key;
