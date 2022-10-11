@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.api.auth.handler;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Base64;
 
@@ -24,23 +23,22 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
-import static org.mockito.Mockito.mock;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author roland
  */
-public class SystemPropertyRegistryAuthHandlerTest {
+class SystemPropertyRegistryAuthHandlerTest {
 
-  KitLogger log;
+  private KitLogger log;
+  private SystemPropertyRegistryAuthHandler handler;
 
-  SystemPropertyRegistryAuthHandler handler;
-
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     log = new KitLogger.SilentLogger();
     RegistryAuthConfig registryAuthConfig = RegistryAuthConfig.builder()
         .skipExtendedAuthentication(false)
@@ -50,7 +48,7 @@ public class SystemPropertyRegistryAuthHandlerTest {
   }
 
   @Test
-  public void testEmpty() throws Exception {
+  void empty() throws Exception {
     String userHome = System.getProperty("user.home");
     try {
       File tempDir = Files.createTempDirectory("d-m-p").toFile();
@@ -62,7 +60,7 @@ public class SystemPropertyRegistryAuthHandlerTest {
   }
 
   @Test
-  public void testSystemProperty() throws Exception {
+  void systemProperty() {
     System.setProperty("jkube.docker.push.username", "roland");
     System.setProperty("jkube.docker.push.password", "secret");
     System.setProperty("jkube.docker.push.email", "roland@jolokia.org");
@@ -77,13 +75,13 @@ public class SystemPropertyRegistryAuthHandlerTest {
   }
 
   @Test
-  public void testSystemPropertyNoPassword() throws IOException {
-    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-        () -> checkException("jkube.docker.username"));
-    assertThat(exception).hasMessageContaining("No password provided for username secret");
+  void systemPropertyNoPassword() {
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> checkException("jkube.docker.username"))
+        .withMessageContaining("No password provided for username secret");
   }
 
-  private void checkException(String key) throws IOException {
+  private void checkException(String key) {
     System.setProperty(key, "secret");
     try {
       handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s);
@@ -95,8 +93,9 @@ public class SystemPropertyRegistryAuthHandlerTest {
   private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
     JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())),
         JsonObject.class);
-    assertThat(params.get("username").getAsString()).isEqualTo(username);
-    assertThat(params.get("password").getAsString()).isEqualTo(password);
+    assertThat(params)
+        .returns(username, j -> j.get("username").getAsString())
+        .returns(password, j -> j.get("password").getAsString());
     if (email != null) {
       assertThat(params.get("email").getAsString()).isEqualTo(email);
     }

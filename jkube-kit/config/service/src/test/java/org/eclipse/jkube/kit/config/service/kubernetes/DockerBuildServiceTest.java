@@ -22,39 +22,35 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Answers;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
-public class DockerBuildServiceTest {
+class DockerBuildServiceTest {
 
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private JKubeServiceHub mockedJKubeServiceHub;
 
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private BuildService mockedDockerBuildService;
 
   private ImageConfiguration image;
 
   private ImageConfiguration imageWithSkipEnabled;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
+    mockedJKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
+    mockedDockerBuildService = mock(BuildService.class, RETURNS_DEEP_STUBS);
     when(mockedJKubeServiceHub.getDockerServiceHub().getBuildService()).thenReturn(mockedDockerBuildService);
     image = ImageConfiguration.builder()
         .name("image-name")
@@ -71,7 +67,7 @@ public class DockerBuildServiceTest {
   }
 
   @Test
-  public void build_withInvalidConfiguration_shouldNotBuildAndTag() throws Exception {
+  void build_withInvalidConfiguration_shouldNotBuildAndTag() throws Exception {
     // When
     image.setBuild(null);
     new DockerBuildService(mockedJKubeServiceHub).build(image);
@@ -83,7 +79,7 @@ public class DockerBuildServiceTest {
   }
 
   @Test
-  public void build_withValidConfiguration_shouldBuildAndTag() throws Exception {
+  void build_withValidConfiguration_shouldBuildAndTag() throws Exception {
     // When
     new DockerBuildService(mockedJKubeServiceHub).build(image);
     // Then
@@ -94,7 +90,7 @@ public class DockerBuildServiceTest {
   }
 
   @Test
-  public void build_withValidConfiguration_shouldCallPluginServiceAddFiles() throws Exception {
+  void build_withValidConfiguration_shouldCallPluginServiceAddFiles() throws Exception {
     // When
     new DockerBuildService(mockedJKubeServiceHub).build(image);
     // Then
@@ -103,7 +99,7 @@ public class DockerBuildServiceTest {
   }
 
   @Test
-  public void build_withImageBuildConfigurationSkipEnabled_shouldNotBuildAndTag() throws Exception {
+  void build_withImageBuildConfigurationSkipEnabled_shouldNotBuildAndTag() throws Exception {
     // When
     new DockerBuildService(mockedJKubeServiceHub).build(imageWithSkipEnabled);
     // Then
@@ -114,18 +110,17 @@ public class DockerBuildServiceTest {
   }
 
   @Test
-  public void build_withFailure_shouldThrowException() throws Exception {
+  void build_withFailure_shouldThrowException() throws Exception {
     // Given
     doThrow(new IOException("Mock IO error")).when(mockedDockerBuildService).buildImage(eq(image), any(), any());
-    // When
-    final JKubeServiceException result = assertThrows(JKubeServiceException.class, () ->
-        new DockerBuildService(mockedJKubeServiceHub).build(image));
-    // Then
-    assertThat(result).hasMessage("Error while trying to build the image: Mock IO error");
+    // When + Then
+    assertThatExceptionOfType(JKubeServiceException.class)
+        .isThrownBy(() -> new DockerBuildService(mockedJKubeServiceHub).build(image))
+        .withMessage("Error while trying to build the image: Mock IO error");
   }
 
   @Test
-  public void push_withDefaults_shouldPush() throws Exception {
+  void push_withDefaults_shouldPush() throws Exception {
     // When
     new DockerBuildService(mockedJKubeServiceHub).push(Collections.emptyList(), 0, null, false);
     // Then
@@ -134,7 +129,7 @@ public class DockerBuildServiceTest {
   }
 
   @Test
-  public void push_withImageBuildConfigurationSkipEnabled_shouldNotPush() throws Exception {
+  void push_withImageBuildConfigurationSkipEnabled_shouldNotPush() throws Exception {
     // When
     new DockerBuildService(mockedJKubeServiceHub).build(imageWithSkipEnabled);
     // Then

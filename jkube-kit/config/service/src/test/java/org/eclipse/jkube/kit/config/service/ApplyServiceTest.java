@@ -31,7 +31,9 @@ import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
-import io.fabric8.openshift.client.server.mock.OpenShiftServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 
@@ -51,36 +53,34 @@ import io.fabric8.openshift.api.model.ProjectBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApplyServiceTest {
+@EnableKubernetesMockClient
+class ApplyServiceTest {
 
     @Mocked
     private KitLogger log;
 
-    @Rule
-    public final OpenShiftServer mockServer = new OpenShiftServer(false);
+    KubernetesMockServer mockServer;
+    OpenShiftClient client;
 
     private ApplyService applyService;
 
-    @Before
-    public void setUp() {
-        applyService = new ApplyService(mockServer.getOpenshiftClient(), log);
+    @BeforeEach
+    void setUp() {
+        applyService = new ApplyService(client, log);
         applyService.setNamespace("default");
     }
 
     @Test
-    public void testApplyEntities() throws Exception {
+    void applyEntities() {
         // Given
         final Set<HasMetadata> entities = new LinkedHashSet<>(Arrays.asList(
             new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build(),
@@ -136,7 +136,7 @@ public class ApplyServiceTest {
     }
 
     @Test
-    public void testCreateRoute() {
+    void createRoute() {
         Route route = buildRoute();
 
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -155,7 +155,7 @@ public class ApplyServiceTest {
     }
 
     @Test
-    public void testUpdateRoute() {
+    void updateRoute() {
         Route oldRoute = buildRoute();
         Route newRoute = new RouteBuilder()
                 .withNewMetadataLike(oldRoute.getMetadata())
@@ -184,7 +184,7 @@ public class ApplyServiceTest {
     }
 
     @Test
-    public void testCreateRouteInServiceOnlyMode() {
+    void createRouteInServiceOnlyMode() {
         Route route = buildRoute();
 
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -197,11 +197,11 @@ public class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsNotRecorded("get-route");
-        assertEquals(0, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isZero();
     }
 
     @Test
-    public void testCreateRouteNotAllowed() {
+    void createRouteNotAllowed() {
         Route route = buildRoute();
 
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -214,11 +214,11 @@ public class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsRecordedInOrder("get-route");
-        assertEquals(1, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isOne();
     }
 
     @Test
-    public void testApplyGenericKubernetesResource() throws Exception {
+    void applyGenericKubernetesResource() throws Exception {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
@@ -245,11 +245,11 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("get-resources", "post-cr-gateway", "get-resources", "post-cr-virtualservice");
-        assertEquals(6, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isEqualTo(6);
     }
 
     @Test
-    public void testProcessCustomEntitiesReplaceCustomResources() throws Exception {
+    void processCustomEntitiesReplaceCustomResources() throws Exception {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
@@ -289,11 +289,11 @@ public class ApplyServiceTest {
         // Then
         collector.assertEventsRecordedInOrder("get-cr-gateway", "post-cr-gateway", "put-cr-gateway",
              "get-cr-virtualservice", "post-cr-virtualservice");
-        assertEquals(7, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isEqualTo(7);
     }
 
     @Test
-    public void testProcessCustomEntitiesRecreateModeTrue() throws Exception {
+    void processCustomEntitiesRecreateModeTrue() throws Exception {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
@@ -349,12 +349,12 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder( "delete-cr-gateway", "post-cr-gateway", "delete-cr-virtualservice", "post-cr-virtualservice");
-        assertEquals(10, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isEqualTo(10);
         applyService.setRecreateMode(false);
     }
 
     @Test
-    public void testGetK8sListWithNamespaceFirstWithNamespace() {
+    void getK8sListWithNamespaceFirstWithNamespace() {
         // Given
         List<HasMetadata> k8sList = new ArrayList<>();
         k8sList.add(new PodBuilder().withNewMetadata().withNamespace("p1").endMetadata().build());
@@ -366,13 +366,14 @@ public class ApplyServiceTest {
         List<HasMetadata> result = ApplyService.getK8sListWithNamespaceFirst(k8sList);
 
         // Then
-        assertNotNull(result);
-        assertEquals(k8sList.size(), result.size());
-        assertTrue(result.get(0) instanceof Namespace);
+        assertThat(result).isNotNull()
+            .hasSameSizeAs(k8sList)
+            .first()
+            .isInstanceOf(Namespace.class);
     }
 
     @Test
-    public void testGetK8sListWithNamespaceFirstWithProject() {
+    void getK8sListWithNamespaceFirstWithProject() {
         // Given
         List<HasMetadata> k8sList = new ArrayList<>();
         k8sList.add(new PodBuilder().withNewMetadata().withNamespace("p1").endMetadata().build());
@@ -384,13 +385,14 @@ public class ApplyServiceTest {
         List<HasMetadata> result = ApplyService.getK8sListWithNamespaceFirst(k8sList);
 
         // Then
-        assertNotNull(result);
-        assertEquals(k8sList.size(), result.size());
-        assertTrue(result.get(0) instanceof Project);
+        assertThat(result).isNotNull()
+            .hasSameSizeAs(k8sList)
+            .first()
+            .isInstanceOf(Project.class);
     }
 
     @Test
-    public void testApplyToMultipleNamespaceNoNamespaceConfigured() throws InterruptedException {
+    void applyToMultipleNamespaceNoNamespaceConfigured() {
         // Given
         ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata().build();
         Ingress ingress = new IngressBuilder().withNewMetadata().withName("ing1").withNamespace("ns2").endMetadata().build();
@@ -419,13 +421,13 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("serviceaccount-default-create", "configmap-ns1-create", "ingress-ns2-create");
-        assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isEqualTo(5);
         applyService.setFallbackNamespace(null);
         applyService.setNamespace(configuredNamespace);
     }
 
     @Test
-    public void testApplyToMultipleNamespacesOverriddenWhenNamespaceConfigured() throws InterruptedException {
+    void applyToMultipleNamespacesOverriddenWhenNamespaceConfigured() {
         // Given
         ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("default").endMetadata().build();
         Ingress ingress = new IngressBuilder().withNewMetadata().withName("ing1").withNamespace("default").endMetadata().build();
@@ -451,7 +453,7 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("serviceaccount-default-ns-create", "configmap-default-ns-create", "ingress-default-ns-create");
-        assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isEqualTo(5);
         applyService.setFallbackNamespace(null);
     }
 

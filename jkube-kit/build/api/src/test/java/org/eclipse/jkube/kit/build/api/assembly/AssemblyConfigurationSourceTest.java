@@ -14,70 +14,68 @@
 package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-public class AssemblyConfigurationSourceTest {
+class AssemblyConfigurationSourceTest {
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
     private File buildDirectory;
 
     private AssemblyConfiguration assemblyConfig;
 
-    @Before
-    public void setup() throws Exception {
-        buildDirectory = temporaryFolder.newFolder("build");
+    @BeforeEach
+    void setup(@TempDir Path temporaryFolder) throws Exception {
+        buildDirectory = Files.createDirectory(temporaryFolder.resolve("build")).toFile();
         // set 'ignorePermissions' to something other than default
         this.assemblyConfig = AssemblyConfiguration.builder()
-                .permissionsString("keep")
-                .build();
+            .permissionsString("keep")
+            .build();
     }
 
     @Test
-    public void permissionMode() {
-        try {
-            AssemblyConfiguration.builder().permissionsString("blub").build();
-        } catch (IllegalArgumentException exp) {
-            assertTrue(exp.getMessage().contains("blub"));
-        }
-
-        AssemblyConfiguration config = AssemblyConfiguration.builder().permissionsString("ignore").build();
-        assertSame(AssemblyConfiguration.PermissionMode.ignore, config.getPermissions());
+    void permissionMode_invalid() {
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> AssemblyConfiguration.builder().permissionsString("blub").build())
+          .withMessageContaining("blub");
     }
 
     @Test
-    public void testCreateSourceAbsolute() {
+    void permissionsMode_ignore() {
+      AssemblyConfiguration config = AssemblyConfiguration.builder().permissionsString("ignore").build();
+      assertThat(config.getPermissions()).isSameAs(AssemblyConfiguration.PermissionMode.ignore);
+    }
+
+    @Test
+    void testCreateSourceAbsolute() {
         testCreateSource(buildBuildContext("/src/docker".replace("/", File.separator), "/output/docker".replace("/", File.separator)));
     }
 
     @Test
-    public void testCreateSourceRelative() {
+    void testCreateSourceRelative() {
         testCreateSource(buildBuildContext("src/docker".replace("/", File.separator), "output/docker".replace("/", File.separator)));
     }
 
     @Test
-    public void testOutputDirHasImage() {
+    void testOutputDirHasImage() {
         String image = "image";
         JKubeConfiguration context = buildBuildContext("src/docker", "output/docker");
         AssemblyConfigurationSource source = new AssemblyConfigurationSource(context,
                 new BuildDirs(image, context), assemblyConfig);
 
-        assertTrue(containsDir(image, source.getOutputDirectory()));
-        assertTrue(containsDir(image, source.getWorkingDirectory()));
-        assertTrue(containsDir(image, source.getTemporaryRootDirectory()));
+        assertThat(containsDir(image, source.getOutputDirectory())).isTrue();
+        assertThat(containsDir(image, source.getWorkingDirectory())).isTrue();
+        assertThat(containsDir(image, source.getTemporaryRootDirectory())).isTrue();
     }
 
     private JKubeConfiguration buildBuildContext(String sourceDir, String outputDir) {
@@ -92,7 +90,7 @@ public class AssemblyConfigurationSourceTest {
         AssemblyConfigurationSource source =
                 new AssemblyConfigurationSource(context, new BuildDirs("image", context), assemblyConfig);
 
-        assertFalse("we must not ignore permissions when creating the archive", source.isIgnorePermissions());
+        assertThat(source.isIgnorePermissions()).isFalse();
 
         String outputDir = context.getOutputDirectory();
 
@@ -108,11 +106,11 @@ public class AssemblyConfigurationSourceTest {
     private void assertStartsWithDir(String outputDir, File path) {
         String expectedStartsWith = outputDir + File.separator;
         int length = expectedStartsWith.length();
-        assertEquals(expectedStartsWith, path.toString().substring(0, length));
+        assertThat(path.toString().substring(0, length)).isEqualTo(expectedStartsWith);
     }
 
     @Test
-    public void testReactorProjects() {
+    void testReactorProjects() {
 
         JavaProject project1 = JavaProject.builder().build();
         JavaProject project2 = JavaProject.builder().build();
@@ -123,7 +121,7 @@ public class AssemblyConfigurationSourceTest {
                 .reactorProjects(Arrays.asList(project1, project2))
                 .build();
         AssemblyConfigurationSource source = new AssemblyConfigurationSource(buildContext,null,null);
-        assertEquals(2, source.getReactorProjects().size());
+        assertThat(source.getReactorProjects()).hasSize(2);
     }
 }
 

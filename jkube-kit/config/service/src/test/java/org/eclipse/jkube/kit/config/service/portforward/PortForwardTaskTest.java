@@ -22,10 +22,10 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class PortForwardTaskTest {
+class PortForwardTaskTest {
   @Mocked
   private NamespacedKubernetesClient kubernetesClient;
   @Mocked
@@ -35,14 +35,14 @@ public class PortForwardTaskTest {
 
   private PortForwardTask portForwardTask;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     portForwardTask = new PortForwardTask(
         kubernetesClient, "pod-name", localPortForward, logger);
   }
 
   @Test
-  public void run(@Mocked CountDownLatch cdl) throws Exception {
+  void run(@Mocked CountDownLatch cdl) throws Exception {
     // When
     portForwardTask.run();
     // Then
@@ -55,7 +55,7 @@ public class PortForwardTaskTest {
   }
 
   @Test
-  public void close() throws IOException {
+  void close() throws IOException {
     // When
     portForwardTask.close();
     // Then

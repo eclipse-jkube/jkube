@@ -16,14 +16,14 @@ package org.eclipse.jkube.kit.config.service;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class PortForwardServicePortOrderTest {
+class PortForwardServicePortOrderTest {
     @Mocked
     private NamespacedKubernetesClient kubernetesClient;
 
     @Test
-    public void testPortsSpecifiedInCorrectOrderPortForward() {
+    void portsSpecifiedInCorrectOrderPortForward() {
         // When
         PortForwardService.forwardPortAsync(kubernetesClient, "foo-pod", 8080, 312323);
 
