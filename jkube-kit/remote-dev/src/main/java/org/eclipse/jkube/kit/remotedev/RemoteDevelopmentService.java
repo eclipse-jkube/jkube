@@ -20,10 +20,17 @@ import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.keyverifier.AcceptAllServerKeyVerifier;
+import org.apache.sshd.common.keyprovider.KeyIdentityProvider;
 import org.apache.sshd.server.forward.AcceptAllForwardingFilter;
+import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -38,6 +45,8 @@ public class RemoteDevelopmentService {
   private final RemoteDevelopmentConfig remoteDevelopmentConfig;
   private Pod sshService;
   private ExecutorService executorService;
+  private KeyPair clientKeys;
+  private String clientKeysPublic;
   private SshClient sshClient;
   private KubernetesSshServiceForwarder kubernetesSshServiceForwarder;
   private PortForwarder portForwarder;
@@ -51,9 +60,8 @@ public class RemoteDevelopmentService {
 
   public void start() {
     Objects.requireNonNull(remoteDevelopmentConfig, "remoteDevelopmentConfig is required");
-    Objects.requireNonNull(remoteDevelopmentConfig.getUser(), "user is required");
-    Objects.requireNonNull(remoteDevelopmentConfig.getPassword(), "password is required");
     Objects.requireNonNull(remoteDevelopmentConfig.getSshPort(), "localService is required");
+    initClientKeys();
     checkEnvironment();
     sshService = deploySshServerPod();
     startSshClient();
@@ -75,7 +83,7 @@ public class RemoteDevelopmentService {
 
   private void checkEnvironment() {
     for (RemotePort port : remoteDevelopmentConfig.getRemotePorts()) {
-      try (ServerSocket socket = new ServerSocket(port.getPort())) {
+      try (ServerSocket ignore = new ServerSocket(port.getPort())) {
         jKubeServiceHub.getLog().debug("Local port '%s' for remote service '%s' is available",
           port.getPort(), port.getHostname());
       } catch (Exception e) {
@@ -96,16 +104,8 @@ public class RemoteDevelopmentService {
       .withNewSpec()
       .addNewContainer()
       .withName("openssh-server")
-      .addToEnv(new EnvVarBuilder().withName("DOCKER_MODS")
-        .withValue("linuxserver/mods:openssh-server-ssh-tunnel").build())
-      .addToEnv(new EnvVarBuilder().withName("PUID").withValue("1000").build())
-      .addToEnv(new EnvVarBuilder().withName("PGID").withValue("1000").build())
-      .addToEnv(new EnvVarBuilder().withName("PASSWORD_ACCESS").withValue("true").build())
-      .addToEnv(new EnvVarBuilder().withName("USER_NAME")
-        .withValue(remoteDevelopmentConfig.getUser()).build())
-      .addToEnv(new EnvVarBuilder().withName("USER_PASSWORD")
-        .withValue(remoteDevelopmentConfig.getPassword()).build())
-      .withImage("linuxserver/openssh-server:latest")
+      .addToEnv(new EnvVarBuilder().withName("PUBLIC_KEY").withValue(clientKeysPublic).build())
+      .withImage("marcnuri/openssh-server:latest")
       .addNewPort().withContainerPort(CONTAINER_SSH_PORT).withProtocol("TCP").endPort()
       .endContainer()
       .endSpec();
@@ -123,7 +123,31 @@ public class RemoteDevelopmentService {
     sshClient = SshClient.setUpDefaultClient();
     sshClient.setForwardingFilter(AcceptAllForwardingFilter.INSTANCE);
     sshClient.setServerKeyVerifier(AcceptAllServerKeyVerifier.INSTANCE);
+    sshClient.setKeyIdentityProvider(KeyIdentityProvider.wrapKeyPairs(clientKeys));
     sshClient.start();
   }
 
+  private void initClientKeys() {
+    final KeyPairGenerator kgp;
+    try (
+      ByteArrayOutputStream byteOs = new ByteArrayOutputStream();
+      DataOutputStream dos = new DataOutputStream(byteOs)
+    ) {
+      kgp = KeyPairGenerator.getInstance("RSA");
+      kgp.initialize(2048);
+      clientKeys = kgp.generateKeyPair();
+      final RSAPublicKey rsaPublicKey = (RSAPublicKey) clientKeys.getPublic();
+      dos.writeInt("ssh-rsa".getBytes().length);
+      dos.write("ssh-rsa".getBytes());
+      dos.writeInt(rsaPublicKey.getPublicExponent().toByteArray().length);
+      dos.write(rsaPublicKey.getPublicExponent().toByteArray());
+      dos.writeInt(rsaPublicKey.getModulus().toByteArray().length);
+      dos.write(rsaPublicKey.getModulus().toByteArray());
+      clientKeysPublic = "ssh-rsa " +
+        Base64Util.encodeToString(byteOs.toByteArray()) +
+        " jkube@localhost";
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }
