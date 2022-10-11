@@ -31,7 +31,7 @@ public class ConfigMap {
 
     /**
      * Set the name of ConfigMap.
-     * @param name
+     * @param name the ConfigMap name
      */
     public void setName(String name) {
         this.name = name;
