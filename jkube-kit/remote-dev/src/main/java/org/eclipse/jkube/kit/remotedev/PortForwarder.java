@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.remotedev;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.session.ClientSession;
 import org.apache.sshd.common.util.net.SshdSocketAddress;
@@ -30,19 +29,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class PortForwarder implements Callable<Void> {
 
   private final KitLogger logger;
-  private final KubernetesClient kubernetesClient;
   private final SshClient sshClient;
   private final RemoteDevelopmentConfig remoteDevelopmentConfig;
-  private final LocalServiceManager localServiceManager;
   private final AtomicBoolean stop;
 
   PortForwarder(
     JKubeServiceHub jKubeServiceHub, SshClient sshClient, RemoteDevelopmentConfig remoteDevelopmentConfig) {
     this.logger = jKubeServiceHub.getLog();
-    this.kubernetesClient = jKubeServiceHub.getClient();
     this.sshClient = sshClient;
     this.remoteDevelopmentConfig = remoteDevelopmentConfig;
-    this.localServiceManager = new LocalServiceManager(remoteDevelopmentConfig, kubernetesClient);
     stop = new AtomicBoolean(false);
   }
 
@@ -66,7 +61,6 @@ class PortForwarder implements Callable<Void> {
           logger.info("Local port '%s' is now available at Kubernetes %s:%s",
             localService.getPort(), localService.getServiceName(), localService.getPort());
         }
-        localServiceManager.createOrReplaceServices();
         session.waitFor(
           Arrays.asList(ClientSession.ClientSessionEvent.CLOSED, ClientSession.ClientSessionEvent.TIMEOUT),
           Duration.ofHours(1));
@@ -74,7 +68,6 @@ class PortForwarder implements Callable<Void> {
         logger.warn("SSH session disconnected, retrying in 5 seconds: %s", ex.getMessage());
       }
       if (stop.get()) {
-        cleanKubernetesServices();
         return null;
       }
       TimeUnit.SECONDS.sleep(5);
@@ -85,17 +78,13 @@ class PortForwarder implements Callable<Void> {
     stop.set(true);
   }
 
-
-  private void cleanKubernetesServices() {
-    localServiceManager.tearDownServices();
-  }
-
   private void waitForUser() throws InterruptedException {
     logger.debug("Waiting for remote container to log current user");
     while (remoteDevelopmentConfig.getUser() == null) {
       TimeUnit.SECONDS.sleep(1);
     }
   }
+
   private ClientSession createSession() throws IOException {
     return sshClient
       .connect(remoteDevelopmentConfig.getUser(), "localhost", remoteDevelopmentConfig.getSshPort())

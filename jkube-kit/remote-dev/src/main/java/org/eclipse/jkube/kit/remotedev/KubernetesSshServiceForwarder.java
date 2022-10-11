@@ -48,15 +48,11 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
   public Void call() throws UnknownHostException, InterruptedException {
     logger.info("Waiting for Pod [%s] to be ready...", sshService.getMetadata().getName());
     kubernetesClient.pods().resource(sshService).waitUntilReady(10, TimeUnit.SECONDS);
-    int retry = 0;
-    String log;
-    while (!(log = kubernetesClient.pods().resource(sshService).getLog()).contains("Current container user is:") && retry < 10) {
-      TimeUnit.SECONDS.sleep(1);
-    }
+    logger.info("Pod [%s] is ready", sshService.getMetadata().getName());
+    final String user = waitForUser();
+    remoteDevelopmentConfig.setUser(user);
     final InetAddress allInterfaces = InetAddress.getByName("0.0.0.0");
     while (true) {
-      int i = log.indexOf("Current container user is:");
-      remoteDevelopmentConfig.setUser(log.substring(i + 26, log.indexOf("\n") + i).trim());
       logger.info("Opening an SSH connection to: %s%n", sshService.getMetadata().getName());
       final LocalPortForward localPortForward = kubernetesClient.pods().resource(sshService)
         .portForward(CONTAINER_SSH_PORT, allInterfaces, remoteDevelopmentConfig.getSshPort());
@@ -80,8 +76,21 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
       }
     }
   }
-
-  void stop() {
+  final void stop() {
     stop.set(true);
+  }
+
+  private String waitForUser() throws InterruptedException {
+    logger.debug("Waiting for Pod to log current user");
+    int retry = 0;
+    String log;
+    while (!(log = kubernetesClient.pods().resource(sshService).getLog()).contains("Current container user is:")) {
+      if (retry++ > 60) {
+        throw new IllegalStateException("Unable to retrieve current user from Pod");
+      }
+      TimeUnit.SECONDS.sleep(1);
+    }
+    int i = log.indexOf("Current container user is:");
+    return log.substring(i + 26, log.indexOf("\n") + i).trim();
   }
 }
