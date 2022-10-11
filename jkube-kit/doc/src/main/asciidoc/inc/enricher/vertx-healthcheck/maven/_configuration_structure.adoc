@@ -1,0 +1,17 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+    <config>
+        <jkube-healthcheck-vertx>
+            <!-- Generic configuration, applied to both liveness and readiness -->
+            <path>/both</path>
+            <liveness>
+                <!-- Specific configuration for the liveness probe -->
+                <port-name>ping</port-name>
+            </liveness>
+            <readiness>
+                <!-- Specific configuration for the readiness probe -->
+                <port-name>ready</port-name>
+            </readiness>
+        </jkube-healthcheck-vertx>
+    </config>
+----

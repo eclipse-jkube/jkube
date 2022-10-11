@@ -15,8 +15,12 @@ package org.eclipse.jkube.kit.config.service.openshift;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
+import io.fabric8.openshift.api.model.ImageStreamTag;
+import io.fabric8.openshift.api.model.ImageStreamTagBuilder;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -34,20 +38,23 @@ import io.fabric8.openshift.api.model.BuildConfigSpec;
 import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
 import io.fabric8.openshift.api.model.BuildOutput;
 import io.fabric8.openshift.api.model.BuildStrategy;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.computeS2IBuildName;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createAdditionalTagsIfPresent;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildArchive;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildOutput;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildStrategy;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.getAdditionalTagsToCreate;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.getBuildConfigSpec;
-import static org.junit.Assert.assertThrows;
+import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.DOCKER_IMAGE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -55,19 +62,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenShiftBuildServiceUtilsTest {
+class OpenShiftBuildServiceUtilsTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  File temporaryFolder;
 
   private JKubeServiceHub jKubeServiceHub;
   private ImageConfiguration imageConfiguration;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     when(jKubeServiceHub.getBuildServiceConfig().getBuildDirectory())
-        .thenReturn(temporaryFolder.getRoot().getAbsolutePath());
+        .thenReturn(temporaryFolder.getAbsolutePath());
     imageConfiguration = ImageConfiguration.builder()
         .name("myapp")
         .build(BuildConfiguration.builder()
@@ -77,26 +84,27 @@ public class OpenShiftBuildServiceUtilsTest {
         ).build();
   }
 
-  @After
-  public void tearDown() throws Exception {
+  @AfterEach
+  void tearDown() {
     jKubeServiceHub = null;
   }
 
   @Test
-  public void createBuildArchive_withIOExceptionOnCreateDockerBuildArchive_shouldThrowException() throws Exception {
+  void createBuildArchive_withIOExceptionOnCreateDockerBuildArchive_shouldThrowException() throws Exception {
     // Given
     when(jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
         any(ImageConfiguration.class), any(JKubeConfiguration.class), any(ArchiverCustomizer.class)))
         .thenThrow(new IOException("Mocked Exception"));
-    // When
-    final JKubeServiceException result = assertThrows(JKubeServiceException.class, () ->
-        createBuildArchive(jKubeServiceHub, imageConfiguration));
-    // Then
-    assertThat(result).hasMessage("Unable to create the build archive").getCause().hasMessage("Mocked Exception");
+    // When + Then
+    assertThatExceptionOfType(JKubeServiceException.class)
+        .isThrownBy(() -> createBuildArchive(jKubeServiceHub, imageConfiguration))
+        .withMessage("Unable to create the build archive")
+        .havingCause()
+        .withMessage("Mocked Exception");
   }
 
   @Test
-  public void computeS2IBuildName_withImageNameAndEmptyBuildServiceConfig_shouldReturnName() {
+  void computeS2IBuildName_withImageNameAndEmptyBuildServiceConfig_shouldReturnName() {
     // Given
     final ImageName imageName = new ImageName("registry/name:tag");
     // When
@@ -106,11 +114,11 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void computeS2IBuildName_withImageNameAndBuildServiceWithS2I_shouldReturnNameWithDefaultSuffix() {
+  void computeS2IBuildName_withImageNameAndBuildServiceWithS2I_shouldReturnNameWithDefaultSuffix() {
     // Given
     final BuildServiceConfig buildServiceConfig = BuildServiceConfig.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.s2i)
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
+        .buildDirectory(temporaryFolder.getAbsolutePath())
         .build();
     final ImageName imageName = new ImageName("registry/name:tag");
     // When
@@ -120,12 +128,12 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void computeS2IBuildName_withImageNameAndBuildServiceWithCustomSuffix_shouldReturnNameWithCustomSuffix() {
+  void computeS2IBuildName_withImageNameAndBuildServiceWithCustomSuffix_shouldReturnNameWithCustomSuffix() {
     // Given
     final BuildServiceConfig buildServiceConfig = BuildServiceConfig.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.s2i)
         .s2iBuildNameSuffix("-custom")
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
+        .buildDirectory(temporaryFolder.getAbsolutePath())
         .build();
     final ImageName imageName = new ImageName("registry/name:tag");
     // When
@@ -135,18 +143,17 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void createBuildStrategy_withJibBuildStrategy_shouldThrowException() {
+  void createBuildStrategy_withJibBuildStrategy_shouldThrowException() {
     // Given
     when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.jib);
-    // When
-    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
-        createBuildStrategy(jKubeServiceHub, imageConfiguration, null));
-    // Then
-    assertThat(result).hasMessageContaining("Unsupported BuildStrategy jib");
+    // When + Then
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> createBuildStrategy(jKubeServiceHub, imageConfiguration, null))
+        .withMessageContaining("Unsupported BuildStrategy jib");
   }
 
   @Test
-  public void createBuildStrategy_withS2iBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
+  void createBuildStrategy_withS2iBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
     // Given
     when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     // When
@@ -160,7 +167,7 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void createBuildStrategy_withS2iBuildStrategyAndPullSecret_shouldReturnValidBuildStrategy() {
+  void createBuildStrategy_withS2iBuildStrategyAndPullSecret_shouldReturnValidBuildStrategy() {
     // Given
     when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     // When
@@ -175,7 +182,7 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void createBuildStrategy_withDockerBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
+  void createBuildStrategy_withDockerBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
     // Given
     when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
         .thenReturn(JKubeBuildStrategy.docker);
@@ -190,7 +197,7 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void createBuildStrategy_withDockerBuildStrategyAndPullSecret_shouldReturnValidBuildStrategy() {
+  void createBuildStrategy_withDockerBuildStrategyAndPullSecret_shouldReturnValidBuildStrategy() {
     // Given
     when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
         .thenReturn(JKubeBuildStrategy.docker);
@@ -207,7 +214,7 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void createBuildOutput_withDefaults_shouldReturnImageStreamTag() {
+  void createBuildOutput_withDefaults_shouldReturnImageStreamTag() {
     // When
     final BuildOutput result = createBuildOutput(new BuildServiceConfig(), new ImageName("my-app-image"));
     // Then
@@ -218,12 +225,12 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void createBuildOutput_withOutputKindDockerAndPushSecret_shouldReturnDocker() {
+  void createBuildOutput_withOutputKindDockerAndPushSecret_shouldReturnDocker() {
     // Given
     final BuildServiceConfig buildServiceConfig = BuildServiceConfig.builder()
         .buildOutputKind("DockerImage")
         .openshiftPushSecret("my-push-secret")
-        .buildDirectory(temporaryFolder.getRoot().getAbsolutePath())
+        .buildDirectory(temporaryFolder.getAbsolutePath())
         .build();
     // When
     final BuildOutput result = createBuildOutput(buildServiceConfig, new ImageName("my-app-image"));
@@ -236,7 +243,7 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void checkTarPackage() throws Exception {
+  void checkTarPackage() throws Exception {
     final JKubeBuildTarArchiver tarArchiver = mock(JKubeBuildTarArchiver.class);
     createBuildArchive(jKubeServiceHub, imageConfiguration);
 
@@ -253,7 +260,7 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void getBuildConfigSpec_withNull_shouldReturnNew() {
+  void getBuildConfigSpec_withNull_shouldReturnNew() {
     // Given
     final BuildConfig buildConfig = new BuildConfig();
     // When
@@ -266,7 +273,7 @@ public class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  public void getBuildConfigSpec_withExistingSpec_shouldReturnExistingSpec() {
+  void getBuildConfigSpec_withExistingSpec_shouldReturnExistingSpec() {
     // Given
     final BuildConfigSpec originalSpec = new BuildConfigSpecBuilder().withRunPolicy("Serial").build();
     final BuildConfig buildConfig = new BuildConfigBuilder().withSpec(originalSpec).build();
@@ -278,5 +285,83 @@ public class OpenShiftBuildServiceUtilsTest {
         .isNotSameAs(originalSpec)
         .isSameAs(buildConfig.getSpec())
         .hasFieldOrPropertyWithValue("runPolicy", "Serial");
+  }
+
+  @Test
+  void createAdditionalTagsIfPresent_withNoAdditionalTag_shouldReturnEmptyList() {
+    // Given + When
+    List<ImageStreamTag> imageStreamTagList = createAdditionalTagsIfPresent(imageConfiguration, "ns1", null);
+
+    // Then
+    assertThat(imageStreamTagList).isEmpty();
+  }
+
+  @Test
+  void createAdditionalTagsIfPresent_withAdditionalTags_shouldReturnNonEmptyImageStreamTagList() {
+    // Given
+    ImageConfiguration imageConfigurationWithAdditionalTags = createNewImageConfigurationWithAdditionalTags();
+
+    // When
+    List<ImageStreamTag> imageStreamTagList = createAdditionalTagsIfPresent(imageConfigurationWithAdditionalTags, "ns1", new ImageStreamTagBuilder()
+        .withNewMetadata().withName("test:t1").endMetadata()
+        .withNewImage().withDockerImageReference("foo-registry.openshift.svc:5000/test/test@sha256:1234").endImage()
+        .build());
+
+    // Then
+    assertThat(imageStreamTagList)
+        .hasSize(2)
+        .containsExactlyInAnyOrder(
+            new ImageStreamTagBuilder()
+                .withNewMetadata()
+                .withName("test:t2")
+                .withNamespace("ns1")
+                .endMetadata()
+                .withNewTag()
+                .withNewFrom()
+                .withKind(DOCKER_IMAGE)
+                .withName("foo-registry.openshift.svc:5000/test/test@sha256:1234")
+                .endFrom()
+                .endTag()
+                .withGeneration(0L)
+                .build(),
+            new ImageStreamTagBuilder()
+                .withNewMetadata()
+                .withName("test:t3")
+                .withNamespace("ns1")
+                .endMetadata()
+                .withNewTag()
+                .withNewFrom()
+                .withKind(DOCKER_IMAGE)
+                .withName("foo-registry.openshift.svc:5000/test/test@sha256:1234")
+                .endFrom()
+                .endTag()
+                .withGeneration(0L)
+                .build()
+        );
+  }
+
+  @Test
+  void getAdditionalTagsToCreate_withNoAdditionalTag_shouldReturnEmptyList() {
+    // Given + When
+    List<String> additionalTags = getAdditionalTagsToCreate(imageConfiguration);
+
+    // Then
+    assertThat(additionalTags).isEmpty();
+  }
+
+  @Test
+  void getAdditionalTagsToCreate_withAdditionalTags_shouldReturnExtraTagsList() {
+    // Given + When
+    List<String> additionalTags = getAdditionalTagsToCreate(createNewImageConfigurationWithAdditionalTags());
+
+    // Then
+    assertThat(additionalTags).containsExactlyInAnyOrder("t2", "t3");
+  }
+
+  private ImageConfiguration createNewImageConfigurationWithAdditionalTags() {
+    return ImageConfiguration.builder()
+        .name("test:t1")
+        .build(BuildConfiguration.builder().tags(Arrays.asList("t2", "t3")).build())
+        .build();
   }
 }

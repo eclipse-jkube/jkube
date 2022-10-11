@@ -16,7 +16,10 @@ package org.eclipse.jkube.kit.config.service;
 import java.io.Closeable;
 import java.util.Collections;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.openshift.client.OpenShiftClient;
 import mockit.Verifications;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -27,24 +30,22 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.WatchEvent;
 import io.fabric8.kubernetes.client.LocalPortForward;
-import io.fabric8.openshift.client.OpenShiftClient;
-import io.fabric8.openshift.client.server.mock.OpenShiftServer;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class PortForwardServiceTest {
+@EnableKubernetesMockClient
+class PortForwardServiceTest {
 
-    @Rule
-    public final OpenShiftServer mockServer = new OpenShiftServer(false);
+    KubernetesMockServer mockServer;
+    OpenShiftClient openShiftClient;
 
     @SuppressWarnings("unused")
     @Mocked
     private KitLogger logger;
 
     @Test
-    public void testSimpleScenario() throws Exception {
+    void simpleScenario() throws Exception {
         // Cannot test more complex scenarios due to errors in mockwebserver
 
         Pod pod1 = new PodBuilder()
@@ -79,31 +80,27 @@ public class PortForwardServiceTest {
                 .andEmit(new WatchEvent(pod1, "MODIFIED"))
                 .done().always();
 
-        OpenShiftClient client = mockServer.getOpenshiftClient();
-        PortForwardService service = new PortForwardService(client, logger) {
-            @Override
-            public LocalPortForward forwardPortAsync(String podName, String namespace, int containerPort, int localPort) {
-                return client.pods().inNamespace(namespace).withName(podName).portForward(containerPort, localPort);
-            }
-        };
+        final NamespacedKubernetesClient client = openShiftClient
+            .adapt(NamespacedKubernetesClient.class).inNamespace("ns1");
+        PortForwardService service = new PortForwardService(logger);
 
-        try (Closeable c = service.forwardPortAsync(new LabelSelectorBuilder().withMatchLabels(Collections.singletonMap("mykey", "myvalue")).build(), "ns1", 8080, 9000)) {
+        try (Closeable c = service.forwardPortAsync(client, new LabelSelectorBuilder().withMatchLabels(Collections.singletonMap("mykey", "myvalue")).build(), 8080, 9000)) {
             Thread.sleep(3000);
         }
     }
 
     @Test
-    public void startPortForward(
-        @Mocked KubernetesClient kubernetesClient, @Mocked KitLogger logger,
+    void startPortForward(
+        @Mocked NamespacedKubernetesClient kubernetesClient, @Mocked KitLogger logger,
         @Mocked LocalPortForward lpf, @Mocked PortForwardTask pft
     ) {
         // When
-        new PortForwardService(kubernetesClient, logger)
-            .startPortForward("pod", "namespace", 5005, 1337);
+        new PortForwardService(logger)
+            .startPortForward(kubernetesClient, "pod", 5005, 1337);
         // Then
         // @formatter:off
         new Verifications() {{
-            new PortForwardTask(kubernetesClient, "pod", "namespace", lpf, logger); times = 1;
+            new PortForwardTask(kubernetesClient, "pod", lpf, logger); times = 1;
             pft.run(); times = 1;
         }};
         // @formatter:on

@@ -13,26 +13,27 @@
  */
 package org.eclipse.jkube.wildfly.jar.generator;
 
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher;
-import static org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID;
-import static org.eclipse.jkube.wildfly.jar.enricher.WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID;
 
+import static org.eclipse.jkube.wildfly.jar.WildflyJarUtils.BOOTABLE_JAR_ARTIFACT_ID;
+import static org.eclipse.jkube.wildfly.jar.WildflyJarUtils.BOOTABLE_JAR_GROUP_ID;
+
+@SuppressWarnings("unchecked")
 public class WildflyJARGenerator extends JavaExecGenerator {
     static final String JBOSS_MAVEN_DIST = "jboss-maven-dist";
     static final String JBOSS_MAVEN_REPO = "jboss-maven-repo";
@@ -56,8 +57,7 @@ public class WildflyJARGenerator extends JavaExecGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddGeneratedImageConfiguration(configs)
-                && JKubeProjectUtil.hasPlugin(getProject(),
-                        WildflyJARHealthCheckEnricher.BOOTABLE_JAR_GROUP_ID, WildflyJARHealthCheckEnricher.BOOTABLE_JAR_ARTIFACT_ID);
+                && JKubeProjectUtil.hasPlugin(getProject(), BOOTABLE_JAR_GROUP_ID, BOOTABLE_JAR_ARTIFACT_ID);
     }
 
     @Override

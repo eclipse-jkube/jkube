@@ -142,7 +142,7 @@ public class QuarkusGenerator extends JavaExecGenerator {
 
   private String getNativeFrom() {
     if (getContext().getRuntimeMode() != RuntimeMode.OPENSHIFT) {
-      return "registry.access.redhat.com/ubi8/ubi-minimal:8.1";
+      return "registry.access.redhat.com/ubi8/ubi-minimal:8.6";
     }
     return "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0";
   }

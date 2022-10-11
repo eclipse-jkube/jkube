@@ -16,7 +16,7 @@ package org.eclipse.jkube.kit.common.util;
 import java.util.Map;
 import java.util.Properties;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -24,10 +24,10 @@ import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFrom
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
 
-public class PropertiesUtilTest {
+class PropertiesUtilTest {
 
   @Test
-  public void testPropertiesParsing() {
+  void testPropertiesParsing() {
     // When
     Properties result = getPropertiesFromResource(PropertiesUtilTest.class.getResource("/util/test-application.properties"));
     // Then
@@ -42,7 +42,7 @@ public class PropertiesUtilTest {
   }
 
   @Test
-  public void testNonExistentPropertiesParsing() {
+  void testNonExistentPropertiesParsing() {
     // When
     Properties result = getPropertiesFromResource(PropertiesUtilTest.class.getResource("/this-file-does-not-exist"));
     // Then
@@ -50,7 +50,7 @@ public class PropertiesUtilTest {
   }
 
   @Test
-  public void testGetValueFromProperties() {
+  void testGetValueFromProperties() {
     // Given
     Properties properties = new Properties();
     String[] keys = new String[] {"property1", "property2"};
@@ -63,7 +63,7 @@ public class PropertiesUtilTest {
   }
 
   @Test
-  public void testGetValueFromPropertiesReturnsValidValue() {
+  void testGetValueFromPropertiesReturnsValidValue() {
     // Given
     Properties properties = new Properties();
     properties.put("property1", "value1");
@@ -77,7 +77,7 @@ public class PropertiesUtilTest {
   }
 
   @Test
-  public void toMap_null_shouldReturnEmpty() {
+  void toMap_null_shouldReturnEmpty() {
     // When
     final Map<String, String> result = toMap(null);
     // Then
@@ -87,7 +87,7 @@ public class PropertiesUtilTest {
   }
 
   @Test
-  public void toMap_empty_shouldReturnEmpty() {
+  void toMap_empty_shouldReturnEmpty() {
     // When
     final Map<String, String> result = toMap(new Properties());
     // Then
@@ -97,7 +97,7 @@ public class PropertiesUtilTest {
   }
 
   @Test
-  public void toMap_validProperties_shouldReturnValidMap() {
+  void toMap_validProperties_shouldReturnValidMap() {
     // Given
     final Properties properties = new Properties();
     properties.put("Number", 1L);

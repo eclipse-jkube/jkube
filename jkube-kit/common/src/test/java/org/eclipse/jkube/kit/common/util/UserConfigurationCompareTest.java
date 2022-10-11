@@ -16,144 +16,69 @@ package org.eclipse.jkube.kit.common.util;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class UserConfigurationCompareTest {
+class UserConfigurationCompareTest {
 
-    @Test
-    public void testConfigEqualWhenEqual() {
-        //Given
-        Object entity1 = "Hello";
-        Object entity2 = "Hello";
-        //When
+    @DisplayName("Configs equality tests")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("configsTestData")
+    void testConfigEqual(String testDesc, Object entity1, Object entity2, boolean expected) {
+        // Given & When
         boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
-        //Then
-        assertTrue(result);
+        // Then
+        assertThat(result).isEqualTo(expected);
     }
 
-    @Test
-    public void testConfigEqualWhenEitherNull() {
-        //Given
-        Object entity1 = null;
-        Object entity2 = "new";
-        //When
-        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
-        //Then
-        assertFalse(result);
+    public static Stream<Arguments> configsTestData() {
+        return Stream.of(
+                Arguments.arguments("When Configs are equal should return true", "Hello", "Hello", true),
+                Arguments.arguments("When either config is null should return false", null, "new", false),
+                Arguments.arguments("Map and string config should return false", Collections.emptyMap(), "Hello", false),
+                Arguments.arguments("When Object meta configs are equal should return true", new ObjectMetaBuilder().withName("test1").withAnnotations(Collections.singletonMap("foo", "bar")).build(),
+                        new ObjectMetaBuilder().withName("test1").withAnnotations(Collections.singletonMap("foo", "bar")).build(), true),
+                Arguments.arguments("When Configs are object meta and string should return false", "Hello", new ObjectMetaBuilder().withName("test1").withAnnotations(Collections.singletonMap("foo", "bar")).build(),
+                        false),
+                Arguments.arguments("With Collection should return false", Collections.singletonList(new ArrayList<String>()), Collections.emptyList(), false),
+                Arguments.arguments("When Collection should return true", Collections.emptyList(), Collections.emptySet(), true),
+                Arguments.arguments("When Configs are not equal should return false", "entity1", "entity2", false),
+                Arguments.arguments("When not KDTO should return true", new KubernetesListBuilder().addToItems(new DeploymentBuilder().build()), new KubernetesListBuilder().addToItems(new DeploymentBuilder().build()),
+                        true)
+        );
     }
 
-    @Test
-    public void testConfigEqualWhenMapAndString() {
-        //Given
-        Object entity1 = Collections.emptyMap();
-        Object entity2 = "Hello";
-
-        //When
-        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
-        //Then
-        assertFalse(result);
-    }
-
-    @Test
-    public void testConfigEqualWhenMapAndEqual() {
+    @DisplayName("Configs equality tests with collection")
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("configsWithCollectionTestsData")
+    void testConfigEqualWhenMapAndEqual(String testDesc, String key1, String value1, String key2, String value2, boolean expected) {
         //Given
         Map<String, String> entity1 = new HashMap<>();
         Map<String, String> entity2 = new HashMap<>();
-        entity1.put("item1", "code");
-        entity2.put("item1", "code");
+        entity1.put(key1, value1);
+        entity2.put(key2, value2);
         //When
         boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
         //Then
-        assertTrue(result);
-    }
-
-    @Test
-    public void testConfigEqualWhenMapAndNotEqual() {
-        //Given
-        Map<String, String> entity1 = new HashMap<>();
-        Map<String, String> entity2 = new HashMap<>();
-        entity1.put("item", "code");
-        entity2.put("item1", "code");
-        //When
-        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
-        //Then
-        assertFalse(result);
-    }
-
-    @Test
-    public void testConfigEqualWhenObjectMetaIsTrue() {
-        //Given
-        Object entity1 = new ObjectMetaBuilder().withName("test1").withAnnotations(Collections.singletonMap("foo", "bar")).build();
-        Object entity2 = new ObjectMetaBuilder().withName("test1").withAnnotations(Collections.singletonMap("foo","bar")).build();
-        //When
-        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
-        //Then
-        assertTrue(result);
-    }
-
-    @Test
-    public void testConfigEqualWhenObjectMetaAndString() {
-        //Given
-        Object entity1 = "Hello";
-        Object entity2 = new ObjectMetaBuilder().withName("test1").withAnnotations(Collections.singletonMap("foo", "bar")).build();
-        //When
-        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
-        //Then
-        assertFalse(result);
-    }
-
-    @Test
-    public void testConfigEqualWhenCollectionWhenFalse(){
-        //Given
-        ArrayList<String> testList = new ArrayList<>();
-        Object entity1 = Collections.singletonList(testList);
-        Object entity2 = Collections.emptyList();
-        //When
-        boolean result = UserConfigurationCompare.configEqual(entity1,entity2);
-        //Then
-        assertFalse(result);
-    }
-
-    @Test
-    public void testConfigEqualWhenCollectionWhenTrue(){
-        //Given
-        Object entity1 = Collections.emptyList();
-        Object entity2 = Collections.emptySet();
-        //When
-        boolean result = UserConfigurationCompare.configEqual(entity1,entity2);
-        //Then
-        assertTrue(result);
+        assertThat(result).isEqualTo(expected);
     }
 
 
-    @Test
-    public void testConfigEqualWhenNotEqual() {
-        //Given
-        Object entity1 = "entity1";
-        Object entity2 = "entity2";
-        //When
-        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
-        //Then
-        assertFalse(result);
+    public static Stream<Arguments> configsWithCollectionTestsData() {
+        return Stream.of(
+                Arguments.arguments("When Maps are equal should return true", "item1", "code", "item1", "code", true),
+                Arguments.arguments("When Maps are not equal should return false", "item", "code", "item1", "code", false)
+        );
     }
 
-    @Test
-    public void testConfigEqualWhenNotKDTO() {
-        //Given
-        Object entity1 = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build()); //
-        Object entity2 = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build()); //
-        //When
-        boolean result = UserConfigurationCompare.configEqual(entity1, entity2);
-        //Then
-        assertTrue(result);
-    }
 }
-

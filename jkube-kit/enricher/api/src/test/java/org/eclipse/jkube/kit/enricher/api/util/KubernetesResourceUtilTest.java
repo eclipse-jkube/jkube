@@ -266,21 +266,17 @@ public class KubernetesResourceUtilTest {
 
   @Test
   public void readResourceFragmentsFrom_withValidDirectory_shouldReadAllFragments() throws IOException {
-    // Given
-    ResourceVersioning v = ResourceVersioning.builder()
-        .withCoreVersion("v2")
-        .withExtensionsVersion("extensions/v2")
-        .build();
     // When
     final KubernetesListBuilder result = KubernetesResourceUtil.readResourceFragmentsFrom(
-        kubernetes, v, "pong", new File(fragmentsDir, "complete-directory").listFiles());
+        kubernetes, DEFAULT_RESOURCE_VERSIONING, "pong", new File(fragmentsDir, "complete-directory")
+            .listFiles());
     // Then
     assertThat(result.build().getItems())
         .hasSize(3)
         .extracting("class", "apiVersion", "kind", "metadata.name")
         .containsExactlyInAnyOrder(
-            tuple(Service.class, "v2", "Service", "pong"),
-            tuple(ReplicationController.class, "v2", "ReplicationController", "pong"),
+            tuple(Service.class, "v1", "Service", "pong"),
+            tuple(ReplicationController.class, "v1", "ReplicationController", "pong"),
             tuple(GenericKubernetesResource.class, "jkube/v1", "CustomKind", "custom")
         );
   }
@@ -372,24 +368,6 @@ public class KubernetesResourceUtilTest {
             tuple("sidecar1", "busybox"),
             tuple("sidecar2", "busybox")
         );
-  }
-
-  @Test
-  public void isExposedService_withExposeLabel_shouldReturnTrue() {
-    assertThat(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder()
-        .addToLabels("expose", "true").build())).isTrue();
-  }
-
-  @Test
-  public void isExposedService_withExposeUrlLabel_shouldReturnTrue() {
-    assertThat(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder()
-        .addToLabels("jkube.io/exposeUrl", "true").build())).isTrue();
-  }
-
-  @Test
-  public void isExposedService_withOtherLabel_shouldReturnFalse() {
-    assertThat(KubernetesResourceUtil.isExposedService(new ObjectMetaBuilder()
-        .addToLabels("other", "true").build())).isFalse();
   }
 
   @Test

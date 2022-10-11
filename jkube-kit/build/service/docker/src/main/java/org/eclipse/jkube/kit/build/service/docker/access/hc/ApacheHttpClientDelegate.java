@@ -178,8 +178,8 @@ public class ApacheHttpClientDelegate {
 
     private static class StatusCodeCheckerResponseHandler<T> implements ResponseHandler<T> {
 
-        private int[] statusCodes;
-        private ResponseHandler<T> delegate;
+        private final int[] statusCodes;
+        private final ResponseHandler<T> delegate;
 
         StatusCodeCheckerResponseHandler(ResponseHandler<T> delegate, int... statusCodes) {
             this.statusCodes = statusCodes;

@@ -29,7 +29,7 @@ $ ./gradlew build k8sBuild
 
 > Task :k8sBuild
 k8s: Running generator webapp
-k8s: webapp: Using quay.io/jkube/jkube-tomcat9:0.0.13 as base image for webapp
+k8s: webapp: Using quay.io/jkube/jkube-tomcat9:0.0.16 as base image for webapp
 k8s: Building container image in Kubernetes mode
 k8s: [kubernetes/webapp:latest] "webapp": Created docker-build.tar in 6 milliseconds
 k8s: [kubernetes/webapp:latest] "webapp": Built image sha256:78b98
@@ -64,7 +64,7 @@ $ ./gradlew build k8sBuild
 
 > Task :k8sBuild
 k8s: Running generator webapp
-k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.13 as base image for webapp
+k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.16 as base image for webapp
 k8s: Building container image in Kubernetes mode
 k8s: [kubernetes/webapp:latest] "webapp": Created docker-build.tar in 5 milliseconds
 k8s: [kubernetes/webapp:latest] "webapp": Built image sha256:5e016
@@ -75,14 +75,14 @@ BUILD SUCCESSFUL in 1s
 
 ```
 
-It is now using `quay.io/jkube/jkube-jetty9:0.0.13` as base image!
+It is now using `quay.io/jkube/jkube-jetty9:0.0.16` as base image!
 
 ## Generate Kubernetes Manifests
 ```
 $ ./gradlew k8sResource -Djkube.domain=$(minikube ip).nip.io
 > Task :k8sResource
 k8s: Running generator webapp
-k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.13 as base image for webapp
+k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.16 as base image for webapp
 k8s: Using resource templates from /home/sunix/github/eclipse/jkube/quickstarts/gradle/webapp/src/main/jkube
 k8s: jkube-controller: Adding a default Deployment
 k8s: jkube-service: Adding a default service 'webapp' with ports [8080]
@@ -111,7 +111,7 @@ webapp-deployment.yml  webapp-ingress.yml  webapp-service.yml
 
 > Task :k8sApply
 k8s: Running generator webapp
-k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.13 as base image for webapp
+k8s: webapp: Using quay.io/jkube/jkube-jetty9:0.0.16 as base image for webapp
 k8s: Using Kubernetes at https://192.168.99.115:8443/ in namespace null with manifest /home/sunix/github/eclipse/jkube/quickstarts/gradle/webapp/build/classes/java/main/META-INF/jkube/kubernetes.yml 
 k8s: Creating a Service from kubernetes.yml namespace default name webapp
 k8s: Created Service: build/jkube/applyJson/default/service-webapp-2.json

@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.enricher.specific;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
@@ -24,28 +25,33 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.Assert.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.spy;
 
 /**
  * Tests that the enrichment is performed on the right containers.
  *
  * @author Nicola
  */
-public class AbstractHealthCheckEnricherTest {
+class AbstractHealthCheckEnricherTest {
 
-    @Mocked
-    KitLogger log;
+    private KitLogger log;
+
+    @BeforeEach
+    void setUp() {
+        log = spy(new KitLogger.SilentLogger());
+    }
 
     @Test
-    public void enrichSingleContainer() {
+    void enrichSingleContainer() {
         KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
             .withNewSpec()
             .withNewTemplate()
@@ -64,19 +70,20 @@ public class AbstractHealthCheckEnricherTest {
         final AtomicInteger containerFound = new AtomicInteger(0);
         list.accept(new TypedVisitor<ContainerBuilder>() {
             @Override
-            public void visit(ContainerBuilder container) {
-                assertNotNull(container.build().getLivenessProbe());
-                assertNotNull(container.build().getReadinessProbe());
-                assertNotNull(container.build().getStartupProbe());
+            public void visit(ContainerBuilder containerBuilder) {
+                Container container = containerBuilder.build();
+                assertThat(container.getLivenessProbe()).isNotNull();
+                assertThat(container.getReadinessProbe()).isNotNull();
+                assertThat(container.getStartupProbe()).isNotNull();
                 containerFound.incrementAndGet();
             }
         });
 
-        assertEquals(1, containerFound.get());
+        assertThat(containerFound.get()).isEqualTo(1);
     }
 
     @Test
-    public void enrichContainerWithSidecar() {
+    void enrichContainerWithSidecar() {
         KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
             .withNewSpec()
                 .withNewTemplate()
@@ -99,26 +106,28 @@ public class AbstractHealthCheckEnricherTest {
         final AtomicInteger containerFound = new AtomicInteger(0);
         list.accept(new TypedVisitor<ContainerBuilder>() {
             @Override
-            public void visit(ContainerBuilder container) {
+            public void visit(ContainerBuilder containerBuilder) {
+                Container container = containerBuilder.build();
                 if (container.getName().equals("app")) {
-                    assertNotNull(container.build().getLivenessProbe());
-                    assertNotNull(container.build().getReadinessProbe());
-                    assertNotNull(container.build().getStartupProbe());
+                    assertThat(container.getLivenessProbe()).isNotNull();
+                    assertThat(container.getReadinessProbe()).isNotNull();
+                    assertThat(container.getStartupProbe()).isNotNull();
                     containerFound.incrementAndGet();
                 } else if (container.getName().equals("sidecar")) {
-                    assertNull(container.build().getLivenessProbe());
-                    assertNull(container.build().getReadinessProbe());
-                    assertNull(container.build().getStartupProbe());
+                    assertThat(container)
+                            .hasFieldOrPropertyWithValue("livenessProbe", null)
+                            .hasFieldOrPropertyWithValue("readinessProbe", null)
+                            .hasFieldOrPropertyWithValue("startupProbe", null);
                     containerFound.incrementAndGet();
                 }
             }
         });
 
-        assertEquals(2, containerFound.get());
+        assertThat(containerFound.get()).isEqualTo(2);
     }
 
     @Test
-    public void enrichSpecificContainers() {
+    void enrichSpecificContainers() {
         final Properties properties = new Properties();
         properties.put(AbstractHealthCheckEnricher.ENRICH_CONTAINERS, "app2,app3");
 
@@ -143,35 +152,37 @@ public class AbstractHealthCheckEnricherTest {
             .endSpec()
             .build());
 
-        createEnricher(properties, Collections.emptyMap()).create(PlatformMode.kubernetes,list);
+        createEnricher(properties, Collections.emptyMap()).create(PlatformMode.kubernetes, list);
 
         final AtomicInteger containerFound = new AtomicInteger(0);
         list.accept(new TypedVisitor<ContainerBuilder>() {
             @Override
-            public void visit(ContainerBuilder container) {
+            public void visit(ContainerBuilder containerBuilder) {
+                Container container = containerBuilder.build();
                 switch (container.getName()) {
                     case "app":
-                        assertNull(container.build().getLivenessProbe());
-                        assertNull(container.build().getReadinessProbe());
-                        assertNull(container.build().getStartupProbe());
+                        assertThat(container)
+                                .hasFieldOrPropertyWithValue("livenessProbe", null)
+                                .hasFieldOrPropertyWithValue("readinessProbe", null)
+                                .hasFieldOrPropertyWithValue("startupProbe", null);
                         containerFound.incrementAndGet();
                         break;
                     case "app2":
                     case "app3":
-                        assertNotNull(container.build().getLivenessProbe());
-                        assertNotNull(container.build().getReadinessProbe());
-                        assertNotNull(container.build().getStartupProbe());
+                        assertThat(container.getLivenessProbe()).isNotNull();
+                        assertThat(container.getReadinessProbe()).isNotNull();
+                        assertThat(container.getStartupProbe()).isNotNull();
                         containerFound.incrementAndGet();
                         break;
                 }
             }
         });
 
-        assertEquals(3, containerFound.get());
+        assertThat(containerFound.get()).isEqualTo(3);
     }
 
     @Test
-    public void enrichAllContainers() {
+    void enrichAllContainers() {
         final Properties properties = new Properties();
         properties.put(AbstractHealthCheckEnricher.ENRICH_ALL_CONTAINERS, "true");
 
@@ -197,22 +208,23 @@ public class AbstractHealthCheckEnricherTest {
         final AtomicInteger containerFound = new AtomicInteger(0);
         list.accept(new TypedVisitor<ContainerBuilder>() {
             @Override
-            public void visit(ContainerBuilder container) {
+            public void visit(ContainerBuilder containerBuilder) {
+                Container container = containerBuilder.build();
                 if (container.getName().equals("app")) {
-                    assertNotNull(container.build().getLivenessProbe());
-                    assertNotNull(container.build().getReadinessProbe());
-                    assertNotNull(container.build().getStartupProbe());
+                    assertThat(container.getLivenessProbe()).isNotNull();
+                    assertThat(container.getReadinessProbe()).isNotNull();
+                    assertThat(container.getStartupProbe()).isNotNull();
                     containerFound.incrementAndGet();
                 } else if (container.getName().equals("app2")) {
-                    assertNotNull(container.build().getLivenessProbe());
-                    assertNotNull(container.build().getReadinessProbe());
-                    assertNotNull(container.build().getStartupProbe());
+                    assertThat(container.getLivenessProbe()).isNotNull();
+                    assertThat(container.getReadinessProbe()).isNotNull();
+                    assertThat(container.getStartupProbe()).isNotNull();
                     containerFound.incrementAndGet();
                 }
             }
         });
 
-        assertEquals(2, containerFound.get());
+        assertThat(containerFound.get()).isEqualTo(2);
     }
 
     protected AbstractHealthCheckEnricher createEnricher(Properties properties, Map<String, String> pi) {
@@ -228,7 +240,7 @@ public class AbstractHealthCheckEnricherTest {
         }
         EnricherContext context = enricherContextBuilder.build();
 
-        AbstractHealthCheckEnricher enricher = new AbstractHealthCheckEnricher(context, "basic") {
+        return new AbstractHealthCheckEnricher(context, "basic") {
             @Override
             protected Probe getLivenessProbe() {
                 return getReadinessProbe();
@@ -249,7 +261,6 @@ public class AbstractHealthCheckEnricherTest {
                         .build();
             }
         };
-        return enricher;
     }
 
 }

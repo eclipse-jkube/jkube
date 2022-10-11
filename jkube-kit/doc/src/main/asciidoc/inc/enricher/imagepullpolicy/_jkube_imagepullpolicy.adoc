@@ -1,0 +1,4 @@
+[[jkube-imagepullpolicy]]
+==== jkube-imagepullpolicy
+
+This enricher fixes ImagePullPolicy for Kubernetes/Openshift resources whenever a `-Djkube.imagePullPolicy` parameter is provided.

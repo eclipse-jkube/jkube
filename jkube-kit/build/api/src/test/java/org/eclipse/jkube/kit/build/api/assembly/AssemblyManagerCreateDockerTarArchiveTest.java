@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,50 +33,46 @@ import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-
-import mockit.Mocked;
 import org.assertj.core.api.AbstractFileAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.ListAssert;
 import org.assertj.core.api.ObjectAssert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
-public class AssemblyManagerCreateDockerTarArchiveTest {
+class AssemblyManagerCreateDockerTarArchiveTest {
 
   private static final String DOCKERFILE_DEFAULT_FALLBACK_CONTENT = "FROM busybox\nCOPY /jkube-generated-layer-final-artifact/maven /maven/\nVOLUME [\"/maven\"]";
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  Path temporaryFolder;
 
-  @Mocked
   private PrefixedLogger prefixedLogger;
-
   private AssemblyManager assemblyManager;
   private File baseDirectory;
   private File targetDirectory;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws IOException {
+    prefixedLogger = mock(PrefixedLogger.class);
     assemblyManager = AssemblyManager.getInstance();
-    baseDirectory = temporaryFolder.getRoot();
-    targetDirectory = temporaryFolder.newFolder("target");
+    baseDirectory = temporaryFolder.toFile();
+    targetDirectory = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
   }
 
   @Test
-  public void createChangedFilesArchive() throws IOException {
+  void createChangedFilesArchive() throws IOException {
     // Given
     final JKubeConfiguration jKubeConfiguration = createJKubeConfiguration();
     final List<AssemblyFileEntry> entries = new ArrayList<>();
-    final File assemblyDirectory = temporaryFolder.getRoot().toPath().resolve("target").resolve("docker").toFile();
+    final File assemblyDirectory = temporaryFolder.resolve("target").resolve("docker").toFile();
     entries.add(AssemblyFileEntry.builder()
-        .source(temporaryFolder.getRoot().toPath().resolve("target").resolve("test-0.1.0.jar").toFile())
-        .dest(temporaryFolder.getRoot().toPath().resolve("target").resolve("docker").resolve("test-0.1.0.jar").toFile())
+        .source(temporaryFolder.resolve("target").resolve("test-0.1.0.jar").toFile())
+        .dest(temporaryFolder.resolve("target").resolve("docker").resolve("test-0.1.0.jar").toFile())
         .fileMode("0655")
         .build());
     // When
@@ -89,7 +86,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withoutDockerfile() throws IOException {
+  void withoutDockerfile() throws IOException {
     // Given
     final JKubeConfiguration jKubeConfiguration = createJKubeConfiguration();
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder().build();
@@ -115,7 +112,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withoutDockerfileAndFinalCustomizer() throws IOException {
+  void withoutDockerfileAndFinalCustomizer() throws IOException {
     // Given
     final JKubeConfiguration jKubeConfiguration = createJKubeConfiguration();
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder().build();
@@ -146,7 +143,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withoutDockerfileAndAlreadyExistingFileInAssemblyGetsOverwritten() throws IOException {
+  void withoutDockerfileAndAlreadyExistingFileInAssemblyGetsOverwritten() throws IOException {
     final JKubeConfiguration jKubeConfiguration = createJKubeConfiguration();
     final BuildConfiguration buildConfiguration = BuildConfiguration.builder().build();
     File dockerArchiveFile;
@@ -179,7 +176,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withDockerfileInBaseDirectory() throws IOException {
+  void withDockerfileInBaseDirectory() throws IOException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM openjdk:jre");
@@ -207,11 +204,11 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withDockerfileInBaseDirectoryAndAssemblyFile() throws IOException {
+  void withDockerfileInBaseDirectoryAndAssemblyFile() throws IOException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM busybox");
-    final File assemblyFile = temporaryFolder.newFile("extra-file-1.txt");
+    final File assemblyFile = Files.createFile(temporaryFolder.resolve("extra-file-1.txt")).toFile();
     writeLineToFile(assemblyFile, "HELLO");
     AssemblyConfiguration assemblyConfig = AssemblyConfiguration.builder()
         .inline(Assembly.builder()
@@ -249,7 +246,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withDockerfileInBaseDirectoryAndDockerinclude() throws IOException {
+  void withDockerfileInBaseDirectoryAndDockerinclude() throws IOException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM openjdk:jre");
@@ -280,7 +277,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withDockerfileInBaseDirectoryAndDockerexclude() throws IOException {
+  void withDockerfileInBaseDirectoryAndDockerexclude() throws IOException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM openjdk:jre");
@@ -313,7 +310,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
   }
 
   @Test
-  public void withDockerfileInBaseDirectoryAndDockerignore() throws IOException {
+  void withDockerfileInBaseDirectoryAndDockerignore() throws IOException {
     // Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
     writeLineToFile(dockerFile, "FROM openjdk:jre");
@@ -370,7 +367,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
 
   private static void writeLineToFile(File file, String line) throws IOException {
     if (!file.exists()) {
-      assertTrue(file.createNewFile());
+      assertThat(file.createNewFile()).isTrue();
     }
     PrintWriter writer = new PrintWriter(file, StandardCharsets.UTF_8.name());
     writer.println(line);
@@ -395,7 +392,7 @@ public class AssemblyManagerCreateDockerTarArchiveTest {
 
   private File createEmptyArtifact() throws IOException {
     File emptyArtifact = new File(targetDirectory, "test-0.1.0.jar");
-    assertTrue(emptyArtifact.createNewFile());
+    assertThat(emptyArtifact.createNewFile()).isTrue();
     return emptyArtifact;
   }
 

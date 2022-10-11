@@ -34,6 +34,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -62,6 +63,9 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     @Parameter(defaultValue = "${mojoExecution}", readonly = true)
     protected MojoExecution mojoExecution;
+
+    @Parameter(property = "jkube.build.strategy")
+    protected JKubeBuildStrategy buildStrategy;
 
     // Whether to use color
     @Parameter(property = "jkube.useColor", defaultValue = "true")
@@ -104,7 +108,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             init();
-            if (!canExecute()) {
+            if (shouldSkip()) {
                 log.info("`%s` goal is skipped.", mojoExecution.getMojoDescriptor().getFullGoalName());
                 return;
             }
@@ -122,8 +126,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         resources = updateResourceConfigNamespace(namespace, resources);
     }
 
-    protected boolean canExecute() {
-        return !skip;
+    protected boolean shouldSkip() {
+        return skip;
     }
 
     public abstract void executeInternal() throws MojoExecutionException, MojoFailureException;

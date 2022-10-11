@@ -87,7 +87,10 @@ public class DefaultEnricherManagerTest {
   // Loaded from META-INF/jkube/enricher-default
   public static final class TestEnricher implements Enricher {
 
-    public TestEnricher(JKubeEnricherContext ignored) {
+    private final JKubeEnricherContext context;
+
+    public TestEnricher(JKubeEnricherContext context) {
+      this.context = context;
     }
 
     @Override
@@ -103,6 +106,11 @@ public class DefaultEnricherManagerTest {
     @Override
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
       builder.addNewConfigMapItem().withNewMetadata().withName("enriched-by-test").endMetadata().endConfigMapItem();
+    }
+
+    @Override
+    public EnricherContext getContext() {
+      return context;
     }
   }
 }

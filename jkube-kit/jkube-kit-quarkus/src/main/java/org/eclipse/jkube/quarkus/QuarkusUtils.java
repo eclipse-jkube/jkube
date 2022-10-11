@@ -45,9 +45,12 @@ public class QuarkusUtils {
   private static final String QUARKUS_SMALLRYE_HEALTH_ROOT_PATH = "quarkus.smallrye-health.root-path";
   private static final String QUARKUS_SMALLRYE_HEALTH_READINESS_PATH = "quarkus.smallrye-health.readiness-path";
   private static final String QUARKUS_SMALLRYE_HEALTH_LIVENESS_PATH = "quarkus.smallrye-health.liveness-path";
+  private static final String QUARKUS_SMALLRYE_HEALTH_STARTUP_PATH = "quarkus.smallrye-health.startup-path";
   private static final String QUARKUS_MAVEN_PLUGIN_ARTIFACTID = "quarkus-maven-plugin";
   private static final int QUARKUS_MAJOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 1;
   private static final int QUARKUS_MINOR_VERSION_SINCE_PATH_RESOLUTION_CHANGE = 11;
+  private static final int QUARKUS_MAJOR_VERSION_SINCE_STARTUP_CHANGE = 2;
+  private static final int QUARKUS_MINOR_VERSION_SINCE_STARTUP_CHANGE = 1;
   private static final int QUARKUS2_MAJOR_VERSION = 2;
   private static final int QUARKUS2_MINOR_VERSION = 0;
   private static final String DEFAULT_ROOT_PATH = "/";
@@ -56,6 +59,7 @@ public class QuarkusUtils {
   private static final String DEFAULT_HEALTH_ROOT_PATH = "health";
   private static final String DEFAULT_READINESS_SUBPATH = "ready";
   private static final String DEFAULT_LIVENESS_SUBPATH = "live";
+  private static final String DEFAULT_STARTUP_SUBPATH = "started";
 
   private QuarkusUtils() {}
 
@@ -143,6 +147,17 @@ public class QuarkusUtils {
         .getProperty(QUARKUS_SMALLRYE_HEALTH_LIVENESS_PATH, DEFAULT_LIVENESS_SUBPATH);
   }
 
+  /**
+   * Get Quarkus SmallRye Health startup path from Quarkus Configuration
+   *
+   * @param javaProject {@link JavaProject} project for which health startup path is required
+   * @return a string containing the startup path
+   */
+  public static String resolveQuarkusStartupPath(JavaProject javaProject) {
+    return getQuarkusConfiguration(javaProject)
+            .getProperty(QUARKUS_SMALLRYE_HEALTH_STARTUP_PATH, DEFAULT_STARTUP_SUBPATH);
+  }
+
   public static boolean hasQuarkusPlugin(JavaProject javaProject) {
     return JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_GROUP_ID, QUARKUS_MAVEN_PLUGIN_ARTIFACTID) ||
            JKubeProjectUtil.hasPlugin(javaProject, QUARKUS_PLATFORM_GROUP_ID, QUARKUS_MAVEN_PLUGIN_ARTIFACTID) ||
@@ -190,6 +205,17 @@ public class QuarkusUtils {
     return ret;
   }
 
+  /**
+   * Check whether given Quarkus version supports startup endpoint or not by checking
+   * Quarkus version is greater than 2.1.
+   *
+   * @param javaProject current project
+   * @return boolean value indicating whether it's supported or not.
+   */
+  public static boolean isStartupEndpointSupported(JavaProject javaProject) {
+    return isVersionAtLeast(QUARKUS_MAJOR_VERSION_SINCE_STARTUP_CHANGE, QUARKUS_MINOR_VERSION_SINCE_STARTUP_CHANGE, findQuarkusVersion(javaProject));
+  }
+
   private static String resolveQuarkusNonApplicationRootPath(String quarkusVersion, Properties quarkusProperties) {
     final String defaultValue = isVersionAtLeast(QUARKUS2_MAJOR_VERSION, QUARKUS2_MINOR_VERSION, quarkusVersion) ?
         DEFAULT_NON_APPLICATION_ROOT_AFTER_2_0 : DEFAULT_NON_APPLICATION_ROOT_BEFORE_2_0;
@@ -205,8 +231,7 @@ public class QuarkusUtils {
   }
 
   static String findQuarkusVersion(JavaProject javaProject) {
-    return Optional.ofNullable(JKubeProjectUtil.getAnyDependencyVersionWithGroupId(javaProject, QUARKUS_GROUP_ID))
-        .orElse(null);
+    return JKubeProjectUtil.getAnyDependencyVersionWithGroupId(javaProject, QUARKUS_GROUP_ID);
   }
 
   private static boolean isAbsolutePath(String path) {

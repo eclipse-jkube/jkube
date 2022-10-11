@@ -2,27 +2,32 @@
 [[jkube-healthcheck-wildfly-jar]]
 ==== jkube-healthcheck-wildfly-jar
 
-This enricher adds kubernetes readiness and liveness probes to WildFly JAR applications. Probes depend on the WildFly _microprofile-health_ subsystem
-_/health/ready_ and _/health/live_ endpoints.
-When the WildFly Bootable JAR Maven plugin is configured with the _<cloud>_ configuration item, _microprofile_health_ subsystem
+This enricher adds kubernetes _readiness_, _liveness_ and _startup_ probes to WildFly JAR applications. Probes depend on the WildFly microprofile-health- subsystem
+_/health/ready_, _/health/live/_, and _/health/started_ endpoints.
+When the WildFly Bootable JAR Maven plugin is configured with the _<cloud>_ configuration item, _microprofile-health_ subsystem
 is enforced in the bootable JAR server configuration.
 
+Note that Kubernetes startup probes are only added in projects using Wildfly 25.0.0.Final or later.
+
 This enricher looks for the _<cloud>_ configuration item presence in the bootable JAR Maven plugin in order to add health check probes.
-If _<cloud>_ item has not been defined, you can still enforce the generation of readiness and liveness probes by setting _enforceProbes=true_.
+If _<cloud>_ item has not been defined, you can still enforce the generation of _readiness_, _liveness_ and _startup_ probes by setting _enforceProbes=true_.
 
 The enricher will use the following settings by default:
 
-- port = `9990`
 - scheme = `HTTP`
-- readinessPath = `/health/ready`
+- port = `9990`
 - livenessPath = `/health/live`
+- readinessPath = `/health/ready`
+- startupPath = `/health/started`
 - livenessInitialDelay = `60`
 - readinessInitialDelay = `10`
+- startupInitialDelay = `10`
 - failureThreshold = `3`
 - successThreshold = `1`
-- enforceProbes = 'false'
+- periodSeconds = `10`
+- enforceProbes = `false`
 
-Setting the `port` to 0 or to a negative number disables liveness and readiness probes.
+Setting the `port` to `0` or to a negative number disables health check probes.
 
 These values can be configured by the enricher in the `{plugin}` configuration as shown below:
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]

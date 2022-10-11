@@ -21,46 +21,48 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
-import io.fabric8.openshift.client.server.mock.OpenShiftServer;
+import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.PatchService;
 import mockit.Mocked;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
-import static org.junit.Assert.assertEquals;
-import static junit.framework.TestCase.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-public class PatchServiceTest {
+@EnableKubernetesMockClient
+class PatchServiceTest {
     @Mocked
     private KitLogger log;
 
-    @Rule
-    public final OpenShiftServer mockServer = new OpenShiftServer(false);
+    KubernetesMockServer mockServer;
+    OpenShiftClient client;
 
     private PatchService patchService;
 
-    @Before
-    public void setUp() {
-        patchService = new PatchService(mockServer.getOpenshiftClient(), log);
+    @BeforeEach
+    void setUp() {
+        patchService = new PatchService(client, log);
         Serialization.jsonMapper().disable(SerializationFeature.INDENT_OUTPUT);
     }
 
-    @After
-    public void tearDown() throws Exception {
+    @AfterEach
+    void tearDown() {
         Serialization.jsonMapper().enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     @Test
-    public void testResourcePatching() {
+    void resourcePatching() {
         Service oldService = new ServiceBuilder()
                 .withNewMetadata().withName("service1").endMetadata()
                 .withNewSpec()
@@ -83,11 +85,11 @@ public class PatchServiceTest {
 
         Service patchedService = patchService.compareAndPatchEntity("test", newService, oldService);
 
-        assertTrue(UserConfigurationCompare.configEqual(patchedService.getMetadata(), newService.getMetadata()));
+        assertThat(UserConfigurationCompare.configEqual(patchedService.getMetadata(), newService.getMetadata())).isTrue();
     }
 
     @Test
-    public void testSecretPatching() throws InterruptedException {
+    void secretPatching() {
         Secret oldSecret = new SecretBuilder()
                 .withNewMetadata().withName("secret").endMetadata()
                 .addToData("test", "dGVzdA==")
@@ -108,12 +110,12 @@ public class PatchServiceTest {
         collector.assertEventsRecordedInOrder("get-secret", "get-secret", "patch-secret");
         // Due to recent patch related improvements in KubernetesClient now edit call requires 2 GET requests
         // for resource from server instead of 3 GET requests.
-        assertEquals("[{\"op\":\"remove\",\"path\":\"/data\"},{\"op\":\"add\",\"path\":\"/stringData\",\"value\":{\"test\":\"test\"}}]", collector.getBodies().get(2));
-
+        assertThat(collector.getBodies().get(2))
+                .isEqualTo("[{\"op\":\"remove\",\"path\":\"/data\"},{\"op\":\"add\",\"path\":\"/stringData\",\"value\":{\"test\":\"test\"}}]");
     }
 
     @Test
-    public void testRoutePatching() {
+    void routePatching() {
         Route oldRoute = new RouteBuilder()
                 .withNewMetadata()
                     .withName("route")
@@ -147,11 +149,11 @@ public class PatchServiceTest {
                 .once();
 
         Route patchedRoute = patchService.compareAndPatchEntity("test", newRoute, oldRoute);
-        assertTrue(UserConfigurationCompare.configEqual(patchedRoute, newRoute));
+        assertThat(UserConfigurationCompare.configEqual(patchedRoute, newRoute)).isTrue();
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidPatcherKind() {
+    @Test
+    void invalidPatcherKind() {
         ConfigMap oldResource = new ConfigMapBuilder()
                 .withNewMetadata().withName("configmap1").endMetadata()
                 .addToData(Collections.singletonMap("foo", "bar"))
@@ -160,8 +162,9 @@ public class PatchServiceTest {
                 .withNewMetadata().withName("configmap1").endMetadata()
                 .addToData(Collections.singletonMap("FOO", "BAR"))
                 .build();
-
-        patchService.compareAndPatchEntity("test", newResource, oldResource);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> patchService.compareAndPatchEntity("test", newResource, oldResource))
+            .withMessageContaining("Internal: No patcher for ConfigMap found");
     }
 
 }

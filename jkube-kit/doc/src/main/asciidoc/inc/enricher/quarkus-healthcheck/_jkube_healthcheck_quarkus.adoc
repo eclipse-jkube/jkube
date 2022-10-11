@@ -1,0 +1,49 @@
+[[jkube-healthcheck-quarkus]]
+==== jkube-healthcheck-quarkus
+
+This enricher adds kubernetes _readiness_, _liveness_ and _startup_ probes with Quarkus. This requires the following dependency
+to be added to your Quarkus project:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_smallrye_dependency.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_smallrye_dependency.adoc[]
+endif::[]
+
+The enricher will try to discover the settings from the `application.properties` / `application.yaml`
+configuration file. JKube uses the following properties to resolve the health check URLs:
+
+* `quarkus.http.root-path`: Quarkus Application root path.
+* `quarkus.http.non-application-root-path`: This property got introduced in recent versions of Quarkus(2.x) for non application endpoints.
+* `quarkus.smallrye-health.root-path`: The location of the all-encompassing health endpoint.
+* `quarkus.smallrye-health.readiness-path`: The location of the readiness endpoint.
+* `quarkus.smallrye-health.liveness-path`: The location of the liveness endpoint.
+* `quarkus.smallrye-health.startup-path`: The location of the startup endpoint.
+
+**Note**: Please note that behavior of these properties seem to have changed since Quarkus 1.11.x versions (e.g for health and liveness paths leading slashes are now being considered). `{plugin}` would also check quarkus version along with value of these properties in order to resolve effective health endpoints.
+
+You can read more about these flags in https://quarkus.io/guides/smallrye-health[Quarkus Documentation].
+
+The enricher will use the following settings by default:
+
+* `scheme` : `HTTP`
+* `port` : `8080`
+* `failureThreshold` : `3`
+* `successThreshold` : `1`
+* `livenessInitialDelay` : `10`
+* `readinessInitialDelay` : `5`
+* `startupInitialDelay` : `5`
+* `livenessPath` : `q/health/live`
+* `readinessPath` : `q/health/ready`
+* `startupPath` : `q/health/started`
+
+These values can be configured by the enricher in the `{plugin}` configuration as shown below:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_configuration.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_configuration.adoc[]
+endif::[]
+

@@ -1,0 +1,92 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'io.vertx.vertx-plugin' version '1.3.0'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+def vertxVersion = '4.2.2'
+def launcherClassName = 'io.vertx.core.Launcher'
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass.set(launcherClassName)
+}
+
+dependencies {
+    implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
+    implementation "io.vertx:vertx-web:$vertxVersion"
+}
+
+kubernetes {
+if (project.hasProperty('configMode') && project.getProperty('configMode').equals('enricherConfig')) {
+    enricher {
+        config {
+            'jkube-healthcheck-vertx' {
+                initialDelay = 3
+                period = 3
+                liveness {
+                    port = '8888'
+                    path = '/health/live'
+                    scheme = 'HTTPS'
+                }
+                readiness {
+                    port = '8888'
+                    path = '/health/ready'
+                    scheme = 'HTTPS'
+                }
+            }
+        }
+    }
+}
+    generator {
+        config {
+            'vertx' {
+                webPort = '8888'
+            }
+        }
+    }
+}
+
+openshift {
+if (project.hasProperty('configMode') && project.getProperty('configMode').equals('enricherConfig')) {
+    enricher {
+        config {
+            'jkube-healthcheck-vertx' {
+                initialDelay = 3
+                period = 3
+                liveness {
+                    port = '8888'
+                    path = '/health/live'
+                    scheme = 'HTTPS'
+                    headers = ["X-Custom-Header": 'Awesome']
+                }
+                readiness {
+                    port = '8888'
+                    path = '/health/ready'
+                    scheme = 'HTTPS'
+                    headers = ["X-Custom-Header": 'Awesome']
+                }
+            }
+        }
+    }
+}
+    generator {
+        config {
+            'vertx' {
+                webPort = '8888'
+            }
+        }
+    }
+}
+
+vertx {
+    mainVerticle = 'org.eclipse.jkube.it.gradle.vertx.MainVerticle'
+}

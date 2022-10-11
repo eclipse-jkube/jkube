@@ -25,24 +25,25 @@ import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
-public class OpenLibertyGeneratorTest {
+class OpenLibertyGeneratorTest {
 
   private GeneratorContext context;
   private Properties projectProperties;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     context = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
     projectProperties = new Properties();
     when(context.getProject().getProperties()).thenReturn(projectProperties);
@@ -50,7 +51,7 @@ public class OpenLibertyGeneratorTest {
   }
 
   @Test
-  public void getEnvWithFatJar() {
+  void getEnvWithFatJar() {
     try (MockedConstruction<FatJarDetector> ignore = mockConstruction(FatJarDetector.class,
         withSettings().defaultAnswer(RETURNS_DEEP_STUBS),
         (mock, ctx) -> {
@@ -63,13 +64,14 @@ public class OpenLibertyGeneratorTest {
       // Then
       assertThat(result)
           .hasSize(2)
-          .containsEntry("LIBERTY_RUNNABLE_JAR", "file.jar")
-          .containsEntry("JAVA_APP_JAR", "file.jar");
+          .contains(
+              entry("LIBERTY_RUNNABLE_JAR", "file.jar"),
+              entry("JAVA_APP_JAR", "file.jar"));
     }
   }
 
   @Test
-  public void getEnvWithoutFatJar() {
+  void getEnvWithoutFatJar() {
     // Given
     projectProperties.put("jkube.generator.openliberty.mainClass", "com.example.MainClass");
     projectProperties.put("jkube.generator.java-exec.mainClass", "com.example.MainNotApplicable");
@@ -82,7 +84,7 @@ public class OpenLibertyGeneratorTest {
   }
 
   @Test
-  public void getDefaultWebPort_overridesDefault() {
+  void getDefaultWebPort_overridesDefault() {
     // Given
     projectProperties.put("jkube.generator.openliberty.mainClass", "com.example.Main");
     // When
@@ -97,7 +99,7 @@ public class OpenLibertyGeneratorTest {
   }
 
   @Test
-  public void addAdditionalFiles() {
+  void addAdditionalFiles() {
     // When
     final List<AssemblyFileSet> result = new OpenLibertyGenerator(context).addAdditionalFiles();
     // Then

@@ -32,19 +32,18 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.openshift.api.model.Template;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jgit.util.FileUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ResourceUtilTest {
+class ResourceUtilTest {
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @TempDir
+    File temporaryFolder;
 
     @Test
-    public void deserializeKubernetesListOrTemplate_withNonExistentFile_returnsEmptyList() throws IOException {
+    void deserializeKubernetesListOrTemplate_withNonExistentFile_returnsEmptyList() throws IOException {
         // Given
         final File kubernetesManifestFile = new File("i-dont-exist.yml");
         // When
@@ -54,9 +53,9 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void deserializeKubernetesListOrTemplate_withEmptyFile_returnsEmptyList() throws IOException {
+    void deserializeKubernetesListOrTemplate_withEmptyFile_returnsEmptyList() throws IOException {
         // Given
-        final File empty = temporaryFolder.newFile("kubernetes-empty.yaml");
+        final File empty = new File(temporaryFolder, "kubernetes-empty.yaml");
         FileUtils.touch(empty.toPath());
         // When
         final List<HasMetadata> result = ResourceUtil.deserializeKubernetesListOrTemplate(empty);
@@ -65,7 +64,7 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void deserializeKubernetesListOrTemplate_withMixedResources_returnsValidList() throws IOException {
+    void deserializeKubernetesListOrTemplate_withMixedResources_returnsValidList() throws IOException {
         // Given
         final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
             "/util/resource-util/list-with-standard-template-and-cr-resources.yml").getFile());
@@ -97,7 +96,7 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void deserializeKubernetesListOrTemplate_withTemplateFile_returnsValidList() throws IOException {
+    void deserializeKubernetesListOrTemplate_withTemplateFile_returnsValidList() throws IOException {
         // Given
         final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
             "/util/resource-util/template.yml").getFile());
@@ -120,7 +119,7 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void deserializeKubernetesListOrTemplate_withMultipleYamlAndSeparator_returnsValidList() throws IOException {
+    void deserializeKubernetesListOrTemplate_withMultipleYamlAndSeparator_returnsValidList() throws IOException {
         // Given
         final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
           "/util/resource-util/multiple-k8s-documents.yml").getFile());
@@ -155,7 +154,7 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void deserializeKubernetesListOrTemplate_withStandardResourcesAndPlaceholders_returnsValidList() throws IOException {
+    void deserializeKubernetesListOrTemplate_withStandardResourcesAndPlaceholders_returnsValidList() throws IOException {
         // Given
         final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
             "/util/resource-util/list-with-standard-resources-and-placeholders.yml").getFile());
@@ -182,7 +181,7 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void deserializeKubernetesListOrTemplate_withSingleResource_returnsValidList() throws IOException {
+    void deserializeKubernetesListOrTemplate_withSingleResource_returnsValidList() throws IOException {
         // Given
         final File kubernetesListFile = new File(ResourceUtilTest.class.getResource(
             "/util/resource-util/custom-resource-cr.yml").getFile());
@@ -194,11 +193,11 @@ public class ResourceUtilTest {
             .singleElement()
             .isInstanceOf(GenericKubernetesResource.class)
             .hasFieldOrPropertyWithValue("kind", "SomeCustomResource")
-            .hasFieldOrPropertyWithValue("metadata.name", "my-custom-resource");;
+            .hasFieldOrPropertyWithValue("metadata.name", "my-custom-resource");
     }
 
     @Test
-    public void load_withCustomResourceFile_shouldLoadGenericKubernetesResource() throws Exception {
+    void load_withCustomResourceFile_shouldLoadGenericKubernetesResource() throws Exception {
         // When
         final HasMetadata result = ResourceUtil.load(
             new File(ResourceUtilTest.class.getResource( "/util/resource-util/custom-resource-cr.yml").getFile()),
@@ -212,7 +211,7 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void load_withTemplate_shouldLoadTemplate() throws Exception {
+    void load_withTemplate_shouldLoadTemplate() throws Exception {
         // When
         final HasMetadata result = ResourceUtil.load(
             new File(ResourceUtilTest.class.getResource( "/util/resource-util/template.yml").getFile()),
@@ -233,9 +232,9 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void save_withValidYamlFileAndItem_shouldSave() throws IOException {
+    void save_withValidYamlFileAndItem_shouldSave() throws IOException {
         // Given
-        final File file = temporaryFolder.newFile("temp-resource.yaml");
+        final File file = new File(temporaryFolder, "temp-resource.yaml");
         final ConfigMap resource = new ConfigMapBuilder().withNewMetadata().withName("cm").endMetadata()
             .addToData("field", "value").build();
         // When
@@ -246,9 +245,9 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void save_withValidJsonFileAndItem_shouldSave() throws IOException {
+    void save_withValidJsonFileAndItem_shouldSave() throws IOException {
         // Given
-        final File file = temporaryFolder.newFile("temp-resource.json");
+        final File file = new File(temporaryFolder, "temp-resource.json");
         final ConfigMap resource = new ConfigMapBuilder().withNewMetadata().withName("cm").endMetadata()
             .addToData("field", "value").build();
         // When
@@ -259,9 +258,9 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void save_withValidYamlFileAndItemWithAdditionalProperties_shouldSave() throws IOException {
+    void save_withValidYamlFileAndItemWithAdditionalProperties_shouldSave() throws IOException {
         // Given
-        final File file = temporaryFolder.newFile("temp-resource.yaml");
+        final File file = new File(temporaryFolder, "temp-resource.yaml");
         final ConfigMap resource = new ConfigMapBuilder().withNewMetadata().withName("cm").endMetadata()
             .addToData("field", "value")
             .withImmutable(true)
@@ -279,9 +278,10 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void getFinalResourceDirs_withMultipleEnvs_shouldReturnEnvResourceDirList() throws IOException {
+    void getFinalResourceDirs_withMultipleEnvs_shouldReturnEnvResourceDirList() {
         // Given
-        File resourceDir = temporaryFolder.newFolder("src", "main", "jkube");
+        File resourceDir =
+                temporaryFolder.toPath().resolve("src").resolve("main").resolve("jkube").toFile();
 
         // When
         List<File> finalResourceDirs = ResourceUtil.getFinalResourceDirs(resourceDir, "common,dev");
@@ -293,9 +293,10 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void getFinalResourceDirs_withNullEnv_shouldReturnResourceDir() throws IOException {
+    void getFinalResourceDirs_withNullEnv_shouldReturnResourceDir() {
         // Given
-        File resourceDir = temporaryFolder.newFolder("src", "main", "jkube");
+        File resourceDir =
+                temporaryFolder.toPath().resolve("src").resolve("main").resolve("jkube").toFile();
 
         // When
         List<File> finalResourceDirs = ResourceUtil.getFinalResourceDirs(resourceDir, null);
@@ -307,9 +308,10 @@ public class ResourceUtilTest {
     }
 
     @Test
-    public void getFinalResourceDirs_withEmptyEnv_shouldReturnResourceDir() throws IOException {
+    void getFinalResourceDirs_withEmptyEnv_shouldReturnResourceDir() {
         // Given
-        File resourceDir = temporaryFolder.newFolder("src", "main", "jkube");
+        File resourceDir =
+                temporaryFolder.toPath().resolve("src").resolve("main").resolve("jkube").toFile();
 
         // When
         List<File> finalResourceDirs = ResourceUtil.getFinalResourceDirs(resourceDir, "");

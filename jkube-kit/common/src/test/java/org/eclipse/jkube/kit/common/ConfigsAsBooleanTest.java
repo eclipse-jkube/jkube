@@ -13,41 +13,33 @@
  */
 package org.eclipse.jkube.kit.common;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Parameterized.class)
 public class ConfigsAsBooleanTest {
 
-  @Parameterized.Parameters(name = "{0}: asBoolean({1})={2}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-        { "Unsupported String", " 1 2 1337", false },
-        { "One", "1", false },
-        { "Zero", "0", false },
-        { "FalseMixedCase", "fALsE", false },
-        { "False", "false", false },
-        { "True", "true", true },
-        { "TrueMixedCase", "TrUE", true },
-        { "TrueUpperCase", "TRUE", true }
-    });
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("data")
+  void asBooleanTest(String testDesc, String value, boolean expected) {
+    assertThat(Configs.asBoolean(value)).isEqualTo(expected);
   }
 
-  @Parameterized.Parameter
-  public String description;
-  @Parameterized.Parameter(1)
-  public String input;
-  @Parameterized.Parameter(2)
-  public Boolean expected;
-
-  @Test
-  public void testUsingParametrizedTest() {
-    assertThat(Configs.asBoolean(input)).isEqualTo(expected);
+  public static Stream<Arguments> data() {
+    return Stream.of(
+            Arguments.arguments("With Unsupported String should return false", " 1 2 1337", false),
+            Arguments.arguments("With One should return false", "1", false),
+            Arguments.arguments("With Zero should return false", "0", false),
+            Arguments.arguments("With True should return true", "true", true),
+            Arguments.arguments("With True uppercase should return true", "TRUE", true),
+            Arguments.arguments("With True mixed case should return true", "TrUE", true),
+            Arguments.arguments("With False mixed case should return false", "fALsE", false),
+            Arguments.arguments("With False should return false", "false", false)
+    );
   }
+
 }

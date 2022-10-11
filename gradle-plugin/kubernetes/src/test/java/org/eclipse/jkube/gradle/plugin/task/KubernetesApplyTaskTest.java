@@ -17,12 +17,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 
+import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 import org.junit.After;
@@ -53,8 +53,10 @@ public class KubernetesApplyTaskTest {
   @Before
   public void setUp() throws IOException {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
-      final KubernetesClient kubernetesClient = mock(KubernetesClient.class);
+      // OpenShiftClient instance needed due to OpenShift checks performed in KubernetesApply
+      final OpenShiftClient kubernetesClient = mock(OpenShiftClient.class);
       when(kubernetesClient.getMasterUrl()).thenReturn(new URL("http://kubernetes-cluster"));
+      when(kubernetesClient.adapt(OpenShiftClient.class)).thenReturn(kubernetesClient);
       when(mock.createDefaultClient()).thenReturn(kubernetesClient);
     });
     applyServiceMockedConstruction = mockConstruction(ApplyService.class);

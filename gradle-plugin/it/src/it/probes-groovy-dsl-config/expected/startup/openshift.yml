@@ -15,7 +15,6 @@ items:
       app.openshift.io/vcs-uri: "@ignore@"
       jkube.io/git-commit: "@ignore@"
     labels:
-      expose: "true"
       app: probes-groovy-dsl-config
       provider: jkube
       version: "@ignore@"

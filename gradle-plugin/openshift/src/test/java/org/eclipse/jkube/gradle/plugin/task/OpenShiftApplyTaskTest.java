@@ -54,9 +54,10 @@ public class OpenShiftApplyTaskTest {
   public void setUp() {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       final OpenShiftClient openShiftClient = mock(OpenShiftClient.class);
-      when(openShiftClient.getMasterUrl()).thenReturn(new URL("http://openshiftapps-com-cluster:6443"));
-      when(openShiftClient.isAdaptable(OpenShiftClient.class)).thenReturn(true);
       when(mock.createDefaultClient()).thenReturn(openShiftClient);
+      when(openShiftClient.getMasterUrl()).thenReturn(new URL("http://openshiftapps-com-cluster:6443"));
+      when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
+      when(openShiftClient.isSupported()).thenReturn(true);
     });
     applyServiceMockedConstruction = mockConstruction(ApplyService.class);
     extension = new TestOpenShiftExtension();

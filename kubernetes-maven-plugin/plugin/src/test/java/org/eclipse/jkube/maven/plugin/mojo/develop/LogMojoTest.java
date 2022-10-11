@@ -15,24 +15,20 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.kit.common.KitLogger;
+import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +37,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNotNull;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -48,11 +45,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
-@SuppressWarnings("unused")
-public class LogMojoTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class LogMojoTest {
 
   private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
@@ -62,13 +55,17 @@ public class LogMojoTest {
 
   private LogMojo logMojo;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp(@TempDir File temporaryFolder) throws IOException {
     jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
-        withSettings().defaultAnswer(RETURNS_DEEP_STUBS));
+        withSettings().defaultAnswer(RETURNS_DEEP_STUBS), (mock, context) -> {
+          final OpenShiftClient oc = mock(OpenShiftClient.class, RETURNS_DEEP_STUBS);
+          doReturn(oc).when(oc).adapt(OpenShiftClient.class);
+          when(mock.getClient()).thenReturn(oc);
+        });
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class);
     podLogServiceMockedConstruction = mockConstruction(PodLogService.class);
-    kubernetesManifestFile = temporaryFolder.newFile("kubernetes.yml");
+    kubernetesManifestFile = File.createTempFile("kubernetes", ".yml", temporaryFolder);
     mavenProject = mock(MavenProject.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
     // @formatter:off
@@ -80,8 +77,8 @@ public class LogMojoTest {
     // @formatter:on
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     clusterAccessMockedConstruction.close();
     jKubeServiceHubMockedConstruction.close();
     mavenProject = null;
@@ -89,7 +86,7 @@ public class LogMojoTest {
   }
 
   @Test
-  public void execute() throws Exception {
+  void execute() throws Exception {
     // When
     logMojo.execute();
     // Then

@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>vertx-4</artifactId>
-  <version>1.8.0</version>
+  <version>1.9.1</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Vertx 4 Web</name>
   <packaging>jar</packaging>
 

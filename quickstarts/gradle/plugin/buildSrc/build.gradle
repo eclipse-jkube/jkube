@@ -1,0 +1,17 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.eclipse.jkube:jkube-kit-api:1.9.1'
+}

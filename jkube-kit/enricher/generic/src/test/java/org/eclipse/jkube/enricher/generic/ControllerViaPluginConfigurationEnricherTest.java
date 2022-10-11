@@ -27,12 +27,14 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.handler.DeploymentHandler;
 import org.eclipse.jkube.kit.enricher.handler.StatefulSetHandler;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Properties;
 
@@ -40,12 +42,15 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ControllerViaPluginConfigurationEnricherTest {
   private ControllerViaPluginConfigurationEnricher controllerViaPluginConfigurationEnricher;
   private KubernetesListBuilder kubernetesListBuilder;
   private EnricherContext context;
+  private DeploymentHandler mockedDeploymentHandler;
 
   @Before
   public void setUp() {
@@ -156,6 +161,28 @@ public class ControllerViaPluginConfigurationEnricherTest {
     assertGeneratedListContainsStatefulSetWithNameAndEnvVar(kubernetesListBuilder, "existing-name");
   }
 
+  @Test
+  public void create_withDeploymentFragmentAndImagePullPolicyPropertySet_shouldSendConfiguredPolicyToDeploymentHandler() {
+    // Given
+    mockDeploymentHandler();
+    ArgumentCaptor<ResourceConfig> resourceConfigArgumentCaptor = ArgumentCaptor.forClass(ResourceConfig.class);
+    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
+    when(context.getProperty("jkube.imagePullPolicy")).thenReturn("Never");
+    DeploymentBuilder deploymentFragment = createNewDeploymentBuilder().withNewMetadata()
+        .withName("existing-name")
+        .endMetadata();
+    kubernetesListBuilder.addToItems(deploymentFragment);
+
+    // When
+    controllerViaPluginConfigurationEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+    // Then
+    verify(mockedDeploymentHandler, times(1))
+        .get(resourceConfigArgumentCaptor.capture(), any());
+    assertThat(resourceConfigArgumentCaptor.getValue())
+        .hasFieldOrPropertyWithValue("imagePullPolicy", "Never");
+  }
+
   private void assertGeneratedListContainsDeploymentWithNameAndEnvVar(KubernetesListBuilder kubernetesListBuilder, String name) {
     assertThat(kubernetesListBuilder.build())
         .extracting(KubernetesList::getItems)
@@ -197,7 +224,7 @@ public class ControllerViaPluginConfigurationEnricherTest {
   }
 
   private void mockDeploymentHandler() {
-    DeploymentHandler mockedDeploymentHandler = mock(DeploymentHandler.class, RETURNS_DEEP_STUBS);
+    mockedDeploymentHandler = mock(DeploymentHandler.class, RETURNS_DEEP_STUBS);
     when(context.getHandlerHub().getHandlerFor(Deployment.class)).thenReturn(mockedDeploymentHandler);
     when(mockedDeploymentHandler.get(any(), any())).thenReturn(createOpinionatedDeployment());
   }

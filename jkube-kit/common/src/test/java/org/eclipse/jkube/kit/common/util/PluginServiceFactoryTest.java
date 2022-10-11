@@ -16,26 +16,28 @@ package org.eclipse.jkube.kit.common.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author roland
  */
-public class PluginServiceFactoryTest {
+
+@SuppressWarnings("unused")
+class PluginServiceFactoryTest {
 
   private PluginServiceFactory<TestContext> pluginServiceFactory;
 
-  @Before
+  @BeforeEach
   public void setup() {
     pluginServiceFactory = new PluginServiceFactory<>(new TestContext());
   }
 
   @Test
-  public void createServiceObjects_withOrdersAndExclusions_shouldReturnInCorrectOrder() {
+  void createServiceObjects_withOrdersAndExclusions_shouldReturnInCorrectOrder() {
     // Given
     final String[] descriptorPaths = new String[] { "service/test-services-default", "service/test-services" };
     // When
@@ -49,7 +51,7 @@ public class PluginServiceFactoryTest {
   }
 
   @Test
-  public void createServiceObjects_withNonExistentClass_shouldThrowException() {
+  void createServiceObjects_withNonExistentClass_shouldThrowException() {
     // When
     final IllegalStateException result = assertThrows(IllegalStateException.class, () ->
         pluginServiceFactory.createServiceObjects("service/error-services"));
@@ -60,7 +62,7 @@ public class PluginServiceFactoryTest {
   }
 
   @Test
-  public void createServiceObjects_withBadConstructorClass_shouldThrowException() {
+  void createServiceObjects_withBadConstructorClass_shouldThrowException() {
     // When
     final IllegalStateException result = assertThrows(IllegalStateException.class, () ->
         pluginServiceFactory.createServiceObjects("service/error-constructor-services"));
@@ -70,7 +72,7 @@ public class PluginServiceFactoryTest {
   }
 
   @Test
-  public void createServiceObjects_withBadGenericClass_shouldThrowException() {
+  void createServiceObjects_withBadGenericClass_shouldThrowException() {
     //Given
     final List<String> services = pluginServiceFactory.createServiceObjects("service/test-services");
     // When

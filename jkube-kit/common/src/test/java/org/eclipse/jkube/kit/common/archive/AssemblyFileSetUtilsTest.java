@@ -14,54 +14,37 @@
 package org.eclipse.jkube.kit.common.archive;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.calculateFilePermissions;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileSetUtils.isSelfPath;
 import static org.assertj.core.api.Assertions.assertThat;
-public class AssemblyFileSetUtilsTest {
 
-  @Rule
-  public TemporaryFolder temp = new TemporaryFolder();
+@SuppressWarnings("unused")
+class AssemblyFileSetUtilsTest {
 
-  @Test
-  public void isSelfPathNullShouldBeTrue() {
-    // When
-    boolean result = isSelfPath(null);
-    // Then
-    assertThat(result).isTrue();
-  }
+  @TempDir
+  File temp;
 
   @Test
-  public void isSelfPathEmptyShouldBeTrue() {
-    // When
-    boolean result = isSelfPath("   ");
-    // Then
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  public void isSelfPathDotShouldBeTrue() {
-    // When
-    boolean result = isSelfPath(".");
-    // Then
-    assertThat(result).isTrue();
-  }
-
-  @Test
-  public void calculateFilePermissionsFileWithNoFileMode() throws Exception {
+  void calculateFilePermissionsFileWithNoFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().build();
-    final File sourceFile = temp.newFile("source-file.txt");
-    final File aFile = temp.newFile("just-a-file.txt");
+    final File sourceFile = File.createTempFile("source-file", "txt", temp);
+    final File aFile = File.createTempFile("just-a-file", "txt", temp);
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceFile, aFile, afs);
     // Then
@@ -69,11 +52,11 @@ public class AssemblyFileSetUtilsTest {
   }
 
   @Test
-  public void calculateFilePermissionsFileWithFileMode() throws Exception {
+  void calculateFilePermissionsFileWithFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().fileMode("0777").build();
-    final File sourceFile = temp.newFile("source-file.txt");
-    final File aFile = temp.newFile("just-a-file.txt");
+    final File sourceFile = File.createTempFile("source-file", "txt", temp);
+    final File aFile = File.createTempFile("just-a-file", "txt", temp);
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceFile, aFile, afs);
     // Then
@@ -81,11 +64,11 @@ public class AssemblyFileSetUtilsTest {
   }
 
   @Test
-  public void calculateFilePermissionsDirectoryWithNoDirectoryMode() throws Exception {
+  void calculateFilePermissionsDirectoryWithNoDirectoryMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().build();
-    final File sourceDirectory = temp.newFile("source-directory");
-    final File aDirectory = temp.newFolder("just-a-directory");
+    final File sourceDirectory = temp.toPath().resolve("source-directory").toFile();
+    final File aDirectory = Files.createDirectories(temp.toPath().resolve("just-a-directory")).toFile();
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceDirectory, aDirectory, afs);
     // Then
@@ -93,15 +76,15 @@ public class AssemblyFileSetUtilsTest {
   }
 
   @Test
-  public void calculateFilePermissionsDirectoryWithDirectoryMode() throws Exception {
+  void calculateFilePermissionsDirectoryWithDirectoryMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().directoryMode("040777").build();
-    final File sourceDirectory = temp.newFolder("source-directory");
+    final File sourceDirectory = new File(temp, "source-directory");
     final File sourceSubdirectory = new File(sourceDirectory, "subdirectory");
     FileUtils.forceMkdir(sourceSubdirectory);
     final File sourceFile = new File(sourceDirectory, "file.txt");
     assertThat(sourceFile.createNewFile()).isTrue();
-    final File aDirectory = temp.newFolder("just-a-directory");
+    final File aDirectory = new File(temp, "just-a-directory");
     final File aSubdirectory = new File(aDirectory, "subdirectory");
     FileUtils.forceMkdir(aSubdirectory);
     final File aFile = new File(aDirectory, "file.txt");
@@ -117,13 +100,13 @@ public class AssemblyFileSetUtilsTest {
   }
 
   @Test
-  public void calculateFilePermissionsDirectoryAndNestedDirectoryWithDirectoryAndFileMode() throws Exception {
+  void calculateFilePermissionsDirectoryAndNestedDirectoryWithDirectoryAndFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().directoryMode("040775").fileMode("0755").build();
-    final File sourceDirectory = temp.newFolder("source-directory");
+    final File sourceDirectory = new File(temp, "source-directory");
     final File sourceSubdirectory = new File(sourceDirectory, "subdirectory");
     FileUtils.forceMkdir(sourceSubdirectory);
-    final File aDirectory = temp.newFolder("just-a-directory");
+    final File aDirectory = new File(temp, "just-a-directory");
     final File aSubdirectory = new File(aDirectory, "subdirectory");
     FileUtils.forceMkdir(aSubdirectory);
     // When
@@ -136,15 +119,15 @@ public class AssemblyFileSetUtilsTest {
   }
 
   @Test
-  public void calculateFilePermissionsDirectoryAndNestedDirectoryAndFileWithDirectoryAndFileMode() throws Exception {
+  void calculateFilePermissionsDirectoryAndNestedDirectoryAndFileWithDirectoryAndFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().directoryMode("040755").fileMode("0755").build();
-    final File sourceDirectory = temp.newFolder("source-directory");
+    final File sourceDirectory = new File(temp, "source-directory");
     final File sourceSubdirectory = new File(sourceDirectory, "subdirectory");
     FileUtils.forceMkdir(sourceSubdirectory);
     final File sourceFile = new File(sourceDirectory, "file.txt");
     assertThat(sourceFile.createNewFile()).isTrue();
-    final File aDirectory = temp.newFolder("just-a-directory");
+    final File aDirectory = new File(temp, "just-a-directory");
     final File aSubdirectory = new File(aDirectory, "subdirectory");
     FileUtils.forceMkdir(aSubdirectory);
     final File aFile = new File(aDirectory, "file.txt");
@@ -158,4 +141,24 @@ public class AssemblyFileSetUtilsTest {
             new AssemblyFileEntry(sourceFile, aFile, "0755")
     );
   }
+
+  @DisplayName("Self Path Tests")
+  @ParameterizedTest(name = "selfPath with a ''{0}'' value should be true")
+  @MethodSource("selfPathTestData")
+  void selfPath(String testDesc, String path) {
+    // When
+    boolean result = isSelfPath(path);
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  public static Stream<Arguments> selfPathTestData() {
+    return Stream.of(
+            Arguments.of("null", null),
+            Arguments.of("blank string", "   "),
+            Arguments.of("empty string", ""),
+            Arguments.of(".", ".")
+    );
+  }
+
 }

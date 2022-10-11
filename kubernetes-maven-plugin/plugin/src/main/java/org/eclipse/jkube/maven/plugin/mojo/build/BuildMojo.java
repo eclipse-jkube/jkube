@@ -29,8 +29,8 @@ import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
 
     @Override
-    protected boolean canExecute() {
-        return super.canExecute() && !skipBuild;
+    protected boolean shouldSkip() {
+        return super.shouldSkip() || skipBuild;
     }
 
     @Override

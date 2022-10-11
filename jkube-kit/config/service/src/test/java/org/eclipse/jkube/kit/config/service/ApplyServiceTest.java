@@ -17,7 +17,7 @@ package org.eclipse.jkube.kit.config.service;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -31,7 +31,9 @@ import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
-import io.fabric8.openshift.client.server.mock.OpenShiftServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 
@@ -51,48 +53,51 @@ import io.fabric8.openshift.api.model.ProjectBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApplyServiceTest {
+@EnableKubernetesMockClient
+class ApplyServiceTest {
 
     @Mocked
     private KitLogger log;
 
-    @Rule
-    public final OpenShiftServer mockServer = new OpenShiftServer(false);
+    KubernetesMockServer mockServer;
+    OpenShiftClient client;
 
     private ApplyService applyService;
 
-    @Before
-    public void setUp() {
-        applyService = new ApplyService(mockServer.getOpenshiftClient(), log);
+    @BeforeEach
+    void setUp() {
+        applyService = new ApplyService(client, log);
         applyService.setNamespace("default");
     }
 
     @Test
-    public void testApplyEntities() throws Exception {
+    void applyEntities() {
         // Given
-        final Set<HasMetadata> entities = new HashSet<>(Arrays.asList(
+        final Set<HasMetadata> entities = new LinkedHashSet<>(Arrays.asList(
             new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata().build(),
             new ServiceBuilder().withNewMetadata().withName("svc1").endMetadata().build(),
             new ConfigMapBuilder().withNewMetadata().withName("c1").endMetadata().build(),
             new PodBuilder().withNewMetadata().withName("p1").endMetadata().build(),
             new ReplicationControllerBuilder().withNewMetadata().withName("rc1").endMetadata().build(),
+            new NamespaceBuilder().withNewMetadata().withName("ns1").endMetadata().build(),
             new NetworkPolicyBuilder().withNewMetadata().withName("npv1").endMetadata().build(),
             new io.fabric8.kubernetes.api.model.extensions.NetworkPolicyBuilder().withNewMetadata().withName("np-ext").endMetadata().build()
         ));
         String fileName = "foo.yml";
         WebServerEventCollector collector = new WebServerEventCollector();
+        mockServer.expect().post()
+            .withPath("/apis/apps/v1/namespaces/default/deployments")
+            .andReply(collector.record("new-deploy").andReturn(HTTP_CREATED, ""))
+            .once();
         mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/services")
                 .andReply(collector.record("new-service").andReturn(HTTP_CREATED, ""))
@@ -102,16 +107,16 @@ public class ApplyServiceTest {
                 .andReply(collector.record("new-configmap").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
-                .withPath("/apis/apps/v1/namespaces/default/deployments")
-                .andReply(collector.record("new-deploy").andReturn(HTTP_CREATED, ""))
-                .once();
-        mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/pods")
                 .andReply(collector.record("new-pod").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
                 .withPath("/api/v1/namespaces/default/replicationcontrollers")
                 .andReply(collector.record("new-rc").andReturn(HTTP_CREATED, ""))
+                .once();
+        mockServer.expect().post()
+                .withPath("/api/v1/namespaces")
+                .andReply(collector.record("new-ns").andReturn(HTTP_CREATED, ""))
                 .once();
         mockServer.expect().post()
             .withPath("/apis/networking.k8s.io/v1/namespaces/default/networkpolicies")
@@ -126,12 +131,12 @@ public class ApplyServiceTest {
         applyService.applyEntities(fileName, entities, log, 5);
 
         // Then
-        collector.assertEventsRecordedInOrder("new-rc", "new-configmap", "new-service", "new-deploy", "new-pod");
+        collector.assertEventsRecordedInOrder("new-ns", "new-service", "new-configmap", "new-deploy", "new-pod", "new-rc");
         collector.assertEventsRecorded("new-np-v1", "new-np-extensions");
     }
 
     @Test
-    public void testCreateRoute() {
+    void createRoute() {
         Route route = buildRoute();
 
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -150,7 +155,7 @@ public class ApplyServiceTest {
     }
 
     @Test
-    public void testUpdateRoute() {
+    void updateRoute() {
         Route oldRoute = buildRoute();
         Route newRoute = new RouteBuilder()
                 .withNewMetadataLike(oldRoute.getMetadata())
@@ -179,7 +184,7 @@ public class ApplyServiceTest {
     }
 
     @Test
-    public void testCreateRouteInServiceOnlyMode() {
+    void createRouteInServiceOnlyMode() {
         Route route = buildRoute();
 
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -192,11 +197,11 @@ public class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsNotRecorded("get-route");
-        assertEquals(0, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isZero();
     }
 
     @Test
-    public void testCreateRouteNotAllowed() {
+    void createRouteNotAllowed() {
         Route route = buildRoute();
 
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -209,11 +214,11 @@ public class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsRecordedInOrder("get-route");
-        assertEquals(1, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isOne();
     }
 
     @Test
-    public void testApplyGenericKubernetesResource() throws Exception {
+    void applyGenericKubernetesResource() throws Exception {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
@@ -240,11 +245,11 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("get-resources", "post-cr-gateway", "get-resources", "post-cr-virtualservice");
-        assertEquals(6, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isEqualTo(6);
     }
 
     @Test
-    public void testProcessCustomEntitiesReplaceCustomResources() throws Exception {
+    void processCustomEntitiesReplaceCustomResources() throws Exception {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
@@ -284,11 +289,11 @@ public class ApplyServiceTest {
         // Then
         collector.assertEventsRecordedInOrder("get-cr-gateway", "post-cr-gateway", "put-cr-gateway",
              "get-cr-virtualservice", "post-cr-virtualservice");
-        assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isEqualTo(7);
     }
 
     @Test
-    public void testProcessCustomEntitiesRecreateModeTrue() throws Exception {
+    void processCustomEntitiesRecreateModeTrue() throws Exception {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
@@ -317,21 +322,25 @@ public class ApplyServiceTest {
                 .build())
             .once();
         mockServer.expect().delete()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
-                .andReply(collector.record("delete-cr-virtualservice").andReturn(HTTP_OK, "{\"kind\":\"Status\",\"status\":\"Success\"}"))
-                .once();
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/reviews-route")
+            .andReply(collector.record("delete-cr-virtualservice")
+            .andReturn(HTTP_OK, "{\"kind\":\"Status\",\"apiVersion\":\"v1\",\"status\":\"Success\"}"))
+            .once();
         mockServer.expect().delete()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
-                .andReply(collector.record("delete-cr-gateway").andReturn(HTTP_OK, "{\"kind\":\"Status\",\"status\":\"Success\"}"))
-                .once();
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways/mygateway-https")
+            .andReply(collector.record("delete-cr-gateway")
+            .andReturn(HTTP_OK, "{\"kind\":\"Status\",\"apiVersion\":\"v1\",\"status\":\"Success\"}"))
+            .once();
         mockServer.expect().post()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices")
-                .andReply(collector.record("post-cr-virtualservice").andReturn(HTTP_OK, "{}"))
-                .once();
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices")
+            .andReply(collector.record("post-cr-virtualservice")
+            .andReturn(HTTP_OK, "{\"kind\":\"VirtualService\",\"apiVersion\":\"networking.istio.io/v1alpha3\"}"))
+            .once();
         mockServer.expect().post()
-                .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways")
-                .andReply(collector.record("post-cr-gateway").andReturn(HTTP_OK, "{}"))
-                .once();
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways")
+            .andReply(collector.record("post-cr-gateway")
+            .andReturn(HTTP_OK, "{\"kind\":\"Gateway\",\"apiVersion\":\"networking.istio.io/v1alpha3\"}"))
+            .once();
         applyService.setRecreateMode(true);
 
         // When
@@ -340,12 +349,12 @@ public class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder( "delete-cr-gateway", "post-cr-gateway", "delete-cr-virtualservice", "post-cr-virtualservice");
-        assertEquals(8, mockServer.getOpenShiftMockServer().getRequestCount());
+        assertThat(mockServer.getRequestCount()).isEqualTo(10);
         applyService.setRecreateMode(false);
     }
 
     @Test
-    public void testGetK8sListWithNamespaceFirstWithNamespace() {
+    void getK8sListWithNamespaceFirstWithNamespace() {
         // Given
         List<HasMetadata> k8sList = new ArrayList<>();
         k8sList.add(new PodBuilder().withNewMetadata().withNamespace("p1").endMetadata().build());
@@ -357,13 +366,14 @@ public class ApplyServiceTest {
         List<HasMetadata> result = ApplyService.getK8sListWithNamespaceFirst(k8sList);
 
         // Then
-        assertNotNull(result);
-        assertEquals(k8sList.size(), result.size());
-        assertTrue(result.get(0) instanceof Namespace);
+        assertThat(result).isNotNull()
+            .hasSameSizeAs(k8sList)
+            .first()
+            .isInstanceOf(Namespace.class);
     }
 
     @Test
-    public void testGetK8sListWithNamespaceFirstWithProject() {
+    void getK8sListWithNamespaceFirstWithProject() {
         // Given
         List<HasMetadata> k8sList = new ArrayList<>();
         k8sList.add(new PodBuilder().withNewMetadata().withNamespace("p1").endMetadata().build());
@@ -375,13 +385,14 @@ public class ApplyServiceTest {
         List<HasMetadata> result = ApplyService.getK8sListWithNamespaceFirst(k8sList);
 
         // Then
-        assertNotNull(result);
-        assertEquals(k8sList.size(), result.size());
-        assertTrue(result.get(0) instanceof Project);
+        assertThat(result).isNotNull()
+            .hasSameSizeAs(k8sList)
+            .first()
+            .isInstanceOf(Project.class);
     }
 
     @Test
-    public void testApplyToMultipleNamespaceNoNamespaceConfigured() throws InterruptedException {
+    void applyToMultipleNamespaceNoNamespaceConfigured() {
         // Given
         ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata().build();
         Ingress ingress = new IngressBuilder().withNewMetadata().withName("ing1").withNamespace("ns2").endMetadata().build();
@@ -409,14 +420,14 @@ public class ApplyServiceTest {
         applyService.applyEntities(null, entities, log, 5);
 
         // Then
-        collector.assertEventsRecordedInOrder("configmap-ns1-create", "serviceaccount-default-create", "ingress-ns2-create");
-        assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
+        collector.assertEventsRecordedInOrder("serviceaccount-default-create", "configmap-ns1-create", "ingress-ns2-create");
+        assertThat(mockServer.getRequestCount()).isEqualTo(5);
         applyService.setFallbackNamespace(null);
         applyService.setNamespace(configuredNamespace);
     }
 
     @Test
-    public void testApplyToMultipleNamespacesOverriddenWhenNamespaceConfigured() throws InterruptedException {
+    void applyToMultipleNamespacesOverriddenWhenNamespaceConfigured() {
         // Given
         ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("default").endMetadata().build();
         Ingress ingress = new IngressBuilder().withNewMetadata().withName("ing1").withNamespace("default").endMetadata().build();
@@ -441,8 +452,8 @@ public class ApplyServiceTest {
         applyService.applyEntities(null, entities, log, 5);
 
         // Then
-        collector.assertEventsRecordedInOrder("configmap-default-ns-create", "serviceaccount-default-ns-create", "ingress-default-ns-create");
-        assertEquals(5, mockServer.getOpenShiftMockServer().getRequestCount());
+        collector.assertEventsRecordedInOrder("serviceaccount-default-ns-create", "configmap-default-ns-create", "ingress-default-ns-create");
+        assertThat(mockServer.getRequestCount()).isEqualTo(5);
         applyService.setFallbackNamespace(null);
     }
 

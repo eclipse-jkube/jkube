@@ -67,7 +67,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   @TaskAction
   public final void runTask() {
     init();
-    if (!canExecute()) {
+    if (shouldSkip()) {
         kitLogger.info("`%s` task is skipped.", this.getName());
         return;
     }
@@ -94,6 +94,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
           .images(resolvedImages)
           .resources(kubernetesExtension.resources)
           .log(kitLogger)
+          .jKubeBuildStrategy(kubernetesExtension.getBuildStrategyOrDefault())
           .build();
       final List<String> extraClasspathElements = kubernetesExtension.getUseProjectClassPathOrDefault() ?
           kubernetesExtension.javaProject.getCompileClassPathElements() : Collections.emptyList();
@@ -103,8 +104,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     }
   }
 
-  protected boolean canExecute() {
-    return !kubernetesExtension.getSkipOrDefault();
+  protected boolean shouldSkip() {
+    return kubernetesExtension.getSkipOrDefault();
   }
 
   @Internal

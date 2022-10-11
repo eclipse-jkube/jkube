@@ -30,20 +30,19 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 /**
- * A simple factory for creating services with no-arg constructors from a textual
- * descriptor. This descriptor, which must be a resource loadable by this class'
+ * A simple factory for creating services with predefined constructors (with <code>&lt;C&gt;</code> argument)
+ * from a textual descriptor. This descriptor, which must be a resource loadable by this class'
  * classloader, is a plain text file which looks like
  *
- * <pre>
+ * <pre>{@code
  *   com.example.MyProjectLabelEnricher
  *   !org.eclipse.jkube.maven.jkube.enhancer.DefaultProjectLabelEnricher
  *   com.example.AnotherEnricher,50
- * </pre>
+ * }</pre>
  *
  * If a line starts with <code>!</code> it is removed if it has been added previously.
  * The optional second numeric value is the order in which the services are returned.
  *
- * @author roland
  */
 public final class PluginServiceFactory<C> {
 
@@ -53,10 +52,10 @@ public final class PluginServiceFactory<C> {
     private final List<ClassLoader> additionalClassLoaders;
 
     // Parameters for service constructors
-    private final C context;
+    private final C constructorParameter;
 
-    public PluginServiceFactory(C context, ClassLoader ... loaders) {
-        this.context = context;
+    public PluginServiceFactory(C constructorParameter, ClassLoader ... loaders) {
+        this.constructorParameter = constructorParameter;
         this.additionalClassLoaders = new ArrayList<>();
         Stream.of(loaders).forEach(this::addAdditionalClassLoader);
     }
@@ -134,7 +133,9 @@ public final class PluginServiceFactory<C> {
                 if (clazz == null) {
                     throw new ClassNotFoundException("Class " + entry.getClassName() + " could not be found");
                 }
-                T service = findConstructor(clazz).newInstance(context);
+                final Constructor<T> constructor = findConstructor(clazz);
+                final T service = constructorParameter == null ?
+                  constructor.newInstance() : constructor.newInstance(constructorParameter);
                 serviceMap.put(entry, service);
             }
         }
@@ -145,9 +146,16 @@ public final class PluginServiceFactory<C> {
     }
 
     private <T> Constructor<T> findConstructor(Class<T> clazz) {
+        if (constructorParameter == null) {
+            try {
+                return clazz.getConstructor();
+            } catch (NoSuchMethodException e) {
+                throw new IllegalStateException("Cannot load service " + clazz.getName());
+            }
+        }
         final List<Class<?>> types = new ArrayList<>();
-        types.add(context.getClass());
-        types.addAll(Arrays.asList(context.getClass().getInterfaces()));
+        types.add(constructorParameter.getClass());
+        types.addAll(Arrays.asList(constructorParameter.getClass().getInterfaces()));
         for (Class<?> type : types) {
             try {
                 return clazz.getConstructor(type);

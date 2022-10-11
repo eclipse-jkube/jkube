@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.build.api.assembly;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -23,35 +25,40 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Verifications;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
+import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"TestMethodWithIncorrectSignature", "ResultOfMethodCallIgnored"})
-public class AssemblyManagerTest {
+class AssemblyManagerTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
+  @TempDir
+  Path temporaryFolder;
+  private KitLogger logger;
+  private JKubeConfiguration configuration;
+  private JavaProject project;
   private AssemblyManager assemblyManager;
   private File targetDirectory;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     assemblyManager = AssemblyManager.getInstance();
-    targetDirectory = temporaryFolder.newFolder("target");
+    targetDirectory = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
+    logger = spy(new KitLogger.SilentLogger());
+    configuration = mock(JKubeConfiguration.class);
+    project = mock(JavaProject.class);
   }
 
   @Test
-  public void testGetInstanceShouldBeSingleton() {
+  void getInstance_shouldBeSingleton() {
     // When
     final AssemblyManager other = AssemblyManager.getInstance();
     // Then
@@ -59,17 +66,12 @@ public class AssemblyManagerTest {
   }
 
   @Test
-  public void assemblyFiles(
-      @Injectable final JKubeConfiguration configuration, @Injectable final JavaProject project) throws Exception {
+  void assemblyFiles() throws Exception {
     // Given
-    final File buildDirs = temporaryFolder.newFolder("buildDirs");
-    // @formatter:off
-      new Expectations() {{
-          configuration.getProject(); result = project;
-          project.getBaseDirectory(); result = buildDirs;
-          project.getBuildDirectory(); result = targetDirectory;
-      }};
-      // @formatter:on
+    final File buildDirs = Files.createDirectory(temporaryFolder.resolve("buildDirs")).toFile();
+      when(configuration.getProject()).thenReturn(project);
+      when(project.getBaseDirectory()).thenReturn(buildDirs);
+      when(project.getBuildDirectory()).thenReturn(targetDirectory);
     ImageConfiguration imageConfiguration = ImageConfiguration.builder()
         .name("testImage").build(createBuildConfig())
         .build();
@@ -84,25 +86,8 @@ public class AssemblyManagerTest {
         .asList().isEmpty();
   }
 
-
   @Test
-  public void testCopyValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-    BuildConfiguration buildConfig = createBuildConfig();
-
-    AssemblyManager.verifyAssemblyReferencedInDockerfile(
-        new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
-        buildConfig, new Properties(),
-        logger);
-
-    // @formatter:off
-    new Verifications() {{
-      logger.warn(anyString, (Object []) any); times = 0;
-    }};
-    //@formatter:on
-  }
-
-  @Test
-  public void testCopyMultipleValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
+  void copyMultipleValidVerifyGivenDockerfile() throws IOException {
     BuildConfiguration buildConfig = createBuildConfig().toBuilder()
         .assembly(AssemblyConfiguration.builder().name("other-layer").build())
         .build();
@@ -111,16 +96,11 @@ public class AssemblyManagerTest {
         new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_multiple_valid.test").getPath()),
         buildConfig, new Properties(),
         logger);
-
-    // @formatter:off
-    new Verifications() {{
-      logger.warn(anyString, (Object []) any); times = 0;
-    }};
-    //@formatter:on
+    verify(logger,times(0)).warn(anyString(), any());
   }
 
   @Test
-  public void testCopyMultipleInvalidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
+  void copyMultipleInvalidVerifyGivenDockerfile() throws IOException {
     BuildConfiguration buildConfig = createBuildConfig().toBuilder()
         .assembly(AssemblyConfiguration.builder().name("other-layer").build())
         .build();
@@ -129,45 +109,7 @@ public class AssemblyManagerTest {
         new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
         buildConfig, new Properties(),
         logger);
-
-    // @formatter:off
-    new Verifications() {{
-      logger.warn(anyString, (Object []) any); times = 1;
-    }};
-    //@formatter:on
-  }
-
-  @Test
-  public void testCopyInvalidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-    BuildConfiguration buildConfig = createBuildConfig();
-
-    AssemblyManager.verifyAssemblyReferencedInDockerfile(
-        new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_invalid.test").getPath()),
-        buildConfig, new Properties(),
-        logger);
-
-    // @formatter:off
-    new Verifications() {{
-      logger.warn(anyString, (Object []) any); times = 1;
-    }};
-    //@formatter:on
-  }
-
-  @Test
-  public void testCopyChownValidVerifyGivenDockerfile(@Injectable final KitLogger logger) throws IOException {
-    BuildConfiguration buildConfig = createBuildConfig();
-
-    AssemblyManager.verifyAssemblyReferencedInDockerfile(
-        new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_chown_valid.test").getPath()),
-        buildConfig,
-        new Properties(),
-        logger);
-
-    // @formatter:off
-    new Verifications() {{
-      logger.warn(anyString, (Object []) any); times = 0;
-    }};
-    //@formatter:on
+    verify(logger,times(1)).warn(anyString(), any());
   }
 
   private BuildConfiguration createBuildConfig() {
@@ -180,10 +122,10 @@ public class AssemblyManagerTest {
   }
 
   @Test
-  public void testEnsureThatArtifactFileIsSetWithProjectArtifactSet() throws IOException {
+  void ensureThatArtifactFileIsSet_withProjectArtifactSet() throws IOException {
     // Given
     JavaProject project = JavaProject.builder()
-        .artifact(temporaryFolder.newFile("temp-project-0.0.1.jar"))
+        .artifact(Files.createFile(temporaryFolder.resolve("temp-project-0.0.1.jar")).toFile())
         .build();
     // When
     final File artifactFile = assemblyManager.ensureThatArtifactFileIsSet(project);
@@ -192,9 +134,9 @@ public class AssemblyManagerTest {
   }
 
   @Test
-  public void testEnsureThatArtifactFileIsSetWithNullProjectArtifact() throws IOException {
+  void ensureThatArtifactFileIsSet_withNullProjectArtifact() throws IOException {
     // Given
-    assertTrue(new File(targetDirectory, "foo-project-0.0.1.jar").createNewFile());
+    Files.createFile(targetDirectory.toPath().resolve("foo-project-0.0.1.jar"));
     JavaProject project = JavaProject.builder()
         .buildDirectory(targetDirectory)
         .packaging("jar")
@@ -207,7 +149,7 @@ public class AssemblyManagerTest {
   }
 
   @Test
-  public void testEnsureThatArtifactFileIsSetWithEverythingNull() throws IOException {
+  void ensureThatArtifactFileIsSet_withEverythingNull() throws IOException {
     // Given
     JavaProject project = JavaProject.builder().build();
     // When

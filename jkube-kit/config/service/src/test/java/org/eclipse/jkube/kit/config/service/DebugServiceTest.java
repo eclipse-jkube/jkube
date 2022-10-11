@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpecBuilder;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
@@ -43,24 +44,23 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpecBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import mockit.Mocked;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 @SuppressWarnings("unused")
-public class DebugServiceTest {
+class DebugServiceTest {
 
   @Mocked
   private KitLogger logger;
 
   @Mocked
-  private KubernetesClient kubernetesClient;
+  private NamespacedKubernetesClient kubernetesClient;
 
   @Mocked
   private PortForwardService portForwardService;
@@ -73,13 +73,13 @@ public class DebugServiceTest {
 
   private DebugService debugService;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     debugService = new DebugService(logger, kubernetesClient, portForwardService, applyService);
   }
 
   @Test
-  public void initDebugEnvVarsMap() {
+  void initDebugEnvVarsMap() {
     // When
     final Map<String, String> result = debugService.initDebugEnvVarsMap(false);
     // Then
@@ -89,14 +89,14 @@ public class DebugServiceTest {
   }
 
   @Test
-  public void enableDebuggingWithNullEntity() {
+  void enableDebuggingWithNullEntity() {
     // When - Then
     assertThatCode(() -> debugService.enableDebugging(null, "file.name", false))
         .doesNotThrowAnyException();
   }
 
   @Test
-  public void enableDebuggingWithNotApplicableEntity() {
+  void enableDebuggingWithNotApplicableEntity() {
     // Given
     final ConfigMap configMap = new ConfigMap();
     // When
@@ -106,7 +106,7 @@ public class DebugServiceTest {
   }
 
   @Test
-  public void enableDebuggingWithDeployment() {
+  void enableDebuggingWithDeployment() {
     // Given
     final Deployment deployment = initDeployment();
     // When
@@ -122,7 +122,7 @@ public class DebugServiceTest {
   }
 
   @Test
-  public void enableDebuggingWithReplicaSet() {
+  void enableDebuggingWithReplicaSet() {
     // Given
     final ReplicaSet replicaSet = initReplicaSet();
     // When
@@ -138,7 +138,7 @@ public class DebugServiceTest {
   }
 
   @Test
-  public void enableDebuggingWithReplicationController() {
+  void enableDebuggingWithReplicationController() {
     // Given
     final ReplicationController replicationController = initReplicationController();
     mockFromServer(replicationController);
@@ -156,7 +156,7 @@ public class DebugServiceTest {
   }
 
   @Test
-  public void enableDebuggingWithDeploymentConfig() {
+  void enableDebuggingWithDeploymentConfig() {
     // Given
     final DeploymentConfig deploymentConfig = initDeploymentConfig();
     mockFromServer(deploymentConfig);
@@ -173,7 +173,7 @@ public class DebugServiceTest {
   }
 
   @Test
-  public void debugWithNotApplicableEntitiesShouldReturn() {
+  void debugWithNotApplicableEntitiesShouldReturn() {
     // When
     debugService.debug("namespace", "file.name", Collections.emptySet(), null, false, logger);
     // Then
@@ -186,7 +186,7 @@ public class DebugServiceTest {
   }
 
   @Test
-  public void debugWithApplicableEntities(@Mocked CountDownLatch cdl) {
+  void debugWithApplicableEntities(@Mocked CountDownLatch cdl) {
     // Given
     final Deployment deployment = mockDebugDeployment(cdl);
     // When
@@ -198,7 +198,7 @@ public class DebugServiceTest {
   }
 
   @Test
-  public void debugWithApplicableEntitiesAndSuspend(@Mocked CountDownLatch cdl) {
+  void debugWithApplicableEntitiesAndSuspend(@Mocked CountDownLatch cdl) {
     // Given
     final Deployment deployment = mockDebugDeployment(cdl);
     // When
@@ -227,7 +227,7 @@ public class DebugServiceTest {
     new Verifications() {{
       logger.info("No Active debug pod with provided selector and environment variables found! Waiting for pod to be ready...");
       times = 1;
-      portForwardService.startPortForward(anyString, "namespace", 5005, localDebugPort);
+      portForwardService.startPortForward(kubernetesClient, anyString, 5005, localDebugPort);
       times = 1;
     }};
     // @formatter:on

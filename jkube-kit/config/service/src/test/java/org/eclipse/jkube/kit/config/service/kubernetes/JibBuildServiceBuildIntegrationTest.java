@@ -14,6 +14,8 @@
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Properties;
@@ -37,19 +39,15 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.AbstractFileAssert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
-public class JibBuildServiceBuildIntegrationTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class JibBuildServiceBuildIntegrationTest {
 
   @Mocked
   private JKubeServiceHub hub;
@@ -60,14 +58,14 @@ public class JibBuildServiceBuildIntegrationTest {
   private ImageConfiguration imageConfiguration;
   private JibBuildService jibBuildService;
 
-  @Before
-  public void setUp() throws Exception {
-    projectRoot = temporaryFolder.getRoot();
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
+    projectRoot = temporaryFolder.toFile();
     imageConfiguration = ImageConfiguration.builder()
         .name("registry/image-name:tag")
         .build(BuildConfiguration.builder().build())
         .build();
-    targetDirectory = temporaryFolder.newFolder("target");
+    targetDirectory = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     final JKubeConfiguration configuration = JKubeConfiguration.builder()
         .outputDirectory("target/docker")
         .project(JavaProject.builder()
@@ -89,20 +87,21 @@ public class JibBuildServiceBuildIntegrationTest {
   }
 
   @Test
-  public void build_dockerFileMode_shouldThrowException() {
+  void build_dockerFileMode_shouldThrowException() {
     // Given
     final ImageConfiguration ic = imageConfiguration.toBuilder()
         .build(imageConfiguration.getBuild().toBuilder().dockerFile("Dockerfile").build())
         .build();
-    // When
-    final JKubeServiceException result = assertThrows(JKubeServiceException.class, () -> jibBuildService.build(ic));
-    // Then
-    assertThat(result).hasMessage("Error when building JIB image")
-        .getCause().hasMessage("Dockerfile mode is not supported with JIB build strategy");
+    // When + Then
+    assertThatExceptionOfType(JKubeServiceException.class)
+        .isThrownBy(() -> jibBuildService.build(ic))
+        .withMessage("Error when building JIB image")
+        .havingCause()
+        .withMessage("Dockerfile mode is not supported with JIB build strategy");
   }
 
   @Test
-  public void build_withLayersAndArtifact_shouldPerformJibBuild() throws Exception {
+  void build_withLayersAndArtifact_shouldPerformJibBuild() throws Exception {
     // Given
     FileUtils.touch(new File(targetDirectory, "final-artifact.jar"));
     final File dlFile = new File(targetDirectory, "to-deployments.txt");

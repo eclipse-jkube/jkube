@@ -14,6 +14,8 @@
 package org.eclipse.jkube.quarkus;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -21,11 +23,9 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
@@ -33,26 +33,28 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.findQuarkusVersion;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.isStartupEndpointSupported;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusLivenessPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveQuarkusStartupPath;
 
-public class QuarkusUtilsTest {
+class QuarkusUtilsTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  Path temporaryFolder;
 
   private JavaProject javaProject;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     javaProject = JavaProject.builder()
         .properties(new Properties())
-        .outputDirectory(temporaryFolder.newFolder())
+        .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
         .build();
   }
 
   @Test
-  public void extractPort_noProfileAndNoPort_shouldReturnDefault() {
+  void extractPort_noProfileAndNoPort_shouldReturnDefault() {
     // When
     final String result = extractPort(javaProject, new Properties(), "80");
     // Then
@@ -60,7 +62,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void extractPort_noProfileAndPort_shouldReturnPort() {
+  void extractPort_noProfileAndPort_shouldReturnPort() {
     // Given
     final Properties properties = new Properties();
     properties.put("quarkus.http.port", "1337");
@@ -71,7 +73,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void extractPort_inactiveProfileAndPort_shouldReturnPort() {
+  void extractPort_inactiveProfileAndPort_shouldReturnPort() {
     // Given
     final Properties properties = new Properties();
     properties.put("quarkus.http.port", "1337");
@@ -83,7 +85,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void extractPort_activeProfileAndPort_shouldReturnProfilePort() {
+  void extractPort_activeProfileAndPort_shouldReturnProfilePort() {
     // Given
     final Properties properties = new Properties();
     properties.put("quarkus.http.port", "1337");
@@ -96,7 +98,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void getQuarkusConfiguration_propertiesAndYamlProjectProperties_shouldUseProjectProperties() {
+  void getQuarkusConfiguration_propertiesAndYamlProjectProperties_shouldUseProjectProperties() {
     // Given
     javaProject.getProperties().put("quarkus.http.port", "42");
     javaProject.setCompileClassPathElements(Arrays.asList(
@@ -112,7 +114,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void getQuarkusConfiguration_propertiesAndYaml_shouldUseProperties() {
+  void getQuarkusConfiguration_propertiesAndYaml_shouldUseProperties() {
     // Given
     javaProject.setCompileClassPathElements(Arrays.asList(
         QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/").getPath(),
@@ -127,7 +129,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void getQuarkusConfiguration_yamlOnly_shouldUseYaml() {
+  void getQuarkusConfiguration_yamlOnly_shouldUseYaml() {
     // Given
     javaProject.setCompileClassPathElements(Collections.singletonList(
         QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/").getPath()
@@ -141,7 +143,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void getQuarkusConfiguration_noConfigFiles_shouldReturnEmpty() {
+  void getQuarkusConfiguration_noConfigFiles_shouldReturnEmpty() {
     // Given
     javaProject.setCompileClassPathElements(Collections.singletonList(
         QuarkusUtilsTest.class.getResource("/").getPath()
@@ -153,7 +155,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void findQuarkusVersion_noDependency_shouldReturnEmpty() {
+  void findQuarkusVersion_noDependency_shouldReturnEmpty() {
     // Given
     javaProject.setDependencies(Collections.emptyList());
     // When
@@ -163,7 +165,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void findQuarkusVersion_withQuarkusUniverseDependency_shouldReturnValidVersion() {
+  void findQuarkusVersion_withQuarkusUniverseDependency_shouldReturnValidVersion() {
     // Given
     javaProject.setDependencies(quarkusDependencyWithVersion("2.0.1.Final"));
     // When
@@ -173,7 +175,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void resolveCompleteQuarkusHealthRootPath_withHealthRootPathSet_shouldReturnValidPath() {
+  void resolveCompleteQuarkusHealthRootPath_withHealthRootPathSet_shouldReturnValidPath() {
     // Given
     Properties properties = new Properties();
     properties.setProperty("quarkus.http.non-application-root-path", "q");
@@ -189,7 +191,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void resolveCompleteQuarkusHealthRootPath_withHealthRootPathSetAbsolute_shouldReturnValidPath() {
+  void resolveCompleteQuarkusHealthRootPath_withHealthRootPathSetAbsolute_shouldReturnValidPath() {
     // Given
     Properties properties = new Properties();
     properties.setProperty("quarkus.smallrye-health.root-path", "/health");
@@ -204,7 +206,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void resolveCompleteQuarkusHealthRootPath_withOldQuarkusVersion_shouldReturnValidPath() {
+  void resolveCompleteQuarkusHealthRootPath_withOldQuarkusVersion_shouldReturnValidPath() {
     // Given
     Properties properties = new Properties();
     properties.setProperty("quarkus.smallrye-health.root-path", "/health");
@@ -220,7 +222,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void resolveCompleteQuarkusHealthRootPath_withPostPathResolutionChangesQuarkusVersion_shouldReturnAbsolutePath() {
+  void resolveCompleteQuarkusHealthRootPath_withPostPathResolutionChangesQuarkusVersion_shouldReturnAbsolutePath() {
     // Given
     Properties properties = new Properties();
     properties.setProperty("quarkus.smallrye-health.root-path", "/health");
@@ -236,7 +238,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void resolveCompleteQuarkusHealthRootPath_withQuarkus2_shouldReturnAbsoluteNonApplicationRootPath() {
+  void resolveCompleteQuarkusHealthRootPath_withQuarkus2_shouldReturnAbsoluteNonApplicationRootPath() {
     // Given
     Properties properties = new Properties();
     properties.setProperty("quarkus.http.non-application-root-path", "/q");
@@ -252,7 +254,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void resolveCompleteQuarkusHealthRootPath_withQuarkus2_shouldReturnCompleteHealthPath() {
+  void resolveCompleteQuarkusHealthRootPath_withQuarkus2_shouldReturnCompleteHealthPath() {
     // Given
     Properties properties = new Properties();
     properties.setProperty("quarkus.http.root-path", "/");
@@ -269,7 +271,7 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void resolveQuarkusLivenessPath_withLivenessPathSet_shouldReturnValidPath() {
+  void resolveQuarkusLivenessPath_withLivenessPathSet_shouldReturnValidPath() {
     // Given
     Properties properties = new Properties();
     properties.setProperty("quarkus.smallrye-health.liveness-path", "liveness");
@@ -283,12 +285,49 @@ public class QuarkusUtilsTest {
   }
 
   @Test
-  public void concatPath_withEmptyRootAndPrefixed() {
+  void resolveQuarkusStartupPath_withStartupPathSet_shouldReturnValidPath() {
+    // Given
+    Properties properties = new Properties();
+    properties.setProperty("quarkus.smallrye-health.startup-path", "startup");
+    javaProject.setProperties(properties);
+    // When
+    String resolvedStartupPath = resolveQuarkusStartupPath(javaProject);
+    // Then
+    assertThat(resolvedStartupPath).isNotEmpty()
+            .isEqualTo("startup");
+  }
+
+  @Test
+  void isStartupEndpointSupported_withQuarkusVersionBefore2_1_shouldReturnFalse() {
+    // Given
+    javaProject.setDependencies(quarkusDependencyWithVersion("2.0.3.Final"));
+
+    // When
+    boolean result = isStartupEndpointSupported(javaProject);
+
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void isStartupEndpointSupported_withQuarkusVersionAfter2_1_shouldReturnTrue() {
+    // Given
+    javaProject.setDependencies(quarkusDependencyWithVersion("2.9.2.Final"));
+
+    // When
+    boolean result = isStartupEndpointSupported(javaProject);
+
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void concatPath_withEmptyRootAndPrefixed() {
     assertThat(concatPath("/", "/liveness")).isEqualTo("/liveness");
   }
 
   @Test
-  public void concatPath_withRootAndFiltered() {
+  void concatPath_withRootAndFiltered() {
     assertThat(concatPath("/root", null, "/", "q", "liveness")).isEqualTo("/root/q/liveness");
   }
 

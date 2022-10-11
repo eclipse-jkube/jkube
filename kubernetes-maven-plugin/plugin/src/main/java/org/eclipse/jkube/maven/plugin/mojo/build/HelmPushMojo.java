@@ -25,11 +25,6 @@ import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmPushCo
 public class HelmPushMojo extends HelmMojo {
 
   @Override
-  protected boolean canExecute() {
-    return super.canExecute() && !skip;
-  }
-
-  @Override
   public void executeInternal() throws MojoExecutionException {
     if (skip) {
       return;

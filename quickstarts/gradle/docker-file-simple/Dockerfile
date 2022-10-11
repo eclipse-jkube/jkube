@@ -12,7 +12,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-FROM quay.io/jkube/jkube-java:0.0.13
+FROM quay.io/jkube/jkube-java:0.0.16
 ENV JAVA_APP_DIR=/deployments
 EXPOSE 8080 8778 9779
 COPY maven/build/libs/docker-file-simple-1.5.1.jar /deployments/

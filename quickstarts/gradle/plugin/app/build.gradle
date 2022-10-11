@@ -1,0 +1,25 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version '1.9.1'
+    id 'org.springframework.boot' version '2.7.3'
+    id 'io.spring.dependency-management' version '1.0.13.RELEASE'
+    id 'java'
+}
+
+jar {
+    enabled = false
+}
+
+dependencies {
+    implementation ('org.springframework.boot:spring-boot-starter-web')
+    implementation ('org.springframework.boot:spring-boot-starter-data-jpa')
+}
+
+kubernetes {
+    enricher {
+        config {
+            'jkube-service' {
+                type = 'NodePort'
+            }
+        }
+    }
+}

@@ -226,7 +226,6 @@ A profile can also extend another profile to avoid repetition e.g of generators 
       - jkube-controller-from-configuration
       - jkube-openshift-deploymentconfig
       - jkube-openshift-project
-      - jkube-openshift-service-expose
       - jkube-openshift-route
 
 ----

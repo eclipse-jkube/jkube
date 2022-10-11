@@ -1,0 +1,30 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>{plugin}</artifactId>
+        <version>{version}</version>
+        <executions>
+          <execution>
+            <id>jkube</id>
+            <goals>
+              <goal>resource</goal>
+              <goal>helm</goal>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <enricher>
+            <config>
+              <jkube-healthcheck-spring-boot>
+                <timeoutSeconds>5</timeoutSeconds>
+                <readinessProbeInitialDelaySeconds>30</readinessProbeInitialDelaySeconds>
+                <failureThreshold>3</failureThreshold>
+                <successThreshold>1</successThreshold>
+              </jkube-healthcheck-spring-boot>
+            </config>
+          </enricher>
+        </configuration>
+      </plugin>
+----

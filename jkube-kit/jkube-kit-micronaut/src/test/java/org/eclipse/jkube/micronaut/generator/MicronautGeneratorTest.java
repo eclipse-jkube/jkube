@@ -24,21 +24,21 @@ import org.eclipse.jkube.kit.common.Plugin;
 
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class MicronautGeneratorTest {
+class MicronautGeneratorTest {
 
   private GeneratorContext ctx;
   private MicronautGenerator micronautGenerator;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     ctx = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
     final Properties projectProperties = new Properties();
     projectProperties.put("jkube.generator.micronaut.mainClass", "com.example.Main");
@@ -48,7 +48,7 @@ public class MicronautGeneratorTest {
   }
 
   @Test
-  public void isApplicableWithNoPlugin() {
+  void isApplicableWithNoPlugin() {
     // When
     final boolean result = micronautGenerator.isApplicable(Collections.emptyList());
     // Then
@@ -56,7 +56,7 @@ public class MicronautGeneratorTest {
   }
 
   @Test
-  public void isApplicableWithMavenPlugin() {
+  void isApplicableWithMavenPlugin() {
     // Given
     when(ctx.getProject().getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
         .groupId("io.micronaut.build")
@@ -70,7 +70,7 @@ public class MicronautGeneratorTest {
   }
 
   @Test
-  public void isApplicableWithGradlePlugin() {
+  void isApplicableWithGradlePlugin() {
     // Given
     when(ctx.getProject().getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
         .groupId("io.micronaut.application")
@@ -84,7 +84,7 @@ public class MicronautGeneratorTest {
   }
 
   @Test
-  public void customize_webPortIsFirst() {
+  void customize_webPortIsFirst() {
     // Given
     when(ctx.getProject().getCompileClassPathElements()).thenReturn(Collections.emptyList());
     when(ctx.getProject().getOutputDirectory()).thenReturn(new File("MOCK"));

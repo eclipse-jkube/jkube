@@ -1,0 +1,4 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+implementation 'io.thorntail:microprofile-health:2.7.0.Final'
+----

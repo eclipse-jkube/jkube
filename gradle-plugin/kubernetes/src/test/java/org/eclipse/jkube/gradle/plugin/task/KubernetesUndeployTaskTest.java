@@ -25,6 +25,8 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.provider.Property;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -97,5 +99,24 @@ public class KubernetesUndeployTaskTest {
             ResourceConfig.builder().build(), taskEnvironment.getRoot().toPath()
                 .resolve(Paths.get("build", "classes", "java", "main", "META-INF", "jkube", "kubernetes.yml")).toFile()
       );
+  }
+
+  @Test
+  public void runTask_withSkipUndeploy_shouldDoNothing() {
+    // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkipUndeploy() {
+        return new DefaultProperty<>(Boolean.class).value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesUndeployTask kubernetesUndeployTask = new KubernetesUndeployTask(KubernetesExtension.class);
+
+    // When
+    kubernetesUndeployTask.runTask();
+
+    // Then
+    assertThat(kubernetesUndeployServiceMockedConstruction.constructed()).isEmpty();
   }
 }

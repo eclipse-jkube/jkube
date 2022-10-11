@@ -27,7 +27,6 @@ items:
       prometheus.io/scrape: "true"
       jkube.io/scm-tag: HEAD
     labels:
-      expose: "true"
       app: jkube-maven-sample-zero-config
       provider: jkube
       version: 0.1-SNAPSHOT

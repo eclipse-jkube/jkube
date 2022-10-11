@@ -14,28 +14,28 @@
 package org.eclipse.jkube.kit.common;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MaintainerTest {
+class MaintainerTest {
 
   private ObjectMapper objectMapper;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     objectMapper = new ObjectMapper();
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     objectMapper = null;
   }
 
   @Test
-  public void deserialize() throws Exception {
+  void deserialize() throws Exception {
     // Given
     final String serializedMaintainer = "{\"name\":\"John\",\"email\":\"john@example.com\",\"ignored\":\"don't fail\"}";
     // When

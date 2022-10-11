@@ -27,21 +27,21 @@ Once you've deployed the application, you should be able to perform requests:
 ### Minikube
 
 ```shell script
-$ curl $(minikube ip):$(kubectl get svc micronaut-customized-image -n default -o jsonpath='{.spec.ports[].nodePort}')
+$ curl $(minikube ip):$(kubectl get svc micronaut -n default -o jsonpath='{.spec.ports[].nodePort}')
 Hello from Micronaut deployed with JKube!
-$ curl $(minikube ip):$(kubectl get svc micronaut-customized-image -n default -o jsonpath='{.spec.ports[].nodePort}')/hello/world
+$ curl $(minikube ip):$(kubectl get svc micronaut -n default -o jsonpath='{.spec.ports[].nodePort}')/hello/world
 Hello word!
-$ curl $(minikube ip):$(kubectl get svc micronaut-customized-image -n default -o jsonpath='{.spec.ports[].nodePort}')/hello/1
+$ curl $(minikube ip):$(kubectl get svc micronaut -n default -o jsonpath='{.spec.ports[].nodePort}')/hello/1
 {"message":"name: size must be between 3 and 2147483647","_links":{"self":{"href":"/hello/1","templated":false}}}
 ```
 
 ### OpenShift
 
 ```shell script
-$ curl $(oc get routes.route.openshift.io micronaut-customized-image -o jsonpath='{.spec.host}')
+$ curl $(oc get routes.route.openshift.io micronaut -o jsonpath='{.spec.host}')
 Hello from Micronaut deployed with JKube!
-$ curl $(oc get routes.route.openshift.io micronaut-customized-image -o jsonpath='{.spec.host}')/hello/world
+$ curl $(oc get routes.route.openshift.io micronaut -o jsonpath='{.spec.host}')/hello/world
 Hello world!%
-$ curl $(oc get routes.route.openshift.io micronaut-customized-image -o jsonpath='{.spec.host}')/hello/1
+$ curl $(oc get routes.route.openshift.io micronaut -o jsonpath='{.spec.host}')/hello/1
 {"message":"name: size must be between 3 and 2147483647","_links":{"self":{"href":"/hello/1","templated":false}}}
 ```

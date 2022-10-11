@@ -24,8 +24,8 @@ import io.fabric8.kubernetes.api.model.PodStatusBuilder;
 import io.fabric8.kubernetes.client.Watcher;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,19 +34,19 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PortForwardPodWatcherTest {
+class PortForwardPodWatcherTest {
 
   @Mocked
   private KitLogger logger;
   private PortForwardPodWatcher portForwardPodWatcher;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     portForwardPodWatcher = new PortForwardPodWatcher(logger, Collections.singletonMap("SIMPLE_KEY", "1337"));
   }
 
   @Test
-  public void eventReceivedWithNotMatchingAction() {
+  void eventReceivedWithNotMatchingAction() {
     // When
     portForwardPodWatcher.eventReceived(Watcher.Action.DELETED, new Pod());
     // Then
@@ -56,7 +56,7 @@ public class PortForwardPodWatcherTest {
   }
 
   @Test
-  public void eventReceivedWithNotMatchingPod() {
+  void eventReceivedWithNotMatchingPod() {
     // When
     portForwardPodWatcher.eventReceived(Watcher.Action.ADDED, new Pod());
     // Then
@@ -66,7 +66,7 @@ public class PortForwardPodWatcherTest {
   }
 
   @Test
-  public void eventReceivedWithNotMatchingLabels() {
+  void eventReceivedWithNotMatchingLabels() {
     // When
     portForwardPodWatcher.eventReceived(Watcher.Action.ADDED, initPod(Collections.singletonMap("NOT", "MATCHING")));
     // Then
@@ -77,7 +77,7 @@ public class PortForwardPodWatcherTest {
   }
 
   @Test
-  public void eventReceivedWithMatchingLabels() {
+  void eventReceivedWithMatchingLabels() {
     // When
     portForwardPodWatcher.eventReceived(Watcher.Action.ADDED, initPod(Collections.singletonMap("SIMPLE_KEY", "1337")));
     // Then

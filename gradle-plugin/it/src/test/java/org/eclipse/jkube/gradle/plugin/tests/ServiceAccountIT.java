@@ -22,8 +22,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -32,25 +34,37 @@ public class ServiceAccountIT {
   @Rule
   public final ITGradleRunner gradleRunner = new ITGradleRunner();
 
-  @Parameterized.Parameters(name = "resource task on project = {0}")
+  @Parameterized.Parameters(name = "resource task on project = {0} with {1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(
-        new Object[] { "serviceaccount"},
-        new Object[] { "serviceaccount-via-groovy-dsl"}
+        new Object[] { "serviceaccount", new String[] {}, "default"},
+        new Object[] { "serviceaccount-via-groovy-dsl", new String[] {}, "default"},
+        new Object[] { "serviceaccount", new String[] {"-Pjkube.enricher.jkube-serviceaccount.skipCreate=true"}, "skip-create"},
+        new Object[] { "serviceaccount-via-groovy-dsl", new String[] {"-Pjkube.enricher.jkube-serviceaccount.skipCreate=true"}, "skip-create"}
     );
   }
 
   @Parameterized.Parameter
   public String testProjectDir;
 
+  @Parameterized.Parameter (1)
+  public String[] arguments;
+
+  @Parameterized.Parameter (2)
+  public String expectedDir;
+
   @Test
   public void k8sResource_whenRun_generatesServiceAccount() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject(testProjectDir).withArguments("k8sResource", "--stacktrace")
+    List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
+    gradleArgs.add("k8sResource");
+    gradleArgs.add("--stacktrace");
+    final BuildResult result = gradleRunner.withITProject(testProjectDir)
+        .withArguments(gradleArgs.toArray(new String[0]))
         .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
-        gradleRunner.resolveFile("expected", "kubernetes.yml"));
+        gradleRunner.resolveFile("expected", expectedDir, "kubernetes.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Using resource templates from")
         .contains("Adding revision history limit to 2")
@@ -60,10 +74,14 @@ public class ServiceAccountIT {
   @Test
   public void ocResource_whenRun_generatesServiceAccount() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject(testProjectDir).withArguments("ocResource").build();
+    List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
+    gradleArgs.add("ocResource");
+    gradleArgs.add("--stacktrace");
+    final BuildResult result = gradleRunner.withITProject(testProjectDir)
+        .withArguments(gradleArgs.toArray(new String[0])).build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
-        gradleRunner.resolveFile("expected", "openshift.yml"));
+        gradleRunner.resolveFile("expected", expectedDir, "openshift.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Using resource templates from")
         .contains("Converting Deployment to DeploymentConfig")

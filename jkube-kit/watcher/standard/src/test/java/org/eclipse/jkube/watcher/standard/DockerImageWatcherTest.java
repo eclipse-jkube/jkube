@@ -35,13 +35,13 @@ import mockit.MockUp;
 import mockit.Mocked;
 import mockit.Verifications;
 import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
-public class DockerImageWatcherTest {
+class DockerImageWatcherTest {
 
   @Mocked
   private WatcherContext watcherContext;
@@ -51,8 +51,8 @@ public class DockerImageWatcherTest {
   private DockerImageWatcher dockerImageWatcher;
   private WatchContext watchContext;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     dockerImageWatcher = new DockerImageWatcher(watcherContext);
     // @formatter:off
     new Expectations() {{
@@ -68,7 +68,7 @@ public class DockerImageWatcherTest {
   }
 
   @Test
-  public void watchShouldInitWatchContext() {
+  void watchShouldInitWatchContext() {
     // When
     dockerImageWatcher.watch(null, null, null, null);
     // Then
@@ -79,7 +79,7 @@ public class DockerImageWatcherTest {
   }
 
   @Test
-  public void watchExecuteCommandInPodTask(@Mocked PodExecutor podExecutor) throws Exception {
+  void watchExecuteCommandInPodTask(@Mocked PodExecutor podExecutor) throws Exception {
     // Given
     dockerImageWatcher.watch(null, null, null, null);
     final ExecTask execTask = watchContext.getContainerCommandExecutor();
@@ -95,7 +95,7 @@ public class DockerImageWatcherTest {
   }
 
   @Test
-  public void watchCopyFileToPod(@Mocked PodExecutor podExecutor) throws Exception {
+  void watchCopyFileToPod(@Mocked PodExecutor podExecutor) throws Exception {
     // Given
     dockerImageWatcher.watch(null, null, null, null);
     final CopyFilesTask copyFilesTask = watchContext.getContainerCopyTask();
@@ -112,7 +112,7 @@ public class DockerImageWatcherTest {
   }
 
   @Test
-  public void uploadFilesRunnable() throws Exception {
+  void uploadFilesRunnable() throws Exception {
     // Given
     final PipedOutputStream pipedOutputStream = new PipedOutputStream();
     final PipedInputStream pipedInputStream = new PipedInputStream(pipedOutputStream);

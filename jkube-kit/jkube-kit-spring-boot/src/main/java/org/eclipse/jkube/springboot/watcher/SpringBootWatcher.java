@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.jkube.kit.common.Configs;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
@@ -38,7 +38,6 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
@@ -48,9 +47,6 @@ import org.eclipse.jkube.watcher.api.WatcherContext;
 import com.google.common.io.Closeables;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
@@ -58,24 +54,11 @@ import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootPlug
 
 public class SpringBootWatcher extends BaseWatcher {
 
-
     private final PortForwardService portForwardService;
-
-    @AllArgsConstructor
-    private enum Config implements Configs.Config {
-
-        // The time to wait for the service to be exposed (by the expose controller)
-        SERVICE_URL_WAIT_TIME_SECONDS("serviceUrlWaitTimeSeconds", "5");
-
-        @Getter
-        protected String key;
-        @Getter
-        protected String defaultValue;
-    }
 
     public SpringBootWatcher(WatcherContext watcherContext) {
         super(watcherContext, "spring-boot");
-        portForwardService = new PortForwardService(watcherContext.getJKubeServiceHub().getClient(), watcherContext.getLogger());
+        portForwardService = new PortForwardService(watcherContext.getLogger());
     }
 
     @Override
@@ -86,7 +69,12 @@ public class SpringBootWatcher extends BaseWatcher {
 
     @Override
     public void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) throws Exception {
-        KubernetesClient kubernetes = getContext().getJKubeServiceHub().getClient();
+        final NamespacedKubernetesClient kubernetes;
+        if (namespace != null) {
+            kubernetes = getContext().getJKubeServiceHub().getClient().adapt(NamespacedKubernetesClient.class).inNamespace(namespace);
+        } else {
+            kubernetes = getContext().getJKubeServiceHub().getClient().adapt(NamespacedKubernetesClient.class);
+        }
 
         PodLogService.PodLogServiceContext logContext = PodLogService.PodLogServiceContext.builder()
                 .log(log)
@@ -99,11 +87,7 @@ public class SpringBootWatcher extends BaseWatcher {
             namespace,
             resources, false, null, true, null, false);
 
-        String url = getServiceExposeUrl(kubernetes, namespace, resources);
-        if (url == null) {
-            url = getPortForwardUrl(namespace, resources);
-        }
-
+        String url = getPortForwardUrl(kubernetes, resources);
         if (url != null) {
             runRemoteSpringApplication(url);
         } else {
@@ -111,7 +95,7 @@ public class SpringBootWatcher extends BaseWatcher {
         }
     }
 
-    String getPortForwardUrl(final String namespace, final Collection<HasMetadata> resources) {
+    String getPortForwardUrl(NamespacedKubernetesClient kubernetes, final Collection<HasMetadata> resources) {
         LabelSelector selector = KubernetesHelper.extractPodLabelSelector(resources);
         if (selector == null) {
             log.warn("Unable to determine a selector for application pods");
@@ -125,7 +109,7 @@ public class SpringBootWatcher extends BaseWatcher {
 
         int localHostPort = IoUtil.getFreeRandomPort();
         int containerPort = propertyHelper.getServerPort(properties);
-        portForwardService.forwardPortAsync(selector, namespace, containerPort, localHostPort);
+        portForwardService.forwardPortAsync(kubernetes, selector, containerPort, localHostPort);
 
         return createForwardUrl(propertyHelper, properties, localHostPort);
     }
@@ -134,17 +118,6 @@ public class SpringBootWatcher extends BaseWatcher {
         String scheme = StringUtils.isNotBlank(properties.getProperty(propertyHelper.getServerKeystorePropertyKey())) ? "https://" : "http://";
         String contextPath = properties.getProperty(propertyHelper.getServerContextPathPropertyKey(), "");
         return scheme + "localhost:" + localPort + contextPath;
-    }
-
-    private String getServiceExposeUrl(KubernetesClient kubernetes, String namespace, Collection<HasMetadata> resources) throws InterruptedException {
-        long serviceUrlWaitTimeSeconds = Configs.asInt(getConfig(Config.SERVICE_URL_WAIT_TIME_SECONDS));
-        String url = KubernetesHelper.getServiceExposeUrl(kubernetes, namespace, resources, serviceUrlWaitTimeSeconds, JKubeAnnotations.SERVICE_EXPOSE_URL.value());
-        if (StringUtils.isNotBlank(url)) {
-            return url;
-        }
-
-        log.info("No exposed service found for connecting the dev tools");
-        return null;
     }
 
     private void runRemoteSpringApplication(String url) {

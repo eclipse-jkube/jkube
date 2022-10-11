@@ -71,8 +71,8 @@ public class KubernetesBuildTask extends AbstractJKubeTask {
 
 
   @Override
-  protected boolean canExecute() {
-    return super.canExecute() && !kubernetesExtension.getSkipBuildOrDefault();
+  protected boolean shouldSkip() {
+    return super.shouldSkip() || kubernetesExtension.getSkipBuildOrDefault();
   }
 
   protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {

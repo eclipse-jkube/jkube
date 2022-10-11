@@ -15,156 +15,160 @@ package org.eclipse.jkube.quarkus;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.commons.io.FileUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
-public class QuarkusModeTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  @Mocked
-  private JavaProject project;
+class QuarkusModeTest {
 
   private File target;
-  private List<String> compileClassPathElements;
   private Properties projectProperties;
+  private JavaProject project;
 
-  @Before
-  public void setUp() throws IOException {
-    target = temporaryFolder.newFolder("target");
-    compileClassPathElements = new ArrayList<>();
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
+    target = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     projectProperties = new Properties();
-    // @formatter:off
-    new Expectations() {{
-      project.getCompileClassPathElements(); result = compileClassPathElements;
-      project.getOutputDirectory(); result = target;
-      project.getBuildDirectory(); result = target; minTimes = 0;
-      project.getProperties(); result = projectProperties;
-    }};
-    // @formatter:on
+    project = JavaProject.builder()
+      .outputDirectory(target)
+      .buildDirectory(target)
+      .properties(projectProperties)
+      .build();
   }
 
-  @Test
-  public void from_withNoSettingsAndNoFiles_shouldReturnFastJar() {
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result).isEqualTo(QuarkusMode.FAST_JAR);
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  @DisplayName("from")
+  class From {
+
+    @Test
+    @DisplayName("with no settings, should return FAST_JAR")
+    void withNoSettingsAndNoFiles_shouldReturnFastJar() {
+      // When
+      final QuarkusMode result = QuarkusMode.from(project);
+      // Then
+      assertThat(result).isEqualTo(QuarkusMode.FAST_JAR);
+    }
+
+    @Test
+    @DisplayName("with no settings and native binary artifact, should return NATIVE")
+    void withNoSettingsAndNativeBinary_shouldReturnNative() throws IOException {
+      // Given
+      Files.createFile(target.toPath().resolve("-runner"));
+      // When
+      final QuarkusMode result = QuarkusMode.from(project);
+      // Then
+      assertThat(result).isEqualTo(QuarkusMode.NATIVE);
+    }
+
+    @Test
+    @DisplayName("with custom suffix and native binary artifact, should return NATIVE")
+    void withCustomSuffixAndNativeBinary_shouldReturnNative() throws IOException {
+      // Given
+      projectProperties.put("quarkus.package.runner-suffix", "-coyote");
+      Files.createFile(target.toPath().resolve("-coyote"));
+      // When
+      final QuarkusMode result = QuarkusMode.from(project);
+      // Then
+      assertThat(result).isEqualTo(QuarkusMode.NATIVE);
+    }
+
+    @Test
+    @DisplayName("with no settings and runner jar artifact, should return UBER_JAR")
+    void withNoSettingsAndRunnerJar_shouldReturnUberJar() throws IOException {
+      // Given
+      Files.createFile(target.toPath().resolve("-runner.jar"));
+      // When
+      final QuarkusMode result = QuarkusMode.from(project);
+      // Then
+      assertThat(result).isEqualTo(QuarkusMode.UBER_JAR);
+    }
+
+    @Test
+    @DisplayName("with custom suffix and runner jar artifact, should return UBER_JAR")
+    void withCustomSuffixAndRunnerJar_shouldReturnUberJar() throws IOException {
+      // Given
+      projectProperties.put("quarkus.package.runner-suffix", "-coyote");
+      Files.createFile(target.toPath().resolve("-coyote.jar"));
+      // When
+      final QuarkusMode result = QuarkusMode.from(project);
+      // Then
+      assertThat(result).isEqualTo(QuarkusMode.UBER_JAR);
+    }
+
+    @Test
+    @DisplayName("with no settings and runner jar artifact and lib directory, should return LEGACY_JAR")
+    void withNoSettingsAndRunnerJarAndLib_shouldReturnLegacyJar() throws IOException {
+      // Given
+      Files.createFile(target.toPath().resolve("-runner.jar"));
+      Files.createDirectory(target.toPath().resolve("lib"));
+      // When
+      final QuarkusMode result = QuarkusMode.from(project);
+      // Then
+      assertThat(result).isEqualTo(QuarkusMode.LEGACY_JAR);
+    }
+
+    @DisplayName("with custom quarkus.package.type=")
+    @ParameterizedTest(name = "''{0}'' should return ''{1}''")
+    @MethodSource("packageTypes")
+    void withPackageType(String packageType, QuarkusMode expectedMode) {
+      // Given
+      projectProperties.put("quarkus.package.type", packageType);
+      // When
+      final QuarkusMode result = QuarkusMode.from(project);
+      // Then
+      assertThat(result)
+        .isEqualTo(expectedMode);
+    }
+
+    Stream<Arguments> packageTypes() {
+      return Stream.of(
+        Arguments.of("native", QuarkusMode.NATIVE),
+        Arguments.of("legacy-jar", QuarkusMode.LEGACY_JAR),
+        Arguments.of("fast-jar", QuarkusMode.FAST_JAR),
+        Arguments.of("uber-jar", QuarkusMode.UBER_JAR)
+      );
+    }
   }
 
-  @Test
-  public void from_withNoSettingsAndNativeBinary_shouldReturnNative() throws IOException {
-    // Given
-    new File(target, "-runner").createNewFile();
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result).isEqualTo(QuarkusMode.NATIVE);
-  }
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  @DisplayName("isFatJar")
+  class IsFatJar {
 
-  @Test
-  public void from_withCustomSuffixAndNativeBinary_shouldReturnNative() throws IOException {
-    // Given
-    projectProperties.put("quarkus.package.runner-suffix", "-coyote");
-    new File(target, "-coyote").createNewFile();
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result).isEqualTo(QuarkusMode.NATIVE);
-  }
+    @DisplayName("for mode")
+    @ParameterizedTest(name = "''{0}'' should return ''{1}''")
+    @MethodSource("modes")
+    void mode(QuarkusMode mode, boolean isFatJar) {
+      // When
+      final boolean result = mode.isFatJar();
+      // Then
+      assertThat(result)
+        .isEqualTo(isFatJar);
+    }
 
-  @Test
-  public void from_withNoSettingsAndRunnerJar_shouldReturnUberJar() throws IOException {
-    // Given
-    new File(target, "-runner.jar").createNewFile();
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result).isEqualTo(QuarkusMode.UBER_JAR);
-  }
-
-  @Test
-  public void from_withCustomSuffixAndRunnerJar_shouldReturnUberJar() throws IOException {
-    // Given
-    projectProperties.put("quarkus.package.runner-suffix", "-coyote");
-    new File(target, "-coyote.jar").createNewFile();
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result).isEqualTo(QuarkusMode.UBER_JAR);
-  }
-
-  @Test
-  public void from_withNoSettingsAndRunnerJarAndLib_shouldReturnLegacyJar() throws IOException {
-    // Given
-    new File(target, "-runner.jar").createNewFile();
-    FileUtils.forceMkdir(new File(target, "lib"));
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result).isEqualTo(QuarkusMode.LEGACY_JAR);
-  }
-
-  @Test
-  public void from_withNativePackaging_shouldReturnNative() {
-    // Given
-    projectProperties.put("quarkus.package.type", "native");
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result)
-        .isEqualTo(QuarkusMode.NATIVE)
-        .hasFieldOrPropertyWithValue("fatJar", false);
-  }
-
-  @Test
-  public void from_withLegacyJarPackaging_shouldReturnLegacyJar() {
-    // Given
-    projectProperties.put("quarkus.package.type", "legacy-jar");
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result)
-        .isEqualTo(QuarkusMode.LEGACY_JAR)
-        .hasFieldOrPropertyWithValue("fatJar", false);
-  }
-
-  @Test
-  public void from_withFastJarPackaging_shouldReturnFastJar() {
-    // Given
-    projectProperties.put("quarkus.package.type", "fast-jar");
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result)
-        .isEqualTo(QuarkusMode.FAST_JAR)
-        .hasFieldOrPropertyWithValue("fatJar", false);
-  }
-
-  @Test
-  public void from_withUberJarPackaging_shouldReturnUberJar() {
-    // Given
-    projectProperties.put("quarkus.package.type", "uber-jar");
-    // When
-    final QuarkusMode result = QuarkusMode.from(project);
-    // Then
-    assertThat(result)
-        .isEqualTo(QuarkusMode.UBER_JAR)
-        .hasFieldOrPropertyWithValue("fatJar", true);
+    Stream<Arguments> modes() {
+      return Stream.of(
+        Arguments.of(QuarkusMode.NATIVE, false),
+        Arguments.of(QuarkusMode.LEGACY_JAR, false),
+        Arguments.of(QuarkusMode.FAST_JAR, false),
+        Arguments.of(QuarkusMode.UBER_JAR, true)
+      );
+    }
   }
 }

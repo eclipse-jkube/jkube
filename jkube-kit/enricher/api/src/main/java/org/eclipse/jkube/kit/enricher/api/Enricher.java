@@ -45,4 +45,10 @@ public interface Enricher extends Named {
      * @param builder list to customer used to customize
      */
     void enrich(PlatformMode platformMode, KubernetesListBuilder builder);
+
+    /**
+     * Returns the {@link EnricherContext} for this Enricher.
+     * @return the EnricherContext
+     */
+    EnricherContext getContext();
 }

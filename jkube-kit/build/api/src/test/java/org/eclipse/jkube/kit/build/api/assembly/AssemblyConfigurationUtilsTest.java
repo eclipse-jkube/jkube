@@ -27,31 +27,25 @@ import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.junit.jupiter.api.Test;
 
-import mockit.Expectations;
-import mockit.Injectable;
-import org.junit.Test;
-
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.createDockerFileBuilder;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFiles;
 
-public class AssemblyConfigurationUtilsTest {
+class AssemblyConfigurationUtilsTest {
 
   @Test
-  public void getAssemblyConfigurationOrCreateDefaultNoConfigurationShouldReturnDefault(
-          @Injectable final BuildConfiguration buildConfiguration) {
-
+  void getAssemblyConfigurationOrCreateDefault_withNoConfiguration_shouldReturnDefault() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      buildConfiguration.getAssembly(); result = null;
-    }};
-    // @formatter:on
+    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
+    when(mockedBuildConfiguration.getAssembly()).thenReturn(null);
     // When
-    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(mockedBuildConfiguration);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("name", "maven")
@@ -60,18 +54,13 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void getAssemblyConfigurationOrCreateDefaultWithConfigurationShouldReturnConfiguration(
-          @Injectable final BuildConfiguration buildConfiguration) {
-
+  void getAssemblyConfigurationOrCreateDefault_withConfiguration_shouldReturnConfiguration() {
     // Given
+    BuildConfiguration mockedBuildConfiguration = mock(BuildConfiguration.class);
     final AssemblyConfiguration configuration = AssemblyConfiguration.builder().user("OtherUser").name("ImageName").build();
-    // @formatter:off
-    new Expectations() {{
-      buildConfiguration.getAssembly(); result = configuration;
-    }};
-    // @formatter:on
+    when(mockedBuildConfiguration.getAssembly()).thenReturn(configuration);
     // When
-    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(buildConfiguration);
+    final AssemblyConfiguration result = getAssemblyConfigurationOrCreateDefault(mockedBuildConfiguration);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("name", "ImageName")
@@ -80,7 +69,7 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void getJKubeAssemblyFileSetsNullShouldReturnEmptyList() {
+  void getJKubeAssemblyFileSets_withNull_shouldReturnEmptyList() {
     // When
     final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(null);
     // Then
@@ -88,7 +77,7 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void getJKubeAssemblyFileSetsNullFileSetsShouldReturnEmptyList() {
+  void getJKubeAssemblyFileSets_withNullFileSets_shouldReturnEmptyList() {
     // Given
     final Assembly assembly = new Assembly();
     // When
@@ -98,27 +87,23 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void getJKubeAssemblyFileSetsNotNullShouldReturnFileSets(
-      @Injectable Assembly assembly, @Injectable AssemblyFileSet fileSet) {
-
+  void getJKubeAssemblyFileSets_withNotNullFileSets_shouldReturnFileSets() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      assembly.getFileSets(); result = Collections.singletonList(fileSet);
-      fileSet.getDirectory(); result = "1337";
-    }};
-    // @formatter:on
+    Assembly assembly = mock(Assembly.class);
+    AssemblyFileSet fileSet = mock(AssemblyFileSet.class);
+    when(assembly.getFileSets()).thenReturn(Collections.singletonList(fileSet));
+    when(fileSet.getDirectory()).thenReturn(new File("1337"));
     // When
     final List<AssemblyFileSet> result = getJKubeAssemblyFileSets(assembly);
     // Then
     assertThat(result)
         .isNotNull()
-        .hasSize(1).first()
+        .singleElement()
         .hasFieldOrPropertyWithValue("directory.name", "1337");
   }
 
   @Test
-  public void getJKubeAssemblyFilesNullShouldReturnEmptyList() {
+  void getJKubeAssemblyFiles_withNull_shouldReturnEmptyList() {
     // When
     final List<AssemblyFile> result = getJKubeAssemblyFiles(null);
     // Then
@@ -126,7 +111,7 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void getJKubeAssemblyFilesNullFilesShouldReturnEmptyList() {
+  void getJKubeAssemblyFiles_withNullFiles_shouldReturnEmptyList() {
     // Given
     final Assembly assembly = new Assembly();
     // When
@@ -136,27 +121,23 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void getJKubeAssemblyFilesNotNullShouldReturnFiles(
-      @Injectable Assembly assembly, @Injectable AssemblyFile file) {
-
+  void getJKubeAssemblyFiles_withNotNull_shouldReturnFiles() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      assembly.getFiles(); result = Collections.singletonList(file);
-      file.getSource(); result = new File("1337");
-    }};
-    // @formatter:on
+    AssemblyFile file = mock(AssemblyFile.class);
+    Assembly assembly = mock(Assembly.class);
+    when(assembly.getFiles()).thenReturn(Collections.singletonList(file));
+    when(file.getSource()).thenReturn(new File("1337"));
     // When
     final List<AssemblyFile> result = getJKubeAssemblyFiles(assembly);
     // Then
     assertThat(result)
         .isNotNull()
-        .hasSize(1).first()
+        .singleElement()
         .hasFieldOrPropertyWithValue("source.name", "1337");
   }
 
   @Test
-  public void createDockerFileBuilder_withEmptyBuildConfigurationNoAssembly_shouldReturnOnlyBase() {
+  void createDockerFileBuilder_withEmptyBuildConfigurationNoAssembly_shouldReturnOnlyBase() {
     // Given
     final BuildConfiguration buildConfig = BuildConfiguration.builder().build();
     // When
@@ -168,7 +149,7 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void createDockerFileBuilder_withNoAssembly_shouldReturnTransformedContent() {
+  void createDockerFileBuilder_withNoAssembly_shouldReturnTransformedContent() {
     // Given
     final BuildConfiguration buildConfig = BuildConfiguration.builder()
         .putEnv("ENV_VAR", "VALUE")
@@ -191,12 +172,12 @@ public class AssemblyConfigurationUtilsTest {
             "EXPOSE 8080\n" +
             "RUN chown -R 1000:1000 /opt\n" +
             "VOLUME [\"VOLUME\"]\n" +
-            "CMD [\"sh\",\"-c\",\"server\"]\n"+
+            "CMD [\"sh\",\"-c\",\"server\"]\n" +
             "USER 1000\n");
   }
 
   @Test
-  public void createDockerFileBuilder_withAssemblyAndFiles_shouldReturnTransformedContent() {
+  void createDockerFileBuilder_withAssemblyAndFiles_shouldReturnTransformedContent() {
     // Given
     final BuildConfiguration buildConfig = BuildConfiguration.builder()
         .putEnv("ENV_VAR", "VALUE")
@@ -214,7 +195,7 @@ public class AssemblyConfigurationUtilsTest {
         .layer(Assembly.builder().build())
         .build();
     final Map<Assembly, List<AssemblyFileEntry>> layers = assemblyConfiguration.getLayers().stream().collect(
-        Collectors.toMap(Function.identity(), a ->Collections.singletonList(
+        Collectors.toMap(Function.identity(), a -> Collections.singletonList(
             new AssemblyFileEntry(new File(""), new File(""), null))));
     // When
     final String result = createDockerFileBuilder(buildConfig, assemblyConfiguration, layers).content();
@@ -235,7 +216,7 @@ public class AssemblyConfigurationUtilsTest {
   }
 
   @Test
-  public void createDockerFileBuilder_withAssemblyAndFilesInSingleLayer_shouldReturnTransformedContent() {
+  void createDockerFileBuilder_withAssemblyAndFilesInSingleLayer_shouldReturnTransformedContent() {
     // Given
     final BuildConfiguration buildConfig = BuildConfiguration.builder()
         .user("1000")
@@ -247,7 +228,7 @@ public class AssemblyConfigurationUtilsTest {
         .layer(new Assembly())
         .build();
     final Map<Assembly, List<AssemblyFileEntry>> layers = assemblyConfiguration.getLayers().stream().collect(
-        Collectors.toMap(Function.identity(), a ->Collections.singletonList(
+        Collectors.toMap(Function.identity(), a -> Collections.singletonList(
             new AssemblyFileEntry(new File(""), new File(""), null))));
     layers.put(new Assembly(), Collections.emptyList());
     // When

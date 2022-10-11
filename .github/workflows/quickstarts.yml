@@ -20,15 +20,23 @@ on:
       - master
   pull_request:
 
+permissions:  # added using https://github.com/step-security/secure-workflows
+  contents: read
+
 jobs:
   verifications:
     name: Quickstart Verifications
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@2e205a28d0e1da00c5f53b161f4067b052c61f34
+        with:
+          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
       - name: Setup Java 11
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@a18c333f3f14249953dab3e186e5e21bf3390f1d
         with:
           java-version: '11'
           distribution: 'adopt'

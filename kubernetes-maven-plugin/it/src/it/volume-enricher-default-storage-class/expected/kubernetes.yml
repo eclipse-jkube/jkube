@@ -24,7 +24,6 @@ items:
       app: volume-enricher-default-storage-class
       version: 0.1-SNAPSHOT
       group: org.eclipse.jkube.devops.apps
-      expose: "true"
     name: jkube-docker-registry
   spec:
     ports:
@@ -106,6 +105,13 @@ items:
           image: busybox
           imagePullPolicy: IfNotPresent
           name: jkube-volume-permission
+          resources:
+            limits:
+              memory: 128Mi
+              cpu: 500m
+            requests:
+              memory: 64Mi
+              cpu: 250m
           volumeMounts:
           - mountPath: /var/lib/registry
             name: jkube-docker-registry-storage

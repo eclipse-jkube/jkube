@@ -49,8 +49,8 @@ public class KubernetesPushTask extends AbstractJKubeTask {
   }
 
   @Override
-  protected boolean canExecute() {
-    return super.canExecute() && !kubernetesExtension.getSkipPushOrDefault();
+  protected boolean shouldSkip() {
+    return super.shouldSkip() || kubernetesExtension.getSkipPushOrDefault();
   }
 
   private RegistryConfig initRegistryConfig() {

@@ -16,29 +16,29 @@ package org.eclipse.jkube.kit.common.archive;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
-import java.io.IOException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.archive.AssemblyFileUtils.getAssemblyFileOutputDirectory;
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeFalse;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
-public class AssemblyFileUtilsTest {
+class AssemblyFileUtilsTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+  @TempDir
+  File temporaryFolder;
 
   @Test
-  public void getAssemblyFileOutputDirectoryRequired() throws IOException {
+  void getAssemblyFileOutputDirectoryRequired() {
     // Given
     final AssemblyFile af = AssemblyFile.builder().build();
-    final File outputDirectoryForRelativePaths = temporaryFolder.newFolder("output");
+    final File outputDirectoryForRelativePaths = new File(temporaryFolder, "output");
     final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().build();
     // When
@@ -47,42 +47,42 @@ public class AssemblyFileUtilsTest {
       fail("Should fail as output directory should not be null");
     });
     // Then
-    assertEquals("Assembly Configuration output dir is required", result.getMessage());
+    assertThat(result.getMessage()).isEqualTo("Assembly Configuration output dir is required");
   }
 
   @Test
-  public void getAssemblyFileOutputDirectoryWithAbsoluteDirectoryShouldReturnSame() throws IOException {
+  @DisabledOnOs(OS.WINDOWS)
+  void getAssemblyFileOutputDirectoryWithAbsoluteDirectoryShouldReturnSame() {
     // Given
-    assumeFalse(isWindows());
     final AssemblyFile af = AssemblyFile.builder().outputDirectory(new File("/")).build();
-    final File outputDirectoryForRelativePaths = temporaryFolder.newFolder("output");
+    final File outputDirectoryForRelativePaths = new File(temporaryFolder, "output");
     final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().build();
     // When
     final File result = getAssemblyFileOutputDirectory(af, outputDirectoryForRelativePaths, layer, ac);
     // Then
-    assertEquals("/", result.getAbsolutePath());
+    assertThat(result.getAbsolutePath()).isEqualTo("/");
   }
 
   @Test
-  public void getAssemblyFileOutputDirectoryWithAbsoluteDirectoryShouldReturnSameWindows() throws IOException {
+  @EnabledOnOs(OS.WINDOWS)
+  void getAssemblyFileOutputDirectoryWithAbsoluteDirectoryShouldReturnSameWindows() {
     // Given
-    assumeTrue(isWindows());
     final AssemblyFile af = AssemblyFile.builder().outputDirectory(new File("C:\\")).build();
-    final File outputDirectoryForRelativePaths = temporaryFolder.newFolder("output");
+    final File outputDirectoryForRelativePaths = new File(temporaryFolder, "output");
     final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().build();
     // When
     final File result = getAssemblyFileOutputDirectory(af, outputDirectoryForRelativePaths, layer, ac);
     // Then
-    assertEquals("C:\\", result.getAbsolutePath());
+    assertThat(result.getAbsolutePath()).isEqualTo("C:\\");
   }
 
   @Test
-  public void getAssemblyFileOutputDirectoryWithRelativeDirectoryShouldReturnComputedPath() throws IOException {
+  void getAssemblyFileOutputDirectoryWithRelativeDirectoryShouldReturnComputedPath() {
     // Given
     final AssemblyFile af = AssemblyFile.builder().outputDirectory(new File("target")).build();
-    final File outputDirectoryForRelativePaths = temporaryFolder.newFolder("output");
+    final File outputDirectoryForRelativePaths = new File(temporaryFolder, "output");
     final Assembly layer = new Assembly();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().targetDir("/project").build();
     // When
@@ -90,14 +90,14 @@ public class AssemblyFileUtilsTest {
     // Then
     final String expectedPath = outputDirectoryForRelativePaths.toPath().resolve("project").resolve("target")
         .toAbsolutePath().toString();
-    assertEquals(expectedPath, result.getAbsolutePath());
+    assertThat(result.getAbsolutePath()).isEqualTo(expectedPath);
   }
 
   @Test
-  public void getAssemblyFileOutputDirectoryWithRelativeDirectoryAndAssemblyIdShouldReturnComputedPath() throws IOException {
+  void getAssemblyFileOutputDirectoryWithRelativeDirectoryAndAssemblyIdShouldReturnComputedPath() {
     // Given
     final AssemblyFile af = AssemblyFile.builder().outputDirectory(new File("target")).build();
-    final File outputDirectoryForRelativePaths = temporaryFolder.newFolder("output");
+    final File outputDirectoryForRelativePaths = new File(temporaryFolder, "output");
     final Assembly layer = Assembly.builder().id("layer-1").build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().targetDir("/project").build();
     // When
@@ -105,14 +105,14 @@ public class AssemblyFileUtilsTest {
     // Then
     final String expectedPath = outputDirectoryForRelativePaths.toPath()
         .resolve("layer-1").resolve("project").resolve("target").toAbsolutePath().toString();
-    assertEquals(expectedPath, result.getAbsolutePath());
+    assertThat(result.getAbsolutePath()).isEqualTo(expectedPath);
   }
 
   @Test
-  public void getAssemblyFileOutputDirectory_withOutputDirectory_shouldReturnNormalizedDir() throws IOException {
+  void getAssemblyFileOutputDirectory_withOutputDirectory_shouldReturnNormalizedDir() {
     // Given
     final AssemblyFile af = AssemblyFile.builder().outputDirectory(new File("build/./camel-quarkus-demo-1.0.0-runner")).build();
-    final File outputDirectoryForRelativePaths = temporaryFolder.newFile("output");
+    final File outputDirectoryForRelativePaths = new File(temporaryFolder, "output");
     final Assembly layer = Assembly.builder().id("layer-1").build();
     final AssemblyConfiguration ac = AssemblyConfiguration.builder().targetDir("/project").build();
 
@@ -120,44 +120,44 @@ public class AssemblyFileUtilsTest {
     final File result = getAssemblyFileOutputDirectory(af, outputDirectoryForRelativePaths, layer, ac);
 
     // Then
-    assertEquals(new File(outputDirectoryForRelativePaths, "layer-1/project/build/camel-quarkus-demo-1.0.0-runner").getAbsolutePath(),
-        result.getAbsolutePath());
+    assertThat(result.getAbsolutePath()).isEqualTo(
+            new File(outputDirectoryForRelativePaths, "layer-1/project/build/camel-quarkus-demo-1.0.0-runner").getAbsolutePath());
   }
 
   @Test
-  public void resolveSourceFileAbsoluteFileShouldReturnSame() throws IOException {
+  @DisabledOnOs(OS.WINDOWS)
+  void resolveSourceFileAbsoluteFileShouldReturnSame() {
     // Given
-    assumeFalse(isWindows());
-    final File baseDirectory = temporaryFolder.newFolder("base");
+    final File baseDirectory = new File(temporaryFolder, "base");
     final AssemblyFile af = AssemblyFile.builder().source(new File("/")).build();
     // When
     final File result = AssemblyFileUtils.resolveSourceFile(baseDirectory, af);
     // Then
-    assertEquals("/", result.getAbsolutePath());
+    assertThat(result.getAbsolutePath()).isEqualTo("/");
   }
 
   @Test
-  public void resolveSourceFileAbsoluteFileShouldReturnSameWindows() throws IOException {
+  @EnabledOnOs(OS.WINDOWS)
+  void resolveSourceFileAbsoluteFileShouldReturnSameWindows() {
     // Given
-    assumeTrue(isWindows());
-    final File baseDirectory = temporaryFolder.newFolder("base");
+    final File baseDirectory = new File(temporaryFolder, "base");
     final AssemblyFile af = AssemblyFile.builder().source(new File("C:\\")).build();
     // When
     final File result = AssemblyFileUtils.resolveSourceFile(baseDirectory, af);
     // Then
-    assertEquals("C:\\", result.getAbsolutePath());
+    assertThat(result.getAbsolutePath()).isEqualTo("C:\\");
   }
 
   @Test
-  public void resolveSourceFileRelativeSourceShouldReturnComputedPath() throws IOException {
+  void resolveSourceFileRelativeSourceShouldReturnComputedPath() {
     // Given
-    final File baseDirectory = temporaryFolder.newFolder("base");
+    final File baseDirectory = new File(temporaryFolder, "base");
     final AssemblyFile af = AssemblyFile.builder().source(new File("some-file.txt")).build();
     // When
     final File result = AssemblyFileUtils.resolveSourceFile(baseDirectory, af);
     // Then
     final String expectedPath = baseDirectory.toPath().resolve("some-file.txt")
         .toAbsolutePath().toString();
-    assertEquals(expectedPath, result.getAbsolutePath());
+    assertThat(result.getAbsolutePath()).isEqualTo(expectedPath);
   }
 }

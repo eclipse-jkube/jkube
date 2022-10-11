@@ -13,35 +13,22 @@
  */
 package org.eclipse.jkube.generator.api;
 
-import java.util.Map;
-
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.kit.common.KitLogger;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.s2i;
 import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.docker;
 import static org.eclipse.jkube.kit.config.resource.RuntimeMode.OPENSHIFT;
-import static org.junit.Assert.assertEquals;
 
-public class FromSelectorTest {
+class FromSelectorTest {
 
-  @Mocked
-  JavaProject project;
-
-  @Mocked
-  Plugin plugin;
-
-  @Mocked
-  KitLogger logger;
 
   @Test
-  public void simple() {
+  void simple() {
     final TestCase[] testCases = new TestCase[]{
         new TestCase(OPENSHIFT, s2i, "s2i-prop", "istag-prop"),
         new TestCase(OPENSHIFT, docker, "docker-prop", "istag-prop"),
@@ -54,20 +41,20 @@ public class FromSelectorTest {
     };
     for (TestCase tc : testCases) {
       GeneratorContext ctx = GeneratorContext.builder()
-          .project(project)
           .config(new ProcessorConfig())
-          .logger(logger)
           .runtimeMode(tc.runtimeMode)
           .strategy(tc.strategy)
           .build();
 
       FromSelector selector = new FromSelector.Default(ctx, "test");
-      assertEquals(tc.expectedFrom, selector.getFrom());
-      Map<String, String> fromExt = selector.getImageStreamTagFromExt();
-      assertEquals(3, fromExt.size());
-      assertEquals("ImageStreamTag", fromExt.get(JKubeBuildStrategy.SourceStrategy.kind.key()));
-      assertEquals("openshift", fromExt.get(JKubeBuildStrategy.SourceStrategy.namespace.key()));
-      assertEquals(tc.expectedName, fromExt.get(JKubeBuildStrategy.SourceStrategy.name.key()));
+      assertThat(selector)
+          .hasFieldOrPropertyWithValue("from", tc.expectedFrom)
+          .extracting(FromSelector::getImageStreamTagFromExt)
+          .asInstanceOf(InstanceOfAssertFactories.MAP)
+          .hasSize(3)
+          .containsEntry(JKubeBuildStrategy.SourceStrategy.kind.key(), "ImageStreamTag")
+          .containsEntry(JKubeBuildStrategy.SourceStrategy.namespace.key(), "openshift")
+          .containsEntry(JKubeBuildStrategy.SourceStrategy.name.key(), tc.expectedName);
     }
   }
 

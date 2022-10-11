@@ -13,36 +13,35 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import org.junit.jupiter.api.Test;
+
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
-import org.junit.Test;
-
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author Stas Sukhanov
  * @since 08.03.2017
  */
-public class KeyStoreUtilTest {
+class KeyStoreUtilTest {
 
   @Test
-  public void createKeyStore() throws Exception {
+  void createKeyStore() throws Exception {
     KeyStore keyStore = KeyStoreUtil.createDockerKeyStore(getFile("certpath"));
     KeyStore.PrivateKeyEntry pkEntry = (KeyStore.PrivateKeyEntry) keyStore.getEntry("docker",
         new KeyStore.PasswordProtection("docker".toCharArray()));
-    assertNotNull(pkEntry);
-    assertNotNull(pkEntry.getCertificate());
-    assertNotNull(keyStore.getCertificate("cn=ca-test,o=internet widgits pty ltd,st=some-state,c=cr"));
-    assertNotNull(keyStore.getCertificate("cn=ca-test-2,o=internet widgits pty ltd,st=some-state,c=cr"));
+    assertThat(pkEntry).isNotNull();
+    assertThat(pkEntry.getCertificate()).isNotNull();
+    assertThat(keyStore.getCertificate("cn=ca-test,o=internet widgits pty ltd,st=some-state,c=cr")).isNotNull();
+    assertThat(keyStore.getCertificate("cn=ca-test-2,o=internet widgits pty ltd,st=some-state,c=cr")).isNotNull();
   }
 
   @Test
-  public void loadInvalidPrivateKey() {
+  void loadInvalidPrivateKey() {
     GeneralSecurityException exception = assertThrows(GeneralSecurityException.class, () -> KeyStoreUtil.loadPrivateKey(getFile("keys/invalid.pem")));
     assertThat(exception).hasMessageContaining("Cannot generate private key");
   }

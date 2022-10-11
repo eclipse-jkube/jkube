@@ -1,0 +1,65 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+kubernetes {
+    offline = true
+    images {
+        image {
+            name = 'repository/imagepullpolicy:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java-11'
+            }
+        }
+    }
+if (project.hasProperty('imagePullPolicyMode') && project.getProperty('imagePullPolicyMode').contains('resourceconfig')) {
+    resources {
+        imagePullPolicy = 'IfNotPresent-resourceconfig'
+    }
+}
+if (project.hasProperty('imagePullPolicyMode') && project.getProperty('imagePullPolicyMode').contains('enricherconfig')) {
+    enricher {
+        config {
+            'jkube-controller' {
+                pullPolicy = 'Always-enricherconfig'
+            }
+        }
+    }
+}
+}
+
+openshift {
+    offline = true
+    images {
+        image {
+            name = 'repository/imagepullpolicy:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java-11'
+            }
+        }
+    }
+if (project.hasProperty('imagePullPolicyMode') && project.getProperty('imagePullPolicyMode').contains('resourceconfig')) {
+    resources {
+        imagePullPolicy = 'IfNotPresent-resourceconfig'
+    }
+}
+if (project.hasProperty('imagePullPolicyMode') && project.getProperty('imagePullPolicyMode').contains('enricherconfig')) {
+    enricher {
+        config {
+            'jkube-controller' {
+                pullPolicy = 'Always-enricherconfig'
+            }
+        }
+    }
+}
+}

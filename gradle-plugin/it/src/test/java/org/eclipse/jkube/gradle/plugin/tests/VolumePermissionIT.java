@@ -22,8 +22,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -35,8 +37,9 @@ public class VolumePermissionIT {
   @Parameterized.Parameters(name = "{0} : jkube.enricher.jkube-volume-permission.defaultStorageClass={1}")
   public static Collection<Object[]> data() {
     return Arrays.asList(
-        new Object[] { "default", ""},
-        new Object[] { "custom-storageclass", "cheese"}
+        new Object[] { "default", new String[] {}},
+        new Object[] { "custom-storageclass-annotation", new String[] {"-Pjkube.enricher.jkube-volume-permission.defaultStorageClass=cheese", "-Pjkube.enricher.jkube-volume-permission.useStorageClassAnnotation=true"}},
+        new Object[] { "custom-storageclass", new String[] {"-Pjkube.enricher.jkube-volume-permission.defaultStorageClass=cheese"}}
     );
   }
 
@@ -44,14 +47,16 @@ public class VolumePermissionIT {
   public String expectedDirectory;
 
   @Parameterized.Parameter (1)
-  public String defaultStorageClassEnricherConfig;
+  public String[] arguments;
 
   @Test
   public void k8sResourceTask_whenRun_generatesK8sManifestWithPersistentVolume() throws IOException, ParseException {
     // When
+    List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
+    gradleArgs.add("k8sResource");
+    gradleArgs.add("--stacktrace");
     final BuildResult result = gradleRunner.withITProject("volume-permission")
-        .withArguments("-Pjkube.enricher.jkube-volume-permission.defaultStorageClass=" + defaultStorageClassEnricherConfig,
-            "k8sResource")
+        .withArguments(gradleArgs.toArray(new String[0]))
         .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
@@ -65,9 +70,11 @@ public class VolumePermissionIT {
   @Test
   public void ocResourceTask_whenRun_generatesOpenShiftManifestWithPersistentVolume() throws IOException, ParseException {
     // When
+    List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
+    gradleArgs.add("ocResource");
+    gradleArgs.add("--stacktrace");
     final BuildResult result = gradleRunner.withITProject("volume-permission")
-        .withArguments("-Pjkube.enricher.jkube-volume-permission.defaultStorageClass=" + defaultStorageClassEnricherConfig,
-            "ocResource")
+        .withArguments(gradleArgs.toArray(new String[0]))
         .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
