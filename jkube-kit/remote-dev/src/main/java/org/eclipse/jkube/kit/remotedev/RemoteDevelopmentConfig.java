@@ -23,6 +23,7 @@ import org.eclipse.jkube.kit.common.util.IoUtil;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -32,8 +33,7 @@ import java.util.List;
 public class RemoteDevelopmentConfig {
 
   private final AtomicInteger sshPort = new AtomicInteger(-1);
-  private String user;
-  private String password;
+  private final AtomicReference<String> user = new AtomicReference<>();
 
   @Singular
   private List<RemotePort> remotePorts;
@@ -43,5 +43,13 @@ public class RemoteDevelopmentConfig {
 
   public int getSshPort() {
     return sshPort.updateAndGet(v -> v == -1 ? IoUtil.getFreeRandomPort() : v);
+  }
+
+  public String getUser() {
+    return user.get();
+  }
+
+  public void setUser(String user) {
+    this.user.set(user);
   }
 }

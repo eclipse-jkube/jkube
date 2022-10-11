@@ -48,6 +48,7 @@ class PortForwarder implements Callable<Void> {
 
   @Override
   public Void call() throws InterruptedException {
+    waitForUser();
     while (true) {
       try (ClientSession session = createSession()) {
         session.auth().verify(10, TimeUnit.SECONDS);
@@ -89,12 +90,16 @@ class PortForwarder implements Callable<Void> {
     localServiceManager.tearDownServices();
   }
 
+  private void waitForUser() throws InterruptedException {
+    logger.debug("Waiting for remote container to log current user");
+    while (remoteDevelopmentConfig.getUser() == null) {
+      TimeUnit.SECONDS.sleep(1);
+    }
+  }
   private ClientSession createSession() throws IOException {
-    final ClientSession session = sshClient
+    return sshClient
       .connect(remoteDevelopmentConfig.getUser(), "localhost", remoteDevelopmentConfig.getSshPort())
       .verify(10, TimeUnit.SECONDS)
       .getSession();
-    session.addPasswordIdentity(remoteDevelopmentConfig.getPassword());
-    return session;
   }
 }

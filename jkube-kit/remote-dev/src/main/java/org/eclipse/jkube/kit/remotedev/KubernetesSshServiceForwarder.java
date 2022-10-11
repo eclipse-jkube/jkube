@@ -49,11 +49,14 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
     logger.info("Waiting for Pod [%s] to be ready...", sshService.getMetadata().getName());
     kubernetesClient.pods().resource(sshService).waitUntilReady(10, TimeUnit.SECONDS);
     int retry = 0;
-    while (kubernetesClient.pods().resource(sshService).getLog().contains("[ls.io-init] done.") && retry < 10) {
+    String log;
+    while (!(log = kubernetesClient.pods().resource(sshService).getLog()).contains("Current container user is:") && retry < 10) {
       TimeUnit.SECONDS.sleep(1);
     }
     final InetAddress allInterfaces = InetAddress.getByName("0.0.0.0");
     while (true) {
+      int i = log.indexOf("Current container user is:");
+      remoteDevelopmentConfig.setUser(log.substring(i + 26, log.indexOf("\n") + i).trim());
       logger.info("Opening an SSH connection to: %s%n", sshService.getMetadata().getName());
       final LocalPortForward localPortForward = kubernetesClient.pods().resource(sshService)
         .portForward(CONTAINER_SSH_PORT, allInterfaces, remoteDevelopmentConfig.getSshPort());
