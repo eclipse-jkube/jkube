@@ -28,13 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-
-import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_DIST;
@@ -50,11 +45,7 @@ import static org.mockito.Mockito.when;
  */
 
 public class WildflyJARGeneratorTest {
-
-
     private GeneratorContext context;
-
-
     private JavaProject project;
     @Before
     public void setUp() throws Exception {
@@ -86,7 +77,6 @@ public class WildflyJARGeneratorTest {
     
     @Test
     public void slimServer() throws IOException {
-        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
@@ -98,7 +88,7 @@ public class WildflyJARGeneratorTest {
         Path repoDir = targetDir.resolve("myrepo");
         Files.createDirectories(repoDir);
         try {
-            GeneratorContext ctx = contextForSlimServer(project, options, tmpDir);
+            GeneratorContext ctx = contextForSlimServer(options, tmpDir);
             WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
             List<String> extraOptions = generator.getExtraJavaOptions();
             assertThat(extraOptions).isNotNull()
@@ -119,7 +109,6 @@ public class WildflyJARGeneratorTest {
     
     @Test
     public void slimServerAbsoluteDir() throws IOException {
-        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-project2");
@@ -130,7 +119,7 @@ public class WildflyJARGeneratorTest {
         pluginOptions.put(JBOSS_MAVEN_DIST, null);
         pluginOptions.put(JBOSS_MAVEN_REPO, repoDir.toString());
         try {
-            GeneratorContext ctx = contextForSlimServer(project, options, null);
+            GeneratorContext ctx = contextForSlimServer(options, null);
             WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
             List<String> extraOptions = generator.getExtraJavaOptions();
             assertThat(extraOptions).isNotNull().hasSize(2)
@@ -150,7 +139,6 @@ public class WildflyJARGeneratorTest {
     
     @Test
     public void slimServerNoDir() throws Exception {
-        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         Path tmpDir = Files.createTempDirectory("bootable-jar-test-project2");
@@ -160,7 +148,7 @@ public class WildflyJARGeneratorTest {
         pluginOptions.put(JBOSS_MAVEN_DIST, null);
         pluginOptions.put(JBOSS_MAVEN_REPO, repoDir.toString());
         try {
-            GeneratorContext ctx = contextForSlimServer(project, options, null);
+            GeneratorContext ctx = contextForSlimServer(options, null);
             WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
             List<String> extraOptions = generator.getExtraJavaOptions();
             assertThat(extraOptions).isNotNull().hasSize(2)
@@ -178,13 +166,12 @@ public class WildflyJARGeneratorTest {
     }
     
     @Test
-    public void slimServerNoRepo() throws IOException {
-        final JavaProject project = mock(JavaProject.class);
+    public void slimServerNoRepo() {
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_DIST, null);
-        GeneratorContext ctx = contextForSlimServer(project, options, null);
+        GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull()
@@ -192,27 +179,25 @@ public class WildflyJARGeneratorTest {
     }
     
     @Test
-    public void slimServerNoDist() throws IOException {
-        final JavaProject project = mock(JavaProject.class);
+    public void slimServerNoDist() {
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_REPO, "myrepo");
-        GeneratorContext ctx = contextForSlimServer(project, options, null);
+        GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull().singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
     }
     
     @Test
-    public void slimServerFalseDist() throws IOException {
-        final JavaProject project = mock(JavaProject.class);
+    public void slimServerFalseDist() {
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_REPO, "myrepo");
         pluginOptions.put(JBOSS_MAVEN_DIST, "false");
-        GeneratorContext ctx = contextForSlimServer(project, options, null);
+        GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull().singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
@@ -220,13 +205,12 @@ public class WildflyJARGeneratorTest {
     
     @Test
     public void slimServerTrueDist() throws IOException {
-        final JavaProject project = mock(JavaProject.class);
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_REPO, "myrepo");
         pluginOptions.put(JBOSS_MAVEN_DIST, "true");
-        GeneratorContext ctx = contextForSlimServer(project, options, null);
+        GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull().hasSize(2)
@@ -234,13 +218,12 @@ public class WildflyJARGeneratorTest {
         assertThat(extraOptions.get(1)).isEqualTo("-Dmaven.repo.local=/deployments/myrepo");
     }
     
-    private GeneratorContext contextForSlimServer(JavaProject project, Map<String, Object> bootableJarconfig, Path dir) {
+    private GeneratorContext contextForSlimServer(Map<String, Object> bootableJarconfig, Path dir) {
         Plugin plugin
                 = Plugin.builder().artifactId("wildfly-jar-maven-plugin").
                         groupId("org.wildfly.plugins").configuration(bootableJarconfig).build();
         List<Plugin> lst = new ArrayList<>();
         lst.add(plugin);
-        ProcessorConfig c = new ProcessorConfig(null, null, Collections.emptyMap());
         if (dir == null) {
             when(project.getPlugins()).thenReturn(lst);
             when(context.getProject()).thenReturn(project);

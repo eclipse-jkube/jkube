@@ -40,10 +40,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unchecked", "unused"})
+@SuppressWarnings({"unchecked", "unused"})
 public class WildflyJARHealthCheckEnricherTest {
 
     protected JKubeEnricherContext context;
@@ -51,7 +52,9 @@ public class WildflyJARHealthCheckEnricherTest {
 
     @Before
     public void setUp() throws Exception {
-        context = mock(JKubeEnricherContext.class);
+        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+        project = mock(JavaProject.class);
+        when(context.getProject()).thenReturn(project);
     }
 
     private void setupExpectations(Map<String, Object> bootableJarconfig, Map<String, Map<String, Object>> jkubeConfig) {
