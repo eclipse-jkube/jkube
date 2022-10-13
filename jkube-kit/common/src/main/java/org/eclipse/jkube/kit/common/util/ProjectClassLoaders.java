@@ -17,7 +17,7 @@ import java.net.URLClassLoader;
 
 public class ProjectClassLoaders {
 
-    private URLClassLoader compileClassLoader;
+    private final URLClassLoader compileClassLoader;
 
     public ProjectClassLoaders(URLClassLoader compileClassLoader) {
         this.compileClassLoader = compileClassLoader;
