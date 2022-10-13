@@ -132,7 +132,7 @@ public class IoUtil {
 
     // ========================================================================================
 
-    private static int PROGRESS_LENGTH = 50;
+    private final static int PROGRESS_LENGTH = 50;
 
     private static String getProgressBar(long bytesRead, long length) {
         StringBuilder ret = new StringBuilder("[");
