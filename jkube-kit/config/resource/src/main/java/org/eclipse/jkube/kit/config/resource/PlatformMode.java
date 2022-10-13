@@ -32,7 +32,7 @@ public enum PlatformMode {
      */
     openshift("OpenShift");
 
-    private String label;
+    private final String label;
 
     PlatformMode(String label) {
         this.label = label;
