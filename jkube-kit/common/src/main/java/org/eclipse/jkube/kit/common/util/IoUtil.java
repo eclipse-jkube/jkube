@@ -13,26 +13,10 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
-import java.net.URL;
-import java.nio.file.Files;
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.http.HttpClient;
-import io.fabric8.kubernetes.client.http.HttpResponse;
-import io.fabric8.kubernetes.client.http.StandardHttpHeaders;
-import io.fabric8.kubernetes.client.utils.HttpClientUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
-
-import static org.apache.commons.io.IOUtils.EOF;
 
 /**
  *
@@ -45,43 +29,6 @@ public class IoUtil {
     private static final Random RANDOM = new Random();
 
     private IoUtil() { }
-
-    /**
-     * Download with showing the progress a given URL and store it in a file
-     * @param log logger used to track progress
-     * @param downloadUrl url to download
-     * @param target target file where to store the downloaded data
-     * @throws IOException IO Exception
-     */
-    public static void download(KitLogger log, URL downloadUrl, File target) throws IOException {
-        log.progressStart();
-        try (HttpClient client = HttpClientUtils.createHttpClient(Config.empty())
-            .newBuilder().readTimeout(30, TimeUnit.MINUTES).build()
-        ) {
-            final HttpResponse<InputStream> response = client.sendAsync(
-                client.newHttpRequestBuilder().url(downloadUrl).build(), InputStream.class)
-                .get();
-            final int length = Integer.parseInt(response.headers(StandardHttpHeaders.CONTENT_LENGTH)
-                .stream().findAny().orElse("-1"));
-            try (OutputStream out = Files.newOutputStream(target.toPath()); InputStream is = response.body()) {
-                final byte[] buffer = new byte[8192];
-                long readBytes = 0;
-                int len;
-                while (EOF != (len = is.read(buffer))) {
-                    readBytes += len;
-                    log.progressUpdate(target.getName(), "Downloading", getProgressBar(readBytes, length));
-                    out.write(buffer, 0, len);
-                }
-            }
-        }  catch(InterruptedException ex) {
-            Thread.currentThread().interrupt();
-            throw new IOException("Download interrupted", ex);
-        } catch (IOException | ExecutionException e) {
-            throw new IOException("Failed to download URL " + downloadUrl + " to  " + target + ": " + e, e);
-        } finally {
-            log.progressFinished();
-        }
-    }
 
     /**
      * Find a free (on localhost) random port in the range [49152, 65535] after 100 attempts.
@@ -130,30 +77,4 @@ public class IoUtil {
         return null;
     }
 
-    // ========================================================================================
-
-    private static final int PROGRESS_LENGTH = 50;
-
-    private static String getProgressBar(long bytesRead, long length) {
-        StringBuilder ret = new StringBuilder("[");
-        if (length > - 1) {
-            int bucketSize = (int) ((double)length / PROGRESS_LENGTH + 0.5D);
-            int index = (int) ((double)bytesRead / bucketSize + 0.5D);
-            for (int i = 0; i < PROGRESS_LENGTH; i++) {
-                ret.append(i < index ? "=" : (i == index ? ">" : " "));
-            }
-            ret.append(String.format("] %.2f MB/%.2f MB",
-                    ((float) bytesRead / (1024 * 1024)),
-                    ((float) length / (1024 * 1024))));
-        } else {
-            int bucketSize = 200 * 1024; // 200k
-            int index = (int) ((double)bytesRead / bucketSize + 0.5D) % PROGRESS_LENGTH;
-            for (int i = 0; i < PROGRESS_LENGTH; i++) {
-                ret.append(i == index ? "*" : " ");
-            }
-            ret.append("]");
-        }
-
-        return ret.toString();
-    }
 }
