@@ -105,8 +105,8 @@ public class IoUtil {
     public static int getFreeRandomPort(int min, int max, int attempts) {
         for (int i=0; i < attempts; i++) {
             int port = min + RANDOM.nextInt(max - min + 1);
-            try (Socket socket = new Socket("localhost", port)) { // NOSONAR
-                // Port is open, so it's used up, try again
+            try (Socket ignored = new Socket("localhost", port)) { // NOSONAR
+                // Port is open for communication, meaning it's used up, try again
             } catch (ConnectException e) {
                 return port;
             } catch (IOException e) {
