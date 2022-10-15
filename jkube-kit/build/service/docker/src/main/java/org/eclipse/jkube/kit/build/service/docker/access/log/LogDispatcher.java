@@ -24,9 +24,9 @@ import java.util.Map;
  */
 public class LogDispatcher {
 
-    private Map<String,LogGetHandle> logHandles;
+    private final Map<String,LogGetHandle> logHandles;
 
-    private DockerAccess dockerAccess;
+    private final DockerAccess dockerAccess;
 
     public LogDispatcher(DockerAccess dockerAccess) {
         this.dockerAccess = dockerAccess;
