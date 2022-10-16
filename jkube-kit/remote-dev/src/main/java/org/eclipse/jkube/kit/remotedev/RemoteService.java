@@ -24,8 +24,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Getter
 @EqualsAndHashCode
-public class RemotePort {
+public class RemoteService {
 
   private String hostname;
   private int port;
+  private Integer localPort;
+
+  public int getLocalPort() {
+    return localPort == null ? port : localPort;
+  }
 }
