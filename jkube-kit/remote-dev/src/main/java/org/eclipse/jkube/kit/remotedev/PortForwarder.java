@@ -112,11 +112,11 @@ class PortForwarder implements Callable<Void> {
   }
 
   private void forwardRemotePorts(ClientSession session) throws IOException {
-    for (RemotePort remotePort : context.getRemoteDevelopmentConfig().getRemotePorts()) {
+    for (RemoteService remoteService : context.getRemoteDevelopmentConfig().getRemoteServices()) {
       session.startLocalPortForwarding(
-        remotePort.getPort(), new SshdSocketAddress(remotePort.getHostname(), remotePort.getPort()));
+        remoteService.getLocalPort(), new SshdSocketAddress(remoteService.getHostname(), remoteService.getPort()));
       logger.info("Kubernetes Service %s:%s is now available at local port %s",
-        remotePort.getHostname(), remotePort.getPort(), remotePort.getPort());
+        remoteService.getHostname(), remoteService.getPort(), remoteService.getPort());
     }
   }
 
@@ -158,6 +158,8 @@ class PortForwarder implements Callable<Void> {
     public AcceptAllNoLoggingServerKeyVerifier() {
       super(true);
     }
+
+    @Override
     protected void handleAcceptance(ClientSession sshClientSession, SocketAddress remoteAddress, PublicKey serverKey) {
       // NO OP
     }

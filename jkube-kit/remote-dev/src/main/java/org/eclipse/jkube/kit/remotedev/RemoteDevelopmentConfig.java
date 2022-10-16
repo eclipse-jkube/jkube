@@ -20,6 +20,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
 
+import java.util.Collections;
 import java.util.List;
 
 @Builder(toBuilder = true)
@@ -30,8 +31,16 @@ import java.util.List;
 public class RemoteDevelopmentConfig {
 
   @Singular
-  private List<RemotePort> remotePorts;
+  private List<RemoteService> remoteServices;
 
   @Singular
   private List<LocalService> localServices;
+
+  public List<RemoteService> getRemoteServices() {
+    return remoteServices == null ? Collections.emptyList() : remoteServices;
+  }
+
+  public List<LocalService> getLocalServices() {
+    return localServices == null ? Collections.emptyList() : localServices;
+  }
 }
