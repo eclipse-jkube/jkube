@@ -19,8 +19,11 @@ import java.net.ServerSocket;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class IoUtilTest {
+
 
     @Test
     void findOpenPort() throws IOException {
@@ -42,6 +45,43 @@ class IoUtilTest {
         }
         assertThat(port2 > port).isTrue();
         assertThat(port2).isGreaterThan(port);
+    }
+
+    @Test
+    void findOpenPortWithSmallAttemptsCount() throws IOException {
+        int port = IoUtil.getFreeRandomPort(30000, 60000, 30);
+        try (ServerSocket ss = new ServerSocket(port)) {
+            assertThat(ss).isNotNull();
+        }
+    }
+
+    @Test
+    void findOpenPortWithLargeAttemptsCount() throws IOException {
+        int port = IoUtil.getFreeRandomPort(30000, 60000, 1000);
+        try (ServerSocket ss = new ServerSocket(port)) {
+            assertThat(ss).isNotNull();
+        }
+    }
+
+    @Test
+    void invokeExceptionWhenCouldntFindPort() throws IOException {
+
+        // find open port to occupy
+        int foundPort = IoUtil.getFreeRandomPort(30000, 65000, 1000);
+
+        // use port
+        ServerSocket ignored = new ServerSocket(foundPort);
+
+        // try to use the used port
+        Exception exception = assertThrows(IllegalStateException.class, () -> {
+            IoUtil.getFreeRandomPort(foundPort, foundPort, 3);
+        });
+
+
+        String expectedMessage = "Cannot find a free random port in the range [" + foundPort + ", " + foundPort + "] after 3 attempts";
+        String actualMessage = exception.getMessage();
+
+        assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
