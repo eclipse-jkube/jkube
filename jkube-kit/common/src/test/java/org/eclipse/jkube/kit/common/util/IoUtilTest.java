@@ -70,12 +70,12 @@ class IoUtilTest {
         int foundPort = IoUtil.getFreeRandomPort(30000, 65000, 1000);
 
         // use port
+        //noinspection resource
         ServerSocket ignored = new ServerSocket(foundPort);
 
         // try to use the used port
-        Exception exception = assertThrows(IllegalStateException.class, () -> {
-            IoUtil.getFreeRandomPort(foundPort, foundPort, 3);
-        });
+        Exception exception = assertThrows(IllegalStateException.class,
+                () -> IoUtil.getFreeRandomPort(foundPort, foundPort, 3));
 
 
         String expectedMessage = "Cannot find a free random port in the range [" + foundPort + ", " + foundPort + "] after 3 attempts";
@@ -86,6 +86,7 @@ class IoUtilTest {
 
     @Test
     void testSanitizeFileName() {
+        //noinspection ConstantConditions
         assertThat(IoUtil.sanitizeFileName(null)).isNull();
         assertThat(IoUtil.sanitizeFileName("Hello/&%World")).isEqualTo("Hello-World");
         assertThat(IoUtil.sanitizeFileName(" _H-.-e-.-l-l--.//o()")).isEqualTo("-H-e-l-l-o-");
