@@ -69,7 +69,7 @@ class LocalServiceManagerTest {
       .localService(LocalService.builder().serviceName("service").type("NodePort").port(1337).build())
       .build();
     // When
-    new LocalServiceManager(jKubeServiceHub, config).createOrReplaceServices();
+    new LocalServiceManager(new RemoteDevelopmentContext(jKubeServiceHub, config)).createOrReplaceServices();
     // Then
     assertThat(kubernetesClient.services().withName("service").get())
       .hasFieldOrPropertyWithValue("metadata.name", "service")
@@ -92,16 +92,47 @@ class LocalServiceManagerTest {
       .localService(LocalService.builder().serviceName("service").port(1337).build())
       .build();
     // When
-    new LocalServiceManager(jKubeServiceHub, config).createOrReplaceServices();
+    new LocalServiceManager(new RemoteDevelopmentContext(jKubeServiceHub, config)).createOrReplaceServices();
     // Then
     assertThat(kubernetesClient.services().withName("service").get())
       .hasFieldOrPropertyWithValue("metadata.name", "service")
-      .extracting(s -> s.getMetadata().getAnnotations().get("previous-service"))
+      .extracting(s -> s.getMetadata().getAnnotations().get("jkube/previous-service"))
       .extracting(Serialization::unmarshal)
       .isInstanceOf(Service.class)
       .extracting("spec.ports").asList()
       .extracting("port")
       .containsExactly(31337);
+  }
+
+  @Test
+  void createOrReplaceServices_withExistingServiceWithAnnotation_replacesServiceWithPreviousAnnotation() {
+    // Given
+    kubernetesClient.services().resource(new ServiceBuilder()
+      .withNewMetadata()
+      .withName("service")
+      .addToAnnotations("jkube/previous-service", Serialization.asJson(new ServiceBuilder()
+        .withNewMetadata().withName("service").endMetadata()
+        .withNewSpec()
+        .addNewPort().withPort(42).endPort()
+        .endSpec().build()))
+      .endMetadata()
+      .withNewSpec()
+      .addNewPort().withPort(31337).endPort()
+      .endSpec().build()).create();
+    final RemoteDevelopmentConfig config = RemoteDevelopmentConfig.builder()
+      .localService(LocalService.builder().serviceName("service").port(1337).build())
+      .build();
+    // When
+    new LocalServiceManager(new RemoteDevelopmentContext(jKubeServiceHub, config)).createOrReplaceServices();
+    // Then
+    assertThat(kubernetesClient.services().withName("service").get())
+      .hasFieldOrPropertyWithValue("metadata.name", "service")
+      .extracting(s -> s.getMetadata().getAnnotations().get("jkube/previous-service"))
+      .extracting(Serialization::unmarshal)
+      .isInstanceOf(Service.class)
+      .extracting("spec.ports").asList()
+      .extracting("port")
+      .containsExactly(42);
   }
 
   @Test
@@ -116,7 +147,7 @@ class LocalServiceManagerTest {
       .localService(LocalService.builder().serviceName("service").port(1337).build())
       .build();
     // When
-    new LocalServiceManager(jKubeServiceHub, config).tearDownServices();
+    new LocalServiceManager(new RemoteDevelopmentContext(jKubeServiceHub, config)).tearDownServices();
     // Then
     assertThat(kubernetesClient.services().withName("service")
       .waitUntilCondition(Objects::isNull, 1, TimeUnit.SECONDS))
@@ -128,7 +159,7 @@ class LocalServiceManagerTest {
     // Given
     kubernetesClient.services().resource(new ServiceBuilder()
       .withNewMetadata().withName("service")
-      .addToAnnotations("previous-service", Serialization.asJson(new ServiceBuilder()
+      .addToAnnotations("jkube/previous-service", Serialization.asJson(new ServiceBuilder()
         .withNewMetadata().withName("service").endMetadata()
         .withNewSpec().addToSelector("old-label-key", "old-label-value").endSpec()
         .build()))
@@ -140,7 +171,7 @@ class LocalServiceManagerTest {
       .localService(LocalService.builder().serviceName("service").port(1337).build())
       .build();
     // When
-    new LocalServiceManager(jKubeServiceHub, config).tearDownServices();
+    new LocalServiceManager(new RemoteDevelopmentContext(jKubeServiceHub, config)).tearDownServices();
     // Then
     assertThat(kubernetesClient.services().withName("service").get())
       .extracting("spec.selector")
