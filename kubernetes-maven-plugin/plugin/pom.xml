@@ -141,6 +141,11 @@
             <artifactId>jkube-kit-watcher-standard</artifactId>
         </dependency>
 
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-remote-dev</artifactId>
+      </dependency>
+
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>

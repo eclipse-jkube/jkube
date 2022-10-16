@@ -19,11 +19,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
-import org.eclipse.jkube.kit.common.util.IoUtil;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -32,24 +29,9 @@ import java.util.concurrent.atomic.AtomicReference;
 @EqualsAndHashCode
 public class RemoteDevelopmentConfig {
 
-  private final AtomicInteger sshPort = new AtomicInteger(-1);
-  private final AtomicReference<String> user = new AtomicReference<>();
-
   @Singular
   private List<RemotePort> remotePorts;
 
   @Singular
   private List<LocalService> localServices;
-
-  public int getSshPort() {
-    return sshPort.updateAndGet(v -> v == -1 ? IoUtil.getFreeRandomPort() : v);
-  }
-
-  public String getUser() {
-    return user.get();
-  }
-
-  public void setUser(String user) {
-    this.user.set(user);
-  }
 }
