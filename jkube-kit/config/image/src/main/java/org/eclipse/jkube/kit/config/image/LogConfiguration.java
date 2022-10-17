@@ -77,9 +77,9 @@ public class LogConfiguration implements Serializable {
 
     public static class LogDriver implements Serializable {
 
-        private String name;
+        private final String name;
 
-        private Map<String, String> opts;
+        private final Map<String, String> opts;
 
         private LogDriver(String name, Map<String, String> opts) {
             this.name = name;
