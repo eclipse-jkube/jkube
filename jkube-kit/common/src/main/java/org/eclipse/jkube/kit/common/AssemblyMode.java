@@ -41,7 +41,7 @@ public enum AssemblyMode {
     tgz("tgz",true);
 
     private final String extension;
-    private boolean isArchive;
+    private final boolean isArchive;
 
     AssemblyMode(String extension, boolean isArchive) {
         this.extension = extension;
