@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -71,7 +70,7 @@ public class DefaultMetadataEnricher extends BaseEnricher {
     }
 
     private void visit(KubernetesListBuilder builder, MetadataVisitor<?>[] visitors) {
-        SummaryUtil.addToEnrichers(getName());
+        getContext().getSummaryService().addToEnrichers(getName());
         for (MetadataVisitor<?> visitor : visitors) {
             builder.accept(visitor);
         }

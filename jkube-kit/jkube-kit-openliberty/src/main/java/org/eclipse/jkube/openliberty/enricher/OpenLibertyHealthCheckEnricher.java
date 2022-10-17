@@ -13,10 +13,6 @@
  */
 package org.eclipse.jkube.openliberty.enricher;
 
-import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.microprofile.enricher.AbstractMicroprofileHealthCheckEnricher;
 
@@ -40,44 +36,5 @@ public class OpenLibertyHealthCheckEnricher extends AbstractMicroprofileHealthCh
   @Override
   protected int getPort() {
     return asInteger(Optional.ofNullable(getPortFromConfiguration()).orElse(DEFAULT_OPENLIBERTY_PORT));
-  }
-
-  protected Probe getReadinessProbe() {
-    return discoverOpenLibertyHealthCheck(getConfig(Config.READINESS_PATH), getConfigAsInt(Config.READINESS_INITIAL_DELAY), getConfigAsInt(Config.READINESS_FAILURE_THRESHOLD), getConfigAsInt(Config.READINESS_SUCCESS_THRESHOLD), getConfigAsInt(Config.READINESS_PERIOD_SECONDS));
-  }
-
-  @Override
-  protected Probe getLivenessProbe() {
-    return discoverOpenLibertyHealthCheck(getConfig(Config.LIVENESS_PATH), getConfigAsInt(Config.LIVENESS_INITIAL_DELAY), getConfigAsInt(Config.LIVENESS_FAILURE_THRESHOLD), getConfigAsInt(Config.LIVENESS_SUCCESS_THRESHOLD), getConfigAsInt(Config.LIVENESS_PERIOD_SECONDS));
-  }
-
-  @Override
-  protected Probe getStartupProbe() {
-    if (isStartupEndpointSupported(getContext().getProject())) {
-      return discoverOpenLibertyHealthCheck(getConfig(Config.STARTUP_PATH), getConfigAsInt(Config.STARTUP_INITIAL_DELAY), getConfigAsInt(Config.STARTUP_FAILURE_THRESHOLD), getConfigAsInt(Config.STARTUP_SUCCESS_THRESHOLD), getConfigAsInt(Config.STARTUP_PERIOD_SECONDS));
-    }
-    return null;
-  }
-
-  private Probe discoverOpenLibertyHealthCheck(String path, int initialDelay, int failureThreshold, int successThreshold, int periodSeconds) {
-    if (hasMicroProfileDependency(getContext().getProject()) && isMicroProfileHealthEnabled(getContext().getProject())) {
-      SummaryUtil.addToEnrichers(getName());
-      return new ProbeBuilder()
-          .withNewHttpGet()
-          .withNewPort(asInteger(getConfig(Config.PORT)))
-          .withPath(path)
-          .withScheme(getConfig(Config.SCHEME))
-          .endHttpGet()
-          .withFailureThreshold(failureThreshold)
-          .withSuccessThreshold(successThreshold)
-          .withInitialDelaySeconds(initialDelay)
-          .withPeriodSeconds(periodSeconds)
-          .build();
-    }
-    return null;
-  }
-
-  private int getConfigAsInt(Configs.Config key) {
-    return Integer.parseInt(getConfig(key));
   }
 }

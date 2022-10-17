@@ -28,7 +28,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -118,7 +117,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
           .getHandlerFor(fromType(getConfig(Config.TYPE)));
       final HasMetadata resource = ch.get(controllerResourceConfig, images);
       log.info("Adding a default %s", resource.getKind());
-      SummaryUtil.addToEnrichers(getName());
+      getContext().getSummaryService().addToEnrichers(getName());
       builder.addToItems(resource);
       setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS,
           getContainersFromPodSpec(ch.getPodTemplateSpec(controllerResourceConfig, images)));

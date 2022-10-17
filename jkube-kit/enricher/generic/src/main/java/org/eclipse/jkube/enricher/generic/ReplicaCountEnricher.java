@@ -14,7 +14,6 @@
 package org.eclipse.jkube.enricher.generic;
 
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
@@ -35,7 +34,7 @@ public class ReplicaCountEnricher extends BaseEnricher {
   public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
     Integer replicas = Configs.asInteger(getValueFromConfig(JKUBE_ENFORCED_REPLICAS, null));
     if (replicas != null) {
-      SummaryUtil.addToEnrichers(getName());
+      getContext().getSummaryService().addToEnrichers(getName());
       getContext().getHandlerHub().getControllerHandlers()
           .forEach(controller -> controller.get().overrideReplicas(builder, replicas));
     }

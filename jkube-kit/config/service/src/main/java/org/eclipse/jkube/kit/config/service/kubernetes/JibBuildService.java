@@ -25,8 +25,8 @@ import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -59,6 +59,7 @@ public class JibBuildService extends AbstractImageBuildService {
     private final KitLogger log;
     private final BuildServiceConfig buildServiceConfig;
     private final JKubeConfiguration configuration;
+    private final SummaryService summaryService;
 
     public JibBuildService(JKubeServiceHub jKubeServiceHub) {
         super(jKubeServiceHub);
@@ -67,20 +68,19 @@ public class JibBuildService extends AbstractImageBuildService {
             "BuildServiceConfig is required");
         this.configuration = Objects.requireNonNull(jKubeServiceHub.getConfiguration(),
             "JKubeConfiguration is required");
+        this.summaryService = Objects.requireNonNull(jKubeServiceHub.getSummaryService(),
+            "SummaryService is required");
     }
 
     @Override
     public boolean isApplicable() {
-        if (buildServiceConfig.getJKubeBuildStrategy() == JKubeBuildStrategy.jib) {
-            SummaryUtil.setBuildStrategy("Local Jib");
-            return true;
-        }
-        return false;
+        return buildServiceConfig.getJKubeBuildStrategy() == JKubeBuildStrategy.jib;
     }
 
     @Override
     public void buildSingleImage(ImageConfiguration imageConfig) throws JKubeServiceException {
         try {
+            summaryService.setBuildStrategy("Local Jib");
             log.info("[[B]]JIB[[B]] image build started");
             if (imageConfig.getBuildConfiguration().isDockerFileMode()) {
                 throw new JKubeServiceException("Dockerfile mode is not supported with JIB build strategy");
@@ -89,7 +89,7 @@ public class JibBuildService extends AbstractImageBuildService {
             BuildDirs buildDirs = new BuildDirs(imageConfig.getName(), configuration);
             final Credential pullRegistryCredential = getRegistryCredentials(
                 configuration.getRegistryConfig(), false, imageConfig, log);
-            final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfig, pullRegistryCredential);
+            final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfig, pullRegistryCredential, summaryService);
 
             final Map<Assembly, List<AssemblyFileEntry>> layers = AssemblyManager.getInstance()
                 .copyFilesToFinalTarballDirectory(configuration, buildDirs,
@@ -101,7 +101,7 @@ public class JibBuildService extends AbstractImageBuildService {
             // files should be added using the AssemblyFileEntry list. AssemblyManager, should provide
             // a common way to achieve this so that both the tar builder and any other builder could get a hold of
             // archive customizers, file entries, etc.
-            File dockerTarArchive = getAssemblyTarArchive(imageConfig, configuration, log);
+            File dockerTarArchive = getAssemblyTarArchive(imageConfig, configuration, log, summaryService);
             JibServiceUtil.buildContainer(containerBuilder,
                 TarImage.at(dockerTarArchive.toPath()).named(imageConfig.getName()), log);
             log.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
@@ -121,7 +121,8 @@ public class JibBuildService extends AbstractImageBuildService {
                 imageConfiguration,
                 getRegistryCredentials(registryConfig, true, imageConfiguration, log),
                 getBuildTarArchive(imageConfiguration, configuration),
-                log
+                log,
+                summaryService
             );
         } catch (Exception ex) {
             throw new JKubeServiceException("Error when push JIB image", ex);
@@ -142,11 +143,11 @@ public class JibBuildService extends AbstractImageBuildService {
         return imageConfiguration;
     }
 
-    static File getAssemblyTarArchive(ImageConfiguration imageConfig, JKubeConfiguration configuration, KitLogger log) throws IOException {
+    static File getAssemblyTarArchive(ImageConfiguration imageConfig, JKubeConfiguration configuration, KitLogger log, SummaryService summaryService) throws IOException {
         log.info("Preparing assembly files");
         final String targetImage = imageConfig.getName();
         return AssemblyManager.getInstance()
-                .createDockerTarArchive(targetImage, configuration, imageConfig.getBuildConfiguration(), log, null);
+                .createDockerTarArchive(targetImage, configuration, imageConfig.getBuildConfiguration(), log, null, summaryService);
     }
 
     static Credential getRegistryCredentials(

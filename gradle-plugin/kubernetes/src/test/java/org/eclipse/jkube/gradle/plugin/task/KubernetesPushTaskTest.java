@@ -33,12 +33,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -51,7 +53,6 @@ class KubernetesPushTaskTest {
   private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<DockerAccessFactory> dockerAccessFactoryMockedConstruction;
-  private MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction;
   private KubernetesExtension extension;
 
   @BeforeEach
@@ -59,8 +60,6 @@ class KubernetesPushTaskTest {
     // Mock required for environments with no DOCKER available (don't remove)
     dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class,
         (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
-    dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class,
-        (mock, ctx) -> when(mock.isApplicable()).thenReturn(true));
     extension = new TestKubernetesExtension();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     extension.images = Collections.singletonList(ImageConfiguration.builder()
@@ -73,45 +72,67 @@ class KubernetesPushTaskTest {
 
   @AfterEach
   void tearDown() {
-    dockerBuildServiceMockedConstruction.close();
     dockerAccessFactoryMockedConstruction.close();
   }
 
   @Test
   void run_withImageConfiguration_shouldPushImage() throws JKubeServiceException {
-    // Given
-    final KubernetesPushTask kubernetesPushTask = new KubernetesPushTask(KubernetesExtension.class);
+    try (MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class,
+        (mock, ctx) -> when(mock.isApplicable()).thenReturn(true))) {
+      // Given
+      final KubernetesPushTask kubernetesPushTask = new KubernetesPushTask(KubernetesExtension.class);
 
-    // When
-    kubernetesPushTask.runTask();
+      // When
+      kubernetesPushTask.runTask();
 
-    // Then
-    assertThat(dockerBuildServiceMockedConstruction.constructed()).hasSize(1);
-    verify(dockerBuildServiceMockedConstruction.constructed().iterator().next(), times(1))
-        .push(eq(extension.images), eq(0), any(), eq(false));
+      // Then
+      assertThat(dockerBuildServiceMockedConstruction.constructed()).hasSize(1);
+      verify(dockerBuildServiceMockedConstruction.constructed().iterator().next(), times(1))
+          .push(eq(extension.images), eq(0), any(), eq(false));
+    }
   }
 
 
   @Test
   void runTask_withSkipPush_shouldDoNothing() throws JKubeServiceException {
-    // Given
-    extension = new TestKubernetesExtension() {
-      @Override
-      public Property<Boolean> getSkipPush() {
-        return new DefaultProperty<>(Boolean.class).value(true);
-      }
-    };
-    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
-    final KubernetesPushTask pushTask = new KubernetesPushTask(KubernetesExtension.class);
-    when(pushTask.getName()).thenReturn("k8sPush");
+    try (MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class,
+        (mock, ctx) -> when(mock.isApplicable()).thenReturn(true))) {
+      // Given
+      extension = new TestKubernetesExtension() {
+        @Override
+        public Property<Boolean> getSkipPush() {
+          return new DefaultProperty<>(Boolean.class).value(true);
+        }
+      };
+      when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+      final KubernetesPushTask pushTask = new KubernetesPushTask(KubernetesExtension.class);
+      when(pushTask.getName()).thenReturn("k8sPush");
 
-    // When
-    pushTask.runTask();
+      // When
+      pushTask.runTask();
 
-    // Then
-    assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
-    verify(pushTask.jKubeServiceHub.getBuildService(), times(0)).push(any(), anyInt(), any(), anyBoolean());
-    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sPush` task is skipped."));
+      // Then
+      assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
+      verify(pushTask.jKubeServiceHub.getBuildService(), times(0)).push(any(), anyInt(), any(), anyBoolean());
+      verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sPush` task is skipped."));
+    }
+  }
 
+  @Test
+  void runTask_whenPushFails_thenExceptionThrown() {
+    try (MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class,
+        (mock, ctx) -> {
+          when(mock.isApplicable()).thenReturn(true);
+          doThrow(new JKubeServiceException("failure")).when(mock).push(any(), anyInt(), any(), anyBoolean());
+        })) {
+      // Given
+      final KubernetesPushTask pushTask = new KubernetesPushTask(KubernetesExtension.class);
+
+      // When + Then
+      assertThatIllegalStateException()
+          .isThrownBy(pushTask::runTask)
+          .withMessage("Error in pushing image: failure");
+      assertThat(dockerBuildServiceMockedConstruction.constructed()).isNotEmpty();
+    }
   }
 }

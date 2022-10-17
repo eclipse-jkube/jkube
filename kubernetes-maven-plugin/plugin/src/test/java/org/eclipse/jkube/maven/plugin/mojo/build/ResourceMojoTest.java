@@ -50,7 +50,6 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.inOrder;
@@ -143,7 +142,7 @@ class ResourceMojoTest {
         .isEqualTo("jkube/test-project");
     verify(mockedJKubeServiceHub, times(2)).getResourceService();
     verify(mockedResourceService, times(1)).generateResources(eq(PlatformMode.kubernetes), any(), any());
-    verify(mockedResourceService, times(1)).writeResources(any(), eq(ResourceClassifier.KUBERNETES), any());
+    verify(mockedResourceService, times(1)).writeResources(any(), eq(ResourceClassifier.KUBERNETES), any(), any());
   }
 
   @Test
@@ -158,7 +157,7 @@ class ResourceMojoTest {
     assertThat(defaultEnricherManagerMockedConstruction.constructed()).isEmpty();
     verify(mockedJKubeServiceHub, times(0)).getResourceService();
     verify(mockedResourceService, times(0)).generateResources(any(), any(), any());
-    verify(mockedResourceService, times(0)).writeResources(any(), any(), any());
+    verify(mockedResourceService, times(0)).writeResources(any(), any(), any(), any());
   }
 
   @Test
@@ -173,7 +172,7 @@ class ResourceMojoTest {
     assertThat(defaultEnricherManagerMockedConstruction.constructed()).isEmpty();
     verify(mockedJKubeServiceHub, times(0)).getResourceService();
     verify(mockedResourceService, times(0)).generateResources(any(), any(), any());
-    verify(mockedResourceService, times(0)).writeResources(any(), any(), any());
+    verify(mockedResourceService, times(0)).writeResources(any(), any(), any(), any());
   }
 
   @Test
@@ -188,7 +187,7 @@ class ResourceMojoTest {
       assertThat(resourceValidatorMockedConstruction.constructed()).hasSize(1);
       ResourceValidator mockResourceValidator = resourceValidatorMockedConstruction.constructed().get(0);
       InOrder inOrder = inOrder(mockedResourceService, mockResourceValidator);
-      inOrder.verify(mockedResourceService).writeResources(any(), any(), any());
+      inOrder.verify(mockedResourceService).writeResources(any(), any(), any(), any());
       inOrder.verify(mockResourceValidator).validate();
     }
   }

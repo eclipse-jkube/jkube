@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.IoUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -68,7 +69,7 @@ public class SpringBootWatcher extends BaseWatcher {
     }
 
     @Override
-    public void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) throws Exception {
+    public void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode, SummaryService summaryService) {
         final NamespacedKubernetesClient kubernetes;
         if (namespace != null) {
             kubernetes = getContext().getJKubeServiceHub().getClient().adapt(NamespacedKubernetesClient.class).inNamespace(namespace);

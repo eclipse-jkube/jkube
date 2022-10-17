@@ -35,7 +35,7 @@ import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.Arguments;
@@ -117,21 +117,21 @@ public class JibServiceUtil {
     }
 
     public static JibContainerBuilder containerFromImageConfiguration(
-        ImageConfiguration imageConfiguration, Credential pullRegistryCredential) throws InvalidImageReferenceException {
-        SummaryUtil.setBaseImageNameImageSummary(imageConfiguration.getName(), imageConfiguration.getBuildConfiguration().getFrom());
+        ImageConfiguration imageConfiguration, Credential pullRegistryCredential, SummaryService summaryService) throws InvalidImageReferenceException {
+        summaryService.setBaseImageNameImageSummary(imageConfiguration.getName(), imageConfiguration.getBuildConfiguration().getFrom());
         final JibContainerBuilder containerBuilder = Jib.from(getRegistryImage(getBaseImage(imageConfiguration), pullRegistryCredential))
                 .setFormat(ImageFormat.Docker);
         return populateContainerBuilderFromImageConfiguration(containerBuilder, imageConfiguration);
     }
 
-    public static String getFullImageName(ImageConfiguration imageConfiguration, String tag) {
+    public static String getFullImageName(ImageConfiguration imageConfiguration, String tag, SummaryService summaryService) {
         ImageName imageName;
         if (tag != null) {
             imageName = new ImageName(imageConfiguration.getName(), tag);
         } else {
             imageName = new ImageName(imageConfiguration.getName());
         }
-        SummaryUtil.setPushRegistry(Optional.ofNullable(imageName.getRegistry())
+        summaryService.setPushRegistry(Optional.ofNullable(imageName.getRegistry())
             .orElse("docker.io"));
         return imageName.getFullName();
     }
@@ -144,12 +144,12 @@ public class JibServiceUtil {
      * @param tarArchive         tar archive built during build goal
      * @param log                Logger
      */
-    public static void jibPush(ImageConfiguration imageConfiguration, Credential pushCredentials, File tarArchive, KitLogger log) {
+    public static void jibPush(ImageConfiguration imageConfiguration, Credential pushCredentials, File tarArchive, KitLogger log, SummaryService summaryService) {
         BuildConfiguration buildImageConfiguration = imageConfiguration.getBuildConfiguration();
-        String imageName = getFullImageName(imageConfiguration, null);
+        String imageName = getFullImageName(imageConfiguration, null, summaryService);
         try {
             for (String tag : getAllImageTags(buildImageConfiguration.getTags(), imageName)) {
-                String imageNameWithTag = getFullImageName(imageConfiguration, tag);
+                String imageNameWithTag = getFullImageName(imageConfiguration, tag, summaryService);
                 log.info("Pushing image: %s", imageNameWithTag);
                 pushImage(TarImage.at(tarArchive.toPath()), imageNameWithTag, pushCredentials, log);
             }

@@ -93,7 +93,7 @@ class OpenShiftBuildServiceUtilsTest {
   void createBuildArchive_withIOExceptionOnCreateDockerBuildArchive_shouldThrowException() throws Exception {
     // Given
     when(jKubeServiceHub.getDockerServiceHub().getArchiveService().createDockerBuildArchive(
-        any(ImageConfiguration.class), any(JKubeConfiguration.class), any(ArchiverCustomizer.class)))
+        any(ImageConfiguration.class), any(JKubeConfiguration.class), any(ArchiverCustomizer.class), any()))
         .thenThrow(new IOException("Mocked Exception"));
     // When + Then
     assertThatExceptionOfType(JKubeServiceException.class)
@@ -249,7 +249,7 @@ class OpenShiftBuildServiceUtilsTest {
 
     final ArgumentCaptor<ArchiverCustomizer> customizer = ArgumentCaptor.forClass(ArchiverCustomizer.class);
     verify(jKubeServiceHub.getDockerServiceHub().getArchiveService(), times(1))
-        .createDockerBuildArchive(any(ImageConfiguration.class), any(JKubeConfiguration.class), customizer.capture());
+        .createDockerBuildArchive(any(ImageConfiguration.class), any(JKubeConfiguration.class), customizer.capture(), any());
 
     customizer.getValue().customize(tarArchiver);
     final ArgumentCaptor<String> path = ArgumentCaptor.forClass(String.class);

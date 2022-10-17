@@ -22,6 +22,7 @@ import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
@@ -72,8 +73,9 @@ class WatchMojoTest {
     mockedJavaProject = mock(JavaProject.class);
     mockedClusterAccess = mock(ClusterAccess.class);
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
+    SummaryService mockedSummaryService = mock(SummaryService.class);
 
-    when(mockedJKubeServiceHub.getApplyService()).thenReturn(new ApplyService(mockKubernetesClient, new KitLogger.SilentLogger()));
+    when(mockedJKubeServiceHub.getApplyService()).thenReturn(new ApplyService(mockKubernetesClient, new KitLogger.SilentLogger(), mockedSummaryService));
     when(mockedJavaProject.getProperties()).thenReturn(new Properties());
     when(mavenProject.getArtifactId()).thenReturn("artifact-id");
     when(mavenProject.getVersion()).thenReturn("1337");

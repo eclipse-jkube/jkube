@@ -49,10 +49,10 @@ import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MapUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
@@ -413,16 +413,18 @@ public class KubernetesResourceUtil {
         }
     }
 
-    public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger, boolean summaryEnabled) {
+    public static IllegalStateException handleKubernetesClientException(KubernetesClientException e, KitLogger logger, SummaryService summaryService) {
         Throwable cause = e.getCause();
         if (cause instanceof UnknownHostException) {
             logger.error( "Could not connect to kubernetes cluster!");
             logger.error( "Connection error: %s", cause);
 
             String message = "Could not connect to kubernetes cluster. Are you sure if you're connected to a remote cluster via `kubectl`? Error: " + cause;
-            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, message, () -> new IllegalStateException(message, e));
+            summaryService.setFailureAndCause(message);
+            return new IllegalStateException(message, e);
         } else {
-            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, e.getMessage(), () -> new IllegalStateException(e.getMessage(), e));
+            summaryService.setFailureAndCause(e.getMessage());
+            return new IllegalStateException(e.getMessage(), e);
         }
     }
 

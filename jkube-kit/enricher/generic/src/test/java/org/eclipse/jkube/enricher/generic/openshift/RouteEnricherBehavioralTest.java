@@ -18,12 +18,14 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,12 +37,14 @@ class RouteEnricherBehavioralTest {
 
   @BeforeEach
   void setUp() {
+    SummaryService summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
     context = JKubeEnricherContext.builder()
       .project(JavaProject.builder()
         .properties(new Properties())
         .build())
       .resources(ResourceConfig.builder().build())
       .log(new KitLogger.SilentLogger())
+      .summaryService(summaryService)
       .build();
     klb = new KubernetesListBuilder();
   }

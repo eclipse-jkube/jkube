@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -42,6 +44,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -318,6 +321,35 @@ class GradleUtilTest {
     final boolean result = canBeResolved(c);
     // Then
     assertThat(result).isTrue();
+  }
+
+  @Test
+  void getLastExecutingTask_whenTasksReturnedEmpty_shouldReturnNull() {
+    // Given + When
+    String task = GradleUtil.getLastExecutingTask(project, Collections.emptyMap());
+
+    // Then
+    assertThat(task).isNull();
+  }
+
+  @Test
+  void getLastExecutingTask_whenTasksReturnsValidList_shouldReturnLastExecutingTask() {
+    // Given
+    Gradle gradle = mock(Gradle.class);
+    StartParameter startParameter = mock(StartParameter.class);
+    when(startParameter.getTaskNames()).thenReturn(Arrays.asList("k8sBuild", "k8sResource", "k8sApply"));
+    when(gradle.getStartParameter()).thenReturn(startParameter);
+    when(project.getGradle()).thenReturn(gradle);
+    Map<String, Integer> taskPrioritiesMap = new HashMap<>();
+    taskPrioritiesMap.put("k8sBuild", 1);
+    taskPrioritiesMap.put("k8sResource", 1);
+    taskPrioritiesMap.put("k8sApply", 2);
+
+    // When
+    String task = GradleUtil.getLastExecutingTask(project, taskPrioritiesMap);
+
+    // Then
+    assertThat(task).isEqualTo("k8sApply");
   }
 
   private static Function<String[], Configuration> configurationDependencyMock() {

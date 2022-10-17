@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.eclipse.jkube.kit.common.Named;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
@@ -41,8 +42,9 @@ public interface Watcher extends Named {
      * @param namespace namespace in which resources are deployed
      * @param resources list of resources applied
      * @param mode {@link PlatformMode}
+     * @param summaryService {@link SummaryService}
      * @throws Exception in case of any failure
      */
-    void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) throws Exception;
+    void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode, SummaryService summaryService);
 
 }

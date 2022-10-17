@@ -25,6 +25,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.ResourceFileType;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 import org.junit.jupiter.api.AfterEach;
@@ -57,7 +58,8 @@ class HelmServiceTest {
     helmConfig = HelmConfig.builder();
     jKubeConfiguration = JKubeConfiguration.builder()
         .registryConfig(RegistryConfig.builder().settings(new ArrayList<>()).build()).build();
-    helmService = new HelmService(jKubeConfiguration, new KitLogger.SilentLogger());
+    SummaryService summaryService = mock(SummaryService.class);
+    helmService = new HelmService(jKubeConfiguration, new KitLogger.SilentLogger(), summaryService);
   }
 
   @AfterEach

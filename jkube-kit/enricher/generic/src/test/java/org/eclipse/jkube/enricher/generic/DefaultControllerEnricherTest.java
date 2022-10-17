@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -31,6 +32,7 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -51,9 +53,11 @@ class DefaultControllerEnricherTest {
     void setUp() throws Exception {
         config = new HashMap<>();
         properties = new Properties();
+        SummaryService summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
         context = JKubeEnricherContext.builder()
             .processorConfig(new ProcessorConfig(null, null, config))
             .log(new KitLogger.SilentLogger())
+            .summaryService(summaryService)
             .image(ImageConfiguration.builder()
                 .name("helloworld")
                 .build(BuildConfiguration.builder()

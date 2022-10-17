@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -20,6 +21,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -40,6 +42,7 @@ class DefaultServiceEnricherAddMissingPartsTest {
   @BeforeEach
   void setUp() {
     properties = new Properties();
+    KitLogger logger = new KitLogger.SilentLogger();
     final JKubeEnricherContext context = JKubeEnricherContext.builder()
       .image(ImageConfiguration.builder()
         .name("test-image")
@@ -50,7 +53,8 @@ class DefaultServiceEnricherAddMissingPartsTest {
         .groupId("group-id")
         .artifactId("artifact-id")
         .build())
-      .log(new KitLogger.SilentLogger())
+      .log(logger)
+      .summaryService(new SummaryService(new File("target"), logger, false))
       .build();
     enricher = new DefaultServiceEnricher(context);
   }

@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -26,7 +27,7 @@ public interface ResourceService {
   KubernetesList generateResources(PlatformMode platformMode, EnricherManager enricherManager, KitLogger log)
       throws IOException;
 
-  File writeResources(KubernetesList resources, ResourceClassifier classifier, KitLogger log) throws IOException;
+  File writeResources(KubernetesList resources, ResourceClassifier classifier, KitLogger log, SummaryService summaryService) throws IOException;
 
   @FunctionalInterface
   interface ResourceFileProcessor {

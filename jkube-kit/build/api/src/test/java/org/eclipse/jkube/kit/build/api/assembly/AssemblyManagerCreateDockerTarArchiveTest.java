@@ -32,6 +32,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.common.assertj.FileAssertions;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.assertj.core.api.AbstractFileAssert;
 import org.assertj.core.api.AbstractListAssert;
@@ -55,10 +56,12 @@ class AssemblyManagerCreateDockerTarArchiveTest {
   private AssemblyManager assemblyManager;
   private File baseDirectory;
   private File targetDirectory;
+  private SummaryService summaryService;
 
   @BeforeEach
   void setUp() throws IOException {
     prefixedLogger = mock(PrefixedLogger.class);
+    summaryService = mock(SummaryService.class);
     assemblyManager = AssemblyManager.getInstance();
     baseDirectory = temporaryFolder.toFile();
     targetDirectory = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
@@ -93,7 +96,7 @@ class AssemblyManagerCreateDockerTarArchiveTest {
 
     // When
     File dockerArchiveFile = assemblyManager.createDockerTarArchive(
-        "test-image", jKubeConfiguration, buildConfiguration, prefixedLogger, null);
+        "test-image", jKubeConfiguration, buildConfiguration, prefixedLogger, null, summaryService);
 
     // Then
     assertTargetHasDockerDirectories("test-image");
@@ -124,7 +127,7 @@ class AssemblyManagerCreateDockerTarArchiveTest {
 
     // When
     File dockerArchiveFile = assemblyManager.createDockerTarArchive(
-        "no-docker-file-and-customizer", jKubeConfiguration, buildConfiguration, prefixedLogger, finalCustomizer);
+        "no-docker-file-and-customizer", jKubeConfiguration, buildConfiguration, prefixedLogger, finalCustomizer, summaryService);
 
     // Then
     assertTargetHasDockerDirectories("no-docker-file-and-customizer");
@@ -150,11 +153,11 @@ class AssemblyManagerCreateDockerTarArchiveTest {
 
     // When
     assemblyManager.createDockerTarArchive(
-        "modified-image", jKubeConfiguration, buildConfiguration, prefixedLogger, null);
+        "modified-image", jKubeConfiguration, buildConfiguration, prefixedLogger, null, summaryService);
     // Modify file contents
     writeLineToFile(jKubeConfiguration.getProject().getArtifact(), "Modified content");
     dockerArchiveFile = assemblyManager.createDockerTarArchive(
-        "modified-image", jKubeConfiguration, buildConfiguration, prefixedLogger, null);
+        "modified-image", jKubeConfiguration, buildConfiguration, prefixedLogger, null, summaryService);
 
     // Then
     assertTargetHasDockerDirectories("modified-image");
@@ -185,7 +188,7 @@ class AssemblyManagerCreateDockerTarArchiveTest {
         .dockerFileFile(dockerFile).dockerFile(dockerFile.getPath()).build();
 
     // When
-    File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+    File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null, summaryService);
 
     // Then
     assertTargetHasDockerDirectories("test-image");
@@ -226,7 +229,7 @@ class AssemblyManagerCreateDockerTarArchiveTest {
 
     // When
     final File dockerArchiveFile = assemblyManager.createDockerTarArchive(
-        "dockerfile-and-assembly-file", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+        "dockerfile-and-assembly-file", configuration, jKubeBuildConfiguration, prefixedLogger, null, summaryService);
 
     // Then
     assertTargetHasDockerDirectories("dockerfile-and-assembly-file");
@@ -259,7 +262,7 @@ class AssemblyManagerCreateDockerTarArchiveTest {
 
     // When
     final File dockerArchiveFile = assemblyManager.createDockerTarArchive(
-        "test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+        "test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null, summaryService);
 
     // Then
     assertTargetHasDockerDirectories("test-image");
@@ -290,7 +293,7 @@ class AssemblyManagerCreateDockerTarArchiveTest {
 
     // When
     final File dockerArchiveFile = assemblyManager.createDockerTarArchive(
-        "test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+        "test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null, summaryService);
 
     // Then
     assertTargetHasDockerDirectories("test-image");
@@ -323,7 +326,7 @@ class AssemblyManagerCreateDockerTarArchiveTest {
         .dockerFileFile(dockerFile).dockerFile(dockerFile.getPath()).build();
 
     // When
-    File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null);
+    File dockerArchiveFile = assemblyManager.createDockerTarArchive("test-image", configuration, jKubeBuildConfiguration, prefixedLogger, null, summaryService);
 
     // Then
     assertTargetHasDockerDirectories("test-image");

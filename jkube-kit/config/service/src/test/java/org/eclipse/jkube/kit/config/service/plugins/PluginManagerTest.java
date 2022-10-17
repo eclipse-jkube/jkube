@@ -35,7 +35,7 @@ class PluginManagerTest {
   @BeforeEach
   void setUp() {
     jKubeServiceHub = new JKubeServiceHub(null, RuntimeMode.KUBERNETES, new KitLogger.StdoutLogger(),
-      null, new JKubeConfiguration(), new BuildServiceConfig(), new LazyBuilder<>(() -> null), true);
+      null, new JKubeConfiguration(), new BuildServiceConfig(), new LazyBuilder<>(() -> null), true, false);
   }
 
   @Test

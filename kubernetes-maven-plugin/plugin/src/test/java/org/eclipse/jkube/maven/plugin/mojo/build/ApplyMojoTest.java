@@ -25,6 +25,7 @@ import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecution;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
@@ -63,11 +64,12 @@ class ApplyMojoTest {
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
+    SummaryService summaryService = mock(SummaryService.class);
     jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
         withSettings().defaultAnswer(RETURNS_DEEP_STUBS), (mock, context) -> {
           when(mock.getClient()).thenReturn(defaultKubernetesClient);
           when(mock.getClusterAccess().createDefaultClient()).thenReturn(defaultKubernetesClient);
-          when(mock.getApplyService()).thenReturn(new ApplyService(defaultKubernetesClient, new KitLogger.SilentLogger()));
+          when(mock.getApplyService()).thenReturn(new ApplyService(defaultKubernetesClient, new KitLogger.SilentLogger(), summaryService));
         });
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, context) ->
         when(mock.getNamespace()).thenAnswer(invocation -> kubeConfigNamespace));

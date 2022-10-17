@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.config.resource.EnricherManager;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -53,11 +54,13 @@ class DefaultResourceServiceTest {
   private File targetDir;
   private ResourceServiceConfig resourceServiceConfig;
   private DefaultResourceService defaultResourceService;
+  private SummaryService summaryService;
 
   @BeforeEach
   void init(@TempDir Path temporaryFolder) throws IOException {
     enricherManager = mock(EnricherManager.class);
     kitLogger = new KitLogger.SilentLogger();
+    summaryService = mock(SummaryService.class);
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     resourceServiceConfig = ResourceServiceConfig.builder()
         .interpolateTemplateParameters(true)
@@ -114,9 +117,9 @@ class DefaultResourceServiceTest {
       MockedStatic<TemplateUtil> templateUtil = mockStatic(TemplateUtil.class)
     ) {
       // When
-      defaultResourceService.writeResources(null, ResourceClassifier.KUBERNETES, kitLogger);
+      defaultResourceService.writeResources(null, ResourceClassifier.KUBERNETES, kitLogger, summaryService);
       // Then
-      writeUtil.verify(() -> WriteUtil.writeResourcesIndividualAndComposite(isNull(), eq(new File(targetDir, "kubernetes")), eq(ResourceFileType.yaml), eq(kitLogger)), times(1));
+      writeUtil.verify(() -> WriteUtil.writeResourcesIndividualAndComposite(isNull(), eq(new File(targetDir, "kubernetes")), eq(ResourceFileType.yaml), eq(kitLogger), eq(summaryService)), times(1));
       templateUtil.verify(() -> TemplateUtil.interpolateTemplateVariables(isNull(), any()), times(1));
     }
   }

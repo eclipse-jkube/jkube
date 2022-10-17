@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -51,7 +52,7 @@ class HelmServiceIT {
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws Exception {
     mapper = new ObjectMapper(new YAMLFactory());
-    helmService = new HelmService(new JKubeConfiguration(), new KitLogger.SilentLogger());
+    helmService = new HelmService(new JKubeConfiguration(), new KitLogger.SilentLogger(), new SummaryService(temporaryFolder.toFile(), new KitLogger.SilentLogger(), false));
     helmOutputDir = Files.createDirectory(temporaryFolder.resolve("helm-output")).toFile();
     helmConfig = new HelmConfig();
     helmConfig.setSourceDir(new File(HelmServiceIT.class.getResource("/it/sources").toURI()).getAbsolutePath());

@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
@@ -39,6 +38,8 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.resolveFallbackNamespace;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.handleExceptionAndSummary;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.printSummary;
 
 /**
  * Base class for goals which deploy the generated artifacts into the Kubernetes cluster
@@ -158,7 +159,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
     public void executeInternal() throws MojoExecutionException {
         try (KubernetesClient kubernetes = jkubeServiceHub.getClient()) {
             applyService = jkubeServiceHub.getApplyService();
-            initServices(kubernetes);
+            initServices();
 
             URL masterUrl = kubernetes.getMasterUrl();
             final File manifest = getManifest(kubernetes);
@@ -188,20 +189,21 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
             applyEntities(kubernetes, manifest.getName(), entities);
             log.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up", clusterAccess.isOpenShift() ? "oc" : "kubectl");
         } catch (KubernetesClientException e) {
-            KubernetesResourceUtil.handleKubernetesClientException(e, this.log, summaryEnabled);
-        } catch(InterruptedException ex) {
-            Thread.currentThread().interrupt();
+            IllegalStateException illegalStateException = KubernetesResourceUtil.handleKubernetesClientException(e, this.log, jkubeServiceHub.getSummaryService());
+            printSummary(jkubeServiceHub);
+            throw illegalStateException;
         } catch (Exception e) {
-            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, e.getMessage(), () -> new MojoExecutionException(e.getMessage(), e));
+            handleExceptionAndSummary(jkubeServiceHub, e);
+            throw new MojoExecutionException(e.getMessage(), e);
         }
     }
 
-    protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Collection<HasMetadata> entities) throws InterruptedException {
+    protected void applyEntities(final KubernetesClient kubernetes, String fileName, final Collection<HasMetadata> entities) {
         KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
         applyService.applyEntities(fileName, entities, serviceLogger, serviceUrlWaitTimeSeconds);
     }
 
-    protected void initServices(KubernetesClient kubernetes) {
+    protected void initServices() {
         log.debug("No services required in ApplyMojo");
     }
 

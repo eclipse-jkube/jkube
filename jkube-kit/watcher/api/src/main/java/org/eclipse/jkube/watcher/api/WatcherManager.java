@@ -73,6 +73,6 @@ public class WatcherManager {
     }
 
     log.info("Running watcher %s", chosen.getName());
-    chosen.watch(ret, namespace, resources, mode);
+    chosen.watch(ret, namespace, resources, mode, watcherCtx.getJKubeServiceHub().getSummaryService());
   }
 }

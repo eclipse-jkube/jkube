@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -64,7 +63,7 @@ public class MavenScmEnricher extends BaseEnricher {
                 String url = rootProject.getScmUrl();
                 String tag = rootProject.getScmTag();
 
-                SummaryUtil.addToEnrichers(getName());
+                getContext().getSummaryService().addToEnrichers(getName());
                 if (StringUtils.isNotEmpty(tag)) {
                     annotations.put(JKubeAnnotations.SCM_TAG.value(useDeprecatedAnnotationPrefix), tag);
                 }

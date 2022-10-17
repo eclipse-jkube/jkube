@@ -26,6 +26,8 @@ public class Summary {
   private Map<String, ImageSummary> imageSummariesMap;
   private String buildStrategy;
   private List<String> generatorsApplied;
+  private String actionType;
+  private List<String> actionsRun;
   private String openShiftBuildConfigName;
   private boolean successful;
   private String failureCause;

@@ -41,6 +41,7 @@ import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
@@ -75,7 +76,6 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.eclipse.jkube.kit.config.resource.PlatformMode.kubernetes;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING;
@@ -97,6 +97,7 @@ class KubernetesResourceUtilTest {
   private static File fragmentsDir;
   private KitLogger log;
   private ImageConfiguration imageConfiguration;
+  private SummaryService summaryService;
 
   @BeforeAll
   static void initPath() {
@@ -116,6 +117,7 @@ class KubernetesResourceUtilTest {
             .from("base:latest")
             .build())
         .build();
+    summaryService = new SummaryService(new File("target"), log, false);
   }
 
   @Nested
@@ -617,10 +619,12 @@ class KubernetesResourceUtilTest {
     // Given
     KubernetesClientException exception = new KubernetesClientException("test", new UnknownHostException());
 
-    // When + Then
-    assertThatIllegalStateException()
-        .isThrownBy(() -> handleKubernetesClientException(exception, log))
-        .withMessageContaining("Could not connect to kubernetes cluster. Are you sure if you're connected to a remote cluster via `kubectl`? Error: ");
+    // When
+    IllegalStateException illegalStateException = handleKubernetesClientException(exception, log, summaryService);
+
+    // Then
+    assertThat(illegalStateException)
+        .hasMessageContaining("Could not connect to kubernetes cluster. Are you sure if you're connected to a remote cluster via `kubectl`? Error: ");
   }
 
   @Test
@@ -628,10 +632,12 @@ class KubernetesResourceUtilTest {
     // Given
     KubernetesClientException exception = new KubernetesClientException("kubernetes failure", new RuntimeException());
 
-    // When + Then
-    assertThatIllegalStateException()
-        .isThrownBy(() -> handleKubernetesClientException(exception, log))
-        .withMessageContaining("kubernetes failure");
+    // When
+    IllegalStateException illegalStateException = handleKubernetesClientException(exception, log, summaryService);
+
+    // Then
+    assertThat(illegalStateException)
+        .hasMessageContaining("kubernetes failure");
   }
 
   @Nested

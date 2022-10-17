@@ -52,6 +52,10 @@ public class JKubeConfiguration implements Serializable {
     return project.getProperties();
   }
 
+  public File getBuildDirectory() {
+    return project.getBuildDirectory();
+  }
+
   public File inOutputDir(String path) {
     return inDir(getOutputDirectory(), path);
   }

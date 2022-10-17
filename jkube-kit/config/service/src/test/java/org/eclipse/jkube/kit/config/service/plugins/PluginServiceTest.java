@@ -57,7 +57,7 @@ class PluginServiceTest {
           .outputDirectory(temporaryFolder)
           .build())
         .build(),
-      new BuildServiceConfig(), new LazyBuilder<>(() -> null), true);
+      new BuildServiceConfig(), new LazyBuilder<>(() -> null), true, false);
   }
 
   @Test

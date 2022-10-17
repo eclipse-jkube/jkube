@@ -15,7 +15,6 @@ package org.eclipse.jkube.enricher.generic;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
@@ -65,7 +64,7 @@ public class DockerRegistrySecretEnricher extends SecretEnricher {
 
         JsonObject ret = new JsonObject();
         ret.add(dockerId, params);
-        SummaryUtil.addToEnrichers(getName());
+        getContext().getSummaryService().addToEnrichers(getName());
         return Collections.singletonMap(
             SecretConstants.DOCKER_DATA_KEY,
             encode(ret.toString()));

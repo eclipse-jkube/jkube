@@ -25,6 +25,7 @@ import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchException;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
@@ -92,7 +93,7 @@ public class DockerImageWatcher extends BaseWatcher {
     }
 
     @Override
-    public void watch(List<ImageConfiguration> configs, String namespace, final Collection<HasMetadata> resources, PlatformMode mode) {
+    public void watch(List<ImageConfiguration> configs, String namespace, final Collection<HasMetadata> resources, PlatformMode mode, SummaryService summaryService) {
 
         WatchContext watchContext = getContext().getWatchContext();
 
@@ -105,7 +106,7 @@ public class DockerImageWatcher extends BaseWatcher {
 
         DockerServiceHub hub = getContext().getJKubeServiceHub().getDockerServiceHub();
         try {
-            hub.getWatchService().watch(watchContext, getContext().getBuildContext(), configs);
+            hub.getWatchService().watch(watchContext, getContext().getBuildContext(), configs, getContext().getJKubeServiceHub().getSummaryService());
         } catch (Exception ex) {
             throw new RuntimeException("Error while watching", ex);
         }

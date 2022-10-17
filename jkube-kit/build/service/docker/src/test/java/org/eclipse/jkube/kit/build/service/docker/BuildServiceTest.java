@@ -17,6 +17,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.when;
 class BuildServiceTest {
   private DockerAccess mockedDockerAccess;
   private BuildService buildService;
+  private SummaryService summaryService;
   private ImageConfiguration imageConfiguration;
   private ImagePullManager mockedImagePullManager;
   private JKubeConfiguration mockedJKubeConfiguration;
@@ -46,6 +48,7 @@ class BuildServiceTest {
     mockedDockerAccess = mock(DockerAccess.class, RETURNS_DEEP_STUBS);
     ArchiveService mockedArchiveService = mock(ArchiveService.class, RETURNS_DEEP_STUBS);
     RegistryService mockedRegistryService = mock(RegistryService.class, RETURNS_DEEP_STUBS);
+    summaryService = mock(SummaryService.class);
     KitLogger mockedLog = mock(KitLogger.SilentLogger.class, RETURNS_DEEP_STUBS);
     mockedImagePullManager = mock(ImagePullManager.class, RETURNS_DEEP_STUBS);
     mockedJKubeConfiguration = mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS);
@@ -66,7 +69,7 @@ class BuildServiceTest {
     when(mockedDockerAccess.getImageId("image-name")).thenReturn("c8003cb6f5db");
 
     // When
-    buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration);
+    buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration, summaryService);
 
     // Then
     verify(mockedDockerAccess, times(1))
@@ -79,7 +82,7 @@ class BuildServiceTest {
     when(mockedDockerAccess.getImageId("image-name")).thenReturn(null);
     // When & Then
     assertThatIllegalStateException()
-            .isThrownBy(() -> buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration))
+            .isThrownBy(() -> buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration, summaryService))
             .withMessage("Failure in building image, unable to find image built with name image-name");
   }
 

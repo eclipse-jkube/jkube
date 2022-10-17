@@ -24,7 +24,6 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.gradle.api.GradleException;
 
 public class KubernetesDebugTask extends AbstractJKubeTask {
@@ -46,9 +45,7 @@ public class KubernetesDebugTask extends AbstractJKubeTask {
           "" + kubernetesExtension.getLocalDebugPortOrDefault(), kubernetesExtension.getDebugSuspendOrDefault(),
           createLogger("[[Y]][W][[Y]] [[s]]"));
     } catch (IOException ex) {
-      SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(),
-          ex.getMessage(),
-          () -> new GradleException("Failure in debug task", ex));
+      throw new GradleException("Failure in debug task", ex);
     }
   }
 }

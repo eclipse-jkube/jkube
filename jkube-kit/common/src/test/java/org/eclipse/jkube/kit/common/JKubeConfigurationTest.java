@@ -40,6 +40,17 @@ class JKubeConfigurationTest {
   }
 
   @Test
+  void getBuildDirectory_withJavaProject_shouldReturnJavaProjectBuildDirectory() {
+    // Given
+    final JKubeConfiguration configuration = JKubeConfiguration.builder().project(JavaProject.builder()
+        .buildDirectory(new File("build-directory")).build()).build();
+    // When
+    final File result = configuration.getBuildDirectory();
+    // Then
+    assertThat(result).isEqualTo(new File("build-directory"));
+  }
+
+  @Test
   void getProperties_withJavaProject_shouldReturnJavaProjectProperties() {
     // Given
     final Properties props = new Properties();

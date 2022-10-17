@@ -14,6 +14,7 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -43,6 +44,7 @@ import org.mockito.AdditionalAnswers;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -63,7 +65,7 @@ class HelmPushMojoTest {
   void setUp() throws Exception {
     helmPushMojo = new HelmPushMojo();
     mavenSession = mock(MavenSession.class);
-    mojoExecution = mock(MojoExecution.class);
+    mojoExecution = mock(MojoExecution.class, RETURNS_DEEP_STUBS);
     helmPushMojo.helm = new HelmConfig();
     helmPushMojo.project = new MavenProject();
     helmPushMojo.session = mavenSession;
@@ -74,9 +76,9 @@ class HelmPushMojoTest {
       .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     helmPushMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
     helmPushMojo.project.setFile(projectDir.resolve("target").toFile());
-    helmPushMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
-    helmPushMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
-    helmPushMojo.mojoExecution.getMojoDescriptor().setGoal("helm-push");
+    when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:helm-push");
+    when(mavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:helm-push"));
+    when(mojoExecution.getGoal()).thenReturn("k8s:helm-push");
     when(helmPushMojo.securityDispatcher.decrypt(anyString()))
       .thenReturn(String.valueOf(AdditionalAnswers.returnsFirstArg()));
   }

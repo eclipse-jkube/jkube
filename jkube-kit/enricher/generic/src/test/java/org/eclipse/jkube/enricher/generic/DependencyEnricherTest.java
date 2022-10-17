@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
@@ -48,6 +49,7 @@ class DependencyEnricherTest {
 
     @BeforeEach
     void setUp() {
+        KitLogger logger = new KitLogger.SilentLogger();
         context = JKubeEnricherContext.builder()
           .project(JavaProject.builder()
             .name("the-project")
@@ -57,7 +59,8 @@ class DependencyEnricherTest {
               .file(new File(getClass().getResource(ARTIFACT_FILE_PATH).getFile()))
               .build()))
             .build())
-          .log(new KitLogger.SilentLogger())
+          .log(logger)
+          .summaryService(new SummaryService(new File("target"), logger, false))
           .build();
     }
 

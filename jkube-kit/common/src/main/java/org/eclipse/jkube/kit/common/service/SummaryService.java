@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.common.util;
+package org.eclipse.jkube.kit.common.service;
 
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +19,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.summary.ImageSummary;
 import org.eclipse.jkube.kit.common.summary.KubernetesResourceSummary;
 import org.eclipse.jkube.kit.common.summary.Summary;
+import org.eclipse.jkube.kit.common.util.FileUtil;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -34,71 +35,86 @@ import java.util.stream.Collectors;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.createDirectory;
 
-public class SummaryUtil {
+public class SummaryService {
   private static final String SUMMARY_FILE_NAME = "summary.json";
   private static final String DASHED_LINE = "-------------------------------";
   private static final String LIST_ELEMENT = " - %s";
   private static File summaryFile = null;
-  private static File summaryOutputDir = null;
-  private static KitLogger logger = null;
+  private final File summaryOutputDir;
+  private final KitLogger logger;
+  private final boolean summaryEnabled;
 
-  private SummaryUtil() { }
-
-  public static void initSummary(File summaryOutputDirectory, KitLogger kitLogger) {
-    summaryOutputDir = summaryOutputDirectory;
-    logger = kitLogger;
+  public SummaryService(File summaryOutputDirectory, KitLogger kitLogger, boolean summaryEnabled) {
+    this.summaryOutputDir = summaryOutputDirectory;
+    this.logger = kitLogger;
+    this.summaryEnabled = summaryEnabled;
   }
 
-  public static void addGeneratedResourceFile(File resourceFilePath) {
+
+  public void addGeneratedResourceFile(File resourceFilePath) {
     addToSummary(s -> {
       s.setGeneratedResourceFiles(createOrAddToExistingList(s.getGeneratedResourceFiles(), resourceFilePath));
       return s;
     });
   }
 
-  public static void addAppliedKubernetesResource(KubernetesResourceSummary kubernetesResource) {
+  public void addAppliedKubernetesResource(KubernetesResourceSummary kubernetesResource) {
     addToSummary(s -> {
       s.setAppliedKubernetesResources(createOrAddToExistingList(s.getAppliedKubernetesResources(), kubernetesResource));
       return s;
     });
   }
 
-  public static void addDeletedKubernetesResource(KubernetesResourceSummary kubernetesResource) {
+  public void addDeletedKubernetesResource(KubernetesResourceSummary kubernetesResource) {
     addToSummary(s -> {
       s.setDeletedKubernetesResources(createOrAddToExistingList(s.getDeletedKubernetesResources(), kubernetesResource));
       return s;
     });
   }
 
-  public static void addToGenerators(String generator) {
+  public void addToGenerators(String generator) {
     addToSummary(s -> {
       s.setGeneratorsApplied(createOrAddToExistingList(s.getGeneratorsApplied(), generator));
       return s;
     });
   }
 
-  public static void addToEnrichers(String enricher) {
+  public void addToEnrichers(String enricher) {
     addToSummary(s -> {
       s.setEnrichersApplied(createOrAddToExistingList(s.getEnrichersApplied(), enricher));
       return s;
     });
   }
 
-  public static void setSuccessful(boolean isSuccessful) {
+  public void addToActions(String action) {
+    addToSummary(s -> {
+      s.setActionsRun(createOrAddToExistingList(s.getActionsRun(), action));
+      return s;
+    });
+  }
+
+  public void setActionType(String actionType) {
+    addToSummary(s -> {
+      s.setActionType(actionType);
+      return s;
+    });
+  }
+
+  public void setSuccessful(boolean isSuccessful) {
     addToSummary(s -> {
       s.setSuccessful(isSuccessful);
       return s;
     });
   }
 
-  public static void setFailureCause(String failureCause) {
+  public void setFailureCause(String failureCause) {
     addToSummary(s -> {
       s.setFailureCause(failureCause);
       return s;
     });
   }
 
-  public static void setDockerFileImageSummary(String imageName, String dockerFileLocation) {
+  public void setDockerFileImageSummary(String imageName, String dockerFileLocation) {
     addToSummary(s -> {
       s.setImageSummariesMap(createOrAddToExistingMap(s.getImageSummariesMap(), imageName, () -> ImageSummary.builder().build(), is -> {
         is.setDockerfilePath(dockerFileLocation);
@@ -108,7 +124,7 @@ public class SummaryUtil {
     });
   }
 
-  public static void setImageShaImageSummary(String imageName, String imageSha) {
+  public void setImageShaImageSummary(String imageName, String imageSha) {
     addToSummary(s -> {
       s.setImageSummariesMap(createOrAddToExistingMap(s.getImageSummariesMap(), imageName, () -> ImageSummary.builder().build(), is -> {
         is.setImageSha(imageSha);
@@ -118,7 +134,7 @@ public class SummaryUtil {
     });
   }
 
-  public static void setImageStreamUsedImageSummary(String imageName, String imageStreamUsed) {
+  public void setImageStreamUsedImageSummary(String imageName, String imageStreamUsed) {
     addToSummary(s -> {
       s.setImageSummariesMap(createOrAddToExistingMap(s.getImageSummariesMap(), imageName, () -> ImageSummary.builder().build(), is -> {
         is.setImageStreamUsed(imageStreamUsed);
@@ -128,7 +144,7 @@ public class SummaryUtil {
     });
   }
 
-  public static void setBaseImageNameImageSummary(String imageName, String baseImage) {
+  public void setBaseImageNameImageSummary(String imageName, String baseImage) {
     addToSummary(s -> {
       s.setImageSummariesMap(createOrAddToExistingMap(s.getImageSummariesMap(), imageName, () -> ImageSummary.builder().build(), is -> {
         is.setBaseImageName(baseImage);
@@ -138,108 +154,104 @@ public class SummaryUtil {
     });
   }
 
-  public static void setPushRegistry(String registry) {
+  public void setPushRegistry(String registry) {
     addToSummary(s -> {
       s.setPushRegistry(registry);
       return s;
     });
   }
 
-  public static void setBuildStrategy(String buildStrategy) {
+  public void setBuildStrategy(String buildStrategy) {
     addToSummary(s -> {
       s.setBuildStrategy(buildStrategy);
       return s;
     });
   }
 
-  public static void setAppliedClusterUrl(String targetClusterUrl) {
+  public void setAppliedClusterUrl(String targetClusterUrl) {
     addToSummary(s -> {
       s.setAppliedClusterUrl(targetClusterUrl);
       return s;
     });
   }
 
-  public static void setUndeployedClusterUrl(String targetClusterUrl) {
+  public void setUndeployedClusterUrl(String targetClusterUrl) {
     addToSummary(s -> {
       s.setUndeployedClusterUrl(targetClusterUrl);
       return s;
     });
   }
 
-  public static void setOpenShiftBuildConfigName(String buildConfigName) {
+  public void setOpenShiftBuildConfigName(String buildConfigName) {
     addToSummary(s -> {
       s.setOpenShiftBuildConfigName(buildConfigName);
       return s;
     });
   }
 
-  public static void setHelmChartName(String chart) {
+  public void setHelmChartName(String chart) {
     addToSummary(s -> {
       s.setHelmChartName(chart);
       return s;
     });
   }
 
-  public static void setHelmChartLocation(File chart) {
+  public void setHelmChartLocation(File chart) {
     addToSummary(s -> {
       s.setHelmChart(chart);
       return s;
     });
   }
 
-  public static void setHelmRepository(String helmRepository) {
+  public void setHelmRepository(String helmRepository) {
     addToSummary(s -> {
       s.setHelmRepository(helmRepository);
       return s;
     });
   }
 
-  public static void setHelmChartCompressedLocation(File chartCompressed) {
+  public void setHelmChartCompressedLocation(File chartCompressed) {
     addToSummary(s -> {
       s.setHelmChartCompressed(chartCompressed);
       return s;
     });
   }
 
-  public static void setAggregateResourceFile(File aggregateResourceFile) {
+  public void setAggregateResourceFile(File aggregateResourceFile) {
     addToSummary(s -> {
       s.setAggregateResourceFile(aggregateResourceFile);
       return s;
     });
   }
 
-  public static void clear() {
+  public void clear() {
     if (summaryFile != null && summaryFile.exists()) {
       try {
         Files.delete(summaryFile.toPath());
-        summaryFile = null;
       } catch (IOException e) {
-        throw new IllegalStateException("Unable to delete summary file", e);
+        logger.verbose("Unable to delete summary file", e);
       }
     }
   }
 
-  public static <T extends Exception> void setFailureIfSummaryEnabledOrThrow(boolean summaryEnabled, String failureMessage, Supplier<T> exceptionSupplier) throws T {
-    if (summaryEnabled) {
-      setSuccessful(false);
-      setFailureCause(failureMessage);
-    } else {
-      throw exceptionSupplier.get();
-    }
+  public void setFailureAndCause(String failureMessage) {
+    setSuccessful(false);
+    setFailureCause(failureMessage);
   }
 
-  public static void printSummary(File baseDirectory, boolean summaryEnabled) {
+  public void printSummary(File baseDirectory) {
     Summary summaryInstance = loadSummaryFromFile();
     if (summaryInstance != null && summaryEnabled) {
-      printBanner(logger);
-      printCommonSummary(summaryInstance, baseDirectory, logger);
-      printBuildSummary(summaryInstance, logger);
-      printPushSummary(summaryInstance, logger);
-      printResourceSummary(summaryInstance, baseDirectory, logger);
-      printApplySummary(summaryInstance, logger);
-      printUndeploySummary(summaryInstance, logger);
-      printHelmSummary(summaryInstance, baseDirectory, logger);
-      printHelmPushSummary(summaryInstance, logger);
+      printBanner();
+      printCommonSummary(summaryInstance, baseDirectory);
+      printBuildSummary(summaryInstance);
+      printPushSummary(summaryInstance);
+      printResourceSummary(summaryInstance, baseDirectory);
+      printApplySummary(summaryInstance);
+      printUndeploySummary(summaryInstance);
+      printHelmSummary(summaryInstance, baseDirectory);
+      printHelmPushSummary(summaryInstance);
+      printActions(summaryInstance);
       logger.info(DASHED_LINE);
       if (summaryInstance.isSuccessful()) {
         logger.info("SUCCESS");
@@ -250,17 +262,25 @@ public class SummaryUtil {
     }
   }
 
-  private static void printCommonSummary(Summary summaryInstance, File baseDirectory, KitLogger logger) {
+  private void printActions(Summary summaryInstance) {
+    if (StringUtils.isNotBlank(summaryInstance.getActionType()) &&
+        summaryInstance.getActionsRun() != null &&
+        !summaryInstance.getActionsRun().isEmpty()) {
+      logger.info("%s executed : [ %s ]", summaryInstance.getActionType(), String.join(", ", summaryInstance.getActionsRun()));
+    }
+  }
+
+  private void printCommonSummary(Summary summaryInstance, File baseDirectory) {
     if (summaryInstance.getImageSummariesMap() != null && !summaryInstance.getImageSummariesMap().isEmpty()) {
       logger.info("Container images:");
       for (Map.Entry<String, ImageSummary> imageSummaryEntry : summaryInstance.getImageSummariesMap().entrySet()) {
-        printImageSummary(logger, baseDirectory, imageSummaryEntry.getKey(), imageSummaryEntry.getValue());
+        printImageSummary(baseDirectory, imageSummaryEntry.getKey(), imageSummaryEntry.getValue());
       }
       logger.info("");
     }
   }
 
-  private static void printImageSummary(KitLogger logger, File baseDirectory, String imageName, ImageSummary imageSummary) {
+  private void printImageSummary(File baseDirectory, String imageName, ImageSummary imageSummary) {
     logger.info(LIST_ELEMENT, imageName);
     if (imageSummary.getBaseImageName() != null) {
       logger.info("    * Base image: %s", imageSummary.getBaseImageName());
@@ -276,7 +296,7 @@ public class SummaryUtil {
     }
   }
 
-  private static void printBanner(KitLogger logger) {
+  private void printBanner() {
     logger.info(" __ / / //_/ / / / _ )/ __/");
     logger.info("/ // / ,< / /_/ / _  / _/  ");
     logger.info("\\___/_/|_|\\____/____/___/  \n");
@@ -285,7 +305,7 @@ public class SummaryUtil {
     logger.info(DASHED_LINE);
   }
 
-  private static void printBuildSummary(Summary summary, KitLogger logger) {
+  private void printBuildSummary(Summary summary) {
     if (summary.getBuildStrategy() != null) {
       logger.info("Build Strategy : %s", summary.getBuildStrategy());
     }
@@ -298,17 +318,17 @@ public class SummaryUtil {
     logger.info("");
   }
 
-  private static void printResourceSummary(Summary summary, File baseDir, KitLogger logger) {
+  private void printResourceSummary(Summary summary, File baseDir) {
     if (summary.getGeneratedResourceFiles() != null && !summary.getGeneratedResourceFiles().isEmpty()) {
       if (summary.getEnrichersApplied() != null && summary.getEnrichersApplied().size() < 20) {
-        logger.info("Enrichers applied: [%s]", String.join(",", summary.getEnrichersApplied()));
+        logger.info("Enrichers applied: [%s]", String.join(", ", summary.getEnrichersApplied()));
       }
       logger.info("Generated resources:");
       List<String> generatedFilesResourcePaths = summary.getGeneratedResourceFiles().stream()
           .map(File::getAbsolutePath)
           .map(p -> FileUtil.getRelativeFilePath(baseDir.getAbsolutePath(), p))
           .collect(Collectors.toList());
-      logList(logger, generatedFilesResourcePaths);
+      logList(generatedFilesResourcePaths);
     }
     if (summary.getAggregateResourceFile() != null) {
       logger.info(LIST_ELEMENT, FileUtil.getRelativeFilePath(baseDir.getAbsolutePath(), summary.getAggregateResourceFile().getAbsolutePath()));
@@ -316,43 +336,49 @@ public class SummaryUtil {
     logger.info("");
   }
 
-  private static void printApplySummary(Summary summary, KitLogger logger) {
+  private void printApplySummary(Summary summary) {
     if (StringUtils.isNotBlank(summary.getAppliedClusterUrl())) {
-      logger.info("Applied resources from %s", summary.getAppliedClusterUrl());
-      printKubernetesResourceSummary(summary.getAppliedKubernetesResources(), logger);
+      String appliedResources = createKubernetesResourceSummary(summary.getAppliedKubernetesResources());
+      logger.info("Applied resources to %s: %s", summary.getAppliedClusterUrl(), appliedResources);
       logger.info("");
     }
   }
 
-  private static void printUndeploySummary(Summary summary, KitLogger logger) {
+  private void printUndeploySummary(Summary summary) {
     if (StringUtils.isNotBlank(summary.getUndeployedClusterUrl())) {
-      logger.info("Undeployed resources from %s", summary.getUndeployedClusterUrl());
-      printKubernetesResourceSummary(summary.getDeletedKubernetesResources(), logger);
+      String deletedResources = createKubernetesResourceSummary(summary.getDeletedKubernetesResources());
+      logger.info("Undeployed resources to %s: %s", summary.getUndeployedClusterUrl(), deletedResources);
       logger.info("");
     }
   }
 
-  private static void printKubernetesResourceSummary(List<KubernetesResourceSummary> kubernetesResourceSummaries, KitLogger logger) {
+  private String createKubernetesResourceSummary(List<KubernetesResourceSummary> kubernetesResourceSummaries) {
+    StringBuilder sb = new StringBuilder();
     if (kubernetesResourceSummaries != null && !kubernetesResourceSummaries.isEmpty()) {
-      for (KubernetesResourceSummary kubernetesResourceSummary : kubernetesResourceSummaries) {
-        logger.info(LIST_ELEMENT, kubernetesResourceSummary.getResourceName());
-        if (kubernetesResourceSummary.getGroup().equals(kubernetesResourceSummary.getVersion())) {
-          logger.info("   * %s %s", kubernetesResourceSummary.getGroup(), kubernetesResourceSummary.getKind());
-        } else {
-          logger.info("   * %s/%s %s", kubernetesResourceSummary.getGroup(), kubernetesResourceSummary.getVersion(), kubernetesResourceSummary.getKind());
+      sb.append("[");
+      for (int i = 0; i < kubernetesResourceSummaries.size(); i++) {
+        KubernetesResourceSummary kubernetesResourceSummary = kubernetesResourceSummaries.get(i);
+        sb.append(kubernetesResourceSummary.getKind())
+            .append("/")
+            .append(kubernetesResourceSummary.getResourceName());
+
+        if (i < kubernetesResourceSummaries.size() - 1) {
+          sb.append(", ");
         }
-        logger.info("   * Namespace: %s", kubernetesResourceSummary.getNamespace());
       }
+
+      sb.append("]");
     }
+    return sb.toString();
   }
 
-  private static void printPushSummary(Summary summary, KitLogger logger) {
+  private void printPushSummary(Summary summary) {
     if (StringUtils.isNotBlank(summary.getPushRegistry())) {
       logger.info("Registry: %s", summary.getPushRegistry());
     }
   }
 
-  private static void printHelmSummary(Summary summary, File baseDir, KitLogger logger) {
+  private void printHelmSummary(Summary summary, File baseDir) {
     if (StringUtils.isNotBlank(summary.getHelmChartName())) {
       logger.info("Chart : %s", summary.getHelmChartName());
     }
@@ -364,20 +390,24 @@ public class SummaryUtil {
     }
   }
 
-  private static void printHelmPushSummary(Summary summary, KitLogger logger) {
+  private void printHelmPushSummary(Summary summary) {
     if (StringUtils.isNotBlank(summary.getHelmRepository())) {
       logger.info("Repository : %s", summary.getHelmRepository());
     }
   }
 
-  private static void logList(KitLogger logger, List<String> list) {
+  private void logList(List<String> list) {
     for (String item : list) {
       logger.info(LIST_ELEMENT, item);
     }
   }
 
-  private static void addToSummary(UnaryOperator<Summary> summaryConsumer) {
-    if (summaryOutputDir != null && summaryOutputDir.exists()) {
+  private void addToSummary(UnaryOperator<Summary> summaryConsumer) {
+    if (summaryOutputDir != null) {
+      if (!summaryOutputDir.exists() && !summaryOutputDir.mkdir()) {
+        logger.debug("Failure in creating Summary output directory %s", summaryOutputDir.getAbsolutePath());
+        return;
+      }
       Summary summary = loadSummaryFromFile();
       if (summary == null) {
         summary = new Summary();
@@ -387,7 +417,7 @@ public class SummaryUtil {
     }
   }
 
-  private static <K, V> Map<K, V> createOrAddToExistingMap(Map<K, V> orignalMap, K key,  Supplier<V> emptySupplier, UnaryOperator<V> valueConsumer) {
+  private <K, V> Map<K, V> createOrAddToExistingMap(Map<K, V> orignalMap, K key,  Supplier<V> emptySupplier, UnaryOperator<V> valueConsumer) {
     if (orignalMap == null) {
       orignalMap = new HashMap<>();
     }
@@ -396,7 +426,7 @@ public class SummaryUtil {
     return orignalMap;
   }
 
-  private static <T> List<T> createOrAddToExistingList(List<T> currentList, T item) {
+  private <T> List<T> createOrAddToExistingList(List<T> currentList, T item) {
     if (currentList == null) {
       currentList = new ArrayList<>();
     }
@@ -406,41 +436,42 @@ public class SummaryUtil {
     return currentList;
   }
 
-  private static synchronized Summary loadSummaryFromFile() {
+  private synchronized Summary loadSummaryFromFile() {
     try {
-      if (!isValidSummaryFile(summaryFile)) {
+      if (!isValidSummaryFile()) {
         summaryFile = createSummaryFile();
         summaryFile.deleteOnExit();
-        return null;
+      } else {
+        return Serialization.jsonMapper().readValue(summaryFile, Summary.class);
       }
-      return Serialization.jsonMapper().readValue(summaryFile, Summary.class);
     } catch (IOException ioException) {
-      throw new IllegalStateException("Failure in loading Summary file: ", ioException);
+      logger.verbose("Failure in loading Summary file: ", ioException);
     }
+    return null;
   }
 
-  private static File createSummaryFile() throws IOException {
+  private File createSummaryFile() throws IOException {
     if (!summaryOutputDir.exists()) {
       createDirectory(summaryOutputDir);
     }
-    File summaryFile = new File(summaryOutputDir, SUMMARY_FILE_NAME);
-    if (summaryFile.createNewFile()) {
+    File newSummaryFile = new File(summaryOutputDir, SUMMARY_FILE_NAME);
+    if (newSummaryFile.createNewFile()) {
       logger.verbose("Created summary file");
     }
-    return summaryFile;
+    return newSummaryFile;
   }
 
-  private static void writeSummaryToFile(Summary summary) {
-    if (isValidSummaryFile(summaryFile)) {
+  private void writeSummaryToFile(Summary summary) {
+    if (isValidSummaryFile()) {
       try (FileWriter fileWriter = new FileWriter(summaryFile)) {
         fileWriter.write(Serialization.jsonMapper().writeValueAsString(summary));
       } catch (IOException ioException) {
-        throw new IllegalStateException("Failure in writing to Summary file: ", ioException);
+        logger.verbose("Failure in writing to Summary file: ", ioException);
       }
     }
   }
 
-  private static boolean isValidSummaryFile(File summaryFile) {
+  private static boolean isValidSummaryFile() {
     return summaryFile != null &&
         StringUtils.isNotBlank(summaryFile.getAbsolutePath()) &&
         summaryFile.getAbsolutePath().contains(SUMMARY_FILE_NAME) &&

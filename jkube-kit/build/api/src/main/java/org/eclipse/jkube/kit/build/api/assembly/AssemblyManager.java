@@ -41,9 +41,9 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
@@ -95,12 +95,13 @@ public class AssemblyManager {
      * @param buildConfig configuration for how to build the image
      * @param log KitLogger used to display warning if permissions are to be normalized
      * @param finalCustomizer finalCustomizer to be applied to the tar archive
+     * @param summaryService {@link SummaryService}
      * @return file holding the path to the created assembly tar file
      * @throws IOException IO exception
      */
     public File createDockerTarArchive(
         String imageName, final JKubeConfiguration configuration, final BuildConfiguration buildConfig, KitLogger log,
-        ArchiverCustomizer finalCustomizer) throws IOException {
+        ArchiverCustomizer finalCustomizer, SummaryService summaryService) throws IOException {
 
         final BuildDirs buildDirs = createBuildDirs(imageName, configuration);
         final List<ArchiverCustomizer> archiveCustomizers = new ArrayList<>();
@@ -110,7 +111,7 @@ public class AssemblyManager {
 
         try {
             if (buildConfig.isDockerFileMode()) {
-                SummaryUtil.setDockerFileImageSummary(imageName, buildConfig.getDockerFileFile().getAbsolutePath());
+                summaryService.setDockerFileImageSummary(imageName, buildConfig.getDockerFileFile().getAbsolutePath());
                 createDockerTarArchiveForDockerFile(buildConfig, assemblyConfig, configuration, buildDirs, log, archiveCustomizers);
             } else {
                 createAssemblyArchive(assemblyConfig, configuration, buildDirs, buildConfig.getCompression(), layers);

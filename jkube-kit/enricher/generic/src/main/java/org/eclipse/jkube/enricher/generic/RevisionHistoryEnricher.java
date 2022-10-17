@@ -19,7 +19,6 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -55,7 +54,7 @@ public class RevisionHistoryEnricher extends BaseEnricher {
 
         log.info("Adding revision history limit to %s", maxRevisionHistories);
 
-        SummaryUtil.addToEnrichers(getName());
+        getContext().getSummaryService().addToEnrichers(getName());
         builder.accept(new TypedVisitor<io.fabric8.kubernetes.api.model.apps.DeploymentBuilder>() {
             @Override
             public void visit(io.fabric8.kubernetes.api.model.apps.DeploymentBuilder item) {

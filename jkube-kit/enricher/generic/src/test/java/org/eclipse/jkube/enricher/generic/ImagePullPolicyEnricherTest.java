@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -42,10 +41,12 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.api.ObjectAssert;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.List;
 import java.util.Properties;
 
@@ -317,7 +318,9 @@ class ImagePullPolicyEnricherTest {
   }
 
   private JKubeEnricherContext createNewJKubeEnricherContextWithProperties(Properties properties) {
+    SummaryService summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
     return JKubeEnricherContext.builder()
+        .summaryService(summaryService)
         .log(new KitLogger.SilentLogger())
         .project(JavaProject.builder()
             .properties(properties)

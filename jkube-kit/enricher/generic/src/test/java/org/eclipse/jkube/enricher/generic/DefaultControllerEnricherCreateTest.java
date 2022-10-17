@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -34,6 +35,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -49,8 +51,10 @@ class DefaultControllerEnricherCreateTest {
   @BeforeEach
   void setUp() throws Exception {
     properties = new Properties();
+    SummaryService summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
     buildContext = JKubeEnricherContext.builder()
         .log(new KitLogger.SilentLogger())
+        .summaryService(summaryService)
         .resources(ResourceConfig.builder().build())
         .image(ImageConfiguration.builder().build())
         .project(JavaProject.builder()

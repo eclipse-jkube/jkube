@@ -30,6 +30,8 @@ import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -39,6 +41,7 @@ import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
 import com.google.cloud.tools.jib.api.buildplan.Port;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
@@ -51,6 +54,12 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 class JibServiceUtilTest {
+    private SummaryService summaryService;
+
+    @BeforeEach
+    public void setUp() {
+        summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
+    }
 
     @Test
     void testGetBaseImageWithNullBuildConfig() {
@@ -77,7 +86,7 @@ class JibServiceUtilTest {
             // Given
             ImageConfiguration imageConfiguration = getSampleImageConfiguration();
             // When
-            JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(imageConfiguration, null);
+            JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(imageConfiguration, null, summaryService);
             // Then
             verify(jibContainerBuilder, times(1)).addLabel("foo", "bar");
             verify(jibContainerBuilder, times(1)).setEntrypoint(Arrays.asList("java", "-jar", "foo.jar"));
@@ -105,13 +114,13 @@ class JibServiceUtilTest {
 
     @Test
     void testGetFullImageNameWithDefaultTag() {
-        assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), null))
+        assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), null, summaryService))
             .isEqualTo("test/test-project:latest");
     }
 
     @Test
     void testGetFullImageNameWithProvidedTag() {
-        assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), "0.0.1"))
+        assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), "0.0.1", summaryService))
             .isEqualTo("test/test-project:0.0.1");
     }
 

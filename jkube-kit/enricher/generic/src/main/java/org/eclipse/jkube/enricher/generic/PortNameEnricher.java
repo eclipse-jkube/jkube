@@ -16,7 +16,6 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -57,7 +56,7 @@ public class PortNameEnricher extends BaseEnricher {
 
                 // If port is given but no name, then try to detect the name
                 if (port != null && StringUtils.isBlank(portBuilder.getName())) {
-                    SummaryUtil.addToEnrichers(getName());
+                    getContext().getSummaryService().addToEnrichers(getName());
                     addPortName(portBuilder, port);
                 }
             }

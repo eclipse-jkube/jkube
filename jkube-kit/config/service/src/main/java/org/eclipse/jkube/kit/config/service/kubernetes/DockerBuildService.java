@@ -18,7 +18,7 @@ import java.util.Objects;
 
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -37,6 +37,7 @@ public class DockerBuildService extends AbstractImageBuildService {
     private final BuildServiceConfig buildServiceConfig;
     private final JKubeConfiguration jKubeConfiguration;
     private final DockerServiceHub dockerServices;
+    private final SummaryService summaryService;
 
     public DockerBuildService(JKubeServiceHub jKubeServiceHub) {
         super(jKubeServiceHub);
@@ -47,21 +48,19 @@ public class DockerBuildService extends AbstractImageBuildService {
             "JKubeConfiguration is required");
         this.dockerServices = Objects.requireNonNull(jKubeServiceHub.getDockerServiceHub(),
             "Docker Service Hub is required");
+        this.summaryService = jKubeServiceHub.getSummaryService();
     }
 
     @Override
     public boolean isApplicable() {
-        if (runtimeMode == RuntimeMode.KUBERNETES) {
-            SummaryUtil.setBuildStrategy("Local Docker");
-            return true;
-        }
-        return false;
+        return runtimeMode == RuntimeMode.KUBERNETES;
     }
 
     @Override
     public void buildSingleImage(ImageConfiguration imageConfig) throws JKubeServiceException {
         try {
-            dockerServices.getBuildService().buildImage(imageConfig, buildServiceConfig.getImagePullManager(), jKubeConfiguration);
+            summaryService.setBuildStrategy("Local Docker");
+            dockerServices.getBuildService().buildImage(imageConfig, buildServiceConfig.getImagePullManager(), jKubeConfiguration, summaryService);
 
             // Assume we always want to tag
             dockerServices.getBuildService().tagImage(imageConfig.getName(), imageConfig);
@@ -73,7 +72,7 @@ public class DockerBuildService extends AbstractImageBuildService {
     @Override
     protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
         try {
-            dockerServices.getRegistryService().pushImage(imageConfiguration, retries, registryConfig, skipTag);
+            dockerServices.getRegistryService().pushImage(imageConfiguration, retries, registryConfig, skipTag, summaryService);
         } catch (IOException ex) {
             throw new JKubeServiceException("Error while trying to push the image: " + ex.getMessage(), ex);
         }

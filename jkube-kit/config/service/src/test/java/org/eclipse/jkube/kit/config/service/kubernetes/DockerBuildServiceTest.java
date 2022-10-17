@@ -73,7 +73,7 @@ class DockerBuildServiceTest {
     new DockerBuildService(mockedJKubeServiceHub).build(image);
     // Then
     verify(mockedDockerBuildService, times(0))
-        .buildImage(eq(image), any(), any());
+        .buildImage(eq(image), any(), any(), any());
     verify(mockedDockerBuildService, times(0))
         .tagImage(anyString(), eq(image));
   }
@@ -84,7 +84,7 @@ class DockerBuildServiceTest {
     new DockerBuildService(mockedJKubeServiceHub).build(image);
     // Then
     verify(mockedDockerBuildService, times(1))
-        .buildImage(eq(image), any(), any());
+        .buildImage(eq(image), any(), any(), any());
     verify(mockedDockerBuildService, times(1))
         .tagImage("image-name", image);
   }
@@ -104,7 +104,7 @@ class DockerBuildServiceTest {
     new DockerBuildService(mockedJKubeServiceHub).build(imageWithSkipEnabled);
     // Then
     verify(mockedDockerBuildService, times(0))
-        .buildImage(eq(image), any(), any());
+        .buildImage(eq(image), any(), any(), any());
     verify(mockedDockerBuildService, times(0))
         .tagImage(anyString(), eq(image));
   }
@@ -112,7 +112,7 @@ class DockerBuildServiceTest {
   @Test
   void build_withFailure_shouldThrowException() throws Exception {
     // Given
-    doThrow(new IOException("Mock IO error")).when(mockedDockerBuildService).buildImage(eq(image), any(), any());
+    doThrow(new IOException("Mock IO error")).when(mockedDockerBuildService).buildImage(eq(image), any(), any(), any());
     // When + Then
     assertThatExceptionOfType(JKubeServiceException.class)
         .isThrownBy(() -> new DockerBuildService(mockedJKubeServiceHub).build(image))
@@ -125,7 +125,7 @@ class DockerBuildServiceTest {
     new DockerBuildService(mockedJKubeServiceHub).push(Collections.emptyList(), 0, null, false);
     // Then
     verify(mockedJKubeServiceHub.getDockerServiceHub().getRegistryService(), times(0))
-        .pushImage(any(), eq(0), isNull(), eq(false));
+        .pushImage(any(), eq(0), isNull(), eq(false), any());
   }
 
   @Test
@@ -134,6 +134,6 @@ class DockerBuildServiceTest {
     new DockerBuildService(mockedJKubeServiceHub).build(imageWithSkipEnabled);
     // Then
     verify(mockedJKubeServiceHub.getDockerServiceHub().getRegistryService(), times(0))
-        .pushImage(any(), eq(0), isNull(), eq(false));
+        .pushImage(any(), eq(0), isNull(), eq(false), any());
   }
 }

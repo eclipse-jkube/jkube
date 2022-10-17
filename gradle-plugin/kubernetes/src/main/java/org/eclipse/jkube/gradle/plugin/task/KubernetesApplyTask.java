@@ -22,7 +22,6 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
@@ -33,6 +32,8 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.resolveFallbackNamespace;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.handleExceptionAndSummary;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.printSummary;
 
 @SuppressWarnings("CdiInjectionPointsInspection")
 public class KubernetesApplyTask extends AbstractJKubeTask {
@@ -63,15 +64,13 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
       kitLogger.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up",
           clusterAccess.isOpenShift() ? "oc" : "kubectl");
     } catch (KubernetesClientException e) {
-      KubernetesResourceUtil.handleKubernetesClientException(e, kitLogger, kubernetesExtension.getSummaryEnabledOrDefault());
+      IllegalStateException illegalStateException = KubernetesResourceUtil.handleKubernetesClientException(e, kitLogger, jKubeServiceHub.getSummaryService());
+      printSummary(jKubeServiceHub);
+      throw illegalStateException;
     } catch (IOException ioException) {
       kitLogger.error("Error in loading Kubernetes Manifests ", ioException);
-      SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(), ioException.getMessage(), () -> new IllegalStateException(ioException));
-    } catch (InterruptedException interruptedException) {
-      Thread.currentThread().interrupt();
-      SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(),
-          interruptedException.getMessage(),
-          () -> new IllegalStateException(interruptedException.getMessage(), interruptedException));
+      handleExceptionAndSummary(jKubeServiceHub, ioException);
+      throw new IllegalStateException(ioException);
     }
   }
 
@@ -80,7 +79,7 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     return super.shouldSkip() || kubernetesExtension.getSkipApplyOrDefault();
   }
 
-  private void applyEntities(String fileName, final Collection<HasMetadata> entities) throws InterruptedException {
+  private void applyEntities(String fileName, final Collection<HasMetadata> entities) {
     KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
     applyService.applyEntities(fileName, entities, serviceLogger, kubernetesExtension.getServiceUrlWaitTimeSecondsOrDefault());
   }

@@ -13,23 +13,27 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 
 import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
-import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
+import org.eclipse.jkube.kit.config.service.UndeployService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,39 +42,51 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class UndeployMojoTest {
 
   @TempDir
   private Path temporaryFolder;
-  private MockedConstruction<KubernetesUndeployService> undeployServiceMockedConstruction;
   private MockedStatic<MavenUtil> mavenUtilMockedStatic;
+  private UndeployService mockedUndeployService;
   private MockedStatic<OpenshiftHelper> openshiftHelperMockedStatic;
+  private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
   private UndeployMojo undeployMojo;
 
   @BeforeEach
   void setUp() throws IOException {
-    undeployServiceMockedConstruction = mockConstruction(KubernetesUndeployService.class);
+    File buildDirectory = new File("target");
+    KitLogger kitLogger = new KitLogger.SilentLogger();
     openshiftHelperMockedStatic = mockStatic(OpenshiftHelper.class);
     openshiftHelperMockedStatic.when(() -> OpenshiftHelper.isOpenShift(any())).thenReturn(false);
     mavenUtilMockedStatic = mockStatic(MavenUtil.class);
+    mockedUndeployService = mock(UndeployService.class);
+    jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class, (mock, ctx) -> {
+      when(mock.getConfiguration()).thenReturn(JKubeConfiguration.builder()
+          .project(JavaProject.builder()
+              .buildDirectory(buildDirectory)
+              .build())
+          .build());
+      when(mock.getLog()).thenReturn(kitLogger);
+      when(mock.getPlatformMode()).thenReturn(RuntimeMode.KUBERNETES);
+      when(mock.getUndeployService()).thenReturn(mockedUndeployService);
+      when(mock.getSummaryService()).thenReturn(new SummaryService(buildDirectory, kitLogger, false));
+    });
     undeployMojo = new UndeployMojo() {{
       this.resourceDir = Files.createDirectory(temporaryFolder.resolve("resources")).toFile();
       this.kubernetesManifest = Files.createFile(temporaryFolder.resolve("kubernetes.yml")).toFile();
       project = new MavenProject();
       settings = new Settings();
-      jkubeServiceHub = JKubeServiceHub.builder()
-        .configuration(JKubeConfiguration.builder().build())
-        .log(new KitLogger.SilentLogger())
-        .platformMode(RuntimeMode.KUBERNETES)
-        .build();
-//      log = new KitLogger.SilentLogger();
       mojoExecution = new MojoExecution(new MojoDescriptor());
       mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
       mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
@@ -82,7 +98,7 @@ class UndeployMojoTest {
   void tearDown() {
     mavenUtilMockedStatic.close();
     openshiftHelperMockedStatic.close();
-    undeployServiceMockedConstruction.close();
+    jKubeServiceHubMockedConstruction.close();
     undeployMojo = null;
   }
 
@@ -117,13 +133,26 @@ class UndeployMojoTest {
         .hasFieldOrPropertyWithValue("namespace", "custom-namespace");
   }
 
+  @Test
+  void execute_whenUndeployServiceFails_thenExceptionThrown() throws IOException {
+    // Given
+    doThrow(new IOException("failure"))
+        .when(mockedUndeployService).undeploy(any(), any(), any());
+
+    // When
+    assertThatExceptionOfType(MojoExecutionException.class)
+        .isThrownBy(() -> undeployMojo.execute())
+        .withMessage("failure");
+  }
+
   private void assertUndeployServiceUndeployWasCalled() throws Exception {
-    verify(undeployServiceMockedConstruction.constructed().get(0), times(1))
+    verify(mockedUndeployService, times(1))
       .undeploy(eq(Collections.singletonList(temporaryFolder.resolve("resources").toFile())), any(),
         eq(temporaryFolder.resolve("kubernetes.yml").toFile()));
   }
 
-  private void assertUndeployServiceUndeployWasNotCalled() {
-    assertThat(undeployServiceMockedConstruction.constructed()).isEmpty();
+  private void assertUndeployServiceUndeployWasNotCalled() throws IOException {
+    verify(mockedUndeployService, times(0))
+        .undeploy(any(), any(), any());
   }
 }

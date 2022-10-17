@@ -34,6 +34,7 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
@@ -73,7 +74,11 @@ class KubernetesUndeployServiceTest {
     final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
       .log(logger)
       .platformMode(RuntimeMode.KUBERNETES)
-      .configuration(JKubeConfiguration.builder().build())
+      .configuration(JKubeConfiguration.builder()
+          .project(JavaProject.builder()
+              .buildDirectory(new File("target"))
+              .build())
+          .build())
       .clusterAccess(new ClusterAccess(logger, ClusterConfiguration.builder().namespace("test").build()) {
         @Override
         public <T extends KubernetesClient> T createDefaultClient() {

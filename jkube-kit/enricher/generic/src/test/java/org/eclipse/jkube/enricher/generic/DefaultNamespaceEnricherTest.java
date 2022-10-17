@@ -17,6 +17,7 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
@@ -34,14 +35,17 @@ import io.fabric8.openshift.api.model.ProjectBuilder;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class DefaultNamespaceEnricherTest {
 
   private EnricherContext context;
 
   private void setExpectations(Properties properties, ResourceConfig resourceConfig) {
+    SummaryService summaryService = mock(SummaryService.class);
     context = JKubeEnricherContext.builder()
         .log(new KitLogger.SilentLogger())
+        .summaryService(summaryService)
         .resources(resourceConfig)
         .project(JavaProject.builder()
             .properties(properties)

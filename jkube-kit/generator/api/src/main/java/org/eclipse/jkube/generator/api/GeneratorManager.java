@@ -16,9 +16,9 @@ package org.eclipse.jkube.generator.api;
 import java.util.List;
 
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
@@ -37,7 +37,7 @@ public class GeneratorManager {
   }
 
   public static List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs,
-      GeneratorContext genCtx, boolean prePackagePhase) {
+                                                  GeneratorContext genCtx, boolean prePackagePhase, SummaryService summaryService) {
 
     final PluginServiceFactory<GeneratorContext> pluginFactory = new PluginServiceFactory<>(genCtx);
     if (genCtx.isUseProjectClasspath()) {
@@ -54,7 +54,7 @@ public class GeneratorManager {
       log.verbose(" - %s", generator.getName());
       if (generator.isApplicable(ret)) {
         log.info("Running generator %s", generator.getName());
-        SummaryUtil.addToGenerators(generator.getName());
+        summaryService.addToGenerators(generator.getName());
         ret = generator.customize(ret, prePackagePhase);
       }
     }

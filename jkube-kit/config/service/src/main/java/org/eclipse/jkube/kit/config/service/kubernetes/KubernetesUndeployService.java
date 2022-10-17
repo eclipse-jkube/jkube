@@ -28,7 +28,6 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.summary.KubernetesResourceSummary;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.UndeployService;
@@ -67,7 +66,7 @@ public class KubernetesUndeployService implements UndeployService {
       logger.warn("No such generated manifests found for this project, ignoring.");
       return;
     }
-    SummaryUtil.setUndeployedClusterUrl(jKubeServiceHub.getClient().getMasterUrl().toString());
+    jKubeServiceHub.getSummaryService().setUndeployedClusterUrl(jKubeServiceHub.getClient().getMasterUrl().toString());
     List<HasMetadata> undeployEntities = getK8sListWithNamespaceFirst(entities);
     Collections.reverse(undeployEntities);
     undeployCustomResources(resourceConfig.getNamespace(), fallbackNamespace, undeployEntities);
@@ -123,7 +122,7 @@ public class KubernetesUndeployService implements UndeployService {
   }
 
   private void addToUndeployedResourcesSummary(String namespace, HasMetadata h) {
-    SummaryUtil.addDeletedKubernetesResource(KubernetesResourceSummary.builder()
+    jKubeServiceHub.getSummaryService().addDeletedKubernetesResource(KubernetesResourceSummary.builder()
         .group(trimGroup(h.getApiVersion()))
         .version(trimVersion(h.getApiVersion()))
         .namespace(namespace)

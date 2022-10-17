@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService;
@@ -22,6 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
+import java.util.Collections;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
@@ -43,10 +46,16 @@ class RemoteDevMojoTest {
   @BeforeEach
   void setUp() {
     final MavenProject mavenProject = mock(MavenProject.class);
+    final MavenSession mavenSession = mock(MavenSession.class);
+    final MojoExecution mavenMojoExecution = mock(MojoExecution.class);
+    when(mavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:remote-dev"));
+    when(mavenMojoExecution.getGoal()).thenReturn("k8s:remote-dev");
     when(mavenProject.getProperties()).thenReturn(new Properties());
     remoteDevMojo = new RemoteDevMojo() {{
       project = mavenProject;
       settings = mock(Settings.class, RETURNS_DEEP_STUBS);
+      mojoExecution = mavenMojoExecution;
+      session = mavenSession;
     }};
     started = new CompletableFuture<>();
     remoteDevelopmentService = mockConstruction(RemoteDevelopmentService.class, (mock, ctx) ->

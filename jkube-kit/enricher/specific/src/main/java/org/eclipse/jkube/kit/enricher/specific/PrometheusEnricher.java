@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -68,7 +67,7 @@ public class PrometheusEnricher extends BaseEnricher {
                     annotations.put(ANNOTATION_PROMETHEUS_PORT, prometheusPort);
                     annotations.put(ANNOTATION_PROMETHEUS_SCRAPE, "true");
                     annotations.put(ANNOTATION_PROMETHEUS_PATH, getConfig(Config.PROMETHEUS_PATH));
-                    SummaryUtil.addToEnrichers(getName());
+                    getContext().getSummaryService().addToEnrichers(getName());
                     log.verbose("Adding prometheus.io annotations: %s",
                             annotations.entrySet()
                                     .stream()

@@ -11,31 +11,31 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.common;
+package org.eclipse.jkube.kit.common.service;
 
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.summary.KubernetesResourceSummary;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-class SummaryUtilTest {
+class SummaryServiceTest {
   private KitLogger logger;
   @TempDir
   private File temporaryFolder;
+  private SummaryService summaryService;
 
   @BeforeEach
   public void setUp() {
     logger = spy(new KitLogger.SilentLogger());
-    SummaryUtil.initSummary(temporaryFolder, logger);
+    summaryService = new SummaryService(temporaryFolder, logger, true);
   }
 
   @Test
@@ -44,7 +44,7 @@ class SummaryUtilTest {
     initializeSummary();
 
     // When
-    SummaryUtil.printSummary(temporaryFolder, true);
+    summaryService.printSummary(temporaryFolder);
 
     // Then
     verifySummaryPrintedOnce();
@@ -53,11 +53,11 @@ class SummaryUtilTest {
   @Test
   void printSummary_whenFailure_shouldPrintFailureAndCause() {
     // Given
-    SummaryUtil.setSuccessful(false);
-    SummaryUtil.setFailureCause("failure in pulling image");
+    summaryService.setSuccessful(false);
+    summaryService.setFailureCause("failure in pulling image");
 
     // When
-    SummaryUtil.printSummary(temporaryFolder, true);
+    summaryService.printSummary(temporaryFolder);
 
     // Then
     verify(logger).error("FAILURE [%s]", "failure in pulling image");
@@ -65,95 +65,104 @@ class SummaryUtilTest {
 
   @Test
   void printSummary_whenSummaryEnabledFalse_shouldNotPrintAnything() {
-    // Given + When
-    SummaryUtil.printSummary(temporaryFolder, false);
+    // Given
+    summaryService = new SummaryService(temporaryFolder, logger, false);
+    // When
+    summaryService.printSummary(temporaryFolder);
 
     // Then
     verify(logger, times(0)).info(anyString());
   }
 
   @Test
-  void setFailureIfSummaryEnabledOrThrow_whenSummaryEnabled_shouldLogFailureAndCause() {
+  void setFailureAndCause_whenSummaryEnabled_shouldLogFailureAndCause() {
     // Given
-    SummaryUtil.setFailureIfSummaryEnabledOrThrow(true, "failed to execute", () -> new IllegalStateException("failure"));
+    summaryService.setFailureAndCause("failed to execute");
 
     // When
-    SummaryUtil.printSummary(temporaryFolder, true);
+    summaryService.printSummary(temporaryFolder);
 
     // Then
     verify(logger).error("FAILURE [%s]", "failed to execute");
   }
 
   @Test
-  void setFailureIfSummaryEnabledOrThrow_whenSummaryDisabled_shouldLogThrowException() {
-    // When + Then
-    assertThatIllegalStateException()
-        .isThrownBy(() -> SummaryUtil.setFailureIfSummaryEnabledOrThrow(false, "failed", () -> new IllegalStateException("failure")))
-        .withMessage("failure");
+  void setFailureAndCause_whenSummaryDisabled_shouldLogNothing() {
+    // Given
+    summaryService = new SummaryService(temporaryFolder, logger, false);
+
+    // When
+    summaryService.setFailureAndCause( "failed");
+    summaryService.printSummary(temporaryFolder);
+
+    // Then
     verify(logger, times(0)).error(anyString(), anyString());
   }
 
   @Test
   void clear_whenInvoked_shouldDeleteSummaryFile() {
     // Given
-    SummaryUtil.setSuccessful(true);
+    summaryService.setSuccessful(true);
 
     // When
-    SummaryUtil.clear();
+    summaryService.clear();
 
     // Then
     verify(logger, times(0)).info(anyString());
   }
 
   private void initializeSummary() {
-    SummaryUtil.setBuildStrategy("Local Docker");
-    SummaryUtil.addToGenerators("java-exec");
-    SummaryUtil.setDockerFileImageSummary("quay.io/example/test:latest", new File(temporaryFolder, "src/main/docker/Dockerfile").getAbsolutePath());
-    SummaryUtil.setBaseImageNameImageSummary("quay.io/example/test:latest", "quay.io/jkube/java:latest");
-    SummaryUtil.setImageShaImageSummary("quay.io/example/test:latest", "def3");
-    SummaryUtil.setImageStreamUsedImageSummary("quay.io/example/test:latest", "test");
-    SummaryUtil.setPushRegistry("quay.io");
-    SummaryUtil.setOpenShiftBuildConfigName("test");
-    SummaryUtil.addGeneratedResourceFile(new File(temporaryFolder, "target/classes/META-INF/jkube/kubernetes/test-deployment.yml"));
-    SummaryUtil.addGeneratedResourceFile(new File(temporaryFolder, "target/classes/META-INF/jkube/kubernetes/test-service.yml"));
-    SummaryUtil.setAggregateResourceFile(new File(temporaryFolder, "target/classes/META-INF/jkube/kubernetes.yml"));
-    SummaryUtil.addToEnrichers("jkube-controller");
-    SummaryUtil.addToEnrichers("jkube-service");
-    SummaryUtil.addAppliedKubernetesResource(KubernetesResourceSummary.builder()
+    summaryService.setBuildStrategy("Local Docker");
+    summaryService.addToGenerators("java-exec");
+    summaryService.setDockerFileImageSummary("quay.io/example/test:latest", new File(temporaryFolder, "src/main/docker/Dockerfile").getAbsolutePath());
+    summaryService.setBaseImageNameImageSummary("quay.io/example/test:latest", "quay.io/jkube/java:latest");
+    summaryService.setImageShaImageSummary("quay.io/example/test:latest", "def3");
+    summaryService.setImageStreamUsedImageSummary("quay.io/example/test:latest", "test");
+    summaryService.setPushRegistry("quay.io");
+    summaryService.setOpenShiftBuildConfigName("test");
+    summaryService.addGeneratedResourceFile(new File(temporaryFolder, "target/classes/META-INF/jkube/kubernetes/test-deployment.yml"));
+    summaryService.addGeneratedResourceFile(new File(temporaryFolder, "target/classes/META-INF/jkube/kubernetes/test-service.yml"));
+    summaryService.setAggregateResourceFile(new File(temporaryFolder, "target/classes/META-INF/jkube/kubernetes.yml"));
+    summaryService.addToEnrichers("jkube-controller");
+    summaryService.addToEnrichers("jkube-service");
+    summaryService.addAppliedKubernetesResource(KubernetesResourceSummary.builder()
         .kind("Deployment")
         .group("apps")
         .version("v1")
         .namespace("test-ns")
         .resourceName("test")
         .build());
-    SummaryUtil.addAppliedKubernetesResource(KubernetesResourceSummary.builder()
+    summaryService.addAppliedKubernetesResource(KubernetesResourceSummary.builder()
         .kind("Service")
         .group("v1")
         .version("v1")
         .namespace("test-ns")
         .resourceName("test")
         .build());
-    SummaryUtil.setHelmChartName("test");
-    SummaryUtil.setHelmChartCompressedLocation(new File(temporaryFolder, "target/test.tar.gz"));
-    SummaryUtil.setHelmChartLocation(new File(temporaryFolder, "target/jkube/helm/test/kubernetes"));
-    SummaryUtil.setHelmRepository("localhost:8001/api/charts");
-    SummaryUtil.addDeletedKubernetesResource(KubernetesResourceSummary.builder()
+    summaryService.setHelmChartName("test");
+    summaryService.setHelmChartCompressedLocation(new File(temporaryFolder, "target/test.tar.gz"));
+    summaryService.setHelmChartLocation(new File(temporaryFolder, "target/jkube/helm/test/kubernetes"));
+    summaryService.setHelmRepository("localhost:8001/api/charts");
+    summaryService.addDeletedKubernetesResource(KubernetesResourceSummary.builder()
         .kind("Deployment")
         .group("apps")
         .version("v1")
         .namespace("test-ns")
         .resourceName("test")
         .build());
-    SummaryUtil.addDeletedKubernetesResource(KubernetesResourceSummary.builder()
+    summaryService.addDeletedKubernetesResource(KubernetesResourceSummary.builder()
         .kind("Service")
         .group("v1")
         .version("v1")
         .namespace("test-ns")
         .resourceName("test")
         .build());
-    SummaryUtil.setAppliedClusterUrl("https://192.168.39.75:8443/");
-    SummaryUtil.setUndeployedClusterUrl("https://192.168.39.75:8443/");
-    SummaryUtil.setSuccessful(true);
+    summaryService.setAppliedClusterUrl("https://192.168.39.75:8443/");
+    summaryService.setUndeployedClusterUrl("https://192.168.39.75:8443/");
+    summaryService.setActionType("Goals");
+    summaryService.addToActions("k8sResource");
+    summaryService.addToActions("k8sHelm");
+    summaryService.setSuccessful(true);
   }
 
   private void verifySummaryPrintedOnce() {
@@ -164,15 +173,13 @@ class SummaryUtilTest {
     verifyResourceSummaryPrinted();
     verifyHelmSummaryPrinted();
     verifyApplyUndeploySummaryPrinted();
+    verifyActionsRunPrinted();
     verify(logger).info("      SUMMARY");
   }
 
   private void verifyApplyUndeploySummaryPrinted() {
-    verify(logger).info("Undeployed resources from %s", "https://192.168.39.75:8443/");
-    verify(logger, times(4)).info(" - %s", "test");
-    verify(logger, times(2)).info("   * %s/%s %s", "apps", "v1", "Deployment");
-    verify(logger, times(4)).info("   * Namespace: %s", "test-ns");
-    verify(logger, times(2)).info("   * %s %s", "v1", "Service");
+    verify(logger).info("Undeployed resources to %s: %s", "https://192.168.39.75:8443/", "[Deployment/test, Service/test]");
+    verify(logger).info("Applied resources to %s: %s", "https://192.168.39.75:8443/", "[Deployment/test, Service/test]");
   }
 
   private void verifyPushSummaryPrinted() {
@@ -203,7 +210,7 @@ class SummaryUtilTest {
   }
 
   private void verifyResourceSummaryPrinted() {
-    verify(logger).info("Enrichers applied: [%s]", "jkube-controller,jkube-service");
+    verify(logger).info("Enrichers applied: [%s]", "jkube-controller, jkube-service");
     verify(logger).info("Generated resources:");
     verify(logger).info(" - %s", "target/classes/META-INF/jkube/kubernetes/test-deployment.yml");
     verify(logger).info(" - %s", "target/classes/META-INF/jkube/kubernetes/test-service.yml");
@@ -214,5 +221,9 @@ class SummaryUtilTest {
     verify(logger).info("Chart : %s", "test");
     verify(logger).info("Location : %s", "target/jkube/helm/test/kubernetes");
     verify(logger).info("Compressed : %s", "target/test.tar.gz");
+  }
+
+  private void verifyActionsRunPrinted() {
+    verify(logger).info("%s executed : [ %s ]", "Goals", "k8sResource, k8sHelm");
   }
 }

@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -121,7 +120,7 @@ public class MavenIssueManagementEnricher extends BaseEnricher {
                 String system = rootProject.getIssueManagementSystem();
                 String url = rootProject.getIssueManagementUrl();
                 if (StringUtils.isNotEmpty(system) && StringUtils.isNotEmpty(url)) {
-                    SummaryUtil.addToEnrichers(getName());
+                    getContext().getSummaryService().addToEnrichers(getName());
                     annotations.put(JKubeAnnotations.ISSUE_SYSTEM.value(useDeprecatedAnnotationPrefix), system);
                     annotations.put(JKubeAnnotations.ISSUE_TRACKER_URL.value(useDeprecatedAnnotationPrefix), url);
                 }

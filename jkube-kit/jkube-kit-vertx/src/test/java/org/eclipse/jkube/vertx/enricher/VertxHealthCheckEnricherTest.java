@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.vertx.enricher;
 
+import java.io.File;
 import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,6 +28,7 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
@@ -61,12 +63,14 @@ class VertxHealthCheckEnricherTest {
         plexusMavenConfig = new TreeMap<>();
         jKubePluginConfiguration = new HashMap<>();
         properties = new Properties();
+        SummaryService summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
         final ProcessorConfig processorConfig = new ProcessorConfig();
         processorConfig.setConfig(Collections.singletonMap("jkube-healthcheck-vertx", plexusMavenConfig));
         context = JKubeEnricherContext.builder()
             .log(new KitLogger.SilentLogger())
             .processorConfig(processorConfig)
             .project(createNewJavaProjectWithVertxPlugin("io.reactiverse", "vertx-maven-plugin"))
+            .summaryService(summaryService)
             .build();
     }
 

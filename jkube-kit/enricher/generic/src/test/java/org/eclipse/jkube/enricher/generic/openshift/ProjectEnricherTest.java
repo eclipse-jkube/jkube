@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 
 class ProjectEnricherTest {
@@ -34,7 +35,7 @@ class ProjectEnricherTest {
 
     @BeforeEach
     void setExpectations() {
-      context = mock(JKubeEnricherContext.class);
+        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     }
 
     @Test

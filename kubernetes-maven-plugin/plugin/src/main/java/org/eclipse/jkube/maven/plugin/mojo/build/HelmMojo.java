@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -27,6 +26,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProjectHelper;
 
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.handleExceptionAndSummary;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
 
 /**
@@ -66,7 +66,8 @@ public class HelmMojo extends AbstractJKubeMojo {
           .build();
       jkubeServiceHub.getHelmService().generateHelmCharts(helm);
     } catch (IOException exception) {
-      SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, exception.getMessage(), () -> new MojoExecutionException(exception.getMessage()));
+      handleExceptionAndSummary(jkubeServiceHub, exception);
+      throw new MojoExecutionException(exception.getMessage());
     }
   }
 

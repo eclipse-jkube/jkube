@@ -18,6 +18,7 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyFiles;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -48,9 +49,9 @@ public class ArchiveService {
      * @return file for holding the sources
      * @throws IOException if during creation of the tar an error occurs.
      */
-    public File createDockerBuildArchive(ImageConfiguration imageConfig, JKubeConfiguration params)
+    public File createDockerBuildArchive(ImageConfiguration imageConfig, JKubeConfiguration params, SummaryService summaryService)
             throws IOException {
-        return createDockerBuildArchive(imageConfig, params, null);
+        return createDockerBuildArchive(imageConfig, params, null, summaryService);
     }
 
     /**
@@ -63,9 +64,9 @@ public class ArchiveService {
      * @return file for holding the sources
      * @throws IOException if during creation of the tar an error occurs.
      */
-    public File createDockerBuildArchive(ImageConfiguration imageConfig, JKubeConfiguration params, ArchiverCustomizer customizer)
+    public File createDockerBuildArchive(ImageConfiguration imageConfig, JKubeConfiguration params, ArchiverCustomizer customizer, SummaryService summaryService)
             throws IOException {
-        File ret = createArchive(imageConfig.getName(), imageConfig.getBuildConfiguration(), params, log, customizer);
+        File ret = createArchive(imageConfig.getName(), imageConfig.getBuildConfiguration(), params, log, customizer, summaryService);
         log.info("%s: Created docker source tar %s",imageConfig.getDescription(), ret);
         return ret;
     }
@@ -108,13 +109,14 @@ public class ArchiveService {
         return assemblyManager.createChangedFilesArchive(entries, assemblyDir, imageName, jKubeConfiguration);
     }
 
-    File createArchive(String imageName, BuildConfiguration buildConfig, JKubeConfiguration params, KitLogger log)
+    File createArchive(String imageName, BuildConfiguration buildConfig, JKubeConfiguration params, KitLogger log, SummaryService summaryService)
             throws IOException {
-        return createArchive(imageName, buildConfig, params, log, null);
+        return createArchive(imageName, buildConfig, params, log, null, summaryService);
     }
 
-    File createArchive(String imageName, BuildConfiguration buildConfig, JKubeConfiguration params, KitLogger log, ArchiverCustomizer customizer)
+    File createArchive(String imageName, BuildConfiguration buildConfig, JKubeConfiguration params, KitLogger log,
+                       ArchiverCustomizer customizer, SummaryService summaryService)
             throws IOException {
-        return assemblyManager.createDockerTarArchive(imageName, params, buildConfig, log, customizer);
+        return assemblyManager.createDockerTarArchive(imageName, params, buildConfig, log, customizer, summaryService);
     }
 }

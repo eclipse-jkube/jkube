@@ -26,6 +26,8 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -35,6 +37,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -49,10 +52,12 @@ class PodAnnotationEnricherTest {
   void setUp() {
     Properties properties = new Properties();
     klb = new KubernetesListBuilder();
+    SummaryService summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
     EnricherContext context = JKubeEnricherContext.builder()
         .project(JavaProject.builder()
             .properties(properties)
             .build())
+        .summaryService(summaryService)
         .build();
     podAnnotationEnricher = new PodAnnotationEnricher(context);
   }

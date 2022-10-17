@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +46,7 @@ class DefaultServiceEnricherExternalServiceTest {
 
   @BeforeEach
   void setUp() {
+    KitLogger kitLogger = new KitLogger.SilentLogger();
     final JKubeEnricherContext context = JKubeEnricherContext.builder()
       .image(ImageConfiguration.builder()
         .name("test-image")
@@ -57,7 +60,8 @@ class DefaultServiceEnricherExternalServiceTest {
         .groupId("group-id")
         .artifactId("artifact-id")
         .build())
-      .log(new KitLogger.SilentLogger())
+      .log(kitLogger)
+      .summaryService(new SummaryService(new File("target"), kitLogger, false))
       .build();
     kubernetesListBuilder = new KubernetesListBuilder();
     kubernetesListBuilder.addToItems(createNewExternalServiceFragment());

@@ -33,6 +33,7 @@ import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchException;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WaitConfiguration;
@@ -62,7 +63,7 @@ public class WatchService {
         this.log = log;
     }
 
-    public synchronized void watch(WatchContext context, JKubeConfiguration buildContext, List<ImageConfiguration> images)
+    public synchronized void watch(WatchContext context, JKubeConfiguration buildContext, List<ImageConfiguration> images, SummaryService summaryService)
         throws IOException {
 
         // Important to be be a single threaded scheduler since watch jobs must run serialized
@@ -71,39 +72,7 @@ public class WatchService {
             executor = Executors.newSingleThreadScheduledExecutor();
 
             for (ImageConfiguration imageConfig : runService.getImagesConfigsInOrder(queryService, images)) {
-
-                String imageId = queryService.getImageId(imageConfig.getName());
-                String containerId = runService.lookupContainer(imageConfig.getName());
-
-                ImageWatcher watcher = new ImageWatcher(imageConfig, context, imageId, containerId);
-                long interval = watcher.getInterval();
-
-                WatchMode watchMode = watcher.getWatchMode(imageConfig);
-                log.info("Watching %s %s", imageConfig.getName(), (watchMode != null ? " using " + watchMode.getDescription() : ""));
-
-                ArrayList<String> tasks = new ArrayList<>();
-
-                if (imageConfig.getBuildConfiguration() != null &&
-                        imageConfig.getBuildConfiguration().getAssembly() != null) {
-                    if (watcher.isCopy()) {
-                        schedule(executor, createCopyWatchTask(watcher, context.getBuildContext()), interval);
-                        tasks.add("copying artifacts");
-                    }
-
-                    if (watcher.isBuild()) {
-                        schedule(executor, createBuildWatchTask(watcher, context.getBuildContext(), watchMode == WatchMode.both, buildContext), interval);
-                        tasks.add("rebuilding");
-                    }
-                }
-
-                if (watcher.isRun() && watcher.getContainerId() != null) {
-                    schedule(executor, createRestartWatchTask(watcher), interval);
-                    tasks.add("restarting");
-                }
-
-                if (!tasks.isEmpty()) {
-                    log.info("%s: Watch for %s", imageConfig.getDescription(), String.join(" and ", tasks));
-                }
+                watchImage(context, buildContext, summaryService, executor, imageConfig);
             }
             log.info("Waiting ...");
             if (!context.isKeepRunning()) {
@@ -167,7 +136,8 @@ public class WatchService {
     }
 
     Runnable createBuildWatchTask(final ImageWatcher watcher,
-                                          final JKubeConfiguration mojoParameters, final boolean doRestart, final JKubeConfiguration buildContext)
+                                  final JKubeConfiguration mojoParameters, final boolean doRestart,
+                                  final JKubeConfiguration buildContext, final SummaryService summaryService)
             throws IOException {
         final ImageConfiguration imageConfig = watcher.getImageConfiguration();
         final AssemblyFiles files = archiveService.getAssemblyFiles(imageConfig, mojoParameters);
@@ -186,7 +156,7 @@ public class WatchService {
                         log.info("%s: Customizing the image ...", imageConfig.getDescription());
                         watcher.getWatchContext().getImageCustomizer().execute(imageConfig);
                     }
-                    buildService.buildImage(imageConfig, null, buildContext);
+                    buildService.buildImage(imageConfig, null, buildContext, summaryService);
 
                     String name = imageConfig.getName();
                     watcher.setImageId(queryService.getImageId(name));
@@ -281,6 +251,41 @@ public class WatchService {
             .map(WaitConfiguration::getExec)
             .map(WaitConfiguration.ExecConfiguration::getPreStop)
             .orElse(null);
+    }
+
+    private void watchImage(WatchContext context, JKubeConfiguration buildContext, SummaryService summaryService, ScheduledExecutorService executor, ImageConfiguration imageConfig) throws IOException {
+        String imageId = queryService.getImageId(imageConfig.getName());
+        String containerId = runService.lookupContainer(imageConfig.getName());
+
+        ImageWatcher watcher = new ImageWatcher(imageConfig, context, imageId, containerId);
+        long interval = watcher.getInterval();
+
+        WatchMode watchMode = watcher.getWatchMode(imageConfig);
+        log.info("Watching %s %s", imageConfig.getName(), (watchMode != null ? " using " + watchMode.getDescription() : ""));
+
+        ArrayList<String> tasks = new ArrayList<>();
+
+        if (imageConfig.getBuildConfiguration() != null &&
+            imageConfig.getBuildConfiguration().getAssembly() != null) {
+            if (watcher.isCopy()) {
+                schedule(executor, createCopyWatchTask(watcher, context.getBuildContext()), interval);
+                tasks.add("copying artifacts");
+            }
+
+            if (watcher.isBuild()) {
+                schedule(executor, createBuildWatchTask(watcher, context.getBuildContext(), watchMode == WatchMode.both, buildContext, summaryService), interval);
+                tasks.add("rebuilding");
+            }
+        }
+
+        if (watcher.isRun() && watcher.getContainerId() != null) {
+            schedule(executor, createRestartWatchTask(watcher), interval);
+            tasks.add("restarting");
+        }
+
+        if (!tasks.isEmpty()) {
+            log.info("%s: Watch for %s", imageConfig.getDescription(), String.join(" and ", tasks));
+        }
     }
 
     // ===============================================================================================================

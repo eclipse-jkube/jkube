@@ -14,6 +14,7 @@
 package org.eclipse.jkube.enricher.generic;
 
 import java.util.Collections;
+import java.io.File;
 import java.util.List;
 import java.util.Properties;
 
@@ -26,6 +27,7 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,11 +54,13 @@ class ReplicaCountEnricherTest {
     void setUpEnricher() {
         final Properties properties = new Properties();
         properties.setProperty("jkube.replicas", "" + EXPECTED_REPLICAS);
+        SummaryService summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
         EnricherContext context = JKubeEnricherContext.builder()
             .log(new KitLogger.SilentLogger())
             .project(JavaProject.builder()
                 .properties(properties)
                 .build())
+            .summaryService(summaryService)
             .build();
         enricher = new ReplicaCountEnricher(context);
     }

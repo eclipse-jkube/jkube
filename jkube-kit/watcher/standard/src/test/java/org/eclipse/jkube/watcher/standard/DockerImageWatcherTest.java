@@ -20,6 +20,7 @@ import org.eclipse.jkube.kit.build.service.docker.watch.CopyFilesTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.ExecTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.watcher.api.WatcherContext;
@@ -42,6 +43,7 @@ import static org.mockito.Mockito.when;
 class DockerImageWatcherTest {
   private WatchService watchService;
   private DockerImageWatcher dockerImageWatcher;
+  private SummaryService summaryService;
 
   @BeforeEach
   public void setUp() {
@@ -49,6 +51,7 @@ class DockerImageWatcherTest {
     ClusterAccess mockedClusterAccess = mock(ClusterAccess.class);
     watchService = mock(WatchService.class);
     DockerServiceHub mockedDockerServiceHub = mock(DockerServiceHub.class,RETURNS_DEEP_STUBS);
+    summaryService = mock(SummaryService.class);
     dockerImageWatcher = new DockerImageWatcher(watcherContext);
     when(mockedDockerServiceHub.getWatchService()).thenReturn(watchService);
     when(watcherContext.getJKubeServiceHub().getDockerServiceHub()).thenReturn(mockedDockerServiceHub);
@@ -79,9 +82,9 @@ class DockerImageWatcherTest {
     // Given
     ArgumentCaptor<WatchContext> watchContextArgumentCaptor = ArgumentCaptor.forClass(WatchContext.class);
     // When
-    dockerImageWatcher.watch(null, null, null, null);
+    dockerImageWatcher.watch(null, null, null, null, summaryService);
     // Then
-    verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any());
+    verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any(), any());
     assertThat(watchContextArgumentCaptor.getValue())
         .isNotNull()
         .extracting("imageCustomizer","containerRestarter","containerCommandExecutor","containerCopyTask")
@@ -93,8 +96,8 @@ class DockerImageWatcherTest {
     try (MockedConstruction<PodExecutor> podExecutorMockedConstruction = mockConstruction(PodExecutor.class)) {
       // Given
       ArgumentCaptor<WatchContext>watchContextArgumentCaptor=ArgumentCaptor.forClass(WatchContext.class);
-      dockerImageWatcher.watch(null,null,null,null);
-      verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any());
+      dockerImageWatcher.watch(null,null,null,null, summaryService);
+      verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any(), any());
       final ExecTask execTask=watchContextArgumentCaptor.getValue().getContainerCommandExecutor();
       //When
       execTask.exec("thecommand");
@@ -109,8 +112,8 @@ class DockerImageWatcherTest {
     try (MockedConstruction<PodExecutor> podExecutorMockedConstruction = mockConstruction(PodExecutor.class)) {
       // Given
       ArgumentCaptor<WatchContext> watchContextArgumentCaptor = ArgumentCaptor.forClass(WatchContext.class);
-      dockerImageWatcher.watch(null,null,null,null);
-      verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any());
+      dockerImageWatcher.watch(null,null,null,null, summaryService);
+      verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any(), any());
       final CopyFilesTask copyFilesTask = watchContextArgumentCaptor.getValue().getContainerCopyTask();
       // When
       copyFilesTask.copy(null);

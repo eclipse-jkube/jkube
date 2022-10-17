@@ -25,6 +25,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.service.MigrateService;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
@@ -66,14 +67,16 @@ public class JKubeServiceHub implements Closeable {
     private LazyBuilder<HelmService> helmService;
     private LazyBuilder<ClusterAccess> clusterAccessLazyBuilder;
     private LazyBuilder<KubernetesClient> kubernetesClientLazyBuilder;
+    private LazyBuilder<SummaryService> summaryService;
     private final boolean offline;
+    private final boolean summaryEnabled;
 
     @Builder
     public JKubeServiceHub(
             ClusterAccess clusterAccess, RuntimeMode platformMode, KitLogger log,
             DockerServiceHub dockerServiceHub, JKubeConfiguration configuration,
             BuildServiceConfig buildServiceConfig,
-            LazyBuilder<ResourceService> resourceService, boolean offline) {
+            LazyBuilder<ResourceService> resourceService, boolean offline, boolean summaryEnabled) {
         this.clusterAccess = clusterAccess;
         this.platformMode = platformMode;
         this.log = log;
@@ -82,6 +85,7 @@ public class JKubeServiceHub implements Closeable {
         this.buildServiceConfig = buildServiceConfig;
         this.resourceService = resourceService;
         this.offline = offline;
+        this.summaryEnabled = summaryEnabled;
         init();
     }
 
@@ -103,9 +107,10 @@ public class JKubeServiceHub implements Closeable {
     private void initLazyBuilders() {
         clusterAccessLazyBuilder = new LazyBuilder<>(this::initClusterAccessIfNecessary);
         kubernetesClientLazyBuilder = new LazyBuilder<>(() -> getClusterAccess().createDefaultClient());
+        summaryService = new LazyBuilder<>(() -> new SummaryService(configuration.getBuildDirectory(), log, summaryEnabled));
         buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
         pluginManager = new LazyBuilder<>(() -> new PluginManager(this));
-        applyService = new LazyBuilder<>(() -> new ApplyService(getClient(), log));
+        applyService = new LazyBuilder<>(() -> new ApplyService(getClient(), log, getSummaryService()));
         portForwardService = new LazyBuilder<>(() -> {
             getClient();
             return new PortForwardService(log);
@@ -120,7 +125,7 @@ public class JKubeServiceHub implements Closeable {
             return new KubernetesUndeployService(this, log);
         });
         migrateService = new LazyBuilder<>(() -> new MigrateService(getConfiguration().getBasedir(), log));
-        helmService = new LazyBuilder<>(() -> new HelmService(getConfiguration(), log));
+        helmService = new LazyBuilder<>(() -> new HelmService(getConfiguration(), log, getSummaryService()));
     }
 
     private ClusterAccess initClusterAccessIfNecessary() {
@@ -180,5 +185,9 @@ public class JKubeServiceHub implements Closeable {
 
     public ClusterAccess getClusterAccess() {
         return clusterAccessLazyBuilder.get();
+    }
+
+    public SummaryService getSummaryService() {
+        return summaryService.get();
     }
 }

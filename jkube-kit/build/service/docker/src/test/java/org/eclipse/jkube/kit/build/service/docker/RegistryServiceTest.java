@@ -17,6 +17,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +46,7 @@ class RegistryServiceTest {
   private RegistryService registryService;
   private ImageConfiguration imageConfiguration;
   private RegistryConfig mockedRegistryConfig;
+  private SummaryService summaryService;
 
   @BeforeEach
   void setUp() {
@@ -58,6 +60,7 @@ class RegistryServiceTest {
     dockerAccess = mock(DockerAccess.class);
     queryService = mock(QueryService.class);
     mockedRegistryConfig = mock(RegistryConfig.class);
+    summaryService = mock(SummaryService.class);
     registryService = new RegistryService(dockerAccess, queryService, new KitLogger.SilentLogger());
     when(mockedRegistryConfig.getRegistry()).thenReturn("example.com");
   }
@@ -117,7 +120,7 @@ class RegistryServiceTest {
   @Test
   void pushImage_whenValidImageConfigurationProvidedWithSkipTag_shouldNotPushAdditionalTags() throws IOException {
     // When
-    registryService.pushImage(imageConfiguration, 1, mockedRegistryConfig, true);
+    registryService.pushImage(imageConfiguration, 1, mockedRegistryConfig, true, summaryService);
 
     // Then
     verify(dockerAccess, times(1))
@@ -129,7 +132,7 @@ class RegistryServiceTest {
   @Test
   void pushImage_whenValidImageConfigurationProvided_shouldPushApplicableTags() throws IOException {
     // When
-    registryService.pushImage(imageConfiguration, 1, mockedRegistryConfig, false);
+    registryService.pushImage(imageConfiguration, 1, mockedRegistryConfig, false, summaryService);
 
     // Then
     verify(dockerAccess, times(1))

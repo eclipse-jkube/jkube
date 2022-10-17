@@ -25,6 +25,7 @@ import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -52,6 +53,7 @@ class QuarkusHealthCheckEnricherTest {
   void setUp() {
     properties = new Properties();
     klb = new KubernetesListBuilder();
+    SummaryService summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
     // @formatter:off
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
@@ -76,6 +78,7 @@ class QuarkusHealthCheckEnricherTest {
       .log(new KitLogger.SilentLogger())
       .project(javaProject)
       .processorConfig(new ProcessorConfig())
+      .summaryService(summaryService)
       .build();
   }
 

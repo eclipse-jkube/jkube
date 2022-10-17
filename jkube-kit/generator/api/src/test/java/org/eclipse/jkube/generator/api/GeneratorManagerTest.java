@@ -13,11 +13,13 @@
  */
 package org.eclipse.jkube.generator.api;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +33,7 @@ import static org.mockito.Mockito.verify;
 class GeneratorManagerTest {
 
   private KitLogger logger;
+  private SummaryService summaryService;
 
   private GeneratorContext generatorContext;
 
@@ -39,6 +42,7 @@ class GeneratorManagerTest {
     logger = spy(new KitLogger.SilentLogger());
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-generator"));
+    summaryService = new SummaryService(new File("target"), logger, false);
     generatorContext = GeneratorContext.builder()
         .config(processorConfig)
         .logger(logger)
@@ -51,7 +55,7 @@ class GeneratorManagerTest {
     final List<ImageConfiguration> images = Collections.singletonList(new ImageConfiguration());
     // When
     final List<ImageConfiguration> result = GeneratorManager
-        .generate(images, generatorContext, false);
+        .generate(images, generatorContext, false, summaryService);
     // Then
     assertThat(result)
         .isNotSameAs(images)

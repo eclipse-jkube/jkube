@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.common.util.Base64Util;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -57,7 +56,7 @@ public class FileDataSecretEnricher extends BaseEnricher {
                 try {
                     if (annotations != null && !annotations.isEmpty()) {
                         final Map<String, String> secretAnnotations = createSecretFromAnnotations(annotations);
-                        SummaryUtil.addToEnrichers(getName());
+                        getContext().getSummaryService().addToEnrichers(getName());
                         element.addToData(secretAnnotations);
                     }
                 } catch (IOException e) {

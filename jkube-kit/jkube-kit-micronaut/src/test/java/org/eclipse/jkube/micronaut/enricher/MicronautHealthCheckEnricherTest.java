@@ -19,6 +19,7 @@ import java.util.Collections;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -51,6 +52,7 @@ class MicronautHealthCheckEnricherTest {
         .outputDirectory(new File("target"))
         .build();
     klb = new KubernetesListBuilder();
+    SummaryService summaryService = new SummaryService(new File("target"), new KitLogger.SilentLogger(), false);
     klb.addToItems(new ServiceBuilder()
         .withNewMetadata().withName("make-it-real").endMetadata()
         .build());
@@ -58,6 +60,7 @@ class MicronautHealthCheckEnricherTest {
         .log(new KitLogger.SilentLogger())
         .processorConfig(new ProcessorConfig())
         .project(project)
+        .summaryService(summaryService)
         .build();
   }
 

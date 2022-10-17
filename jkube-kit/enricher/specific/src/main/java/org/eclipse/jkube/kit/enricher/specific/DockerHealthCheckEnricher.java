@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ExecAction;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckConfiguration;
 import org.eclipse.jkube.kit.config.image.build.HealthCheckMode;
@@ -60,7 +59,7 @@ public class DockerHealthCheckEnricher extends AbstractHealthCheckEnricher {
     private Probe getProbe(ImageConfiguration image) {
         if (hasHealthCheck(image)) {
             HealthCheckConfiguration health = image.getBuildConfiguration().getHealthCheck();
-            SummaryUtil.addToEnrichers(getName());
+            getContext().getSummaryService().addToEnrichers(getName());
             return new ProbeBuilder()
                     .withExec(new ExecAction(health.getCmd().asStrings()))
                     .withTimeoutSeconds(durationSeconds(health.getTimeout()).orElse(null))

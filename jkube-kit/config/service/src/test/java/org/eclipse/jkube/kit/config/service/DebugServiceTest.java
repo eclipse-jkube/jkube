@@ -42,6 +42,7 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,6 +62,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -78,8 +80,9 @@ class DebugServiceTest {
   @BeforeEach
   void setUp() {
     logger = spy(new KitLogger.SilentLogger());
+    SummaryService summaryService = mock(SummaryService.class);
     singleThreadExecutor = Executors.newSingleThreadExecutor();
-    final ApplyService applyService = new ApplyService(kubernetesClient, logger);
+    final ApplyService applyService = new ApplyService(kubernetesClient, logger, summaryService);
     applyService.setNamespace(kubernetesClient.getNamespace());
     debugService = new DebugService(logger, kubernetesClient, new PortForwardService(logger), applyService);
   }

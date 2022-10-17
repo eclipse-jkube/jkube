@@ -120,7 +120,7 @@ class OpenShiftBuildServiceTest {
 
     // Then
     verify(mockedArchiveService, times(0))
-        .createDockerBuildArchive(any(), any(), any());
+        .createDockerBuildArchive(any(), any(), any(), any());
   }
 
   @Test

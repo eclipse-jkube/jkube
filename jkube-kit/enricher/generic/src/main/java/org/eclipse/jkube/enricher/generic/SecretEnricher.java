@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.common.util.Base64Util;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.SecretConfig;
@@ -65,7 +64,7 @@ public abstract class SecretEnricher extends BaseEnricher {
                     }
                     // remove the annotation key
                     annotation.remove(getAnnotationKey());
-                    SummaryUtil.addToEnrichers(getName());
+                    getContext().getSummaryService().addToEnrichers(getName());
                     secretBuilder.addToData(data);
                 }
             }
@@ -124,7 +123,7 @@ public abstract class SecretEnricher extends BaseEnricher {
 
             Secret secret = new SecretBuilder().withData(data).withMetadata(metadata).withType(type).build();
             if(!secretToIndexMap.containsKey(secretConfig.getName())) {
-                SummaryUtil.addToEnrichers(getName());
+                getContext().getSummaryService().addToEnrichers(getName());
                 builder.addToSecretItems(i, secret);
             }
         }

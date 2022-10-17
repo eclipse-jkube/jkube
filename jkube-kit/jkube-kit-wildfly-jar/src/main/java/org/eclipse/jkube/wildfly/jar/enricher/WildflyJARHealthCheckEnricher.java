@@ -25,7 +25,6 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
@@ -95,7 +94,7 @@ public class WildflyJARHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     private Probe discoverWildflyJARHealthCheck(Config path, Config initialDelay) {
         if (isAvailable()) {
-            SummaryUtil.addToEnrichers(getName());
+            getContext().getSummaryService().addToEnrichers(getName());
             int port = asInt(getConfig(Config.PORT));
             if (port <= 0) {
                 return null;

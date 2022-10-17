@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -58,36 +59,38 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class HelmMojoTest {
 
   @TempDir
   private Path projectDir;
-  private MavenProject mavenProject;
-  private MojoExecution mojoExecution;
-  private MavenSession mavenSession;
-  private JKubeServiceHub jKubeServiceHub;
-  private HelmService helmService;
-
   private HelmMojo helmMojo;
   private MockedStatic<ResourceUtil> resourceUtilMockedStatic;
 
   @BeforeEach
   void setUp() {
+    MojoExecution mockedMojoExecution = mock(MojoExecution.class);
+    MavenSession mockedMavenSession = mock(MavenSession.class);
     resourceUtilMockedStatic = mockStatic(ResourceUtil.class);
     helmMojo = new HelmMojo();
     helmMojo.offline = true;
     helmMojo.project = new MavenProject();
     helmMojo.settings = new Settings();
+    helmMojo.session = mockedMavenSession;
+    helmMojo.mojoExecution = mockedMojoExecution;
     helmMojo.jkubeServiceHub = JKubeServiceHub.builder()
       .configuration(JKubeConfiguration.builder().build())
       .log(new KitLogger.SilentLogger())
       .platformMode(RuntimeMode.KUBERNETES)
+      .summaryEnabled(false)
       .build();
     helmMojo.project.getBuild()
       .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     helmMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
     helmMojo.project.setFile(projectDir.resolve("target").toFile());
+    when(mockedMavenSession.getGoals()).thenReturn(Collections.singletonList("k8s:helm"));
+    when(mockedMojoExecution.getGoal()).thenReturn("k8s:helm");
   }
 
   @AfterEach
@@ -142,7 +145,7 @@ class HelmMojoTest {
   @Test
   void executeInternal_withNoConfigGenerateThrowsException_shouldRethrowWithMojoExecutionException() {
     try (MockedConstruction<HelmService> helmServiceMockedConstruction = mockConstruction(HelmService.class,
-        (mock, ctx) -> doThrow(new IOException("Exception is thrown")).when(mock).generateHelmCharts(any())
+      (mock, ctx) -> doThrow(new IOException("Exception is thrown")).when(mock).generateHelmCharts(any())
     )) {
       // When & Then
       assertThatExceptionOfType(MojoExecutionException.class)

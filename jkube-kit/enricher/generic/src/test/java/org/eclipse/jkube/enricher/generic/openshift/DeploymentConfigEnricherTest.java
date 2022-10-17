@@ -13,11 +13,13 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import java.io.File;
 import java.util.Properties;
 import java.util.function.Consumer;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
@@ -38,11 +40,13 @@ class DeploymentConfigEnricherTest {
 
   @BeforeEach
   void setUp() {
+    KitLogger logger = new KitLogger.SilentLogger();
     context = JKubeEnricherContext.builder()
-      .log(new KitLogger.SilentLogger())
+      .log(logger)
       .project(JavaProject.builder()
         .properties(new Properties())
         .build())
+      .summaryService(new SummaryService(new File("target"), logger, false))
       .build();
     deploymentConfigEnricher = new DeploymentConfigEnricher(context);
     kubernetesListBuilder = new KubernetesListBuilder();

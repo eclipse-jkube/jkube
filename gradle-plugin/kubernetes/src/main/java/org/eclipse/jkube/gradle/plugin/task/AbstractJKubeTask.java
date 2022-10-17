@@ -30,7 +30,6 @@ import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigReso
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
@@ -49,6 +48,7 @@ import org.gradle.api.tasks.TaskAction;
 import static org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper.initImageConfiguration;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.updateResourceConfigNamespace;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.printSummaryIfLastExecuting;
 
 public abstract class AbstractJKubeTask extends DefaultTask implements KubernetesJKubeTask {
 
@@ -67,16 +67,15 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   @TaskAction
   public final void runTask() {
-    init();
-    if (shouldSkip()) {
+    try {
+      init();
+      if (shouldSkip()) {
         kitLogger.info("`%s` task is skipped.", this.getName());
         return;
-    }
-    run();
-    String lastExecutingTask = GradleUtil.getLastExecutingTask(getProject(), getTaskPrioritiesMap());
-    if (lastExecutingTask != null && lastExecutingTask.equals(getName())) {
-      SummaryUtil.printSummary(kubernetesExtension.javaProject.getBaseDirectory(), kubernetesExtension.getSummaryEnabledOrDefault());
-      SummaryUtil.clear();
+      }
+      run();
+    } finally {
+      printSummaryIfLastExecuting(jKubeServiceHub, getName(), GradleUtil.getLastExecutingTask(getProject(), getTaskPrioritiesMap()));
     }
   }
 
@@ -89,8 +88,9 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
-    SummaryUtil.initSummary(kubernetesExtension.javaProject.getBuildDirectory(), kitLogger);
-    SummaryUtil.setSuccessful(true);
+    jKubeServiceHub.getSummaryService().setSuccessful(true);
+    jKubeServiceHub.getSummaryService().setActionType("Tasks");
+    jKubeServiceHub.getSummaryService().addToActions(getName());
     try {
       resolvedImages = resolveImages(imageConfigResolver);
       final JKubeEnricherContext context = JKubeEnricherContext.builder()
@@ -103,6 +103,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
           .resources(kubernetesExtension.resources)
           .log(kitLogger)
           .jKubeBuildStrategy(kubernetesExtension.getBuildStrategyOrDefault())
+          .summaryService(jKubeServiceHub.getSummaryService())
           .build();
       final List<String> extraClasspathElements = kubernetesExtension.getUseProjectClassPathOrDefault() ?
           kubernetesExtension.javaProject.getCompileClassPathElements() : Collections.emptyList();
@@ -123,7 +124,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   private List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-    return GeneratorManager.generate(configs, initGeneratorContextBuilder().build(), false);
+    return GeneratorManager.generate(configs, initGeneratorContextBuilder().build(), false, jKubeServiceHub.getSummaryService());
   }
 
   private boolean isAnsiEnabled() {
@@ -153,6 +154,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
             .build())
         .clusterAccess(clusterAccess)
         .offline(kubernetesExtension.getOfflineOrDefault())
+        .summaryEnabled(kubernetesExtension.getSummaryEnabledOrDefault())
         .platformMode(kubernetesExtension.getRuntimeMode());
   }
 

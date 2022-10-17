@@ -22,7 +22,6 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -64,7 +63,7 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
         if(platformMode.equals(PlatformMode.kubernetes))
             return;
 
-        SummaryUtil.addToEnrichers(getName());
+        getContext().getSummaryService().addToEnrichers(getName());
         builder.accept(new TypedVisitor<DeploymentConfigSpecBuilder>() {
             @Override
             public void visit(DeploymentConfigSpecBuilder builder) {

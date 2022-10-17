@@ -24,7 +24,6 @@ import java.util.Optional;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -88,6 +87,8 @@ import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.Doc
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestampFile;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.updateResourceConfigNamespace;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.handleExceptionAndSummary;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.printSummaryIfLastExecuting;
 import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAULT_LOG_PREFIX;
 
 public abstract class AbstractDockerMojo extends AbstractMojo
@@ -450,26 +451,26 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                     .dockerServiceHub(DockerServiceHub.newInstance(log, dockerAccess, logOutputSpecFactory))
                     .buildServiceConfig(buildServiceConfigBuilder().build())
                     .offline(offline)
+                    .summaryEnabled(summaryEnabled)
                     .build();
                 resolvedImages = ConfigHelper.initImageConfiguration(apiVersion, getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), images, imageConfigResolver, log, filter, this, jkubeServiceHub.getConfiguration());
-                SummaryUtil.initSummary(javaProject.getBuildDirectory(), log);
-                SummaryUtil.setSuccessful(true);
+                jkubeServiceHub.getSummaryService().setSuccessful(true);
+                jkubeServiceHub.getSummaryService().setActionType("Goals");
+                jkubeServiceHub.getSummaryService().addToActions(String.format("%s\b%s", getLogPrefix(), mojoExecution.getGoal()));
                 executeInternal();
             } catch (IOException | DependencyResolutionRequiredException exp) {
                 logException(exp);
-                SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, exp.getMessage(), () -> new MojoExecutionException(exp.getMessage()));
+                handleExceptionAndSummary(jkubeServiceHub, exp);
+                throw new MojoExecutionException(exp.getMessage());
             } catch (MojoExecutionException exp) {
                 logException(exp);
-                SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, exp.getMessage(), () -> exp);
-            } finally {
-                Optional.ofNullable(jkubeServiceHub).ifPresent(JKubeServiceHub::close);
+                handleExceptionAndSummary(jkubeServiceHub, exp);
+                throw exp;
             }
         } finally {
-            String lastExecutingGoal = MavenUtil.getLastExecutingGoal(session, getLogPrefix().trim());
-            if (lastExecutingGoal != null && lastExecutingGoal.equals(mojoExecution.getGoal())) {
-                SummaryUtil.printSummary(javaProject.getBaseDirectory(), summaryEnabled);
-                SummaryUtil.clear();
-            }
+            printSummaryIfLastExecuting(jkubeServiceHub, mojoExecution.getGoal(),
+                MavenUtil.getLastExecutingGoal(session, getLogPrefix().trim()));
+            Optional.ofNullable(jkubeServiceHub).ifPresent(JKubeServiceHub::close);
             Ansi.setEnabled(ansiRestore);
         }
     }
@@ -626,7 +627,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             log.info("Building Docker image in [[B]]Kubernetes[[B]] mode");
         }
         try {
-            return GeneratorManager.generate(configs, generatorContextBuilder().build(), false);
+            return GeneratorManager.generate(configs, generatorContextBuilder().build(), false, jkubeServiceHub.getSummaryService());
         } catch (DependencyResolutionRequiredException de) {
             throw new IllegalArgumentException("Instructed to use project classpath, but cannot. Continuing build if we can: ", de);
         }
@@ -653,6 +654,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 .images(getResolvedImages())
                 .resources(resources)
                 .log(log)
+                .summaryService(jkubeServiceHub.getSummaryService())
                 .build();
     }
 

@@ -22,7 +22,6 @@ import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 import org.apache.commons.lang3.StringUtils;
@@ -87,7 +86,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
         try {
             if (getContext().getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES)) {
                 Properties properties = SpringBootUtil.getSpringBootApplicationProperties(getContext().getProjectClassLoaders().getCompileClassLoader());
-                SummaryUtil.addToEnrichers(getName());
+                getContext().getSummaryService().addToEnrichers(getName());
                 return buildProbe(properties, initialDelay, period, timeout, failureTh, successTh);
             }
         } catch (Exception ex) {

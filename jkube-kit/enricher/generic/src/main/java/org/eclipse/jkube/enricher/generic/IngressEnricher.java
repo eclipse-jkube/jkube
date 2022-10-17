@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.enricher.generic.ingress.ExtensionsV1beta1IngressConverter;
 import org.eclipse.jkube.enricher.generic.ingress.NetworkingV1IngressGenerator;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.IngressConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
 import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
@@ -82,7 +81,7 @@ public class IngressEnricher extends BaseEnricher implements ServiceExposer {
                     }
                     HasMetadata generatedIngress = generateIngressWithConfiguredApiVersion(serviceBuilder);
                     if (generatedIngress != null) {
-                        SummaryUtil.addToEnrichers(getName());
+                        getContext().getSummaryService().addToEnrichers(getName());
                         listBuilder.addToItems(generatedIngress);
                     }
                 }

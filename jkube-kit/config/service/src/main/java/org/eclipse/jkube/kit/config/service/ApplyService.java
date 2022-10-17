@@ -31,12 +31,12 @@ import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.client.dsl.base.PatchContext;
 import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.summary.KubernetesResourceSummary;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 
@@ -116,13 +116,15 @@ public class ApplyService {
     private boolean rollingUpgradePreserveScale = true;
     private boolean recreateMode;
     private final PatchService patchService;
+    private final SummaryService summaryService;
     // This map is to track projects created.
     private static final Set<String> projectsCreated = new HashSet<>();
 
-    public ApplyService(KubernetesClient kubernetesClient, KitLogger log) {
+    public ApplyService(KubernetesClient kubernetesClient, KitLogger log, SummaryService summaryService) {
         this.kubernetesClient = kubernetesClient;
         this.patchService = new PatchService(kubernetesClient, log);
         this.log = log;
+        this.summaryService = summaryService;
     }
 
     /**
@@ -1367,7 +1369,7 @@ public class ApplyService {
     public void applyEntities(String fileName, Collection<HasMetadata> entities, KitLogger serviceLogger,
                                  long serviceUrlWaitTimeSeconds) {
 
-        SummaryUtil.setAppliedClusterUrl(kubernetesClient.getMasterUrl().toString());
+        summaryService.setAppliedClusterUrl(kubernetesClient.getMasterUrl().toString());
         applyStandardEntities(fileName, getK8sListWithNamespaceFirst(entities));
     }
 
@@ -1389,7 +1391,7 @@ public class ApplyService {
     }
 
     private void addToAppliedResourcesSummary(HasMetadata h, String applicableNamespace) {
-        SummaryUtil.addAppliedKubernetesResource(KubernetesResourceSummary.builder()
+        summaryService.addAppliedKubernetesResource(KubernetesResourceSummary.builder()
                 .group(trimGroup(h.getApiVersion()))
                 .version(trimVersion(h.getApiVersion()))
                 .namespace(applicableNamespace)

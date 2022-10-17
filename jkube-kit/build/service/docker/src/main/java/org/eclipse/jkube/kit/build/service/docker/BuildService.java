@@ -30,12 +30,12 @@ import com.google.common.collect.ImmutableMap;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -69,14 +69,14 @@ public class BuildService {
      * @param configuration the project configuration
      * @throws IOException in case of any problems
      */
-    public void buildImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration)
+    public void buildImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration, SummaryService summaryService)
             throws IOException {
 
         if (imagePullManager != null) {
-            autoPullBaseImage(imageConfig, imagePullManager, configuration);
+            autoPullBaseImage(imageConfig, imagePullManager, configuration, summaryService);
         }
 
-        buildImage(imageConfig, configuration, checkForNocache(imageConfig), addBuildArgs(configuration));
+        buildImage(imageConfig, configuration, checkForNocache(imageConfig), addBuildArgs(configuration), summaryService);
     }
 
     public void tagImage(String imageName, ImageConfiguration imageConfig) throws DockerAccessException {
@@ -102,10 +102,12 @@ public class BuildService {
      * @param params mojo params for the project
      * @param noCache if not null, dictate the caching behaviour. Otherwise its taken from the build configuration
      * @param buildArgs maven build context
+     * @param summaryService {@link SummaryService}
      * @throws DockerAccessException docker access exception
      * @throws IOException in case of any I/O exception
      */
-    protected void buildImage(ImageConfiguration imageConfig, JKubeConfiguration params, boolean noCache, Map<String, String> buildArgs)
+    protected void buildImage(ImageConfiguration imageConfig, JKubeConfiguration params, boolean noCache
+                              , Map<String, String> buildArgs, SummaryService summaryService)
             throws IOException {
 
         String imageName = imageConfig.getName();
@@ -129,40 +131,22 @@ public class BuildService {
             return;
         }
 
-        File dockerArchive = archiveService.createArchive(imageName, buildConfig, params, log);
+        File dockerArchive = archiveService.createArchive(imageName, buildConfig, params, log, summaryService);
         log.info("%s: Created %s in %s", imageConfig.getDescription(), dockerArchive.getName(), EnvUtil.formatDurationTill(time));
 
         Map<String, String> mergedBuildMap = prepareBuildArgs(buildArgs, buildConfig);
-
         // auto is now supported by docker, consider switching?
         BuildOptions opts =
-                new BuildOptions(buildConfig.getBuildOptions())
-                        .dockerfile(getDockerfileName(buildConfig))
-                        .forceRemove(cleanupMode.isRemove())
-                        .noCache(noCache)
-                        .cacheFrom(buildConfig.getCacheFrom())
-                        .buildArgs(mergedBuildMap);
-        String newImageId = doBuildImage(imageName, dockerArchive, opts);
-        if (newImageId == null) {
-            throw new IllegalStateException("Failure in building image, unable to find image built with name " + imageName);
-        }
-        log.info("%s: Built image %s", imageConfig.getDescription(), newImageId);
-        SummaryUtil.setImageShaImageSummary(imageName, newImageId);
-
-        if (oldImageId != null && !oldImageId.equals(newImageId)) {
-            try {
-                docker.removeImage(oldImageId, true);
-                log.info("%s: Removed old image %s", imageConfig.getDescription(), oldImageId);
-            } catch (DockerAccessException exp) {
-                if (cleanupMode == CleanupMode.TRY_TO_REMOVE) {
-                    log.warn("%s: %s (old image)%s", imageConfig.getDescription(), exp.getMessage(),
-                            (exp.getCause() != null ? " [" + exp.getCause().getMessage() + "]" : ""));
-                } else {
-                    throw exp;
-                }
-            }
-        }
+            new BuildOptions(buildConfig.getBuildOptions())
+                .dockerfile(getDockerfileName(buildConfig))
+                .forceRemove(cleanupMode.isRemove())
+                .noCache(noCache)
+                .cacheFrom(buildConfig.getCacheFrom())
+                .buildArgs(mergedBuildMap);
+        String newImageId = buildNewImage(imageConfig, summaryService, imageName, dockerArchive, opts);
+        removeOldImage(imageConfig, oldImageId, cleanupMode, newImageId);
     }
+
 
     private Map<String, String> prepareBuildArgs(Map<String, String> buildArgs, BuildConfiguration buildConfig) {
         ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder().putAll(buildArgs);
@@ -245,7 +229,7 @@ public class BuildService {
         return buildArgs;
     }
 
-    private void autoPullBaseImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration)
+    private void autoPullBaseImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration, SummaryService summaryService)
             throws IOException {
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
@@ -266,7 +250,7 @@ public class BuildService {
         }
         for (String fromImage : fromImages) {
             if (fromImage != null && !AssemblyManager.SCRATCH_IMAGE.equals(fromImage)) {
-                SummaryUtil.setBaseImageNameImageSummary(imageConfig.getName(), fromImage);
+                summaryService.setBaseImageNameImageSummary(imageConfig.getName(), fromImage);
                 registryService.pullImageWithPolicy(fromImage, imagePullManager, configuration.getRegistryConfig(), buildConfig);
             }
         }
@@ -295,6 +279,33 @@ public class BuildService {
             BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
             return buildConfig.nocache();
         }
+    }
+
+    private void removeOldImage(ImageConfiguration imageConfig, String oldImageId, CleanupMode cleanupMode, String newImageId) throws DockerAccessException {
+        if (oldImageId != null && !oldImageId.equals(newImageId)) {
+            try {
+                docker.removeImage(oldImageId, true);
+                log.info("%s: Removed old image %s", imageConfig.getDescription(), oldImageId);
+            } catch (DockerAccessException exp) {
+                if (cleanupMode == CleanupMode.TRY_TO_REMOVE) {
+                    log.warn("%s: %s (old image)%s", imageConfig.getDescription(), exp.getMessage(),
+                        (exp.getCause() != null ? " [" + exp.getCause().getMessage() + "]" : ""));
+                } else {
+                    throw exp;
+                }
+            }
+        }
+    }
+
+    private String buildNewImage(ImageConfiguration imageConfig, SummaryService summaryService, String imageName, File dockerArchive, BuildOptions opts) throws DockerAccessException {
+
+        String newImageId = doBuildImage(imageName, dockerArchive, opts);
+        if (newImageId == null) {
+            throw new IllegalStateException("Failure in building image, unable to find image built with name " + imageName);
+        }
+        log.info("%s: Built image %s", imageConfig.getDescription(), newImageId);
+        summaryService.setImageShaImageSummary(imageName, newImageId);
+        return newImageId;
     }
 
     private boolean isEmpty(String str) {

@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugins.annotations.Component;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -21,7 +22,6 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 
@@ -39,6 +39,7 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
@@ -47,6 +48,9 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.updateResourceConfigNamespace;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.handleExceptionAndSummary;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.printSummary;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.printSummaryIfLastExecuting;
 
 public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLoggerProvider {
 
@@ -118,13 +122,14 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
             }
             executeInternal();
         } catch (DependencyResolutionRequiredException e) {
-            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, e.getMessage(), () -> new MojoFailureException(e.getMessage()));
+            handleExceptionAndSummary(jkubeServiceHub, e);
+            throw new MojoFailureException(e.getMessage());
+        } catch (KubernetesClientException kubernetesClientException) {
+            IllegalStateException illegalStateException = KubernetesResourceUtil.handleKubernetesClientException(kubernetesClientException, this.log, jkubeServiceHub.getSummaryService());
+            printSummary(jkubeServiceHub);
+            throw illegalStateException;
         } finally {
-            String lastExecutingGoal = MavenUtil.getLastExecutingGoal(session, getLogPrefix().trim());
-            if (lastExecutingGoal != null && lastExecutingGoal.equals(mojoExecution.getGoal())) {
-                SummaryUtil.printSummary(javaProject.getBaseDirectory(), summaryEnabled);
-                SummaryUtil.clear();
-            }
+            printSummaryIfLastExecuting(jkubeServiceHub, mojoExecution.getGoal(), MavenUtil.getLastExecutingGoal(session, getLogPrefix().trim()));
         }
     }
 
@@ -134,8 +139,9 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         jkubeServiceHub = initJKubeServiceHubBuilder(javaProject).build();
         resources = updateResourceConfigNamespace(namespace, resources);
-        SummaryUtil.initSummary(javaProject.getBuildDirectory(), log);
-        SummaryUtil.setSuccessful(true);
+        jkubeServiceHub.getSummaryService().setSuccessful(true);
+        jkubeServiceHub.getSummaryService().setActionType("Goals");
+        jkubeServiceHub.getSummaryService().addToActions(String.format("%s\b%s", getLogPrefix(), mojoExecution.getGoal()));
     }
 
     protected boolean shouldSkip() {
@@ -192,6 +198,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
                 .build())
             .clusterAccess(clusterAccess)
             .offline(offline)
+            .summaryEnabled(summaryEnabled)
             .platformMode(getRuntimeMode());
     }
 

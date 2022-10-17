@@ -28,6 +28,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Singular;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -73,13 +74,15 @@ public class JKubeEnricherContext implements EnricherContext {
     private HandlerHub handlerHub;
     @Getter(AccessLevel.NONE)
     private JKubeBuildStrategy jKubeBuildStrategy;
+    private SummaryService summaryService;
 
 
     @Builder(toBuilder = true)
     public JKubeEnricherContext(
         @Singular  List<RegistryServerConfiguration> settings, @Singular Map<String, String> processingInstructions,
         JavaProject project, KitLogger log,
-        ResourceConfig resources, @Singular List<ImageConfiguration> images, ProcessorConfig processorConfig, JKubeBuildStrategy jKubeBuildStrategy) {
+        ResourceConfig resources, @Singular List<ImageConfiguration> images, ProcessorConfig processorConfig,
+        JKubeBuildStrategy jKubeBuildStrategy, SummaryService summaryService) {
         this.settings = settings;
         this.processingInstructions = processingInstructions;
         this.project = project;
@@ -88,6 +91,7 @@ public class JKubeEnricherContext implements EnricherContext {
         this.images = images;
         this.processorConfig = processorConfig;
         this.handlerHub = new HandlerHub(getGav(), getProperties());
+        this.summaryService = summaryService;
         this.configuration = Configuration.builder()
             .images(images)
             .resource(resources)

@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -36,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 
@@ -48,18 +50,22 @@ class WriteUtilTest {
 
   private KubernetesListBuilder klb;
   private File resourceFileBase;
+  private SummaryService summaryService;
 
   @BeforeEach
   void initGlobalVariables()  {
     log = new KitLogger.SilentLogger();
+    summaryService = mock(SummaryService.class);
     resourceUtil = mockStatic(ResourceUtil.class);
     klb = new KubernetesListBuilder();
     resourceFileBase = temporaryFolder;
   }
+
   @AfterEach
   public void close() {
     resourceUtil.close();
   }
+
   @Test
   void writeResource() throws IOException {
     // Given
@@ -88,7 +94,7 @@ class WriteUtilTest {
   @Test
   void writeResourcesIndividualAndCompositeWithNoResourcesShouldOnlyWriteComposite() throws IOException {
     // When
-    WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
+    WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log, summaryService);
     // Then
     verifyResourceUtilSave(resourceFileBase);
   }
@@ -102,7 +108,7 @@ class WriteUtilTest {
       new SecretBuilder().withNewMetadata().withName(" ").endMetadata().build()
     );
     // When
-    WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
+    WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log, summaryService);
     // Then
     verifyResourceUtilSave(resourceFileBase);
     verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"));
@@ -120,7 +126,7 @@ class WriteUtilTest {
         genericCustomResource("CustomResourceOfKind3")
     );
     // When
-    WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
+    WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log, summaryService);
     // Then
     verifyResourceUtilSave(resourceFileBase);
     verifyResourceUtilSave(new File(resourceFileBase, "cm-1-configmap"));

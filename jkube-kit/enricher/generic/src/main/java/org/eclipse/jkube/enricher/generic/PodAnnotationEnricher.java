@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import org.eclipse.jkube.kit.common.util.MapUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
@@ -48,7 +47,7 @@ public class PodAnnotationEnricher extends BaseEnricher {
                         template.setMetadata(new ObjectMeta());
                     }
                     final ObjectMeta templateMetadata = template.getMetadata();
-                    SummaryUtil.addToEnrichers(getName());
+                    getContext().getSummaryService().addToEnrichers(getName());
                     templateMetadata.setAnnotations(MapUtil.mergeMaps(templateMetadata.getAnnotations(), item.getMetadata().getAnnotations()));
                 }
             }

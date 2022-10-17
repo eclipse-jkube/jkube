@@ -157,7 +157,7 @@ class JibBuildServiceTest {
         // Given
         File projectBaseDir = Files.createDirectory(temporaryFolder.resolve("test")).toFile();
         // When
-        File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir), mockedLogger);
+        File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir), mockedLogger, mockedServiceHub.getSummaryService());
         // Then
         assertThat(tarArchive).isNotNull()
             .isEqualTo(projectBaseDir.toPath().resolve("target").resolve("test").resolve("testimage").resolve("0.0.1")
@@ -178,7 +178,7 @@ class JibBuildServiceTest {
         // When
         new JibBuildService(mockedServiceHub).push(Collections.emptyList(), 1, null, false);
         // Then
-        jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(any(), any(), any(), eq(mockedLogger)), times(0));
+        jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(any(), any(), any(), eq(mockedLogger), any()), times(0));
     }
 
     @Test
@@ -187,7 +187,7 @@ class JibBuildServiceTest {
             // When
             new JibBuildService(mockedServiceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
             // Then
-            jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(eq(imageConfiguration), eq(Credential.from("testuserpush", "testpass")), any(), eq(mockedLogger)), times(1));
+            jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(eq(imageConfiguration), eq(Credential.from("testuserpush", "testpass")), any(), eq(mockedLogger), any()), times(1));
         }
     }
 
@@ -204,7 +204,7 @@ class JibBuildServiceTest {
         // When
         new JibBuildService(mockedServiceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
         // Then
-        jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(any(), any(), any(), any()), times(0));
+        jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(any(), any(), any(), any(), any()), times(0));
     }
 
     @Test

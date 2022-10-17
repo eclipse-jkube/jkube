@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -138,7 +137,7 @@ public class ServiceDiscoveryEnricher extends BaseEnricher {
                 annotations.put(PREFIX + "/" + ANNOTATION_DESCRIPTION_PATH, resolvedDescriptionPath);
             }
             annotations.forEach((key, value) -> log.info("Add %s annotation: \"%s\" : \"%s\"", PREFIX, key, value));
-            SummaryUtil.addToEnrichers(getName());
+            getContext().getSummaryService().addToEnrichers(getName());
             serviceBuilder.editMetadata().addToAnnotations(annotations).and().buildMetadata();
         }
     }

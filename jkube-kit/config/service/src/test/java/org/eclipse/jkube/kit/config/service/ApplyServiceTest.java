@@ -35,6 +35,7 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -60,10 +61,12 @@ import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 @EnableKubernetesMockClient
 class ApplyServiceTest {
     private KitLogger log;
+    private SummaryService summaryService;
 
     KubernetesMockServer mockServer;
     OpenShiftClient client;
@@ -73,7 +76,8 @@ class ApplyServiceTest {
     @BeforeEach
     void setUp() {
         log = new KitLogger.SilentLogger();
-        applyService = new ApplyService(client, log);
+        summaryService = mock(SummaryService.class);
+        applyService = new ApplyService(client, log, summaryService);
         applyService.setNamespace("default");
     }
 

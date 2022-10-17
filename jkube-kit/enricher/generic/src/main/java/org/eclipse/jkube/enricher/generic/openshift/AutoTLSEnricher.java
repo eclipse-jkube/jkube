@@ -26,7 +26,6 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -81,7 +80,7 @@ public class AutoTLSEnricher extends BaseEnricher {
             return;
         }
 
-        SummaryUtil.addToEnrichers(getName());
+        getContext().getSummaryService().addToEnrichers(getName());
         builder.accept(new TypedVisitor<PodTemplateSpecBuilder>() {
             @Override
             public void visit(PodTemplateSpecBuilder builder) {

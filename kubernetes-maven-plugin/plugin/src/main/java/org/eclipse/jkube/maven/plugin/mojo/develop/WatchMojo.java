@@ -28,7 +28,6 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
@@ -52,6 +51,8 @@ import org.eclipse.jkube.watcher.api.WatcherManager;
 
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.handleExceptionAndSummary;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.printSummary;
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
 
 
@@ -113,11 +114,12 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                 context);
 
         } catch (KubernetesClientException ex) {
-            KubernetesResourceUtil.handleKubernetesClientException(ex, this.log, summaryEnabled);
+            IllegalStateException exception = KubernetesResourceUtil.handleKubernetesClientException(ex, this.log, jkubeServiceHub.getSummaryService());
+            printSummary(jkubeServiceHub);
+            throw exception;
         } catch (Exception ex) {
-            SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled,
-                ex.getMessage(),
-                () -> new MojoExecutionException("An error has occurred while while trying to watch the resources", ex));
+            handleExceptionAndSummary(jkubeServiceHub, ex);
+            throw new MojoExecutionException("An error has occurred while while trying to watch the resources", ex);
         }
     }
 

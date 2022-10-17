@@ -17,7 +17,6 @@ import java.util.function.Function;
 
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 import org.eclipse.jkube.quarkus.QuarkusUtils;
@@ -86,7 +85,7 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         if (!getContext().hasDependency(QUARKUS_GROUP_ID, "quarkus-smallrye-health")) {
             return null;
         }
-        SummaryUtil.addToEnrichers(getName());
+        getContext().getSummaryService().addToEnrichers(getName());
         return new ProbeBuilder()
             .withNewHttpGet()
               .withNewPort(asInteger(getConfig(Config.PORT)))

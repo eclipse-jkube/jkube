@@ -27,7 +27,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.common.util.IoUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -63,7 +62,7 @@ public class OpenShiftBuildServiceUtils {
     final ArchiverCustomizer customizer = createS2IArchiveCustomizer(jKubeServiceHub.getBuildServiceConfig(), imageConfig);
     try {
       return jKubeServiceHub.getDockerServiceHub().getArchiveService()
-          .createDockerBuildArchive(imageConfig, jKubeServiceHub.getConfiguration(), customizer);
+          .createDockerBuildArchive(imageConfig, jKubeServiceHub.getConfiguration(), customizer, jKubeServiceHub.getSummaryService());
     } catch (IOException e) {
       throw new JKubeServiceException("Unable to create the build archive", e);
     }
@@ -124,7 +123,7 @@ public class OpenShiftBuildServiceUtils {
     final String fromNamespace = getMapValueWithDefault(fromExt, JKubeBuildStrategy.SourceStrategy.namespace,
         IMAGE_STREAM_TAG.equals(fromKind) ? "openshift" : null);
     if (osBuildStrategy == JKubeBuildStrategy.docker) {
-      SummaryUtil.setBuildStrategy("Cluster Docker");
+      jKubeServiceHub.getSummaryService().setBuildStrategy("Cluster Docker");
       BuildStrategy buildStrategy = new BuildStrategyBuilder()
           .withType("Docker")
           .withNewDockerStrategy()
@@ -143,7 +142,7 @@ public class OpenShiftBuildServiceUtils {
       }
       return buildStrategy;
     } else if (osBuildStrategy == JKubeBuildStrategy.s2i) {
-      SummaryUtil.setBuildStrategy("Cluster S2I");
+      jKubeServiceHub.getSummaryService().setBuildStrategy("Cluster S2I");
       BuildStrategy buildStrategy = new BuildStrategyBuilder()
           .withType("Source")
           .withNewSourceStrategy()

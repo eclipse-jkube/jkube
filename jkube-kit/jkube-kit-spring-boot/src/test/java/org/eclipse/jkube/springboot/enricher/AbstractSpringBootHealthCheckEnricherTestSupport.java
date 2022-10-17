@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.Probe;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -60,6 +61,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     @BeforeEach
     void init(@TempDir Path project) throws IOException {
         projectClassLoaders = mock(ProjectClassLoaders.class, RETURNS_DEEP_STUBS);
+        SummaryService summaryService = mock(SummaryService.class);
         context = spy(JKubeEnricherContext.builder()
           .log(new KitLogger.SilentLogger())
           .project(JavaProject.builder()
@@ -73,6 +75,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
                 .version(getSpringBootVersion())
               .build()))
             .build())
+          .summaryService(summaryService)
           .processorConfig(new ProcessorConfig())
           .build());
         when(context.getProjectClassLoaders()).thenReturn(projectClassLoaders);

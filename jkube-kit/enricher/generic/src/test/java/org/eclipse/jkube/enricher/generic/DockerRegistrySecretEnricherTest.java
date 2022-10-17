@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
@@ -30,6 +31,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,9 +47,11 @@ class DockerRegistrySecretEnricherTest {
 
     @BeforeEach
     void setupExpectations() {
+        KitLogger kitLogger = new KitLogger.SilentLogger();
         context = JKubeEnricherContext.builder()
-          .log(new KitLogger.SilentLogger())
+          .log(kitLogger)
           .project(JavaProject.builder().build())
+          .summaryService(new SummaryService(new File("target"), kitLogger, false))
           .setting(RegistryServerConfiguration.builder()
             .configuration(new HashMap<>())
             .id("docker.io")

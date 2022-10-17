@@ -158,6 +158,32 @@ class MavenUtilTest {
     assertThat(plugins.get(1).getExecutions()).isEqualTo(Arrays.asList("resource", "build", "helm"));
   }
 
+  @Test
+  void getLastExecutingGoal_whenSessionReturnsGoalsList_thenLastExecutingGoalReturned() {
+    // Given
+    MavenSession mavenSession = mock(MavenSession.class);
+    when(mavenSession.getGoals()).thenReturn(Arrays.asList("clean", "k8s:build", "k8s:resource"));
+
+    // When
+    String lastExecutingGoal = MavenUtil.getLastExecutingGoal(mavenSession, "k8s:");
+
+    // Then
+    assertThat(lastExecutingGoal).isEqualTo("resource");
+  }
+
+  @Test
+  void getLastExecutingGoal_whenSessionReturnsEmptyList_thenNullReturned() {
+    // Given
+    MavenSession mavenSession = mock(MavenSession.class);
+    when(mavenSession.getGoals()).thenReturn(Collections.emptyList());
+
+    // When
+    String lastExecutingGoal = MavenUtil.getLastExecutingGoal(mavenSession, "k8s:");
+
+    // Then
+    assertThat(lastExecutingGoal).isNull();
+  }
+
   private MavenProject getMavenProject() {
     mavenProject = new MavenProject();
     File baseDir = new File("test-project-base-dir");

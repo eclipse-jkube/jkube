@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
 import org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo;
 
@@ -29,6 +28,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.handleExceptionAndSummary;
 import static org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo.DEFAULT_KUBERNETES_MANIFEST;
 
 /**
@@ -71,7 +71,8 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
     try {
       undeploy();
     } catch (IOException ex) {
-      SummaryUtil.setFailureIfSummaryEnabledOrThrow(summaryEnabled, ex.getMessage(), () -> new MojoExecutionException(ex.getMessage(), ex));
+      handleExceptionAndSummary(jkubeServiceHub, ex);
+      throw new MojoExecutionException(ex.getMessage(), ex);
     }
   }
 

@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
@@ -63,7 +62,7 @@ public class WebAppHealthCheckEnricher extends AbstractHealthCheckEnricher {
             return null;
         }
 
-        SummaryUtil.addToEnrichers(getName());
+        getContext().getSummaryService().addToEnrichers(getName());
         Integer port = getPort();
         String scheme = getScheme().toUpperCase();
         String path = getPath();

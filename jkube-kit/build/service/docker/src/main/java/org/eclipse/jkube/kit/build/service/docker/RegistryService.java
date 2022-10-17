@@ -21,8 +21,8 @@ import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.service.SummaryService;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -54,7 +54,7 @@ public class RegistryService {
      * @throws IOException exception
      */
     public void pushImage(ImageConfiguration imageConfig,
-                          int retries, RegistryConfig registryConfig, boolean skipTag) throws IOException {
+                          int retries, RegistryConfig registryConfig, boolean skipTag, SummaryService summaryService) throws IOException {
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
         String name = imageConfig.getName();
         if (buildConfig != null) {
@@ -65,7 +65,7 @@ public class RegistryService {
                 registryConfig.getRegistry());
 
 
-            SummaryUtil.setPushRegistry(Optional.ofNullable(configuredRegistry).orElse("docker.io"));
+            summaryService.setPushRegistry(Optional.ofNullable(configuredRegistry).orElse("docker.io"));
             AuthConfig authConfig = createAuthConfig(true, new ImageName(name).getUser(), configuredRegistry, registryConfig);
 
             long start = System.currentTimeMillis();

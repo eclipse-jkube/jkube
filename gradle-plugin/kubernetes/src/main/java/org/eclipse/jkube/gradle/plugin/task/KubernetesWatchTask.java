@@ -23,7 +23,6 @@ import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
@@ -38,6 +37,8 @@ import java.util.List;
 
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.applicableNamespace;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.handleExceptionAndSummary;
+import static org.eclipse.jkube.kit.config.service.kubernetes.SummaryServiceUtil.printSummary;
 
 public class KubernetesWatchTask extends AbstractJKubeTask {
   @Inject
@@ -69,11 +70,12 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
             resources,
             context);
       } catch (KubernetesClientException kubernetesClientException) {
-        KubernetesResourceUtil.handleKubernetesClientException(kubernetesClientException, kitLogger, kubernetesExtension.getSummaryEnabledOrDefault());
+        IllegalStateException illegalStateException = KubernetesResourceUtil.handleKubernetesClientException(kubernetesClientException, kitLogger, jKubeServiceHub.getSummaryService());
+        printSummary(jKubeServiceHub);
+        throw illegalStateException;
       } catch (Exception ioException) {
-        SummaryUtil.setFailureIfSummaryEnabledOrThrow(kubernetesExtension.getSummaryEnabledOrDefault(),
-            ioException.getMessage(),
-            () -> new IllegalStateException("An error has occurred while while trying to watch the resources", ioException));
+        handleExceptionAndSummary(jKubeServiceHub, ioException);
+        throw new IllegalStateException("An error has occurred while while trying to watch the resources", ioException);
       }
     }
   }

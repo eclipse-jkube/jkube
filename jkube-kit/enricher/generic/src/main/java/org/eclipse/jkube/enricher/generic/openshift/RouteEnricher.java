@@ -17,7 +17,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.openshift.api.model.RouteSpec;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.common.util.SummaryUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -82,7 +81,7 @@ public class RouteEnricher extends BaseEnricher implements ServiceExposer {
         }
 
         if(platformMode == PlatformMode.openshift && isGenerateRoute()) {
-            SummaryUtil.addToEnrichers(getName());
+            getContext().getSummaryService().addToEnrichers(getName());
             listBuilder.accept(new TypedVisitor<ServiceBuilder>() {
 
                 @Override
