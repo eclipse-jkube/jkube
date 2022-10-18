@@ -33,11 +33,11 @@ import org.junit.Test;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
+import static org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnricher.REQUIRED_CLASSES;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -561,10 +561,9 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     public void testDefaultInitialDelayForLivenessAndReadiness() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         withProjectProperties(new Properties());
-        when(projectClassLoaders.isClassInCompileClasspath(any(),any())).thenReturn(true);
-        when(context.getProjectClassLoaders()).thenReturn(new ProjectClassLoaders(
-                new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())));
-
+        when(context.getProjectClassLoaders()).thenReturn(projectClassLoaders);
+        when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES)).thenReturn(true);
+        when(projectClassLoaders.getCompileClassLoader()).thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
         Probe probe = enricher.getReadinessProbe();
         assertNotNull(probe);
         assertEquals(10, probe.getInitialDelaySeconds().intValue());
@@ -584,9 +583,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         enricherConfig.put("timeoutSeconds", "120");
 
         final ProcessorConfig config = new ProcessorConfig(null,null, globalConfig);
+        when(context.getProjectClassLoaders()).thenReturn(projectClassLoaders);
+        when(projectClassLoaders.getCompileClassLoader())
+            .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
+        when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES)).thenReturn(true);
         when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
-        when(context.getProjectClassLoaders()).thenReturn(new ProjectClassLoaders(
-                        new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())));
         withProjectProperties(new Properties());
 
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
@@ -615,10 +616,10 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         enricherConfig.put("livenessProbePeriodSeconds", "50");
 
         final ProcessorConfig config = new ProcessorConfig(null,null, globalConfig);
-        when(projectClassLoaders.isClassInCompileClasspath((Boolean) any(),(Object) any())).thenReturn(true);
+        when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES)).thenReturn(true);
+        when(projectClassLoaders.getCompileClassLoader()).thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
+        when(context.getProjectClassLoaders()).thenReturn(projectClassLoaders);
         when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
-        when(context.getProjectClassLoaders()).thenReturn(new ProjectClassLoaders(
-                new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())));
         withProjectProperties(new Properties());
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
 
