@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.eclipse.jkube.kit.config.image.ImageName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -25,6 +26,7 @@ import java.util.Properties;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -33,6 +35,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
  */
 class ImageNameFormatterTest {
     private JavaProject project;
+
     private ImageNameFormatter formatter;
 
     @BeforeEach
@@ -113,6 +116,95 @@ class ImageNameFormatterTest {
     }
 
     @Test
+    void snapshotVersion() {
+        project.setArtifactId("kubernetes-maven-plugin");
+        project.setGroupId("org.eclipse.jkube");
+        project.setVersion("1.2.3-SNAPSHOT");
+        project.setProperties(new Properties());
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:latest")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-SNAPSHOT")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .matches("^jkube/kubernetes-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}$")
+            .satisfies(ImageNameFormatterTest::validImageName);
+    }
+
+    @Test
+    void snapshotVersionWithSemVerBuildmetadata() {
+        project.setArtifactId("kubernetes-maven-plugin");
+        project.setGroupId("org.eclipse.jkube");
+        project.setVersion("1.2.3-SNAPSHOT+semver.build_meta-data");
+        project.setProperties(new Properties());
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:latest-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-SNAPSHOT-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .matches("^jkube/kubernetes-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}-semver\\.build_meta-data$")
+            .satisfies(ImageNameFormatterTest::validImageName);
+    }
+
+    @Test
+    void plusSubstitute() {
+        final Properties properties = new Properties();
+        properties.put(ImageNameFormatter.SEMVER_PLUS_SUBSTITUTION, "_");
+        project.setArtifactId("kubernetes-maven-plugin");
+        project.setGroupId("org.eclipse.jkube");
+        project.setVersion("1.2.3+semver.build_meta-data");
+        project.setProperties(properties);
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3_semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3_semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3_semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+    }
+
+    @Test
+    void plusSubstituteIsPlus() {
+        final Properties properties = new Properties();
+        properties.put(ImageNameFormatter.SEMVER_PLUS_SUBSTITUTION, "+");
+        project.setArtifactId("kubernetes-maven-plugin");
+        project.setGroupId("org.eclipse.jkube");
+        project.setVersion("1.2.3+semver.build_meta-data");
+        project.setProperties(properties);
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+    }
+
+    @Test
+    void releaseVersion() {
+        project.setArtifactId("kubernetes-maven-plugin");
+        project.setGroupId("org.eclipse.jkube");
+        project.setVersion("1.2.3");
+        project.setProperties(new Properties());
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3")
+            .satisfies(ImageNameFormatterTest::validImageName);
+    }
+
+    @Test
     void groupIdWithProperty() {
         // Given
         project.getProperties().put("jkube.image.user","this.it..is");
@@ -130,5 +222,9 @@ class ImageNameFormatterTest {
         final String result = formatter.format("registry.gitlab.com/myproject/myrepo/mycontainer:${git.commit.id.abbrev}");
         // Then
         assertThat(result).isEqualTo("registry.gitlab.com/myproject/myrepo/mycontainer:der12");
+    }
+
+    private static void validImageName(String v) {
+        assertThatCode(() -> ImageName.validate(v)).doesNotThrowAnyException();
     }
 }
