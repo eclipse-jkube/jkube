@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.10-SNAPSHOT
+* Fix #1860: Add compatibility with SemVer versions
 
 ### 1.9.1 (2022-09-14)
 * Fix #1747: Apply service doesn't attempt to create OpenShift Projects in Kubernetes clusters

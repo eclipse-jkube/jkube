@@ -13,13 +13,13 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 
-import com.google.common.base.Strings;
-import org.eclipse.jkube.kit.common.JavaProject;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.google.common.base.Strings;
+import org.eclipse.jkube.kit.common.JavaProject;
 
 /**
  * Replace placeholders in an image name with certain properties found in the
@@ -35,6 +35,15 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
      * Used with format modifier %g
      */
     public static final String DOCKER_IMAGE_USER = "jkube.image.user";
+    /**
+     * Property to lookup the replacement symbol for SemVer's '+', which is not allowed
+     * in the tag component of a complete container name.
+     */
+    public static final String SEMVER_PLUS_SUBSTITUTION = "jkube.image.tag.semver_plus_substitution";
+    /**
+     * Default value when {@link ImageNameFormatter#SEMVER_PLUS_SUBSTITUTION} is undefined.
+     */
+    public static final String DEFAULT_SEMVER_PLUS_SUBSTITUTE = "-";
 
 
     private final FormatParameterReplacer formatParamReplacer;
@@ -86,6 +95,10 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
 
         protected String getProperty(String key) {
             return project.getProperties().getProperty(key);
+        }
+
+        protected String getProperty(String key, String defaultValue) {
+            return project.getProperties().getProperty(key, defaultValue);
         }
     }
 
@@ -150,30 +163,84 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
         }
 
         public String lookup() {
-            String tag = getProperty(DOCKER_IMAGE_TAG);
-            if (!Strings.isNullOrEmpty(tag)) {
-                return tag;
+            final String userProvidedTag = getProperty(DOCKER_IMAGE_TAG);
+            if (!Strings.isNullOrEmpty(userProvidedTag)) {
+                return userProvidedTag;
             }
 
-            tag = project.getVersion();
-            if (mode != Mode.PLAIN) {
-                if (tag.endsWith("-SNAPSHOT")) {
-                    if (mode == Mode.SNAPSHOT_WITH_TIMESTAMP) {
-                        tag = "snapshot-" + new SimpleDateFormat("yyMMdd-HHmmss-SSSS").format(now);
-                    } else if (mode == Mode.SNAPSHOT_LATEST) {
-                        tag = "latest";
-                    }
-                }
+            String plusSubstitute = getProperty(SEMVER_PLUS_SUBSTITUTION, "-").trim();
+            if ("+".equals(plusSubstitute)) {
+                plusSubstitute = DEFAULT_SEMVER_PLUS_SUBSTITUTE;
             }
-            return tag;
+
+            String tag = generateTag(plusSubstitute);
+            return sanitizeTag(tag, plusSubstitute);
+        }
+
+        private String generateTag(String plusSubstitute) {
+            final String version = project.getVersion();
+            if (mode == Mode.PLAIN) {
+                return version;
+            }
+
+            final String prerelease;
+            final String buildmetadata;
+
+            final int indexOfPlus = version.indexOf('+');
+            if (indexOfPlus >= 0) {
+                prerelease = version.substring(0, indexOfPlus);
+                buildmetadata = plusSubstitute + version.substring(indexOfPlus + 1); // '+' is not allowed in a container tag
+            } else {
+                prerelease = version;
+                buildmetadata = "";
+            }
+
+            if (!prerelease.endsWith("-SNAPSHOT")) {
+                return version;
+            }
+
+            switch (mode) {
+            case SNAPSHOT_WITH_TIMESTAMP:
+                return "snapshot-" + new SimpleDateFormat("yyMMdd-HHmmss-SSSS").format(now) + buildmetadata;
+            case SNAPSHOT_LATEST:
+                return "latest" + buildmetadata;
+            default:
+                throw new IllegalStateException("mode is '" + mode.name() + "', which is not implemented.");
+            }
+        }
+
+        private static String sanitizeTag(String tagName, String plusSubstitute) {
+            StringBuilder ret = new StringBuilder(tagName.length());
+
+            for (char c : tagName.toCharArray()) {
+                final boolean wordCharacter = Character.isLetterOrDigit(c) || '_' == c; // matches '\w'
+                if (wordCharacter || '.' == c) {
+                    ret.append(c);
+                    continue;
+                }
+
+                if ('-' == c) {
+                    ret.append(c);
+                    continue;
+                }
+
+                if ('+' == c) {
+                    ret.append(plusSubstitute);
+                    continue;
+                }
+
+                ret.append('-');
+            }
+
+            return ret.length() <= 127 ? ret.toString() : ret.substring(0, 128);
         }
     }
 
     // ==========================================================================================
 
-    // See also ImageConfiguration#doValidate()
+    // See also ImageName#doValidate()
     private static String sanitizeName(String name) {
-        StringBuilder ret = new StringBuilder();
+        StringBuilder ret = new StringBuilder(name.length());
         int underscores = 0;
         boolean lastWasADot = false;
         for (char c : name.toCharArray()) {

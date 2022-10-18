@@ -17,12 +17,14 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Tested;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.ImageName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
@@ -35,7 +37,7 @@ class ImageNameFormatterTest {
     private JavaProject project;
 
     @Injectable
-    private Date now = new Date();
+    final private Date now = new Date();
 
     @Tested
     private ImageNameFormatter formatter;
@@ -103,20 +105,87 @@ class ImageNameFormatterTest {
     }
 
     @Test
-    void tag() {
+    void snapshotVersion() {
         new Expectations() {{
             project.getArtifactId(); result = "docker-maven-plugin";
             project.getGroupId(); result = "io.fabric8";
             project.getVersion(); result = "1.2.3-SNAPSHOT";
             project.getProperties(); result = new Properties();
         }};
-        assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:latest");
-        assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3-SNAPSHOT");
-        assertThat(formatter.format("%g/%a:%t")).matches(".*snapshot-[\\d-]+$");
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("fabric8/docker-maven-plugin:latest")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3-SNAPSHOT")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .matches("^fabric8/docker-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}$")
+            .satisfies(ImageNameFormatterTest::validImageName);
     }
 
     @Test
-    void nonSnapshotArtifact() {
+    void snapshotVersionWithSemVerBuildmetadata() {
+        new Expectations() {{
+            project.getArtifactId(); result = "docker-maven-plugin";
+            project.getGroupId(); result = "io.fabric8";
+            project.getVersion(); result = "1.2.3-SNAPSHOT+semver.build_meta-data";
+            project.getProperties(); result = new Properties();
+        }};
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("fabric8/docker-maven-plugin:latest-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3-SNAPSHOT-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .matches("^fabric8/docker-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}-semver\\.build_meta-data$")
+            .satisfies(ImageNameFormatterTest::validImageName);
+    }
+
+    @Test
+    void plusSubstitute() {
+        final Properties properties = new Properties();
+        properties.put(ImageNameFormatter.SEMVER_PLUS_SUBSTITUTION, "_");
+        new Expectations() {{
+            project.getArtifactId(); result = "docker-maven-plugin";
+            project.getGroupId(); result = "io.fabric8";
+            project.getVersion(); result = "1.2.3+semver.build_meta-data";
+            project.getProperties(); result = properties;
+        }};
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3_semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3_semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3_semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+    }
+
+    @Test
+    void plusSubstituteIsPlus() {
+        final Properties properties = new Properties();
+        properties.put(ImageNameFormatter.SEMVER_PLUS_SUBSTITUTION, "+");
+        new Expectations() {{
+            project.getArtifactId(); result = "docker-maven-plugin";
+            project.getGroupId(); result = "io.fabric8";
+            project.getVersion(); result = "1.2.3+semver.build_meta-data";
+            project.getProperties(); result = properties;
+        }};
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3-semver.build_meta-data")
+            .satisfies(ImageNameFormatterTest::validImageName);
+    }
+
+    @Test
+    void releaseVersion() {
         new Expectations() {{
             project.getArtifactId(); result = "docker-maven-plugin";
             project.getGroupId(); result = "io.fabric8";
@@ -124,9 +193,15 @@ class ImageNameFormatterTest {
             project.getProperties(); result = new Properties();
         }};
 
-        assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
-        assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
-        assertThat(formatter.format("%g/%a:%t")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
+        assertThat(formatter.format("%g/%a:%l"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%v"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3")
+            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format("%g/%a:%t"))
+            .isEqualTo("fabric8/docker-maven-plugin:1.2.3")
+            .satisfies(ImageNameFormatterTest::validImageName);
     }
 
     @Test
@@ -143,5 +218,9 @@ class ImageNameFormatterTest {
         final String result = formatter.format("%g/name");
         // Then
         assertThat(result).isEqualTo("this.it..is/name");
+    }
+
+    private static void validImageName(String v) {
+        assertThatCode(() -> ImageName.validate(v)).doesNotThrowAnyException();
     }
 }
