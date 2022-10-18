@@ -30,10 +30,15 @@ import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -48,14 +53,16 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
     protected SpringBootConfigurationHelper propertyHelper;
 
+    protected ProjectClassLoaders projectClassLoaders;
+
     @Before
     public void init() {
-        context = mock(JKubeEnricherContext.class);
+        projectClassLoaders = mock(ProjectClassLoaders.class);
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
         String version = getSpringBootVersion();
         this.propertyHelper = new SpringBootConfigurationHelper(Optional.of(version));
         when(context.getDependencyVersion(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID)).thenReturn(Optional.of(version));
     }
-
     protected abstract String getSpringBootVersion();
 
     @Test
@@ -554,6 +561,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     public void testDefaultInitialDelayForLivenessAndReadiness() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         withProjectProperties(new Properties());
+        when(projectClassLoaders.isClassInCompileClasspath(any(),any())).thenReturn(true);
         when(context.getProjectClassLoaders()).thenReturn(new ProjectClassLoaders(
                 new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())));
 
@@ -607,6 +615,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         enricherConfig.put("livenessProbePeriodSeconds", "50");
 
         final ProcessorConfig config = new ProcessorConfig(null,null, globalConfig);
+        when(projectClassLoaders.isClassInCompileClasspath((Boolean) any(),(Object) any())).thenReturn(true);
         when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
         when(context.getProjectClassLoaders()).thenReturn(new ProjectClassLoaders(
                 new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader())));
@@ -625,11 +634,9 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     private void withProjectProperties(final Properties properties) {
-        new MockUp<SpringBootUtil>() {
-            @Mock
-            public Properties getSpringBootApplicationProperties(URLClassLoader urlClassLoader) {
-                return properties;
-            }
-        };
+        try (MockedStatic<SpringBootUtil> mockStatic = Mockito.mockStatic(SpringBootUtil.class)) {
+            mockStatic.when(()-> SpringBootUtil.getSpringBootApplicationProperties(any())).thenReturn(properties);
+        }
+
     }
 }
