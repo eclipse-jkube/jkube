@@ -32,6 +32,7 @@ Usage:
 * Fix #2290: JKube is not picking docker credentials from `~/.docker/config.json` file
 * Fix #2293: JibServiceUtil pushes separate images for additional tags specified in build configuration
 * Fix #2299: Gradle v8.x compatibility
+* Fix #2301: Add compatibility with SemVer versions
 * Fix #2302 Bump Kubernetes Client version to 6.8.0
 
 ### 1.13.1 (2023-06-16)
@@ -501,4 +502,5 @@ Only the set of documented features are available to users.
 
 ### 0.1.0 (2019-12-19)
 * Initial release
+
 
