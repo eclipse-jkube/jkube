@@ -12,9 +12,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,18 +19,22 @@ import org.junit.jupiter.api.Test;
 
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AwsSdkAuthConfigFactoryTest {
-    @Mocked
+
     private KitLogger log;
 
-    @Mocked
     private AwsSdkHelper awsSdkHelper;
 
     private AwsSdkAuthConfigFactory objectUnderTest;
 
     @BeforeEach
     void setup() {
+        log = mock(KitLogger.SilentLogger.class);
+        awsSdkHelper = mock(AwsSdkHelper.class);
         objectUnderTest = new AwsSdkAuthConfigFactory(log, awsSdkHelper);
     }
 
@@ -49,15 +50,9 @@ class AwsSdkAuthConfigFactoryTest {
         String accessKey = randomUUID().toString();
         String secretKey = randomUUID().toString();
         Object credentials = new Object();
-        new Expectations() {{
-            awsSdkHelper.getCredentialsFromDefaultAWSCredentialsProviderChain();
-            result = credentials;
-            awsSdkHelper.getAWSAccessKeyIdFromCredentials(any);
-            result = accessKey;
-            awsSdkHelper.getAwsSecretKeyFromCredentials(any);
-            result = secretKey;
-        }};
-
+        when(awsSdkHelper.getCredentialsFromDefaultAWSCredentialsProviderChain()).thenReturn(credentials);
+        when(awsSdkHelper.getAWSAccessKeyIdFromCredentials(any())).thenReturn(accessKey);
+        when(awsSdkHelper.getAwsSecretKeyFromCredentials(any())).thenReturn(secretKey);
         AuthConfig authConfig = objectUnderTest.createAuthConfig();
 
         assertThat(authConfig).isNotNull()
@@ -73,16 +68,10 @@ class AwsSdkAuthConfigFactoryTest {
         String secretKey = randomUUID().toString();
         String sessionToken = randomUUID().toString();
         Object credentials = new Object();
-        new Expectations() {{
-            awsSdkHelper.getCredentialsFromDefaultAWSCredentialsProviderChain();
-            result = credentials;
-            awsSdkHelper.getAWSAccessKeyIdFromCredentials(any);
-            result = accessKey;
-            awsSdkHelper.getAwsSecretKeyFromCredentials(any);
-            result = secretKey;
-            awsSdkHelper.getSessionTokenFromCrendentials(any);
-            result = sessionToken;
-        }};
+        when(awsSdkHelper.getCredentialsFromDefaultAWSCredentialsProviderChain()).thenReturn(credentials);
+        when(awsSdkHelper.getAWSAccessKeyIdFromCredentials(any())).thenReturn(accessKey);
+        when(awsSdkHelper.getAwsSecretKeyFromCredentials(any())).thenReturn(secretKey);
+        when(awsSdkHelper.getSessionTokenFromCrendentials(any())).thenReturn(sessionToken);
         AuthConfig authConfig = objectUnderTest.createAuthConfig();
 
         assertThat(authConfig).isNotNull()

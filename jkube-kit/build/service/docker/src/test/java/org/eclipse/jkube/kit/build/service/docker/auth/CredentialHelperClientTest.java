@@ -15,18 +15,17 @@ package org.eclipse.jkube.kit.build.service.docker.auth;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class CredentialHelperClientTest {
     private final Gson gson = new Gson();
 
-    @Mocked
     private KitLogger logger;
 
     private CredentialHelperClient credentialHelperClient;
@@ -37,6 +36,7 @@ class CredentialHelperClientTest {
 
     @BeforeEach
     void givenCredentialHelperClient() {
+        logger = mock(KitLogger.SilentLogger.class);
         this.credentialHelperClient = new CredentialHelperClient(logger, "desktop");
     }
 

@@ -29,26 +29,25 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author roland
  */
 class DockerRegistryAuthHandlerTest {
-
-  @Mocked
   private KitLogger log;
 
   private DockerRegistryAuthHandler handler;
 
   @BeforeEach
   void setup() {
+    log = mock(KitLogger.SilentLogger.class);
     handler = new DockerRegistryAuthHandler(log);
   }
 

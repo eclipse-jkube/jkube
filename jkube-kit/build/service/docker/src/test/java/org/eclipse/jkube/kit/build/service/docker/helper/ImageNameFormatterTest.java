@@ -12,10 +12,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
-
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Tested;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.jupiter.api.Test;
 
@@ -24,24 +20,22 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  */
-@SuppressWarnings({"ResultOfMethodCallIgnored", "unused"})
 class ImageNameFormatterTest {
-
-    @Injectable
     private JavaProject project;
-
-    @Injectable
     private Date now = new Date();
-
-    @Tested
     private ImageNameFormatter formatter;
 
     @Test
     void simple() {
+        //formatter = injectMock(ImageNameFormatter.class);
+        project = mock(JavaProject.class);
+        now = mock(Date.class);
         assertThat(formatter.format("bla")).isEqualTo("bla");
     }
 
@@ -65,13 +59,9 @@ class ImageNameFormatterTest {
         };
 
         for (int i = 0; i < data.length; i+=2) {
-
             final int finalI = i;
-            new Expectations() {{
-                project.getProperties(); result = new Properties();
-                project.getGroupId(); result = data[finalI];
-            }};
-
+            when(project.getProperties()).thenReturn(new Properties());
+            when(project.getGroupId()).thenReturn(data[finalI]);
             String value = formatter.format("%g");
             assertThat(value).as("Idx. " + i / 2).isEqualTo(data[i+1]);
         }
@@ -79,10 +69,7 @@ class ImageNameFormatterTest {
 
     @Test
     void artifact() {
-        new Expectations() {{
-            project.getArtifactId(); result = "Docker....Maven.....Plugin";
-        }};
-
+        when(project.getArtifactId()).thenReturn("Docker....Maven.....Plugin");
         assertThat(formatter.format("--> %a <--")).isEqualTo("--> docker.maven.plugin <--");
     }
 
@@ -91,11 +78,7 @@ class ImageNameFormatterTest {
         // Given
         final Properties props = new Properties();
         props.put("jkube.image.tag","1.2.3");
-        // @formatter:off
-        new Expectations() {{
-            project.getProperties(); result = props;
-        }};
-        // @formatter:on
+        when(project.getProperties()).thenReturn(props);
         // When
         final String result = formatter.format("%t");
         // Then
@@ -104,12 +87,10 @@ class ImageNameFormatterTest {
 
     @Test
     void tag() {
-        new Expectations() {{
-            project.getArtifactId(); result = "docker-maven-plugin";
-            project.getGroupId(); result = "io.fabric8";
-            project.getVersion(); result = "1.2.3-SNAPSHOT";
-            project.getProperties(); result = new Properties();
-        }};
+        when(project.getArtifactId()).thenReturn("docker-maven-plugin");
+        when(project.getGroupId()).thenReturn("io.fabric8");
+        when(project.getVersion()).thenReturn("1.2.3-SNAPSHOT");
+        when(project.getProperties()).thenReturn(new Properties());
         assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:latest");
         assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3-SNAPSHOT");
         assertThat(formatter.format("%g/%a:%t")).matches(".*snapshot-[\\d-]+$");
@@ -117,13 +98,10 @@ class ImageNameFormatterTest {
 
     @Test
     void nonSnapshotArtifact() {
-        new Expectations() {{
-            project.getArtifactId(); result = "docker-maven-plugin";
-            project.getGroupId(); result = "io.fabric8";
-            project.getVersion(); result = "1.2.3";
-            project.getProperties(); result = new Properties();
-        }};
-
+        when(project.getArtifactId()).thenReturn("docker-maven-plugin");
+        when(project.getGroupId()).thenReturn("io.fabric8");
+        when(project.getVersion()).thenReturn("1.2.3");
+        when(project.getProperties()).thenReturn(new Properties());
         assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
         assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
         assertThat(formatter.format("%g/%a:%t")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
@@ -134,11 +112,7 @@ class ImageNameFormatterTest {
         // Given
         Properties props = new Properties();
         props.put("jkube.image.user","this.it..is");
-        // @formatter:off
-        new Expectations() {{
-            project.getProperties(); result = props;
-        }};
-        // @formatter:on
+        when(project.getProperties()).thenReturn(props);
         // When
         final String result = formatter.format("%g/name");
         // Then

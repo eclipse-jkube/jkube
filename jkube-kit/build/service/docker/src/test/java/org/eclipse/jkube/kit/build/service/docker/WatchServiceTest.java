@@ -23,33 +23,33 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
-
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class WatchServiceTest {
-    @Mocked
+
     ArchiveService archiveService;
 
-    @Mocked
     BuildService buildService;
 
-    @Mocked
     QueryService queryService;
 
-    @Mocked
     RunService runService;
 
-    @Mocked
     KitLogger logger;
 
     private ImageConfiguration imageConfiguration;
 
     @BeforeEach
     void setUp() {
+        archiveService = mock(ArchiveService.class);
+        buildService = mock(BuildService.class);
+        queryService = mock(QueryService.class);
+        runService = mock(RunService.class);
+        logger = mock(KitLogger.SilentLogger.class);
         imageConfiguration = ImageConfiguration.builder()
                 .name("test-app")
                 .watch(WatchImageConfiguration.builder()

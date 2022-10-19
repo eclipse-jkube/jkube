@@ -22,9 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -39,15 +36,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.config.image.build.BuildConfiguration.DEFAULT_CLEANUP;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  * @since 05/12/14
  */
 
-@SuppressWarnings({"unchecked", "ResultOfMethodCallIgnored", "unused"})
 class PropertyConfigHandlerTest {
-    @Mocked
     private JavaProject javaProject;
 
     private PropertyConfigHandler configHandler;
@@ -56,6 +53,7 @@ class PropertyConfigHandlerTest {
 
     @BeforeEach
     void setUp() {
+        javaProject = mock(JavaProject.class);
         configHandler = new PropertyConfigHandler();
         imageConfiguration = buildAnUnresolvedImage();
     }
@@ -459,11 +457,8 @@ class PropertyConfigHandlerTest {
     private List<ImageConfiguration> resolveImage(ImageConfiguration image, final Properties properties) {
         //MavenProject project = mock(MavenProject.class);
         //when(project.getProperties()).thenReturn(properties);
-        new Expectations() {{
-            javaProject.getProperties(); result = properties;
-            javaProject.getBaseDirectory(); minTimes = 0; maxTimes = 1; result = new File("./");
-        }};
-
+        when(javaProject.getProperties()).thenReturn(properties);
+        when(javaProject.getBaseDirectory()).thenReturn(new File("./"));
         return configHandler.resolve(image, javaProject);
     }
 

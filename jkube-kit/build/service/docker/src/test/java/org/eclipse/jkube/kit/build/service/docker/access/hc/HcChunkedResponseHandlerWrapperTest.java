@@ -16,32 +16,33 @@ package org.eclipse.jkube.kit.build.service.docker.access.hc;
 import java.io.IOException;
 
 import org.eclipse.jkube.kit.build.service.docker.access.chunked.EntityStreamReaderUtil;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.message.BasicHeader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-@SuppressWarnings("unused")
-class HcChunkedResponseHandlerWrapperTest {
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-  @Mocked
+class HcChunkedResponseHandlerWrapperTest {
   private EntityStreamReaderUtil.JsonEntityResponseHandler handler;
-  @Mocked
+
   private HttpResponse response;
-  @Mocked
+
   private EntityStreamReaderUtil entityStreamReaderUtil;
 
-  private Header[] headers;
   private HcChunkedResponseHandlerWrapper hcChunkedResponseHandlerWrapper;
 
   @BeforeEach
   void setUp() {
     hcChunkedResponseHandlerWrapper = new HcChunkedResponseHandlerWrapper(handler);
+    handler = mock(EntityStreamReaderUtil.JsonEntityResponseHandler.class);
+    response = mock(HttpResponse.class);
+    entityStreamReaderUtil = mock(EntityStreamReaderUtil.class);
+
   }
 
   @Test
@@ -66,19 +67,11 @@ class HcChunkedResponseHandlerWrapperTest {
   }
 
   private void givenResponseHeaders(Header... headers) {
-    // @formatter:off
-    new Expectations() {{
-      response.getAllHeaders(); result = headers;
-    }};
-    // @formatter:on
+    when(response.getAllHeaders()).thenReturn(headers);
   }
 
   @SuppressWarnings("AccessStaticViaInstance")
   private void verifyProcessJsonStream(int timesCalled) throws IOException {
-    // @formatter:off
-    new Verifications() {{
-      entityStreamReaderUtil.processJsonStream(handler, response.getEntity().getContent()); times = timesCalled;
-    }};
-    // @formatter:on
+    verify(entityStreamReaderUtil,times(timesCalled)).processJsonStream(handler, response.getEntity().getContent());
   }
 }
