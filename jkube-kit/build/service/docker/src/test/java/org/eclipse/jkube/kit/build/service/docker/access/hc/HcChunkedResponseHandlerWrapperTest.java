@@ -21,10 +21,14 @@ import org.apache.http.HttpResponse;
 import org.apache.http.message.BasicHeader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HcChunkedResponseHandlerWrapperTest {
@@ -32,16 +36,16 @@ class HcChunkedResponseHandlerWrapperTest {
 
   private HttpResponse response;
 
-  private EntityStreamReaderUtil entityStreamReaderUtil;
+  private MockedStatic<EntityStreamReaderUtil> entityStreamReaderUtil;
 
   private HcChunkedResponseHandlerWrapper hcChunkedResponseHandlerWrapper;
 
   @BeforeEach
   void setUp() {
     hcChunkedResponseHandlerWrapper = new HcChunkedResponseHandlerWrapper(handler);
-    handler = mock(EntityStreamReaderUtil.JsonEntityResponseHandler.class);
-    response = mock(HttpResponse.class);
-    entityStreamReaderUtil = mock(EntityStreamReaderUtil.class);
+    handler = mock(EntityStreamReaderUtil.JsonEntityResponseHandler.class,RETURNS_DEEP_STUBS);
+    response = mock(HttpResponse.class,RETURNS_DEEP_STUBS);
+    entityStreamReaderUtil = mockStatic(EntityStreamReaderUtil.class);
 
   }
 
@@ -72,6 +76,6 @@ class HcChunkedResponseHandlerWrapperTest {
 
   @SuppressWarnings("AccessStaticViaInstance")
   private void verifyProcessJsonStream(int timesCalled) throws IOException {
-    verify(entityStreamReaderUtil,times(timesCalled)).processJsonStream(handler, response.getEntity().getContent());
+    entityStreamReaderUtil.verify(() -> EntityStreamReaderUtil.processJsonStream(any() ,response.getEntity().getContent()),times(timesCalled));
   }
 }

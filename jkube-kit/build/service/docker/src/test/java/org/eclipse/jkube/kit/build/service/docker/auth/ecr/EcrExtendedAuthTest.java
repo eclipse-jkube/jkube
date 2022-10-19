@@ -26,6 +26,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,9 +43,12 @@ import static org.mockito.Mockito.when;
 class EcrExtendedAuthTest {
     private KitLogger logger;
 
+    @BeforeEach
+    void setUp(){
+        logger = new KitLogger.SilentLogger();
+    }
     @Test
     void testIsNotAws() {
-        logger = mock(KitLogger.class);
         assertThat(new EcrExtendedAuth(logger, "jolokia").isAwsRegistry()).isFalse();
     }
 
@@ -80,8 +84,6 @@ class EcrExtendedAuthTest {
                                                    + "\"authorizationToken\": \"QVdTOnBhc3N3b3Jk\","
                                                    + "\"expiresAt\": 1448878779.809,"
                                                    + "\"proxyEndpoint\": \"https://012345678910.dkr.ecr.eu-west-1.amazonaws.com\"}]}");
-
-
         when(statusLine.getStatusCode()).thenReturn(200);
         when(closeableHttpResponse.getEntity()).thenReturn(entity);
         EcrExtendedAuth eea = new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com") {

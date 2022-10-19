@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.helper;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Date;
@@ -20,6 +21,7 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -31,11 +33,13 @@ class ImageNameFormatterTest {
     private Date now = new Date();
     private ImageNameFormatter formatter;
 
+    @BeforeEach
+    void setUp(){
+        project = mock(JavaProject.class,RETURNS_DEEP_STUBS);
+        formatter = new ImageNameFormatter(project,now);
+    }
     @Test
     void simple() {
-        //formatter = injectMock(ImageNameFormatter.class);
-        project = mock(JavaProject.class);
-        now = mock(Date.class);
         assertThat(formatter.format("bla")).isEqualTo("bla");
     }
 

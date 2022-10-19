@@ -129,11 +129,11 @@ class ApacheHttpClientDelegateTest {
     );
   }
 
-  private <H extends ResponseHandler> void verifyHttpClientExecute(BiConsumer<HttpUriRequest, H> consumer) throws IOException {
+  private <H extends ResponseHandler> void verifyHttpClientExecute(BiConsumer<HttpUriRequest, ResponseHandler> consumer) throws IOException {
     ArgumentCaptor<HttpUriRequest> httpUriRequestArgumentCaptor = ArgumentCaptor.forClass(HttpUriRequest.class);
-    //ArgumentCaptor<H> hArgumentCaptor = ArgumentCaptor.forClass(H.class);
-    //verify(httpClient).execute(httpUriRequestArgumentCaptor.capture(),hArgumentCaptor.capture());
-    //verify(consumer).accept(httpUriRequestArgumentCaptor.capture(),hArgumentCaptor.capture());
+    ArgumentCaptor<ResponseHandler> hArgumentCaptor = ArgumentCaptor.forClass(ResponseHandler.class);
+    verify(httpClient).execute(httpUriRequestArgumentCaptor.capture(),hArgumentCaptor.capture());
+    consumer.accept(httpUriRequestArgumentCaptor.getValue(),hArgumentCaptor.getValue());
   }
 
 }
