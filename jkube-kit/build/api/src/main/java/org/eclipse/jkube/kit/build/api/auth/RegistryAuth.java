@@ -45,7 +45,7 @@ public class RegistryAuth {
     private final String email;
     private final String auth;
 
-    private String authEncoded;
+    private final String authEncoded;
 
     @Builder
     public RegistryAuth(String username, String password, String email, String auth) {
