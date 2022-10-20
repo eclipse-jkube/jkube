@@ -32,8 +32,8 @@ class LocalServiceManager {
   private final List<LocalService> localServices;
 
   public LocalServiceManager(RemoteDevelopmentContext context) {
-    logger = context.getjKubeServiceHub().getLog();
-    kubernetesClient = context.getjKubeServiceHub().getClient();
+    logger = context.getLogger();
+    kubernetesClient = context.getKubernetesClient();
     localServices = context.getRemoteDevelopmentConfig().getLocalServices();
   }
 

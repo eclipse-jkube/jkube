@@ -42,8 +42,8 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
   private Pod sshService;
 
   KubernetesSshServiceForwarder(RemoteDevelopmentContext context) {
-    this.logger = context.getjKubeServiceHub().getLog();
-    this.kubernetesClient = context.getjKubeServiceHub().getClient();
+    this.logger = context.getLogger();
+    this.kubernetesClient = context.getKubernetesClient();
     this.context = context;
     stop = new AtomicBoolean(false);
   }

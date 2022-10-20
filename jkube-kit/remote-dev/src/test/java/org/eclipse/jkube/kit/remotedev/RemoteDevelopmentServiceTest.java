@@ -16,11 +16,7 @@ package org.eclipse.jkube.kit.remotedev;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,36 +27,25 @@ import static org.mockito.Mockito.verify;
 
 @EnableKubernetesMockClient(crud = true)
 class RemoteDevelopmentServiceTest {
-  private static JKubeServiceHub jKubeServiceHub;
   @SuppressWarnings("unused")
   private KubernetesMockServer mockServer;
   @SuppressWarnings("unused")
   private KubernetesClient kubernetesClient;
+  private KitLogger logger;
 
   @BeforeEach
   void setUp() {
     mockServer.reset();
-    jKubeServiceHub = JKubeServiceHub.builder()
-      .platformMode(RuntimeMode.KUBERNETES)
-      .log(spy(new KitLogger.StdoutLogger()))
-      .configuration(JKubeConfiguration.builder().build())
-      .clusterAccess(new ClusterAccess(null, null) {
-        @SuppressWarnings("unchecked")
-        @Override
-        public KubernetesClient createDefaultClient() {
-          return kubernetesClient;
-        }
-      })
-      .build();
+    logger = spy(new KitLogger.StdoutLogger());
   }
 
   @Test
   @DisplayName("service can be stopped before it is started")
   void canBeStoppedBeforeStart() {
     // When
-    new RemoteDevelopmentService(jKubeServiceHub, RemoteDevelopmentConfig.builder().build()).stop();
+    new RemoteDevelopmentService(logger, kubernetesClient, RemoteDevelopmentConfig.builder().build()).stop();
     // Then
-    verify(jKubeServiceHub.getLog()).info("Remote development service stopped");
+    verify(logger).info("Remote development service stopped");
   }
 
   @Test
@@ -68,11 +53,11 @@ class RemoteDevelopmentServiceTest {
   void canBeStoppedMultipleTimesBeforeStart() {
     // Given
     final RemoteDevelopmentService remoteDev = new RemoteDevelopmentService(
-      jKubeServiceHub, RemoteDevelopmentConfig.builder().build());
+      logger, kubernetesClient,  RemoteDevelopmentConfig.builder().build());
     remoteDev.stop();
     // When
     remoteDev.stop();
     // Then
-    verify(jKubeServiceHub.getLog(), times(2)).info("Remote development service stopped");
+    verify(logger, times(2)).info("Remote development service stopped");
   }
 }
