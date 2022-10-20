@@ -35,7 +35,7 @@ public class RegistryAuthConfig {
 
     private boolean skipExtendedAuthentication = false;
 
-    private String propertyPrefix;
+    private final String propertyPrefix;
 
     @Builder
     public RegistryAuthConfig(
