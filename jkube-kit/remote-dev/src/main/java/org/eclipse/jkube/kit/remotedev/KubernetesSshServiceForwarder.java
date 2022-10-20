@@ -56,11 +56,12 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
         context.reset();
         sshService = deploySshServerPod();
       }
-      logger.info("Waiting for Pod [%s] to be ready...", sshService.getMetadata().getName());
+      logger.info("Waiting for JKube remote development Pod [%s] to be ready...",
+        sshService.getMetadata().getName());
       kubernetesClient.pods().resource(sshService).waitUntilReady(10, TimeUnit.SECONDS);
-      logger.info("Pod [%s] is ready", sshService.getMetadata().getName());
+      logger.info("JKube remote development Pod [%s] is ready", sshService.getMetadata().getName());
       context.setUser(waitForUser());
-      logger.info("Opening remote-development connection to Kubernetes: %s:%s%n",
+      logger.info("Opening remote development connection to Kubernetes: %s:%s%n",
         sshService.getMetadata().getName(), context.getSshPort());
       try (LocalPortForward localPortForward = kubernetesClient.pods().resource(sshService)
         .portForward(CONTAINER_SSH_PORT, allInterfaces, context.getSshPort())) {
@@ -76,14 +77,14 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
 
   final void stop() {
     if (sshService != null) {
-      logger.info("Removing Pod [%s]...", sshService.getMetadata().getName());
+      logger.info("Removing JKube remote development Pod [%s]...", sshService.getMetadata().getName());
       kubernetesClient.pods().withName(sshService.getMetadata().getName()).delete();
     }
     stop.set(true);
   }
 
   private Pod deploySshServerPod() {
-    final String name = "openssh-server-" + UUID.randomUUID();
+    final String name = "jkube-remote-dev-" + UUID.randomUUID();
     final PodBuilder pod = new PodBuilder()
       .withNewMetadata()
       .withName(name)
@@ -123,7 +124,7 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
 
   private boolean shouldRestart(Pod sshService, LocalPortForward localPortForward) {
     if (kubernetesClient.pods().resource(sshService).fromServer().get() == null) {
-      logger.warn("Kubernetes tunneling service Pod is gone, recreating");
+      logger.warn("JKube remote development Pod is gone, recreating");
       return true;
     }
     if (localPortForward.errorOccurred()) {
