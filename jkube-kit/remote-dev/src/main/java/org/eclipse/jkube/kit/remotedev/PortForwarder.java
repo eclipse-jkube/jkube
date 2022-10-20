@@ -64,7 +64,7 @@ class PortForwarder implements Callable<Void> {
           Arrays.asList(ClientSession.ClientSessionEvent.CLOSED, ClientSession.ClientSessionEvent.TIMEOUT),
           Duration.ofHours(1));
       } catch (Exception ex) {
-        logger.warn("SSH session disconnected, retrying in 5 seconds: %s", ex.getMessage());
+        logger.warn("JKube remote development session disconnected, retrying in 5 seconds: %s", ex.getMessage());
       }
       if (stop.get()) {
         sshClient.stop();
@@ -116,7 +116,7 @@ class PortForwarder implements Callable<Void> {
       session.startLocalPortForwarding(
         remoteService.getLocalPort(), new SshdSocketAddress(remoteService.getHostname(), remoteService.getPort()));
       logger.info("Kubernetes Service %s:%s is now available at local port %s",
-        remoteService.getHostname(), remoteService.getPort(), remoteService.getPort());
+        remoteService.getHostname(), remoteService.getPort(), remoteService.getLocalPort());
     }
   }
 
@@ -126,7 +126,7 @@ class PortForwarder implements Callable<Void> {
         new SshdSocketAddress("", localService.getPort()),
         new SshdSocketAddress("localhost", localService.getPort()) // Extremely important for quarkus:dev
       );
-      logger.info("Local port '%s' is now available at Kubernetes %s:%s",
+      logger.info("Local port '%s' is now available as a Kubernetes Service at %s:%s",
         localService.getPort(), localService.getServiceName(), localService.getPort());
     }
   }

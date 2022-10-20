@@ -70,7 +70,7 @@ class LocalServiceManager {
   }
 
   public void tearDownServices() {
-    logger.debug("Tearing down Kubernetes services");
+    logger.debug("Tearing down Kubernetes services for exposed ports from local environment");
     for (LocalService localService : localServices) {
       final Service service = kubernetesClient.services().withName(localService.getServiceName()).get();
       if (service != null && service.getMetadata().getAnnotations().get(PREVIOUS_SERVICE_ANNOTATION) != null) {
