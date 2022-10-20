@@ -19,12 +19,11 @@ import org.eclipse.jkube.kit.build.service.docker.access.chunked.EntityStreamRea
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.message.BasicHeader;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -42,11 +41,15 @@ class HcChunkedResponseHandlerWrapperTest {
 
   @BeforeEach
   void setUp() {
-    hcChunkedResponseHandlerWrapper = new HcChunkedResponseHandlerWrapper(handler);
     handler = mock(EntityStreamReaderUtil.JsonEntityResponseHandler.class,RETURNS_DEEP_STUBS);
     response = mock(HttpResponse.class,RETURNS_DEEP_STUBS);
     entityStreamReaderUtil = mockStatic(EntityStreamReaderUtil.class);
+    hcChunkedResponseHandlerWrapper = new HcChunkedResponseHandlerWrapper(handler);
+  }
 
+  @AfterEach
+  void tearDown() {
+    entityStreamReaderUtil.close();
   }
 
   @Test
@@ -74,8 +77,7 @@ class HcChunkedResponseHandlerWrapperTest {
     when(response.getAllHeaders()).thenReturn(headers);
   }
 
-  @SuppressWarnings("AccessStaticViaInstance")
-  private void verifyProcessJsonStream(int timesCalled) throws IOException {
-    entityStreamReaderUtil.verify(() -> EntityStreamReaderUtil.processJsonStream(any() ,response.getEntity().getContent()),times(timesCalled));
+  private void verifyProcessJsonStream(int timesCalled) {
+    entityStreamReaderUtil.verify(() -> EntityStreamReaderUtil.processJsonStream(handler, response.getEntity().getContent()), times(timesCalled));
   }
 }

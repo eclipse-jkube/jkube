@@ -30,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,13 +78,15 @@ class EcrExtendedAuthTest {
     @Test
     void testClientClosedAndCredentialsDecoded()
         throws IOException, IllegalStateException {
-         final CloseableHttpClient closeableHttpClient = mock(CloseableHttpClient.class);
-         final CloseableHttpResponse closeableHttpResponse = mock(CloseableHttpResponse.class);
-         final StatusLine statusLine = mock(StatusLine.class);
+        final CloseableHttpClient closeableHttpClient = mock(CloseableHttpClient.class);
+        final CloseableHttpResponse closeableHttpResponse = mock(CloseableHttpResponse.class);
+        final StatusLine statusLine = mock(StatusLine.class);
         final HttpEntity entity = new StringEntity("{\"authorizationData\": [{"
                                                    + "\"authorizationToken\": \"QVdTOnBhc3N3b3Jk\","
                                                    + "\"expiresAt\": 1448878779.809,"
                                                    + "\"proxyEndpoint\": \"https://012345678910.dkr.ecr.eu-west-1.amazonaws.com\"}]}");
+        when(closeableHttpClient.execute(any())).thenReturn(closeableHttpResponse);
+        when(closeableHttpResponse.getStatusLine()).thenReturn(statusLine);
         when(statusLine.getStatusCode()).thenReturn(200);
         when(closeableHttpResponse.getEntity()).thenReturn(entity);
         EcrExtendedAuth eea = new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com") {
