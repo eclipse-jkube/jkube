@@ -18,6 +18,8 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -30,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 public class DefaultServiceEnricherAddMissingPartsTest {
 
   private Properties properties;
@@ -58,7 +61,8 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().build());
+        new ServiceBuilder()
+            .withMetadata(createDefaultFragmentMetadata()).build());
     // When
     enricher.create(null, klb);
     // Then
@@ -76,7 +80,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().addNewPort()
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().addNewPort()
             .withProtocol("TCP").withPort(1337).endPort().endSpec().build());
     // When
     enricher.create(null, klb);
@@ -95,7 +99,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().withClusterIP("1.3.3.7").endSpec().build());
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().withClusterIP("1.3.3.7").endSpec().build());
     properties.put("jkube.enricher.jkube-service.type", "NodePort");
     // When
     enricher.create(null, klb);
@@ -111,7 +115,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().withType("LoadBalancer").endSpec().build());
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().withType("LoadBalancer").endSpec().build());
     properties.put("jkube.enricher.jkube-service.type", "NodePort");
     // When
     enricher.create(null, klb);
@@ -126,7 +130,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     properties.put("jkube.enricher.jkube-service.headless", "true");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().withType("LoadBalancer").endSpec().build());
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().withType("LoadBalancer").endSpec().build());
     // When
     enricher.create(null, klb);
     // Then
@@ -140,7 +144,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     properties.put("jkube.enricher.jkube-service.headless", "true");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().withClusterIP("1.3.3.7").endSpec().build());
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().withClusterIP("1.3.3.7").endSpec().build());
     // When
     enricher.create(null, klb);
     // Then
@@ -152,5 +156,9 @@ public class DefaultServiceEnricherAddMissingPartsTest {
   private void imageConfigurationWithPort(String... ports) {
     enricher.getContext().getConfiguration().getImages().get(0)
       .setBuild(BuildConfiguration.builder().ports(Arrays.asList(ports)).build());
+  }
+
+  private ObjectMeta createDefaultFragmentMetadata() {
+    return new ObjectMetaBuilder().withName("artifact-id").build();
   }
 }
