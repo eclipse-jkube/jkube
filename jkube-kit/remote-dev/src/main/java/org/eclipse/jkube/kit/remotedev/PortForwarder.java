@@ -47,7 +47,7 @@ class PortForwarder implements Callable<Void> {
 
   PortForwarder(RemoteDevelopmentContext context) {
     this.context = context;
-    this.logger = context.getjKubeServiceHub().getLog();
+    this.logger = context.getLogger();
     stop = new AtomicBoolean(false);
   }
 

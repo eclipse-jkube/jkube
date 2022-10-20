@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.remotedev;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import java.net.ServerSocket;
 import java.util.Optional;
@@ -38,12 +37,12 @@ public class RemoteDevelopmentService {
   private final LocalServiceManager localServiceManager;
   private ExecutorService executorService;
 
-  public RemoteDevelopmentService(JKubeServiceHub jKubeServiceHub,
-    RemoteDevelopmentConfig remoteDevelopmentConfig // Should be provided by JKubeServiceHub
-  ) {
-    this.context = new RemoteDevelopmentContext(jKubeServiceHub, remoteDevelopmentConfig);
-    logger = jKubeServiceHub.getLog();
-    kubernetesClient = jKubeServiceHub.getClient();
+  public RemoteDevelopmentService(KitLogger logger, KubernetesClient kubernetesClient,
+    RemoteDevelopmentConfig remoteDevelopmentConfig
+  ) { // Should be provided by JKubeServiceHub (TODO: Create SPI)
+    this.context = new RemoteDevelopmentContext(logger, kubernetesClient, remoteDevelopmentConfig);
+    this.logger = logger;
+    this.kubernetesClient = kubernetesClient;
     kubernetesSshServiceForwarder = new KubernetesSshServiceForwarder(context);
     portForwarder = new PortForwarder(context);
     localServiceManager = new LocalServiceManager(context);

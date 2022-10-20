@@ -13,9 +13,11 @@
  */
 package org.eclipse.jkube.kit.remotedev;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
+import lombok.Getter;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.common.util.IoUtil;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -29,25 +31,27 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class RemoteDevelopmentContext {
 
-  private final JKubeServiceHub jKubeServiceHub;
+  @Getter
+  private final KitLogger logger;
+  @Getter
+  private final KubernetesClient kubernetesClient;
   private final RemoteDevelopmentConfig remoteDevelopmentConfig;
   private final AtomicInteger sshPort;
   private final AtomicReference<String> user;
   private final KeyPair clientKeys;
+  @Getter
   private final String sshRsaPublicKey;
 
-  public RemoteDevelopmentContext(JKubeServiceHub jKubeServiceHub, RemoteDevelopmentConfig remoteDevelopmentConfig) {
-    this.jKubeServiceHub = jKubeServiceHub;
+  public RemoteDevelopmentContext(
+    KitLogger kitLogger, KubernetesClient kubernetesClient, RemoteDevelopmentConfig remoteDevelopmentConfig) {
+    this.logger = Objects.requireNonNull(kitLogger, "KitLogger is required");
+    this.kubernetesClient = Objects.requireNonNull(kubernetesClient, "KubernetesClient is required");
     this.remoteDevelopmentConfig = Objects.requireNonNull(remoteDevelopmentConfig,
-      "remoteDevelopmentConfig is required");
+      "JKube's remoteDevelopmentConfig is required and should contain the definitions for local and remote services");
     sshPort = new AtomicInteger(-1);
     user = new AtomicReference<>();
     clientKeys = initClientKeys();
     sshRsaPublicKey = initSShRsaPublicKey(clientKeys);
-  }
-
-  JKubeServiceHub getjKubeServiceHub() {
-    return jKubeServiceHub;
   }
 
   RemoteDevelopmentConfig getRemoteDevelopmentConfig() {
@@ -73,10 +77,6 @@ public class RemoteDevelopmentContext {
 
   KeyPair getClientKeys() {
     return clientKeys;
-  }
-
-  String getSshRsaPublicKey() {
-    return sshRsaPublicKey;
   }
 
   private static KeyPair initClientKeys() {
