@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -231,7 +232,7 @@ public class PortForwardService {
         log.info("Now you can start a Remote debug session by using localhost and the debug port %s",
             localPort);
         log.info("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=%s", localPort);
-        new PortForwardTask(kubernetes, pod, localPortForward, log).run();
+        new PortForwardTask(kubernetes, pod, localPortForward, log, new CountDownLatch(1)).run();
     }
 
 }

@@ -39,11 +39,11 @@ import org.assertj.core.api.AbstractFileAssert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -61,8 +61,8 @@ class JibBuildServiceBuildIntegrationTest {
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
     projectRoot = temporaryFolder.toFile();
-    hub = mock(JKubeServiceHub.class);
-    log = mock(KitLogger.class);
+    hub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
+    log = new KitLogger.SilentLogger();
     imageConfiguration = ImageConfiguration.builder()
         .name("registry/image-name:tag")
         .build(BuildConfiguration.builder().build())

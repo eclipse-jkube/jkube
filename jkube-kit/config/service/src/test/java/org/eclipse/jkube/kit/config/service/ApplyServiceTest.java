@@ -54,7 +54,6 @@ import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import static java.net.HttpURLConnection.HTTP_CONFLICT;
 import static java.net.HttpURLConnection.HTTP_CREATED;
@@ -69,7 +68,6 @@ class ApplyServiceTest {
     KubernetesMockServer mockServer;
     OpenShiftClient client;
 
-   @Mock
    private ApplyService applyService;
 
     @BeforeEach

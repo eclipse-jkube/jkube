@@ -36,12 +36,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PortForwardPodWatcherTest {
 
-  @Mock
-  private KitLogger logger;
   private PortForwardPodWatcher portForwardPodWatcher;
 
   @BeforeEach
   void setUp() {
+    KitLogger logger = new KitLogger.SilentLogger();
     portForwardPodWatcher = new PortForwardPodWatcher(logger, Collections.singletonMap("SIMPLE_KEY", "1337"));
   }
 

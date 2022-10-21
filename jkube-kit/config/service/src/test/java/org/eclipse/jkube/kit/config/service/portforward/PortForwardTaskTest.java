@@ -17,49 +17,53 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import io.fabric8.kubernetes.client.Watch;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.client.LocalPortForward;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class PortForwardTaskTest {
-  @Mock
   private NamespacedKubernetesClient kubernetesClient;
-  @Mock
   private LocalPortForward localPortForward;
-  @Mock
-  private KitLogger logger;
+  private CountDownLatch mockedCountDownLatch;
   private PortForwardTask portForwardTask;
 
   @BeforeEach
   void setUp() {
+    localPortForward = mock(LocalPortForward.class);
+    mockedCountDownLatch = mock(CountDownLatch.class);
+    kubernetesClient = mock(NamespacedKubernetesClient.class);
     portForwardTask = new PortForwardTask(
-        kubernetesClient, "pod-name", localPortForward, logger);
+        kubernetesClient, "pod-name", localPortForward, new KitLogger.SilentLogger(), mockedCountDownLatch);
   }
 
   @Test
+  @SuppressWarnings({"rawtypes", "unchecked"})
   void run() throws Exception {
-    try (MockedConstruction<CountDownLatch> mc = mockConstruction(CountDownLatch.class)) {
-      // Given
-      // When
-      // Then
-      assertThat(mc.constructed()).hasSize(1);
-      verify(mc.constructed().iterator().next(), times(1)).await();
-      verify(localPortForward, times(1)).close();
-    }
+    // Given
+    MixedOperation mixedOperation = mock(MixedOperation.class);
+    Watch watch = mock(Watch.class);
+    when(kubernetesClient.pods()).thenReturn(mixedOperation);
+    when(mixedOperation.watch(any())).thenReturn(watch);
+
+    // When
+    portForwardTask.run();
+    // Then
+    verify(mockedCountDownLatch).await();
+    verify(localPortForward).close();
   }
 
   @Test
-  public void close() throws IOException {
-    // Given
+  void close() throws IOException {
     // When
     portForwardTask.close();
     // Then

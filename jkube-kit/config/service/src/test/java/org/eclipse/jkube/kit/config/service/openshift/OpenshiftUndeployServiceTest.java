@@ -17,7 +17,12 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
+import io.fabric8.kubernetes.client.GracePeriodConfigurable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.openshift.api.model.BuildConfigListBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -30,7 +35,6 @@ import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.BuildBuilder;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.BuildConfigBuilder;
-import io.fabric8.openshift.api.model.BuildConfigListBuilder;
 import io.fabric8.openshift.api.model.BuildListBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
@@ -44,43 +48,45 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.Answers;
-import org.mockito.Mock;
 import org.mockito.MockedStatic;
 
 import static io.fabric8.kubernetes.api.model.DeletionPropagation.BACKGROUND;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"unused"})
+@SuppressWarnings({"unused", "rawtypes", "unchecked"})
 class OpenshiftUndeployServiceTest {
 
   @TempDir
   File temporaryFolder;
-  @Mock
   private KitLogger logger;
-
-  @Mock(answer = Answers.RETURNS_DEEP_STUBS)
   private JKubeServiceHub jKubeServiceHub;
-
   private OpenShiftClient openShiftClient;
+  private MixedOperation mixedOperation;
+  private NonNamespaceOperation nonNamespaceOperation;
+  private NamespaceableResource mockedNamespaceableResource;
+  private Resource mockedResource;
+  private GracePeriodConfigurable mockedGracePeriodConfigurable;
   private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
   private OpenshiftUndeployService openshiftUndeployService;
 
   @BeforeEach
   void setUp() {
-    openShiftClient = mock(OpenShiftClient.class,RETURNS_DEEP_STUBS);
-    kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
-    when(jKubeServiceHub.getClient().adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
+    openShiftClient = mock(OpenShiftClient.class);
+    mixedOperation = mock(MixedOperation.class);
+    mockedResource = mock(Resource.class);
+    nonNamespaceOperation = mock(NonNamespaceOperation.class);
+    mockedNamespaceableResource = mock(NamespaceableResource.class);
+    mockedGracePeriodConfigurable = mock(GracePeriodConfigurable.class);
     final JKubeServiceHub jKubeServiceHub = mock(JKubeServiceHub.class);
-    openShiftClient = mock(OpenShiftClient.class, RETURNS_DEEP_STUBS);
-    when(jKubeServiceHub.getClient()).thenReturn(openShiftClient);
     kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
+    when(jKubeServiceHub.getClient()).thenReturn(openShiftClient);
+    when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
+    when(openShiftClient.isSupported()).thenReturn(true);
     openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, new KitLogger.SilentLogger());
   }
 
@@ -90,40 +96,17 @@ class OpenshiftUndeployServiceTest {
     kubernetesHelperMockedStatic.close();
   }
 
-  private void withLoadedEntities(HasMetadata... entities) {
-    kubernetesHelperMockedStatic.when(() -> KubernetesHelper.loadResources(any())).thenReturn(Arrays.asList(entities));
-  }
-
-  private void with(Build build, BuildConfig buildConfig) {
-    when(openShiftClient.builds().inNamespace(any()))
-        .thenReturn(mock(MixedOperation.class, RETURNS_DEEP_STUBS));
-    when(openShiftClient.builds().inNamespace(null).list())
-        .thenReturn(new BuildListBuilder().withItems(build).build());
-    when(openShiftClient.buildConfigs().inNamespace(any()))
-        .thenReturn(mock(MixedOperation.class, RETURNS_DEEP_STUBS));
-    when(openShiftClient.buildConfigs().inNamespace(null).list())
-        .thenReturn(new BuildConfigListBuilder().withItems(buildConfig).build());
-  }
-
-  private void assertDeleted(HasMetadata entity) {
-    verify(openShiftClient.resource(entity).inNamespace(null).withPropagationPolicy(BACKGROUND),
-        times(1)).delete();
-  }
-
-  private void assertDeleteCount(int totalDeletions) {
-    kubernetesHelperMockedStatic.verify(()-> KubernetesHelper.getKind(any()), times(totalDeletions));
-  }
-
   @Test
   void deleteWithKubernetesClient_shouldOnlyDeleteProvidedEntity() throws Exception {
     // Given
     final Pod entity = new Pod();
     withLoadedEntities(entity);
+    mockKubernetesClientResourceDeleteCall(entity);
     // When
     openshiftUndeployService.undeploy(null, ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(1);
-    assertDeleted(entity);
+    assertResourceDeleted(entity);
   }
 
   @Test
@@ -131,11 +114,12 @@ class OpenshiftUndeployServiceTest {
     // Given
     final Pod entity = new Pod();
     withLoadedEntities(entity);
+    mockKubernetesClientResourceDeleteCall(entity);
     // When
     openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(1);
-    assertDeleted(entity);
+    assertResourceDeleted(entity);
   }
 
   @Test
@@ -146,17 +130,17 @@ class OpenshiftUndeployServiceTest {
         .withNewSpec().withTags().endSpec()
         .build();
     withLoadedEntities(entity);
+    mockKubernetesClientResourceDeleteCall(entity);
     // When
     openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(1);
-    assertDeleted(entity);
+    assertResourceDeleted(entity);
   }
 
   @Test
   void deleteWithOpenShiftClientAndImageStream_shouldDeleteProvidedImageStreamAndRelatedBuildEntities()
       throws Exception {
-
     // Given
     final Build build = new BuildBuilder().withNewSpec().withNewOutput().withNewTo().withName("image:latest")
         .endTo().endOutput().endSpec().build();
@@ -168,15 +152,17 @@ class OpenshiftUndeployServiceTest {
         .withNewSpec().withTags(new TagReferenceBuilder().withName("latest").build()).endSpec()
         .build();
     withLoadedEntities(entity);
+    mockKubernetesClientResourceDeleteCall(entity);
+    mockKubernetesClientResourceDeleteCall(build);
+    mockKubernetesClientResourceDeleteCall(buildConfig);
     // When
     openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(3);
-    assertDeleted(entity);
-    assertDeleted(build);
-    assertDeleted(buildConfig);
+    assertResourceDeleted(entity);
+    assertResourceDeleted(build);
+    assertResourceDeleted(buildConfig);
   }
-
 
   @Test
   void deleteWithOpenShiftClientAndDeploymentConfig_shouldDeleteProvidedDeploymentConfigAndRelatedBuildEntities()
@@ -202,13 +188,16 @@ class OpenshiftUndeployServiceTest {
           )
         .endSpec().build();
     withLoadedEntities(entity);
+    mockKubernetesClientResourceDeleteCall(entity);
+    mockKubernetesClientResourceDeleteCall(build);
+    mockKubernetesClientResourceDeleteCall(buildConfig);
     // When
     openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(3);
-    assertDeleted(entity);
-    assertDeleted(build);
-    assertDeleted(buildConfig);
+    assertResourceDeleted(entity);
+    assertResourceDeleted(build);
+    assertResourceDeleted(buildConfig);
   }
 
   @Test
@@ -236,12 +225,15 @@ class OpenshiftUndeployServiceTest {
             .build()
         )
         .endSpec().build();
+    mockKubernetesClientResourceDeleteCall(entity);
+    mockKubernetesClientResourceDeleteCall(build);
+    mockKubernetesClientResourceDeleteCall(buildConfig);
     withLoadedEntities(entity);
     // When
     openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(1);
-    assertDeleted(entity);
+    assertResourceDeleted(entity);
   }
 
   @Test
@@ -272,11 +264,46 @@ class OpenshiftUndeployServiceTest {
         )
         .endSpec().build();
     withLoadedEntities(entity);
+    mockKubernetesClientResourceDeleteCall(entity);
+    mockKubernetesClientResourceDeleteCall(build);
+    mockKubernetesClientResourceDeleteCall(buildConfig);
     // When
     openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
     // Then
     assertDeleteCount(2);
-    assertDeleted(entity);
-    assertDeleted(build);
+    assertResourceDeleted(entity);
+    assertResourceDeleted(build);
+  }
+
+  private void withLoadedEntities(HasMetadata... entities) {
+    kubernetesHelperMockedStatic.when(() -> KubernetesHelper.loadResources(any())).thenReturn(Arrays.asList(entities));
+  }
+
+  private void with(Build build, BuildConfig buildConfig) {
+    when(openShiftClient.builds()).thenReturn(mixedOperation);
+    when(openShiftClient.buildConfigs()).thenReturn(mixedOperation);
+    when(mixedOperation.inNamespace(null)).thenReturn(nonNamespaceOperation);
+    when(nonNamespaceOperation.list()).thenReturn(
+        new BuildListBuilder().withItems(build).build(),
+        new BuildConfigListBuilder().withItems(buildConfig).build()
+    );
+  }
+
+  private void assertResourceDeleted(HasMetadata entity) {
+    verify(openShiftClient).resource(entity);
+  }
+
+  private void assertDeleteCount(int totalDeletions) {
+    kubernetesHelperMockedStatic.verify(()-> KubernetesHelper.getKind(any()), times(totalDeletions));
+    verify(mockedNamespaceableResource, times(totalDeletions)).inNamespace(null);
+    verify(mockedResource, times(totalDeletions)).withPropagationPolicy(BACKGROUND);
+    verify(mockedGracePeriodConfigurable, times(totalDeletions)).delete();
+  }
+
+  private <T extends HasMetadata> void mockKubernetesClientResourceDeleteCall(T kubernetesResource) {
+    when(openShiftClient.resource(kubernetesResource)).thenReturn(mockedNamespaceableResource);
+    when(mockedNamespaceableResource.inNamespace(null)).thenReturn(mockedResource);
+    when(mockedResource.withPropagationPolicy(any())).thenReturn(mockedGracePeriodConfigurable);
+    when(mockedGracePeriodConfigurable.delete()).thenReturn(Collections.emptyList());
   }
 }

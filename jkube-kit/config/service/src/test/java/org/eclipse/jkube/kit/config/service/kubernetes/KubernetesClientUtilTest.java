@@ -18,6 +18,9 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.junit.jupiter.api.Test;
@@ -26,17 +29,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.doDeleteAndWait;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class KubernetesClientUtilTest {
-  private KubernetesClient kubernetesClient;
 
+  @SuppressWarnings({"rawtypes", "unchecked"})
   @Test
   void doDeleteAndWait_withExistingResource_shouldDeleteAndReachWaitLimit() {
     // Given
-    kubernetesClient = mock(KubernetesClient.class);
+    Resource resourceOp = mock(Resource.class);
+    MixedOperation mixedOperation = mock(MixedOperation.class);
+    NonNamespaceOperation nonNamespaceOperation = mock(NonNamespaceOperation.class);
+    KubernetesClient kubernetesClient = mock(KubernetesClient.class);
+    when(kubernetesClient.genericKubernetesResources("org.eclipse.jkube/v1beta1", "JKubeCustomResource"))
+        .thenReturn(mixedOperation);
+    when(mixedOperation.inNamespace("namespace")).thenReturn(nonNamespaceOperation);
+    when(nonNamespaceOperation.withName("name")).thenReturn(resourceOp);
     GenericKubernetesResource resource = new GenericKubernetesResourceBuilder()
         .withApiVersion("org.eclipse.jkube/v1beta1")
         .withKind("JKubeCustomResource")
@@ -45,7 +54,10 @@ class KubernetesClientUtilTest {
     // When
     doDeleteAndWait(kubernetesClient, resource, "namespace",  2L);
     // Then
-    verify(kubernetesClient,times(1)).genericKubernetesResources("org.eclipse.jkube/v1beta1", "JKubeCustomResource");
+    verify(kubernetesClient).genericKubernetesResources("org.eclipse.jkube/v1beta1", "JKubeCustomResource");
+    verify(mixedOperation).inNamespace("namespace");
+    verify(nonNamespaceOperation).withName("name");
+    verify(resourceOp).delete();
   }
 
   @Test

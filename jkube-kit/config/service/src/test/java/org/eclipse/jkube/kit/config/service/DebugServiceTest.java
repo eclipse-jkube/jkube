@@ -20,10 +20,18 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpecBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
+import io.fabric8.kubernetes.client.dsl.Gettable;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
@@ -46,12 +54,17 @@ import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.assertj.core.groups.Tuple;
+import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,25 +72,38 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("unused")
 class DebugServiceTest {
   private KitLogger logger;
-
-  private NamespacedKubernetesClient kubernetesClient;
-
+  private KubernetesClient mockedKubernetesClient;
+  private NamespacedKubernetesClient adaptedNamespacedKubernetesClient;
+  private NamespacedKubernetesClient namespacedKubernetesClient;
+  private MixedOperation mixedOperation;
+  private FilterWatchListDeletable filterWatchListDeletable;
+  private LabelSelector labelSelector;
+  private CountDownLatch mockedCountDownLatch;
   private PortForwardService portForwardService;
-
   private ApplyService applyService;
-
   private PortForwardPodWatcher portForwardPodWatcher;
-
+  private Pod foundPod;
   private DebugService debugService;
 
   @BeforeEach
   void setUp() {
     logger = mock(KitLogger.class);
-    kubernetesClient = mock(NamespacedKubernetesClient.class,RETURNS_DEEP_STUBS);
+    mockedKubernetesClient = mock(KubernetesClient.class, RETURNS_DEEP_STUBS);
+    adaptedNamespacedKubernetesClient = mock(NamespacedKubernetesClient.class);
+    namespacedKubernetesClient = mock(NamespacedKubernetesClient.class);
     portForwardService = mock(PortForwardService.class);
     applyService = mock(ApplyService.class);
     portForwardPodWatcher = mock(PortForwardPodWatcher.class);
-    debugService = new DebugService(logger, kubernetesClient, portForwardService, applyService);
+    mixedOperation = mock(MixedOperation.class);
+    filterWatchListDeletable = mock(FilterWatchListDeletable.class);
+    mockedCountDownLatch = mock(CountDownLatch.class);
+    labelSelector = new LabelSelectorBuilder().addToMatchLabels("test", "app").build();
+    when(mockedKubernetesClient.adapt(any())).thenReturn(adaptedNamespacedKubernetesClient);
+    when(adaptedNamespacedKubernetesClient.inNamespace("namespace")).thenReturn(namespacedKubernetesClient);
+    foundPod = new PodBuilder()
+        .withNewMetadata().withName("test").endMetadata()
+        .build();
+    debugService = new DebugService(logger, mockedKubernetesClient, portForwardService, applyService);
   }
 
   @Test
@@ -144,7 +170,6 @@ class DebugServiceTest {
     // Given
     final ReplicationController replicationController = initReplicationController();
     mockFromServer(replicationController);
-    // @formatter:on
     // When
     debugService.enableDebugging(replicationController, "file.name", false);
     // Then
@@ -183,42 +208,65 @@ class DebugServiceTest {
   }
 
   @Test
-  void debugWithApplicableEntities() {
-    CountDownLatch cdl = mock(CountDownLatch.class);
-    // Given
-    final Deployment deployment = mockDebugDeployment(cdl);
-    // When
-    debugService.debug(
-        "namespace", "file.name", new HashSet<>(Collections.singletonList(deployment)),
-        "1337", false, logger);
-    // Then
-    verifyDebugCompletedSuccessfully(deployment, 1337, false);
+  void debugWithApplicableEntities() throws InterruptedException {
+    try (MockedConstruction<PortForwardPodWatcher> countDownLatchMockedConstruction = mockConstruction(PortForwardPodWatcher.class,
+        (mock, ctx) -> {
+          when(mock.getPodReadyLatch()).thenReturn(mockedCountDownLatch);
+          when(mock.getFoundPod()).thenReturn(foundPod);
+        })) {
+      // Given
+      when(mockedCountDownLatch.getCount()).thenReturn(1L);
+      doNothing().when(mockedCountDownLatch).await();
+      mockKubernetesClientPodsListAndWatchCall();
+      final Deployment deployment = mockDebugDeployment(mockedCountDownLatch);
+      // When
+      debugService.debug(
+          "namespace", "file.name", new HashSet<>(Collections.singletonList(deployment)),
+          "1337", false, logger);
+      // Then
+      verifyDebugCompletedSuccessfully(deployment, 1337, false);
+    }
   }
 
   @Test
-  void debugWithApplicableEntitiesAndSuspend() {
-    CountDownLatch cdl = mock(CountDownLatch.class);
-    // Given
-    final Deployment deployment = mockDebugDeployment(cdl);
-    // When
-    debugService.debug(
-        "namespace", "file.name", new HashSet<>(Collections.singletonList(deployment)),
-        "31337", true, logger);
-    // Then
-    verifyDebugCompletedSuccessfully(deployment, 31337, true);
+  void debugWithApplicableEntitiesAndSuspend() throws InterruptedException {
+    try (MockedConstruction<PortForwardPodWatcher> countDownLatchMockedConstruction = mockConstruction(PortForwardPodWatcher.class,
+        (mock, ctx) -> {
+          when(mock.getPodReadyLatch()).thenReturn(mockedCountDownLatch);
+          when(mock.getFoundPod()).thenReturn(foundPod);
+        })) {
+      // Given
+      when(mockedCountDownLatch.getCount()).thenReturn(1L);
+      doNothing().when(mockedCountDownLatch).await();
+      mockKubernetesClientPodsListAndWatchCall();
+      CountDownLatch cdl = mock(CountDownLatch.class);
+      final Deployment deployment = mockDebugDeployment(cdl);
+      // When
+      debugService.debug(
+          "namespace", "file.name", new HashSet<>(Collections.singletonList(deployment)),
+          "31337", true, logger);
+      // Then
+      verifyDebugCompletedSuccessfully(deployment, 31337, true);
+    }
+  }
+
+  private void mockKubernetesClientPodsListAndWatchCall() {
+    when(namespacedKubernetesClient.pods()).thenReturn(mixedOperation);
+    when(mixedOperation.withLabels(any())).thenReturn(filterWatchListDeletable);
+    when(filterWatchListDeletable.withLabelIn(any(), any())).thenReturn(filterWatchListDeletable);
+    when(filterWatchListDeletable.withLabelNotIn(any(), any())).thenReturn(filterWatchListDeletable);
+    when(filterWatchListDeletable.list()).thenReturn(new PodListBuilder().build());
   }
 
   private Deployment mockDebugDeployment(CountDownLatch cdl) {
     final Deployment deployment = initDeployment();
     when(applyService.isAlreadyApplied(deployment)).thenReturn(true);
-    when(portForwardPodWatcher.getPodReadyLatch()).thenReturn(cdl);
-    when(cdl.getCount()).thenReturn(1L);
     return deployment;
   }
 
   private void verifyDebugCompletedSuccessfully(Deployment deployment, int localDebugPort, boolean debugSuspend) {
     verify(logger,times(1)).info("No Active debug pod with provided selector and environment variables found! Waiting for pod to be ready...");
-    verify(portForwardService,times(1)).startPortForward(kubernetesClient, anyString(), 5005, localDebugPort);
+    verify(portForwardService,times(1)).startPortForward(eq(namespacedKubernetesClient), anyString(), eq(5005), eq(localDebugPort));
     assertThat(deployment)
         .extracting("spec.template.spec.containers").asList()
         .flatExtracting("env")
@@ -229,7 +277,11 @@ class DebugServiceTest {
   }
 
   private void mockFromServer(HasMetadata entity) {
-    when(kubernetesClient.resource(entity).fromServer().get()).thenReturn(entity);
+    NamespaceableResource namespaceableResource = mock(NamespaceableResource.class);
+    Gettable gettable = mock(Gettable.class);
+    when(mockedKubernetesClient.resource(entity)).thenReturn(namespaceableResource);
+    when(namespaceableResource.fromServer()).thenReturn(gettable);
+    when(gettable.get()).thenReturn(entity);
   }
 
   private static Map<String, String> initLabels() {

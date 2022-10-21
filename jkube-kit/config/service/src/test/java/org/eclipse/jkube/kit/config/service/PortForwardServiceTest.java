@@ -18,6 +18,8 @@ import java.io.Closeable;
 import java.util.Collections;
 
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -33,13 +35,13 @@ import io.fabric8.kubernetes.client.LocalPortForward;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @EnableKubernetesMockClient
 class PortForwardServiceTest {
@@ -47,9 +49,7 @@ class PortForwardServiceTest {
     KubernetesMockServer mockServer;
     OpenShiftClient openShiftClient;
 
-    @Mock
     private KitLogger logger;
-    private MockedConstruction<PortForwardTask> portForwardTaskMockedConstruction;
 
     @BeforeEach
     public void setUp() throws Exception{
@@ -101,17 +101,24 @@ class PortForwardServiceTest {
         }
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Test
     void startPortForward() {
-        NamespacedKubernetesClient kubernetesClient = mock(NamespacedKubernetesClient.class);
-        KitLogger logger = mock(KitLogger.class);
-        LocalPortForward lpf = mock(LocalPortForward.class);
-        PortForwardTask pft = mock(PortForwardTask.class);
-        // When
-        new PortForwardService(logger)
-            .startPortForward(kubernetesClient, "pod", 5005, 1337);
-        // Then
-        portForwardTaskMockedConstruction = mockConstruction(PortForwardTask.class,(mock, ctx) ->
-                verify(mock,times(1)).run());
+        try (MockedConstruction<PortForwardTask> portForwardTaskMockedConstruction = mockConstruction(PortForwardTask.class)) {
+            NamespacedKubernetesClient kubernetesClient = mock(NamespacedKubernetesClient.class);
+            MixedOperation mixedOperation = mock(MixedOperation.class);
+            PodResource podResource = mock(PodResource.class);
+            LocalPortForward lpf = mock(LocalPortForward.class);
+            when(kubernetesClient.pods()).thenReturn(mixedOperation);
+            when(mixedOperation.withName("pod")).thenReturn(podResource);
+            when(podResource.portForward(5005, 1337)).thenReturn(lpf);
+            // When
+            new PortForwardService(new KitLogger.SilentLogger())
+                .startPortForward(kubernetesClient, "pod", 5005, 1337);
+            // Then
+            assertThat(portForwardTaskMockedConstruction.constructed()).isNotEmpty();
+            verify(portForwardTaskMockedConstruction.constructed().get(0))
+                .run();
+        }
     }
 }

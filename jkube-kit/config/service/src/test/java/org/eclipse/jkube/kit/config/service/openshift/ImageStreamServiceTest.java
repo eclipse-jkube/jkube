@@ -23,22 +23,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.fabric8.kubernetes.client.dsl.internal.BaseOperation;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
-import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.TagEvent;
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.mockito.Mock;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,17 +51,20 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings({"unchecked", "rawtypes", "unused"})
 class ImageStreamServiceTest {
 
-    @Mock
-    OpenShiftClient client;
+    private OpenShiftClient client;
+    private MixedOperation mixedOperation;
+    private NonNamespaceOperation nonNamespaceOperation;
+    private Resource resourceOp;
+    private KitLogger log;
 
-    @Mock
-    BaseOperation imageStreamsOp;
-
-    @Mock
-    Resource resource;
-
-    @Mock
-    KitLogger log;
+    @BeforeEach
+    public void setUp() {
+        client = mock(OpenShiftClient.class);
+        mixedOperation = mock(MixedOperation.class);
+        nonNamespaceOperation = mock(NonNamespaceOperation.class);
+        resourceOp = mock(Resource.class);
+        log = new KitLogger.SilentLogger();
+    }
 
     @Test
     void simple(@TempDir File temporaryFolder) throws Exception {
@@ -124,9 +129,10 @@ class ImageStreamServiceTest {
     }
 
     private void setupClientMock(final ImageStream lookedUpIs, final String namespace, final String name) {
-        when(client.imageStreams()).thenReturn(imageStreamsOp);
-        when(imageStreamsOp.inNamespace(namespace).withName(name)).thenReturn(resource);
-        when(resource.get()).thenReturn(lookedUpIs);
+        when(client.imageStreams()).thenReturn(mixedOperation);
+        when(mixedOperation.inNamespace(namespace)).thenReturn(nonNamespaceOperation);
+        when(nonNamespaceOperation.withName(name)).thenReturn(resourceOp);
+        when(resourceOp.get()).thenReturn(lookedUpIs);
     }
 
     private ImageStream lookupImageStream(String sha) {
