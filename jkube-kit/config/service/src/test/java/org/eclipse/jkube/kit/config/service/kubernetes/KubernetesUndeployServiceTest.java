@@ -11,6 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
+
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import java.io.File;
@@ -39,9 +40,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -50,15 +54,19 @@ import static org.mockito.Mockito.when;
 class KubernetesUndeployServiceTest {
 
   @Mock
+
   private KitLogger logger;
-  @Mock
+
   private JKubeServiceHub jKubeServiceHub;
-  @Mock
-  private KubernetesHelper kubernetesHelper;
+
+  private MockedStatic<KubernetesHelper> kubernetesHelper;
   private KubernetesUndeployService kubernetesUndeployService;
 
   @BeforeEach
   void setUp() {
+    logger = mock(KitLogger.class);
+    jKubeServiceHub = mock(JKubeServiceHub.class);
+    kubernetesHelper = mockStatic(KubernetesHelper.class);
     kubernetesUndeployService = new KubernetesUndeployService(jKubeServiceHub, logger);
   }
 
@@ -82,17 +90,44 @@ class KubernetesUndeployServiceTest {
     final Service service = new Service();
     when(file.exists()).thenReturn(true);
     when(file.isFile()).thenReturn(true);
-    when(kubernetesHelper.loadResources(file)).thenReturn(Arrays.asList(namespace,pod,service));
+    when(kubernetesHelper.loadResources(file)).thenReturn(A);
+    kubernetesHelper.when(KubernetesHelper.loadResources(file)).thenReturn()
     // When
     kubernetesUndeployService.undeploy(null, resourceConfig, file);
     // Then
-    verify(kubernetesHelper,times(3)).getKind((HasMetadata) any());
-    verify(jKubeServiceHub,times(1)).getClient().resource(pod).inNamespace("default")
-            .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
-    verify(jKubeServiceHub,times(1)).getClient().resource(service).inNamespace("default")
-            .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
-    verify(jKubeServiceHub,times(1)).getClient().resource(namespace).inNamespace("default")
-            .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+    verify(kubernetesHelper, times(3)).getKind((HasMetadata) any());
+    verify(jKubeServiceHub, times(1)).getClient().resource(pod).inNamespace("default")
+        .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+    verify(jKubeServiceHub, times(1)).getClient().resource(service).inNamespace("default")
+        .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+    verify(jKubeServiceHub, times(1)).getClient().resource(namespace).inNamespace("default")
+        .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+  }
+
+  @Test
+  public void undeployWithManifestShouldDeleteAllEntities() throws Exception {
+    try (MockedStatic<KubernetesHelper> mockStatic = Mockito.mockStatic(KubernetesHelper.class)) {
+      // Given
+      File file = mock(File.class);
+      // Given
+      final ResourceConfig resourceConfig = ResourceConfig.builder().namespace("default").build();
+      final Namespace namespace = new NamespaceBuilder().withNewMetadata().withName("default").endMetadata().build();
+      final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
+      final Service service = new Service();
+      when(file.exists()).thenReturn(true);
+      when(file.isFile()).thenReturn(true);
+      when(kubernetesHelper.loadResources(file)).thenReturn(Arrays.asList(namespace, pod, service));
+      // When
+      kubernetesUndeployService.undeploy(null, resourceConfig, file);
+      // Then
+      verify(kubernetesHelper, times(3)).getKind((HasMetadata) any());
+      verify(jKubeServiceHub, times(1)).getClient().resource(pod).inNamespace("default")
+              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+      verify(jKubeServiceHub, times(1)).getClient().resource(service).inNamespace("default")
+              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+      verify(jKubeServiceHub, times(1)).getClient().resource(namespace).inNamespace("default")
+              .withPropagationPolicy(DeletionPropagation.BACKGROUND).delete();
+    }
   }
 
   @Test

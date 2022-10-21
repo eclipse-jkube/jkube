@@ -46,11 +46,11 @@ import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.assertj.core.groups.Tuple;
-import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -58,25 +58,25 @@ import static org.mockito.Mockito.when;
 
 @SuppressWarnings("unused")
 class DebugServiceTest {
-  @Mock
   private KitLogger logger;
 
-  @Mock
   private NamespacedKubernetesClient kubernetesClient;
 
-  @Mock
   private PortForwardService portForwardService;
 
-  @Mock
   private ApplyService applyService;
 
-  @Mock
   private PortForwardPodWatcher portForwardPodWatcher;
-  @Mock
+
   private DebugService debugService;
 
   @BeforeEach
   void setUp() {
+    logger = mock(KitLogger.class);
+    kubernetesClient = mock(NamespacedKubernetesClient.class,RETURNS_DEEP_STUBS);
+    portForwardService = mock(PortForwardService.class);
+    applyService = mock(ApplyService.class);
+    portForwardPodWatcher = mock(PortForwardPodWatcher.class);
     debugService = new DebugService(logger, kubernetesClient, portForwardService, applyService);
   }
 

@@ -31,6 +31,7 @@ import io.fabric8.kubernetes.api.model.PodListBuilder;
 import io.fabric8.kubernetes.api.model.WatchEvent;
 import io.fabric8.kubernetes.client.LocalPortForward;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardTask;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedConstruction;
@@ -49,6 +50,12 @@ class PortForwardServiceTest {
     @Mock
     private KitLogger logger;
     private MockedConstruction<PortForwardTask> portForwardTaskMockedConstruction;
+
+    @BeforeEach
+    public void setUp() throws Exception{
+        logger = mock(KitLogger.class);
+    }
+
     @Test
     void simpleScenario() throws Exception {
         // Cannot test more complex scenarios due to errors in mockwebserver

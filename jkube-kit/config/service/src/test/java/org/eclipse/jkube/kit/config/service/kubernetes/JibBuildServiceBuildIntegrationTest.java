@@ -44,24 +44,25 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"unused"})
 class JibBuildServiceBuildIntegrationTest {
 
-  @Mock
   private JKubeServiceHub hub;
-  @Mock
   private KitLogger log;
   private File projectRoot;
   private File targetDirectory;
   private ImageConfiguration imageConfiguration;
-  @Mock
+
   private JibBuildService jibBuildService;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
     projectRoot = temporaryFolder.toFile();
+    hub = mock(JKubeServiceHub.class);
+    log = mock(KitLogger.class);
     imageConfiguration = ImageConfiguration.builder()
         .name("registry/image-name:tag")
         .build(BuildConfiguration.builder().build())
