@@ -16,40 +16,34 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(Parameterized.class)
-public class RevisionHistoryIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class RevisionHistoryIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "k8sResource {0} configured limit = {1}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "default", new String[] {}},
-        new Object[] { "configured", new String[] {"-Pjkube.enricher.jkube-revision-history.limit=10" }}
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("default", new String[] {}),
+        arguments("configured", new String[] { "-Pjkube.enricher.jkube-revision-history.limit=10" })
     );
   }
 
-  @Parameterized.Parameter
-  public String expectedDir;
-
-  @Parameterized.Parameter (1)
-  public String[] arguments;
-
-  @Test
-  public void k8sResource_whenRun_generatesK8sManifestsWithRevisionHistory() throws IOException, ParseException {
+  @ParameterizedTest(name = "k8sResource {0} configured limit = {1}")
+  @MethodSource("data")
+  void k8sResource_whenRun_generatesK8sManifestsWithRevisionHistory(String expectedDir, String[] arguments) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("k8sResource");
@@ -67,8 +61,9 @@ public class RevisionHistoryIT {
         .contains("validating");
   }
 
-  @Test
-  public void ocResource_whenRun_generatesOpenShiftManifestsWithRevisionHistory() throws IOException, ParseException {
+  @ParameterizedTest(name = "k8sResource {0} configured limit = {1}")
+  @MethodSource("data")
+  void ocResource_whenRun_generatesOpenShiftManifestsWithRevisionHistory(String expectedDir, String[] arguments) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("ocResource");

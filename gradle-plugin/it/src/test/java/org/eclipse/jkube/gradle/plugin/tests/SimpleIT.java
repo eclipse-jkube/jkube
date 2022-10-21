@@ -14,18 +14,18 @@
 package org.eclipse.jkube.gradle.plugin.tests;
 
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SimpleIT {
+class SimpleIT {
 
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  public void tasks_containsKubernetesAndOpenShiftTasks() {
+  void tasks_containsKubernetesAndOpenShiftTasks() {
     // When
     final BuildResult result = gradleRunner.withITProject("simple").withArguments("tasks", "--stacktrace").build();
     // Then

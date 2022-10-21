@@ -16,20 +16,20 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class DependencyResourcesIT {
+class DependencyResourcesIT {
 
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  public void k8sResource_whenRun_generatesK8sManifestsIncludingDependencies() throws IOException, ParseException {
+  void k8sResource_whenRun_generatesK8sManifestsIncludingDependencies() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("dependency-resources")
         .withArguments("clean", "jar", "k8sResource", "--stacktrace")
@@ -46,7 +46,7 @@ public class DependencyResourcesIT {
   }
 
   @Test
-  public void k8sResource_whenRunWithReplicas_generatesK8sManifestsIncludingDependencies() throws IOException, ParseException {
+  void k8sResource_whenRunWithReplicas_generatesK8sManifestsIncludingDependencies() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("dependency-resources")
         .withArguments("-Pjkube.replicas=1337", "clean", "jar", "k8sResource", "--stacktrace")
