@@ -16,38 +16,31 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(Parameterized.class)
-public class NameIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class NameIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "k8sResource {0} configured name = {1}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "default", "" },
-        new Object[] { "custom-name", "configured-name"}
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("default", ""),
+        arguments("custom-name", "configured-name")
     );
   }
 
-  @Parameterized.Parameter
-  public String expectedDir;
-
-  @Parameterized.Parameter (1)
-  public String nameFromEnricherConfig;
-
-  @Test
-  public void k8sResource_whenRun_generatesK8sManifestsWithDefaultName() throws IOException, ParseException {
+  @ParameterizedTest(name = "k8sResource {0} configured name = {1}")
+  @MethodSource("data")
+  void k8sResource_whenRun_generatesK8sManifestsWithDefaultName(String expectedDir, String nameFromEnricherConfig) throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("name")
         .withArguments("-Pjkube.enricher.jkube-name.name=" + nameFromEnricherConfig, "k8sResource", "--stacktrace")
@@ -62,8 +55,9 @@ public class NameIT {
         .contains("validating");
   }
 
-  @Test
-  public void ocResource_whenRun_generatesOpenShiftManifestsWithDefaultName() throws IOException, ParseException {
+  @ParameterizedTest(name = "k8sResource {0} configured name = {1}")
+  @MethodSource("data")
+  void ocResource_whenRun_generatesOpenShiftManifestsWithDefaultName(String expectedDir, String nameFromEnricherConfig) throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("name")
         .withArguments("-Pjkube.enricher.jkube-name.name=" + nameFromEnricherConfig, "ocResource", "--stacktrace")
