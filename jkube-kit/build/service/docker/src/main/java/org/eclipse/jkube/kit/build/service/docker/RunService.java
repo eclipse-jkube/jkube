@@ -67,15 +67,15 @@ import static org.eclipse.jkube.kit.build.service.docker.helper.VolumeBindingUti
 public class RunService {
 
     // logger delegated from top
-    private KitLogger log;
+    private final KitLogger log;
 
     // Action to be used when doing a shutdown
     private final ContainerTracker tracker;
 
     // DAO for accessing the docker daemon
-    private DockerAccess docker;
+    private final DockerAccess docker;
 
-    private QueryService queryService;
+    private final QueryService queryService;
 
     private final LogOutputSpecFactory logConfig;
 
