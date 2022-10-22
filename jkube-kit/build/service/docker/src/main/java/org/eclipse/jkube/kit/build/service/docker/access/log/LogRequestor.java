@@ -47,7 +47,7 @@ public class LogRequestor extends Thread implements LogGetHandle {
     private final String containerId;
 
     // callback called for each line extracted
-    private LogCallback callback;
+    private final LogCallback callback;
 
     private DockerAccessException exception;
 
