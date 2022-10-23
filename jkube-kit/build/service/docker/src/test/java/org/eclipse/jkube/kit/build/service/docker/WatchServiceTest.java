@@ -70,10 +70,8 @@ class WatchServiceTest {
                 .build();
         WatchService.ImageWatcher imageWatcher =  new WatchService.ImageWatcher(imageConfiguration, watchContext, "test-img", "efe1234");
         WatchService watchService = new WatchService(archiveService, buildService, queryService, runService, logger);
-
         // When
         watchService.restartContainerAndCallPostGoal(imageWatcher, false);
-
         // Then
         assertThat(stringAtomicReference).hasValue(mavenGoalToExecute);
     }
@@ -88,10 +86,8 @@ class WatchServiceTest {
                 .build();
         WatchService.ImageWatcher imageWatcher =  new WatchService.ImageWatcher(imageConfiguration, watchContext, "test-img", "efe1234");
         WatchService watchService = new WatchService(archiveService, buildService,  queryService, runService, logger);
-
         // When
         watchService.restartContainerAndCallPostGoal(imageWatcher, true);
-
         // Then
         assertThat(restarted).isTrue();
     }

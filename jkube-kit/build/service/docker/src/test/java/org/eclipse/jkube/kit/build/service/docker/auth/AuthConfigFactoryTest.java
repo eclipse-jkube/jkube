@@ -223,28 +223,24 @@ class AuthConfigFactoryTest {
     void getAuthConfigViaAwsSdk() throws IOException {
         String accessKeyId = randomUUID().toString();
         String secretAccessKey = randomUUID().toString();
-        try (MockedConstruction<AwsSdkAuthConfigFactory> awsSdkAuthConfigFactoryMockedConstruction = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> {
-            when(mock.createAuthConfig()).thenReturn(AuthConfig.builder()
-                .username(accessKeyId)
-                .password(secretAccessKey)
-                .email(null)
-                .auth(null)
-                .identityToken(null)
-                .build());
-        })) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(AuthConfig.builder()
+            .username(accessKeyId)
+            .password(secretAccessKey)
+            .email(null)
+            .auth(null)
+            .identityToken(null)
+            .build()))) {
             when(awsSdkHelper.isDefaultAWSCredentialsProviderChainPresentInClassPath()).thenReturn(true);
 
             AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, null);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null);
         }
     }
 
     @Test
     void ecsTaskRole() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> awsSdkAuthConfigFactoryMockedConstruction = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> {
-            when(mock.createAuthConfig()).thenReturn(null);
-        })) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
             String containerCredentialsUri = "/v2/credentials/" + randomUUID();
             String accessKeyId = randomUUID().toString();
             String secretAccessKey = randomUUID().toString();
@@ -254,15 +250,13 @@ class AuthConfigFactoryTest {
 
             AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, sessionToken);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, sessionToken);
         }
     }
 
     @Test
     void fargateTaskRole() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> awsSdkAuthConfigFactoryMockedConstruction = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> {
-            when(mock.createAuthConfig()).thenReturn(null);
-        })) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
             String containerCredentialsUri = "v2/credentials/" + randomUUID();
             String accessKeyId = randomUUID().toString();
             String secretAccessKey = randomUUID().toString();
@@ -272,15 +266,13 @@ class AuthConfigFactoryTest {
 
             AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, sessionToken);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, sessionToken);
         }
     }
 
     @Test
     void awsTemporaryCredentialsArePickedUpFromEnvironment() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> awsSdkAuthConfigFactoryMockedConstruction = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> {
-            when(mock.createAuthConfig()).thenReturn(null);
-        })) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
             String accessKeyId = randomUUID().toString();
             String secretAccessKey = randomUUID().toString();
             String sessionToken = randomUUID().toString();
@@ -289,15 +281,13 @@ class AuthConfigFactoryTest {
             when(awsSdkHelper.getAwsSessionTokenEnvVar()).thenReturn(sessionToken);
             AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, sessionToken);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, sessionToken);
         }
     }
 
     @Test
     void awsStaticCredentialsArePickedUpFromEnvironment() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> awsSdkAuthConfigFactoryMockedConstruction = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> {
-            when(mock.createAuthConfig()).thenReturn(null);
-        })) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
             String accessKeyId = randomUUID().toString();
             String secretAccessKey = randomUUID().toString();
             when(awsSdkHelper.getAwsAccessKeyIdEnvVar()).thenReturn(accessKeyId);
@@ -305,15 +295,13 @@ class AuthConfigFactoryTest {
 
             AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, null);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null);
         }
     }
 
     @Test
     void incompleteAwsCredentialsAreIgnored() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> awsSdkAuthConfigFactoryMockedConstruction = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> {
-            when(mock.createAuthConfig()).thenReturn(null);
-        })) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
             System.setProperty("AWS_ACCESS_KEY_ID", randomUUID().toString());
 
             AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
@@ -348,15 +336,12 @@ class AuthConfigFactoryTest {
         when(awsSdkHelper.getAwsContainerCredentialsRelativeUri()).thenReturn(containerCredentialsUri);
     }
 
-    private void verifyAuthConfig(AuthConfig config, String username, String password, String email, String auth) {
+    private void verifyAuthConfig(AuthConfig config, String username, String password, String auth) {
         assertThat(config).isNotNull();
         JsonObject params = gsonBuilder.create().fromJson(new String(Base64.decodeBase64(config.toHeaderValue(log).getBytes())), JsonObject.class);
         assertThat(params)
                 .returns(username, p -> p.get("username").getAsString())
                 .returns(password, p -> p.get("password").getAsString());
-        if (email != null) {
-            assertThat(params.get("email").getAsString()).isEqualTo(email);
-        }
         if (auth != null) {
             assertThat(params.get("auth").getAsString()).isEqualTo(auth);
         }

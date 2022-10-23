@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
  */
 class ImageNameFormatterTest {
     private JavaProject project;
-    private Date now = new Date();
+    private final Date now = new Date();
     private ImageNameFormatter formatter;
 
     @BeforeEach
@@ -63,9 +63,8 @@ class ImageNameFormatterTest {
         };
 
         for (int i = 0; i < data.length; i+=2) {
-            final int finalI = i;
             when(project.getProperties()).thenReturn(new Properties());
-            when(project.getGroupId()).thenReturn(data[finalI]);
+            when(project.getGroupId()).thenReturn(data[i]);
             String value = formatter.format("%g");
             assertThat(value).as("Idx. " + i / 2).isEqualTo(data[i+1]);
         }

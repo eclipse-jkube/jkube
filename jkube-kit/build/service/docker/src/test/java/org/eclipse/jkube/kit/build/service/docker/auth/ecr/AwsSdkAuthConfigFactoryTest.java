@@ -24,16 +24,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class AwsSdkAuthConfigFactoryTest {
-
-    private KitLogger log;
-
     private AwsSdkHelper awsSdkHelper;
 
     private AwsSdkAuthConfigFactory objectUnderTest;
 
     @BeforeEach
     void setup() {
-        log = mock(KitLogger.SilentLogger.class);
+        KitLogger log = new KitLogger.SilentLogger();
         awsSdkHelper = mock(AwsSdkHelper.class);
         objectUnderTest = new AwsSdkAuthConfigFactory(log, awsSdkHelper);
     }

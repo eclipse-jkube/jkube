@@ -21,12 +21,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 class CredentialHelperClientTest {
     private final Gson gson = new Gson();
-
-    private KitLogger logger;
 
     private CredentialHelperClient credentialHelperClient;
 
@@ -36,7 +33,7 @@ class CredentialHelperClientTest {
 
     @BeforeEach
     void givenCredentialHelperClient() {
-        logger = mock(KitLogger.SilentLogger.class);
+        KitLogger logger = new KitLogger.SilentLogger();
         this.credentialHelperClient = new CredentialHelperClient(logger, "desktop");
     }
 

@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 
 
 class ApacheHttpClientDelegateTest {
-  private ClientBuilder clientBuilder;
 
   private CloseableHttpClient httpClient;
 
@@ -43,7 +42,7 @@ class ApacheHttpClientDelegateTest {
 
   @BeforeEach
   void setUp() throws Exception {
-    clientBuilder = mock(ClientBuilder.class);
+    ClientBuilder clientBuilder = mock(ClientBuilder.class);
     httpClient = mock(CloseableHttpClient.class);
     when(clientBuilder.buildBasicClient()).thenReturn(httpClient);
     apacheHttpClientDelegate = new ApacheHttpClientDelegate(clientBuilder, false);
@@ -58,7 +57,7 @@ class ApacheHttpClientDelegateTest {
   @Test
   void delete() throws IOException {
     // Given
-    when(httpClient.execute((HttpUriRequest) any(),(ResponseHandler) any())).thenReturn(1337);
+    when(httpClient.execute(any(),(ResponseHandler) any())).thenReturn(1337);
     // When
     final int result = apacheHttpClientDelegate.delete("http://example.com");
     // Then
@@ -74,7 +73,7 @@ class ApacheHttpClientDelegateTest {
   @Test
   void get() throws IOException {
     // Given
-    when(httpClient.execute((HttpUriRequest) any(),(ResponseHandler) any())).thenReturn("Response");
+    when(httpClient.execute(any(),(ResponseHandler) any())).thenReturn("Response");
     // When
     final String response = apacheHttpClientDelegate.get("http://example.com");
     // Then
@@ -93,7 +92,7 @@ class ApacheHttpClientDelegateTest {
   @Test
   void postWithStringBody() throws IOException {
     // Given
-    when(httpClient.execute((HttpUriRequest) any(),(ResponseHandler) any())).thenReturn("Response");
+    when(httpClient.execute(any(),(ResponseHandler) any())).thenReturn("Response");
     // When
     final String response = apacheHttpClientDelegate.post(
         "http://example.com", "{body}", Collections.singletonMap("EXTRA", "HEADER"), null);
@@ -113,7 +112,7 @@ class ApacheHttpClientDelegateTest {
   @Test
   void postWithFileBody() throws IOException {
     // Given
-    when(httpClient.execute((HttpUriRequest) any(),(ResponseHandler) any())).thenReturn("Response");
+    when(httpClient.execute(any(),(ResponseHandler) any())).thenReturn("Response");
     // When
     final String response = apacheHttpClientDelegate.post(
         "http://example.com", new File("fake-file.tar"), null);
@@ -129,7 +128,7 @@ class ApacheHttpClientDelegateTest {
     );
   }
 
-  private <H extends ResponseHandler> void verifyHttpClientExecute(BiConsumer<HttpUriRequest, ResponseHandler> consumer) throws IOException {
+  private void verifyHttpClientExecute(BiConsumer<HttpUriRequest, ResponseHandler> consumer) throws IOException {
     ArgumentCaptor<HttpUriRequest> httpUriRequestArgumentCaptor = ArgumentCaptor.forClass(HttpUriRequest.class);
     ArgumentCaptor<ResponseHandler> hArgumentCaptor = ArgumentCaptor.forClass(ResponseHandler.class);
     verify(httpClient).execute(httpUriRequestArgumentCaptor.capture(),hArgumentCaptor.capture());
