@@ -31,11 +31,14 @@ class HcChunkedResponseHandlerWrapper implements ResponseHandler<Object> {
 
   @Override
   public Object handleResponse(HttpResponse response) throws IOException {
+    if (!isJson(response) && !hasNoContentTypeAsForPodman(response)) {
+      throw new IllegalArgumentException(
+          "Docker daemon returned an unexpected content type while trying to build the Dockerfile. Content type must be `application/json` or no content type defined.");
+    }
+
     try (InputStream stream = response.getEntity().getContent()) {
       // Parse text as json
-      if (isJson(response)) {
-        EntityStreamReaderUtil.processJsonStream(handler, stream);
-      }
+      EntityStreamReaderUtil.processJsonStream(handler, stream);
     }
     return null;
   }
@@ -44,5 +47,10 @@ class HcChunkedResponseHandlerWrapper implements ResponseHandler<Object> {
     return Stream.of(response.getAllHeaders())
         .filter(h -> h.getName().equalsIgnoreCase("Content-Type"))
         .anyMatch(h -> h.getValue().toLowerCase().startsWith("application/json"));
+  }
+
+  private static boolean hasNoContentTypeAsForPodman(HttpResponse response) {
+    return Stream.of(response.getAllHeaders())
+        .noneMatch(h -> h.getName().equalsIgnoreCase("Content-Type"));
   }
 }
