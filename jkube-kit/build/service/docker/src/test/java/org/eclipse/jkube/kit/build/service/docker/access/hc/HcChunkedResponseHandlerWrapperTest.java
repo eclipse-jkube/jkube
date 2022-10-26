@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.hc;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.IOException;
 
 import org.eclipse.jkube.kit.build.service.docker.access.chunked.EntityStreamReaderUtil;
@@ -54,15 +56,16 @@ class HcChunkedResponseHandlerWrapperTest {
   @Test
   void handleResponseWithTextPlainResponse() throws IOException {
     givenResponseHeaders(new BasicHeader("Content-Type", "text/plain"));
-    hcChunkedResponseHandlerWrapper.handleResponse(response);
-    verifyProcessJsonStream(0);
+    assertThrows(IllegalArgumentException.class, () -> {
+      hcChunkedResponseHandlerWrapper.handleResponse(response);
+    });
   }
 
   @Test
-  void handleResponseWithNoContentType() throws IOException {
+  void handleResponseWithNoContentTypeAsForPodman() throws IOException {
     givenResponseHeaders();
     hcChunkedResponseHandlerWrapper.handleResponse(response);
-    verifyProcessJsonStream(0);
+    verifyProcessJsonStream(1);
   }
 
   private void givenResponseHeaders(Header... headers) {
