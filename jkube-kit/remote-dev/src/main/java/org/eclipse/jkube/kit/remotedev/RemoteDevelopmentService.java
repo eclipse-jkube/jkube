@@ -17,25 +17,21 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.net.ServerSocket;
-import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+
+import static org.eclipse.jkube.kit.common.util.AsyncUtil.async;
 
 public class RemoteDevelopmentService {
 
   static final int CONTAINER_SSH_PORT = 2222;
-  static final String SSH_SERVER_APP = "ssh-server";
-  static final String SSH_SERVER_GROUP = "jkube-kit";
+  static final String REMOTE_DEVELOPMENT_APP = "jkube-remote-dev";
+  static final String REMOTE_DEVELOPMENT_GROUP = "jkube-kit";
   private final RemoteDevelopmentContext context;
   private final KitLogger logger;
   private final KubernetesClient kubernetesClient;
   private final KubernetesSshServiceForwarder kubernetesSshServiceForwarder;
   private final PortForwarder portForwarder;
   private final LocalServiceManager localServiceManager;
-  private ExecutorService executorService;
 
   public RemoteDevelopmentService(KitLogger logger, KubernetesClient kubernetesClient,
     RemoteDevelopmentConfig remoteDevelopmentConfig
@@ -51,10 +47,9 @@ public class RemoteDevelopmentService {
   public CompletableFuture<Void> start() {
     checkEnvironment();
     localServiceManager.createOrReplaceServices();
-    executorService = Executors.newFixedThreadPool(2);
     return CompletableFuture.anyOf(
-      async(kubernetesSshServiceForwarder, executorService),
-      async(portForwarder, executorService)
+      async(kubernetesSshServiceForwarder),
+      async(portForwarder)
     ).thenApply(object -> null);
   }
 
@@ -63,7 +58,6 @@ public class RemoteDevelopmentService {
     localServiceManager.tearDownServices();
     portForwarder.stop();
     kubernetesSshServiceForwarder.stop();
-    Optional.ofNullable(executorService).ifPresent(ExecutorService::shutdownNow);
     logger.info("Remote development service stopped");
   }
 
@@ -83,15 +77,4 @@ public class RemoteDevelopmentService {
     }
   }
 
-  private static <T> CompletableFuture<T> async(Callable<T> callable, Executor executor) {
-    final CompletableFuture<T> future = new CompletableFuture<>();
-    executor.execute(() -> {
-      try {
-        future.complete(callable.call());
-      } catch (Exception ex) {
-        future.completeExceptionally(ex);
-      }
-    });
-    return future;
-  }
 }
