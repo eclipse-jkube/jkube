@@ -16,6 +16,7 @@ package org.eclipse.jkube.enricher.generic.openshift;
 import java.util.Properties;
 import java.util.function.Consumer;
 
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -24,13 +25,10 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfig;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class DeploymentConfigEnricherTest {
 
@@ -40,10 +38,12 @@ public class DeploymentConfigEnricherTest {
 
   @Before
   public void setUp() throws Exception {
-    Configuration configuration = mock(Configuration.class);
-    context = mock(JKubeEnricherContext.class);
-    when(context.getConfiguration()).thenReturn(configuration);
-    when(context.getLog()).thenReturn(new KitLogger.SilentLogger());
+    context = JKubeEnricherContext.builder()
+      .log(new KitLogger.SilentLogger())
+      .project(JavaProject.builder()
+        .properties(new Properties())
+        .build())
+      .build();
     deploymentConfigEnricher = new DeploymentConfigEnricher(context);
     kubernetesListBuilder = new KubernetesListBuilder();
   }
@@ -64,7 +64,7 @@ public class DeploymentConfigEnricherTest {
   public void create_inOpenShiftWithSwitchToDeployment_shouldSkip() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    when(context.getProperty("jkube.build.switchToDeployment")).thenReturn("true");
+    context.getProperties().put("jkube.build.switchToDeployment", "true");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
@@ -76,9 +76,7 @@ public class DeploymentConfigEnricherTest {
   public void create_inOpenShiftWithDefaultControllerEnricherTypeAsDeployment_shouldSkip() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    Properties properties = new Properties();
-    properties.put("jkube.enricher.jkube-controller.type", "Deployment");
-    when(context.getProperties()).thenReturn(properties);
+    context.getProperties().put("jkube.enricher.jkube-controller.type", "Deployment");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
@@ -103,7 +101,7 @@ public class DeploymentConfigEnricherTest {
   public void create_inOpenShiftWithDefaultControllerEnricherTypeAsDeploymentConfig_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    when(context.getProperty("jkube.enricher.jkube-controller.type")).thenReturn("DeploymentConfig");
+    context.getProperties().put("jkube.enricher.jkube-controller.type", "DeploymentConfig");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
@@ -175,7 +173,7 @@ public class DeploymentConfigEnricherTest {
   public void create_inOpenShiftWithCustomTimeout_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    when(context.getProperty("jkube.openshift.deployTimeoutSeconds")).thenReturn("60");
+    context.getProperties().put("jkube.openshift.deployTimeoutSeconds", "60");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
@@ -189,7 +187,7 @@ public class DeploymentConfigEnricherTest {
   public void create_inOpenShiftWithNegativeTimeout_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    when(context.getProperty("jkube.openshift.deployTimeoutSeconds")).thenReturn("-60");
+    context.getProperties().put("jkube.openshift.deployTimeoutSeconds", "-60");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then

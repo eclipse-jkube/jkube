@@ -14,19 +14,6 @@
 package org.eclipse.jkube.enricher.generic;
 
 
-import java.util.List;
-import java.util.Properties;
-
-import org.assertj.core.api.AbstractListAssert;
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.assertj.core.api.ObjectAssert;
-import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Test;
-import static org.assertj.core.api.Assertions.assertThat;
-import java.util.Properties;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -50,6 +37,19 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
+import org.assertj.core.api.AbstractListAssert;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.ObjectAssert;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.junit.Test;
+
+import java.util.List;
+import java.util.Properties;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ImagePullPolicyEnricherTest {
 

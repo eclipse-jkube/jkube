@@ -13,11 +13,15 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.TreeMap;
-
-import org.eclipse.jkube.kit.common.KitLogger;
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.IngressConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
@@ -29,21 +33,12 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-
-import io.fabric8.kubernetes.api.model.IntOrString;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressTLSBuilder;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.CREATE_EXTERNAL_URLS;
@@ -54,8 +49,6 @@ import static org.mockito.Mockito.when;
 public class IngressEnricherTest {
     private JKubeEnricherContext context;
 
-    private KitLogger logger;
-
     ImageConfiguration imageConfiguration;
 
     private IngressEnricher ingressEnricher;
@@ -63,7 +56,6 @@ public class IngressEnricherTest {
     @Before
     public void setUp() throws Exception {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
-        logger = mock(KitLogger.class);
         imageConfiguration = mock(ImageConfiguration.class);
         ingressEnricher = new IngressEnricher(context);
     }
@@ -252,55 +244,6 @@ public class IngressEnricherTest {
             .containsExactly("test.192.168.39.25.nip.io");
     }
 
-    private IngressBuilder initTestIngressFragment() {
-        return new IngressBuilder()
-                .withMetadata(createIngressFragmentMetadata())
-                .withNewSpec()
-                .withTls(new IngressTLSBuilder()
-                        .addToHosts("my.host.com")
-                        .withSecretName("letsencrypt-pod")
-                        .build())
-                .addNewRule()
-                .withHost("my.host.com")
-                .withNewHttp()
-                .addNewPath()
-                .withPath("/")
-                .withPathType("Prefix")
-                .withNewBackend()
-                .withNewService().withName("test-svc").withNewPort().withNumber(8080).endPort().endService()
-                .endBackend()
-                .endPath()
-                .endHttp()
-                .endRule()
-                .endSpec();
-    }
-
-    private ObjectMeta createIngressFragmentMetadata() {
-        return new ObjectMetaBuilder()
-                .withName("test-svc")
-                .addToAnnotations("ingress.kubernetes.io/rewrite-target", "/")
-                .build();
-    }
-
-    private io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder networkingV1IngressFragment() {
-        return new io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder()
-                .withMetadata(createIngressFragmentMetadata())
-                .withNewSpec()
-                .addNewRule()
-                .withHost("test-jkube-ingress.test.192.168.39.25.nip.io")
-                .withNewHttp()
-                .addNewPath()
-                .withNewBackend()
-                .withNewService()
-                .withName("test-jkube-ingress")
-                .withNewPort().withNumber(8080).endPort()
-                .endService()
-                .endBackend()
-                .endPath()
-                .endHttp()
-                .endRule()
-                .endSpec();
-    }
 
     private ServiceBuilder initTestService() {
         return new ServiceBuilder()

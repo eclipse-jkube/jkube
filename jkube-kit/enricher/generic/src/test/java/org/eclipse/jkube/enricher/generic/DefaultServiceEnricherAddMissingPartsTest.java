@@ -13,51 +13,43 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.assertj.core.groups.Tuple;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 public class DefaultServiceEnricherAddMissingPartsTest {
 
   private Properties properties;
-  private List<ImageConfiguration> images;
   private DefaultServiceEnricher enricher;
 
   @Before
   public void setUp() {
-    JKubeEnricherContext context = mock(JKubeEnricherContext.class);
-    Configuration configuration = mock(Configuration.class);
-    GroupArtifactVersion groupArtifactVersion = mock(GroupArtifactVersion.class);
     properties = new Properties();
-    images = new ArrayList<>();
-    images.add(ImageConfiguration.builder()
+    final JKubeEnricherContext context = JKubeEnricherContext.builder()
+      .image(ImageConfiguration.builder()
         .name("test-image")
         .build(new BuildConfiguration())
-        .build());
-    when(configuration.getImages()).thenReturn(images);
-    when(groupArtifactVersion.getSanitizedArtifactId()).thenReturn("artifact-id");
-    when(context.getConfiguration()).thenReturn(configuration);
-    when(context.getProperties()).thenReturn(properties);
-    when(context.getGav()).thenReturn(groupArtifactVersion);
-    when(context.getLog()).thenReturn(new KitLogger.SilentLogger());
+        .build())
+      .project(JavaProject.builder()
+        .properties(properties)
+        .groupId("group-id")
+        .artifactId("artifact-id")
+        .build())
+      .log(new KitLogger.SilentLogger())
+      .build();
     enricher = new DefaultServiceEnricher(context);
   }
 
@@ -158,6 +150,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
   }
 
   private void imageConfigurationWithPort(String... ports) {
-    images.get(0).setBuild(BuildConfiguration.builder().ports(Arrays.asList(ports)).build());
+    enricher.getContext().getConfiguration().getImages().get(0)
+      .setBuild(BuildConfiguration.builder().ports(Arrays.asList(ports)).build());
   }
 }

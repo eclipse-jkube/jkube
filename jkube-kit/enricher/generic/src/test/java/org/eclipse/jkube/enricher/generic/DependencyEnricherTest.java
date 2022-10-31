@@ -21,7 +21,6 @@ import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.junit.Before;
@@ -32,19 +31,16 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class DependencyEnricherTest {
 
     private JKubeEnricherContext context;
-
-    private JavaProject project;
 
     // Some resource files related to test case placed in resources/ directory:
     private static final String OVERRIDE_FRAGMENT_FILE = "/jenkins-kubernetes-cm.yml";
@@ -52,11 +48,17 @@ public class DependencyEnricherTest {
 
     @Before
     public void setUp() {
-        context = mock(JKubeEnricherContext.class);
-        Configuration configuration = mock(Configuration.class);
-        when(context.getConfiguration()).thenReturn(configuration);
-        when(context.getLog()).thenReturn(new KitLogger.SilentLogger());
-        project =mock(JavaProject.class);
+        context = JKubeEnricherContext.builder()
+          .project(JavaProject.builder()
+            .name("the-project")
+            .dependenciesWithTransitive(Collections.singletonList(Dependency.builder()
+              .groupId("g1").artifactId("a1").version("v1")
+              .type("jar").scope("compile")
+              .file(new File(getClass().getResource(ARTIFACT_FILE_PATH).getFile()))
+              .build()))
+            .build())
+          .log(new KitLogger.SilentLogger())
+          .build();
     }
     @Test
     public void checkDuplicatesInResource() throws Exception {
@@ -77,13 +79,8 @@ public class DependencyEnricherTest {
     }
 
     private KubernetesListBuilder createResourcesForTest() throws IOException, URISyntaxException {
-        setupExpectations();
         List<File> resourceList = new ArrayList<>();
-
         resourceList.add(new File(Paths.get(getClass().getResource(OVERRIDE_FRAGMENT_FILE).toURI()).toAbsolutePath().toString()));
-
-
-
         /*
          * Our override file also contains a ConfigMap item with name jenkins, load it while
          * loading Kubernetes resources.
@@ -91,23 +88,8 @@ public class DependencyEnricherTest {
         return KubernetesResourceUtil.readResourceFragmentsFrom(
                 PlatformMode.kubernetes,
                 KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING,
-                project.getName(),
-                resourceList.toArray(new File[resourceList.size()]));
-    }
-
-    private void setupExpectations() {
-        // Setup Mock behaviour
-        when(context.getDependencies(true)).thenReturn(getDummyArtifacts());
-    }
-
-    private List<Dependency> getDummyArtifacts() {
-        List<Dependency> artifacts = new ArrayList<>();
-
-        File aFile = new File(getClass().getResource(ARTIFACT_FILE_PATH).getFile());
-        Dependency artifact = Dependency.builder().groupId("g1").artifactId("a1").version("v1")
-            .type("jar").scope("compile").file(aFile).build();
-        artifacts.add(artifact);
-        return artifacts;
+                "the-project",
+                resourceList.toArray(new File[0]));
     }
 
     private boolean checkUniqueResources(List<HasMetadata> resourceList) {

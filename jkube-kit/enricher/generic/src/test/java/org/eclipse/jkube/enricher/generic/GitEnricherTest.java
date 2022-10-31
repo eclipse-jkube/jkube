@@ -86,7 +86,7 @@ public class GitEnricherTest {
     }
 
     private void assertJkubeAnnotationsRemoteUrlAndBranch(Map<String, String> annotations) {
-        assertThat(annotations).containsEntry(JKubeAnnotations.GIT_URL.value(),GIT_REMOTE_URL);
-        assertThat(annotations).containsEntry(JKubeAnnotations.GIT_BRANCH.value(),GIT_BRANCH);
+        assertThat(annotations).containsEntry("jkube.io/git-url",GIT_REMOTE_URL);
+        assertThat(annotations).containsEntry("jkube.io/git-branch",GIT_BRANCH);
     }
 }

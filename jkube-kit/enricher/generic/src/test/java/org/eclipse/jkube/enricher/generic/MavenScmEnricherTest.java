@@ -16,7 +16,6 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.Before;
@@ -55,9 +54,10 @@ public class MavenScmEnricherTest {
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
         assertThat(scmAnnotations)
-                .isNotNull()
-                .hasSize(2)
-                .containsEntry(JKubeAnnotations.SCM_TAG.value(),"HEAD").containsEntry(JKubeAnnotations.SCM_URL.value(),"git://github.com/jkubeio/kubernetes-maven-plugin.git");
+          .isNotNull()
+          .hasSize(2)
+          .containsEntry("jkube.io/scm-tag", "HEAD")
+          .containsEntry("jkube.io/scm-url", "git://github.com/jkubeio/kubernetes-maven-plugin.git");
 
     }
 
@@ -78,9 +78,9 @@ public class MavenScmEnricherTest {
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
 
         assertThat(scmAnnotations).isNotNull()
-                .hasSize(1)
-                .containsEntry(JKubeAnnotations.SCM_URL.value(),"scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
-                .doesNotContainKey(JKubeAnnotations.SCM_TAG.value());
+          .hasSize(1)
+          .containsEntry("jkube.io/scm-url", "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
+          .doesNotContainKey("jkube.io/scm-tag");
 
     }
 
@@ -99,9 +99,10 @@ public class MavenScmEnricherTest {
         mavenScmEnricher.create(PlatformMode.kubernetes, builder);
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-        assertThat(scmAnnotations).isNotNull().hasSize(1)
-                .containsEntry(JKubeAnnotations.SCM_URL.value(),"git://github.com/jkubeio/kubernetes-maven-plugin.git")
-                .doesNotContainKey(JKubeAnnotations.SCM_TAG.value());
+        assertThat(scmAnnotations).isNotNull()
+          .hasSize(1)
+          .containsEntry("jkube.io/scm-url", "git://github.com/jkubeio/kubernetes-maven-plugin.git")
+          .doesNotContainKey("jkube.io/scm-tag");
     }
 
     @Test
@@ -120,9 +121,10 @@ public class MavenScmEnricherTest {
 
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
 
-        assertThat(scmAnnotations).isNotNull().hasSize(1)
-                .containsEntry(JKubeAnnotations.SCM_URL.value(),"scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
-                .doesNotContainKey(JKubeAnnotations.SCM_TAG.value());
+        assertThat(scmAnnotations).isNotNull()
+          .hasSize(1)
+          .containsEntry("jkube.io/scm-url", "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
+          .doesNotContainKey("jkube.io/scm-tag");
     }
 
     @Test
