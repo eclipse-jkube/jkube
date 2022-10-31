@@ -21,6 +21,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -59,5 +62,23 @@ class RemoteDevelopmentServiceTest {
     remoteDev.stop();
     // Then
     verify(logger, times(2)).info("Remote development service stopped");
+  }
+
+  @Test
+  @DisplayName("start initiates PortForwarder and KubernetesSshServiceForwarder")
+  void startInitiatesChildProcesses() {
+    CompletableFuture<Void> future = null;
+    try {
+      // When
+      future = new RemoteDevelopmentService(logger, kubernetesClient,  RemoteDevelopmentConfig.builder().build())
+        .start();
+      // Then
+      verify(logger, times(1))
+        .debug("Starting Kubernetes SSH service forwarder...");
+      verify(logger, times(1))
+        .debug("Starting port forwarder...");
+    } finally {
+      Optional.ofNullable(future).ifPresent(f -> f.cancel(true));
+    }
   }
 }

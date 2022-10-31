@@ -18,20 +18,21 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
-import io.fabric8.kubernetes.client.dsl.base.PatchContext;
-import io.fabric8.kubernetes.client.dsl.base.PatchType;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.eclipse.jkube.kit.common.util.AsyncUtil.await;
 import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.CONTAINER_SSH_PORT;
-import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.SSH_SERVER_APP;
-import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.SSH_SERVER_GROUP;
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_APP;
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_GROUP;
 
 class KubernetesSshServiceForwarder implements Callable<Void> {
 
@@ -50,8 +51,9 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
 
   @Override
   public Void call() throws IOException, InterruptedException {
+    logger.debug("Starting Kubernetes SSH service forwarder...");
     final InetAddress allInterfaces = InetAddress.getByName("0.0.0.0");
-    while (true) {
+    while (!stop.get()) {
       if (sshService == null || kubernetesClient.pods().resource(sshService).fromServer().get() == null) {
         context.reset();
         sshService = deploySshServerPod();
@@ -73,6 +75,7 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
         }
       }
     }
+    return null;
   }
 
   final void stop() {
@@ -88,12 +91,12 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
     final PodBuilder pod = new PodBuilder()
       .withNewMetadata()
       .withName(name)
-      .addToLabels("app", SSH_SERVER_APP)
-      .addToLabels("group", SSH_SERVER_GROUP)
+      .addToLabels("app", REMOTE_DEVELOPMENT_APP)
+      .addToLabels("group", REMOTE_DEVELOPMENT_GROUP)
       .endMetadata()
       .withNewSpec()
       .addNewContainer()
-      .withName("openssh-server")
+      .withName(REMOTE_DEVELOPMENT_APP)
       .addToEnv(new EnvVarBuilder().withName("PUBLIC_KEY").withValue(context.getSshRsaPublicKey()).build())
       .withImage("marcnuri/openssh-server:latest")
       .addNewPort().withContainerPort(CONTAINER_SSH_PORT).withProtocol("TCP").endPort()
@@ -105,21 +108,23 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
         .addNewPort().withContainerPort(localService.getPort()).withProtocol("TCP").endPort()
         .endContainer().endSpec();
     }
-    return kubernetesClient.pods().withName(name).patch(PatchContext.of(PatchType.SERVER_SIDE_APPLY), pod.build());
+    return kubernetesClient.pods().resource(pod.build()).createOrReplace();
+      // Using createOrReplace instead of SSA because MockServer doesn't support this PATCH
+      // unless the resource already exists
+      // .patch(PatchContext.of(PatchType.SERVER_SIDE_APPLY), pod.build());
   }
 
   private String waitForUser() throws InterruptedException {
     logger.debug("Waiting for Pod to log current user");
-    int retry = 0;
-    String log;
-    while (!(log = kubernetesClient.pods().resource(sshService).getLog()).contains("Current container user is:")) {
-      if (retry++ > 60) {
-        throw new IllegalStateException("Unable to retrieve current user from Pod");
-      }
-      TimeUnit.SECONDS.sleep(1);
+    try {
+      final String log = await(() -> kubernetesClient.pods().resource(sshService).getLog())
+        .apply(l -> l.contains("Current container user is:"))
+        .get(60, TimeUnit.SECONDS);
+      int i = log.indexOf("Current container user is:");
+      return log.substring(i + 26, log.indexOf("\n") + i).trim();
+    } catch (ExecutionException | TimeoutException ex) {
+      throw new IllegalStateException("Unable to retrieve current user from Pod", ex);
     }
-    int i = log.indexOf("Current container user is:");
-    return log.substring(i + 26, log.indexOf("\n") + i).trim();
   }
 
   private boolean shouldRestart(Pod sshService, LocalPortForward localPortForward) {

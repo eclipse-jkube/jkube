@@ -53,6 +53,7 @@ class PortForwarder implements Callable<Void> {
 
   @Override
   public Void call() throws InterruptedException {
+    logger.debug("Starting port forwarder...");
     while (true) {
       waitForUser();
       final SshClient sshClient = startSshClient();

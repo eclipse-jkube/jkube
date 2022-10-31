@@ -22,8 +22,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.SSH_SERVER_APP;
-import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.SSH_SERVER_GROUP;
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_APP;
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_GROUP;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -43,8 +43,8 @@ public class LocalService {
       .endMetadata()
       .withNewSpec()
       .withType(type)
-      .addToSelector("app", SSH_SERVER_APP)
-      .addToSelector("group", SSH_SERVER_GROUP)
+      .addToSelector("app", REMOTE_DEVELOPMENT_APP)
+      .addToSelector("group", REMOTE_DEVELOPMENT_GROUP)
       .addNewPort()
       .withProtocol("TCP")
       .withPort(port)
