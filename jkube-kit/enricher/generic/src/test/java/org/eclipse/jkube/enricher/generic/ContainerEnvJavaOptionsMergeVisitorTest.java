@@ -22,19 +22,18 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptionsMergeTest.containerList;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class ContainerEnvJavaOptionsMergeVisitorTest {
 
   @SuppressWarnings("unused")
-  @Mocked
   private ImageConfiguration imageConfiguration;
 
   private KubernetesListBuilder kubernetesListBuilder;
@@ -42,6 +41,7 @@ public class ContainerEnvJavaOptionsMergeVisitorTest {
   @Before
   public void setUp() {
     kubernetesListBuilder = new KubernetesListBuilder();
+    imageConfiguration = mock(ImageConfiguration.class,RETURNS_DEEP_STUBS);
   }
 
   @Test
@@ -64,11 +64,7 @@ public class ContainerEnvJavaOptionsMergeVisitorTest {
   @Test
   public void imageConfigurationAndContainersWithMatchingImageNameAndNoEnvShouldDoNothing() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      imageConfiguration.getName(); result = "the-image:latest";
-    }};
-    // @formatter:on
+    when(imageConfiguration.getName()).thenReturn("the-image:latest");
     initDeployments(new ContainerBuilder()
         .withImage("the-image:latest")
         .build());
@@ -85,12 +81,9 @@ public class ContainerEnvJavaOptionsMergeVisitorTest {
   @Test
   public void imageConfigurationWithJavaOptionsEnvAndContainersWithMatchingImageNameShouldDoNothing() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      imageConfiguration.getName(); result = "the-image:latest";
-      imageConfiguration.getBuild().getEnv(); result = Collections.singletonMap("JAVA_OPTIONS", "-DsomeOption");
-    }};
-    // @formatter:on
+    when(imageConfiguration.getName()).thenReturn("the-image:latest");
+    when(imageConfiguration.getBuild().getEnv()).thenReturn(Collections.singletonMap("JAVA_OPTIONS", "-DsomeOption"));
+
     initDeployments(new ContainerBuilder()
         .withImage("the-image:latest")
         .build());
@@ -107,12 +100,8 @@ public class ContainerEnvJavaOptionsMergeVisitorTest {
   @Test
   public void imageConfigurationWithJavaOptionsEnvAndContainersWithMatchingImageNameAndEnvShouldAdd() {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      imageConfiguration.getName(); result = "the-image:latest";
-      imageConfiguration.getBuild().getEnv(); result = Collections.singletonMap("JAVA_OPTIONS", "-DsomeOption");
-    }};
-    // @formatter:on
+    when(imageConfiguration.getName()).thenReturn("the-image:latest");
+    when(imageConfiguration.getBuild().getEnv()).thenReturn(Collections.singletonMap("JAVA_OPTIONS", "-DsomeOption"));
     initDeployments(new ContainerBuilder()
         .withImage("the-image:latest")
         .addToEnv(new EnvVar("JAVA_OPTIONS", "-DotherOption", null))

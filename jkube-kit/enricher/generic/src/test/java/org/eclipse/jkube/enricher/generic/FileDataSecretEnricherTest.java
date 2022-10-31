@@ -27,17 +27,23 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
 public class FileDataSecretEnricherTest {
 
     private static final String TEST_APPLICATION_PROPERTIES_PATH = "src/test/resources/test-application.properties";
     private static final String TEST_APPLICATION_PROPERTIES = "test-application.properties";
-    @Mocked
     private JKubeEnricherContext context;
+
+    @Before
+    public void setupExpectations() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    }
 
     @Test
     public void shouldMaterializeFileContentFromDeprecatedAnnotation() throws IOException {

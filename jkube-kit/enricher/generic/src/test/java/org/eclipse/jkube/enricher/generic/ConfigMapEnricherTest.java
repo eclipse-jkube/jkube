@@ -14,6 +14,9 @@
 package org.eclipse.jkube.enricher.generic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -32,14 +35,16 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ConfigMapEnricherTest {
-
-    @Mocked
     private JKubeEnricherContext context;
+
+    @Before
+    public void setUpExpectations() {
+        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+    }
 
     @Test
     public void should_materialize_file_content_from_deprecated_annotation() throws Exception {
@@ -154,13 +159,7 @@ public class ConfigMapEnricherTest {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap(
                 "src/test/resources/test-application.properties");
         final ResourceConfig config = ResourceConfig.builder().configMap(baseConfigMap).build();
-        new Expectations() {
-            {
-                context.getConfiguration();
-                result = Configuration.builder().resource(config).build();
-            }
-        };
-
+        when(context.getConfiguration()).thenReturn(Configuration.builder().resource(config).build());
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
@@ -175,13 +174,7 @@ public class ConfigMapEnricherTest {
     public void should_materialize_binary_file_content_from_xml() {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap("src/test/resources/test.bin");
         final ResourceConfig config = ResourceConfig.builder().configMap(baseConfigMap).build();
-        new Expectations() {
-            {
-                context.getConfiguration();
-                result = Configuration.builder().resource(config).build();
-            }
-        };
-
+        when(context.getConfiguration()).thenReturn(Configuration.builder().resource(config).build());
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();

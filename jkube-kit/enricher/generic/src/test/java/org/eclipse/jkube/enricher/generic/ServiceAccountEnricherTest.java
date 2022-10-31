@@ -19,13 +19,12 @@ import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Properties;
@@ -33,12 +32,15 @@ import java.util.Properties;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ServiceAccountEnricherTest {
-    @Mocked
     private JKubeEnricherContext context;
-
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    @Before
+    public void setUp() {
+        context = JKubeEnricherContext.builder()
+          .project(JavaProject.builder()
+            .properties(new Properties())
+            .build())
+          .resources(ResourceConfig.builder().build())
+          .build();
     }
 
     @Test
@@ -95,12 +97,10 @@ public class ServiceAccountEnricherTest {
     @Test
     public void create_withSkipCreateEnabledAndPluginConfiguration_shouldNotCreateServiceAccount() {
         // Given
-        Properties properties = new Properties();
-        properties.put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
+        context.getProperties().put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         builder.addToItems(createNewDeploymentFragment().build());
         givenServiceAccountConfiguredInResourceConfiguration();
-        givenProperties(properties);
 
         // When
         new ServiceAccountEnricher(context).create(PlatformMode.kubernetes, builder);
@@ -115,11 +115,9 @@ public class ServiceAccountEnricherTest {
     @Test
     public void create_withSkipCreateEnabledAndFragment_shouldNotCreateServiceAccount() {
         // Given
-        Properties properties = new Properties();
-        properties.put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
+        context.getProperties().put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         builder.addToItems(createNewDeploymentFragmentWithServiceAccountConfigured("already-exist"));
-        givenProperties(properties);
 
         // When
         new ServiceAccountEnricher(context).create(PlatformMode.kubernetes, builder);
@@ -140,20 +138,11 @@ public class ServiceAccountEnricherTest {
     }
 
     private void givenServiceAccountConfiguredInResourceConfiguration() {
-        new Expectations() {{
-            context.getConfiguration();
-            result = Configuration.builder()
-                .resource(ResourceConfig.builder()
-                    .serviceAccount(ServiceAccountConfig.builder().name("ribbon").deploymentRef("cheese").build()).build())
-                .build();
-        }};
-    }
-
-    private void givenProperties(Properties properties) {
-        new Expectations() {{
-            context.getProperties();
-            result = properties;
-        }};
+        context = context.toBuilder()
+          .resources(ResourceConfig.builder()
+            .serviceAccount(ServiceAccountConfig.builder().name("ribbon").deploymentRef("cheese").build())
+            .build())
+          .build();
     }
 
     private DeploymentBuilder createNewDeploymentFragment() {

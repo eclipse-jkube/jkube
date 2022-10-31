@@ -22,18 +22,16 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Map;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Test label generation.
@@ -41,16 +39,12 @@ import static org.junit.Assert.assertNull;
  * @author nicola
  */
 public class MavenProjectEnricherTest {
-
-    @Mocked
     private JKubeEnricherContext context;
 
     @Before
     public void setupExpectations() {
-        new Expectations() {{
-            context.getGav();
-            result = new GroupArtifactVersion("groupId", "artifactId", "version");
-        }};
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+        when(context.getGav()).thenReturn(new GroupArtifactVersion("groupId", "artifactId", "version"));
     }
 
     @Test
@@ -62,22 +56,21 @@ public class MavenProjectEnricherTest {
         KubernetesList list = builder.build();
 
         Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals("artifactId", labels.get("app"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("project"));
+        assertThat(labels)
+                .isNotNull()
+                .containsEntry("group","groupId")
+                .containsEntry("app","artifactId")
+                .containsEntry("version","version");
+        assertThat(labels.get("project")).isNull();
 
         builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
         projectEnricher.create(PlatformMode.kubernetes, builder);
 
         Deployment deployment = (Deployment)builder.buildFirstItem();
         Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals("artifactId", selectors.get("app"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("project"));
+        assertThat(selectors).containsEntry("group","groupId").containsEntry("app","artifactId");
+        assertThat(selectors.get("version")).isNull();
+        assertThat(selectors.get("project")).isNull();
     }
 
     @Test
@@ -85,11 +78,7 @@ public class MavenProjectEnricherTest {
 
         final Properties properties = new Properties();
         properties.setProperty("jkube.enricher.jkube-project-label.useProjectLabel", "true");
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); result = properties;
-        }};
-        // @formatter:on
+        when(context.getProperties()).thenReturn(properties);
 
         ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
 
@@ -98,22 +87,20 @@ public class MavenProjectEnricherTest {
         KubernetesList list = builder.build();
 
         Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-
-        assertNotNull(labels);
-        assertEquals("groupId", labels.get("group"));
-        assertEquals("artifactId", labels.get("project"));
-        assertEquals("version", labels.get("version"));
-        assertNull(labels.get("app"));
+        assertThat(labels).isNotNull()
+                .containsEntry("project","artifactId")
+                .containsEntry("version","version")
+                .containsEntry("group","groupId");
+        assertThat(labels.get("app")).isNull();
 
         builder = new KubernetesListBuilder().withItems(new DeploymentConfigBuilder().build());
         projectEnricher.create(PlatformMode.kubernetes, builder);
 
         DeploymentConfig deploymentConfig = (DeploymentConfig)builder.buildFirstItem();
         Map<String, String> selectors = deploymentConfig.getSpec().getSelector();
-        assertEquals("groupId", selectors.get("group"));
-        assertEquals("artifactId", selectors.get("project"));
-        assertNull(selectors.get("version"));
-        assertNull(selectors.get("app"));
+        assertThat(selectors).containsEntry("group","groupId").containsEntry("project","artifactId");
+        assertThat(selectors.get("version")).isNull();
+        assertThat(selectors.get("app")).isNull();
     }
 
     private KubernetesListBuilder createListWithDeploymentConfig() {
