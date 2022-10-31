@@ -50,9 +50,6 @@ class DefaultResourceServiceTest {
 
   private EnricherManager enricherManager;
   private KitLogger kitLogger;
-  private ResourceConfig resourceConfig;
-  private JavaProject project;
-
   private File targetDir;
   private ResourceServiceConfig resourceServiceConfig;
   private DefaultResourceService defaultResourceService;
@@ -60,17 +57,15 @@ class DefaultResourceServiceTest {
   @BeforeEach
   void init(@TempDir Path temporaryFolder) throws IOException {
     enricherManager = mock(EnricherManager.class);
-    kitLogger = mock(KitLogger.class);
-    resourceConfig = mock(ResourceConfig.class);
-    project = mock(JavaProject.class);
+    kitLogger = new KitLogger.SilentLogger();
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     resourceServiceConfig = ResourceServiceConfig.builder()
         .interpolateTemplateParameters(true)
         .targetDir(targetDir)
-        .project(project)
+        .project(JavaProject.builder().build())
         .resourceFileType(ResourceFileType.yaml)
         .resourceDirs(Collections.singletonList(Files.createDirectory(temporaryFolder.resolve("resources")).toFile()))
-        .resourceConfig(resourceConfig)
+        .resourceConfig(ResourceConfig.builder().build())
         .build();
     defaultResourceService = new DefaultResourceService(resourceServiceConfig);
   }
@@ -114,14 +109,15 @@ class DefaultResourceServiceTest {
 
   @Test
   void writeResources() throws IOException {
-    MockedStatic<WriteUtil> writeUtil = mockStatic(WriteUtil.class);
-    MockedStatic<TemplateUtil> templateUtil = mockStatic(TemplateUtil.class);
-    // When
-    defaultResourceService.writeResources(null, ResourceClassifier.KUBERNETES, kitLogger);
-    // Then
-    writeUtil.verify(() -> WriteUtil.writeResourcesIndividualAndComposite(isNull(), eq(new File(targetDir, "kubernetes")), eq(ResourceFileType.yaml), eq(kitLogger)),times(1));
-    templateUtil.verify(() -> TemplateUtil.interpolateTemplateVariables(isNull(), any()),times(1));
-
-
+    try (
+      MockedStatic<WriteUtil> writeUtil = mockStatic(WriteUtil.class);
+      MockedStatic<TemplateUtil> templateUtil = mockStatic(TemplateUtil.class)
+    ) {
+      // When
+      defaultResourceService.writeResources(null, ResourceClassifier.KUBERNETES, kitLogger);
+      // Then
+      writeUtil.verify(() -> WriteUtil.writeResourcesIndividualAndComposite(isNull(), eq(new File(targetDir, "kubernetes")), eq(ResourceFileType.yaml), eq(kitLogger)), times(1));
+      templateUtil.verify(() -> TemplateUtil.interpolateTemplateVariables(isNull(), any()), times(1));
+    }
   }
 }

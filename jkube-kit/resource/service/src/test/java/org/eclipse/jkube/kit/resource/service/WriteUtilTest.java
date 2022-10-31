@@ -36,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 
@@ -52,7 +51,7 @@ class WriteUtilTest {
 
   @BeforeEach
   void initGlobalVariables()  {
-    log = mock(KitLogger.class);
+    log = new KitLogger.SilentLogger();
     resourceUtil = mockStatic(ResourceUtil.class);
     klb = new KubernetesListBuilder();
     resourceFileBase = temporaryFolder;
