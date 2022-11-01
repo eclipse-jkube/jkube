@@ -52,7 +52,6 @@ class BaseEnricherGetReplicaCountTest {
   }
 
   @Test
-  @DisplayName("with empty list builder and resource config, should return default (1337 replicas)")
   void withEmptyListBuilderAndEmptyResourceConfig_shouldReturnDefault() {
     // When
     int result = getReplicaCount(new KubernetesListBuilder().addToItems(new ConfigMapBuilder()), new ResourceConfig(), 1337);
@@ -61,7 +60,6 @@ class BaseEnricherGetReplicaCountTest {
   }
 
   @Test
-  @DisplayName("with deployment config in list builder and empty resource config, should return deployment config (1 replica)")
   void withDeploymentConfigInListBuilderAndEmptyResourceConfig_shouldReturnDeploymentConfig() {
     // Given
     KubernetesListBuilder klb = new KubernetesListBuilder()
@@ -74,7 +72,6 @@ class BaseEnricherGetReplicaCountTest {
   }
 
   @Test
-  @DisplayName("with deployment and deployment config in list builder and empty resource config, should return value from deployment (2 replicas)")
   void withDeploymentAndDeploymentConfigInListBuilderAndEmptyResourceConfig_shouldReturnValueInFirstItem() {
     // Given
     KubernetesListBuilder klb = new KubernetesListBuilder()

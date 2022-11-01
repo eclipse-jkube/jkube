@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.ExecAction;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Probe;
 import org.eclipse.jkube.kit.config.resource.ProbeConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -26,38 +27,30 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class ProbeHandlerTest {
-    Probe probe;
-    ProbeHandler probeHandler = new ProbeHandler();
+    private Probe probe;
+    private ProbeHandler probeHandler;
+    private ProbeConfig probeConfig;
 
-    ProbeConfig probeConfig;
+    @BeforeEach
+    void setUp() {
+      probeHandler = new ProbeHandler();
+    }
 
     @Test
-    void getProbeEmptyTest() {
-        //EmptyProbeConfig
-
-        probeConfig = null;
-
-        probe = probeHandler.getProbe(probeConfig);
-
+    void getProbe_withNullProbeConfig_shouldBeNull() {
+        probe = probeHandler.getProbe(null);
         assertThat(probe).isNull();
     }
 
     @Test
-    void getProbeNullTest() {
-        //ProbeConfig without any action
-
+    void getProbe_withEmptyProbeConfig_shouldBeNull() {
         probeConfig = ProbeConfig.builder().build();
-
         probe = probeHandler.getProbe(probeConfig);
-
         assertThat(probe).isNull();
     }
 
     @Test
-    void getHTTPProbeWithHTTPURLTest() {
-
-        //ProbeConfig with HTTPGet Action
-        //withUrl
+    void getHTTPProbe_withHTTPURL() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).getUrl("http://www.healthcheck.com:8080/healthz")
                 .build();
@@ -77,7 +70,7 @@ class ProbeHandlerTest {
     }
 
     @Test
-    void getHTTPProbeWithInvalidURLTest() {
+    void getHTTPProbe_withInvalidURL_shouldThrowException() {
         // Given
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).getUrl("httphealthcheck.com:8080/healthz")
@@ -90,22 +83,17 @@ class ProbeHandlerTest {
     }
 
     @Test
-    void getExecProbeWithEmptyExecTest() {
-        //ProbeConfig with Exec Action
-        //withEmptyExec
+    void getExecProbe_withEmptyExec_shouldBeNull() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).exec("")
                 .build();
 
         probe = probeHandler.getProbe(probeConfig);
-        //assertion
         assertThat(probe).isNull();
     }
 
     @Test
-    void getExecProbeWithExecTest() {
-        //ProbeConfig with Exec Action
-        //withExec
+    void getExecProbe_withExec() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).exec("cat /tmp/probe")
                 .build();
@@ -123,22 +111,17 @@ class ProbeHandlerTest {
     }
 
     @Test
-    void getExecProbeWithInvalidExecTest() {
-        //ProbeConfig with Exec Action
-        //withInvalidExec
+    void getExecProbe_withInvalidExec_shouldBeNull() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).exec("   ")
                 .build();
 
         probe = probeHandler.getProbe(probeConfig);
-        //assertion
         assertThat(probe).isNull();
     }
 
     @Test
-    void getTCPProbeWithoutURLTest() {
-        //ProbeConfig with TCP Action
-        //withno url, only port
+    void getTCPProbe_withoutURL() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).tcpPort("80")
                 .build();
@@ -155,9 +138,7 @@ class ProbeHandlerTest {
     }
 
     @Test
-    void getTCPProbeWithHTTPURLAndPortTest() {
-        //ProbeConfig with TCP Action
-        //withport and url but with http request
+    void getTCPProbe_withHTTPURLAndPort() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5)
                 .getUrl("http://www.healthcheck.com:8080/healthz").tcpPort("80")
@@ -178,9 +159,7 @@ class ProbeHandlerTest {
     }
 
     @Test
-    void getTCPProbeWithNonHTTPURLTest() {
-        //ProbeConfig with TCP Action
-        //withport and url but with other request and port as int
+    void getTCPProbe_withNonHTTPURL() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5)
                 .failureThreshold(3).successThreshold(1)
@@ -201,9 +180,7 @@ class ProbeHandlerTest {
     }
 
     @Test
-    void getTCPProbeWithNonHTTPURLAndStringPortTest() {
-        //ProbeConfig with TCP Action
-        //withport and url but with other request and port as string
+    void getTCPProbe_withNonHTTPURLAndStringPort() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5)
                 .getUrl("tcp://www.healthcheck.com:8080/healthz").tcpPort("httpPort")
@@ -225,9 +202,7 @@ class ProbeHandlerTest {
     }
 
     @Test
-    void getTCPWithHTTPURLAndWithoutPort() {
-        //ProbeConfig with TCP Action
-        //without port and url with http request
+    void getTCPProbe_withHTTPURLAndWithoutPort() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5)
                 .getUrl("http://www.healthcheck.com:8080/healthz")
@@ -248,9 +223,7 @@ class ProbeHandlerTest {
     }
 
     @Test
-    void getTCPProbeWithInvalidURLTest() {
-        //ProbeConfig with TCP Action
-        //withInvalidUrl
+    void getProbe_withTCPPortAndInvalidURL_shouldThrowException() {
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).getUrl("healthcheck.com:8080/healthz")
                 .tcpPort("80")
@@ -261,7 +234,7 @@ class ProbeHandlerTest {
     }
 
     @Test
-    void httpGetProbeWithLocalhostInUrl() {
+    void httpGetProbe_withLocalhostInUrl() {
         // Given
         probeConfig = ProbeConfig.builder()
                 .getUrl("http://:8080/healthz")
@@ -271,15 +244,15 @@ class ProbeHandlerTest {
         probe = probeHandler.getProbe(probeConfig);
 
         // Then
-        assertThat(probe)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("httpGet.host", "")
-                .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTP")
-                .hasFieldOrPropertyWithValue("httpGet.port", new IntOrString(8080));
+        assertThat(probe).isNotNull()
+            .extracting(Probe::getHttpGet)
+            .hasFieldOrPropertyWithValue("host", "")
+            .hasFieldOrPropertyWithValue("scheme", "HTTP")
+            .hasFieldOrPropertyWithValue("port.intVal", 8080);
     }
 
     @Test
-    void testHttpGetProbeWithCustomHeaders() {
+    void httpGetProbe_withCustomHeaders() {
         // Given
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");

@@ -39,23 +39,19 @@ class JobHandlerTest {
 
     @Mocked
     private ProbeHandler probeHandler;
-
     @Mocked
     private JavaProject project;
-
-    List<String> mounts = new ArrayList<>();
-    List<VolumeConfig> volumes1 = new ArrayList<>();
-
-    List<ImageConfiguration> images = new ArrayList<>();
-
-    List<String> ports = new ArrayList<>();
-
-    List<String> tags = new ArrayList<>();
-
+    private List<VolumeConfig> volumes;
+    private List<ImageConfiguration> images;
     private JobHandler jobHandler;
 
     @BeforeEach
-    void before(){
+    void setUp(){
+        volumes = new ArrayList<>();
+        images = new ArrayList<>();
+        List<String> mounts = new ArrayList<>();
+        List<String> ports = new ArrayList<>();
+        List<String> tags = new ArrayList<>();
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -67,9 +63,9 @@ class JobHandlerTest {
         tags.add("latest");
         tags.add("test");
 
-        VolumeConfig volumeConfig1 = VolumeConfig.builder()
+        VolumeConfig volumeConfig = VolumeConfig.builder()
                 .name("test").mounts(mounts).type("hostPath").path("/test/path").build();
-        volumes1.add(volumeConfig1);
+        volumes.add(volumeConfig);
 
         //container name with alias
         final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder()
@@ -79,21 +75,20 @@ class JobHandlerTest {
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("test").alias("test-app").build(buildImageConfiguration)
                 .registry("docker.io").build();
-
         images.add(imageConfiguration);
 
         jobHandler = new JobHandler(new PodTemplateHandler(new ContainerHandler(project.getProperties(),
-            new GroupArtifactVersion("g","a","v"), probeHandler)));
+                new GroupArtifactVersion("g","a","v"), probeHandler)));
     }
 
     @Test
-    void jobHandlerTest() {
+    void get_withValidControllerName_shouldReturnConfigWithContainers() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
                 .serviceAccount("test-account")
                 .restartPolicy("OnFailure")
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
 
         Job job = jobHandler.get(config,images);
@@ -117,13 +112,12 @@ class JobHandlerTest {
     }
 
     @Test
-    void daemonTemplateHandlerWithInvalidNameTest() {
-        // with invalid controller name
+    void get_withInvalidControllerName_shouldThrowException() {
       ResourceConfig config = ResourceConfig.builder()
               .imagePullPolicy("IfNotPresent")
               .controllerName("TesTing")
               .serviceAccount("test-account")
-              .volumes(volumes1)
+              .volumes(volumes)
               .build();
 
       assertThatIllegalArgumentException()
@@ -133,12 +127,11 @@ class JobHandlerTest {
     }
 
     @Test
-    void daemonTemplateHandlerWithoutControllerTest() {
-        // without controller name
+    void get_withoutControllerName_shouldThrowException() {
       ResourceConfig config = ResourceConfig.builder()
               .imagePullPolicy("IfNotPresent")
               .serviceAccount("test-account")
-              .volumes(volumes1)
+              .volumes(volumes)
               .build();
 
       assertThatIllegalArgumentException().isThrownBy(() -> jobHandler.get(config, images))

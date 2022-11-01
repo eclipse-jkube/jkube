@@ -44,19 +44,17 @@ class StatefulSetHandlerTest {
     @Mocked
     private JavaProject project;
 
-    List<String> mounts = new ArrayList<>();
-    List<VolumeConfig> volumes1 = new ArrayList<>();
-
-    List<ImageConfiguration> images = new ArrayList<>();
-
-    List<String> ports = new ArrayList<>();
-
-    List<String> tags = new ArrayList<>();
-
+    private List<VolumeConfig> volumes;
+    private List<ImageConfiguration> images;
     private StatefulSetHandler statefulSetHandler;
 
     @BeforeEach
-    void before(){
+    void setUp(){
+        volumes = new ArrayList<>();
+        images = new ArrayList<>();
+        List<String> mounts = new ArrayList<>();
+        List<String> ports = new ArrayList<>();
+        List<String> tags = new ArrayList<>();
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -68,9 +66,9 @@ class StatefulSetHandlerTest {
         tags.add("latest");
         tags.add("test");
 
-        VolumeConfig volumeConfig1 = VolumeConfig.builder()
+        VolumeConfig volumeConfig = VolumeConfig.builder()
                 .name("test").mounts(mounts).type("hostPath").path("/test/path").build();
-        volumes1.add(volumeConfig1);
+        volumes.add(volumeConfig);
 
         //container name with alias
         final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder()
@@ -88,23 +86,23 @@ class StatefulSetHandlerTest {
     }
 
     @Test
-    void statefulSetHandlerTest() {
+    void get_withValidControllerName_shouldReturnConfigWithContainers() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
 
         StatefulSet statefulSet = statefulSetHandler.get(config,images);
         assertThat(statefulSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
         assertThat(statefulSet)
-            .satisfies(s -> assertThat(s.getMetadata())
+            .satisfies(ss -> assertThat(ss.getMetadata())
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("name", "testing")
             )
-            .satisfies(s -> assertThat(s.getSpec())
+            .satisfies(ss -> assertThat(ss.getSpec())
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("replicas", 5)
                 .hasFieldOrPropertyWithValue("serviceName", "testing")
@@ -120,14 +118,13 @@ class StatefulSetHandlerTest {
     }
 
     @Test
-    void statefulSetHandlerWithInvalidNameTest() {
-        // with invalid controller name
+    void get_withInvalidControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
         assertThatIllegalArgumentException()
             .isThrownBy(() -> statefulSetHandler.get(config, images))
@@ -136,13 +133,12 @@ class StatefulSetHandlerTest {
     }
 
     @Test
-    void statefulSetHandlerWithoutControllerTest() {
-        // without controller name
+    void get_withoutControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
         assertThatIllegalArgumentException()
             .isThrownBy(() -> statefulSetHandler.get(config, images))

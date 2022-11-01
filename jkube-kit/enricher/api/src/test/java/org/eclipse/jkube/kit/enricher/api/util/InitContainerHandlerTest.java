@@ -139,9 +139,9 @@ class InitContainerHandlerTest {
     }
 
     private Container createInitContainer(String name, String image) {
-        return new ContainerBuilder()
-                .withName(name)
-                .withImage(image)
-                .build();
+      return new ContainerBuilder()
+          .withName(name)
+          .withImage(image)
+          .build();
     }
 }

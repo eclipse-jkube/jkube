@@ -88,7 +88,7 @@ class DeploymentHandlerTest {
     }
 
     @Test
-    void deploymentTemplateHandlerTest() {
+    void get_withValidControllerName_shouldReturnConfigWithContainers() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -119,8 +119,7 @@ class DeploymentHandlerTest {
     }
 
     @Test
-    void deploymentTemplateHandlerWithInvalidNameTest() {
-        // with invalid controller name
+    void get_withInvalidControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
@@ -135,8 +134,7 @@ class DeploymentHandlerTest {
     }
 
     @Test
-    void deploymentTemplateHandlerWithoutControllerTest() {
-        // without controller name
+    void get_withoutControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")

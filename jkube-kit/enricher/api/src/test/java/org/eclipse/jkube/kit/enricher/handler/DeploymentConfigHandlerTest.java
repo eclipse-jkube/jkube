@@ -109,6 +109,6 @@ class DeploymentConfigHandlerTest {
     deploymentConfigHandler.overrideReplicas(klb, 1337);
     // Then
     assertThat(klb.buildItems()).singleElement()
-            .hasFieldOrPropertyWithValue("spec.replicas", 1337);
+        .hasFieldOrPropertyWithValue("spec.replicas", 1337);
   }
 }

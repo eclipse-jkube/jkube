@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class EnricherConfigTest {
 
   private enum Config implements Configs.Config {
-    TYPE;
+    TYPE
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")

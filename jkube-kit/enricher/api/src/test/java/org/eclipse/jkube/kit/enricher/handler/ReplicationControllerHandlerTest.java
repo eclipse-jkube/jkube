@@ -44,19 +44,17 @@ class ReplicationControllerHandlerTest {
     @Mocked
     private JavaProject project;
 
-    List<String> mounts = new ArrayList<>();
-    List<VolumeConfig> volumes1 = new ArrayList<>();
-
-    List<ImageConfiguration> images = new ArrayList<>();
-
-    List<String> ports = new ArrayList<>();
-
-    List<String> tags = new ArrayList<>();
-
+    private List<VolumeConfig> volumes;
+    private List<ImageConfiguration> images;
     private ReplicationControllerHandler replicationControllerHandler;
 
     @BeforeEach
-    void before(){
+    void setUp(){
+        volumes = new ArrayList<>();
+        images = new ArrayList<>();
+        List<String> mounts = new ArrayList<>();
+        List<String> ports = new ArrayList<>();
+        List<String> tags = new ArrayList<>();
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -68,9 +66,9 @@ class ReplicationControllerHandlerTest {
         tags.add("latest");
         tags.add("test");
 
-        VolumeConfig volumeConfig1 = VolumeConfig.builder()
+        VolumeConfig volumeConfig = VolumeConfig.builder()
                 .name("test").mounts(mounts).type("hostPath").path("/test/path").build();
-        volumes1.add(volumeConfig1);
+        volumes.add(volumeConfig);
 
         //container name with alias
         final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder()
@@ -80,7 +78,6 @@ class ReplicationControllerHandlerTest {
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("test").alias("test-app").build(buildImageConfiguration)
                 .registry("docker.io").build();
-
         images.add(imageConfiguration);
 
         replicationControllerHandler = new ReplicationControllerHandler(new PodTemplateHandler(new ContainerHandler(
@@ -88,23 +85,23 @@ class ReplicationControllerHandlerTest {
     }
 
     @Test
-    void replicationControllerHandlerTest() {
+    void get_withValidControllerName_shouldReturnConfigWithContainers() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
 
         ReplicationController replicationController = replicationControllerHandler.get(config,images);
         assertThat(replicationController.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
         assertThat(replicationController)
-            .satisfies(c -> assertThat(c.getMetadata())
+            .satisfies(rc -> assertThat(rc.getMetadata())
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("name", "testing")
             )
-            .satisfies(c -> assertThat(c.getSpec())
+            .satisfies(rc -> assertThat(rc.getSpec())
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("replicas", 5)
                 .extracting(ReplicationControllerSpec::getTemplate).isNotNull()
@@ -119,14 +116,13 @@ class ReplicationControllerHandlerTest {
     }
 
     @Test
-    void replicationControllerHandlerWithInvalidNameTest() {
-        // with invalid controller name
+    void get_withInvalidControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
         assertThatIllegalArgumentException()
             .isThrownBy(() -> replicationControllerHandler.get(config, images))
@@ -135,13 +131,12 @@ class ReplicationControllerHandlerTest {
     }
 
     @Test
-    void replicationControllerHandlerWithoutControllerTest() {
-        // without controller name
+    void get_withoutControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
         assertThatIllegalArgumentException()
             .isThrownBy(() -> replicationControllerHandler.get(config, images))

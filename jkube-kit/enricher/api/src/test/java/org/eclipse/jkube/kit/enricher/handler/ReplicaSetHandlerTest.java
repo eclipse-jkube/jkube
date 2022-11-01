@@ -43,19 +43,17 @@ class ReplicaSetHandlerTest {
     @Mocked
     private JavaProject project;
 
-    List<String> mounts = new ArrayList<>();
-    List<VolumeConfig> volumes1 = new ArrayList<>();
-
-    List<ImageConfiguration> images = new ArrayList<>();
-
-    List<String> ports = new ArrayList<>();
-
-    List<String> tags = new ArrayList<>();
-
+    private List<VolumeConfig> volumes;
+    private List<ImageConfiguration> images;
     private ReplicaSetHandler replicaSetHandler;
 
     @BeforeEach
-    void before(){
+    void setUp(){
+        volumes = new ArrayList<>();
+        images = new ArrayList<>();
+        List<String> mounts = new ArrayList<>();
+        List<String> ports = new ArrayList<>();
+        List<String> tags = new ArrayList<>();
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -67,9 +65,9 @@ class ReplicaSetHandlerTest {
         tags.add("latest");
         tags.add("test");
 
-        VolumeConfig volumeConfig1 = VolumeConfig.builder()
+        VolumeConfig volumeConfig = VolumeConfig.builder()
                 .name("test").mounts(mounts).type("hostPath").path("/test/path").build();
-        volumes1.add(volumeConfig1);
+        volumes.add(volumeConfig);
 
         //container name with alias
         final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder()
@@ -79,7 +77,6 @@ class ReplicaSetHandlerTest {
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("test").alias("test-app").build(buildImageConfiguration)
                 .registry("docker.io").build();
-
         images.add(imageConfiguration);
 
         replicaSetHandler = new ReplicaSetHandler(new PodTemplateHandler(new ContainerHandler(project.getProperties(),
@@ -87,23 +84,23 @@ class ReplicaSetHandlerTest {
     }
 
     @Test
-    void replicaSetHandlerTest() {
+    void get_withValidControllerName_shouldReturnConfigsWithContainers() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
 
         ReplicaSet replicaSet = replicaSetHandler.get(config,images);
         assertThat(replicaSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
         assertThat(replicaSet)
-            .satisfies(s -> assertThat(s.getMetadata())
+            .satisfies(rs -> assertThat(rs.getMetadata())
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("name", "testing")
             )
-            .satisfies(s -> assertThat(s.getSpec())
+            .satisfies(rs -> assertThat(rs.getSpec())
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("replicas", 5)
                 .extracting(ReplicaSetSpec::getTemplate).isNotNull()
@@ -117,14 +114,13 @@ class ReplicaSetHandlerTest {
     }
 
     @Test
-    void replicaSetHandlerWithInvalidNameTest() {
-        // with invalid controller name
+    void get_withInvalidName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
         assertThatIllegalArgumentException()
             .isThrownBy(() -> replicaSetHandler.get(config, images))
@@ -133,13 +129,12 @@ class ReplicaSetHandlerTest {
     }
 
     @Test
-    void replicaSetHandlerWithoutControllerTest() {
-        // without controller name
+    void get_withoutControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
         assertThatIllegalArgumentException()
             .isThrownBy(() -> replicaSetHandler.get(config, images))
