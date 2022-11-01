@@ -16,14 +16,14 @@ package org.eclipse.jkube.kit.enricher.api;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ServiceExposerTest {
+class ServiceExposerTest {
 
   @Test
-  public void hasWebPorts_withWebPorts() {
+  void hasWebPorts_withWebPorts() {
     // When
     final boolean result = new ServiceExposerForTest()
       .hasWebPorts(new ServiceBuilder().withNewSpec()
@@ -35,7 +35,7 @@ public class ServiceExposerTest {
   }
 
   @Test
-  public void hasWebPorts_withNoWebPorts() {
+  void hasWebPorts_withNoWebPorts() {
     // When
     final boolean result = new ServiceExposerForTest()
       .hasWebPorts(new ServiceBuilder().withNewSpec()
@@ -47,7 +47,7 @@ public class ServiceExposerTest {
   }
 
   @Test
-  public void canExposeService_withMultiplePorts() {
+  void canExposeService_withMultiplePorts() {
     // When
     final boolean result = new ServiceExposerForTest()
       .canExposeService(new ServiceBuilder().withNewSpec()
@@ -59,7 +59,7 @@ public class ServiceExposerTest {
   }
 
   @Test
-  public void canExposeService_withSinglePorts() {
+  void canExposeService_withSinglePorts() {
     // When
     final boolean result = new ServiceExposerForTest()
       .canExposeService(new ServiceBuilder().withNewSpec()
@@ -69,7 +69,7 @@ public class ServiceExposerTest {
   }
 
   @Test
-  public void canExposeService_withSinglePortsAndKubernetesName() {
+  void canExposeService_withSinglePortsAndKubernetesName() {
     // When
     final boolean result = new ServiceExposerForTest()
       .canExposeService(new ServiceBuilder()
@@ -80,7 +80,7 @@ public class ServiceExposerTest {
   }
 
   @Test
-  public void canExposeService_withSinglePortsAndExposeFalse() {
+  void canExposeService_withSinglePortsAndExposeFalse() {
     // When
     final boolean result = new ServiceExposerForTest()
       .canExposeService(new ServiceBuilder()
@@ -91,7 +91,7 @@ public class ServiceExposerTest {
   }
 
   @Test
-  public void isExposeWithLabel_withExposeTrue() {
+  void isExposeWithLabel_withExposeTrue() {
     // When
     final boolean result = new ServiceExposerForTest().isExposedWithLabel(new ServiceBuilder()
         .withNewMetadata().addToLabels("expose", "true").endMetadata());

@@ -13,50 +13,48 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import io.fabric8.kubernetes.api.model.ExecAction;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Probe;
 import org.eclipse.jkube.kit.config.resource.ProbeConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
 
-public class ProbeHandlerTest {
+class ProbeHandlerTest {
     Probe probe;
     ProbeHandler probeHandler = new ProbeHandler();
 
     ProbeConfig probeConfig;
 
     @Test
-    public void getProbeEmptyTest() {
+    void getProbeEmptyTest() {
         //EmptyProbeConfig
 
         probeConfig = null;
 
         probe = probeHandler.getProbe(probeConfig);
 
-        assertNull(probe);
+        assertThat(probe).isNull();
     }
 
     @Test
-    public void getProbeNullTest() {
+    void getProbeNullTest() {
         //ProbeConfig without any action
 
         probeConfig = ProbeConfig.builder().build();
 
         probe = probeHandler.getProbe(probeConfig);
 
-        assertNull(probe);
+        assertThat(probe).isNull();
     }
 
     @Test
-    public void getHTTPProbeWithHTTPURLTest() {
+    void getHTTPProbeWithHTTPURLTest() {
 
         //ProbeConfig with HTTPGet Action
         //withUrl
@@ -65,36 +63,34 @@ public class ProbeHandlerTest {
                 .build();
 
         probe = probeHandler.getProbe(probeConfig);
-        //assertion
-        assertNotNull(probe);
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals("www.healthcheck.com",probe.getHttpGet().getHost());
-        assertNull(probe.getHttpGet().getHttpHeaders());
-        assertEquals("/healthz",probe.getHttpGet().getPath());
-        assertEquals(8080,probe.getHttpGet().getPort().getIntVal().intValue());
-        assertEquals("HTTP",probe.getHttpGet().getScheme());
-        assertNull(probe.getExec());
-        assertNull(probe.getTcpSocket());
+        assertThat(probe).isNotNull()
+            .hasFieldOrPropertyWithValue("initialDelaySeconds", 5)
+            .hasFieldOrPropertyWithValue("timeoutSeconds", 5)
+            .hasFieldOrPropertyWithValue("exec", null)
+            .hasFieldOrPropertyWithValue("tcpSocket", null)
+            .extracting(Probe::getHttpGet)
+            .hasFieldOrPropertyWithValue("host", "www.healthcheck.com")
+            .hasFieldOrPropertyWithValue("httpHeaders", null)
+            .hasFieldOrPropertyWithValue("path", "/healthz")
+            .hasFieldOrPropertyWithValue("port.intVal", 8080)
+            .hasFieldOrPropertyWithValue("scheme", "HTTP");
     }
 
     @Test
-    public void getHTTPProbeWithInvalidURLTest() {
+    void getHTTPProbeWithInvalidURLTest() {
         // Given
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).getUrl("httphealthcheck.com:8080/healthz")
                 .build();
 
-        // When
-        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> probeHandler.getProbe(probeConfig));
-
-        // Then
-        assertThat(illegalArgumentException)
-            .hasMessageContaining("Invalid URL ");
+        // When & Then
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> probeHandler.getProbe(probeConfig))
+            .withMessageContaining("Invalid URL ");
     }
 
     @Test
-    public void getExecProbeWithEmptyExecTest() {
+    void getExecProbeWithEmptyExecTest() {
         //ProbeConfig with Exec Action
         //withEmptyExec
         probeConfig = ProbeConfig.builder()
@@ -103,11 +99,11 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNull(probe);
+        assertThat(probe).isNull();
     }
 
     @Test
-    public void getExecProbeWithExecTest() {
+    void getExecProbeWithExecTest() {
         //ProbeConfig with Exec Action
         //withExec
         probeConfig = ProbeConfig.builder()
@@ -115,19 +111,19 @@ public class ProbeHandlerTest {
                 .build();
 
         probe = probeHandler.getProbe(probeConfig);
-        //assertion
-        assertNotNull(probe);
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertNotNull(probe.getExec());
-        assertEquals(2,probe.getExec().getCommand().size());
-        assertEquals("[cat, /tmp/probe]",probe.getExec().getCommand().toString());
-        assertNull(probe.getHttpGet());
-        assertNull(probe.getTcpSocket());
+        assertThat(probe).isNotNull()
+            .hasFieldOrPropertyWithValue("initialDelaySeconds", 5)
+            .hasFieldOrPropertyWithValue("timeoutSeconds", 5)
+            .hasFieldOrPropertyWithValue("httpGet", null)
+            .hasFieldOrPropertyWithValue("tcpSocket", null)
+            .extracting(Probe::getExec).isNotNull()
+            .extracting(ExecAction::getCommand).asList()
+            .hasSize(2)
+            .containsExactly("cat", "/tmp/probe");
     }
 
     @Test
-    public void getExecProbeWithInvalidExecTest() {
+    void getExecProbeWithInvalidExecTest() {
         //ProbeConfig with Exec Action
         //withInvalidExec
         probeConfig = ProbeConfig.builder()
@@ -136,11 +132,11 @@ public class ProbeHandlerTest {
 
         probe = probeHandler.getProbe(probeConfig);
         //assertion
-        assertNull(probe);
+        assertThat(probe).isNull();
     }
 
     @Test
-    public void getTCPProbeWithoutURLTest() {
+    void getTCPProbeWithoutURLTest() {
         //ProbeConfig with TCP Action
         //withno url, only port
         probeConfig = ProbeConfig.builder()
@@ -148,19 +144,18 @@ public class ProbeHandlerTest {
                 .build();
 
         probe = probeHandler.getProbe(probeConfig);
-        //assertion
-        assertNotNull(probe);
-        assertNull(probe.getHttpGet());
-        assertNotNull(probe.getTcpSocket());
-        assertEquals(80,probe.getTcpSocket().getPort().getIntVal().intValue());
-        assertNull(probe.getTcpSocket().getHost());
-        assertNull(probe.getExec());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
+        assertThat(probe).isNotNull()
+            .hasFieldOrPropertyWithValue("httpGet", null)
+            .hasFieldOrPropertyWithValue("exec", null)
+            .hasFieldOrPropertyWithValue("initialDelaySeconds", 5)
+            .hasFieldOrPropertyWithValue("timeoutSeconds", 5)
+            .extracting(Probe::getTcpSocket).isNotNull()
+            .hasFieldOrPropertyWithValue("host", null)
+            .hasFieldOrPropertyWithValue("port.intVal", 80);
     }
 
     @Test
-    public void getTCPProbeWithHTTPURLAndPortTest() {
+    void getTCPProbeWithHTTPURLAndPortTest() {
         //ProbeConfig with TCP Action
         //withport and url but with http request
         probeConfig = ProbeConfig.builder()
@@ -169,22 +164,21 @@ public class ProbeHandlerTest {
                 .build();
 
         probe = probeHandler.getProbe(probeConfig);
-        //assertion
-        assertNotNull(probe);
-        assertNotNull(probe.getHttpGet());
-        assertNull(probe.getTcpSocket());
-        assertNull(probe.getExec());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals("www.healthcheck.com",probe.getHttpGet().getHost());
-        assertNull(probe.getHttpGet().getHttpHeaders());
-        assertEquals("/healthz",probe.getHttpGet().getPath());
-        assertEquals(8080,probe.getHttpGet().getPort().getIntVal().intValue());
-        assertEquals("HTTP",probe.getHttpGet().getScheme());
+        assertThat(probe).isNotNull()
+            .hasFieldOrPropertyWithValue("tcpSocket", null)
+            .hasFieldOrPropertyWithValue("exec", null)
+            .hasFieldOrPropertyWithValue("initialDelaySeconds", 5)
+            .hasFieldOrPropertyWithValue("timeoutSeconds", 5)
+            .extracting(Probe::getHttpGet).isNotNull()
+            .hasFieldOrPropertyWithValue("host", "www.healthcheck.com")
+            .hasFieldOrPropertyWithValue("httpHeaders", null)
+            .hasFieldOrPropertyWithValue("path", "/healthz")
+            .hasFieldOrPropertyWithValue("scheme", "HTTP")
+            .hasFieldOrPropertyWithValue("port.intVal", 8080);
     }
 
     @Test
-    public void getTCPProbeWithNonHTTPURLTest() {
+    void getTCPProbeWithNonHTTPURLTest() {
         //ProbeConfig with TCP Action
         //withport and url but with other request and port as int
         probeConfig = ProbeConfig.builder()
@@ -194,21 +188,20 @@ public class ProbeHandlerTest {
                 .build();
 
         probe = probeHandler.getProbe(probeConfig);
-        //assertion
-        assertNotNull(probe);
-        assertNull(probe.getHttpGet());
-        assertNotNull(probe.getTcpSocket());
-        assertNull(probe.getExec());
-        assertEquals(80, probe.getTcpSocket().getPort().getIntVal().intValue());
-        assertEquals("www.healthcheck.com",probe.getTcpSocket().getHost());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals(3, probe.getFailureThreshold().intValue());
-        assertEquals(1, probe.getSuccessThreshold().intValue());
+        assertThat(probe).isNotNull()
+            .hasFieldOrPropertyWithValue("httpGet", null)
+            .hasFieldOrPropertyWithValue("exec", null)
+            .hasFieldOrPropertyWithValue("initialDelaySeconds", 5)
+            .hasFieldOrPropertyWithValue("timeoutSeconds", 5)
+            .hasFieldOrPropertyWithValue("failureThreshold", 3)
+            .hasFieldOrPropertyWithValue("successThreshold", 1)
+            .extracting(Probe::getTcpSocket).isNotNull()
+            .hasFieldOrPropertyWithValue("port.intVal", 80)
+            .hasFieldOrPropertyWithValue("host", "www.healthcheck.com");
     }
 
     @Test
-    public void getTCPProbeWithNonHTTPURLAndStringPortTest() {
+    void getTCPProbeWithNonHTTPURLAndStringPortTest() {
         //ProbeConfig with TCP Action
         //withport and url but with other request and port as string
         probeConfig = ProbeConfig.builder()
@@ -219,21 +212,20 @@ public class ProbeHandlerTest {
                 .build();
 
         probe = probeHandler.getProbe(probeConfig);
-        //assertion
-        assertNotNull(probe);
-        assertNull(probe.getHttpGet());
-        assertNotNull(probe.getTcpSocket());
-        assertNull(probe.getExec());
-        assertEquals("httpPort", probe.getTcpSocket().getPort().getStrVal());
-        assertEquals("www.healthcheck.com",probe.getTcpSocket().getHost());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals(3, probe.getFailureThreshold().intValue());
-        assertEquals(1, probe.getSuccessThreshold().intValue());
+        assertThat(probe).isNotNull()
+            .hasFieldOrPropertyWithValue("httpGet", null)
+            .hasFieldOrPropertyWithValue("exec", null)
+            .hasFieldOrPropertyWithValue("initialDelaySeconds", 5)
+            .hasFieldOrPropertyWithValue("timeoutSeconds", 5)
+            .hasFieldOrPropertyWithValue("failureThreshold", 3)
+            .hasFieldOrPropertyWithValue("successThreshold", 1)
+            .extracting(Probe::getTcpSocket).isNotNull()
+            .hasFieldOrPropertyWithValue("port.strVal", "httpPort")
+            .hasFieldOrPropertyWithValue("host", "www.healthcheck.com");
     }
 
     @Test
-    public void getTCPWithHTTPURLAndWithoutPort() {
+    void getTCPWithHTTPURLAndWithoutPort() {
         //ProbeConfig with TCP Action
         //without port and url with http request
         probeConfig = ProbeConfig.builder()
@@ -242,34 +234,34 @@ public class ProbeHandlerTest {
                 .build();
 
         probe = probeHandler.getProbe(probeConfig);
-        //assertion
-        assertNotNull(probe);
-        assertNotNull(probe.getHttpGet());
-        assertNull(probe.getTcpSocket());
-        assertNull(probe.getExec());
-        assertEquals(5,probe.getInitialDelaySeconds().intValue());
-        assertEquals(5,probe.getTimeoutSeconds().intValue());
-        assertEquals("www.healthcheck.com",probe.getHttpGet().getHost());
-        assertNull(probe.getHttpGet().getHttpHeaders());
-        assertEquals("/healthz",probe.getHttpGet().getPath());
-        assertEquals(8080,probe.getHttpGet().getPort().getIntVal().intValue());
-        assertEquals("HTTP",probe.getHttpGet().getScheme());
+        assertThat(probe).isNotNull()
+            .hasFieldOrPropertyWithValue("tcpSocket", null)
+            .hasFieldOrPropertyWithValue("exec", null)
+            .hasFieldOrPropertyWithValue("initialDelaySeconds", 5)
+            .hasFieldOrPropertyWithValue("timeoutSeconds", 5)
+            .extracting(Probe::getHttpGet).isNotNull()
+            .hasFieldOrPropertyWithValue("httpHeaders", null)
+            .hasFieldOrPropertyWithValue("host", "www.healthcheck.com")
+            .hasFieldOrPropertyWithValue("path", "/healthz")
+            .hasFieldOrPropertyWithValue("port.intVal", 8080)
+            .hasFieldOrPropertyWithValue("scheme", "HTTP");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void getTCPProbeWithInvalidURLTest() {
+    @Test
+    void getTCPProbeWithInvalidURLTest() {
         //ProbeConfig with TCP Action
         //withInvalidUrl
         probeConfig = ProbeConfig.builder()
                 .initialDelaySeconds(5).timeoutSeconds(5).getUrl("healthcheck.com:8080/healthz")
                 .tcpPort("80")
                 .build();
-
-        probe = probeHandler.getProbe(probeConfig);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> probeHandler.getProbe(probeConfig))
+            .withMessageContaining("Invalid URL ");
     }
 
     @Test
-    public void testHttpGetProbeWithLocalhostInUrl() {
+    void httpGetProbeWithLocalhostInUrl() {
         // Given
         probeConfig = ProbeConfig.builder()
                 .getUrl("http://:8080/healthz")
@@ -287,7 +279,7 @@ public class ProbeHandlerTest {
     }
 
     @Test
-    public void testHttpGetProbeWithCustomHeaders() {
+    void testHttpGetProbeWithCustomHeaders() {
         // Given
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
@@ -301,16 +293,17 @@ public class ProbeHandlerTest {
         probe = probeHandler.getProbe(probeConfig);
 
         // Then
-        assertThat(probe)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("httpGet.host", "www.example.com")
-                .hasFieldOrPropertyWithValue("httpGet.port", new IntOrString(8080))
-                .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTPS")
-                .satisfies(p -> assertThat(p).extracting("httpGet.httpHeaders").asList().element(0)
-                       .hasFieldOrPropertyWithValue("name", "Accept")
-                       .hasFieldOrPropertyWithValue("value", "application/json"))
-                .satisfies(p -> assertThat(p).extracting("httpGet.httpHeaders").asList().element(1)
-                       .hasFieldOrPropertyWithValue("name", "User-Agent")
-                       .hasFieldOrPropertyWithValue("value", "MyUserAgent"));
+        assertThat(probe).isNotNull()
+            .hasFieldOrPropertyWithValue("httpGet.host", "www.example.com")
+            .hasFieldOrPropertyWithValue("httpGet.port", new IntOrString(8080))
+            .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTPS")
+            .satisfies(p -> assertThat(p).extracting("httpGet.httpHeaders").asList().element(0)
+                .hasFieldOrPropertyWithValue("name", "Accept")
+                .hasFieldOrPropertyWithValue("value", "application/json")
+            )
+            .satisfies(p -> assertThat(p).extracting("httpGet.httpHeaders").asList().element(1)
+                .hasFieldOrPropertyWithValue("name", "User-Agent")
+                .hasFieldOrPropertyWithValue("value", "MyUserAgent")
+            );
     }
 }

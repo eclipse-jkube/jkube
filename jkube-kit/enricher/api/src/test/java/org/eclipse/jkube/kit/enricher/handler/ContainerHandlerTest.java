@@ -24,22 +24,19 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class ContainerHandlerTest {
+class ContainerHandlerTest {
 
     @Mocked
-    ProbeHandler probeHandler;
+    private ProbeHandler probeHandler;
 
     private List<Container> containers;
 
@@ -70,8 +67,8 @@ public class ContainerHandlerTest {
     BuildConfiguration buildImageConfiguration1;
     ImageConfiguration imageConfiguration1;
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         project = JavaProject.builder().properties(new Properties()).build();
         project1 = JavaProject.builder().properties(new Properties()).build();
         project2 = JavaProject.builder().properties(new Properties()).build();
@@ -94,7 +91,7 @@ public class ContainerHandlerTest {
     }
 
     @Test
-    public void getContainersWithAliasTest() {
+    void getContainersWithAliasTest() {
 
         project.setArtifactId("test-artifact");
         project.setGroupId("test-group");
@@ -118,14 +115,15 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         containers = handler.getContainers(config, images);
-        assertNotNull(containers);
-        assertEquals("test-app", containers.get(0).getName());
-        assertEquals("docker.io/test/test-app:1.2", containers.get(0).getImage());
-        assertEquals("IfNotPresent", containers.get(0).getImagePullPolicy());
+        assertThat(containers).isNotNull()
+            .first()
+            .hasFieldOrPropertyWithValue("name", "test-app")
+            .hasFieldOrPropertyWithValue("image", "docker.io/test/test-app:1.2")
+            .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent");
     }
 
     @Test
-    public void registryHandling() {
+    void registryHandling() {
 
         //container name with alias
         final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder().build();
@@ -182,8 +180,8 @@ public class ContainerHandlerTest {
             images.add(imageConfiguration);
 
             containers = handler.getContainers(config, images);
-            assertNotNull(containers);
-            assertEquals(testData[i+4], containers.get(0).getImage());
+            String image = handler.getContainers(config, images).get(0).getImage();
+            assertThat(image).isEqualTo(testData[i + 4]);
         }
     }
 
@@ -196,7 +194,7 @@ public class ContainerHandlerTest {
 
 
     @Test
-    public void getContainerWithGroupArtifactTest() {
+    void getContainerWithGroupArtifactTest() {
 
         project.setArtifactId("test-artifact");
         project.setGroupId("test-group");
@@ -220,13 +218,15 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         containers = handler.getContainers(config, images);
-        assertNotNull(containers);
-        assertEquals("test-group-test-artifact", containers.get(0).getName());
-        assertEquals("docker.io/test:latest", containers.get(0).getImage());
-        assertEquals("IfNotPresent", containers.get(0).getImagePullPolicy());
+        assertThat(containers).isNotNull()
+            .first()
+            .hasFieldOrPropertyWithValue("name", "test-group-test-artifact")
+            .hasFieldOrPropertyWithValue("image", "docker.io/test:latest")
+            .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent");
     }
+
     @Test
-    public void getContainerTestWithUser(){
+    void getContainerTestWithUser(){
         project.setArtifactId("test-artifact");
         project.setGroupId("test-group");
 
@@ -250,14 +250,15 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         containers = handler.getContainers(config, images);
-        assertNotNull(containers);
-        assertEquals("user-test-artifact",containers.get(0).getName());
-        assertEquals("docker.io/user/test:latest",containers.get(0).getImage());
-        assertEquals("IfNotPresent",containers.get(0).getImagePullPolicy());
+        assertThat(containers).isNotNull()
+            .first()
+            .hasFieldOrPropertyWithValue("name", "user-test-artifact")
+            .hasFieldOrPropertyWithValue("image", "docker.io/user/test:latest")
+            .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent");
     }
 
     @Test
-    public void imagePullPolicyWithPolicySetTest() {
+    void imagePullPolicyWithPolicySetTest() {
 
         //check if policy is set then both in case of version is not null or null
 
@@ -275,13 +276,14 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration1);
 
         containers = handler1.getContainers(config1, images);
-        assertEquals("IfNotPresent", containers.get(0).getImagePullPolicy());
+        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
 
         containers = handler2.getContainers(config1, images);
-        assertEquals("IfNotPresent", containers.get(0).getImagePullPolicy());
+        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
     }
+
     @Test
-    public void imagePullPolicyWithoutPolicySetTest(){
+    void imagePullPolicyWithoutPolicySetTest(){
 
         //project with version and ending in SNAPSHOT
         project1.setVersion("3.5-SNAPSHOT");
@@ -304,18 +306,17 @@ public class ContainerHandlerTest {
                 .imagePullPolicy("").build();
 
         containers = handler1.getContainers(config2, images);
-        assertEquals("PullAlways",containers.get(0).getImagePullPolicy());
+        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("PullAlways");
 
         containers = handler2.getContainers(config2, images);
-        assertEquals("",containers.get(0).getImagePullPolicy());
+        assertThat(containers.get(0).getImagePullPolicy()).isEmpty();
 
         containers = handler3.getContainers(config2, images);
-        assertEquals("",containers.get(0).getImagePullPolicy());
-
+        assertThat(containers.get(0).getImagePullPolicy()).isEmpty();
     }
 
     @Test
-    public void getImageNameTest(){
+    void getImageNameTest(){
 
         ContainerHandler handler = createContainerHandler(project);
 
@@ -339,14 +340,14 @@ public class ContainerHandlerTest {
 
         containers = handler.getContainers(config1, images);
 
-        assertEquals("docker.io/test:latest",containers.get(0).getImage());
-        assertEquals("test:latest",containers.get(1).getImage());
-        assertNull(containers.get(2).getImage());
-        assertNull(containers.get(3).getImage());
+        assertThat(containers.get(0).getImage()).isEqualTo("docker.io/test:latest");
+        assertThat(containers.get(1).getImage()).isEqualTo("test:latest");
+        assertThat(containers.get(2).getImage()).isNull();;
+        assertThat(containers.get(3).getImage()).isNull();
     }
 
     @Test
-    public void getRegistryTest() {
+    void getRegistryTest() {
         ContainerHandler handler = createContainerHandler(project1);
 
         ImageConfiguration imageConfig = ImageConfiguration.builder()
@@ -361,11 +362,11 @@ public class ContainerHandlerTest {
         containers = handler.getContainers(config1, images);
 
         project1.getProperties().remove("jkube.docker.pull.registry");
-        assertEquals("push.me/test:latest", containers.get(0).getImage());
+        assertThat(containers.get(0).getImage()).isEqualTo("push.me/test:latest");
     }
 
     @Test
-    public void getVolumeMountWithoutMountTest() {
+    void getVolumeMountWithoutMountTest() {
         ContainerHandler handler = createContainerHandler(project);
 
         images.clear();
@@ -376,11 +377,11 @@ public class ContainerHandlerTest {
         volumes1.add(volumeConfig1);
         ResourceConfig config1 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config1, images);
-        assertTrue(containers.get(0).getVolumeMounts().isEmpty());
+        assertThat(containers.get(0).getVolumeMounts()).isEmpty();
     }
 
     @Test
-    public void getVolumeMountWithoutNameTest() {
+    void getVolumeMountWithoutNameTest() {
 
         ContainerHandler handler = createContainerHandler(project);
 
@@ -397,13 +398,15 @@ public class ContainerHandlerTest {
 
         ResourceConfig config2 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config2, images);
-        assertEquals(1, containers.get(0).getVolumeMounts().size());
-        assertNull(containers.get(0).getVolumeMounts().get(0).getName());
-        assertEquals("/path/etc", containers.get(0).getVolumeMounts().get(0).getMountPath());
+        assertThat(containers).singleElement()
+            .extracting(Container::getVolumeMounts).asList()
+            .first()
+            .hasFieldOrPropertyWithValue("name", null)
+            .hasFieldOrPropertyWithValue("mountPath", "/path/etc");
     }
 
     @Test
-    public void getVolumeMountWithNameAndMountTest() {
+    void getVolumeMountWithNameAndMountTest() {
         ContainerHandler handler = createContainerHandler(project);
 
         List<String> mounts = new ArrayList<>();
@@ -418,13 +421,15 @@ public class ContainerHandlerTest {
         volumes1.add(volumeConfig3);
         ResourceConfig config3 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config3, images);
-        assertEquals(1, containers.get(0).getVolumeMounts().size());
-        assertEquals("third", containers.get(0).getVolumeMounts().get(0).getName());
-        assertEquals("/path/etc", containers.get(0).getVolumeMounts().get(0).getMountPath());
+        assertThat(containers).singleElement()
+            .extracting(Container::getVolumeMounts).asList()
+            .first()
+            .hasFieldOrPropertyWithValue("name", "third")
+            .hasFieldOrPropertyWithValue("mountPath", "/path/etc");
     }
 
     @Test
-    public void getVolumeMountWithMultipleMountTest() {
+    void getVolumeMountWithMultipleMountTest() {
         ContainerHandler handler = createContainerHandler(project);
 
         images.clear();
@@ -441,13 +446,14 @@ public class ContainerHandlerTest {
         volumes1.add(volumeConfig4);
         ResourceConfig config4 = ResourceConfig.builder().volumes(volumes1).build();
         containers = handler.getContainers(config4, images);
-        assertEquals(3, containers.get(0).getVolumeMounts().size());
-        for (int i = 0; i <= 2; i++)
-            assertEquals("test", containers.get(0).getVolumeMounts().get(i).getName());
+        assertThat(containers.get(0).getVolumeMounts()).hasSize(3);
+        for (int i = 0; i <= 2; i++) {
+            assertThat(containers.get(0).getVolumeMounts().get(i).getName()).isEqualTo("test");
+        }
     }
 
     @Test
-    public void getVolumeMountWithEmptyVolumeTest() {
+    void getVolumeMountWithEmptyVolumeTest() {
         ContainerHandler handler = createContainerHandler(project);
 
         images.clear();
@@ -456,11 +462,11 @@ public class ContainerHandlerTest {
         //empty volume
         ResourceConfig config5 = ResourceConfig.builder().volumes(volumes2).build();
         containers = handler.getContainers(config5, images);
-        assertTrue(containers.get(0).getVolumeMounts().isEmpty());
+        assertThat(containers.get(0).getVolumeMounts()).isEmpty();
     }
 
     @Test
-    public void containerEmptyPortsTest() {
+    void containerEmptyPortsTest() {
         ContainerHandler handler = createContainerHandler(project);
 
         images.clear();
@@ -468,11 +474,11 @@ public class ContainerHandlerTest {
 
         //Empty Ports
         containers = handler.getContainers(config, images);
-        assertNull(containers.get(0).getPorts());
+        assertThat(containers.get(0).getPorts()).isNull();
     }
 
     @Test
-    public void containerPortsWithoutPortTest() {
+    void containerPortsWithoutPortTest() {
 
         ContainerHandler handler = createContainerHandler(project);
 
@@ -487,11 +493,11 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration2);
 
         containers = handler.getContainers(config, images);
-        assertNull(containers.get(0).getPorts());
+        assertThat(containers.get(0).getPorts()).isNull();
     }
 
     @Test
-    public void containerPortsWithDifferentPortTest(){
+    void containerPortsWithDifferentPortTest(){
         //Different kind of Ports Specification
         ports.add("172.22.27.82:82:8082");
         ports.add("172.22.27.81:81:8081/tcp");
@@ -515,39 +521,39 @@ public class ContainerHandlerTest {
         ContainerHandler handler = createContainerHandler(project);
 
         containers = handler.getContainers(config, images);
-        List<ContainerPort> outputports = containers.get(0).getPorts();
-        assertEquals(9,outputports.size());
+        List<ContainerPort> outputPorts = containers.get(0).getPorts();
+        assertThat(outputPorts).hasSize(9);
         int protocolCount=0,tcpCount=0,udpCount=0,containerPortCount=0,hostIPCount=0,hostPortCount=0;
         for(int i=0;i<9;i++){
-            if(!StringUtils.isBlank(outputports.get(i).getProtocol())){
+            if(!StringUtils.isBlank(outputPorts.get(i).getProtocol())){
                 protocolCount++;
-                if(outputports.get(i).getProtocol().equalsIgnoreCase("tcp")){
+                if(outputPorts.get(i).getProtocol().equalsIgnoreCase("tcp")){
                     tcpCount++;
                 }
                 else{
                     udpCount++;
                 }
             }
-            if(!StringUtils.isBlank(outputports.get(i).getHostIP())){
+            if(!StringUtils.isBlank(outputPorts.get(i).getHostIP())){
                 hostIPCount++;
             }
-            if(outputports.get(i).getContainerPort()!=null){
+            if(outputPorts.get(i).getContainerPort()!=null){
                 containerPortCount++;
             }
-            if(outputports.get(i).getHostPort()!=null){
+            if(outputPorts.get(i).getHostPort()!=null){
                 hostPortCount++;
             }
         }
-        assertEquals(9,protocolCount);
-        assertEquals(7,tcpCount);
-        assertEquals(2,udpCount);
-        assertEquals(3,hostIPCount);
-        assertEquals(9,containerPortCount);
-        assertEquals(4,hostPortCount);
+        assertThat(protocolCount).isEqualTo(9);
+        assertThat(tcpCount).isEqualTo(7);
+        assertThat(udpCount).isEqualTo(2);
+        assertThat(hostIPCount).isEqualTo(3);
+        assertThat(containerPortCount).isEqualTo(9);
+        assertThat(hostPortCount).isEqualTo(4);
     }
 
     @Test
-    public void testGetContainersWithUserAndImageAndTagWithPeriodInImageUser() {
+    void testGetContainersWithUserAndImageAndTagWithPeriodInImageUser() {
         // Given
         ContainerHandler containerHandler = createContainerHandler(project);
         List<ImageConfiguration> imageConfigurations = new ArrayList<>();
@@ -566,9 +572,8 @@ public class ContainerHandlerTest {
         List<Container> containers = containerHandler.getContainers(config, imageConfigurations);
 
         // Then
-        assertNotNull(containers);
-        assertEquals(1, containers.size());
-        Container container = containers.get(0);
-        assertEquals("quay.io/roman.gordill/customer-service-cache:latest", container.getImage());
+        assertThat(containers).isNotNull()
+            .singleElement()
+            .hasFieldOrPropertyWithValue("image", "quay.io/roman.gordill/customer-service-cache:latest");
     }
 }

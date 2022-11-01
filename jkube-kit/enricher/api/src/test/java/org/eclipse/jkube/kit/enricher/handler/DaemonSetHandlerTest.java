@@ -16,6 +16,9 @@ package org.eclipse.jkube.kit.enricher.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -26,18 +29,16 @@ import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-public class DaemonSetHandlerTest {
+class DaemonSetHandlerTest {
 
     @Mocked
-    ProbeHandler probeHandler;
+    private ProbeHandler probeHandler;
 
     JavaProject project = JavaProject.builder().build();
 
@@ -52,8 +53,8 @@ public class DaemonSetHandlerTest {
 
     private DaemonSetHandler daemonSetHandler;
 
-    @Before
-    public void before(){
+    @BeforeEach
+    void before(){
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -85,7 +86,7 @@ public class DaemonSetHandlerTest {
     }
 
     @Test
-    public void daemonTemplateHandlerTest() {
+    void daemonTemplateHandlerTest() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -94,25 +95,26 @@ public class DaemonSetHandlerTest {
                 .build();
 
         DaemonSet daemonSet = daemonSetHandler.get(config, images);
-
-        //Assertion
-        assertNotNull(daemonSet.getSpec());
-        assertNotNull(daemonSet.getMetadata());
-        assertNotNull(daemonSet.getSpec().getTemplate());
-        assertEquals("testing",daemonSet.getMetadata().getName());
-        assertEquals("test-account",daemonSet.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(daemonSet.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",daemonSet.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",daemonSet.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(daemonSet.getSpec().getTemplate().getSpec().getContainers());
-
+        assertThat(daemonSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(daemonSet)
+            .satisfies(s -> assertThat(s.getMetadata())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("name", "testing")
+            )
+            .satisfies(s -> assertThat(s.getSpec())
+                .isNotNull()
+                .extracting(DaemonSetSpec::getTemplate).isNotNull()
+                .extracting(PodTemplateSpec::getSpec)
+                .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
+                .extracting(PodSpec::getVolumes).isNotNull()
+                .asList()
+                .first()
+                .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
+            );
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void daemonTemplateHandlerWithInvalidNameTest() {
+    @Test
+    void daemonTemplateHandlerWithInvalidNameTest() {
         // with invalid controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
@@ -121,30 +123,34 @@ public class DaemonSetHandlerTest {
                 .volumes(volumes1)
                 .build();
 
-        daemonSetHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> daemonSetHandler.get(config, images))
+            .withMessageStartingWith("Invalid upper case letter 'T'")
+            .withMessageEndingWith("controller name value: TesTing");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void daemonTemplateHandlerWithoutControllerTest() {
+    @Test
+    void daemonTemplateHandlerWithoutControllerTest() {
         // without controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
                 .volumes(volumes1)
                 .build();
-
-        daemonSetHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> daemonSetHandler.get(config, images))
+            .withMessage("No controller name is specified!");
     }
 
     @Test
-    public void overrideReplicas() {
+    void overrideReplicas() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new DaemonSet());
         // When
         daemonSetHandler.overrideReplicas(klb, 1337);
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first().isEqualTo(new DaemonSet());
+            .singleElement()
+            .isEqualTo(new DaemonSet());
     }
 }

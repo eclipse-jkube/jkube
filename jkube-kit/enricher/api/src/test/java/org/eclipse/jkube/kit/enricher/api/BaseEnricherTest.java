@@ -14,28 +14,28 @@
 package org.eclipse.jkube.kit.enricher.api;
 
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class BaseEnricherTest {
+class BaseEnricherTest {
   private BaseEnricher baseEnricher;
   private ResourceConfig resourceConfig;
   private JKubeEnricherContext context;
 
-  @Before
-  public void setup() {
+  @BeforeEach
+  void setup() {
     resourceConfig = mock(ResourceConfig.class, RETURNS_DEEP_STUBS);
     context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     baseEnricher = new BaseEnricher(context, "base-enricher");
   }
 
   @Test
-  public void getImagePullPolicy_whenNoConfigPresent_shouldReturnNull() {
+  void getImagePullPolicy_whenNoConfigPresent_shouldReturnNull() {
     // Given + When
     String value = baseEnricher.getImagePullPolicy(null, null);
 
@@ -44,7 +44,7 @@ public class BaseEnricherTest {
   }
 
   @Test
-  public void getImagePullPolicy_whenPullPolicySpecifiedInResourceConfig_shouldReturnPullPolicy() {
+  void getImagePullPolicy_whenPullPolicySpecifiedInResourceConfig_shouldReturnPullPolicy() {
     // Given
     when(resourceConfig.getImagePullPolicy()).thenReturn("Never");
 
@@ -56,7 +56,7 @@ public class BaseEnricherTest {
   }
 
   @Test
-  public void getImagePullPolicy_whenPullPolicySpecifiedViaProperty_shouldReturnPullPolicy() {
+  void getImagePullPolicy_whenPullPolicySpecifiedViaProperty_shouldReturnPullPolicy() {
     // Given
     when(context.getProperty("jkube.imagePullPolicy")).thenReturn("Always");
 

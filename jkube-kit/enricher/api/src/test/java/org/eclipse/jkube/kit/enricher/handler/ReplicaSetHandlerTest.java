@@ -14,8 +14,11 @@
 package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -23,24 +26,22 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-public class ReplicaSetHandlerTest {
+class ReplicaSetHandlerTest {
 
     @Mocked
-    ProbeHandler probeHandler;
+    private ProbeHandler probeHandler;
 
     @Mocked
-    JavaProject project;
+    private JavaProject project;
 
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();
@@ -53,8 +54,8 @@ public class ReplicaSetHandlerTest {
 
     private ReplicaSetHandler replicaSetHandler;
 
-    @Before
-    public void before(){
+    @BeforeEach
+    void before(){
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -86,7 +87,7 @@ public class ReplicaSetHandlerTest {
     }
 
     @Test
-    public void replicaSetHandlerTest() {
+    void replicaSetHandlerTest() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -96,26 +97,27 @@ public class ReplicaSetHandlerTest {
                 .build();
 
         ReplicaSet replicaSet = replicaSetHandler.get(config,images);
-
-        //Assertion
-        assertNotNull(replicaSet.getSpec());
-        assertNotNull(replicaSet.getMetadata());
-        assertEquals(5,replicaSet.getSpec().getReplicas().intValue());
-        assertNotNull(replicaSet.getSpec().getTemplate());
-        assertEquals("testing",replicaSet.getMetadata().getName());
-        assertEquals("test-account",replicaSet.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(replicaSet.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",replicaSet.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",replicaSet.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(replicaSet.getSpec().getTemplate().getSpec().getContainers());
-
+        assertThat(replicaSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(replicaSet)
+            .satisfies(s -> assertThat(s.getMetadata())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("name", "testing")
+            )
+            .satisfies(s -> assertThat(s.getSpec())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("replicas", 5)
+                .extracting(ReplicaSetSpec::getTemplate).isNotNull()
+                .extracting(PodTemplateSpec::getSpec)
+                .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
+                .extracting(PodSpec::getVolumes).asList()
+                .isNotEmpty()
+                .first()
+                .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
+            );
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void replicaSetHandlerWithInvalidNameTest() {
+    @Test
+    void replicaSetHandlerWithInvalidNameTest() {
         // with invalid controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
@@ -124,12 +126,14 @@ public class ReplicaSetHandlerTest {
                 .replicas(5)
                 .volumes(volumes1)
                 .build();
-
-        replicaSetHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> replicaSetHandler.get(config, images))
+            .withMessageStartingWith("Invalid upper case letter 'T'")
+            .withMessageEndingWith("controller name value: TesTing");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void replicaSetHandlerWithoutControllerTest() {
+    @Test
+    void replicaSetHandlerWithoutControllerTest() {
         // without controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
@@ -137,12 +141,13 @@ public class ReplicaSetHandlerTest {
                 .replicas(5)
                 .volumes(volumes1)
                 .build();
-
-        replicaSetHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> replicaSetHandler.get(config, images))
+            .withMessage("No controller name is specified!");
     }
 
     @Test
-    public void overrideReplicas() {
+    void overrideReplicas() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new ReplicaSetBuilder()
             .editOrNewSpec().withReplicas(1).endSpec()
@@ -151,7 +156,7 @@ public class ReplicaSetHandlerTest {
         replicaSetHandler.overrideReplicas(klb, 1337);
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first().hasFieldOrPropertyWithValue("spec.replicas", 1337);
+            .singleElement()
+            .hasFieldOrPropertyWithValue("spec.replicas", 1337);
     }
 }

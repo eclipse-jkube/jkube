@@ -19,69 +19,70 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.getReplicaCount;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-public class BaseEnricherGetReplicaCountTest {
+class BaseEnricherGetReplicaCountTest {
+
+  @DisplayName("with no list builder")
+  @ParameterizedTest(name = "and {0} should return ''{2}'' replicas")
+  @MethodSource("getReplicaCountsData")
+  void getReplicaCounts(String description, ResourceConfig resourceConfig, int expectedReplicas) {
+    // Given & When
+    int result = getReplicaCount(null, resourceConfig, 1337);
+    // Then
+    assertThat(result).isEqualTo(expectedReplicas);
+  }
+
+  static Stream<Arguments> getReplicaCountsData() {
+    return Stream.of(
+        arguments("no resource config", null, 1337),
+        arguments("empty resource config", new ResourceConfig(), 1337),
+        arguments("configured resource config", ResourceConfig.builder().replicas(313373).build(), 313373)
+    );
+  }
 
   @Test
-  public void withNoListBuilderAndNoResourceConfigShouldReturnDefault() {
+  @DisplayName("with empty list builder and resource config, should return default (1337 replicas)")
+  void withEmptyListBuilderAndEmptyResourceConfig_shouldReturnDefault() {
     // When
-    final int result = getReplicaCount(null, null, 1337);
+    int result = getReplicaCount(new KubernetesListBuilder().addToItems(new ConfigMapBuilder()), new ResourceConfig(), 1337);
     // Then
     assertThat(result).isEqualTo(1337);
   }
 
   @Test
-  public void withNoListBuilderAndEmptyResourceConfigShouldReturnDefault() {
-    // When
-    final int result = getReplicaCount(null, new ResourceConfig(), 1337);
-    // Then
-    assertThat(result).isEqualTo(1337);
-  }
-
-  @Test
-  public void withNoListBuilderAndConfiguredResourceConfigShouldReturnResourceConfig() {
+  @DisplayName("with deployment config in list builder and empty resource config, should return deployment config (1 replica)")
+  void withDeploymentConfigInListBuilderAndEmptyResourceConfig_shouldReturnDeploymentConfig() {
     // Given
-    final ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
+    KubernetesListBuilder klb = new KubernetesListBuilder()
+            .addToItems(new DeploymentConfigBuilder().withNewSpec().withReplicas(1).endSpec());
+    ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
     // When
-    final int result = getReplicaCount(null, resourceConfig, 1337);
-    // Then
-    assertThat(result).isEqualTo(313373);
-  }
-
-  @Test
-  public void withEmptyListBuilderAndEmptyResourceConfigShouldReturnDefault() {
-    // When
-    final int result = getReplicaCount(
-        new KubernetesListBuilder().addToItems(new ConfigMapBuilder()), new ResourceConfig(), 1337);
-    // Then
-    assertThat(result).isEqualTo(1337);
-  }
-
-  @Test
-  public void withDeploymentConfigInListBuilderAndEmptyResourceConfigShouldReturnDeploymentConfig() {
-    // Given
-    final KubernetesListBuilder klb = new KubernetesListBuilder()
-        .addToItems(new DeploymentConfigBuilder().withNewSpec().withReplicas(1).endSpec());
-    final ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
-    // When
-    final int result = getReplicaCount(klb, resourceConfig, 1337);
+    int result = getReplicaCount(klb, resourceConfig, 1337);
     // Then
     assertThat(result).isEqualTo(1);
   }
 
   @Test
-  public void withDeploymentConfigAndDeploymentInListBuilderAndEmptyResourceConfigShouldReturnValueInFirstItem() {
+  @DisplayName("with deployment and deployment config in list builder and empty resource config, should return value from deployment (2 replicas)")
+  void withDeploymentAndDeploymentConfigInListBuilderAndEmptyResourceConfig_shouldReturnValueInFirstItem() {
     // Given
-    final KubernetesListBuilder klb = new KubernetesListBuilder()
-        .addToItems(new DeploymentBuilder().withNewSpec().withReplicas(2).endSpec())
-        .addToItems(new DeploymentConfigBuilder().withNewSpec().withReplicas(1).endSpec());
-    final ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
+    KubernetesListBuilder klb = new KubernetesListBuilder()
+            .addToItems(new DeploymentBuilder().withNewSpec().withReplicas(2).endSpec())
+            .addToItems(new DeploymentConfigBuilder().withNewSpec().withReplicas(1).endSpec());
+    ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
     // When
-    final int result = getReplicaCount(klb, resourceConfig, 1337);
+    int result = getReplicaCount(klb, resourceConfig, 1337);
     // Then
     assertThat(result).isEqualTo(2);
   }
