@@ -24,8 +24,8 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
@@ -35,8 +35,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DefaultMetadataEnricherTest {
-  private JKubeEnricherContext buildContext;
+class DefaultMetadataEnricherTest {
 
   private DefaultMetadataEnricher defaultMetadataEnricher;
   private ConfigMapBuilder configMap;
@@ -48,9 +47,9 @@ public class DefaultMetadataEnricherTest {
   private RouteBuilder route;
   private KubernetesListBuilder klb;
 
-  @Before
-  public void setUp() throws Exception {
-    buildContext = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+  @BeforeEach
+  void setUp() throws Exception {
+    JKubeEnricherContext buildContext = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     Configuration configuration = Configuration.builder()
         .resource(ResourceConfig.builder()
             .annotations(MetaDataConfig.builder()
@@ -85,7 +84,7 @@ public class DefaultMetadataEnricherTest {
   }
 
   @Test
-  public void configMap() {
+  void configMap() {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
@@ -94,7 +93,7 @@ public class DefaultMetadataEnricherTest {
   }
 
   @Test
-  public void deployment() {
+  void deployment() {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
@@ -105,7 +104,7 @@ public class DefaultMetadataEnricherTest {
   }
 
   @Test
-  public void genericResource() {
+  void genericResource() {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
@@ -114,7 +113,7 @@ public class DefaultMetadataEnricherTest {
   }
 
   @Test
-  public void ingressV1() {
+  void ingressV1() {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
@@ -125,7 +124,7 @@ public class DefaultMetadataEnricherTest {
   }
 
   @Test
-  public void ingressV1beta1() {
+  void ingressV1beta1() {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
@@ -136,7 +135,7 @@ public class DefaultMetadataEnricherTest {
   }
 
   @Test
-  public void serviceAccount() {
+  void serviceAccount() {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
@@ -147,7 +146,7 @@ public class DefaultMetadataEnricherTest {
   }
 
   @Test
-  public void route() {
+  void route() {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then

@@ -26,8 +26,8 @@ import org.assertj.core.api.Condition;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
@@ -36,15 +36,15 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class NameEnricherTest {
+class NameEnricherTest {
 
   private JKubeEnricherContext context;
 
   private Properties properties;
   private KubernetesListBuilder klb;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     properties = new Properties();
     ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
@@ -64,7 +64,7 @@ public class NameEnricherTest {
   }
 
   @Test
-  public void createWithDefaultsInKubernetes() {
+  void createWithDefaultsInKubernetes() {
     // When
     new NameEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
@@ -83,7 +83,7 @@ public class NameEnricherTest {
   }
 
   @Test
-  public void createWithCustomNameInKubernetes() {
+  void createWithCustomNameInKubernetes() {
     // Given
     properties.put("jkube.enricher.jkube-name.name", "custom-name");
     // When
@@ -104,7 +104,7 @@ public class NameEnricherTest {
   }
 
   @Test
-  public void create_withAlreadyExistingName_shouldKeepExistingName() {
+  void create_withAlreadyExistingName_shouldKeepExistingName() {
     // Given
     klb = new KubernetesListBuilder();
     klb.addToItems(new ServiceBuilder().withNewMetadata().withName("existing-name").endMetadata().build());
@@ -117,7 +117,7 @@ public class NameEnricherTest {
   }
 
   @Test
-  public void create_withCustomNameAndAlreadyExistingName_shouldOverrideExistingName() {
+  void create_withCustomNameAndAlreadyExistingName_shouldOverrideExistingName() {
     // Given
     klb = new KubernetesListBuilder();
     properties.put("jkube.enricher.jkube-name.name", "custom-name");

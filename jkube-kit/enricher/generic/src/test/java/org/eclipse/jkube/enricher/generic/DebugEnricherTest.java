@@ -25,23 +25,23 @@ import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DebugEnricherTest {
+class DebugEnricherTest {
   private JKubeEnricherContext context;
 
   private Properties properties;
   private ProcessorConfig processorConfig;
   private KubernetesListBuilder klb;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     properties = new Properties();
     processorConfig = new ProcessorConfig();
@@ -65,7 +65,7 @@ public class DebugEnricherTest {
   }
 
   @Test
-  public void debugDisabledShouldDoNothing() {
+  void debugDisabledShouldDoNothing() {
     // When
     new DebugEnricher(context).create(null, klb);
     // Then
@@ -73,7 +73,7 @@ public class DebugEnricherTest {
   }
 
   @Test
-  public void debugEnabledInFallbackPropertyShouldEnableDebug() {
+  void debugEnabledInFallbackPropertyShouldEnableDebug() {
     // Given
     properties.put("jkube.debug.enabled", "true");
     // When
@@ -86,7 +86,7 @@ public class DebugEnricherTest {
   }
 
   @Test
-  public void debugEnabledInEnricherPropertyShouldEnableDebug() {
+  void debugEnabledInEnricherPropertyShouldEnableDebug() {
     // Given
     properties.put("jkube.enricher.jkube-debug.enabled", "true");
     // When
@@ -99,7 +99,7 @@ public class DebugEnricherTest {
   }
 
   @Test
-  public void debugEnabledInEnricherConfigShouldEnableDebug() {
+  void debugEnabledInEnricherConfigShouldEnableDebug() {
     // Given
     processorConfig.getConfig().put("jkube-debug", Collections.singletonMap("enabled", "true"));
     // When

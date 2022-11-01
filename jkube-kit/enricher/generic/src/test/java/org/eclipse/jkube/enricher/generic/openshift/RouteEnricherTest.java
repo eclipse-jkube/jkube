@@ -21,20 +21,17 @@ import io.fabric8.openshift.api.model.RouteBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class RouteEnricherTest {
+class RouteEnricherTest {
     private JKubeEnricherContext context;
     private static final String OPENSHIFT_GENERATE_ROUTE = "jkube.openshift.generateRoute";
     private static final String ROUTE_TLS_TERMINATION = "jkube.enricher.jkube-openshift-route.tlsTermination";
@@ -43,8 +40,8 @@ public class RouteEnricherTest {
     private ProcessorConfig processorConfig;
     private KubernetesListBuilder klb;
 
-    @Before
-    public void setUpExpectations() {
+    @BeforeEach
+    void setUpExpectations() {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
         properties = new Properties();
         processorConfig = new ProcessorConfig();
@@ -52,7 +49,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testCreateWithGenerateExtraPropertyInOpenShiftShouldNotAddRoute() {
+    void create_withGenerateExtraPropertyInOpenShift_shouldNotAddRoute() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -67,7 +64,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testCreateWithGenerateEnricherPropertyInOpenShiftShouldNotAddRoute() {
+    void create_withGenerateEnricherPropertyInOpenShift_shouldNotAddRoute() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -82,7 +79,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testCreateWithDefaultsAndRouteDomainInOpenShiftShouldAddRouteWithDomainPostfix() {
+    void create_withDefaultsAndRouteDomainInOpenShift_shouldAddRouteWithDomainPostfix() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -101,7 +98,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testCreateWithDefaultsAndExistingRouteWithMatchingNameInBuilderInOpenShiftShouldReuseExistingRoute() {
+    void create_withDefaultsAndExistingRouteWithMatchingNameInBuilderInOpenShift_shouldReuseExistingRoute() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -129,7 +126,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testMergeRouteWithRouteFragmentAtZeroIndex() {
+    void mergeRoute_withRouteFragmentAtZeroIndex() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(new RouteBuilder()
@@ -161,7 +158,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testCreateOpinionatedRouteFromService() {
+    void create_opinionatedRouteFromService() {
         // Given
         ServiceBuilder serviceBuilder = getMockServiceBuilder();
 
@@ -169,14 +166,13 @@ public class RouteEnricherTest {
         Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
 
         // Then
-        assertNotNull(route);
-        assertThat(route)
-                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-                .contains("test-svc", "example.com", "Service", "test-svc", 8080);
+        assertThat(route).isNotNull()
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+            .contains("test-svc", "example.com", "Service", "test-svc", 8080);
     }
 
     @Test
-    public void testCreateOpinionatedRouteFromServiceWithNullService() {
+    void create_opinionatedRouteFromServiceWithNullService() {
         // Given
         ServiceBuilder serviceBuilder = new ServiceBuilder();
 
@@ -184,11 +180,11 @@ public class RouteEnricherTest {
         Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
 
         // Then
-        assertNull(route);
+        assertThat(route).isNull();
     }
 
     @Test
-    public void testMergeRouteWithEmptyFragment() {
+    void mergeRoute_withEmptyFragment() {
         // Given
         Route opinionatedRoute = getMockOpinionatedRoute();
         Route fragmentRoute = new RouteBuilder().build();
@@ -197,12 +193,12 @@ public class RouteEnricherTest {
         Route result = RouteEnricher.mergeRoute(fragmentRoute, opinionatedRoute);
 
         // Then
-        assertNotNull(result);
-        assertEquals(opinionatedRoute, result);
+        assertThat(result).isNotNull()
+            .isEqualTo(opinionatedRoute);
     }
 
     @Test
-    public void testMergeRouteWithNonEmptyFragment() {
+    void mergeRoute_withNonEmptyFragment() {
         // Given
         Route opinionatedRoute = getMockOpinionatedRoute();
         Route fragmentRoute = new RouteBuilder()
@@ -218,8 +214,7 @@ public class RouteEnricherTest {
         Route result = RouteEnricher.mergeRoute(fragmentRoute, opinionatedRoute);
 
         // Then
-        assertNotNull(result);
-        assertThat(result)
+        assertThat(result).isNotNull()
                 .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name",
                         "spec.port.targetPort.intVal", "spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
                 .contains("test-svc", "example.com", "Service", "test-svc",
@@ -227,7 +222,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testEnrichNoTls(){
+    void enrichNoTls(){
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -247,7 +242,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testEnrichWithTls(){
+    void enrichWithTls(){
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -267,7 +262,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testRouteTargetPortFromServicePort() {
+    void routeTargetPortFromServicePort() {
         // Given
         ServiceBuilder serviceBuilder = new ServiceBuilder()
                 .editOrNewMetadata()
@@ -289,8 +284,7 @@ public class RouteEnricherTest {
         Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
 
         // Then
-        assertNotNull(route);
-        assertThat(route)
+        assertThat(route).isNotNull()
                 .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
                 .contains("test-svc", "example.com", "Service", "test-svc", 80);
     }

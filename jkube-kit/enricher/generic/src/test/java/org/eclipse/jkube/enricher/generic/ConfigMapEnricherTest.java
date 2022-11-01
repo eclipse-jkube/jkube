@@ -19,7 +19,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -35,19 +34,19 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class ConfigMapEnricherTest {
+class ConfigMapEnricherTest {
     private JKubeEnricherContext context;
 
-    @Before
-    public void setUpExpectations() {
+    @BeforeEach
+    void setUpExpectations() {
         context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     }
 
     @Test
-    public void should_materialize_file_content_from_deprecated_annotation() throws Exception {
+    void should_materialize_file_content_from_deprecated_annotation() throws Exception {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-application.properties",
                 "src/test/resources/test-application.properties", "maven.jkube.io/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
@@ -64,7 +63,7 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_dir_content_from_deprecated_annotation() throws Exception {
+    void should_materialize_dir_content_from_deprecated_annotation() throws Exception {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-dir", "src/test/resources/test-dir", "maven.jkube.io/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
@@ -83,7 +82,7 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_binary_file_content_from_deprecated_annotation() {
+    void should_materialize_binary_file_content_from_deprecated_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test.bin", "src/test/resources/test.bin", "maven.jkube.io/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
@@ -101,7 +100,7 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_file_content_from_annotation() throws Exception {
+    void should_materialize_file_content_from_annotation() throws Exception {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-application.properties",
             "src/test/resources/test-application.properties", "jkube.eclipse.org/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
@@ -118,7 +117,7 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_dir_content_from_annotation() throws Exception {
+    void should_materialize_dir_content_from_annotation() throws Exception {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-dir", "src/test/resources/test-dir", "jkube.eclipse.org/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
@@ -137,7 +136,7 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_binary_file_content_from_annotation() {
+    void should_materialize_binary_file_content_from_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test.bin", "src/test/resources/test.bin", "jkube.eclipse.org/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
@@ -155,7 +154,7 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_file_content_from_xml() throws Exception {
+    void should_materialize_file_content_from_xml() throws Exception {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap(
                 "src/test/resources/test-application.properties");
         final ResourceConfig config = ResourceConfig.builder().configMap(baseConfigMap).build();
@@ -171,7 +170,7 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_binary_file_content_from_xml() {
+    void should_materialize_binary_file_content_from_xml() {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap("src/test/resources/test.bin");
         final ResourceConfig config = ResourceConfig.builder().configMap(baseConfigMap).build();
         when(context.getConfiguration()).thenReturn(Configuration.builder().resource(config).build());
@@ -205,7 +204,7 @@ public class ConfigMapEnricherTest {
         return new ConfigMapBuilder().withData(data).withMetadata(metaBuilder.build()).build();
     }
 
-    private String readFileContentsAsString(final String filePath) throws URISyntaxException, IOException {
+    private String readFileContentsAsString(final String filePath) throws IOException {
         return new String(readFileContentAsBytes(filePath));
     }
 

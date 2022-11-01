@@ -28,8 +28,8 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
@@ -40,15 +40,16 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ImageChangeTriggerEnricherTest {
+class ImageChangeTriggerEnricherTest {
   private JKubeEnricherContext context;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
   }
+
   @Test
-  public void create_shouldAddImageChangeTriggers_whenDeploymentConfigPresent() {
+  void create_shouldAddImageChangeTriggers_whenDeploymentConfigPresent() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");
@@ -66,7 +67,7 @@ public class ImageChangeTriggerEnricherTest {
   }
 
   @Test
-  public void create_withEnricherAllTrue_shouldAddTriggersToAllContainers() {
+  void create_withEnricherAllTrue_shouldAddTriggersToAllContainers() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");
@@ -89,7 +90,7 @@ public class ImageChangeTriggerEnricherTest {
   }
 
   @Test
-  public void create_withContainersInConfig_shouldAddImageChangeTriggerDeploymentConfigPresent() {
+  void create_withContainersInConfig_shouldAddImageChangeTriggerDeploymentConfigPresent() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");
@@ -107,7 +108,7 @@ public class ImageChangeTriggerEnricherTest {
   }
 
   @Test
-  public void create_withTrimImageInContainerSpec_shouldTrimImageInContainers() {
+  void create_withTrimImageInContainerSpec_shouldTrimImageInContainers() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");
@@ -137,7 +138,7 @@ public class ImageChangeTriggerEnricherTest {
   }
 
   @Test
-  public void create_withJibBuildStrategy_thenNoImageChangeTriggerAdded() {
+  void create_withJibBuildStrategy_thenNoImageChangeTriggerAdded() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");

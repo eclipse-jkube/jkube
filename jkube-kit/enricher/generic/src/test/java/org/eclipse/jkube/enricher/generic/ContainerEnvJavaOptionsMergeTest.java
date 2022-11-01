@@ -29,26 +29,25 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ContainerEnvJavaOptionsMergeTest {
+class ContainerEnvJavaOptionsMergeTest {
 
   @SuppressWarnings("unused")
   private ImageConfiguration imageConfiguration;
-  private JKubeEnricherContext context;
   private ContainerEnvJavaOptionsMergeEnricher containerEnvJavaOptionsMergeEnricher;
   private KubernetesListBuilder kubernetesListBuilder;
   private Properties properties;
 
-  @Before
-  public void setUp() {
-    context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+  @BeforeEach
+  void setUp() {
+    JKubeEnricherContext context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     imageConfiguration = mock(ImageConfiguration.class,RETURNS_DEEP_STUBS);
     containerEnvJavaOptionsMergeEnricher = new ContainerEnvJavaOptionsMergeEnricher(context);
     kubernetesListBuilder = new KubernetesListBuilder();
@@ -68,7 +67,7 @@ public class ContainerEnvJavaOptionsMergeTest {
   }
 
   @Test
-  public void enrichWithDefaultsShouldMergeValues() {
+  void enrichWithDefaultsShouldMergeValues() {
     // Given
     when(imageConfiguration.getName()).thenReturn("the-image:latest");
     when(imageConfiguration.getBuild().getEnv()).thenReturn(Collections.singletonMap("JAVA_OPTIONS", "val-from-ic"));
@@ -82,7 +81,7 @@ public class ContainerEnvJavaOptionsMergeTest {
   }
 
   @Test
-  public void enrichWithDisabledShouldDoNothing() {
+  void enrichWithDisabledShouldDoNothing() {
     // Given
     properties.put("jkube.enricher.jkube-container-env-java-options.disable", "true");
     // When
@@ -95,7 +94,7 @@ public class ContainerEnvJavaOptionsMergeTest {
   }
 
   @Test
-  public void enrichWithNullBuildInImageConfiguration() {
+  void enrichWithNullBuildInImageConfiguration() {
     // Given
     when(imageConfiguration.getName()).thenReturn("the-image:latest");
     when(imageConfiguration.getBuild()).thenReturn(null);
@@ -109,7 +108,7 @@ public class ContainerEnvJavaOptionsMergeTest {
   }
 
   @Test
-  public void enrichWithNullEnvInImageConfiguration() {
+  void enrichWithNullEnvInImageConfiguration() {
     // Given
     when(imageConfiguration.getName()).thenReturn("the-image:latest");
     when(imageConfiguration.getBuild().getEnv()).thenReturn(null);

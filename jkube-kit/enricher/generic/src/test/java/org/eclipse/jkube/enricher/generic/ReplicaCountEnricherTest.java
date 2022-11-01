@@ -28,19 +28,17 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static java.util.stream.Collectors.*;
-
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.config.resource.PlatformMode.*;
+import static org.eclipse.jkube.kit.config.resource.PlatformMode.kubernetes;
+import static org.eclipse.jkube.kit.config.resource.PlatformMode.openshift;
 
-public class ReplicaCountEnricherTest {
+class ReplicaCountEnricherTest {
 
     private static final int EXPECTED_REPLICAS = 2;
-
-    private EnricherContext context;
 
     private ReplicaCountEnricher enricher;
 
@@ -50,11 +48,11 @@ public class ReplicaCountEnricherTest {
     // Openshift DeploymentConfig
     private KubernetesList openshiftResources;
 
-    @Before
-    public void setUpEnricher() {
+    @BeforeEach
+    void setUpEnricher() {
         final Properties properties = new Properties();
         properties.setProperty("jkube.replicas", "" + EXPECTED_REPLICAS);
-        context = JKubeEnricherContext.builder()
+        EnricherContext context = JKubeEnricherContext.builder()
             .log(new KitLogger.SilentLogger())
             .project(JavaProject.builder()
                 .properties(properties)
@@ -63,16 +61,16 @@ public class ReplicaCountEnricherTest {
         enricher = new ReplicaCountEnricher(context);
     }
 
-    @Before
-    public void setUpKubernetesResources() {
+    @BeforeEach
+    void setUpKubernetesResources() {
         Deployment deployment = new Deployment();
         deployment.setSpec(new DeploymentSpec());
         deployment.getSpec().setReplicas(1);
         kubernetesResources = new KubernetesList("v1", Arrays.asList(deployment), null, null);
     }
 
-    @Before
-    public void setUpOpenshiftResources() {
+    @BeforeEach
+    void setUpOpenshiftResources() {
         DeploymentConfig deploymentConfig = new DeploymentConfig();
         deploymentConfig.setSpec(new DeploymentConfigSpec());
         deploymentConfig.getSpec().setReplicas(1);
@@ -83,7 +81,7 @@ public class ReplicaCountEnricherTest {
      * Tests that replica count is overridden on Kubernetes if -Djkube.replicas is set
      */
     @Test
-    public void testKubernetesReplicas() {
+    void kubernetesReplicas() {
         KubernetesListBuilder listBuilder = new KubernetesListBuilder(kubernetesResources);
         enricher.enrich(kubernetes, listBuilder);
         List<Deployment> items = buildItems(listBuilder, Deployment.class);
@@ -96,7 +94,7 @@ public class ReplicaCountEnricherTest {
      * Tests that replica count is overridden on Openshift if -Djkube.replicas is set
      */
     @Test
-    public void testOpenshiftReplicas() {
+    void openshiftReplicas() {
         KubernetesListBuilder listBuilder = new KubernetesListBuilder(openshiftResources);
         enricher.enrich(openshift, listBuilder);
         List<DeploymentConfig> items = buildItems(listBuilder, DeploymentConfig.class);

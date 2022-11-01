@@ -18,20 +18,21 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
 import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class NetworkingV1IngressGeneratorTest {
+class NetworkingV1IngressGeneratorTest {
 
     @Test
-    public void testGenerate() {
+    void generate() {
         // Given
         ServiceBuilder testSvcBuilder = initTestService();
 
@@ -39,19 +40,18 @@ public class NetworkingV1IngressGeneratorTest {
         Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, "org.eclipse.jkube", null, Collections.emptyList(), Collections.emptyList());
 
         // Then
-        assertThat(ingress)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
-                .extracting("spec.rules").asList()
-                .hasSize(1).element(0)
-                .hasFieldOrPropertyWithValue("host", "test-svc.org.eclipse.jkube");
-        assertThat(ingress.getSpec()).isNotNull();
-        assertThat(ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).getPath()).isEqualTo("/");
-        assertThat(ingress.getSpec().getRules().get(0).getHttp().getPaths().get(0).getPathType()).isEqualTo("ImplementationSpecific");
+        assertThat(ingress).isNotNull()
+            .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
+            .extracting(Ingress::getSpec).isNotNull()
+            .extracting(IngressSpec::getRules).asList().singleElement()
+            .hasFieldOrPropertyWithValue("host", "test-svc.org.eclipse.jkube")
+            .extracting("http.paths").asList().singleElement()
+            .hasFieldOrPropertyWithValue("path", "/")
+            .hasFieldOrPropertyWithValue("pathType", "ImplementationSpecific");
     }
 
     @Test
-    public void testGenerateNoHostOrRouteDomainConfigured() {
+    void generate_withNoHostOrRouteDomainConfigured() {
         // Given
         ServiceBuilder testSvcBuilder = initTestService();
 
@@ -59,14 +59,15 @@ public class NetworkingV1IngressGeneratorTest {
         Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, null, null, Collections.emptyList(), Collections.emptyList());
 
         // Then
-        assertThat(ingress).isNotNull().hasFieldOrPropertyWithValue("metadata.name", "test-svc");
-        assertThat(ingress.getSpec()).isNotNull();
-        assertThat(ingress.getSpec().getDefaultBackend().getService().getName()).isEqualTo("test-svc");
-        assertThat(ingress.getSpec().getDefaultBackend().getService().getPort().getNumber()).isEqualTo(8080);
+        assertThat(ingress).isNotNull()
+            .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
+            .extracting("spec").isNotNull()
+            .hasFieldOrPropertyWithValue("defaultBackend.service.name", "test-svc")
+            .hasFieldOrPropertyWithValue("defaultBackend.service.port.number", 8080);
     }
 
     @Test
-    public void testGenerateWithXMLConfig() {
+    void generate_withXMLConfig() {
         // Given
         ServiceBuilder testSvcBuilder = initTestService();
         IngressRuleConfig ingressRuleConfig = IngressRuleConfig.builder()
@@ -93,10 +94,10 @@ public class NetworkingV1IngressGeneratorTest {
 
         // Then
         assertThat(ingress)
-                .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
-                .extracting("spec.rules").asList()
-                .hasSize(1).element(0)
-                .hasFieldOrPropertyWithValue("host", "foo.bar.com");
+            .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
+            .extracting("spec.rules").asList()
+            .singleElement()
+            .hasFieldOrPropertyWithValue("host", "foo.bar.com");
     }
 
     private ServiceBuilder initTestService() {

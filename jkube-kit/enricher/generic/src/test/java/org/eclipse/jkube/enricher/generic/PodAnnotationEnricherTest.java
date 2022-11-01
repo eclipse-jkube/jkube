@@ -13,37 +13,40 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.builder.VisitableBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import io.fabric8.openshift.api.model.DeploymentConfigSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-public class PodAnnotationEnricherTest {
+class PodAnnotationEnricherTest {
   private KubernetesListBuilder klb;
   private PodAnnotationEnricher podAnnotationEnricher;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     Properties properties = new Properties();
     klb = new KubernetesListBuilder();
     EnricherContext context = JKubeEnricherContext.builder()
@@ -54,94 +57,49 @@ public class PodAnnotationEnricherTest {
     podAnnotationEnricher = new PodAnnotationEnricher(context);
   }
 
-  @Test
-  public void enrich_withDeployment_shouldAddAnnotationsToPodTemplateSpec() {
+  @DisplayName("enrich resource")
+  @ParameterizedTest(name = "with ''{0}'', should add annotations to pod template spec")
+  @MethodSource("data")
+  void enrich(String description, VisitableBuilder<? extends HasMetadata, ?> item, Class<? extends KubernetesListBuilder> clazz) {
     // Given
-    klb.addToItems(new DeploymentBuilder()
-        .withMetadata(createResourceMetadata())
-        .withNewSpec()
-        .withNewTemplate().withMetadata(createPodTemplateSpecMetadata()).endTemplate()
-        .endSpec());
-
+    klb.addToItems(item);
     // When
     podAnnotationEnricher.enrich(PlatformMode.kubernetes, klb);
-
     // Then
-    KubernetesList kubernetesList = klb.build();
-    assertThat(kubernetesList.getItems())
-        .hasSize(1)
-        .first()
-        .isInstanceOf(Deployment.class);
-    Deployment deployment = (Deployment) kubernetesList.getItems().get(0);
-    assertThat(deployment).extracting(Deployment::getSpec)
-        .extracting(DeploymentSpec::getTemplate)
-        .extracting(PodTemplateSpec::getMetadata)
-        .extracting(ObjectMeta::getAnnotations)
+    assertThat(klb.build().getItems())
+        .singleElement(InstanceOfAssertFactories.type(clazz))
+        .extracting("spec.template.metadata.annotations")
         .hasFieldOrPropertyWithValue("key1", "value1")
         .hasFieldOrPropertyWithValue("key2", "value2");
   }
 
-  @Test
-  public void enrich_withDeploymentConfig_shouldAddAnnotationsToPodTemplateSpec() {
-    // Given
-    klb.addToItems(new DeploymentConfigBuilder()
-        .withMetadata(createResourceMetadata())
-        .withNewSpec()
-        .withNewTemplate().withMetadata(createPodTemplateSpecMetadata()).endTemplate()
-        .endSpec());
-
-    // When
-    podAnnotationEnricher.enrich(PlatformMode.openshift, klb);
-
-    // Then
-    KubernetesList kubernetesList = klb.build();
-    assertThat(kubernetesList.getItems())
-        .hasSize(1)
-        .first()
-        .isInstanceOf(DeploymentConfig.class);
-    DeploymentConfig deploymentConfig = (DeploymentConfig) kubernetesList.getItems().get(0);
-    assertThat(deploymentConfig).extracting(DeploymentConfig::getSpec)
-        .extracting(DeploymentConfigSpec::getTemplate)
-        .extracting(PodTemplateSpec::getMetadata)
-        .extracting(ObjectMeta::getAnnotations)
-        .hasFieldOrPropertyWithValue("key1", "value1")
-        .hasFieldOrPropertyWithValue("key2", "value2");
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("Deployment", new DeploymentBuilder()
+            .withMetadata(createResourceMetadata())
+            .withNewSpec()
+            .withNewTemplate().withMetadata(createPodTemplateSpecMetadata()).endTemplate()
+            .endSpec(), Deployment.class),
+        arguments("DeploymentConfig", new DeploymentConfigBuilder()
+            .withMetadata(createResourceMetadata())
+            .withNewSpec()
+            .withNewTemplate().withMetadata(createPodTemplateSpecMetadata()).endTemplate()
+            .endSpec(), DeploymentConfig.class),
+        arguments("ReplicaSet", new ReplicaSetBuilder()
+            .withMetadata(createResourceMetadata())
+            .withNewSpec()
+            .withNewTemplate().withMetadata(createPodTemplateSpecMetadata()).endTemplate()
+            .endSpec(), ReplicaSet.class)
+    );
   }
 
-  @Test
-  public void enrich_withReplicaSet_shouldAddAnnotationsToPodTemplateSpec() {
-    // Given
-    klb.addToItems(new ReplicaSetBuilder()
-        .withMetadata(createResourceMetadata())
-        .withNewSpec()
-        .withNewTemplate().withMetadata(createPodTemplateSpecMetadata()).endTemplate()
-        .endSpec());
-
-    // When
-    podAnnotationEnricher.enrich(PlatformMode.kubernetes, klb);
-
-    // Then
-    KubernetesList kubernetesList = klb.build();
-    assertThat(kubernetesList.getItems())
-        .hasSize(1)
-        .first()
-        .isInstanceOf(ReplicaSet.class);
-    ReplicaSet replicaSet = (ReplicaSet) kubernetesList.getItems().get(0);
-    assertThat(replicaSet).extracting(ReplicaSet::getSpec)
-        .extracting(ReplicaSetSpec::getTemplate)
-        .extracting(PodTemplateSpec::getMetadata)
-        .extracting(ObjectMeta::getAnnotations)
-        .hasFieldOrPropertyWithValue("key1", "value1")
-        .hasFieldOrPropertyWithValue("key2", "value2");
-  }
-
-  private ObjectMeta createResourceMetadata() {
+  private static ObjectMeta createResourceMetadata() {
     return new ObjectMetaBuilder()
         .addToAnnotations("key1", "value1")
         .build();
   }
 
-  private ObjectMeta createPodTemplateSpecMetadata() {
+  private static ObjectMeta createPodTemplateSpecMetadata() {
     return new ObjectMetaBuilder()
         .addToAnnotations("key2", "value2")
         .build();

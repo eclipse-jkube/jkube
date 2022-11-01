@@ -26,20 +26,18 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.openshift.api.model.ImageChangeTrigger;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -47,17 +45,18 @@ import static org.mockito.Mockito.when;
 /**
  * @author nicola
  */
-public class TriggersAnnotationEnricherTest {
+class TriggersAnnotationEnricherTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private JKubeEnricherContext context;
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     }
+
     @Test
-    public void testStatefulSetEnrichment() throws IOException {
+    void statefulSetEnrichment() throws IOException {
 
         KubernetesListBuilder builder = new KubernetesListBuilder()
                 .addToItems(new StatefulSetBuilder()
@@ -77,20 +76,19 @@ public class TriggersAnnotationEnricherTest {
 
         StatefulSet res = (StatefulSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
-        assertNotNull(triggers);
+        assertThat(triggers).isNotNull();
 
         List<ImageChangeTrigger> triggerList = OBJECT_MAPPER.readValue(triggers, OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, ImageChangeTrigger.class));
-        assertEquals(1, triggerList.size());
-
-        ImageChangeTrigger trigger = triggerList.get(0);
-        assertEquals("ImageStreamTag", trigger.getFrom().getKind());
-        assertEquals("is:latest", trigger.getFrom().getName());
-        assertTrue(trigger.getAdditionalProperties().containsKey("fieldPath"));
-
+        assertThat(triggerList).singleElement()
+            .hasFieldOrPropertyWithValue("from.kind", "ImageStreamTag")
+            .hasFieldOrPropertyWithValue("from.name", "is:latest")
+            .extracting(ImageChangeTrigger::getAdditionalProperties)
+            .asInstanceOf(InstanceOfAssertFactories.MAP)
+            .containsKey("fieldPath");
     }
 
     @Test
-    public void testReplicaSetEnrichment() throws IOException {
+    void replicaSetEnrichment() throws IOException {
 
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new ReplicaSetBuilder()
             .withNewSpec()
@@ -112,19 +110,19 @@ public class TriggersAnnotationEnricherTest {
 
         ReplicaSet res = (ReplicaSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
-        assertNotNull(triggers);
+        assertThat(triggers).isNotNull();
 
         List<ImageChangeTrigger> triggerList = OBJECT_MAPPER.readValue(triggers, OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, ImageChangeTrigger.class));
-        assertEquals(1, triggerList.size());
-
-        ImageChangeTrigger trigger = triggerList.get(0);
-        assertEquals("ImageStreamTag", trigger.getFrom().getKind());
-        assertEquals("is:latest", trigger.getFrom().getName());
-        assertTrue(trigger.getAdditionalProperties().containsKey("fieldPath"));
+        assertThat(triggerList).singleElement()
+            .hasFieldOrPropertyWithValue("from.kind", "ImageStreamTag")
+            .hasFieldOrPropertyWithValue("from.name", "is:latest")
+            .extracting(ImageChangeTrigger::getAdditionalProperties)
+            .asInstanceOf(InstanceOfAssertFactories.MAP)
+            .containsKey("fieldPath");
     }
 
     @Test
-    public void testDaemonSetEnrichment() throws IOException {
+    void daemonSetEnrichment() throws IOException {
 
         KubernetesListBuilder builder = new KubernetesListBuilder()
             .addToItems(new DaemonSetBuilder()
@@ -150,21 +148,22 @@ public class TriggersAnnotationEnricherTest {
 
         DaemonSet res = (DaemonSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
-        assertNotNull(triggers);
+        assertThat(triggers).isNotNull();
 
         List<ImageChangeTrigger> triggerList = OBJECT_MAPPER.readValue(triggers, OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, ImageChangeTrigger.class));
-        assertEquals(1, triggerList.size());
+        assertThat(triggerList).singleElement()
+            .hasFieldOrPropertyWithValue("from.kind", "ImageStreamTag")
+            .hasFieldOrPropertyWithValue("from.name", "iss:1.1.0")
+            .extracting(ImageChangeTrigger::getAdditionalProperties)
+            .asInstanceOf(InstanceOfAssertFactories.MAP)
+            .containsKey("fieldPath");
 
-        ImageChangeTrigger trigger = triggerList.get(0);
-        assertEquals("ImageStreamTag", trigger.getFrom().getKind());
-        assertEquals("iss:1.1.0", trigger.getFrom().getName());
-        assertTrue(trigger.getAdditionalProperties().containsKey("fieldPath"));
-
-        assertEquals("annvalue", res.getMetadata().getAnnotations().get("annkey"));
+        assertThat(res.getMetadata().getAnnotations())
+            .containsEntry("annkey", "annvalue");
     }
 
     @Test
-    public void testConditionalStatefulSetEnrichment() throws IOException {
+    void conditionalStatefulSetEnrichment() throws IOException {
 
         final Properties props = new Properties();
         props.put("jkube.enricher.jkube-triggers-annotation.containers", "c2, c3, anotherc");
@@ -191,24 +190,28 @@ public class TriggersAnnotationEnricherTest {
 
         StatefulSet res = (StatefulSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
-        assertNotNull(triggers);
+        assertThat(triggers).isNotNull();
 
         List<ImageChangeTrigger> triggerList = OBJECT_MAPPER.readValue(triggers, OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, ImageChangeTrigger.class));
-        assertEquals(2, triggerList.size());
-
-        ImageChangeTrigger trigger1 = triggerList.get(0);
-        assertEquals("ImageStreamTag", trigger1.getFrom().getKind());
-        assertEquals("is2:latest", trigger1.getFrom().getName());
-        assertTrue(trigger1.getAdditionalProperties().containsKey("fieldPath"));
-
-        ImageChangeTrigger trigger2 = triggerList.get(1);
-        assertEquals("ImageStreamTag", trigger2.getFrom().getKind());
-        assertEquals("is3:latest", trigger2.getFrom().getName());
-        assertTrue(trigger2.getAdditionalProperties().containsKey("fieldPath"));
+        assertThat(triggerList).hasSize(2)
+            .satisfies(list -> assertThat(list).first()
+                .hasFieldOrPropertyWithValue("from.kind", "ImageStreamTag")
+                .hasFieldOrPropertyWithValue("from.name", "is2:latest")
+                .extracting(ImageChangeTrigger::getAdditionalProperties)
+                .asInstanceOf(InstanceOfAssertFactories.MAP)
+                .containsKey("fieldPath")
+            )
+            .satisfies(list -> assertThat(list).last()
+                .hasFieldOrPropertyWithValue("from.kind", "ImageStreamTag")
+                .hasFieldOrPropertyWithValue("from.name", "is3:latest")
+                .extracting(ImageChangeTrigger::getAdditionalProperties)
+                .asInstanceOf(InstanceOfAssertFactories.MAP)
+                .containsKey("fieldPath")
+            );
     }
 
     @Test
-    public void testNoEnrichment() {
+    void noEnrichment() {
 
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new JobBuilder()
             .withNewMetadata()
@@ -233,12 +236,12 @@ public class TriggersAnnotationEnricherTest {
 
         Job res = (Job) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
-        assertNull(triggers);
+        assertThat(triggers).isNull();
     }
 
 
     private List<Container> createContainers(String... nameImage) {
-        assertEquals(0, nameImage.length % 2);
+        assertThat(nameImage.length % 2).isZero();
         List<Container> containers = new ArrayList<>();
         for (int i=0; i<nameImage.length; i+=2) {
             Container container = new ContainerBuilder()

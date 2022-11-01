@@ -24,17 +24,18 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ServiceAccountEnricherTest {
+class ServiceAccountEnricherTest {
     private JKubeEnricherContext context;
-    @Before
-    public void setUp() {
+
+    @BeforeEach
+    void setUp() {
         context = JKubeEnricherContext.builder()
           .project(JavaProject.builder()
             .properties(new Properties())
@@ -44,7 +45,7 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_withServiceAccountInResourceConfig_shouldCreateServiceAccount() {
+    void create_withServiceAccountInResourceConfig_shouldCreateServiceAccount() {
         // Given
         givenServiceAccountConfiguredInResourceConfiguration();
 
@@ -56,7 +57,7 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_whenServiceAccountConfiguredInDeployment_thenServiceAccountCreated() {
+    void create_whenServiceAccountConfiguredInDeployment_thenServiceAccountCreated() {
         // Given
         Deployment deploymentFragment = createNewDeploymentFragmentWithServiceAccountConfigured("sa1").build();
 
@@ -68,7 +69,7 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_whenServiceAccountNameConfiguredInDeployment_thenServiceAccountCreated() {
+    void create_whenServiceAccountNameConfiguredInDeployment_thenServiceAccountCreated() {
         // Given
         Deployment deploymentFragment = createNewDeploymentFragmentWithServiceAccountNameConfigured("sa1").build();
 
@@ -80,7 +81,7 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_withAlreadyExistingServiceAccount_shouldNotCreateServiceAccount() {
+    void create_withAlreadyExistingServiceAccount_shouldNotCreateServiceAccount() {
         // Given
         final KubernetesListBuilder builder = new KubernetesListBuilder()
             .withItems(createNewDeploymentFragmentWithServiceAccountNameConfigured("ribbon").build(),
@@ -95,7 +96,7 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_withSkipCreateEnabledAndPluginConfiguration_shouldNotCreateServiceAccount() {
+    void create_withSkipCreateEnabledAndPluginConfiguration_shouldNotCreateServiceAccount() {
         // Given
         context.getProperties().put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
         final KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -113,7 +114,7 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_withSkipCreateEnabledAndFragment_shouldNotCreateServiceAccount() {
+    void create_withSkipCreateEnabledAndFragment_shouldNotCreateServiceAccount() {
         // Given
         context.getProperties().put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
         final KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -133,8 +134,8 @@ public class ServiceAccountEnricherTest {
         saEnricher.create(PlatformMode.kubernetes, builder);
 
         final ServiceAccount serviceAccount = (ServiceAccount) builder.buildLastItem();
-        assertThat(serviceAccount).isNotNull();
-        assertThat(serviceAccount.getMetadata().getName()).isEqualTo(expectedServiceAccountName);
+        assertThat(serviceAccount).isNotNull()
+            .hasFieldOrPropertyWithValue("metadata.name", expectedServiceAccountName);
     }
 
     private void givenServiceAccountConfiguredInResourceConfiguration() {

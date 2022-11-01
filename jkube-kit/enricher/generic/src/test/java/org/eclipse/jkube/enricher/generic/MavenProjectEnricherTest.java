@@ -22,8 +22,8 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 import java.util.Properties;
@@ -38,17 +38,17 @@ import static org.mockito.Mockito.when;
  *
  * @author nicola
  */
-public class MavenProjectEnricherTest {
+class MavenProjectEnricherTest {
     private JKubeEnricherContext context;
 
-    @Before
-    public void setupExpectations() {
+    @BeforeEach
+    void setupExpectations() {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
         when(context.getGav()).thenReturn(new GroupArtifactVersion("groupId", "artifactId", "version"));
     }
 
     @Test
-    public void testGeneratedResources() {
+    void generatedResources() {
         ProjectLabelEnricher projectEnricher = new ProjectLabelEnricher(context);
 
         KubernetesListBuilder builder = createListWithDeploymentConfig();
@@ -56,25 +56,26 @@ public class MavenProjectEnricherTest {
         KubernetesList list = builder.build();
 
         Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
-        assertThat(labels)
-                .isNotNull()
-                .containsEntry("group","groupId")
-                .containsEntry("app","artifactId")
-                .containsEntry("version","version");
-        assertThat(labels.get("project")).isNull();
+        assertThat(labels).isNotNull()
+            .containsEntry("group", "groupId")
+            .containsEntry("app", "artifactId")
+            .containsEntry("version", "version")
+            .doesNotContainKey("project");
 
         builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
         projectEnricher.create(PlatformMode.kubernetes, builder);
 
-        Deployment deployment = (Deployment)builder.buildFirstItem();
+        Deployment deployment = (Deployment) builder.buildFirstItem();
         Map<String, String> selectors = deployment.getSpec().getSelector().getMatchLabels();
-        assertThat(selectors).containsEntry("group","groupId").containsEntry("app","artifactId");
-        assertThat(selectors.get("version")).isNull();
-        assertThat(selectors.get("project")).isNull();
+        assertThat(selectors)
+            .containsEntry("group", "groupId")
+            .containsEntry("app", "artifactId")
+            .doesNotContainKey("version")
+            .doesNotContainKey("project");
     }
 
     @Test
-    public void testOldStyleGeneratedResources() {
+    void oldStyleGeneratedResources() {
 
         final Properties properties = new Properties();
         properties.setProperty("jkube.enricher.jkube-project-label.useProjectLabel", "true");
@@ -88,19 +89,21 @@ public class MavenProjectEnricherTest {
 
         Map<String, String> labels = list.getItems().get(0).getMetadata().getLabels();
         assertThat(labels).isNotNull()
-                .containsEntry("project","artifactId")
-                .containsEntry("version","version")
-                .containsEntry("group","groupId");
-        assertThat(labels.get("app")).isNull();
+            .containsEntry("group", "groupId")
+            .containsEntry("project", "artifactId")
+            .containsEntry("version", "version")
+            .doesNotContainKey("app");
 
         builder = new KubernetesListBuilder().withItems(new DeploymentConfigBuilder().build());
         projectEnricher.create(PlatformMode.kubernetes, builder);
 
         DeploymentConfig deploymentConfig = (DeploymentConfig)builder.buildFirstItem();
         Map<String, String> selectors = deploymentConfig.getSpec().getSelector();
-        assertThat(selectors).containsEntry("group","groupId").containsEntry("project","artifactId");
-        assertThat(selectors.get("version")).isNull();
-        assertThat(selectors.get("app")).isNull();
+        assertThat(selectors)
+            .containsEntry("group", "groupId")
+            .containsEntry("project", "artifactId")
+            .doesNotContainKey("app")
+            .doesNotContainKey("version");
     }
 
     private KubernetesListBuilder createListWithDeploymentConfig() {

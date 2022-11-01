@@ -22,20 +22,20 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class IngressEnricherBehavioralTest {
+class IngressEnricherBehavioralTest {
 
   private JKubeEnricherContext context;
   private KubernetesListBuilder klb;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     context = JKubeEnricherContext.builder()
       .project(JavaProject.builder()
         .properties(new Properties())
@@ -47,7 +47,7 @@ public class IngressEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withNoServices_shouldNotCreateIngress() {
+  void create_withNoServices_shouldNotCreateIngress() {
     // Given
     context.getProject().getProperties().put("jkube.createExternalUrls", "true");
     // When
@@ -57,7 +57,7 @@ public class IngressEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServicesAndNoExternalUrls_shouldNotCreateIngress() {
+  void create_withServicesAndNoExternalUrls_shouldNotCreateIngress() {
     // Given
     klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
       .withNewSpec().addNewPort().withPort(80).endPort().endSpec().endServiceItem();
@@ -69,7 +69,7 @@ public class IngressEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServiceAndMatchingNetworkingIngress_shouldNotCreateIngress() {
+  void create_withServiceAndMatchingNetworkingIngress_shouldNotCreateIngress() {
     // Given
     context.getProject().getProperties().put("jkube.createExternalUrls", "true");
     klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
@@ -86,7 +86,7 @@ public class IngressEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServiceAndMatchingExtensionsIngress_shouldNotCreateIngress() {
+  void create_withServiceAndMatchingExtensionsIngress_shouldNotCreateIngress() {
     // Given
     context.getProject().getProperties().put("jkube.createExternalUrls", "true");
     klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
@@ -104,7 +104,7 @@ public class IngressEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServiceNotExposed_shouldNotCreateIngress() {
+  void create_withServiceNotExposed_shouldNotCreateIngress() {
     // Given
     context.getProject().getProperties().put("jkube.createExternalUrls", "true");
     klb.addNewServiceItem().withNewMetadata().addToLabels("expose", "false").withName("http").endMetadata()
@@ -117,7 +117,7 @@ public class IngressEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServices_shouldCreateNetworkingIngress() {
+  void create_withServices_shouldCreateNetworkingIngress() {
     // Given
     context.getProject().getProperties().put("jkube.createExternalUrls", "true");
     klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
@@ -135,7 +135,7 @@ public class IngressEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServicesAndTargetExtensions_shouldCreateExtensionsIngress() {
+  void create_withServicesAndTargetExtensions_shouldCreateExtensionsIngress() {
     // Given
     context.getProject().getProperties().put("jkube.createExternalUrls", "true");
     context.getProject().getProperties().put("jkube.enricher.jkube-ingress.targetApiVersion", "extensions/v1beta1");

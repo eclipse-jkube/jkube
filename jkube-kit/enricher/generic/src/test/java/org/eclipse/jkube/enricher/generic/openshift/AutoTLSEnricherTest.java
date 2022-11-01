@@ -31,9 +31,8 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -43,12 +42,12 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AutoTLSEnricherTest {
+class AutoTLSEnricherTest {
     private JKubeEnricherContext context;
 
     @AllArgsConstructor
@@ -64,13 +63,14 @@ public class AutoTLSEnricherTest {
         private final String jksVolumeNameConfig;
         private final String jksVolumeName;
     }
-    @Before
-    public void setup() throws Exception {
-         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+
+    @BeforeEach
+    void setup() {
+      context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     }
 
     @Test
-    public void testAdapt() {
+    void adapt() {
         final AdaptTestConfig[] data = new AdaptTestConfig[] {
             AdaptTestConfig.builder().mode(RuntimeMode.KUBERNETES).build(),
             new AdaptTestConfig(RuntimeMode.OPENSHIFT, null, "tls-jks-converter", null,
@@ -117,36 +117,36 @@ public class AutoTLSEnricherTest {
             ObjectMeta om = service.getMetadata();
 
             List<Container> initContainers = pt.getTemplate().getSpec().getInitContainers();
-            assertEquals(tc.mode == RuntimeMode.OPENSHIFT,!initContainers.isEmpty());
+            assertThat(!initContainers.isEmpty()).isEqualTo(tc.mode == RuntimeMode.OPENSHIFT);
             if (tc.mode == RuntimeMode.KUBERNETES) {
                 continue;
             }
 
             //Test metadata annotation
             Map<String, String> generatedAnnotation = om.getAnnotations();
-            Assert.assertTrue(generatedAnnotation.containsKey(AutoTLSEnricher.AUTOTLS_ANNOTATION_KEY));
-            Assert.assertTrue(generatedAnnotation.containsValue(context.getGav().getArtifactId() + "-tls"));
+            assertThat(generatedAnnotation).containsKey(AutoTLSEnricher.AUTOTLS_ANNOTATION_KEY)
+                    .containsValue(context.getGav().getArtifactId() + "-tls");
 
             //Test Pod template
             Gson gson = new Gson();
-            JsonArray ja = new JsonParser().parse(gson.toJson(initContainers, new TypeToken<Collection<Container>>() {}.getType())).getAsJsonArray();
-            assertEquals(1, ja.size());
+            JsonArray ja = JsonParser.parseString(gson.toJson(initContainers, new TypeToken<Collection<Container>>() {}.getType())).getAsJsonArray();
+            assertThat(ja).hasSize(1);
             JsonObject jo = ja.get(0).getAsJsonObject();
-            assertEquals(tc.initContainerName, jo.get("name").getAsString());
-            assertEquals(tc.initContainerImage, jo.get("image").getAsString());
+            assertThat(jo)
+                .returns(tc.initContainerName, obj -> obj.get("name").getAsString())
+                .returns(tc.initContainerImage, obj -> obj.get("image").getAsString());
             //Test volumes are created
             List<Volume> volumes = pt.getTemplate().getSpec().getVolumes();
-            assertEquals(2, volumes.size());
+            assertThat(volumes).hasSize(2);
             List<String> volumeNames = volumes.stream().map(Volume::getName).collect(Collectors.toList());
-            Assert.assertTrue(volumeNames.contains(tc.tlsSecretVolumeName));
-            Assert.assertTrue(volumeNames.contains(tc.jksVolumeName));
+            assertThat(volumeNames).contains(tc.tlsSecretVolumeName, tc.jksVolumeName);
             //Test volume mounts are created
             JsonArray mounts = jo.get("volumeMounts").getAsJsonArray();
-            assertEquals(2, mounts.size());
+            assertThat(mounts).hasSize(2);
             JsonObject mount = mounts.get(0).getAsJsonObject();
-            assertEquals(tc.tlsSecretVolumeName, mount.get("name").getAsString());
+            assertThat(mount.get("name").getAsString()).isEqualTo(tc.tlsSecretVolumeName);
             mount = mounts.get(1).getAsJsonObject();
-            assertEquals(tc.jksVolumeName, mount.get("name").getAsString());
+            assertThat(mount.get("name").getAsString()).isEqualTo(tc.jksVolumeName);
         }
     }
 }

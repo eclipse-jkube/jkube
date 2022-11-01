@@ -27,25 +27,24 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import org.apache.commons.codec.binary.Base64;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static junit.framework.TestCase.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author yuwzho
  */
-public class DockerRegistrySecretEnricherTest {
+class DockerRegistrySecretEnricherTest {
     private JKubeEnricherContext context;
 
     private final String ANNOTATION = "jkube.eclipse.org/dockerServerId";
 
-    @Before
-    public void setupExpectations() {
+    @BeforeEach
+    void setupExpectations() {
         context = JKubeEnricherContext.builder()
           .log(new KitLogger.SilentLogger())
           .project(JavaProject.builder().build())
@@ -59,7 +58,7 @@ public class DockerRegistrySecretEnricherTest {
     }
 
     @Test
-    public void testDockerRegistry() {
+    void dockerRegistry() {
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
         Secret secretEnriched = createBaseSecret(true, ANNOTATION);
@@ -74,14 +73,14 @@ public class DockerRegistrySecretEnricherTest {
         JsonObject auths = (JsonObject) JsonParser.parseString(new String(Base64.decodeBase64(data)));
         assertThat(auths.size()).isEqualTo(1);
         JsonObject auth = auths.getAsJsonObject("docker.io");
-        assertThat(auth.size()).isEqualTo(2);
-
-        assertThat(auth.get("username").getAsString()).isEqualTo("username");
-        assertThat(auth.get("password").getAsString()).isEqualTo("password");
+        assertThat(auth)
+            .returns(2, JsonObject::size)
+            .returns("username", a -> a.get("username").getAsString())
+            .returns("password", a -> a.get("password").getAsString());
     }
 
     @Test
-    public void testDockerRegistryWithDeprecatedAnnotation() {
+    void dockerRegistryWithDeprecatedAnnotation() {
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
         Secret secretEnriched = createBaseSecret(true, "maven.jkube.io/dockerServerId");
@@ -96,14 +95,14 @@ public class DockerRegistrySecretEnricherTest {
         JsonObject auths = (JsonObject) JsonParser.parseString(new String(Base64.decodeBase64(data)));
         assertThat(auths.size()).isEqualTo(1);
         JsonObject auth = auths.getAsJsonObject("docker.io");
-        assertThat(auth.size()).isEqualTo(2);
-
-        assertThat(auth.get("username").getAsString()).isEqualTo("username");
-        assertThat(auth.get("password").getAsString()).isEqualTo("password");
+        assertThat(auth)
+            .returns(2, JsonObject::size)
+            .returns("username", a -> a.get("username").getAsString())
+            .returns("password", a -> a.get("password").getAsString());
     }
 
     @Test
-    public void testDockerRegistryWithBadKind() {
+    void dockerRegistryWithBadKind() {
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
         Secret secret = createBaseSecret(true, ANNOTATION);
@@ -112,11 +111,11 @@ public class DockerRegistrySecretEnricherTest {
         KubernetesList expected = builder.build();
 
         enricher.create(PlatformMode.kubernetes, builder);
-        assertEquals(expected, builder.build());
+        assertThat(builder.build()).isEqualTo(expected);
     }
 
     @Test
-    public void testDockerRegistryWithBadAnnotation() {
+    void dockerRegistryWithBadAnnotation() {
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
         Secret secret = createBaseSecret(true, ANNOTATION);
@@ -126,7 +125,7 @@ public class DockerRegistrySecretEnricherTest {
         KubernetesList expected = builder.build();
 
         enricher.create(PlatformMode.kubernetes, builder);
-        assertEquals(expected, builder.build());
+        assertThat(builder.build()).isEqualTo(expected);
     }
 
     private Secret createBaseSecret(boolean withAnnotation, String annotationValue) {
