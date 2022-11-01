@@ -16,6 +16,9 @@ package org.eclipse.jkube.kit.enricher.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -27,21 +30,19 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-public class StatefulSetHandlerTest {
+class StatefulSetHandlerTest {
 
     @Mocked
-    ProbeHandler probeHandler;
+    private ProbeHandler probeHandler;
 
     @Mocked
-    JavaProject project;
+    private JavaProject project;
 
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();
@@ -54,8 +55,8 @@ public class StatefulSetHandlerTest {
 
     private StatefulSetHandler statefulSetHandler;
 
-    @Before
-    public void before(){
+    @BeforeEach
+    void before(){
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -87,7 +88,7 @@ public class StatefulSetHandlerTest {
     }
 
     @Test
-    public void statefulSetHandlerTest() {
+    void statefulSetHandlerTest() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -97,27 +98,29 @@ public class StatefulSetHandlerTest {
                 .build();
 
         StatefulSet statefulSet = statefulSetHandler.get(config,images);
-
-        //Assertion
-        assertNotNull(statefulSet.getSpec());
-        assertNotNull(statefulSet.getMetadata());
-        assertEquals(5,statefulSet.getSpec().getReplicas().intValue());
-        assertNotNull(statefulSet.getSpec().getTemplate());
-        assertEquals("testing",statefulSet.getMetadata().getName());
-        assertEquals("testing",statefulSet.getSpec().getServiceName());
-        assertEquals("test-account",statefulSet.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(statefulSet.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",statefulSet.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",statefulSet.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(statefulSet.getSpec().getTemplate().getSpec().getContainers());
-
+        assertThat(statefulSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(statefulSet)
+            .satisfies(s -> assertThat(s.getMetadata())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("name", "testing")
+            )
+            .satisfies(s -> assertThat(s.getSpec())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("replicas", 5)
+                .hasFieldOrPropertyWithValue("serviceName", "testing")
+                .extracting(StatefulSetSpec::getTemplate).isNotNull()
+                .extracting(PodTemplateSpec::getSpec)
+                .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
+                .extracting(PodSpec::getVolumes).asList()
+                .isNotEmpty()
+                .first()
+                .hasFieldOrPropertyWithValue("name", "test")
+                .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
+            );
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void statefulSetHandlerWithInvalidNameTest() {
+    @Test
+    void statefulSetHandlerWithInvalidNameTest() {
         // with invalid controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
@@ -126,12 +129,14 @@ public class StatefulSetHandlerTest {
                 .replicas(5)
                 .volumes(volumes1)
                 .build();
-
-        statefulSetHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> statefulSetHandler.get(config, images))
+            .withMessageStartingWith("Invalid upper case letter")
+            .withMessageEndingWith("controller name value: TesTing");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void statefulSetHandlerWithoutControllerTest() {
+    @Test
+    void statefulSetHandlerWithoutControllerTest() {
         // without controller name
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
@@ -139,12 +144,13 @@ public class StatefulSetHandlerTest {
                 .replicas(5)
                 .volumes(volumes1)
                 .build();
-
-        statefulSetHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> statefulSetHandler.get(config, images))
+            .withMessage("No controller name is specified!");
     }
 
     @Test
-    public void overrideReplicas() {
+    void overrideReplicas() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new StatefulSetBuilder()
             .editOrNewSpec().withReplicas(1).endSpec()
@@ -153,7 +159,7 @@ public class StatefulSetHandlerTest {
         statefulSetHandler.overrideReplicas(klb, 1337);
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first().hasFieldOrPropertyWithValue("spec.replicas", 1337);
+            .singleElement()
+            .hasFieldOrPropertyWithValue("spec.replicas", 1337);
     }
 }

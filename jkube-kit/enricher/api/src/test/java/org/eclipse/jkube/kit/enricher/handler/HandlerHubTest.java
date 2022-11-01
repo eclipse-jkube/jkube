@@ -13,45 +13,38 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Parameterized.class)
-public class HandlerHubTest {
+class HandlerHubTest {
 
-  @Parameterized.Parameters
-  public static Collection<Function<HandlerHub, Supplier<Object>>> data() {
-    return Arrays.asList(
+  static Stream<Function<HandlerHub, Supplier<Object>>> data() {
+    return Stream.of(
         hh -> hh::getNamespaceHandler,
         hh -> hh::getProjectHandler,
         hh -> hh::getServiceHandler
     );
   }
 
-  @Parameterized.Parameter
-  public Function<HandlerHub, Supplier<Object>> func;
-
   private HandlerHub handlerHub;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     handlerHub = new HandlerHub(new GroupArtifactVersion("com.example", "artifact", "1.33.7"), new Properties());
   }
 
-  @Test
-  public void lazyBuilderForHandler_returnsAlwaysCachedInstance() {
+  @ParameterizedTest(name = "{index}")
+  @MethodSource("data")
+  void lazyBuilderForHandler_returnsAlwaysCachedInstance(Function<HandlerHub, Supplier<Object>> func) {
     assertThat(func.apply(handlerHub).get())
         .isNotNull()
         .isSameAs(func.apply(handlerHub).get());

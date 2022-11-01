@@ -17,23 +17,22 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class HandlerHubControllerTest {
+class HandlerHubControllerTest {
 
   private HandlerHub handlerHub;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     handlerHub = new HandlerHub(new GroupArtifactVersion("com.example", "artifact", "1.33.7"), new Properties());
   }
 
   @Test
-  public void getControllerHandlers_shouldReturnAllImplementationsOfControllerHandler() {
+  void getControllerHandlers_shouldReturnAllImplementationsOfControllerHandler() {
     // When
     final List<ControllerHandlerLazyBuilder<?>> result = handlerHub.getControllerHandlers();
     // Then
