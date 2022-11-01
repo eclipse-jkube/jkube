@@ -88,8 +88,13 @@ class DefaultMetadataEnricherTest {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(configMap.build().getMetadata().getAnnotations()).containsOnly(entry("all-annotation", "1"));
-    assertThat(configMap.build().getMetadata().getLabels()).containsOnly(entry("all-label", "10"));
+    assertThat(configMap.build().getMetadata())
+        .satisfies(m -> assertThat(m.getAnnotations())
+            .containsOnly(entry("all-annotation", "1"))
+        )
+        .satisfies(m -> assertThat(m.getLabels())
+            .containsOnly(entry("all-label", "10"))
+        );
   }
 
   @Test
@@ -97,10 +102,13 @@ class DefaultMetadataEnricherTest {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(deployment.build().getMetadata().getAnnotations())
-        .containsOnly(entry("all-annotation", "1"), entry("deployment", "Deployment"));
-    assertThat(deployment.build().getMetadata().getLabels())
-        .containsOnly(entry("all-label", "10"), entry("deployment-label", "Deployment"));
+    assertThat(deployment.build().getMetadata())
+        .satisfies(d -> assertThat(d.getAnnotations())
+            .containsOnly(entry("all-annotation", "1"), entry("deployment", "Deployment"))
+        )
+        .satisfies(d -> assertThat(d.getLabels())
+            .containsOnly(entry("all-label", "10"), entry("deployment-label", "Deployment"))
+        );
   }
 
   @Test
@@ -108,8 +116,12 @@ class DefaultMetadataEnricherTest {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(genericResource.build().getMetadata().getAnnotations()).containsOnly(entry("all-annotation", "1"));
-    assertThat(genericResource.build().getMetadata().getLabels()).containsOnly(entry("all-label", "10"));
+    assertThat(genericResource.build().getMetadata())
+        .satisfies(r -> assertThat(r.getAnnotations())
+            .containsOnly(entry("all-annotation", "1"))
+        )
+        .satisfies(r -> assertThat(r.getLabels()).containsOnly(entry("all-label", "10"))
+        );
   }
 
   @Test
@@ -117,10 +129,13 @@ class DefaultMetadataEnricherTest {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(ingressV1.build().getMetadata().getAnnotations())
-        .containsOnly(entry("all-annotation", "1"), entry("ingress", "Ingress"));
-    assertThat(ingressV1.build().getMetadata().getLabels())
-        .containsOnly(entry("all-label", "10"), entry("ingress-label", "Ingress"));
+    assertThat(ingressV1.build().getMetadata())
+        .satisfies(ir -> assertThat(ir.getAnnotations())
+            .containsOnly(entry("all-annotation", "1"), entry("ingress", "Ingress"))
+        )
+        .satisfies(ir -> assertThat(ir.getLabels())
+            .containsOnly(entry("all-label", "10"), entry("ingress-label", "Ingress"))
+        );
   }
 
   @Test
@@ -128,10 +143,13 @@ class DefaultMetadataEnricherTest {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(ingressV1beta1.build().getMetadata().getAnnotations())
-        .containsOnly(entry("all-annotation", "1"), entry("ingress", "Ingress"));
-    assertThat(ingressV1beta1.build().getMetadata().getLabels())
-        .containsOnly(entry("all-label", "10"), entry("ingress-label", "Ingress"));
+    assertThat(ingressV1beta1.build().getMetadata())
+        .satisfies(ir -> assertThat(ir.getAnnotations())
+            .containsOnly(entry("all-annotation", "1"), entry("ingress", "Ingress"))
+        )
+        .satisfies(ir -> assertThat(ir.getLabels())
+            .containsOnly(entry("all-label", "10"), entry("ingress-label", "Ingress"))
+        );
   }
 
   @Test
@@ -139,10 +157,13 @@ class DefaultMetadataEnricherTest {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(serviceAccount.build().getMetadata().getAnnotations())
-        .containsOnly(entry("all-annotation", "1"), entry("service-account", "ServiceAccount"));
-    assertThat(serviceAccount.build().getMetadata().getLabels())
-        .containsOnly(entry("all-label", "10"), entry("service-account-label", "ServiceAccount"));
+    assertThat(serviceAccount.build().getMetadata())
+        .satisfies(a -> assertThat(a.getAnnotations())
+            .containsOnly(entry("all-annotation", "1"), entry("service-account", "ServiceAccount"))
+        )
+        .satisfies(a -> assertThat(a.getLabels())
+            .containsOnly(entry("all-label", "10"), entry("service-account-label", "ServiceAccount"))
+        );
   }
 
   @Test
@@ -150,10 +171,13 @@ class DefaultMetadataEnricherTest {
     // When
     defaultMetadataEnricher.enrich(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(route.build().getMetadata().getAnnotations())
-        .containsOnly(entry("all-annotation", "1"), entry("route", "Route"));
-    assertThat(route.build().getMetadata().getLabels())
-        .containsOnly(entry("all-label", "10"), entry("route-label", "Route"));
+    assertThat(route.build().getMetadata())
+        .satisfies(r -> assertThat(r.getAnnotations())
+            .containsOnly(entry("all-annotation", "1"), entry("route", "Route"))
+        )
+        .satisfies(r -> assertThat(r.getLabels())
+            .containsOnly(entry("all-label", "10"), entry("route-label", "Route"))
+        );
   }
 
   private static Properties properties(Object... keyValuePairs) {

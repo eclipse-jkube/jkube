@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -66,7 +66,7 @@ class ReplicaCountEnricherTest {
         Deployment deployment = new Deployment();
         deployment.setSpec(new DeploymentSpec());
         deployment.getSpec().setReplicas(1);
-        kubernetesResources = new KubernetesList("v1", Arrays.asList(deployment), null, null);
+        kubernetesResources = new KubernetesList("v1", Collections.singletonList(deployment), null, null);
     }
 
     @BeforeEach
@@ -74,7 +74,7 @@ class ReplicaCountEnricherTest {
         DeploymentConfig deploymentConfig = new DeploymentConfig();
         deploymentConfig.setSpec(new DeploymentConfigSpec());
         deploymentConfig.getSpec().setReplicas(1);
-        openshiftResources = new KubernetesList("v1", Arrays.asList(deploymentConfig), null, null);
+        openshiftResources = new KubernetesList("v1", Collections.singletonList(deploymentConfig), null, null);
     }
 
     /**

@@ -125,8 +125,7 @@ class ImageChangeTriggerEnricherTest {
     // Then
     assertDeploymentConfigHasTriggers(kubernetesListBuilder, 1, createNewDeploymentTriggerPolicy("test-container", "test-container:latest"));
     assertThat(kubernetesListBuilder.buildItems())
-        .hasSize(1)
-        .first(InstanceOfAssertFactories.type(DeploymentConfig.class))
+        .singleElement(InstanceOfAssertFactories.type(DeploymentConfig.class))
         .extracting(DeploymentConfig::getSpec)
         .extracting(DeploymentConfigSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
@@ -152,8 +151,8 @@ class ImageChangeTriggerEnricherTest {
     imageChangeTriggerEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
 
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1).asList()
-        .first()
+    assertThat(kubernetesListBuilder.buildItems()).asList()
+        .singleElement()
         .extracting("spec.triggers")
         .asList()
         .isEmpty();
@@ -177,9 +176,8 @@ class ImageChangeTriggerEnricherTest {
   private void assertDeploymentConfigHasTriggers(KubernetesListBuilder kubernetesListBuilder, int triggersSize, DeploymentTriggerPolicy... triggerPolicies) {
     List<HasMetadata> items = kubernetesListBuilder.buildItems();
     assertThat(items)
-        .hasSize(1)
         .asList()
-        .first()
+        .singleElement()
         .extracting("spec.triggers")
         .asList()
         .hasSize(triggersSize)

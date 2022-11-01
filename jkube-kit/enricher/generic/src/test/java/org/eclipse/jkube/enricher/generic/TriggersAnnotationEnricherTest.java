@@ -69,10 +69,8 @@ class TriggersAnnotationEnricherTest {
                     .endSpec()
                     .build());
 
-
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
         enricher.enrich(PlatformMode.kubernetes, builder);
-
 
         StatefulSet res = (StatefulSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
@@ -103,10 +101,8 @@ class TriggersAnnotationEnricherTest {
             .endSpec()
             .build());
 
-
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
         enricher.enrich(PlatformMode.kubernetes, builder);
-
 
         ReplicaSet res = (ReplicaSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
@@ -141,14 +137,14 @@ class TriggersAnnotationEnricherTest {
                 .endSpec()
                 .build());
 
-
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
         enricher.enrich(PlatformMode.kubernetes, builder);
-
 
         DaemonSet res = (DaemonSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
         assertThat(triggers).isNotNull();
+        assertThat(res.getMetadata().getAnnotations())
+            .containsEntry("annkey", "annvalue");
 
         List<ImageChangeTrigger> triggerList = OBJECT_MAPPER.readValue(triggers, OBJECT_MAPPER.getTypeFactory().constructCollectionType(List.class, ImageChangeTrigger.class));
         assertThat(triggerList).singleElement()
@@ -157,9 +153,6 @@ class TriggersAnnotationEnricherTest {
             .extracting(ImageChangeTrigger::getAdditionalProperties)
             .asInstanceOf(InstanceOfAssertFactories.MAP)
             .containsKey("fieldPath");
-
-        assertThat(res.getMetadata().getAnnotations())
-            .containsEntry("annkey", "annvalue");
     }
 
     @Test
@@ -183,10 +176,8 @@ class TriggersAnnotationEnricherTest {
             .endSpec()
             .build());
 
-
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
         enricher.enrich(PlatformMode.kubernetes, builder);
-
 
         StatefulSet res = (StatefulSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
@@ -229,10 +220,8 @@ class TriggersAnnotationEnricherTest {
             .endSpec()
             .build());
 
-
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
         enricher.enrich(PlatformMode.kubernetes, builder);
-
 
         Job res = (Job) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
@@ -243,14 +232,13 @@ class TriggersAnnotationEnricherTest {
     private List<Container> createContainers(String... nameImage) {
         assertThat(nameImage.length % 2).isZero();
         List<Container> containers = new ArrayList<>();
-        for (int i=0; i<nameImage.length; i+=2) {
-            Container container = new ContainerBuilder()
-                    .withName(nameImage[i])
-                    .withImage(nameImage[i+1])
-                    .build();
-            containers.add(container);
+        for (int i = 0; i < nameImage.length; i += 2) {
+          Container container = new ContainerBuilder()
+              .withName(nameImage[i])
+              .withImage(nameImage[i + 1])
+              .build();
+          containers.add(container);
         }
-
         return containers;
     }
 

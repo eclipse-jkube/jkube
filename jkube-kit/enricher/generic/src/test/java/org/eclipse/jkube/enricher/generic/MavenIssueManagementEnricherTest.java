@@ -47,18 +47,17 @@ class MavenIssueManagementEnricherTest {
 
     @Test
     void mavenIssueManagementAll() {
-
-        final JavaProject project = JavaProject.builder().build();
-
-        project.setIssueManagementUrl("https://github.com/reactiverse/vertx-maven-plugin/issues/");
-        project.setIssueManagementSystem("GitHub");
+      final JavaProject project = JavaProject.builder()
+          .issueManagementSystem("GitHub")
+          .issueManagementUrl("https://github.com/reactiverse/vertx-maven-plugin/issues/")
+          .build();
         // Setup mock behaviour
         when(context.getProject()).thenReturn(project);
         MavenIssueManagementEnricher enricher = new MavenIssueManagementEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().withNewMetadata().withName("foo").endMetadata().build());
-
+        // When
         enricher.create(PlatformMode.kubernetes, builder);
-
+        // Then
         Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
         assertThat(scmAnnotations).isNotNull()
             .hasSize(2)
@@ -80,9 +79,9 @@ class MavenIssueManagementEnricherTest {
       MavenIssueManagementEnricher enricher = new MavenIssueManagementEnricher(context);
       KubernetesListBuilder builder = new KubernetesListBuilder()
           .withItems(new DeploymentBuilder().withNewMetadata().withName("foo").endMetadata().build());
-
+      // When
       enricher.create(PlatformMode.kubernetes, builder);
-
+      // Then
       Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
       assertThat(scmAnnotations).isNotNull().isEmpty();
     }

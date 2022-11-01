@@ -99,7 +99,7 @@ class RouteEnricherBehavioralTest {
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
     assertThat(klb.buildItems()).hasSize(2)
-      .element(1)
+      .last()
       .hasFieldOrPropertyWithValue("apiVersion", "route.openshift.io/v1")
       .hasFieldOrPropertyWithValue("metadata.name", "http")
       .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 21)
@@ -116,7 +116,7 @@ class RouteEnricherBehavioralTest {
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
     assertThat(klb.buildItems()).hasSize(2)
-      .element(1)
+      .last()
       .hasFieldOrPropertyWithValue("apiVersion", "route.openshift.io/v1")
       .hasFieldOrPropertyWithValue("metadata.name", "http")
       .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 80)

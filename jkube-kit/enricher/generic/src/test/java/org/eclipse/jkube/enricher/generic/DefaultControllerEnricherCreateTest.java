@@ -73,13 +73,6 @@ class DefaultControllerEnricherCreateTest {
         .isInstanceOf(Deployment.class);
   }
 
-  // TODO: Do we really need this comment?
-  /*
-   * This test may seem odd, since what JKube produces for OpenShift environments are DeploymentConfig.
-   *
-   * However, this is taken care of by the DeploymentConfigEnricher which will convert Deployment to
-   * DeploymentConfig if the environment and configuration is appropriate.
-   */
   @DisplayName("create with different controllers")
   @ParameterizedTest(name = "in ''{1}'' mode with ''{0}'' controller type, should create ''{0}''")
   @MethodSource("controllers")
@@ -87,7 +80,6 @@ class DefaultControllerEnricherCreateTest {
     // Given
     properties.put("jkube.enricher.jkube-controller.type", controllerType);
     // When
-    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     new DefaultControllerEnricher(buildContext).create(platformMode, klb);
     // Then
     assertThat(klb.buildItems())
@@ -97,6 +89,12 @@ class DefaultControllerEnricherCreateTest {
 
   static Stream<Arguments> controllers() {
     return Stream.of(
+      /*
+       * This test may seem odd, since what JKube produces for OpenShift environments are DeploymentConfig.
+       *
+       * However, this is taken care of by the DeploymentConfigEnricher which will convert Deployment to
+       * DeploymentConfig if the environment and configuration is appropriate.
+       */
         arguments("DeploymentConfig", PlatformMode.openshift, Deployment.class),
         arguments("StatefulSet", PlatformMode.kubernetes, StatefulSet.class),
         arguments("DAEMONSET", PlatformMode.kubernetes, DaemonSet.class),
@@ -112,8 +110,7 @@ class DefaultControllerEnricherCreateTest {
     new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
-        .hasSize(1)
-        .first()
+        .singleElement()
         .isInstanceOf(Job.class)
         .hasFieldOrPropertyWithValue("spec.template.spec.restartPolicy", "OnFailure");
   }
@@ -127,8 +124,7 @@ class DefaultControllerEnricherCreateTest {
     new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
-        .hasSize(1)
-        .first()
+        .singleElement()
         .isInstanceOf(Job.class)
         .hasFieldOrPropertyWithValue("spec.template.spec.restartPolicy", "Never");
   }

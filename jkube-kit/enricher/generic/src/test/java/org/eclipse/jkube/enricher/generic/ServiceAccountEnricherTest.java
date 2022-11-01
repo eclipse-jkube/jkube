@@ -108,8 +108,7 @@ class ServiceAccountEnricherTest {
 
         // Then
         assertThat(builder.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Deployment.class))
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
             .hasFieldOrPropertyWithValue("spec.template.spec.serviceAccountName", "ribbon");
     }
 

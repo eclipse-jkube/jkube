@@ -57,7 +57,6 @@ class FileDataSecretEnricherTest {
 
         // Then
         final Secret secret = (Secret) builder.buildFirstItem();
-
         assertThat(secret)
             .satisfies(s -> assertThat(s.getData())
                 .containsEntry(TEST_APPLICATION_PROPERTIES, Base64Util.encodeToString(Files.readAllBytes(Paths.get(TEST_APPLICATION_PROPERTIES_PATH))))

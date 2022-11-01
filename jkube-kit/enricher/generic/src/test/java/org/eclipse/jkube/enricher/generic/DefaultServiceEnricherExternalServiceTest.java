@@ -30,20 +30,20 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultServiceEnricherExternalServiceTest {
+class DefaultServiceEnricherExternalServiceTest {
   private DefaultServiceEnricher enricher;
   private KubernetesListBuilder kubernetesListBuilder;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     final JKubeEnricherContext context = JKubeEnricherContext.builder()
       .image(ImageConfiguration.builder()
         .name("test-image")
@@ -65,13 +65,13 @@ public class DefaultServiceEnricherExternalServiceTest {
     enricher = new DefaultServiceEnricher(context);
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     kubernetesListBuilder = null;
   }
 
   @Test
-  public void create_whenNoServiceFragmentExceptExternalServicePresent_thenGenerateDefaultService() {
+  void create_whenNoServiceFragmentExceptExternalServicePresent_thenGenerateDefaultService() {
     // Given + When
     enricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
 
@@ -80,7 +80,7 @@ public class DefaultServiceEnricherExternalServiceTest {
   }
 
   @Test
-  public void create_whenServiceFragmentAndExternalServicePresent_thenMergeDefaultServiceWithFragment() {
+  void create_whenServiceFragmentAndExternalServicePresent_thenMergeDefaultServiceWithFragment() {
     // Given
     kubernetesListBuilder.addToItems(new ServiceBuilder()
         .withNewMetadata()

@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 class ImagePullPolicyEnricherTest {
 
@@ -74,17 +75,16 @@ class ImagePullPolicyEnricherTest {
 
     // Then
     List<HasMetadata> buildItems = kubernetesListBuilder.buildItems();
-
-    assertThat(buildItems).hasSize(7);
-
-    assertDaemonSetImagePullPolicy(buildItems, "Never", 0);
-    assertDeploymentImagePullPolicy(buildItems, "Never", 1);
-    assertDeploymentWithTwoContainersImagePullPolicy(buildItems, "Never", 2);
-    assertJobImagePullPolicy(buildItems, "Never", 3);
-    assertReplicaSetImagePullPolicy(buildItems, "Never", 4);
-    assertReplicationControllerImagePullPolicy(buildItems, "Never", 5);
-    assertStatefulSetImagePullPolicy(buildItems, "Never", 6);
-
+    assertAll(
+        () -> assertThat(buildItems).hasSize(7),
+        () -> assertDaemonSetImagePullPolicy(buildItems, "Never", 0),
+        () -> assertDeploymentImagePullPolicy(buildItems, "Never", 1),
+        () -> assertDeploymentWithTwoContainersImagePullPolicy(buildItems, "Never", 2),
+        () -> assertJobImagePullPolicy(buildItems, "Never", 3),
+        () -> assertReplicaSetImagePullPolicy(buildItems, "Never", 4),
+        () -> assertReplicationControllerImagePullPolicy(buildItems, "Never", 5),
+        () -> assertStatefulSetImagePullPolicy(buildItems, "Never", 6)
+    );
   }
 
   @Test
@@ -108,16 +108,16 @@ class ImagePullPolicyEnricherTest {
     // Then
     List<HasMetadata> buildItems = kubernetesListBuilder.buildItems();
 
-    assertThat(buildItems).hasSize(7);
-
-    assertDaemonSetImagePullPolicy(buildItems, "IfNotPresent", 0);
-    assertDeploymentImagePullPolicy(buildItems, "IfNotPresent", 1);
-    assertDeploymentWithTwoContainersImagePullPolicy(buildItems, "IfNotPresent", 2);
-    assertJobImagePullPolicy(buildItems, "IfNotPresent", 3);
-    assertReplicaSetImagePullPolicy(buildItems, "IfNotPresent", 4);
-    assertReplicationControllerImagePullPolicy(buildItems, "IfNotPresent", 5);
-    assertStatefulSetImagePullPolicy(buildItems, "IfNotPresent", 6);
-
+    assertAll(
+        () -> assertThat(buildItems).hasSize(7),
+        () -> assertDaemonSetImagePullPolicy(buildItems, "IfNotPresent", 0),
+        () -> assertDeploymentImagePullPolicy(buildItems, "IfNotPresent", 1),
+        () -> assertDeploymentWithTwoContainersImagePullPolicy(buildItems, "IfNotPresent", 2),
+        () -> assertJobImagePullPolicy(buildItems, "IfNotPresent", 3),
+        () -> assertReplicaSetImagePullPolicy(buildItems, "IfNotPresent", 4),
+        () -> assertReplicationControllerImagePullPolicy(buildItems, "IfNotPresent", 5),
+        () -> assertStatefulSetImagePullPolicy(buildItems, "IfNotPresent", 6)
+    );
   }
 
   private DaemonSet createNewDaemonSet() {
@@ -224,8 +224,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
         .asList()
-        .hasSize(1)
-        .first(InstanceOfAssertFactories.type(Container.class))
+        .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
   }
@@ -238,8 +237,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
         .asList()
-        .hasSize(1)
-        .first(InstanceOfAssertFactories.type(Container.class))
+        .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
   }
@@ -273,8 +271,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
         .asList()
-        .hasSize(1)
-        .first(InstanceOfAssertFactories.type(Container.class))
+        .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
   }
@@ -287,8 +284,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
         .asList()
-        .hasSize(1)
-        .first(InstanceOfAssertFactories.type(Container.class))
+        .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
   }
@@ -301,8 +297,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
         .asList()
-        .hasSize(1)
-        .first(InstanceOfAssertFactories.type(Container.class))
+        .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
   }
@@ -315,8 +310,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
         .asList()
-        .hasSize(1)
-        .first(InstanceOfAssertFactories.type(Container.class))
+        .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
 

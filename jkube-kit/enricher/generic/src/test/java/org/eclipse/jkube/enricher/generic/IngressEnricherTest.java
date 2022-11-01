@@ -246,21 +246,20 @@ class IngressEnricherTest {
 
 
     private ServiceBuilder initTestService() {
-        return new ServiceBuilder()
-                .withMetadata(new ObjectMetaBuilder()
-                    .withName("test-svc")
-                    .addToLabels("expose", "true")
-                .build())
-                .withSpec(new ServiceSpecBuilder()
-                    .addNewPort()
-                    .withName("http")
-                    .withPort(8080)
-                    .withProtocol("TCP")
-                    .withTargetPort(new IntOrString(8080))
-                    .endPort()
-                    .addToSelector("group", "test")
-                    .withType("LoadBalancer")
-                    .build()
-                );
+      return new ServiceBuilder()
+          .withMetadata(new ObjectMetaBuilder()
+              .withName("test-svc")
+              .addToLabels("expose", "true")
+              .build())
+          .withSpec(new ServiceSpecBuilder()
+              .addNewPort()
+              .withName("http")
+              .withPort(8080)
+              .withProtocol("TCP")
+              .withTargetPort(new IntOrString(8080))
+              .endPort()
+              .addToSelector("group", "test")
+              .withType("LoadBalancer")
+              .build());
     }
 }

@@ -29,20 +29,14 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * @author kamesh
@@ -97,24 +91,43 @@ class DefaultControllerEnricherTest {
         assertImagePullPolicy(builder, "IfNotPresent");
     }
 
-    @DisplayName("create with")
-    @ParameterizedTest(name = "configured {0}, should use configured {0} ({2})")
-    @MethodSource("data")
-    void create_with(String description, String property, String propertyValue, int expectedReplicas, String expectedImagePullPolicy) {
-        // Given
-        properties.put(property, propertyValue);
-        // When
-        KubernetesListBuilder builder = enrich();
-        // Then
-        assertReplicas(builder, expectedReplicas);
-        assertImagePullPolicy(builder, expectedImagePullPolicy);
+    @Test
+    void create_withImagePullPolicyConfigured_shouldUseConfiguredImagePullPolicy() {
+      // Given
+      properties.put("jkube.enricher.jkube-controller.pullPolicy", "Never");
+
+      // When
+      KubernetesListBuilder builder = enrich();
+
+      // Then
+      assertReplicas(builder, 1);
+      assertImagePullPolicy(builder, "Never");
     }
 
-    static Stream<Arguments> data() {
-      return Stream.of(
-          arguments("image pull policy", "jkube.enricher.jkube-controller.pullPolicy", "Never", 1, "Never"),
-          arguments("image pull policy property", "jkube.imagePullPolicy", "Never", 1, "Never"),
-          arguments("replicas", "jkube.enricher.jkube-controller.replicaCount", "5", 5, "IfNotPresent"));
+    @Test
+    void create_withImagePullPolicyProperty_shouldUseConfiguredImagePullPolicy() {
+      // Given
+      properties.put("jkube.imagePullPolicy", "Never");
+
+      // When
+      KubernetesListBuilder builder = enrich();
+
+      // Then
+      assertReplicas(builder, 1);
+      assertImagePullPolicy(builder, "Never");
+    }
+
+    @Test
+    void create_withReplicasConfigured_shouldUseConfiguredReplicas() {
+      // Given
+      properties.put("jkube.enricher.jkube-controller.replicaCount", "5");
+
+      // When
+      KubernetesListBuilder builder = enrich();
+
+      // Then
+      assertReplicas(builder, 5);
+      assertImagePullPolicy(builder, "IfNotPresent");
     }
 
     private KubernetesListBuilder enrich() {
@@ -126,16 +139,14 @@ class DefaultControllerEnricherTest {
 
     private void assertReplicas(KubernetesListBuilder kubernetesListBuilder, int expectedReplicas) {
         assertThat(kubernetesListBuilder.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Deployment.class))
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
             .hasFieldOrPropertyWithValue("metadata.name", "artifact-id")
             .hasFieldOrPropertyWithValue("spec.replicas", expectedReplicas);
     }
 
     private void assertImagePullPolicy(KubernetesListBuilder kubernetesListBuilder, String expectedImagePullPolicy) {
         assertThat(kubernetesListBuilder.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Deployment.class))
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
             .extracting(Deployment::getSpec)
             .extracting(DeploymentSpec::getTemplate)
             .extracting(PodTemplateSpec::getSpec)

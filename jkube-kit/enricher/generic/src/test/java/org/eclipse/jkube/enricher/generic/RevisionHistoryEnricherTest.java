@@ -74,13 +74,11 @@ class RevisionHistoryEnricherTest {
         assertRevisionHistory(builder.build(), Integer.parseInt(revisionNumber));
     }
 
-      private ProcessorConfig prepareEnricherConfig(final String revisionNumber) {
-        return new ProcessorConfig(
-            null,
-            null,
-            Collections.singletonMap("jkube-revision-history",
-                Collections.singletonMap("limit",revisionNumber)));
-      }
+    private ProcessorConfig prepareEnricherConfig(String revisionNumber) {
+      return new ProcessorConfig(null, null,
+              Collections.singletonMap("jkube-revision-history", Collections.singletonMap("limit", revisionNumber))
+      );
+    }
 
     private void assertRevisionHistory(KubernetesList list, Integer revisionNumber) {
       assertThat(list.getItems()).singleElement()
