@@ -35,7 +35,7 @@ class BaseEnricherTest {
   }
 
   @Test
-  void getImagePullPolicy_whenNoConfigPresent_shouldReturnNull() {
+  void getImagePullPolicy_whenNoConfigPresent_shouldReturnDefaultImagePullPolicy() {
     // Given + When
     String value = baseEnricher.getImagePullPolicy(null, null);
 

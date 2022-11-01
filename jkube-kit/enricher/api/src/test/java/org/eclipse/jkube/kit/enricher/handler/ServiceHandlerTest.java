@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.ServiceConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,25 +34,28 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class ServiceHandlerTest {
 
-    //create a serviceHandlerObject
     private final ServiceHandler serviceHandler = new ServiceHandler();
 
     //created services for output
-    private List<Service> services = new ArrayList<>();
+    private List<Service> services;
 
     //created ports for input
-    List<ServiceConfig.Port> ports = new ArrayList<>();
+    private List<ServiceConfig.Port> ports;
 
     //created serviceConfigs for input
-    List<ServiceConfig> serviceConfigs = new ArrayList<>();
-
+    private List<ServiceConfig> serviceConfigs;
     private ServiceConfig.Port port;
-
     private ServiceConfig serviceconfig;
 
-    @Test
-    void getServicesTest() {
+    @BeforeEach
+    void setUp() {
+        services = new ArrayList<>();
+        ports = new ArrayList<>();
+        serviceConfigs = new ArrayList<>();
+    }
 
+    @Test
+    void getServices_withPortsAndWithoutHeadless() {
         //first scenario
         //*adding a basic port case with all values (with ports, without headless)
         port = ServiceConfig.Port.builder()
@@ -63,7 +67,6 @@ class ServiceHandlerTest {
         //creating serviceConfigs of service;
         serviceConfigs.add(serviceconfig);
 
-        //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
         assertThat(services).isNotNull()
             .first()
@@ -86,33 +89,29 @@ class ServiceHandlerTest {
     }
 
     @Test
-    void getServicesWithoutPortTest() {
+    void getServices_withoutPort_shouldBeEmpty() {
         //second scenario
         //*create a service without ports
         serviceconfig = ServiceConfig.builder()
                 .name("service-test").expose(true).type("NodePort").build();
 
-        serviceConfigs.clear();
         //creating serviceConfigs of service;
         serviceConfigs.add(serviceconfig);
 
-        //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
         assertThat(services).isEmpty();
     }
 
     @Test
-    void getServicesWithHeadlessServiceTest() {
+    void getServices_withoutPortAndWithHeadless() {
         //third scenario
         //*create a service without ports and with headless service
         serviceconfig = ServiceConfig.builder()
                 .name("service-test").expose(true).type("NodePort").headless(true).build();
 
-        serviceConfigs.clear();
         //creating serviceConfigs of service;
         serviceConfigs.add(serviceconfig);
 
-        //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
         assertThat(services).isNotEmpty()
             .first()
@@ -129,8 +128,7 @@ class ServiceHandlerTest {
     }
 
     @Test
-    void getServicesBothPortAndHealessTest() {
-        ports.clear();
+    void getServices_withPortAndHeadless() {
         port = ServiceConfig.Port.builder()
                 .port(8080).protocol("tcp").targetPort(80).nodePort(50).name("port-test").build();
         ports.add(port);
@@ -139,11 +137,9 @@ class ServiceHandlerTest {
         serviceconfig = ServiceConfig.builder()
                 .ports(ports).name("service-test").expose(true).type("NodePort").headless(true).build();
 
-        serviceConfigs.clear();
         //creating serviceConfigs of service;
         serviceConfigs.add(serviceconfig);
 
-        //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
         assertThat(services).first()
             .satisfies(s -> assertThat(s.getSpec())
@@ -167,20 +163,16 @@ class ServiceHandlerTest {
 
     @Test
     void getServices_withNullType_shouldBeNull() {
-        //checking null type
         port = ServiceConfig.Port.builder()
                 .port(8080).targetPort(80).nodePort(50).name("port-test").build();
-        ports.clear();
         ports.add(port);
 
         serviceconfig = ServiceConfig.builder()
                 .ports(ports).name("service-test").expose(true).headless(false).build();
 
         //creating serviceConfigs of service;
-        serviceConfigs.clear();
         serviceConfigs.add(serviceconfig);
 
-        //calling the getServices Method
         services = serviceHandler.getServices(serviceConfigs);
         assertThat(services.get(0).getSpec().getType()).isNull();
     }

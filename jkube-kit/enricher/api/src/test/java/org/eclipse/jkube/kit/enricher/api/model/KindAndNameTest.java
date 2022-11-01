@@ -22,38 +22,38 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class KindAndNameTest {
 
-    @Test
-    void simpleTest() {
+  @Test
+  void simpleTest() {
+    ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("CMTest").endMetadata().addToData("foo", "bar")
+        .build();
 
-        ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("CMTest").endMetadata().addToData("foo","bar").build();
+    KindAndName kindAndName = new KindAndName(configMap);
+    assertThat(kindAndName)
+        .hasFieldOrPropertyWithValue("kind", "ConfigMap")
+        .hasFieldOrPropertyWithValue("name", "CMTest");
+  }
 
-        KindAndName kindAndName = new KindAndName(configMap);
-        assertThat(kindAndName)
-            .hasFieldOrPropertyWithValue("kind", "ConfigMap")
-            .hasFieldOrPropertyWithValue("name", "CMTest");
-    }
+  @Test
+  void equalsTest() {
+    KindAndName kindAndName = new KindAndName("kindTest", "nameTest");
+    KindAndName secondKindAndName = new KindAndName("kindTest", "nameTest");
+    KindAndName thirdKindAndName = new KindAndName("kindTest1", "nameTest1");
+    KindAndName fourthKindAndName = new KindAndName("kindTest1", "nameTest");
+    KindAndName fifthKindAndName = new KindAndName("kindTest", "nameTest1");
 
-    @Test
-    void equalsTest() {
-      KindAndName kindAndName = new KindAndName("kindTest", "nameTest");
-      KindAndName secondKindAndName = new KindAndName("kindTest", "nameTest");
-      KindAndName thirdKindAndName = new KindAndName("kindTest1", "nameTest1");
-      KindAndName fourthKindAndName = new KindAndName("kindTest1", "nameTest");
-      KindAndName fifthKindAndName = new KindAndName("kindTest", "nameTest1");
+    assertThat(kindAndName).isNotNull()
+        .isEqualTo(secondKindAndName)
+        .isNotEqualTo(thirdKindAndName)
+        .isNotEqualTo(fourthKindAndName)
+        .isNotEqualTo(fifthKindAndName);
+  }
 
-      assertThat(kindAndName).isNotNull()
-          .isEqualTo(secondKindAndName)
-          .isNotEqualTo(thirdKindAndName)
-          .isNotEqualTo(fourthKindAndName)
-          .isNotEqualTo(fifthKindAndName);
-    }
+  @Test
+  void testHashCode() {
+    KindAndName kindAndName = new KindAndName("kindTest", "nameTest");
+    KindAndName secondKindAndName = new KindAndName("", "");
 
-    @Test
-    void testHashCode() {
-      KindAndName kindAndName = new KindAndName("kindTest", "nameTest");
-      KindAndName secondKindAndName = new KindAndName("", "");
-
-      assertThat(kindAndName.hashCode()).isEqualTo(1812739127);
-      assertThat(secondKindAndName.hashCode()).isZero();
-    }
+    assertThat(kindAndName.hashCode()).isEqualTo(1812739127);
+    assertThat(secondKindAndName.hashCode()).isZero();
+  }
 }

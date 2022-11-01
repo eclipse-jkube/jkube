@@ -29,7 +29,9 @@ import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -72,151 +74,167 @@ class KubernetesResourceUtilTest {
     initializeKindFilenameMapper();
   }
 
-  @Test
-  void getResource_withYamlFileAndVersionKindNameFromFile_shouldReturnValidResource() throws IOException {
-    // When
-    final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-        new File(fragmentsDir, "simple-rc.yaml"), "app");
-    // Then
-    assertThat(result)
-        .isInstanceOf(ReplicationController.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "v1")
-        .hasFieldOrPropertyWithValue("kind", "ReplicationController")
-        .hasFieldOrPropertyWithValue("metadata.name", "simple");
-  }
+  @Nested
+  @DisplayName("get resource")
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+  class GetResource {
+    @Test
+    @DisplayName("with version, kind and name from yaml file, should return valid resource")
+    void withYamlFileAndVersionKindNameFromFile_shouldReturnValidResource() throws IOException {
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
+          new File(fragmentsDir, "simple-rc.yaml"), "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(ReplicationController.class)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("kind", "ReplicationController")
+          .hasFieldOrPropertyWithValue("metadata.name", "simple");
+    }
 
-  @Test
-  void getResource_withJsonFileAndVersionKindNameFromFile_shouldReturnValidResource() throws IOException {
-    // When
-    final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-        new File(fragmentsDir, "simple-rc.json"), "app");
-    // Then
-    assertThat(result)
-        .isInstanceOf(ReplicationController.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "v1")
-        .hasFieldOrPropertyWithValue("kind", "ReplicationController")
-        .hasFieldOrPropertyWithValue("metadata.name", "simple");
-  }
+    @Test
+    @DisplayName("with kind, name and version from json file, should return valid resource")
+    void withJsonFileAndVersionKindNameFromFile_shouldReturnValidResource() throws IOException {
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
+          new File(fragmentsDir, "simple-rc.json"), "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(ReplicationController.class)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("kind", "ReplicationController")
+          .hasFieldOrPropertyWithValue("metadata.name", "simple");
+    }
 
-  @Test
-  void getResource_withValueInNameAndFile_shouldBeNamedNamedFromValue() throws IOException {
-    // When
-    final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-        new File(fragmentsDir, "named-svc.yaml"), "app");
-    // Then
-    assertThat(result)
-        .isInstanceOf(Service.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "v1")
-        .hasFieldOrPropertyWithValue("kind", "Service")
-        .hasFieldOrPropertyWithValue("metadata.name", "pong");
-  }
+    @Test
+    @DisplayName("with value in name and file, should be named from value")
+    void withValueInNameAndFile_shouldBeNamedNamedFromValue() throws IOException {
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
+          new File(fragmentsDir, "named-svc.yaml"), "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(Service.class)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("kind", "Service")
+          .hasFieldOrPropertyWithValue("metadata.name", "pong");
+    }
 
-  @Test
-  void getResource_withValueInName_shouldBeNamedNamedFromValue() throws IOException {
-    // When
-    final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-        new File(fragmentsDir, "rc.yml"), "app");
-    // Then
-    assertThat(result)
-        .isInstanceOf(ReplicationController.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "v1")
-        .hasFieldOrPropertyWithValue("kind", "ReplicationController")
-        .hasFieldOrPropertyWithValue("metadata.name", "flipper");
-  }
+    @Test
+    @DisplayName("with value in name, should be named from value")
+    void withValueInName_shouldBeNamedNamedFromValue() throws IOException {
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
+          new File(fragmentsDir, "rc.yml"), "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(ReplicationController.class)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("kind", "ReplicationController")
+          .hasFieldOrPropertyWithValue("metadata.name", "flipper");
+    }
 
-  @Test
-  void getResource_withNoNameInValueAndNoNameInFileName_shouldBeNamedFromAppName() throws IOException {
-    // When
-    final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-        new File(fragmentsDir, "svc.yml"), "app");
-    // Then
-    assertThat(result)
-        .isInstanceOf(Service.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "v1")
-        .hasFieldOrPropertyWithValue("kind", "Service")
-        .hasFieldOrPropertyWithValue("metadata.name", "app");
-  }
+    @Test
+    @DisplayName("with no name both in value and file, should be named from app name")
+    void withNoNameInValueAndNoNameInFileName_shouldBeNamedFromAppName() throws IOException {
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
+          new File(fragmentsDir, "svc.yml"), "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(Service.class)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("kind", "Service")
+          .hasFieldOrPropertyWithValue("metadata.name", "app");
+    }
 
-  @DisplayName("with invalid resource")
-  @ParameterizedTest(name = "{index}: ''{0}'', should throw exception")
-  @MethodSource("invalidResources")
-  void withInvalidResource(String description, String file, String message) {
-    // Given
-    final File resource = new File(fragmentsDir, file);
-    // When & Then
-    assertThatIllegalArgumentException()
-        .isThrownBy(() -> KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING, resource, "app"))
-        .withMessageContaining(message);
-  }
+    @DisplayName("with invalid resource")
+    @ParameterizedTest(name = "{index}: ''{0}'', should throw exception")
+    @MethodSource("invalidResources")
+    void withInvalidResource(String resourceType, String resourceFile, String message) {
+      // Given
+      final File resource = new File(fragmentsDir, resourceFile);
+      // When & Then
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING, resource, "app"))
+          .withMessageContaining(message);
+    }
 
-  static Stream<Arguments> invalidResources() {
-    return Stream.of(
-        arguments("invalid extension file", "simple-rc.txt", "Resource file name 'simple-rc.txt' does not match pattern <name>-<type>.(yaml|yml|json)"),
-        arguments("invalid type", "simple-bla.yaml", "Unknown type 'bla' for file simple-bla.yaml"),
-        arguments("no type and no kind", "contains_no_kind.yml", "No type given as part of the file name (e.g. 'app-rc.yml') and no 'Kind' defined in resource descriptor contains_no_kind.yml")
-    );
-  }
+    Stream<Arguments> invalidResources() {
+      return Stream.of(
+          arguments("invalid extension file", "simple-rc.txt",
+              "Resource file name 'simple-rc.txt' does not match pattern <name>-<type>.(yaml|yml|json)"),
+          arguments("invalid type", "simple-bla.yaml", "Unknown type 'bla' for file simple-bla.yaml"),
+          arguments("no type and no kind", "contains_no_kind.yml",
+              "No type given as part of the file name (e.g. 'app-rc.yml') and no 'Kind' defined in resource descriptor contains_no_kind.yml"));
+    }
 
-  @Test
-  void getResource_withNonExistentFile_shouldThrowException() {
-    // Given
-    final File resource = new File(fragmentsDir, "I-Dont-EXIST.yaml");
-    // When & Then
-    assertThatIOException()
-        .isThrownBy(() -> KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING, resource, "app"))
-        .withMessageContaining("I-Dont-EXIST.yaml")
-        .withMessageContaining("No such file or directory")
-        .withCauseInstanceOf(FileNotFoundException.class);
-  }
+    @Test
+    @DisplayName("with non-existent file, should throw exception")
+    void withNonExistentFile_shouldThrowException() {
+      // Given
+      final File resource = new File(fragmentsDir, "I-Dont-EXIST.yaml");
+      // When & Then
+      assertThatIOException()
+          .isThrownBy(() -> KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING, resource, "app"))
+          .withMessageContaining("I-Dont-EXIST.yaml")
+          .withMessageContaining("No such file or directory")
+          .withCauseInstanceOf(FileNotFoundException.class);
+    }
 
-  @Test
-  void getResource_withValueInKindAndNotInFilename_shouldGetKindFromValue() throws IOException {
-    // When
-    final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-        new File(fragmentsDir, "contains_kind.yml"), "app");
-    // Then
-    assertThat(result)
-        .isInstanceOf(ReplicationController.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "v1")
-        .hasFieldOrPropertyWithValue("kind", "ReplicationController");
-  }
+    @Test
+    @DisplayName("with value in kind not in file, should get the kind from value")
+    void withValueInKindAndNotInFilename_shouldGetKindFromValue() throws IOException {
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
+          new File(fragmentsDir, "contains_kind.yml"), "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(ReplicationController.class)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("kind", "ReplicationController");
+    }
 
-  @Test
-  void getResource_withKindFromFilename_shouldGetKindFromFilename() throws IOException {
-    // When
-    final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-        new File(fragmentsDir, "job.yml"), "app");
-    // Then
-    assertThat(result)
-        .isInstanceOf(Job.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "batch/v1")
-        .hasFieldOrPropertyWithValue("kind", "Job")
-        .hasFieldOrPropertyWithValue("metadata.name", "app");
-  }
+    @Test
+    @DisplayName("with kind from file, should get the kind from file")
+    void withKindFromFilename_shouldGetKindFromFilename() throws IOException {
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
+          new File(fragmentsDir, "job.yml"), "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(Job.class)
+          .hasFieldOrPropertyWithValue("apiVersion", "batch/v1")
+          .hasFieldOrPropertyWithValue("kind", "Job")
+          .hasFieldOrPropertyWithValue("metadata.name", "app");
+    }
 
-  @Test
-  void getResource_withNetworkV1Ingress_shouldLoadNetworkV1Ingress() throws IOException {
-    // When
-    final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-        new File(fragmentsDir, "network-v1-ingress.yml"), "app");
-    // Then
-    assertThat(result)
-        .isInstanceOf(Ingress.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "networking.k8s.io/v1")
-        .hasFieldOrPropertyWithValue("kind", "Ingress")
-        .hasFieldOrPropertyWithValue("metadata.name", "my-ingress");
-  }
+    @Test
+    @DisplayName("with network ingress, should load network v1 ingress")
+    void withNetworkV1Ingress_shouldLoadNetworkV1Ingress() throws IOException {
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
+          new File(fragmentsDir, "network-v1-ingress.yml"), "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(Ingress.class)
+          .hasFieldOrPropertyWithValue("apiVersion", "networking.k8s.io/v1")
+          .hasFieldOrPropertyWithValue("kind", "Ingress")
+          .hasFieldOrPropertyWithValue("metadata.name", "my-ingress");
+    }
 
-  @Test
-  void getResource_withNetworkPolicyV1_shouldLoadV1NetworkPolicy() throws Exception {
-    // When
-    final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-        new File(fragmentsDir, "networking-v1-np.yml"), "app");
-    // Then
-    assertThat(result)
-        .isInstanceOf(NetworkPolicy.class)
-        .hasFieldOrPropertyWithValue("kind", "NetworkPolicy")
-        .hasFieldOrPropertyWithValue("spec.podSelector.matchLabels.role", "db");
+    @Test
+    @DisplayName("with network policy v1, should load V1 network policy")
+    void withNetworkPolicyV1_shouldLoadV1NetworkPolicy() throws Exception {
+      // When
+      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
+          new File(fragmentsDir, "networking-v1-np.yml"), "app");
+      // Then
+      assertThat(result)
+          .isInstanceOf(NetworkPolicy.class)
+          .hasFieldOrPropertyWithValue("kind", "NetworkPolicy")
+          .hasFieldOrPropertyWithValue("spec.podSelector.matchLabels.role", "db");
+    }
   }
 
   @Test
