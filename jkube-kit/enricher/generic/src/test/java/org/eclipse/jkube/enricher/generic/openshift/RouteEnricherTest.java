@@ -89,10 +89,11 @@ class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-            .hasSize(2)
-            .extracting("kind")
-            .containsExactly("Service", "Route");
-        assertThat(klb.build().getItems().get(1))
+            .satisfies(i -> assertThat(i)
+                .extracting("kind")
+                .containsExactly("Service", "Route")
+            )
+            .last()
             .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
             .contains("test-svc", "test-svc.jkube.eclipse.org", "Service", "test-svc", 8080);
     }
@@ -118,9 +119,11 @@ class RouteEnricherTest {
         // Then
         assertThat(klb.build().getItems())
             .hasSize(2)
-            .extracting("kind")
-            .containsExactly("Service", "Route");
-        assertThat(klb.build().getItems().get(1))
+            .satisfies(i -> assertThat(i)
+                .extracting("kind")
+                .containsExactly("Service", "Route")
+            )
+            .last()
             .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
             .contains("test-svc", "example.com", "Service", "test-svc", 1337);
     }
@@ -148,13 +151,14 @@ class RouteEnricherTest {
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
-        assertThat(klb.build().getItems())
-                .hasSize(2)
+        assertThat(klb.build().getItems()).hasSize(2)
+            .satisfies(i -> assertThat(i)
                 .extracting("kind")
-                .containsExactly("Service", "Route");
-        assertThat(klb.build().getItems().get(1))
-                .extracting("metadata.name", "spec.to.kind", "spec.to.name", "spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
-                .contains("test-svc", "Service", "test-svc", "Redirect", "edge");
+                .containsExactly("Service", "Route")
+            )
+            .last()
+            .extracting("metadata.name", "spec.to.kind", "spec.to.name", "spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
+            .contains("test-svc", "Service", "test-svc", "Redirect", "edge");
     }
 
     @Test
@@ -332,13 +336,10 @@ class RouteEnricherTest {
                 .build();
         // @formatter:on
     }
+
     private void mockJKubeEnricherContext() {
         when(context.getProperties()).thenReturn(properties);
         when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
-    }
-
-    private void mockJKubeEnricherContextProcessorConfigNotCalled() {
-        when(context.getProperties()).thenReturn(properties);
     }
 
     private void mockJKubeEnricherContextPropertiesNotCalled() {

@@ -60,7 +60,7 @@ class PodAnnotationEnricherTest {
   @DisplayName("enrich resource")
   @ParameterizedTest(name = "with ''{0}'', should add annotations to pod template spec")
   @MethodSource("data")
-  void enrich(String description, VisitableBuilder<? extends HasMetadata, ?> item, Class<? extends KubernetesListBuilder> clazz) {
+  void enrich(String controllerKind, VisitableBuilder<? extends HasMetadata, ?> item, Class<? extends KubernetesListBuilder> clazz) {
     // Given
     klb.addToItems(item);
     // When

@@ -76,7 +76,6 @@ class MavenProjectEnricherTest {
 
     @Test
     void oldStyleGeneratedResources() {
-
         final Properties properties = new Properties();
         properties.setProperty("jkube.enricher.jkube-project-label.useProjectLabel", "true");
         when(context.getProperties()).thenReturn(properties);

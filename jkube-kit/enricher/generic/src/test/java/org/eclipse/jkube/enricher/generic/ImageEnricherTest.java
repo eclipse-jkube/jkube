@@ -64,7 +64,7 @@ class ImageEnricherTest {
         imageEnricher = new ImageEnricher(context);
     }
 
-    @DisplayName("check enrich type")
+    @DisplayName("check enriched resource type")
     @ParameterizedTest(name = "{1}")
     @MethodSource("resources")
     void checkEnrich(HasMetadata item, String kind) {

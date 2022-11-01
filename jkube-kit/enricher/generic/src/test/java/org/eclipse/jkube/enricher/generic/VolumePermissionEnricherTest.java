@@ -90,19 +90,16 @@ class VolumePermissionEnricherTest {
         enricher.enrich(PlatformMode.kubernetes,klb);
 
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(PodTemplate.class))
+            .singleElement(InstanceOfAssertFactories.type(PodTemplate.class))
             .extracting(PodTemplate::getTemplate)
             .extracting(PodTemplateSpec::getSpec)
             .extracting(PodSpec::getInitContainers)
             .asList()
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Container.class))
+            .singleElement(InstanceOfAssertFactories.type(Container.class))
             .hasFieldOrPropertyWithValue("resources", null)
             .extracting(Container::getVolumeMounts)
             .asList()
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(VolumeMount.class))
+            .singleElement(InstanceOfAssertFactories.type(VolumeMount.class))
             .extracting(VolumeMount::getMountPath)
             .isEqualTo("blub");
     }
@@ -150,8 +147,7 @@ class VolumePermissionEnricherTest {
                 .extracting(PodTemplateSpec::getSpec)
                 .extracting(PodSpec::getInitContainers)
                 .asList()
-                .hasSize(1)
-                .first(InstanceOfAssertFactories.type(Container.class))
+                .singleElement(InstanceOfAssertFactories.type(Container.class))
                 .hasFieldOrPropertyWithValue("image", tc.imageName)
                 .hasFieldOrPropertyWithValue("name", tc.initContainerName)
                 .hasFieldOrPropertyWithValue("command", getExpectedCommand(tc))
@@ -175,8 +171,7 @@ class VolumePermissionEnricherTest {
 
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
+            .singleElement(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
             .hasFieldOrPropertyWithValue("spec.storageClassName", "standard")
             .extracting("metadata.annotations")
             .asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
@@ -199,8 +194,7 @@ class VolumePermissionEnricherTest {
 
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
+            .singleElement(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
             .hasFieldOrPropertyWithValue("metadata.annotations", Collections.singletonMap("volume.beta.kubernetes.io/storage-class", "standard"))
             .hasFieldOrPropertyWithValue("spec.storageClassName", null);
     }
@@ -231,14 +225,12 @@ class VolumePermissionEnricherTest {
 
         // Then
         assertThat(kubernetesListBuilder.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(PodTemplate.class))
+            .singleElement(InstanceOfAssertFactories.type(PodTemplate.class))
             .extracting(PodTemplate::getTemplate)
             .extracting(PodTemplateSpec::getSpec)
             .extracting(PodSpec::getInitContainers)
             .asList()
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Container.class))
+            .singleElement(InstanceOfAssertFactories.type(Container.class))
             .extracting(Container::getResources)
             .hasFieldOrPropertyWithValue("requests", requestsMap)
             .hasFieldOrPropertyWithValue("limits", limitMap);

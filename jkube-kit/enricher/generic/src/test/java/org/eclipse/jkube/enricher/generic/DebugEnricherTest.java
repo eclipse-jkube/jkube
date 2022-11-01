@@ -79,10 +79,12 @@ class DebugEnricherTest {
     // When
     new DebugEnricher(context).create(null, klb);
     // Then
-    assertThat(getContainer().getEnv())
-        .contains(new EnvVarBuilder().withName("JAVA_ENABLE_DEBUG").withValue("true").build());
-    assertThat(getContainer().getPorts())
-        .containsExactly(new ContainerPortBuilder().withName("debug").withContainerPort(5005).build());
+    assertThat(getContainer())
+        .satisfies(c -> assertThat(c.getEnv())
+            .contains(new EnvVarBuilder().withName("JAVA_ENABLE_DEBUG").withValue("true").build())
+        )
+        .satisfies(c -> assertThat(c.getPorts())
+            .containsExactly(new ContainerPortBuilder().withName("debug").withContainerPort(5005).build()));
   }
 
   @Test
@@ -92,10 +94,12 @@ class DebugEnricherTest {
     // When
     new DebugEnricher(context).create(null, klb);
     // Then
-    assertThat(getContainer().getEnv())
-        .contains(new EnvVarBuilder().withName("JAVA_ENABLE_DEBUG").withValue("true").build());
-    assertThat(getContainer().getPorts())
-        .containsExactly(new ContainerPortBuilder().withName("debug").withContainerPort(5005).build());
+    assertThat(getContainer())
+        .satisfies(c -> assertThat(c.getEnv())
+            .contains(new EnvVarBuilder().withName("JAVA_ENABLE_DEBUG").withValue("true").build())
+        )
+        .satisfies(c -> assertThat(c.getPorts())
+            .containsExactly(new ContainerPortBuilder().withName("debug").withContainerPort(5005).build()));
   }
 
   @Test
@@ -105,10 +109,12 @@ class DebugEnricherTest {
     // When
     new DebugEnricher(context).create(null, klb);
     // Then
-    assertThat(getContainer().getEnv())
-        .contains(new EnvVarBuilder().withName("JAVA_ENABLE_DEBUG").withValue("true").build());
-    assertThat(getContainer().getPorts())
-        .containsExactly(new ContainerPortBuilder().withName("debug").withContainerPort(5005).build());
+    assertThat(getContainer())
+        .satisfies(c -> assertThat(c.getEnv())
+            .contains(new EnvVarBuilder().withName("JAVA_ENABLE_DEBUG").withValue("true").build())
+        )
+        .satisfies(c -> assertThat(c.getPorts())
+            .containsExactly(new ContainerPortBuilder().withName("debug").withContainerPort(5005).build()));
   }
 
   private Container getContainer() {

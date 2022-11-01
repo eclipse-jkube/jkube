@@ -50,9 +50,8 @@ class GitEnricherTest {
 
         // Then
         assertJkubeAnnotations(annotations);
-        assertThat(annotations).containsEntry(OpenShiftAnnotations.VCS_REF.value(),GIT_BRANCH)
-                .containsEntry(OpenShiftAnnotations.VCS_URI.value(),GIT_REMOTE_URL);
-
+        assertThat(annotations).containsEntry(OpenShiftAnnotations.VCS_REF.value(), GIT_BRANCH)
+            .containsEntry(OpenShiftAnnotations.VCS_URI.value(), GIT_REMOTE_URL);
     }
 
     @Test

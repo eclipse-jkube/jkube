@@ -39,7 +39,6 @@ import static org.mockito.Mockito.when;
 
 class ContainerEnvJavaOptionsMergeTest {
 
-  @SuppressWarnings("unused")
   private ImageConfiguration imageConfiguration;
   private ContainerEnvJavaOptionsMergeEnricher containerEnvJavaOptionsMergeEnricher;
   private KubernetesListBuilder kubernetesListBuilder;
@@ -102,9 +101,9 @@ class ContainerEnvJavaOptionsMergeTest {
     containerEnvJavaOptionsMergeEnricher.enrich(PlatformMode.kubernetes, kubernetesListBuilder);
     // Then
     assertThat(containerList(kubernetesListBuilder))
-            .flatExtracting("env")
-            .hasSize(1)
-            .containsOnly(new EnvVar("JAVA_OPTIONS", "val-from-container", null));
+        .flatExtracting("env")
+        .hasSize(1)
+        .containsOnly(new EnvVar("JAVA_OPTIONS", "val-from-container", null));
   }
 
   @Test
@@ -116,9 +115,9 @@ class ContainerEnvJavaOptionsMergeTest {
     containerEnvJavaOptionsMergeEnricher.enrich(PlatformMode.kubernetes, kubernetesListBuilder);
     // Then
     assertThat(containerList(kubernetesListBuilder))
-            .flatExtracting("env")
-            .hasSize(1)
-            .containsOnly(new EnvVar("JAVA_OPTIONS", "val-from-container", null));
+        .flatExtracting("env")
+        .hasSize(1)
+        .containsOnly(new EnvVar("JAVA_OPTIONS", "val-from-container", null));
   }
 
   static List<Container> containerList(KubernetesListBuilder kubernetesListBuilder) {

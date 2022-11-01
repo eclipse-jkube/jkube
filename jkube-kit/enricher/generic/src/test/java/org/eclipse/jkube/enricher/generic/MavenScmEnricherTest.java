@@ -41,7 +41,6 @@ class MavenScmEnricherTest {
 
     @Test
     void mavenScmAll() {
-
         final JavaProject project = JavaProject.builder()
             .scmUrl("git://github.com/jkubeio/kubernetes-maven-plugin.git")
             .scmTag("HEAD")
@@ -64,30 +63,7 @@ class MavenScmEnricherTest {
     }
 
     @Test
-    void mavenScmOnlyConnection() {
-
-        final JavaProject project = JavaProject.builder()
-            .scmUrl("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
-            .build();
-        // Setup mock behaviour
-        when(context.getProject()).thenReturn(project);
-        MavenScmEnricher mavenScmEnricher = new MavenScmEnricher(context);
-
-        KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().withNewMetadata().withName("foo").endMetadata().build());
-
-        mavenScmEnricher.create(PlatformMode.kubernetes, builder);
-
-        Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-
-        assertThat(scmAnnotations).isNotNull()
-          .hasSize(1)
-          .containsEntry("jkube.io/scm-url", "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
-          .doesNotContainKey("jkube.io/scm-tag");
-    }
-
-    @Test
     void mavenScmOnlyDevConnection() {
-
         final JavaProject project = JavaProject.builder()
             .scmUrl("git://github.com/jkubeio/kubernetes-maven-plugin.git")
             .build();
@@ -107,22 +83,21 @@ class MavenScmEnricherTest {
     }
 
     @Test
-    void testMavenScmOnlyUrl() {
+    void mavenScmOnlyUrl() {
+      final JavaProject project = JavaProject.builder()
+          .scmUrl("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
+          .build();
+      // Setup mock behaviour
+      when(context.getProject()).thenReturn(project);
+      MavenScmEnricher mavenScmEnricher = new MavenScmEnricher(context);
 
-        final JavaProject project = JavaProject.builder()
-            .scmUrl("scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
-            .build();
-        // Setup mock behaviour
-        when(context.getProject()).thenReturn(project);
-        MavenScmEnricher mavenScmEnricher = new MavenScmEnricher(context);
+      KubernetesListBuilder builder = new KubernetesListBuilder()
+          .withItems(new DeploymentBuilder().withNewMetadata().withName("foo").endMetadata().build());
 
-        KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().withNewMetadata().withName("foo").endMetadata().build());
+      mavenScmEnricher.create(PlatformMode.kubernetes, builder);
 
-        mavenScmEnricher.create(PlatformMode.kubernetes, builder);
-
-        Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
-
-        assertThat(scmAnnotations).isNotNull()
+      Map<String, String> scmAnnotations = builder.buildFirstItem().getMetadata().getAnnotations();
+      assertThat(scmAnnotations).isNotNull()
           .hasSize(1)
           .containsEntry("jkube.io/scm-url", "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git")
           .doesNotContainKey("jkube.io/scm-tag");
