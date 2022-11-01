@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -31,28 +30,27 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test label generation.
  *
  * @author Tue Dissing
  */
-public class ProjectLabelEnricherTest {
-  private JKubeEnricherContext context;
+class ProjectLabelEnricherTest {
 
   private Properties properties;
   private ProjectLabelEnricher projectLabelEnricher;
 
-  @Before
-  public void setupExpectations() {
-    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+  @BeforeEach
+  void setupExpectations() {
+    JKubeEnricherContext context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     projectLabelEnricher = new ProjectLabelEnricher(context);
     properties = new Properties();
     when(context.getProperties()).thenReturn(properties);
@@ -60,7 +58,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void testCustomAppName() {
+  void testCustomAppName() {
     // Setup
     properties.setProperty("jkube.enricher.jkube-project-label.app", "my-custom-app-name");
 
@@ -75,7 +73,6 @@ public class ProjectLabelEnricherTest {
             .containsEntry("app","my-custom-app-name")
             .containsEntry("version","version");
 
-
     builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
     projectLabelEnricher.create(PlatformMode.kubernetes, builder);
 
@@ -89,7 +86,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void testEmptyCustomAppName() {
+  void testEmptyCustomAppName() {
     // Setup
     properties.setProperty("jkube.enricher.jkube-project-label.app", "");
 
@@ -117,7 +114,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void testDefaultAppName() {
+  void testDefaultAppName() {
     KubernetesListBuilder builder = createListWithDeploymentConfig();
     projectLabelEnricher.enrich(PlatformMode.kubernetes, builder);
     KubernetesList list = builder.build();
@@ -142,7 +139,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void testEnrichCustomProvider() {
+  void testEnrichCustomProvider() {
     properties.setProperty("jkube.enricher.jkube-project-label.provider", "my-custom-provider");
     KubernetesListBuilder builder = createListWithDeploymentConfig();
 
@@ -154,7 +151,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void testCreateCustomProvider() {
+  void testCreateCustomProvider() {
     properties.setProperty("jkube.enricher.jkube-project-label.provider", "my-custom-provider");
     KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
 
@@ -167,7 +164,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void testEnrichDefaultProvider() {
+  void testEnrichDefaultProvider() {
     KubernetesListBuilder builder = createListWithDeploymentConfig();
 
     projectLabelEnricher.enrich(PlatformMode.kubernetes, builder);
@@ -179,7 +176,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void testCreateDefaultProvider() {
+  void testCreateDefaultProvider() {
     KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
 
     projectLabelEnricher.create(PlatformMode.kubernetes, builder);
@@ -191,7 +188,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void create_withNoConfiguredGroup_shouldAddDefaultGroupInSelector() {
+  void create_withNoConfiguredGroup_shouldAddDefaultGroupInSelector() {
     // Given
     KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
 
@@ -209,7 +206,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void create_withConfiguredGroup_shouldAddConfiguredGroupInSelector() {
+  void create_withConfiguredGroup_shouldAddConfiguredGroupInSelector() {
     // Given
     properties.setProperty("jkube.enricher.jkube-project-label.group", "org.example.test");
     KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
@@ -228,7 +225,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void create_withNoConfiguredVersion_shouldAddDefaultVersionInSelector() {
+  void create_withNoConfiguredVersion_shouldAddDefaultVersionInSelector() {
     // Given
     KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new StatefulSetBuilder().build());
 
@@ -246,7 +243,7 @@ public class ProjectLabelEnricherTest {
   }
 
   @Test
-  public void create_withConfiguredVersion_shouldAddConfiguredVersionInSelector() {
+  void create_withConfiguredVersion_shouldAddConfiguredVersionInSelector() {
     // Given
     properties.setProperty("jkube.enricher.jkube-project-label.version", "0.0.1");
     KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new StatefulSetBuilder().build());

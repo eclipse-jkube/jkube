@@ -23,8 +23,8 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +38,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class DependencyEnricherTest {
+class DependencyEnricherTest {
 
     private JKubeEnricherContext context;
 
@@ -46,8 +46,8 @@ public class DependencyEnricherTest {
     private static final String OVERRIDE_FRAGMENT_FILE = "/jenkins-kubernetes-cm.yml";
     private static final String ARTIFACT_FILE_PATH = "/jenkins-4.0.41.jar";
 
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         context = JKubeEnricherContext.builder()
           .project(JavaProject.builder()
             .name("the-project")
@@ -60,8 +60,9 @@ public class DependencyEnricherTest {
           .log(new KitLogger.SilentLogger())
           .build();
     }
+
     @Test
-    public void checkDuplicatesInResource() throws Exception {
+    void checkDuplicatesInResource() throws Exception {
         // Generate given Resources
         KubernetesListBuilder aBuilder = createResourcesForTest();
         // Enrich

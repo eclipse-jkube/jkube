@@ -33,8 +33,8 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,22 +46,22 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class IngressEnricherTest {
+class IngressEnricherTest {
     private JKubeEnricherContext context;
 
     ImageConfiguration imageConfiguration;
 
     private IngressEnricher ingressEnricher;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
         imageConfiguration = mock(ImageConfiguration.class);
         ingressEnricher = new IngressEnricher(context);
     }
 
     @Test
-    public void testCreateIngressFromXMLConfigWithConfiguredServiceName() {
+    void createIngressFromXMLConfigWithConfiguredServiceName() {
         // Given
         ResourceConfig resourceConfig = ResourceConfig.builder()
             .ingress(IngressConfig.builder()
@@ -133,12 +133,12 @@ public class IngressEnricherTest {
     }
 
     @Test
-    public void testGetRouteDomainNoConfig() {
+    void getRouteDomain_withNoConfig() {
         assertThat(ingressEnricher.getRouteDomain()).isNull();
     }
 
     @Test
-    public void testGetRouteDomainFromResourceConfig() {
+    void getRouteDomain_fromResourceConfig() {
         // Given
         when(context.getConfiguration().getResource()).thenReturn(ResourceConfig.builder()
                 .routeDomain("org.eclipse.jkube")
@@ -151,7 +151,7 @@ public class IngressEnricherTest {
     }
 
     @Test
-    public void testGetRouteDomainFromProperty() {
+    void getRouteDomain_fromProperty() {
         // Given
         when(context.getProperty("jkube.domain")).thenReturn("org.eclipse.jkube.property");
         // When
@@ -162,7 +162,7 @@ public class IngressEnricherTest {
     }
 
     @Test
-    public void testGetIngressRuleXMLConfigWithNonNullResourceConfig() {
+    void getIngressRuleXMLConfig_withNonNullResourceConfig() {
         // Given
         ResourceConfig resourceConfig = ResourceConfig.builder()
             .ingress(IngressConfig.builder()
@@ -180,7 +180,7 @@ public class IngressEnricherTest {
     }
 
     @Test
-    public void testGetIngressRuleXMLConfigWithNullResourceConfig() {
+    void getIngressRuleXMLConfig_withNullResourceConfig() {
         // Given + When
         List<IngressRuleConfig> ingressRuleConfigs = IngressEnricher.getIngressRuleXMLConfig(null);
 
@@ -189,7 +189,7 @@ public class IngressEnricherTest {
     }
 
     @Test
-    public void testGetIngressTlsXMLConfigWithNonNullResourceConfig() {
+    void getIngressTlsXMLConfig_withNonNullResourceConfig() {
         // Given
         ResourceConfig resourceConfig = ResourceConfig.builder()
             .ingress(IngressConfig.builder()
@@ -207,7 +207,7 @@ public class IngressEnricherTest {
     }
 
     @Test
-    public void testGetIngressTlsXMLConfigWithNullResourceConfig() {
+    void getIngressTlsXMLConfig_withNullResourceConfig() {
         // Given + When
         List<IngressTlsConfig> ingressTlsConfigs = IngressEnricher.getIngressTlsXMLConfig(null);
 
@@ -216,7 +216,7 @@ public class IngressEnricherTest {
     }
 
     @Test
-    public void testNetworkingV1IngressIsGenerated() {
+    void networkingV1IngressIsGenerated() {
         // Given
         final TreeMap<String, Object> config = new TreeMap<>();
         config.put("host", "test.192.168.39.25.nip.io");

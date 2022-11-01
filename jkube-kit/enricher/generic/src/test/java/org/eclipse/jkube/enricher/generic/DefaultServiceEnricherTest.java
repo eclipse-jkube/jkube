@@ -29,8 +29,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
@@ -41,21 +41,23 @@ import static org.mockito.Mockito.when;
 /**
  * @author roland
  */
-public class DefaultServiceEnricherTest {
+class DefaultServiceEnricherTest {
 
     private JKubeEnricherContext context;
 
     ImageConfiguration imageConfiguration;
 
     GroupArtifactVersion groupArtifactVersion;
-    @Before
-    public void setUp() {
+
+    @BeforeEach
+    void setUp() {
         context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
         imageConfiguration = mock(ImageConfiguration.class);
         groupArtifactVersion = mock(GroupArtifactVersion.class);
     }
+
     @Test
-    public void checkDefaultConfiguration() {
+    void checkDefaultConfiguration() {
         setupExpectations("type", "LoadBalancer");
 
         HasMetadata object = enrich();
@@ -71,7 +73,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void portOverride() {
+    void portOverride() {
         setupExpectations("port", "8080", "multiPort", "true");
 
         HasMetadata object = enrich();
@@ -85,7 +87,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void portOverrideWithMapping() {
+    void portOverrideWithMapping() {
         setupExpectations("port", "443:8181/udp", "multiPort", "true", "normalizePort", "true");
 
         HasMetadata object = enrich();
@@ -99,7 +101,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void portConfigWithMultipleMappings() {
+    void portConfigWithMultipleMappings() {
         setupExpectations("port", "443:81,853:53", "multiPort", "true");
 
         HasMetadata object = enrich();
@@ -113,7 +115,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void portConfigWithMultipleMapping1() {
+    void portConfigWithMultipleMapping1() {
         setupExpectations("port", "8080:8081,8443:8443", "multiPort", "true", "normalizePort", "true");
 
         HasMetadata object = enrich();
@@ -128,7 +130,7 @@ public class DefaultServiceEnricherTest {
 
 
     @Test
-    public void portConfigWithMultipleMappingsNoMultiPort() {
+    void portConfigWithMultipleMappingsNoMultiPort() {
         setupExpectations("port", "443:81,853:53", "multiPort", "false");
 
         HasMetadata object = enrich();
@@ -141,7 +143,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void portConfigWithMultipleMappingsNoMultiPortNoImagePort() {
+    void portConfigWithMultipleMappingsNoMultiPortNoImagePort() {
         setupExpectations(false, "port", "443:81,853:53", "multiPort", "false");
 
         HasMetadata object = enrich();
@@ -154,7 +156,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void portConfigWithMortPortsThanImagePorts() {
+    void portConfigWithMortPortsThanImagePorts() {
         setupExpectations("port", "443:81,853:53,22/udp", "multiPort", "true");
 
         HasMetadata object = enrich();
@@ -169,7 +171,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void portConfigWithMortPortsThanImagePortsAndNoMultiPort() {
+    void portConfigWithMortPortsThanImagePortsAndNoMultiPort() {
         setupExpectations("port", "443:81,853:53,22");
 
         HasMetadata object = enrich();
@@ -182,7 +184,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void portConfigWithoutPortsFromImageConfig() {
+    void portConfigWithoutPortsFromImageConfig() {
         setupExpectations(false, "port", "443:81,853:53/UdP,22/TCP", "multiPort", "true");
 
         HasMetadata object = enrich();
@@ -197,7 +199,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void headlessServicePositive() {
+    void headlessServicePositive() {
         setupExpectations(false, "headless", "true");
         HasMetadata object = enrich();
 
@@ -211,7 +213,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void headlessServiceNegative() {
+    void headlessServiceNegative() {
         setupExpectations(false, "headless", "false");
         DefaultServiceEnricher serviceEnricher = new DefaultServiceEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -223,7 +225,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void miscConfiguration() {
+    void miscConfiguration() {
         setupExpectations("headless", "true", "type", "NodePort", "expose", "true");
         HasMetadata object = enrich();
 
@@ -234,7 +236,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void serviceImageLabelEnrichment() {
+    void serviceImageLabelEnrichment() {
         ImageConfiguration imageConfigurationWithLabels = ImageConfiguration.builder()
                 .name("test-label")
                 .alias("test")
@@ -256,7 +258,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void getPortToExpose_withHttpPort() {
+    void getPortToExpose_withHttpPort() {
         // Given
         final ServiceBuilder serviceBuilder = new ServiceBuilder()
             .withNewSpec()
@@ -271,7 +273,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void getPortToExpose_withNoHttpPort() {
+    void getPortToExpose_withNoHttpPort() {
         // Given
         final ServiceBuilder serviceBuilder = new ServiceBuilder()
             .withNewSpec()
@@ -286,7 +288,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void getPortToExpose_withNoPort() {
+    void getPortToExpose_withNoPort() {
         // Given
         final ServiceBuilder serviceBuilder = new ServiceBuilder().withNewSpec().endSpec();
         // When

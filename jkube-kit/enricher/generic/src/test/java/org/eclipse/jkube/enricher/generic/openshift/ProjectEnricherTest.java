@@ -22,22 +22,23 @@ import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.openshift.api.model.Project;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-public class ProjectEnricherTest {
+class ProjectEnricherTest {
 
     private JKubeEnricherContext context;
 
-    @Before
-    public void setExpectations() {
-        context = mock(JKubeEnricherContext.class);
+    @BeforeEach
+    void setExpectations() {
+      context = mock(JKubeEnricherContext.class);
     }
+
     @Test
-    public void create_whenKubernetesListHasNamespace_thenNamespaceConvertedToProject() {
+    void create_whenKubernetesListHasNamespace_thenNamespaceConvertedToProject() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder()
             .addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata());
@@ -53,7 +54,7 @@ public class ProjectEnricherTest {
     }
 
     @Test
-    public void create_whenKubernetesListHasNamespaceWithSpec_thenNamespaceConvertedToProject() {
+    void create_whenKubernetesListHasNamespaceWithSpec_thenNamespaceConvertedToProject() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder()
             .addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata()
@@ -71,7 +72,7 @@ public class ProjectEnricherTest {
     }
 
     @Test
-    public void create_whenKubernetesListHasNamespaceWithStatus_thenNamespaceConvertedToProject() {
+    void create_whenKubernetesListHasNamespaceWithStatus_thenNamespaceConvertedToProject() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder()
             .addToItems(new NamespaceBuilder().withNewMetadata().withName("foo").endMetadata()
@@ -88,7 +89,7 @@ public class ProjectEnricherTest {
     }
 
     @Test
-    public void create_whenKubernetesListDoesNotHasNamespace_thenDoesNotNamespaceConvertedToProject() {
+    void create_whenKubernetesListDoesNotHasNamespace_thenDoesNotNamespaceConvertedToProject() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder()
             .addToItems(new ServiceBuilder().withNewMetadata().endMetadata());

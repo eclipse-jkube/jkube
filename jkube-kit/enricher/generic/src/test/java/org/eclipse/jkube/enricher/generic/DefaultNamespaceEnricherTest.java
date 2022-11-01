@@ -14,7 +14,9 @@
 package org.eclipse.jkube.enricher.generic;
 
 import java.util.Properties;
+import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -31,16 +33,20 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-public class DefaultNamespaceEnricherTest {
+class DefaultNamespaceEnricherTest {
 
   private EnricherContext context;
 
-  public void setExpectations(Properties properties, ResourceConfig resourceConfig) {
+  private void setExpectations(Properties properties, ResourceConfig resourceConfig) {
     context = JKubeEnricherContext.builder()
         .log(new KitLogger.SilentLogger())
         .resources(resourceConfig)
@@ -53,7 +59,7 @@ public class DefaultNamespaceEnricherTest {
   }
 
   @Test
-  public void noNameShouldReturnEmpty() {
+  void noNameShouldReturnEmpty() {
     // Given
     setExpectations(new Properties(), new ResourceConfig());
     final KubernetesListBuilder klb = new KubernetesListBuilder();
@@ -64,7 +70,7 @@ public class DefaultNamespaceEnricherTest {
   }
 
   @Test
-  public void createWithPropertiesAndUnknownTypeInKubernetesShouldAddNothing() {
+  void createWithPropertiesAndUnknownTypeInKubernetesShouldAddNothing() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.enricher.jkube-namespace.type", "unknown");
@@ -77,59 +83,36 @@ public class DefaultNamespaceEnricherTest {
     assertThat(klb.build().getItems()).isEmpty();
   }
 
-  @Test
-  public void createWithPropertiesInKubernetesShouldAddNamespace() {
+  @DisplayName("create namespace")
+  @ParameterizedTest(name = "with properties {0}")
+  @MethodSource("create_namespaceTestData")
+  void create_namespace(String description, String namespace, PlatformMode platformMode, Class<? extends HasMetadata> clazz,
+      String expectedName) {
     // Given
     Properties properties = new Properties();
-    properties.put("jkube.enricher.jkube-namespace.namespace", "example");
+    properties.put("jkube.enricher.jkube-namespace.namespace", namespace);
     setExpectations(properties, new ResourceConfig());
     final KubernetesListBuilder klb = new KubernetesListBuilder();
     // When
-    new DefaultNamespaceEnricher(context).create(PlatformMode.kubernetes, klb);
+    new DefaultNamespaceEnricher(context).create(platformMode, klb);
     // Then
-    assertThat(klb.build().getItems()).hasSize(1);
-    assertThat(klb.build().getItems().iterator().next())
-        .isInstanceOf(Namespace.class)
-        .hasFieldOrPropertyWithValue("metadata.name", "example")
+    assertThat(klb.build().getItems())
+        .singleElement()
+        .isInstanceOf(clazz)
+        .hasFieldOrPropertyWithValue("metadata.name", expectedName)
         .hasFieldOrPropertyWithValue("status.phase", "Active");
   }
 
-  @Test
-  public void createWithPropertiesInOpenShiftShouldAddProject() {
-    // Given
-    Properties properties = new Properties();
-    properties.put("jkube.enricher.jkube-namespace.namespace", "example");
-    setExpectations(properties, new ResourceConfig());
-    final KubernetesListBuilder klb = new KubernetesListBuilder();
-    // When
-    new DefaultNamespaceEnricher(context).create(PlatformMode.openshift, klb);
-    // Then
-    assertThat(klb.build().getItems()).hasSize(1);
-    assertThat(klb.build().getItems().iterator().next())
-        .isInstanceOf(Project.class)
-        .hasFieldOrPropertyWithValue("metadata.name", "example")
-        .hasFieldOrPropertyWithValue("status.phase", "Active");
+  static Stream<Arguments> create_namespaceTestData() {
+    return Stream.of(
+        arguments("in kubernetes should add namespace", "example", PlatformMode.kubernetes, Namespace.class, "example"),
+        arguments("in openshift should add project", "example", PlatformMode.openshift, Project.class, "example"),
+        arguments("and config in kubernetes should add config namespace", "config-example", PlatformMode.kubernetes, Namespace.class, "config-example")
+    );
   }
 
   @Test
-  public void createWithPropertiesAndConfigInKubernetesShouldAddConfigNamespace() {
-    // Given
-    Properties properties = new Properties();
-    properties.put("jkube.enricher.jkube-namespace.namespace", "config-example");
-    setExpectations(properties, new ResourceConfig());
-    final KubernetesListBuilder klb = new KubernetesListBuilder();
-    // When
-    new DefaultNamespaceEnricher(context).create(PlatformMode.kubernetes, klb);
-    // Then
-    assertThat(klb.build().getItems()).hasSize(1);
-    assertThat(klb.build().getItems().iterator().next())
-        .isInstanceOf(Namespace.class)
-        .hasFieldOrPropertyWithValue("metadata.name", "config-example")
-        .hasFieldOrPropertyWithValue("status.phase", "Active");
-  }
-
-  @Test
-  public void enrichWithPropertiesInKubernetesShouldAddNamespaceWithStatus() {
+  void enrichWithPropertiesInKubernetesShouldAddNamespaceWithStatus() {
     // Given
     setNamespaceInResourceConfig("example");
     final KubernetesListBuilder klb = new KubernetesListBuilder();
@@ -146,62 +129,38 @@ public class DefaultNamespaceEnricherTest {
         .hasFieldOrPropertyWithValue("metadata.namespace", "example");
   }
 
-  @Test
-  public void enrichWithPropertiesInKubernetesShouldAddProjectWithStatus() {
+  @DisplayName("enrich with")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("enrichWithTestData")
+  void enrich(String description, HasMetadata item, PlatformMode platformMode, String expectedNamespace, String expectedName) {
     // Given
     setExpectations(new Properties(), new ResourceConfig());
     final KubernetesListBuilder klb = new KubernetesListBuilder();
-    klb.addToItems(new ProjectBuilder()
-            .withNewMetadata().withName("name").endMetadata()
-            .withNewStatus().withPhase("active").endStatus().build());
+    klb.addToItems(item);
     // When
-    new DefaultNamespaceEnricher(context).enrich(PlatformMode.openshift, klb);
+    new DefaultNamespaceEnricher(context).enrich(platformMode, klb);
     // Then
-    assertThat(klb.build().getItems()).hasSize(1);
-    assertThat(klb.build().getItems().iterator().next())
-            .hasFieldOrPropertyWithValue("metadata.namespace", null);
+    assertThat(klb.build().getItems()).singleElement()
+        .hasFieldOrPropertyWithValue("metadata.namespace", expectedNamespace)
+        .hasFieldOrPropertyWithValue("metadata.name", expectedName);
   }
 
-  @Test
-  public void enrichWithNamespaceFragmentWithNoStatus() {
-    // Given
-    setExpectations(new Properties(), new ResourceConfig());
-    final KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
-    kubernetesListBuilder.addToItems(new NamespaceBuilder()
+  static Stream<Arguments> enrichWithTestData() {
+    return Stream.of(
+        arguments("properties in kubernetes should add project with status", new ProjectBuilder()
+            .withNewMetadata().withName("name").endMetadata().withNewStatus().withPhase("active").endStatus()
+            .build(), PlatformMode.openshift, null, "name"),
+        arguments("namespace fragment with no status", new NamespaceBuilder()
             .withNewMetadata().withName("test-jkube").endMetadata()
-            .build());
-
-    // When
-    new DefaultNamespaceEnricher(context).enrich(PlatformMode.kubernetes, kubernetesListBuilder);
-
-    // Then
-    assertThat(kubernetesListBuilder.build().getItems()).hasSize(1);
-    assertThat(kubernetesListBuilder.build().getItems().iterator().next())
-            .hasFieldOrPropertyWithValue("metadata.name", "test-jkube");
-    assertNull(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace());
-  }
-
-  @Test
-  public void enrichWithOpenShiftProjectFragmentWithNoStatus() {
-    // Given
-    setExpectations(new Properties(), new ResourceConfig());
-    final KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
-    kubernetesListBuilder.addToItems(new ProjectBuilder()
+            .build(), PlatformMode.kubernetes, null, "test-jkube"),
+        arguments("openshift project fragment with no status", new ProjectBuilder()
             .withNewMetadata().withName("test-jkube").endMetadata()
-            .build());
-
-    // When
-    new DefaultNamespaceEnricher(context).enrich(PlatformMode.openshift, kubernetesListBuilder);
-
-    // Then
-    assertThat(kubernetesListBuilder.build().getItems()).hasSize(1);
-    assertThat(kubernetesListBuilder.build().getItems().iterator().next())
-            .hasFieldOrPropertyWithValue("metadata.name", "test-jkube");
-    assertNull(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace());
+            .build(), PlatformMode.openshift, null, "test-jkube")
+    );
   }
 
   @Test
-  public void testNoNamespaceConfiguredInMetadataIfNoPropertyProvided() {
+  void noNamespaceConfiguredInMetadataIfNoPropertyProvided() {
     // Given
     setExpectations(new Properties(), new ResourceConfig());
     final KubernetesListBuilder kubernetesListBuilder = getKubernetesListBuilder();
@@ -210,13 +169,13 @@ public class DefaultNamespaceEnricherTest {
     new DefaultNamespaceEnricher(context).enrich(PlatformMode.kubernetes, kubernetesListBuilder);
 
     // Then
-    assertThat(kubernetesListBuilder.build().getItems()).hasSize(2);
-    assertThat(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace()).isNull();
-    assertThat(kubernetesListBuilder.build().getItems().get(1).getMetadata().getNamespace()).isNull();
+    assertThat(kubernetesListBuilder.build().getItems()).hasSize(2)
+        .extracting("metadata.namespace")
+        .containsExactly(null, null);
   }
 
   @Test
-  public void testNamespaceSetInResourceConfigShouldConfigureNamespaceInMetadataOnPlatformKubernetes() {
+  void namespaceSetInResourceConfig_shouldConfigureNamespaceInMetadataOnPlatformKubernetes() {
     // Given
     setNamespaceInResourceConfig("mynamespace-configured");
     final KubernetesListBuilder kubernetesListBuilder = getKubernetesListBuilder();
@@ -225,13 +184,14 @@ public class DefaultNamespaceEnricherTest {
     new DefaultNamespaceEnricher(context).enrich(PlatformMode.kubernetes, kubernetesListBuilder);
 
     // Then
-    assertThat(kubernetesListBuilder.build().getItems()).hasSize(2);
-    assertThat(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace()).isEqualTo("mynamespace-configured");
-    assertThat(kubernetesListBuilder.build().getItems().get(1).getMetadata().getNamespace()).isEqualTo("mynamespace-configured");
+    assertThat(kubernetesListBuilder.build().getItems())
+        .hasSize(2)
+        .extracting("metadata.namespace")
+        .containsExactly("mynamespace-configured", "mynamespace-configured");
   }
 
   @Test
-  public void testNamespaceSetInResourceConfigShouldConfigureNamespaceInMetadataOnPlatformOpenShift() {
+  void namespaceSetInResourceConfig_shouldConfigureNamespaceInMetadataOnPlatformOpenShift() {
     // Given
     setNamespaceInResourceConfig("mynamespace-configured");
     final KubernetesListBuilder kubernetesListBuilder = getKubernetesListBuilder();
@@ -240,13 +200,14 @@ public class DefaultNamespaceEnricherTest {
     new DefaultNamespaceEnricher(context).enrich(PlatformMode.openshift, kubernetesListBuilder);
 
     // Then
-    assertThat(kubernetesListBuilder.build().getItems()).hasSize(2);
-    assertThat(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace()).isEqualTo("mynamespace-configured");
-    assertThat(kubernetesListBuilder.build().getItems().get(1).getMetadata().getNamespace()).isEqualTo("mynamespace-configured");
+    assertThat(kubernetesListBuilder.build().getItems())
+        .hasSize(2)
+        .extracting("metadata.namespace")
+        .containsExactly("mynamespace-configured", "mynamespace-configured");
   }
 
   @Test
-  public void namespaceSetInResourceShouldNotBeOverwritten() {
+  void namespaceSetInResourceShouldNotBeOverwritten() {
     // Given
     setNamespaceInResourceConfig("mynamespace-configured");
     final KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
@@ -258,12 +219,12 @@ public class DefaultNamespaceEnricherTest {
     new DefaultNamespaceEnricher(context).enrich(PlatformMode.kubernetes, kubernetesListBuilder);
 
     // Then
-    assertThat(kubernetesListBuilder.build().getItems()).hasSize(1);
-    assertThat(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace()).isEqualTo("ns1");
+    assertThat(kubernetesListBuilder.build().getItems()).singleElement()
+        .hasFieldOrPropertyWithValue("metadata.namespace", "ns1");
   }
 
   @Test
-  public void namespaceSetInResourceGetsOverwrittenWhenForceEnabled() {
+  void namespaceSetInResourceGetsOverwrittenWhenForceEnabled() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.enricher.jkube-namespace.force", "true");
@@ -277,8 +238,8 @@ public class DefaultNamespaceEnricherTest {
     new DefaultNamespaceEnricher(context).enrich(PlatformMode.kubernetes, kubernetesListBuilder);
 
     // Then
-    assertThat(kubernetesListBuilder.build().getItems()).hasSize(1);
-    assertThat(kubernetesListBuilder.build().getItems().get(0).getMetadata().getNamespace()).isEqualTo("mynamespace-configured");
+    assertThat(kubernetesListBuilder.build().getItems()).singleElement()
+        .hasFieldOrPropertyWithValue("metadata.namespace", "mynamespace-configured");
   }
 
   private void setNamespaceInResourceConfig(String namespace) {

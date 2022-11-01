@@ -28,27 +28,33 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * @author kamesh
  */
-public class DefaultControllerEnricherTest {
+class DefaultControllerEnricherTest {
 
     private Map<String, Map<String, Object>> config;
     private EnricherContext context;
     private Properties properties;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         config = new HashMap<>();
         properties = new Properties();
         context = JKubeEnricherContext.builder()
@@ -68,7 +74,7 @@ public class DefaultControllerEnricherTest {
     }
 
     @Test
-    public void checkReplicaCount() {
+    void checkReplicaCount() {
         givenReplicaCountInEnricherConfig(String.valueOf(3));
 
         // When
@@ -80,7 +86,7 @@ public class DefaultControllerEnricherTest {
     }
 
     @Test
-    public void checkDefaultReplicaCount() {
+    void checkDefaultReplicaCount() {
         givenReplicaCountInEnricherConfig(String.valueOf(1));
 
         // When
@@ -91,43 +97,24 @@ public class DefaultControllerEnricherTest {
         assertImagePullPolicy(builder, "IfNotPresent");
     }
 
-    @Test
-    public void create_withImagePullPolicyConfigured_shouldUseConfiguredImagePullPolicy() {
+    @DisplayName("create with")
+    @ParameterizedTest(name = "configured {0}, should use configured {0} ({2})")
+    @MethodSource("data")
+    void create_with(String description, String property, String propertyValue, int expectedReplicas, String expectedImagePullPolicy) {
         // Given
-        properties.put("jkube.enricher.jkube-controller.pullPolicy", "Never");
-
+        properties.put(property, propertyValue);
         // When
         KubernetesListBuilder builder = enrich();
-
         // Then
-        assertReplicas(builder, 1);
-        assertImagePullPolicy(builder, "Never");
+        assertReplicas(builder, expectedReplicas);
+        assertImagePullPolicy(builder, expectedImagePullPolicy);
     }
 
-    @Test
-    public void create_withImagePullPolicyProperty_shouldUseConfiguredImagePullPolicy() {
-        // Given
-        properties.put("jkube.imagePullPolicy", "Never");
-
-        // When
-        KubernetesListBuilder builder = enrich();
-
-        // Then
-        assertReplicas(builder, 1);
-        assertImagePullPolicy(builder, "Never");
-    }
-
-    @Test
-    public void create_withReplicasConfigured_shouldUseConfiguredReplicas() {
-        // Given
-        properties.put("jkube.enricher.jkube-controller.replicaCount", "5");
-
-        // When
-        KubernetesListBuilder builder = enrich();
-
-        // Then
-        assertReplicas(builder, 5);
-        assertImagePullPolicy(builder, "IfNotPresent");
+    static Stream<Arguments> data() {
+      return Stream.of(
+          arguments("image pull policy", "jkube.enricher.jkube-controller.pullPolicy", "Never", 1, "Never"),
+          arguments("image pull policy property", "jkube.imagePullPolicy", "Never", 1, "Never"),
+          arguments("replicas", "jkube.enricher.jkube-controller.replicaCount", "5", 5, "IfNotPresent"));
     }
 
     private KubernetesListBuilder enrich() {

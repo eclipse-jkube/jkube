@@ -44,17 +44,17 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ImagePullPolicyEnricherTest {
+class ImagePullPolicyEnricherTest {
 
   @Test
-  public void enrich_withJkubeImagePullPolicyProperty_shouldOverrideImagePullPolicy() {
+  void enrich_withJkubeImagePullPolicyProperty_shouldOverrideImagePullPolicy() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.imagePullPolicy", "Never");
@@ -88,7 +88,7 @@ public class ImagePullPolicyEnricherTest {
   }
 
   @Test
-  public void enrich_withDefaults_shouldNotOverrideImagePullPolicy() {
+  void enrich_withDefaults_shouldNotOverrideImagePullPolicy() {
     // Given
     Properties properties = new Properties();
     ImagePullPolicyEnricher imagePullPolicyEnricher = new ImagePullPolicyEnricher(createNewJKubeEnricherContextWithProperties(properties));

@@ -16,21 +16,20 @@ package org.eclipse.jkube.enricher.generic;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.OpenShiftAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
-public class GitEnricherTest {
+class GitEnricherTest {
 
     private static final String GIT_REMOTE_URL = "https://github.com:jkubeio/eclipse-jkube-demo-project.git";
     private static final String GIT_BRANCH = "master";
     private static final String GIT_COMMIT_ID = "058bed285de43aac80b5bf9433b9a3a9c3915e19";
 
     @Test
-    public void testAnnotationsAddedInKubernetesPlatformMode() {
+    void getAnnotations_addedInKubernetesPlatformMode() {
         // Given
         Map<String, String> annotations;
 
@@ -42,7 +41,7 @@ public class GitEnricherTest {
     }
 
     @Test
-    public void testAnnotationsAddedInOpenShiftPlatformMode() {
+    void getAnnotations_addedInOpenShiftPlatformMode() {
         // Given
         Map<String, String> annotations;
 
@@ -57,7 +56,7 @@ public class GitEnricherTest {
     }
 
     @Test
-    public void testAnnotationsAddedWithAllNullValues() {
+    void getAnnotations_addedWithAllNullValues() {
         // Given
         Map<String, String> annotations;
 
@@ -69,7 +68,7 @@ public class GitEnricherTest {
     }
 
     @Test
-    public void testAnnotationsAddedWithNullCommitValues() {
+    void getAnnotations_addedWithNullCommitValues() {
         // Given
         Map<String, String> annotations;
 
@@ -86,7 +85,8 @@ public class GitEnricherTest {
     }
 
     private void assertJkubeAnnotationsRemoteUrlAndBranch(Map<String, String> annotations) {
-        assertThat(annotations).containsEntry("jkube.io/git-url",GIT_REMOTE_URL);
-        assertThat(annotations).containsEntry("jkube.io/git-branch",GIT_BRANCH);
+      assertThat(annotations)
+          .containsEntry("jkube.io/git-url", GIT_REMOTE_URL)
+          .containsEntry("jkube.io/git-branch", GIT_BRANCH);
     }
 }

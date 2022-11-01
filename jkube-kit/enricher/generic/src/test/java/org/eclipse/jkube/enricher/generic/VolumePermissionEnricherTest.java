@@ -31,8 +31,8 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,16 +47,17 @@ import static org.mockito.Mockito.when;
 
 import java.util.Map;
 
-public class VolumePermissionEnricherTest {
+class VolumePermissionEnricherTest {
     private JKubeEnricherContext context;
 
     // *******************************
     // Tests
     // *******************************
-    @Before
-    public void setUp() {
+    @BeforeEach
+    void setUp() {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     }
+
     private static final class TestConfig {
         private final String permission;
         private final String initContainerName;
@@ -72,7 +73,7 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void alreadyExistingInitContainer() {
+    void alreadyExistingInitContainer() {
         final ProcessorConfig config = mock(ProcessorConfig.class);
         when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
         PodTemplateBuilder ptb = createEmptyPodTemplate();
@@ -107,7 +108,7 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void testAdapt() {
+    void adapt() {
         final TestConfig[] data = new TestConfig[]{
             new TestConfig("busybox",null, null),
             new TestConfig("busybox1",null, null),
@@ -160,7 +161,7 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void enrich_withPersistentVolumeClaim_shouldAddStorageClassToSpec() {
+    void enrich_withPersistentVolumeClaim_shouldAddStorageClassToSpec() {
         // Given
         Properties properties = new Properties();
         properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
@@ -183,7 +184,7 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void enrich_withPersistentVolumeClaimAndUseAnnotationEnabled_shouldAddStorageClassAnnotation() {
+    void enrich_withPersistentVolumeClaimAndUseAnnotationEnabled_shouldAddStorageClassAnnotation() {
         // Given
         Properties properties = new Properties();
         properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
@@ -205,7 +206,7 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void enrich_withResourcesEnabledInConfiguration_shouldAddRequestsLimitsToVolumeInitContainer() {
+    void enrich_withResourcesEnabledInConfiguration_shouldAddRequestsLimitsToVolumeInitContainer() {
         // Given
         Properties properties = new Properties();
         Map<String, Quantity> limitMap = new HashMap<>();

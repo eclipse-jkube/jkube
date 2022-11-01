@@ -28,18 +28,17 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.assertj.core.groups.Tuple;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultServiceEnricherAddMissingPartsTest {
-
+class DefaultServiceEnricherAddMissingPartsTest {
   private Properties properties;
   private DefaultServiceEnricher enricher;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     properties = new Properties();
     final JKubeEnricherContext context = JKubeEnricherContext.builder()
       .image(ImageConfiguration.builder()
@@ -57,7 +56,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
   }
 
   @Test
-  public void defaultValuesAndEmptyOriginal() {
+  void defaultValuesAndEmptyOriginal() {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
@@ -76,7 +75,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
   }
 
   @Test
-  public void defaultValuesAndOriginalWithPorts() {
+  void defaultValuesAndOriginalWithPorts() {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
@@ -95,7 +94,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
   }
 
   @Test
-  public void configuredTypeAndOriginalWithNoType() {
+  void configuredTypeAndOriginalWithNoType() {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
@@ -111,7 +110,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
   }
 
   @Test
-  public void configuredTypeAndOriginalWithType() {
+  void configuredTypeAndOriginalWithType() {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
@@ -126,7 +125,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
   }
 
   @Test
-  public void configuredHeadlessAndOriginalWithNoClusterIP() {
+  void configuredHeadlessAndOriginalWithNoClusterIP() {
     // Given
     properties.put("jkube.enricher.jkube-service.headless", "true");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
@@ -140,7 +139,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
   }
 
   @Test
-  public void configuredHeadlessAndOriginalWithClusterIP() {
+  void configuredHeadlessAndOriginalWithClusterIP() {
     // Given
     properties.put("jkube.enricher.jkube-service.headless", "true");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
