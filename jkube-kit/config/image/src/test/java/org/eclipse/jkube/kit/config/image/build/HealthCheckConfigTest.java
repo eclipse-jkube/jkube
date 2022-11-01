@@ -71,8 +71,8 @@ class HealthCheckConfigTest {
                 .mode(HealthCheckMode.none)
                 .interval("2s")
                 .build();
-        assertThatThrownBy(healthCheckConfiguration::validate).
-                isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(healthCheckConfiguration::validate)
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -81,8 +81,8 @@ class HealthCheckConfigTest {
                 .mode(HealthCheckMode.none)
                 .retries(1)
                 .build();
-        assertThatThrownBy(healthCheckConfiguration::validate).
-                isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(healthCheckConfiguration::validate)
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -103,8 +103,8 @@ class HealthCheckConfigTest {
                 .startPeriod("30s")
                 .cmd(Arguments.builder().shell("echo a").build())
                 .build();
-        assertThatThrownBy(healthCheckConfiguration::validate).
-                isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(healthCheckConfiguration::validate)
+                .isInstanceOf(IllegalArgumentException.class);
     }
     
     @DisplayName("Bad Health Check Tests")
@@ -146,8 +146,8 @@ class HealthCheckConfigTest {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.cmd)
                 .build();
-        assertThatThrownBy(healthCheckConfiguration::validate).
-                isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(healthCheckConfiguration::validate)
+                .isInstanceOf(IllegalArgumentException.class);
 
     }
 
