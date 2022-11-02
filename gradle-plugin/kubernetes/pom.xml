@@ -136,6 +136,10 @@
             <artifactId>jkube-kit-watcher-standard</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-remote-dev</artifactId>
+        </dependency>
 
         <!-- provided -->
         <dependency>

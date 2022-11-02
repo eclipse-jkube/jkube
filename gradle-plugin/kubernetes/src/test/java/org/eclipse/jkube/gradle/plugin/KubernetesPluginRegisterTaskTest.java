@@ -23,6 +23,8 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmPushTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesPushTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesUndeployTask;
 
@@ -54,6 +56,7 @@ class KubernetesPluginRegisterTaskTest {
         arguments("k8sUndeploy", KubernetesUndeployTask.class),
         arguments("k8sHelm", KubernetesHelmTask.class),
         arguments("k8sHelmPush", KubernetesHelmPushTask.class),
+        arguments("k8sRemoteDev", KubernetesRemoteDevTask.class),
         arguments("k8sWatch", KubernetesWatchTask.class)
     );
   }

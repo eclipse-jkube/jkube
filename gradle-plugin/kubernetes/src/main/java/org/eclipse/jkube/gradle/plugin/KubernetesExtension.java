@@ -44,6 +44,7 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import groovy.lang.Closure;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.jkube.kit.remotedev.RemoteDevelopmentConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
@@ -286,6 +287,8 @@ public abstract class KubernetesExtension {
 
   public HelmConfig helm;
 
+  public RemoteDevelopmentConfig remoteDevelopment;
+
   public RuntimeMode getRuntimeMode() {
     return RuntimeMode.KUBERNETES;
   }
@@ -434,6 +437,10 @@ public abstract class KubernetesExtension {
 
   public void helm(Closure<?> closure) {
     helm = closureTo(closure, HelmConfig.class);
+  }
+
+  public void remoteDevelopment(Closure<?> closure) {
+    remoteDevelopment = closureTo(closure, RemoteDevelopmentConfig.class);
   }
 
   public JKubeBuildStrategy getBuildStrategyOrDefault() {
