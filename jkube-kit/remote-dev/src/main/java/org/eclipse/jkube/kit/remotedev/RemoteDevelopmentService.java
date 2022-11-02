@@ -23,7 +23,6 @@ import static org.eclipse.jkube.kit.common.util.AsyncUtil.async;
 
 public class RemoteDevelopmentService {
 
-  static final int CONTAINER_SSH_PORT = 2222;
   static final String REMOTE_DEVELOPMENT_APP = "jkube-remote-dev";
   static final String REMOTE_DEVELOPMENT_GROUP = "jkube-kit";
   private final RemoteDevelopmentContext context;

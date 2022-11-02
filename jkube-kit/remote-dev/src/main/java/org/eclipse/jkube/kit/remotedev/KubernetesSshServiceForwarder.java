@@ -30,7 +30,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.eclipse.jkube.kit.common.util.AsyncUtil.await;
-import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.CONTAINER_SSH_PORT;
 import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_APP;
 import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_GROUP;
 
@@ -66,7 +65,7 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
       logger.info("Opening remote development connection to Kubernetes: %s:%s%n",
         sshService.getMetadata().getName(), context.getSshPort());
       try (LocalPortForward localPortForward = kubernetesClient.pods().resource(sshService)
-        .portForward(CONTAINER_SSH_PORT, allInterfaces, context.getSshPort())) {
+        .portForward(context.getRemoteDevPodPort(), allInterfaces, context.getSshPort())) {
         while (!shouldRestart(sshService, localPortForward)) {
           TimeUnit.SECONDS.sleep(1);
           if (stop.get()) {
@@ -98,8 +97,8 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
       .addNewContainer()
       .withName(REMOTE_DEVELOPMENT_APP)
       .addToEnv(new EnvVarBuilder().withName("PUBLIC_KEY").withValue(context.getSshRsaPublicKey()).build())
-      .withImage("marcnuri/openssh-server:latest")
-      .addNewPort().withContainerPort(CONTAINER_SSH_PORT).withProtocol("TCP").endPort()
+      .withImage(context.getRemoteDevPodImage())
+      .addNewPort().withContainerPort(context.getRemoteDevPodPort()).withProtocol("TCP").endPort()
       .endContainer()
       .endSpec();
     // This is just informational, maybe it's not worth adding them

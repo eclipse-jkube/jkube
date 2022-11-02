@@ -21,15 +21,19 @@ import org.eclipse.jkube.kit.common.util.IoUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class RemoteDevelopmentContext {
+
+  private static final String REMOTE_DEV_PROPERTIES_FILE = "/META-INF/jkube/remote-dev.properties";
 
   @Getter
   private final KitLogger logger;
@@ -41,6 +45,7 @@ public class RemoteDevelopmentContext {
   private final KeyPair clientKeys;
   @Getter
   private final String sshRsaPublicKey;
+  private final Properties properties;
 
   public RemoteDevelopmentContext(
     KitLogger kitLogger, KubernetesClient kubernetesClient, RemoteDevelopmentConfig remoteDevelopmentConfig) {
@@ -52,6 +57,12 @@ public class RemoteDevelopmentContext {
     user = new AtomicReference<>();
     clientKeys = initClientKeys();
     sshRsaPublicKey = initSShRsaPublicKey(clientKeys);
+    properties = new Properties();
+    try {
+      properties.load(RemoteDevelopmentContext.class.getResourceAsStream(REMOTE_DEV_PROPERTIES_FILE));
+    } catch(IOException ex) {
+      throw new IllegalStateException("Unable to load remote development properties", ex);
+    }
   }
 
   RemoteDevelopmentConfig getRemoteDevelopmentConfig() {
@@ -77,6 +88,14 @@ public class RemoteDevelopmentContext {
 
   KeyPair getClientKeys() {
     return clientKeys;
+  }
+
+  String getRemoteDevPodImage() {
+    return properties.getProperty("jkube.remote-dev.pod.container.image");
+  }
+
+  int getRemoteDevPodPort() {
+    return Integer.parseInt(properties.getProperty("jkube.remote-dev.pod.container.port"));
   }
 
   private static KeyPair initClientKeys() {
