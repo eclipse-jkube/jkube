@@ -17,6 +17,8 @@ import java.util.stream.Stream;
 
 import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftDebugTask;
@@ -54,6 +56,7 @@ class OpenShiftPluginRegisterTaskTest {
         arguments("ocUndeploy", OpenShiftUndeployTask.class),
         arguments("ocHelm", OpenShiftHelmTask.class),
         arguments("ocHelmPush", OpenShiftHelmPushTask.class),
+        arguments("ocRemoteDev", KubernetesRemoteDevTask.class),
         arguments("ocWatch", OpenShiftWatchTask.class));
   }
 
