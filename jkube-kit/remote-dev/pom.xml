@@ -67,4 +67,18 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <build>
+    <resources>
+      <!-- Copy properties from the Maven build -->
+      <resource>
+        <directory>src/main/resources-filtered</directory>
+        <filtering>true</filtering>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <filtering>false</filtering>
+      </resource>
+    </resources>
+  </build>
 </project>

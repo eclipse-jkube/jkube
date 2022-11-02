@@ -68,7 +68,7 @@
     <version.ow2.asm>5.0.3</version.ow2.asm>
 
     <!-- =======================================================  -->
-    <version.image.jkube-images>0.0.16</version.image.jkube-images>
+    <version.image.jkube-images>0.0.17</version.image.jkube-images>
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
     <version.image.java.upstream.docker>${version.image.jkube-images}</version.image.java.upstream.docker>
@@ -91,6 +91,7 @@
     <!-- Default images used in the default generators. Please note that the generators make some assumption about
          these images (e.g. where the deployment directory is), so don't change them arbitrarily -->
 
+    <image.remote-dev>quay.io/jkube/jkube-remote-dev:${version.image.jkube-images}</image.remote-dev>
     <!-- java (java-exec, spring-boot) -->
     <image.java.upstream.s2i>quay.io/jkube/jkube-java:${version.image.java.upstream.s2i}</image.java.upstream.s2i>
     <image.java.upstream.docker>quay.io/jkube/jkube-java:${version.image.java.upstream.docker}</image.java.upstream.docker>
