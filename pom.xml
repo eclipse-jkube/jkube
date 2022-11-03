@@ -460,20 +460,6 @@
                   <goal>report</goal>
                 </goals>
               </execution>
-              <execution>
-                <id>instrument</id>
-                <phase>process-classes</phase>
-                <goals>
-                  <goal>instrument</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>restore</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>restore-instrumented-classes</goal>
-                </goals>
-              </execution>
             </executions>
           </plugin>
 
