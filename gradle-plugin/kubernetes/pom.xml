@@ -221,6 +221,7 @@
                     <plugin>
                         <groupId>org.jacoco</groupId>
                         <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${version.jacoco}</version>
                         <executions>
                             <execution>
                                 <id>default-prepare-agent</id>
@@ -243,6 +244,20 @@
                                 <phase>none</phase>
                             </execution>
                         </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${version.maven-surefire-plugin}</version>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <!-- JaCoCo runtime must know where to dump coverage: -->
+                                <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
+                            </systemPropertyVariables>
+                            <environmentVariables>
+                                <LC_ALL>en_EN.UTF-8</LC_ALL>
+                            </environmentVariables>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
