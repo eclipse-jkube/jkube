@@ -34,7 +34,7 @@
     <jkube.version>${project.version}</jkube.version>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <version.quarkus>2.11.1.Final</version.quarkus>
+    <version.quarkus>2.13.3.Final</version.quarkus>
     <jkube.build.pullSecret>12819530-ocp42-exposed-env-pull-secret-pull-secret</jkube.build.pullSecret>
   </properties>
 
@@ -104,7 +104,7 @@
                   <tag>${project.version}</tag>
                 </tags>
                 <env>
-                  <JAVA_APP_JAR>${project.artifactId}-${project.version}-runner.jar</JAVA_APP_JAR>
+                  <JAVA_APP_JAR>quarkus-run.jar</JAVA_APP_JAR>
                   <JAVA_OPTIONS>-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager</JAVA_OPTIONS>
                 </env>
                 <assembly>
@@ -112,17 +112,33 @@
                   <targetDir>/deployments</targetDir>
                   <layers>
                     <layer>
-                      <id>customized-quarkus</id>
+                      <id>lib</id>
+                      <fileSets>
+                        <fileSet>
+                          <directory>${project.basedir}/target/quarkus-app/lib</directory>
+                          <outputDirectory>lib</outputDirectory>
+                          <fileMode>0640</fileMode>
+                        </fileSet>
+                      </fileSets>
+                    </layer>
+                    <layer>
+                      <id>app</id>
                       <files>
                         <file>
-                          <source>target/quarkus-app/quarkus-run.jar</source>
+                          <source>${project.basedir}/target/quarkus-app/quarkus-run.jar</source>
                           <outputDirectory>.</outputDirectory>
                         </file>
                       </files>
                       <fileSets>
                         <fileSet>
-                          <directory>${project.basedir}/target/lib</directory>
-                          <outputDirectory>lib</outputDirectory>
+                          <directory>${project.basedir}/target/quarkus-app/app</directory>
+                          <outputDirectory>app</outputDirectory>
+                          <fileMode>0640</fileMode>
+                        </fileSet>
+                        <fileSet>
+                          <directory>${project.basedir}/target/quarkus-app/quarkus</directory>
+                          <outputDirectory>quarkus</outputDirectory>
+                          <fileMode>0640</fileMode>
                         </fileSet>
                       </fileSets>
                     </layer>
