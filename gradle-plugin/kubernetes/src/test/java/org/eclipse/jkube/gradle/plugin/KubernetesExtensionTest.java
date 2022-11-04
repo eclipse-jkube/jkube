@@ -20,6 +20,7 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import groovy.lang.Closure;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,6 +111,23 @@ class KubernetesExtensionTest {
     // Then
     assertThat(extension.images).singleElement()
         .hasFieldOrPropertyWithValue("name", "closure/image:name");
+  }
+
+  @Test
+  @DisplayName("addImage, with action callback, should append image to list")
+  void addImage_shouldSetImage() {
+    // Given
+    final KubernetesExtension extension = new TestKubernetesExtension();
+    // When
+    extension.addImage(builder -> {
+      builder.name("builder/image:name");
+      builder.alias("image-alias");
+    });
+    // Then
+    assertThat(extension.images).singleElement()
+      .hasFieldOrPropertyWithValue("name", "builder/image:name")
+      .hasFieldOrPropertyWithValue("alias", "image-alias");
+
   }
 
 }

@@ -1,3 +1,4 @@
+
 plugins {
     id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
     id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
@@ -12,6 +13,7 @@ repositories {
     mavenCentral()
 }
 
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration
 kubernetes {
     offline = true
     images {
@@ -40,5 +42,16 @@ kubernetes {
                 }
             }
         }
+    }
+    addImage {builder ->
+        builder.name = 'repository/groovy-dsl-image-with-builder:latest'
+        builder.build(BuildConfiguration.builder()
+            .from('alpine')
+            .env([
+                JAVA_OPTIONS: '-Xmx256m'
+            ])
+            .label('MAINTAINER','JKube testing team (builder)')
+            .port('8082')
+            .build())
     }
 }

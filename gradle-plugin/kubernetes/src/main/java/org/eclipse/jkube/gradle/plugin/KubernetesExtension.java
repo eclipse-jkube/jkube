@@ -45,6 +45,7 @@ import groovy.lang.Closure;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.codehaus.plexus.util.StringUtils;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
 
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
@@ -384,6 +385,28 @@ public abstract class KubernetesExtension {
       images = new ArrayList<>();
     }
     images.add(closureTo(closure, ImageConfiguration.class));
+  }
+
+  /**
+   * Provide support for image configurations using an image builder:
+   *
+   * <pre>
+   * {@code
+   *   addImage {builder ->
+   *     builder.name = 'the name'
+   *   }
+   * }
+   * </pre>
+   *
+   * @param action With the image builder consumer
+   */
+  public void addImage(Action<? super ImageConfiguration.ImageConfigurationBuilder> action) {
+    if (images == null) {
+      images = new ArrayList<>();
+    }
+    final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
+    action.execute(imageBuilder);
+    images.add(imageBuilder.build());
   }
 
   public void machine(Closure<?> closure) {
