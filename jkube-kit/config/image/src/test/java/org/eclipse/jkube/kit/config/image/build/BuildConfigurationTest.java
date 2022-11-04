@@ -31,7 +31,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Fail.fail;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;

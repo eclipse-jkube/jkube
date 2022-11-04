@@ -21,8 +21,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -64,48 +62,6 @@ class HealthCheckConfigTest {
                 .build()
                 .validate();
     }
-
-    @Test
-    public void testBadHealthCheck1() {
-        HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
-                .mode(HealthCheckMode.none)
-                .interval("2s")
-                .build();
-        assertThatThrownBy(healthCheckConfiguration::validate)
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    public void testBadHealthCheck2() {
-        HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
-                .mode(HealthCheckMode.none)
-                .retries(1)
-                .build();
-        assertThatThrownBy(healthCheckConfiguration::validate)
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    public void testBadHealthCheck3() {
-        HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
-                .mode(HealthCheckMode.none)
-                .timeout("3s")
-                .build();
-        assertThatThrownBy(healthCheckConfiguration::validate).
-        isInstanceOf(IllegalArgumentException.class);
-
-    }
-
-    @Test
-    public void testBadHealthCheck4() {
-        HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
-                .mode(HealthCheckMode.none)
-                .startPeriod("30s")
-                .cmd(Arguments.builder().shell("echo a").build())
-                .build();
-        assertThatThrownBy(healthCheckConfiguration::validate)
-                .isInstanceOf(IllegalArgumentException.class);
-    }
     
     @DisplayName("Bad Health Check Tests")
     @ParameterizedTest(name = "{0}")
@@ -118,14 +74,6 @@ class HealthCheckConfigTest {
                 .interval(interval)
                 .timeout(timeout)
                 .startPeriod(startPeriod)
-                .build();
-        assertThatThrownBy(healthCheckConfiguration::validate)
-                .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    public void testBadHealthCheck6() {
-        HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .build();
         assertThatThrownBy(healthCheckConfiguration::validate)
                 .isInstanceOf(IllegalArgumentException.class);
