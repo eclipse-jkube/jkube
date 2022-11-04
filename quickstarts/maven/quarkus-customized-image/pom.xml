@@ -32,9 +32,23 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <version.quarkus>1.7.2.Final</version.quarkus>
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <version.quarkus>2.13.3.Final</version.quarkus>
     <jkube.build.pullSecret>12819530-ocp42-exposed-env-pull-secret-pull-secret</jkube.build.pullSecret>
   </properties>
+
+    <dependencyManagement>
+      <dependencies>
+        <dependency>
+          <groupId>${quarkus.platform.group-id}</groupId>
+          <artifactId>${quarkus.platform.artifact-id}</artifactId>
+          <version>${version.quarkus}</version>
+          <type>pom</type>
+          <scope>import</scope>
+        </dependency>
+      </dependencies>
+    </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -90,27 +104,45 @@
                   <tag>${project.version}</tag>
                 </tags>
                 <env>
-                  <JAVA_APP_JAR>${project.artifactId}-${project.version}-runner.jar</JAVA_APP_JAR>
+                  <JAVA_APP_JAR>quarkus-run.jar</JAVA_APP_JAR>
                   <JAVA_OPTIONS>-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager</JAVA_OPTIONS>
                 </env>
                 <assembly>
                   <mode>dir</mode>
                   <targetDir>/deployments</targetDir>
-                  <inline>
-                    <id>customized-quarkus</id>
-                    <files>
-                      <file>
-                        <source>target/${project.artifactId}-${project.version}-runner.jar</source>
-                        <outputDirectory>.</outputDirectory>
-                      </file>
-                    </files>
-                    <fileSets>
-                      <fileSet>
-                        <directory>${project.basedir}/target/lib</directory>
-                        <outputDirectory>lib</outputDirectory>
-                      </fileSet>
-                    </fileSets>
-                  </inline>
+                  <layers>
+                    <layer>
+                      <id>lib</id>
+                      <fileSets>
+                        <fileSet>
+                          <directory>${project.basedir}/target/quarkus-app/lib</directory>
+                          <outputDirectory>lib</outputDirectory>
+                          <fileMode>0640</fileMode>
+                        </fileSet>
+                      </fileSets>
+                    </layer>
+                    <layer>
+                      <id>app</id>
+                      <files>
+                        <file>
+                          <source>${project.basedir}/target/quarkus-app/quarkus-run.jar</source>
+                          <outputDirectory>.</outputDirectory>
+                        </file>
+                      </files>
+                      <fileSets>
+                        <fileSet>
+                          <directory>${project.basedir}/target/quarkus-app/app</directory>
+                          <outputDirectory>app</outputDirectory>
+                          <fileMode>0640</fileMode>
+                        </fileSet>
+                        <fileSet>
+                          <directory>${project.basedir}/target/quarkus-app/quarkus</directory>
+                          <outputDirectory>quarkus</outputDirectory>
+                          <fileMode>0640</fileMode>
+                        </fileSet>
+                      </fileSets>
+                    </layer>
+                  </layers>
                 </assembly>
                 <ports>8080</ports>
                 <user>185</user>
@@ -128,5 +160,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>
