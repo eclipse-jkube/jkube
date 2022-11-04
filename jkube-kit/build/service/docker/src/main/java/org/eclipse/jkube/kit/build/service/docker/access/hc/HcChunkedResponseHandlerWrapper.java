@@ -19,6 +19,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.chunked.EntityStreamRea
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 class HcChunkedResponseHandlerWrapper implements ResponseHandler<Object> {
@@ -31,9 +32,10 @@ class HcChunkedResponseHandlerWrapper implements ResponseHandler<Object> {
 
   @Override
   public Object handleResponse(HttpResponse response) throws IOException {
-    if (!isJson(response) && !hasNoContentTypeAsForPodman(response)) {
-      throw new IllegalArgumentException(
-          "Docker daemon returned an unexpected content type while trying to build the Dockerfile. Content type must be `application/json` or no content type defined.");
+    if (!hasJsonContentType(response) && !hasTextPlainContentType(response) && !hasNoContentTypeAsForPodman(response)) {
+      throw new IllegalStateException(
+          "Docker daemon returned an unexpected content type while trying to build the Dockerfile.\n" +
+            "Status: " + response.getStatusLine().getStatusCode() + " - " + response.getStatusLine().getReasonPhrase());
     }
 
     try (InputStream stream = response.getEntity().getContent()) {
@@ -43,10 +45,18 @@ class HcChunkedResponseHandlerWrapper implements ResponseHandler<Object> {
     return null;
   }
 
-  private static boolean isJson(HttpResponse response) {
-    return Stream.of(response.getAllHeaders())
-        .filter(h -> h.getName().equalsIgnoreCase("Content-Type"))
-        .anyMatch(h -> h.getValue().toLowerCase().startsWith("application/json"));
+  private static Function<HttpResponse, Boolean> isContentType(String contentType) {
+    return response -> Stream.of(response.getAllHeaders())
+      .filter(h -> h.getName().equalsIgnoreCase("Content-Type"))
+      .anyMatch(h -> h.getValue().toLowerCase().startsWith(contentType));
+  }
+
+  private static boolean hasJsonContentType(HttpResponse response) {
+    return isContentType("application/json").apply(response);
+  }
+
+  private static boolean hasTextPlainContentType(HttpResponse response) {
+    return isContentType("text/plain").apply(response);
   }
 
   private static boolean hasNoContentTypeAsForPodman(HttpResponse response) {

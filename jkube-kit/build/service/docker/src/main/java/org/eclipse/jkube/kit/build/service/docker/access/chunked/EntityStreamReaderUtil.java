@@ -33,7 +33,7 @@ public class EntityStreamReaderUtil {
         try(JsonReader json = new JsonReader(new InputStreamReader(stream))) {
             json.setLenient(true);
             while (json.peek() != JsonToken.END_DOCUMENT) {
-            	JsonObject jsonObject = JsonParser.parseReader(json).getAsJsonObject();
+                JsonObject jsonObject = JsonParser.parseReader(json).getAsJsonObject();
                 handler.process(jsonObject);
             }
         } finally {
