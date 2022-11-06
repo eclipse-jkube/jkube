@@ -80,10 +80,13 @@ with the Java framework of your choice.https://github.com/eclipse/jkube/tree/mas
 
 - Clone repository and move to quickstart [helloworld](https://github.com/eclipse/jkube/tree/master/quickstarts/maven/hello-world) sample, build project and run JKube goals:
 ```shell script
-# 1. Clone repository and move to Hello World Quickstart
-$ git clone git@github.com:eclipse/jkube.git && cd jkube/quickstarts/maven/hello-world
+# 1. Clone repository 
+$ git clone git@github.com:eclipse/jkube.git 
+ 
+# 2. Move to Hello World Quickstart folder
+$ cd jkube/quickstarts/maven/hello-world
 
-# 2. Build Project and run JKube goals
+# 3. Build Project and run JKube goals
 $ mvn clean install                                                            \
   k8s:build         `# Build Docker Image`                                     \
   k8s:resource      `# Generate Kubernetes Manifests`                          \
