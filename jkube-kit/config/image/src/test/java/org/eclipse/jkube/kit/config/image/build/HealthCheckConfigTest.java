@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
+
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Tests the health check configuration
@@ -61,7 +62,7 @@ class HealthCheckConfigTest {
                 .build()
                 .validate();
     }
-
+    
     @DisplayName("Bad Health Check Tests")
     @ParameterizedTest(name = "{0}")
     @MethodSource("badHealthCheckTestData")
@@ -74,7 +75,8 @@ class HealthCheckConfigTest {
                 .timeout(timeout)
                 .startPeriod(startPeriod)
                 .build();
-        assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        assertThatThrownBy(healthCheckConfiguration::validate)
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     public static Stream<org.junit.jupiter.params.provider.Arguments> badHealthCheckTestData() {
@@ -92,7 +94,9 @@ class HealthCheckConfigTest {
         HealthCheckConfiguration healthCheckConfiguration = HealthCheckConfiguration.builder()
                 .mode(HealthCheckMode.cmd)
                 .build();
-        assertThrows(IllegalArgumentException.class, healthCheckConfiguration::validate);
+        assertThatThrownBy(healthCheckConfiguration::validate)
+                .isInstanceOf(IllegalArgumentException.class);
+
     }
 
 }
