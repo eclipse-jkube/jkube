@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.13-SNAPSHOT
 * Fix #1478: Should detect and warn the user if creating ingress and ingress controller not available
+* Fix #1758: ServiceAccount binding not being generated in Deployment
 * Fix #2150: Bump Kubernetes Client to 6.6.0 (fixes issues when trace-logging OpenShift builds)
 * Fix #2162: Bump Kubernetes Client to 6.6.1 (HttpClient with support for PUT + InputStream)
 * Fix #2165: Introduce a Kubernetes resource Security Hardening profile (opt-in)
@@ -81,12 +82,8 @@ _**Note**_:
 * Fix #1704: `k8s:watch` with `jkube.watch.mode=copy` works as expected
 * Fix #1888: KubernetesExtension has helper method to add image with builder
 
-_**Note**_:
-- `resources` > `serviceAccount` configuration would no longer create a new ServiceAccount. It would only add ServiceAccount reference to Deployment, Job etc. Users are advised to use `resources` > `serviceAccounts` configuration option in order to generate and add ServiceAccounts.
-
 ### 1.9.1 (2022-09-14)
 * Fix #1747: Apply service doesn't attempt to create OpenShift Projects in Kubernetes clusters
-* Fix #1758: ServiceAccount binding not being generated in Deployment
 
 ### 1.9.0 (2022-09-09)
 * Fix #777: `k8s:build` with Dockerfile throws `Connection reset by peer` error on old docker daemons

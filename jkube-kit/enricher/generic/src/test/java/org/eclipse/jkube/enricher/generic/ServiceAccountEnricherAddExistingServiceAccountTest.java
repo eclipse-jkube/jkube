@@ -72,7 +72,7 @@ public class ServiceAccountEnricherAddExistingServiceAccountTest {
 
   @ParameterizedTest
   @MethodSource("data")
-  public void create_withNullResourceConfig_shouldNotAddServiceAccountToController(HasMetadata controller) {
+  void create_withNullResourceConfig_shouldNotAddServiceAccountToController(HasMetadata controller) {
     // Given
     final KubernetesListBuilder builder = new KubernetesListBuilder();
     builder.addToItems(controller);
@@ -88,7 +88,7 @@ public class ServiceAccountEnricherAddExistingServiceAccountTest {
 
   @ParameterizedTest
   @MethodSource("data")
-  public void create_withServiceAccountInResourceConfig_shouldAddServiceAccountToController(HasMetadata controller) {
+  void create_withServiceAccountInResourceConfig_shouldAddServiceAccountToController(HasMetadata controller) {
     // Given
     givenResourceConfig(ResourceConfig.builder().serviceAccount("my-existing-serviceaccount").build());
     final KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -105,7 +105,7 @@ public class ServiceAccountEnricherAddExistingServiceAccountTest {
 
   @ParameterizedTest
   @MethodSource("data")
-  public void create_withServiceAccountsInResourceConfig_shouldAddServiceAccountToController(HasMetadata controller) {
+  void create_withServiceAccountsInResourceConfig_shouldAddServiceAccountToController(HasMetadata controller) {
     // Given
     givenResourceConfig(ResourceConfig.builder()
         .serviceAccount(ServiceAccountConfig.builder()
