@@ -53,9 +53,9 @@ public class ResourceValidator {
 
     public static final String SCHEMA_JSON = "schema/validation-schema.json";
     private KitLogger log;
-    private File[] resources;
-    private ResourceClassifier target = ResourceClassifier.KUBERNETES;
-    private List<ValidationRule> ignoreValidationRules = new ArrayList<>();
+    private final File[] resources;
+    private final ResourceClassifier target = ResourceClassifier.KUBERNETES;
+    private final List<ValidationRule> ignoreValidationRules = new ArrayList<>();
 
     /**
      * @param inputFile File/Directory path of resource descriptors
