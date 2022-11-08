@@ -24,6 +24,7 @@ Usage:
 * Fix #1713: Add HelidonHealthCheckEnricher to add Kubernetes health checks for Helidon applications
 * Fix #1714: Add HelidonGenerator to add opinionated container image for Helidon applications
 * Fix #1929: Docker Image Name parsing fix
+* Fix #1946: Initial support for Gitpod
 * Fix #1985: Update outdated methods in Spring Boot CRD Maven Quickstart
 * Fix #2116: Remove user field from ImageName class
 * Fix #2219: Kind/Filename mappings include optional apiVersion configuration
