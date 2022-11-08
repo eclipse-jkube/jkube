@@ -24,6 +24,8 @@ import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -32,14 +34,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class DefaultServiceEnricherExternalServiceTest {
   private DefaultServiceEnricher enricher;
@@ -47,21 +44,21 @@ public class DefaultServiceEnricherExternalServiceTest {
 
   @Before
   public void setUp() {
-    Properties properties = new Properties();
-    List<ImageConfiguration> images = new ArrayList<>();
-    images.add(ImageConfiguration.builder()
+    final JKubeEnricherContext context = JKubeEnricherContext.builder()
+      .image(ImageConfiguration.builder()
         .name("test-image")
         .build(BuildConfiguration.builder()
-            .from("foo:latest")
-            .port("8080")
-            .build())
-        .build());
-    JKubeEnricherContext context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-    when(context.getProperties()).thenReturn(properties);
-    when(context.getConfiguration().getImages()).thenReturn(images);
-    when(context.getGav().getSanitizedArtifactId()).thenReturn("artifact-id");
-    when(context.getConfiguration().getResource()).thenReturn(null);
-    when(context.getConfiguration().getImages()).thenReturn(images);
+          .from("foo:latest")
+          .port("8080")
+          .build())
+        .build())
+      .project(JavaProject.builder()
+        .properties(new Properties())
+        .groupId("group-id")
+        .artifactId("artifact-id")
+        .build())
+      .log(new KitLogger.SilentLogger())
+      .build();
     kubernetesListBuilder = new KubernetesListBuilder();
     kubernetesListBuilder.addToItems(createNewExternalServiceFragment());
     kubernetesListBuilder.addToItems(createNewExternalDeploymentFragment());
