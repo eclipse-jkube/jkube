@@ -1,0 +1,178 @@
+:remote-dev-goal: {goal-prefix}:remote-dev
+ifeval::["{plugin-type}" == "gradle"]
+:remote-dev-goal: {task-prefix}RemoteDev
+endif::[]
+
+[[jkube:remote-dev]]
+// TODO: Fix indentation problems due to misalignment with TOC headings
+ifeval::["{plugin-type}" == "maven"]
+== *{remote-dev-goal}* (preview)
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+=== *{remote-dev-goal}* (preview)
+endif::[]
+
+Eclipse JKube Remote Development allows you to run and debug code in your *local* machine:
+
+* While connected to and consuming services that are only available in your cluster
+* While exposing your locally running application to other Pods and services running on your cluster
+
+// [plantuml,application-deployed-in-cluster]
+// ....
+// include::remote-dev-off.puml[tags=uml]
+// ....
+//
+// [plantuml,jkube-kit-components]
+// ....
+// include::remote-dev-on.puml[tags=uml]
+// ....
+
+.Remote Development features
+
+* Expose your local application to the cluster
+* Consume cluster services locally without having to expose them to the Internet
+* Connect your local toolset to the cluster services
+* Simple configuration
+* *No* tools required
+* *No* special or super-user permissions required in the local machine
+* *No* special features required in the cluster (should work on any kind of Kubernetes flavor)
+* Boosts your inner-loop developer experience when combined with live-reload frameworks such as Quarkus
+
+
+// TODO: Fix indentation problems due to misalignment with TOC headings
+ifeval::["{plugin-type}" == "maven"]
+=== Project configuration
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+==== Project configuration
+endif::[]
+
+The remote development configuration must be provided within the `<<remote-dev-remote-development, remoteDevelopment>>` configuration element for the project.
+
+ifeval::["{plugin-type}" == "maven"]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <version>{version}</version>
+  <configuration>
+    <remoteDevelopment>
+      <localServices>
+        <localService>
+          <serviceName>my-local-service</serviceName> <!--1-->
+          <port>8080</port>  <!--2-->
+        </localService>
+      </localServices>
+      <remoteServices>
+        <remoteService>
+          <hostname>postgresql</hostname>  <!--3-->
+          <port>5432</port>  <!--4-->
+        </remoteService>
+        <remoteService>
+          <hostname>rabbit-mq</hostname>
+          <port>5672</port>
+          <localPort>15672</localPort>  <!--5-->
+        </remoteService>
+      </remoteServices>
+    </remoteDevelopment>
+  </configuration>
+</plugin>
+----
+<1> Name of the service to be exposed in the cluster, the local application will be able accessible in the cluster through this hostname/service
+<2> Port where the local application is listening for connections
+<3> Name of a cluster service that will be forwarded and exposed locally
+<4> Port where the cluster service listens for connections (by default, the same port will be used to expose the service locally)
+<5> Optional port where the cluster service will be exposed locally
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,groovy]
+----
+kubernetes {
+  remoteDevelopment {
+    localServices = [{
+      serviceName = "my-local-service" // <1>
+      port = 8080 // <2>
+    },{
+    }]
+    remoteServices = [{
+      hostname = "postgresql" // <3>
+      port = 5432 // <4>
+    },{
+      hostname = "rabbit-mq"
+      port = 5672
+      localPort = 15672 // <5>
+    }]
+  }
+}
+----
+<1> Name of the service to be exposed in the cluster, the local application will be able accessible in the cluster through this hostname/service
+<2> Port where the local application is listening for connections
+<3> Name of a cluster service that will be forwarded and exposed locally
+<4> Port where the cluster service listens for connections (by default, the same port will be used to expose the service locally)
+<5> Optional port where the cluster service will be exposed locally
+endif::[]
+
+.Starting the remote development session
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]
+----
+$ mvn {remote-dev-goal}
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]
+----
+$ gradle {remote-dev-goal}
+----
+endif::[]
+
+[[remote-dev-remote-development]]
+.Options available for the `remoteDevelopment` configuration element
+[cols="1,6"]
+|===
+| Element | Description
+
+| *<<remote-dev-local-services, localServices>>*
+| The list of local services to expose in the cluster.
+
+| *<<remote-dev-remote-services, remoteServices>>*
+| The list of cluster services to expose locally.
+
+|===
+
+[[remote-dev-local-services]]
+.Options available for the `localServices` configuration element
+[cols="1,6"]
+|===
+| Element | Description
+
+| *serviceName*
+| The name of the service that will be created/hijacked in the cluster.
+
+| *type*
+| The type of service to create (defaults to `ClusterIP`).
+
+| *port*
+| The service port, must match the port where the local application is listening for connections.
+
+|===
+
+[[remote-dev-remote-services]]
+.Options available for the `remoteServices` configuration element
+[cols="1,6"]
+|===
+| Element | Description
+
+| *hostname*
+| The name of the cluster service whose port will be forwarded to the local machine.
+
+| *port*
+| The port where the cluster service is listening for connections.
+
+| *localPort*
+| _(Optional)_ The port where the cluster service will be exposed locally. If not specified, the same port will be used.
+
+|===
