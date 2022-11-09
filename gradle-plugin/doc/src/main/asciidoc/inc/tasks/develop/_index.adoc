@@ -1,10 +1,13 @@
 [[task-overview-develop]]
 == Development Tasks
+:kitdoc-path: ../../../../../../../../jkube-kit/doc/src/main/asciidoc
 
-include::_jkube-debug.adoc[]
+include::_jkube-undeploy.adoc[]
 
 include::_jkube-log.adoc[]
 
-include::_jkube-undeploy.adoc[]
+include::_jkube-debug.adoc[]
+
+include::{kitdoc-path}/inc/remote-dev/_index.adoc[]
 
 include::_jkube-watch.adoc[]

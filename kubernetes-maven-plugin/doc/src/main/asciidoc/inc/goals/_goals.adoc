@@ -39,14 +39,17 @@ This plugin supports a rich set for providing a smooth Java developer experience
 | *<<jkube:undeploy>>*
 | Undeploy and remove resources descriptors from a cluster.
 
-| *<<jkube:watch>>*
-| Watch for file changes and perform rebuilds and redeployments
-
 | *<<jkube:log>>*
 | Show the logs of the running application
 
 | *<<jkube:debug>>*
-| Enable remote debugging
+| Enable remote debugging.
+
+| <<jkube:remote-dev>>
+| Start a remote development session.
+
+| *<<jkube:watch>>*
+| Watch for file changes and perform rebuilds and redeployments.
 |===
 
 Depending on whether the OpenShift or Kubernetes operational mode is used, the workflow and the performed actions differs :
