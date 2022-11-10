@@ -48,17 +48,17 @@ class MicronautHealthCheckEnricherTest {
   @BeforeEach
   void setUp() {
     project = JavaProject.builder()
-            .outputDirectory(new File("target"))
-            .build();
+        .outputDirectory(new File("target"))
+        .build();
     klb = new KubernetesListBuilder();
     klb.addToItems(new ServiceBuilder()
-            .withNewMetadata().withName("make-it-real").endMetadata()
-            .build());
+        .withNewMetadata().withName("make-it-real").endMetadata()
+        .build());
     context = JKubeEnricherContext.builder()
-            .log(new KitLogger.SilentLogger())
-            .processorConfig(new ProcessorConfig())
-            .project(project)
-            .build();
+        .log(new KitLogger.SilentLogger())
+        .processorConfig(new ProcessorConfig())
+        .project(project)
+        .build();
   }
 
   @Test
@@ -67,9 +67,9 @@ class MicronautHealthCheckEnricherTest {
     new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
-            .hasSize(1)
-            .extracting("kind")
-            .containsOnly("Service");
+        .hasSize(1)
+        .extracting("kind")
+        .containsOnly("Service");
   }
 
   @Test
@@ -80,16 +80,16 @@ class MicronautHealthCheckEnricherTest {
     new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
-            .hasSize(2)
-            .element(1, InstanceOfAssertFactories.type(Deployment.class))
-            .extracting(Deployment::getSpec)
-            .extracting(DeploymentSpec::getTemplate)
-            .extracting(PodTemplateSpec::getSpec)
-            .extracting(PodSpec::getContainers)
-            .asList()
-            .element(0, InstanceOfAssertFactories.type(Container.class))
-            .hasFieldOrPropertyWithValue("livenessProbe", null)
-            .hasFieldOrPropertyWithValue("readinessProbe", null);
+        .hasSize(2)
+        .element(1, InstanceOfAssertFactories.type(Deployment.class))
+        .extracting(Deployment::getSpec)
+        .extracting(DeploymentSpec::getTemplate)
+        .extracting(PodTemplateSpec::getSpec)
+        .extracting(PodSpec::getContainers)
+        .asList()
+        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .hasFieldOrPropertyWithValue("livenessProbe", null)
+        .hasFieldOrPropertyWithValue("readinessProbe", null);
   }
   @Test
   void createWithDeploymentAndPluginAndNoHealth() {
@@ -100,16 +100,16 @@ class MicronautHealthCheckEnricherTest {
     new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
-            .hasSize(2)
-            .element(1, InstanceOfAssertFactories.type(Deployment.class))
-            .extracting(Deployment::getSpec)
-            .extracting(DeploymentSpec::getTemplate)
-            .extracting(PodTemplateSpec::getSpec)
-            .extracting(PodSpec::getContainers)
-            .asList()
-            .element(0, InstanceOfAssertFactories.type(Container.class))
-            .hasFieldOrPropertyWithValue("livenessProbe", null)
-            .hasFieldOrPropertyWithValue("readinessProbe", null);
+        .hasSize(2)
+        .element(1, InstanceOfAssertFactories.type(Deployment.class))
+        .extracting(Deployment::getSpec)
+        .extracting(DeploymentSpec::getTemplate)
+        .extracting(PodTemplateSpec::getSpec)
+        .extracting(PodSpec::getContainers)
+        .asList()
+        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .hasFieldOrPropertyWithValue("livenessProbe", null)
+        .hasFieldOrPropertyWithValue("readinessProbe", null);
   }
 
   @Test
@@ -122,17 +122,17 @@ class MicronautHealthCheckEnricherTest {
     new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
-            .hasSize(2)
-            .element(1, InstanceOfAssertFactories.type(Deployment.class))
-            .extracting("spec.template.spec.containers")
-            .asList()
-            .element(0, InstanceOfAssertFactories.type(Container.class))
-            .extracting(
-                    "livenessProbe.httpGet.path",
-                    "readinessProbe.httpGet.path",
-                    "readinessProbe.httpGet.port.IntVal"
-            )
-            .contains("/health", "/health", null);
+        .hasSize(2)
+        .element(1, InstanceOfAssertFactories.type(Deployment.class))
+        .extracting("spec.template.spec.containers")
+        .asList()
+        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .extracting(
+            "livenessProbe.httpGet.path",
+            "readinessProbe.httpGet.path",
+            "readinessProbe.httpGet.port.IntVal"
+        )
+        .contains("/health", "/health", null);
   }
 
   @Test
@@ -145,17 +145,17 @@ class MicronautHealthCheckEnricherTest {
     new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
-            .hasSize(2)
-            .element(1, InstanceOfAssertFactories.type(Deployment.class))
-            .extracting("spec.template.spec.containers")
-            .asList()
-            .element(0, InstanceOfAssertFactories.type(Container.class))
-            .extracting(
-                    "livenessProbe.httpGet.path",
-                    "readinessProbe.httpGet.path",
-                    "readinessProbe.httpGet.port.IntVal"
-            )
-            .contains("/health", "/health", null);
+        .hasSize(2)
+        .element(1, InstanceOfAssertFactories.type(Deployment.class))
+        .extracting("spec.template.spec.containers")
+        .asList()
+        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .extracting(
+            "livenessProbe.httpGet.path",
+            "readinessProbe.httpGet.path",
+            "readinessProbe.httpGet.port.IntVal"
+        )
+        .contains("/health", "/health", null);
   }
 
   @Test
@@ -165,53 +165,55 @@ class MicronautHealthCheckEnricherTest {
     withHealthEnabled();
     withMicronautMavenPlugin();
     context = context.toBuilder()
-            .image(ImageConfiguration.builder().build(BuildConfiguration.builder().port("1337").build()).build())
-            .image(ImageConfiguration.builder().build(BuildConfiguration.builder().port("8082").build()).build())
-            .build();
+        .image(ImageConfiguration.builder().build(BuildConfiguration.builder().port("1337").build()).build())
+        .image(ImageConfiguration.builder().build(BuildConfiguration.builder().port("8082").build()).build())
+        .build();
     // When
     new MicronautHealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.build().getItems())
-            .hasSize(2)
-            .element(1, InstanceOfAssertFactories.type(Deployment.class))
-            .extracting("spec.template.spec.containers")
-            .asList()
-            .element(0, InstanceOfAssertFactories.type(Container.class))
-            .extracting(
-                    "livenessProbe.httpGet.path",
-                    "readinessProbe.httpGet.path",
-                    "readinessProbe.httpGet.port.IntVal"
-            )
-            .contains("/health", "/health", 1337);
+        .hasSize(2)
+        .element(1, InstanceOfAssertFactories.type(Deployment.class))
+        .extracting("spec.template.spec.containers")
+        .asList()
+        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .extracting(
+            "livenessProbe.httpGet.path",
+            "readinessProbe.httpGet.path",
+            "readinessProbe.httpGet.port.IntVal"
+        )
+        .contains("/health", "/health", 1337);
   }
 
   @SuppressWarnings({"ConstantConditions"})
   private void withHealthEnabled() throws Exception {
     project.setCompileClassPathElements(Collections.singletonList(
-            MicronautHealthCheckEnricherTest.class.getResource("/health-check-enricher-test").toURI().getPath()
+        MicronautHealthCheckEnricherTest.class.getResource("/health-check-enricher-test").toURI().getPath()
     ));
   }
 
   private void withMicronautMavenPlugin() {
     context.getProject().setPlugins(Collections.singletonList(
-            Plugin.builder().groupId("io.micronaut.build").artifactId("micronaut-maven-plugin").build()));
+        Plugin.builder().groupId("io.micronaut.build").artifactId("micronaut-maven-plugin").build()));
   }
 
   private void withMicronautGradlePlugin() {
     context.getProject().setPlugins(Collections.singletonList(
-            Plugin.builder().groupId("io.micronaut.application").artifactId("io.micronaut.application.gradle.plugin").build()));
+        Plugin.builder().groupId("io.micronaut.application").artifactId("io.micronaut.application.gradle.plugin").build()));
   }
 
   private static DeploymentBuilder emptyDeployment() {
+    // @formatter:off
     return new DeploymentBuilder()
+        .editOrNewSpec()
+          .editOrNewTemplate()
             .editOrNewSpec()
-            .editOrNewTemplate()
-            .editOrNewSpec()
-            .addNewContainer()
-            .endContainer()
+              .addNewContainer()
+              .endContainer()
             .endSpec()
-            .endTemplate()
-            .endSpec();
+          .endTemplate()
+        .endSpec();
+    // @formatter:off
   }
 
 }
