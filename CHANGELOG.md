@@ -20,6 +20,9 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.11-SNAPSHOT
+
+
 ### 1.10.0 (2022-11-10)
 * Fix #443: Add health check enricher for SmallRye Health
 * Fix #508: Kubernetes Remote Development (inner-loop)
