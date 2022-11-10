@@ -15,7 +15,13 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -96,19 +102,18 @@ public class JobHandlerTest {
         Job job = jobHandler.get(config,images);
 
         //Assertion
-        assertThat(job.getSpec()).isNotNull();
-        assertThat(job.getMetadata()).isNotNull();
-        assertThat(job.getSpec().getTemplate()).isNotNull();
-        assertThat(job.getMetadata().getName()).isEqualTo("testing");
-        assertThat(job.getSpec().getTemplate()
-                .getSpec().getServiceAccountName()).isEqualTo("test-account");
-        assertThat(job.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
-        assertThat(job.getSpec().getTemplate().getSpec().getRestartPolicy()).isEqualTo("OnFailure");
-        assertThat(job.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName()).isEqualTo("test");
-        assertThat(job.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
-        assertThat(job.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(job)
+        .hasFieldOrPropertyWithValue("metadata.name", "testing")
+        .satisfies(d -> assertThat(d.getSpec().getTemplate().getSpec().getContainers()).isNotNull())
+        .hasFieldOrPropertyWithValue("spec.template.spec.serviceAccountName", "test-account")
+        .extracting(Job::getSpec)
+        .extracting(JobSpec::getTemplate)
+        .extracting(PodTemplateSpec::getSpec)
+        .extracting(PodSpec::getVolumes)
+        .asList()
+        .first(InstanceOfAssertFactories.type(Volume.class))
+        .hasFieldOrPropertyWithValue("name", "test")
+        .hasFieldOrPropertyWithValue("hostPath.path", "/test/path");
 
     }
 

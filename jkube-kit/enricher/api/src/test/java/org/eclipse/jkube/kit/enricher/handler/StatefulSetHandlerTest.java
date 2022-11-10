@@ -16,6 +16,13 @@ package org.eclipse.jkube.kit.enricher.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.ReplicationController;
+import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -95,20 +102,18 @@ public class StatefulSetHandlerTest {
         StatefulSet statefulSet = statefulSetHandler.get(config,images);
 
         //Assertion
-        assertThat(statefulSet.getSpec()).isNotNull();
-        assertThat(statefulSet.getMetadata()).isNotNull();
-        assertThat(statefulSet.getSpec().getReplicas().intValue()).isEqualTo(5);
-        assertThat(statefulSet.getSpec().getTemplate()).isNotNull();
-        assertThat(statefulSet.getMetadata().getName()).isEqualTo("testing");
-        assertThat(statefulSet.getSpec().getServiceName()).isEqualTo("testing");
-        assertThat(statefulSet.getSpec().getTemplate()
-                .getSpec().getServiceAccountName()).isEqualTo("test-account");
-        assertThat(statefulSet.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
-        assertThat(statefulSet.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName()).isEqualTo("test");
-        assertThat(statefulSet.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
-        assertThat(statefulSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(statefulSet)
+                .hasFieldOrPropertyWithValue("metadata.name", "testing")
+                .satisfies(d -> assertThat(d.getSpec().getTemplate().getSpec().getVolumes()).isNotNull())
+                .hasFieldOrPropertyWithValue("spec.template.spec.serviceAccountName", "test-account")
+                .extracting(StatefulSet::getSpec)
+                .extracting(StatefulSetSpec::getTemplate)
+                .extracting(PodTemplateSpec::getSpec)
+                .extracting(PodSpec::getVolumes)
+                .asList()
+                .first(InstanceOfAssertFactories.type(Volume.class))
+                .hasFieldOrPropertyWithValue("name", "test")
+                .hasFieldOrPropertyWithValue("hostPath.path", "/test/path");
 
     }
 

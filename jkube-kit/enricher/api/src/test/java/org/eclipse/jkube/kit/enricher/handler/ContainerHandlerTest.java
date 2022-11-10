@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -115,10 +116,12 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         containers = handler.getContainers(config, images);
-        assertThat(containers).isNotNull();
-        assertThat( containers.get(0).getName()).isEqualTo("test-app");
-        assertThat( containers.get(0).getImage()).isEqualTo("docker.io/test/test-app:1.2");
-        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
+        assertThat(containers)
+                .isNotNull()
+                .first(InstanceOfAssertFactories.type(Container.class))
+                .hasFieldOrPropertyWithValue("name", "test-app")
+                .hasFieldOrPropertyWithValue("image", "docker.io/test/test-app:1.2")
+                .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent");
     }
 
     @Test
@@ -179,8 +182,7 @@ public class ContainerHandlerTest {
             images.add(imageConfiguration);
 
             containers = handler.getContainers(config, images);
-            assertThat(containers).isNotNull();
-            assertThat( containers.get(0).getImage()).isEqualTo(testData[i+4]);
+            assertThat(containers.get(0).getImage()).isNotNull().isEqualTo(testData[i+4]);
         }
     }
 
@@ -215,12 +217,13 @@ public class ContainerHandlerTest {
 
         images.clear();
         images.add(imageConfiguration);
-
         containers = handler.getContainers(config, images);
-        assertThat(containers).isNotNull();
-        assertThat( containers.get(0).getName()).isEqualTo("test-group-test-artifact");
-        assertThat( containers.get(0).getImage()).isEqualTo("docker.io/test:latest");
-        assertThat( containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
+        assertThat(containers)
+                .isNotNull()
+                .first(InstanceOfAssertFactories.type(Container.class))
+                .hasFieldOrPropertyWithValue("name", "test-group-test-artifact")
+                .hasFieldOrPropertyWithValue("image", "docker.io/test:latest")
+                .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent");
     }
     @Test
     public void getContainerTestWithUser(){
@@ -247,10 +250,12 @@ public class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         containers = handler.getContainers(config, images);
-        assertThat(containers).isNotNull();
-        assertThat(containers.get(0).getName()).isEqualTo("user-test-artifact");
-        assertThat(containers.get(0).getImage()).isEqualTo("docker.io/user/test:latest");
-        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
+        assertThat(containers)
+                .isNotNull()
+                .first(InstanceOfAssertFactories.type(Container.class))
+                .hasFieldOrPropertyWithValue("name", "user-test-artifact")
+                .hasFieldOrPropertyWithValue("image", "docker.io/user/test:latest")
+                .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent");
     }
 
     @Test
@@ -273,9 +278,13 @@ public class ContainerHandlerTest {
 
         containers = handler1.getContainers(config1, images);
         assertThat( containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
-
+        assertThat(containers)
+                .first(InstanceOfAssertFactories.type(Container.class))
+                .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent");
         containers = handler2.getContainers(config1, images);
-        assertThat(containers.get(0).getImagePullPolicy()).isEqualTo("IfNotPresent");
+        assertThat(containers)
+                .first(InstanceOfAssertFactories.type(Container.class))
+                .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent");
     }
     @Test
     public void imagePullPolicyWithoutPolicySetTest(){

@@ -16,6 +16,11 @@ package org.eclipse.jkube.kit.enricher.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -93,18 +98,18 @@ public class DaemonSetHandlerTest {
         DaemonSet daemonSet = daemonSetHandler.get(config, images);
 
         //Assertion
-        assertThat(daemonSet.getSpec()).isNotNull();
-        assertThat(daemonSet.getMetadata()).isNotNull();
-        assertThat(daemonSet.getSpec().getTemplate()).isNotNull();
-        assertThat(daemonSet.getMetadata().getName()).isEqualTo("testing");
-        assertThat(daemonSet.getSpec().getTemplate()
-                .getSpec().getServiceAccountName()).isEqualTo("test-account");
-        assertThat(daemonSet.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
-        assertThat(daemonSet.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName()).isEqualTo("test");
-        assertThat(daemonSet.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
-        assertThat(daemonSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(daemonSet)
+        .hasFieldOrPropertyWithValue("metadata.name", "testing")
+        .satisfies(d -> assertThat(d.getSpec().getTemplate().getSpec().getContainers()).isNotNull())
+        .hasFieldOrPropertyWithValue("spec.template.spec.serviceAccountName", "test-account")
+        .extracting(DaemonSet::getSpec)
+        .extracting(DaemonSetSpec::getTemplate)
+        .extracting(PodTemplateSpec::getSpec)
+        .extracting(PodSpec::getVolumes)
+        .asList()
+        .first(InstanceOfAssertFactories.type(Volume.class))
+        .hasFieldOrPropertyWithValue("name", "test")
+        .hasFieldOrPropertyWithValue("hostPath.path", "/test/path");
 
     }
 

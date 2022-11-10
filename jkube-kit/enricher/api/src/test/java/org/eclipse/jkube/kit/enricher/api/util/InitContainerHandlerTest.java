@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author roland
@@ -45,7 +45,7 @@ public class InitContainerHandlerTest {
 
     @Before
     public void setUp() {
-        log = mock(KitLogger.class);
+        log = spy(new KitLogger.SilentLogger());
         handler = new InitContainerHandler(log);
     }
 
@@ -102,16 +102,11 @@ public class InitContainerHandlerTest {
 
     @Test
     public void existingDifferent() {
-        try {
-            PodTemplateSpecBuilder builder = getPodTemplateBuilder("blub", "foo/bla");
-            assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
-            Container initContainer = createInitContainer("blub", "foo/blub");
-            assertThatIllegalArgumentException()
-                    .isThrownBy(() -> handler.appendInitContainer(builder, initContainer));
-
-        } catch (IllegalArgumentException exp) {
-            assertThat(exp.getMessage()).contains("blub");
-        }
+    PodTemplateSpecBuilder builder = getPodTemplateBuilder("blub", "foo/bla");
+    assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
+    Container initContainer = createInitContainer("blub", "foo/blub");
+    assertThatIllegalArgumentException()
+                    .isThrownBy(() -> handler.appendInitContainer(builder, initContainer)).withMessageContaining("blub");
     }
 
     private void verifyBuilder(PodTemplateSpecBuilder builder, List<Container> initContainers) {

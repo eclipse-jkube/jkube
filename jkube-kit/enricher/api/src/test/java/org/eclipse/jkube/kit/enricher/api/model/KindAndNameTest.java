@@ -41,7 +41,7 @@ public class KindAndNameTest {
         KindAndName fifthKindAndName = new KindAndName("kindTest","nameTest1");
 
         //if checking same object
-        assertThat(kindAndName).isEqualTo(kindAndName).isNotNull().isEqualTo(kindAndName);
+        assertThat(kindAndName).isNotNull().isEqualTo(kindAndName);
 
         //if two different are passsed with different combinations of value
         assertThat(thirdKindAndName).isNotEqualTo(kindAndName);

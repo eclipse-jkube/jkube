@@ -16,6 +16,13 @@ package org.eclipse.jkube.kit.enricher.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
+import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.apps.DaemonSet;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -97,19 +104,19 @@ public class ReplicationControllerHandlerTest {
         ReplicationController replicationController = replicationControllerHandler.get(config,images);
 
         //Assertion
-        assertThat(replicationController.getSpec()).isNotNull();
-        assertThat(replicationController.getMetadata()).isNotNull();
-        assertThat(replicationController.getSpec().getReplicas().intValue()).isEqualTo(5);
-        assertThat(replicationController.getSpec().getTemplate()).isNotNull();
-        assertThat(replicationController.getMetadata().getName()).isEqualTo("testing");
-        assertThat(replicationController.getSpec().getTemplate()
-                .getSpec().getServiceAccountName()).isEqualTo("test-account");
-        assertThat(replicationController.getSpec().getTemplate().getSpec().getVolumes()).isNotEmpty();
-        assertThat(replicationController.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName()).isEqualTo("test");
-        assertThat(replicationController.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath()).isEqualTo("/test/path");
-        assertThat(replicationController.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(replicationController)
+                .hasFieldOrPropertyWithValue("metadata.name", "testing")
+                .satisfies(d -> assertThat(d.getSpec().getTemplate().getSpec().getVolumes()).isNotNull())
+                .hasFieldOrPropertyWithValue("spec.template.spec.serviceAccountName", "test-account")
+                .extracting(ReplicationController::getSpec)
+                .extracting(ReplicationControllerSpec::getTemplate)
+                .extracting(PodTemplateSpec::getSpec)
+                .extracting(PodSpec::getVolumes)
+                .asList()
+                .first(InstanceOfAssertFactories.type(Volume.class))
+                .hasFieldOrPropertyWithValue("name", "test")
+                .hasFieldOrPropertyWithValue("hostPath.path", "/test/path");
+
 
     }
 
