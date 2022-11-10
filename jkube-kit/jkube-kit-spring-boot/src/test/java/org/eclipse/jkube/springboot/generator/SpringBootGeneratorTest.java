@@ -32,13 +32,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 public class SpringBootGeneratorTest {
 
   @Rule
@@ -67,7 +63,7 @@ public class SpringBootGeneratorTest {
     // When
     final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
     // Then
-    assertFalse(result);
+    assertThat(result).isFalse();
   }
 
   @Test
@@ -80,7 +76,7 @@ public class SpringBootGeneratorTest {
     // When
     final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -93,7 +89,7 @@ public class SpringBootGeneratorTest {
     // When
     final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
   @Test
@@ -101,8 +97,7 @@ public class SpringBootGeneratorTest {
     // When
     final List<String> result = springBootGenerator.getExtraJavaOptions();
     // Then
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+    assertThat(result).isNotNull().isEmpty();
   }
 
   @Test
