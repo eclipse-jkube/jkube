@@ -21,7 +21,7 @@
 
     <artifactId>eclipse-jkube-sample-spring-boot-jib</artifactId>
     <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
-    <version>1.9.1</version>
+    <version>1.10.0</version>
     <packaging>jar</packaging>
 
     <parent>
