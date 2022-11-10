@@ -18,31 +18,30 @@ import java.io.IOException;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.mockito.ArgumentMatchers.matches;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KubernetesConfigViewTaskTest {
+class KubernetesConfigViewTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private TestKubernetesExtension extension;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     extension = new TestKubernetesExtension();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
   }
 
   @Test
-  public void runTask_withManualSettings_shouldLogThem() {
+  void runTask_withManualSettings_shouldLogThem() {
     // Given
     extension.buildStrategy = JKubeBuildStrategy.s2i;
     extension.isOffline = true;

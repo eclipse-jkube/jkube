@@ -37,6 +37,10 @@
             <artifactId>jkube-kit-generator-java-exec</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-microprofile</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>

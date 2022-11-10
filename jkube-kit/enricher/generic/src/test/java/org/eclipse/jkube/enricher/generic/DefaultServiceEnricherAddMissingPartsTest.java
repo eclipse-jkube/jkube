@@ -13,11 +13,13 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -25,39 +27,32 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 public class DefaultServiceEnricherAddMissingPartsTest {
 
-  @Mocked
-  private JKubeEnricherContext context;
-
   private Properties properties;
-  private List<ImageConfiguration> images;
   private DefaultServiceEnricher enricher;
 
   @Before
   public void setUp() {
     properties = new Properties();
-    images = new ArrayList<>();
-    images.add(ImageConfiguration.builder()
+    final JKubeEnricherContext context = JKubeEnricherContext.builder()
+      .image(ImageConfiguration.builder()
         .name("test-image")
         .build(new BuildConfiguration())
-        .build());
-    // @formatter:off
-    new Expectations() {{
-      context.getProperties(); result = properties;
-      context.getConfiguration().getImages(); result = images;
-      context.getGav().getSanitizedArtifactId(); result = "artifact-id";
-    }};
-    // @formatter:on
+        .build())
+      .project(JavaProject.builder()
+        .properties(properties)
+        .groupId("group-id")
+        .artifactId("artifact-id")
+        .build())
+      .log(new KitLogger.SilentLogger())
+      .build();
     enricher = new DefaultServiceEnricher(context);
   }
 
@@ -66,7 +61,8 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().build());
+        new ServiceBuilder()
+            .withMetadata(createDefaultFragmentMetadata()).build());
     // When
     enricher.create(null, klb);
     // Then
@@ -84,7 +80,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().addNewPort()
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().addNewPort()
             .withProtocol("TCP").withPort(1337).endPort().endSpec().build());
     // When
     enricher.create(null, klb);
@@ -103,7 +99,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().withClusterIP("1.3.3.7").endSpec().build());
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().withClusterIP("1.3.3.7").endSpec().build());
     properties.put("jkube.enricher.jkube-service.type", "NodePort");
     // When
     enricher.create(null, klb);
@@ -119,7 +115,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     imageConfigurationWithPort("80");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().withType("LoadBalancer").endSpec().build());
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().withType("LoadBalancer").endSpec().build());
     properties.put("jkube.enricher.jkube-service.type", "NodePort");
     // When
     enricher.create(null, klb);
@@ -134,7 +130,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     properties.put("jkube.enricher.jkube-service.headless", "true");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().withType("LoadBalancer").endSpec().build());
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().withType("LoadBalancer").endSpec().build());
     // When
     enricher.create(null, klb);
     // Then
@@ -148,7 +144,7 @@ public class DefaultServiceEnricherAddMissingPartsTest {
     // Given
     properties.put("jkube.enricher.jkube-service.headless", "true");
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(
-        new ServiceBuilder().editOrNewSpec().withClusterIP("1.3.3.7").endSpec().build());
+        new ServiceBuilder().withMetadata(createDefaultFragmentMetadata()).editOrNewSpec().withClusterIP("1.3.3.7").endSpec().build());
     // When
     enricher.create(null, klb);
     // Then
@@ -158,6 +154,11 @@ public class DefaultServiceEnricherAddMissingPartsTest {
   }
 
   private void imageConfigurationWithPort(String... ports) {
-    images.get(0).setBuild(BuildConfiguration.builder().ports(Arrays.asList(ports)).build());
+    enricher.getContext().getConfiguration().getImages().get(0)
+      .setBuild(BuildConfiguration.builder().ports(Arrays.asList(ports)).build());
+  }
+
+  private ObjectMeta createDefaultFragmentMetadata() {
+    return new ObjectMetaBuilder().withName("artifact-id").build();
   }
 }

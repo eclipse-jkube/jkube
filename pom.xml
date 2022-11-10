@@ -89,31 +89,32 @@
     <version.commons-io>2.8.0</version.commons-io>
     <version.gradle>6.1.1</version.gradle>
     <version.groovy>2.4.7</version.groovy>
-    <version.guava>30.1.1-jre</version.guava>
-    <version.jackson>2.13.3</version.jackson>
+    <version.guava>31.1-jre</version.guava>
+    <version.jackson>2.14.0</version.jackson>
     <version.jacoco>0.8.8</version.jacoco>
     <version.jmockit>1.49</version.jmockit>
     <version.json-smart>2.4.8</version.json-smart> <!-- Transitive dependency  required by citrus -->
-    <version.junit5>5.8.2</version.junit5>
+    <version.junit5>5.9.1</version.junit5>
     <version.junit>4.13.2</version.junit>
     <version.kubernetes-client>6.1.1</version.kubernetes-client>
     <version.license-maven-plugin>3.0</version.license-maven-plugin>
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
-    <version.maven-enforcer-plugin>1.4.1</version.maven-enforcer-plugin>
+    <version.maven-enforcer-plugin>3.1.0</version.maven-enforcer-plugin>
     <version.maven-failsafe-plugin>3.0.0-M7</version.maven-failsafe-plugin>
     <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
-    <version.maven-invoker-plugin>3.2.2</version.maven-invoker-plugin>
+    <version.maven-invoker-plugin>3.3.0</version.maven-invoker-plugin>
     <version.maven-jar-plugin>3.2.2</version.maven-jar-plugin>
     <version.maven-javadoc-plugin>3.2.0</version.maven-javadoc-plugin>
-    <version.maven-plugin-plugin>3.5.1</version.maven-plugin-plugin>
-    <version.maven-release-plugin>3.0.0-M5</version.maven-release-plugin>
-    <version.maven-resources-plugin>3.2.0</version.maven-resources-plugin>
+    <version.maven-plugin-plugin>3.7.0</version.maven-plugin-plugin>
+    <version.maven-release-plugin>3.0.0-M7</version.maven-release-plugin>
+    <version.maven-resources-plugin>3.3.0</version.maven-resources-plugin>
     <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
     <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
     <version.mockito>4.6.1</version.mockito>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
+    <version.sshd>2.9.1</version.sshd>
     <project.build.outputTimestamp>2022-09-14T05:25:27Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
@@ -228,6 +229,41 @@
               <version>${version.asciidoctorj}</version>
             </dependency>
           </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${version.jacoco}</version>
+          <executions>
+            <execution>
+              <id>default-prepare-agent</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>default-report</id>
+              <goals>
+                <goal>report</goal>
+              </goals>
+            </execution>
+            <!-- TODO: Remove once JMockit is no longer in the project -->
+            <execution>
+              <id>instrument</id>
+              <phase>process-classes</phase>
+              <goals>
+                <goal>instrument</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>restore</id>
+              <phase>test</phase>
+              <goals>
+                <goal>restore-instrumented-classes</goal>
+              </goals>
+            </execution>
+            <!-- ///////////////////////////////////////////////////// -->
+          </executions>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -446,35 +482,6 @@
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
-            <version>${version.jacoco}</version>
-            <executions>
-              <execution>
-                <id>default-prepare-agent</id>
-                <goals>
-                  <goal>prepare-agent</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>default-report</id>
-                <goals>
-                  <goal>report</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>instrument</id>
-                <phase>process-classes</phase>
-                <goals>
-                  <goal>instrument</goal>
-                </goals>
-              </execution>
-              <execution>
-                <id>restore</id>
-                <phase>test</phase>
-                <goals>
-                  <goal>restore-instrumented-classes</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
 
           <plugin>

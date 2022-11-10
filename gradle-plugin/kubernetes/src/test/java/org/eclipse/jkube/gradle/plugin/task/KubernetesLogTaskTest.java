@@ -20,34 +20,34 @@ import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 import org.gradle.api.GradleException;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KubernetesLogTaskTest {
+class KubernetesLogTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private TestKubernetesExtension extension;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     extension = new TestKubernetesExtension();
     extension.isUseColor = false;
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
   }
 
   @Test
-  public void runTask_withNoK8sManifests_shouldLogCantWatchPods() {
+  void runTask_withNoK8sManifests_shouldLogCantWatchPods() {
     // Given
     KubernetesLogTask kubernetesLogTask = new KubernetesLogTask(KubernetesExtension.class);
 
@@ -59,27 +59,26 @@ public class KubernetesLogTaskTest {
   }
 
   @Test
-  public void runTask_withNoManifestAndFailure_shouldThrowException() {
+  void runTask_withNoManifestAndFailure_shouldThrowException() {
     // Given
     extension.isFailOnNoKubernetesJson = true;
     final KubernetesLogTask kubernetesLogTask = new KubernetesLogTask(KubernetesExtension.class);
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class, kubernetesLogTask::runTask);
-    // Then
-    assertThat(result)
-        .hasMessageMatching("No such generated manifest file: .+kubernetes\\.yml");
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(kubernetesLogTask::runTask)
+        .withMessageMatching("No such generated manifest file: .+kubernetes\\.yml");
   }
 
   @Test
-  public void runTask_withIOException_shouldThrowException() {
+  void runTask_withIOException_shouldThrowException() {
     try (MockedStatic<KubernetesHelper> mockStatic = Mockito.mockStatic(KubernetesHelper.class)) {
       // Given
       mockStatic.when(() -> KubernetesHelper.loadResources(any())).thenThrow(new IOException("IO error with logs"));
       KubernetesLogTask kubernetesLogTask = new KubernetesLogTask(KubernetesExtension.class);
-      // When
-      final Exception result = assertThrows(GradleException.class, kubernetesLogTask::runTask);
-      // Then
-      assertThat(result).hasMessage("Failure in getting logs");
+      // When & Then
+      assertThatExceptionOfType(GradleException.class)
+          .isThrownBy(kubernetesLogTask::runTask)
+          .withMessage("Failure in getting logs");
     }
   }
 }

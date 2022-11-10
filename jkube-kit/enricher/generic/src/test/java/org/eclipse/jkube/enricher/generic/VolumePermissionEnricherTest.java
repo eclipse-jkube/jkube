@@ -25,14 +25,13 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -42,17 +41,22 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.Map;
 
 public class VolumePermissionEnricherTest {
-
-    @Mocked
     private JKubeEnricherContext context;
 
     // *******************************
     // Tests
     // *******************************
-
+    @Before
+    public void setUp() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    }
     private static final class TestConfig {
         private final String permission;
         private final String initContainerName;
@@ -68,11 +72,9 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void alreadyExistingInitContainer(@Mocked final ProcessorConfig config) throws Exception {
-        new Expectations() {{
-            context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
-        }};
-
+    public void alreadyExistingInitContainer() {
+        final ProcessorConfig config = mock(ProcessorConfig.class);
+        when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
         PodTemplateBuilder ptb = createEmptyPodTemplate();
         addVolume(ptb, "VolumeA");
 
@@ -119,9 +121,7 @@ public class VolumePermissionEnricherTest {
                         Collections.singletonMap("permission", tc.permission)));
 
             // Setup mock behaviour
-            new Expectations() {{
-                context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
-            }};
+            when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
 
             VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
 
@@ -164,10 +164,7 @@ public class VolumePermissionEnricherTest {
         // Given
         Properties properties = new Properties();
         properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
-        new Expectations() {{
-            context.getProperties();
-            result = properties;
-        }};
+        when(context.getProperties()).thenReturn(properties);
         VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
         KubernetesListBuilder klb = new KubernetesListBuilder();
         klb.addToItems(createNewPersistentVolumeClaim("pv1"));
@@ -191,10 +188,7 @@ public class VolumePermissionEnricherTest {
         Properties properties = new Properties();
         properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
         properties.put("jkube.enricher.jkube-volume-permission.useStorageClassAnnotation", "true");
-        new Expectations() {{
-            context.getProperties();
-            result = properties;
-        }};
+        when(context.getProperties()).thenReturn(properties);
         VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
         KubernetesListBuilder klb = new KubernetesListBuilder();
         klb.addToItems(createNewPersistentVolumeClaim("pv1"));
@@ -224,9 +218,9 @@ public class VolumePermissionEnricherTest {
         properties.put("jkube.enricher.jkube-volume-permission.memoryLimit", "128Mi");
         properties.put("jkube.enricher.jkube-volume-permission.cpuRequest", "250m");
         properties.put("jkube.enricher.jkube-volume-permission.memoryRequest", "64Mi");
-        new Expectations() {{
-            context.getProperties(); result = properties;
-        }};
+
+        when(context.getProperties()).thenReturn(properties);
+
         VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
         KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
         kubernetesListBuilder.addToPodTemplateItems(addVolume(createEmptyPodTemplate(), "volumeC").build());

@@ -47,7 +47,7 @@ public class PatchService {
     private final KubernetesClient kubernetesClient;
     private final KitLogger log;
 
-    private static Map<String, EntityPatcher<? extends HasMetadata>> patchers;
+    private static final Map<String, EntityPatcher<? extends HasMetadata>> patchers;
 
     // Interface for patching entities
     interface EntityPatcher<T extends HasMetadata> {

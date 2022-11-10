@@ -138,7 +138,7 @@ public class WatchService {
                          File changedFilesArchive = archiveService.createChangedFilesArchive(entries, files.getAssemblyDirectory(),
                                  imageConfig.getName(), jKubeConfiguration);
                          copyFilesToContainer(changedFilesArchive, watcher);
-                                    callPostExec(watcher);
+                         callPostExec(watcher);
                      } catch (IOException | WatchException e) {
                          log.error("%s: Error when copying files to container %s: %s",
                                  imageConfig.getDescription(), watcher.getContainerId(), e.getMessage());

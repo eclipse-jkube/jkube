@@ -13,15 +13,7 @@
  */
 package org.eclipse.jkube.wildfly.jar.enricher;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import io.fabric8.kubernetes.api.builder.TypedVisitor;
-import io.fabric8.kubernetes.api.model.ContainerBuilder;
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.EnvVarSource;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.Probe;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.kubernetes.api.model.ContainerFluentImpl;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -29,8 +21,18 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.Probe;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.client.utils.Serialization;
+
 import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,8 +46,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"unchecked", "unused"})
-public class WildflyJARHealthCheckEnricherTest {
+class WildflyJARHealthCheckEnricherTest {
 
     protected JKubeEnricherContext context;
     private JavaProject project;
@@ -107,7 +108,6 @@ public class WildflyJARHealthCheckEnricherTest {
     @Test
     public void testCloudConfiguration_withWildflyJarAfter25_0shouldAdd_startupProbe() {
         wildFlyJarDependencyWithVersion("26.1.1.Final");
-
         Map<String, Object> config = new HashMap<>();
         config.put("cloud", null);
         setupExpectations(config, Collections.emptyMap());
@@ -126,7 +126,6 @@ public class WildflyJARHealthCheckEnricherTest {
     @Test
     public void testWithCustomConfigurationComingFromConf_withWildflyJarBefore25_0shouldNotAdd_startupProbe() {
         wildFlyJarDependencyWithVersion("24.1.1.Final");
-
         Map<String, Object> jarConfig = new HashMap<>();
         jarConfig.put("cloud", null);
         Map<String, Map<String, Object>> config = createFakeConfig(
@@ -222,6 +221,7 @@ public class WildflyJARHealthCheckEnricherTest {
     @Test
     public void testEnforceTrueHealth_withWildflyJarAfter25_0shouldAddStartupProbe() {
         wildFlyJarDependencyWithVersion("26.1.1.Final");
+
         Map<String, Map<String, Object>> config = createFakeConfig("{"
                 + "\"enforceProbes\":\"true\""
                 + "}");
@@ -240,7 +240,8 @@ public class WildflyJARHealthCheckEnricherTest {
     }
 
     @Test
-    public void testEnforceFalseHealth() {
+    @DisplayName("with false health enforced, should not add probes")
+    void enforceFalseHealth_shouldNotAddProbes() {
         Map<String, Map<String, Object>> config = createFakeConfig("{"
                 + "\"enforceProbes\":\"false\""
                 + "}");
@@ -251,7 +252,7 @@ public class WildflyJARHealthCheckEnricherTest {
     }
 
     @Test
-    public void kubernetesHostName() {
+    void kubernetesHostName() {
         KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
             .withNewSpec()
             .withNewTemplate()
@@ -274,15 +275,12 @@ public class WildflyJARHealthCheckEnricherTest {
             }
         });
 
-        assertThat(containerBuilders).hasSize(1);
-        ContainerBuilder cb = containerBuilders.get(0);
-        List<EnvVar> env = cb.build().getEnv();
-        assertThat(env).hasSize(1);
-        EnvVar hostName = env.get(0);
-        assertThat(hostName.getName()).isEqualTo("HOSTNAME");
-        assertThat(hostName.getValueFrom()).isNotNull();
-        EnvVarSource src = hostName.getValueFrom();
-        assertThat(src.getFieldRef().getFieldPath()).isEqualTo("metadata.name");
+        assertThat(containerBuilders).singleElement()
+            .extracting(ContainerFluentImpl::buildEnv).asList()
+            .singleElement()
+            .hasFieldOrPropertyWithValue("name", "HOSTNAME")
+            .extracting("valueFrom.fieldRef.fieldPath").isNotNull()
+            .isEqualTo("metadata.name");
     }
 
     private void wildFlyJarDependencyWithVersion(String wildflyJarVersion) {
@@ -293,6 +291,7 @@ public class WildflyJARHealthCheckEnricherTest {
             .build()));
     }
 
+    @SuppressWarnings("unchecked")
     private Map<String, Map<String, Object>> createFakeConfig(String config) {
         try {
             Map<String, Object> healthCheckJarMap = Serialization.jsonMapper().readValue(config, Map.class);
@@ -306,27 +305,28 @@ public class WildflyJARHealthCheckEnricherTest {
     }
 
     private void assertHttpGet(Probe probe, String scheme, String path, int port) {
-        assertThat(probe).isNotNull()
-            .hasFieldOrPropertyWithValue("httpGet.host", null)
-            .hasFieldOrPropertyWithValue("httpGet.scheme", scheme)
-            .hasFieldOrPropertyWithValue("httpGet.path", path)
-            .hasFieldOrPropertyWithValue("httpGet.port.intVal", port);
+      assertThat(probe).isNotNull()
+          .extracting(Probe::getHttpGet)
+          .hasFieldOrPropertyWithValue("host", null)
+          .hasFieldOrPropertyWithValue("scheme", scheme)
+          .hasFieldOrPropertyWithValue("path", path)
+          .hasFieldOrPropertyWithValue("port.intVal", port);
     }
 
     private void assertProbeAdded(Probe probe, String scheme, String path, int port,
-                                  int initialDelay, int failureThreshold, int successThreshold, int periodSeconds) {
-        assertHttpGet(probe, scheme, path, port);
-        assertThat(probe).isNotNull()
-                .returns(initialDelay, Probe::getInitialDelaySeconds)
-                .returns(failureThreshold, Probe::getFailureThreshold)
-                .returns(successThreshold, Probe::getSuccessThreshold)
-                .returns(periodSeconds, Probe::getPeriodSeconds);
+        int initialDelay, int failureThreshold, int successThreshold, int periodSeconds) {
+      assertHttpGet(probe, scheme, path, port);
+      assertThat(probe).isNotNull()
+          .returns(initialDelay, Probe::getInitialDelaySeconds)
+          .returns(failureThreshold, Probe::getFailureThreshold)
+          .returns(successThreshold, Probe::getSuccessThreshold)
+          .returns(periodSeconds, Probe::getPeriodSeconds);
     }
 
     private void assertNoProbesAdded(WildflyJARHealthCheckEnricher enricher) {
-        assertThat(enricher)
-                .returns(null, WildflyJARHealthCheckEnricher::getLivenessProbe)
-                .returns(null, WildflyJARHealthCheckEnricher::getReadinessProbe)
-                .returns(null, WildflyJARHealthCheckEnricher::getStartupProbe);
+      assertThat(enricher)
+          .returns(null, WildflyJARHealthCheckEnricher::getLivenessProbe)
+          .returns(null, WildflyJARHealthCheckEnricher::getReadinessProbe)
+          .returns(null, WildflyJARHealthCheckEnricher::getStartupProbe);
     }
 }

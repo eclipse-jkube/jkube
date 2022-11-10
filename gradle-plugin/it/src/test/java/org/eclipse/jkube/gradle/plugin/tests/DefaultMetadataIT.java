@@ -16,19 +16,19 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class DefaultMetadataIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class DefaultMetadataIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  public void k8sResource_whenRun_generatesK8sManifestsWithExpectedLabelsAndAnnotations() throws IOException, ParseException {
+  void k8sResource_whenRun_generatesK8sManifestsWithExpectedLabelsAndAnnotations() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("metadata").withArguments("k8sResource").build();
     // Then
@@ -43,7 +43,7 @@ public class DefaultMetadataIT {
   }
 
   @Test
-  public void k8sResource_whenRunWithReplicaSetConfiguredController_generatesK8sManifestsWithExpectedLabelsAndAnnotations() throws IOException, ParseException {
+  void k8sResource_whenRunWithReplicaSetConfiguredController_generatesK8sManifestsWithExpectedLabelsAndAnnotations() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("metadata")
         .withArguments("-Pjkube.enricher.jkube-controller.type=ReplicaSet", "k8sResource")
@@ -60,7 +60,7 @@ public class DefaultMetadataIT {
   }
 
   @Test
-  public void ocResource_whenRun_generatesK8sManifestsWithExpectedLabelsAndAnnotations() throws IOException, ParseException {
+  void ocResource_whenRun_generatesK8sManifestsWithExpectedLabelsAndAnnotations() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("metadata").withArguments("ocResource").build();
     // Then

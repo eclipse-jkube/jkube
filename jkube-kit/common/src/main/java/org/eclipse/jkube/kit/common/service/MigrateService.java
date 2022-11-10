@@ -47,8 +47,8 @@ public class MigrateService {
   private static final String GROUP_ID = "groupId";
   private static final String VERSION = "version";
   private static final String FABRIC8_MAVEN_PLUGIN_ARTIFACT_ID = "fabric8-maven-plugin";
-  private File projectBasedir;
-  private KitLogger logger;
+  private final File projectBasedir;
+  private final KitLogger logger;
 
   public MigrateService(File projectBaseDirectory, KitLogger logger) {
     this.projectBasedir = projectBaseDirectory;

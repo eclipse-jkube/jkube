@@ -15,7 +15,9 @@ package org.eclipse.jkube.gradle.plugin.tests;
 
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
-import org.junit.rules.ExternalResource;
+import org.junit.jupiter.api.extension.AfterEachCallback;
+import org.junit.jupiter.api.extension.BeforeEachCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.io.File;
 import java.net.URI;
@@ -23,12 +25,11 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-public class ITGradleRunner extends ExternalResource {
-
+public class ITGradleRunnerExtension implements BeforeEachCallback, AfterEachCallback {
   private GradleRunner gradleRunner;
 
   @Override
-  protected void before() throws Throwable {
+  public void beforeEach(ExtensionContext context) throws Exception {
     gradleRunner = GradleRunner.create()
         .withGradleDistribution(new URI("https://services.gradle.org/distributions/gradle-6.9-bin.zip"))
         .withDebug(true)
@@ -37,18 +38,18 @@ public class ITGradleRunner extends ExternalResource {
   }
 
   @Override
-  protected void after() {
+  public void afterEach(ExtensionContext context) throws Exception {
     gradleRunner = null;
   }
 
-  public ITGradleRunner withITProject(String name) {
+  public ITGradleRunnerExtension withITProject(String name) {
     final String baseDir = System.getProperty("itDir", "");
     gradleRunner = gradleRunner
         .withProjectDir(new File(baseDir).toPath().resolve("src").resolve("it").resolve(name).toFile());
     return this;
   }
 
-  public ITGradleRunner withArguments(String... originalArguments) {
+  public ITGradleRunnerExtension withArguments(String... originalArguments) {
     final String[] arguments = new String[originalArguments.length + 2];
     arguments[0] = "-PjKubeVersion=" + System.getProperty("jKubeVersion");
     arguments[1] = "--console=plain";

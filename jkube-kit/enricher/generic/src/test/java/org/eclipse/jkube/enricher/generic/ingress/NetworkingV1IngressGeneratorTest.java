@@ -18,8 +18,6 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import mockit.Mocked;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
@@ -31,8 +29,6 @@ import java.util.Collections;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 public class NetworkingV1IngressGeneratorTest {
-    @Mocked
-    private KitLogger logger;
 
     @Test
     public void testGenerate() {

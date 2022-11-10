@@ -16,19 +16,19 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class JavaOptionsEnvMergeIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class JavaOptionsEnvMergeIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  public void k8sResource_whenRun_thenGeneratedManifestShouldHaveMergedEnvVariables() throws IOException, ParseException {
+  void k8sResource_whenRun_thenGeneratedManifestShouldHaveMergedEnvVariables() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("java-options-env-merge").withArguments("k8sResource").build();
     // Then
@@ -42,7 +42,7 @@ public class JavaOptionsEnvMergeIT {
   }
 
   @Test
-  public void ocResource_whenRun_thenGeneratedManifestShouldHaveMergedEnvVariables() throws IOException, ParseException {
+  void ocResource_whenRun_thenGeneratedManifestShouldHaveMergedEnvVariables() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("java-options-env-merge").withArguments("ocResource").build();
     // Then

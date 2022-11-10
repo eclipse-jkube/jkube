@@ -16,41 +16,31 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(Parameterized.class)
-public class RouteIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class RouteIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "ocResource {0} with jkube.openshift.generateRoute={1}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "routeDisabled", "false", 2},
-        new Object[] { "routeEnabled", "true", 3}
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("routeDisabled", "false", 2),
+        arguments("routeEnabled", "true", 3)
     );
   }
 
-  @Parameterized.Parameter
-  public String expectedDir;
-
-  @Parameterized.Parameter (1)
-  public String routeEnabled;
-
-  @Parameterized.Parameter (2)
-  public int expectedGeneratedFiles;
-
-  @Test
-  public void ocResource_whenRunWithRouteFlag_generatesOpenShiftManifests() throws IOException, ParseException {
+  @ParameterizedTest(name = "ocResource {0} with jkube.openshift.generateRoute={1}")
+  @MethodSource("data")
+  void ocResource_whenRunWithRouteFlag_generatesOpenShiftManifests(String expectedDir, String routeEnabled, int expectedGeneratedFiles) throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("route")
         .withArguments("clean", "-Pjkube.openshift.generateRoute=" + routeEnabled, "ocResource", "--stacktrace")

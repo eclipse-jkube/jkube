@@ -20,52 +20,52 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KubernetesHelmTaskTest {
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+class KubernetesHelmTaskTest {
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
-  private TestKubernetesExtension extension;
   private MockedConstruction<HelmService> helmServiceMockedConstruction;
 
-  @Before
-  public void setUp() throws IOException {
-    extension = new TestKubernetesExtension();
+  @BeforeEach
+  void setUp() throws IOException {
+    TestKubernetesExtension extension = new TestKubernetesExtension();
     extension.isUseColor = false;
     helmServiceMockedConstruction = mockConstruction(HelmService.class);
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
   }
 
-  @Test
-  public void runTask_withNoTemplateDir_shouldThrowException() {
-    // Given
-    KubernetesHelmTask kubernetesHelmTask = new KubernetesHelmTask(KubernetesExtension.class);
-
-    // When
-    IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, kubernetesHelmTask::runTask);
-
-    // Then
-    assertThat(illegalStateException)
-      .hasMessageContaining("META-INF/jkube/kubernetes")
-        .getCause()
-        .isInstanceOf(NoSuchFileException.class);
+  @AfterEach
+  void tearDown() {
+    helmServiceMockedConstruction.close();
   }
 
   @Test
-  public void runTask_withTemplateDir_shouldCallHelmService() throws IOException {
+  void runTask_withNoTemplateDir_shouldThrowException() {
+    // Given
+    KubernetesHelmTask kubernetesHelmTask = new KubernetesHelmTask(KubernetesExtension.class);
+
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(kubernetesHelmTask::runTask)
+        .withMessageContaining("META-INF/jkube/kubernetes")
+        .withCauseInstanceOf(NoSuchFileException.class);
+  }
+
+  @Test
+  void runTask_withTemplateDir_shouldCallHelmService() throws IOException {
     // Given
     taskEnvironment.withKubernetesTemplate();
     KubernetesHelmTask kubernetesHelmTask = new KubernetesHelmTask(KubernetesExtension.class);
@@ -77,8 +77,4 @@ public class KubernetesHelmTaskTest {
     verify((helmServiceMockedConstruction.constructed().iterator().next()), times(1)).generateHelmCharts(any());
   }
 
-  @After
-  public void tearDown() {
-    helmServiceMockedConstruction.close();
-  }
 }

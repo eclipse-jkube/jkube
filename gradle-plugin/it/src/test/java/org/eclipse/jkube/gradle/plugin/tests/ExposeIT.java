@@ -16,18 +16,19 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * Checks that Services and Ingresses/Routes are handled according to the following conditions:
@@ -47,43 +48,33 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
  *    Services are created, Ingresses are not created, Routes are created</li>
  * </ul>
  */
-@RunWith(Parameterized.class)
-public class ExposeIT {
+class ExposeIT {
 
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "{0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-      new Object[] {"Image has no ports", "no-ports", new String[] {"-Pjkube.environment=none"}},
-      new Object[] {"Image has FTP port", "ftp-port", new String[]{"-Pexpose-it.port=21", "-Pjkube.environment=none"}},
-      new Object[] {"Image has Web port", "http-port", new String[]{"-Pexpose-it.port=80", "-Pjkube.environment=none"}},
-      new Object[] {"Image has Web port and createExternalUrls", "http-port-external",
-        new String[]{"-Pexpose-it.port=80", "-Pjkube.createExternalUrls=true", "-Pjkube.environment=none"}},
-      new Object[] {"Image has FTP port and createExternalUrls", "ftp-port-external",
-        new String[]{"-Pexpose-it.port=21", "-Pjkube.createExternalUrls=true", "-Pjkube.environment=none"}},
-      new Object[] {"Image has FTP port, and expose annotation in service (from Fragment)",
-        "ftp-port-expose-annotation", new String[]{"-Pexpose-it.port=21", "-Pjkube.environment=label-expose"}},
-      new Object[] {"Image has FTP port, and expose annotation in service (from Service Enricher)",
-        "ftp-port-expose-annotation-enricher",
-        new String[]{"-Pexpose-it.port=21", "-Pjkube.enricher.jkube-service.expose=true", "-Pjkube.environment=none"}},
-      new Object[] {"Image has HTTPS port, and multiple services", "multiple-services",
-        new String[]{"-Pexpose-it.port=443", "-Pjkube.environment=multiple-services"}}
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("Image has no ports", "no-ports", new String[] { "-Pjkube.environment=none" }),
+        arguments("Image has FTP port", "ftp-port", new String[] { "-Pexpose-it.port=21", "-Pjkube.environment=none" }),
+        arguments("Image has Web port", "http-port", new String[] { "-Pexpose-it.port=80", "-Pjkube.environment=none" }),
+        arguments("Image has Web port and createExternalUrls", "http-port-external",
+            new String[] { "-Pexpose-it.port=80", "-Pjkube.createExternalUrls=true", "-Pjkube.environment=none" }),
+        arguments("Image has FTP port and createExternalUrls", "ftp-port-external",
+            new String[] { "-Pexpose-it.port=21", "-Pjkube.createExternalUrls=true", "-Pjkube.environment=none" }),
+        arguments("Image has FTP port, and expose annotation in service (from Fragment)",
+            "ftp-port-expose-annotation", new String[] { "-Pexpose-it.port=21", "-Pjkube.environment=label-expose" }),
+        arguments("Image has FTP port, and expose annotation in service (from Service Enricher)",
+            "ftp-port-expose-annotation-enricher",
+            new String[] { "-Pexpose-it.port=21", "-Pjkube.enricher.jkube-service.expose=true", "-Pjkube.environment=none" }),
+        arguments("Image has HTTPS port, and multiple services", "multiple-services",
+            new String[] { "-Pexpose-it.port=443", "-Pjkube.environment=multiple-services" })
     );
   }
 
-  @Parameterized.Parameter
-  public String description;
-
-  @Parameterized.Parameter(1)
-  public String expectedDir;
-
-  @Parameterized.Parameter (2)
-  public String[] arguments;
-
-  @Test
-  public void k8sResource_whenRun_generatesK8sManifestsWithProjectLabels() throws IOException, ParseException {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("data")
+  void k8sResource_whenRun_generatesK8sManifestsWithProjectLabels(String description, String expectedDir, String[] arguments) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("k8sResource");
@@ -100,8 +91,9 @@ public class ExposeIT {
       .contains("validating");
   }
 
-  @Test
-  public void ocResource_whenRun_generatesOpenShiftManifestsWithProjectLabels() throws IOException, ParseException {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("data")
+  void ocResource_whenRun_generatesOpenShiftManifestsWithProjectLabels(String description, String expectedDir, String[] arguments) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("ocResource");

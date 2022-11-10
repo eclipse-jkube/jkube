@@ -28,8 +28,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.openshift.api.model.ImageChangeTrigger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -41,6 +40,9 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author nicola
@@ -49,9 +51,11 @@ public class TriggersAnnotationEnricherTest {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    @Mocked
     private JKubeEnricherContext context;
-
+    @Before
+    public void setUp() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    }
     @Test
     public void testStatefulSetEnrichment() throws IOException {
 
@@ -164,11 +168,7 @@ public class TriggersAnnotationEnricherTest {
 
         final Properties props = new Properties();
         props.put("jkube.enricher.jkube-triggers-annotation.containers", "c2, c3, anotherc");
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); result = props;
-        }};
-        // @formatter:on
+        when(context.getProperties()).thenReturn(props);
 
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new StatefulSetBuilder()
             .withNewSpec()

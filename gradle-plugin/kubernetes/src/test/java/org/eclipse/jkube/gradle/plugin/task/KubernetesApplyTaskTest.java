@@ -25,14 +25,15 @@ import org.eclipse.jkube.kit.config.service.ApplyService;
 
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -41,17 +42,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KubernetesApplyTaskTest {
+class KubernetesApplyTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedConstruction<ApplyService> applyServiceMockedConstruction;
   private TestKubernetesExtension extension;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       // OpenShiftClient instance needed due to OpenShift checks performed in KubernetesApply
       final OpenShiftClient kubernetesClient = mock(OpenShiftClient.class);
@@ -65,40 +66,37 @@ public class KubernetesApplyTaskTest {
     extension.isFailOnNoKubernetesJson = false;
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     applyServiceMockedConstruction.close();
     clusterAccessMockedConstruction.close();
   }
 
   @Test
-  public void runTask_withOffline_shouldThrowException() {
+  void runTask_withOffline_shouldThrowException() {
     // Given
     extension.isOffline = true;
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
 
-    // When
-    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, applyTask::runTask);
-
-    // Then
-    assertThat(result)
-        .hasMessage("Connection to Cluster required. Please check if offline mode is set to false");
+    // When & Then
+    assertThatIllegalArgumentException()
+        .isThrownBy(applyTask::runTask)
+        .withMessage("Connection to Cluster required. Please check if offline mode is set to false");
   }
 
   @Test
-  public void runTask_withNoManifest_shouldThrowException() {
+  void runTask_withNoManifest_shouldThrowException() {
     // Given
     extension.isFailOnNoKubernetesJson = true;
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class, applyTask::runTask);
-    // Then
-    assertThat(result)
-        .hasMessageMatching("No such generated manifest file: .+kubernetes\\.yml");
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(applyTask::runTask)
+        .withMessageMatching("No such generated manifest file: .+kubernetes\\.yml");
   }
 
   @Test
-  public void configureApplyService_withManifest_shouldSetDefaults() throws Exception {
+  void configureApplyService_withManifest_shouldSetDefaults() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
@@ -123,7 +121,7 @@ public class KubernetesApplyTaskTest {
   }
 
   @Test
-  public void runTask_withManifest_shouldApplyEntities() throws Exception {
+  void runTask_withManifest_shouldApplyEntities() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
     final KubernetesApplyTask applyTask = new KubernetesApplyTask(KubernetesExtension.class);
@@ -136,7 +134,7 @@ public class KubernetesApplyTaskTest {
   }
 
   @Test
-  public void runTask_withSkipApply_shouldDoNothing() {
+  void runTask_withSkipApply_shouldDoNothing() {
     // Given
     extension = new TestKubernetesExtension() {
       @Override

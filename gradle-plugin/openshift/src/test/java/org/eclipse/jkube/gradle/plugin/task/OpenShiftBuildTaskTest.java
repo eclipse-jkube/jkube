@@ -22,10 +22,10 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -35,15 +35,15 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenShiftBuildTaskTest {
+class OpenShiftBuildTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<OpenshiftBuildService> openshiftBuildServiceMockedConstruction;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     openshiftBuildServiceMockedConstruction = mockConstruction(OpenshiftBuildService.class,
         (mock, ctx) -> when(mock.isApplicable()).thenReturn(true));
     final OpenShiftExtension extension = new TestOpenShiftExtension();
@@ -56,18 +56,18 @@ public class OpenShiftBuildTaskTest {
       .build());
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     openshiftBuildServiceMockedConstruction.close();
   }
 
   @Test
-  public void getLogPrefix_withDefaults_shouldReturnOc() {
+  void getLogPrefix_withDefaults_shouldReturnOc() {
     assertThat(new OpenShiftBuildTask(OpenShiftExtension.class).getLogPrefix()).isEqualTo("oc: ");
   }
 
   @Test
-  public void runTask_withImageConfiguration_shouldRunBuild() throws JKubeServiceException {
+  void runTask_withImageConfiguration_shouldRunBuild() throws JKubeServiceException {
     // Given
     final OpenShiftBuildTask buildTask = new OpenShiftBuildTask(OpenShiftExtension.class);
     // When

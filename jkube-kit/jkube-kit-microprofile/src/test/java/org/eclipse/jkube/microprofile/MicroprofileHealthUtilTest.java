@@ -11,11 +11,13 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.common.util;
+package org.eclipse.jkube.microprofile;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.jupiter.api.Test;
+
+import java.util.Collections;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -47,7 +49,7 @@ class MicroprofileHealthUtilTest {
   @Test
   void hasMicroProfileHealthDependency_withMicroProfileHealth_shouldReturnTrue() {
     // Given
-    JavaProject javaProject = createNewJavaProjectDependency("org.eclipse.microprofile", "microprofile-health", "5.0");
+    JavaProject javaProject = createNewJavaProjectDependency("org.eclipse.microprofile.health", "microprofile-health-api", "5.0");
 
     // When
     boolean result = MicroprofileHealthUtil.hasMicroProfileHealthDependency(javaProject);
@@ -95,7 +97,7 @@ class MicroprofileHealthUtilTest {
   @Test
   void isStartupEndpointSupported_withMicroprofileHealthAfter3_1_shouldReturnTrue() {
     // Given
-    JavaProject javaProject = createNewJavaProjectDependency("org.eclipse.microprofile", "microprofile-health", "5.0");
+    JavaProject javaProject = createNewJavaProjectDependency("org.eclipse.microprofile.health", "microprofile-health-api", "5.0");
 
     // When
     boolean result = MicroprofileHealthUtil.isStartupEndpointSupported(javaProject);
@@ -105,10 +107,10 @@ class MicroprofileHealthUtilTest {
   }
 
   private JavaProject createNewJavaProjectDependency(String groupId, String artifactId, String version) {
-    return JavaProject.builder().dependency(Dependency.builder()
+    return JavaProject.builder().dependenciesWithTransitive(Collections.singletonList(Dependency.builder()
         .groupId(groupId)
         .artifactId(artifactId)
         .version(version)
-        .build()).build();
+        .build())).build();
   }
 }

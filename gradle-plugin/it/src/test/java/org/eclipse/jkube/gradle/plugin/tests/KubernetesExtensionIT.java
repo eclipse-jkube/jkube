@@ -17,19 +17,19 @@ import net.minidev.json.parser.ParseException;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class KubernetesExtensionIT {
+class KubernetesExtensionIT {
 
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  public void k8sConfigView_containsAFullyDeserializedConfiguration() throws IOException, ParseException {
+  void k8sConfigView_containsAFullyDeserializedConfiguration() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner
         .withITProject("extension-configuration")

@@ -15,12 +15,9 @@ package org.eclipse.jkube.enricher.generic.openshift;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -33,13 +30,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
 public class RouteEnricherTest {
-    @Mocked
     private JKubeEnricherContext context;
-
     private static final String OPENSHIFT_GENERATE_ROUTE = "jkube.openshift.generateRoute";
     private static final String ROUTE_TLS_TERMINATION = "jkube.enricher.jkube-openshift-route.tlsTermination";
     private static final String EDGE_TERMINATION_POLICY = "jkube.enricher.jkube-openshift-route.tlsInsecureEdgeTerminationPolicy";
@@ -49,6 +45,7 @@ public class RouteEnricherTest {
 
     @Before
     public void setUpExpectations() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
         properties = new Properties();
         processorConfig = new ProcessorConfig();
         klb = new KubernetesListBuilder();
@@ -341,38 +338,21 @@ public class RouteEnricherTest {
                 .build();
         // @formatter:on
     }
-
     private void mockJKubeEnricherContext() {
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); result = properties;
-            context.getConfiguration().getProcessorConfig(); result = processorConfig;
-        }};
-        // @formatter:on
+        when(context.getProperties()).thenReturn(properties);
+        when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
     }
 
     private void mockJKubeEnricherContextProcessorConfigNotCalled() {
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); minTimes = 0;
-        }};
-        // @formatter:on
+        when(context.getProperties()).thenReturn(properties);
     }
 
     private void mockJKubeEnricherContextPropertiesNotCalled() {
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); minTimes = 0;
-        }};
-        // @formatter:on
+        when(context.getProperties()).thenReturn(properties);
     }
 
     private void mockJKubeEnricherContextResourceConfigWithRouteDomain(String routeDomain) {
-        // @formatter:off
-        new Expectations() {{
-            context.getConfiguration().getResource().getRouteDomain(); result = routeDomain;
-        }};
-        // @formatter:on
+        when(context.getConfiguration().getResource().getRouteDomain()).thenReturn(routeDomain);
     }
 }
 

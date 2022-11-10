@@ -61,12 +61,7 @@ class AnsiLoggerTest {
 
     @Test
     void emphasizeDebug() {
-        TestLog testLog = new TestLog() {
-            @Override
-            public boolean isDebugEnabled() {
-                return true;
-            }
-        };
+        TestLog testLog = new TestLog(true);
 
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         logger.debug("Debug messages do not interpret [[*]]%s[[*]]", "emphasis");
@@ -75,12 +70,7 @@ class AnsiLoggerTest {
 
     @Test
     void emphasizeInfoWithDebugEnabled() {
-        TestLog testLog = new TestLog() {
-            @Override
-            public boolean isDebugEnabled() {
-                return true;
-            }
-        };
+        TestLog testLog = new TestLog(true);
 
         AnsiLogger logger = new AnsiLogger(testLog, true, null, false, "T>");
         logger.info("Info messages do not apply [[*]]%s[[*]] when debug is enabled", "color codes");
@@ -228,11 +218,18 @@ class AnsiLoggerTest {
     }
 
 
-    private class TestLog extends DefaultLog {
+    static final class TestLog extends DefaultLog {
+
+        private final boolean debugEnabled;
         private String message;
 
         public TestLog() {
+            this(false);
+        }
+
+        public TestLog(boolean debugEnabled) {
             super(new ConsoleLogger(1, "console"));
+            this.debugEnabled = debugEnabled;
         }
 
         @Override
@@ -259,12 +256,13 @@ class AnsiLoggerTest {
             super.error(content);
         }
 
-        void reset() {
-            message = null;
-        }
-
         public String getMessage() {
             return message;
+        }
+
+        @Override
+        public boolean isDebugEnabled() {
+            return debugEnabled;
         }
     }
 

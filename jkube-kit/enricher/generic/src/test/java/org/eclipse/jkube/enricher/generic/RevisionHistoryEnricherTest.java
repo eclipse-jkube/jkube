@@ -20,20 +20,24 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class RevisionHistoryEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
-
+    @Before
+    public void setUp() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    }
     @Test
     public void testDefaultRevisionHistoryLimit() {
         // Given
@@ -53,10 +57,9 @@ public class RevisionHistoryEnricherTest {
 
         // Setup mock behaviour
         final String revisionNumber = "10";
-        new Expectations() {{
-            Configuration config = Configuration.builder().processorConfig(prepareEnricherConfig(revisionNumber)).build();
-            context.getConfiguration(); result = config;
-        }};
+        Configuration config = Configuration.builder().processorConfig(prepareEnricherConfig(revisionNumber)).build();
+        when(context.getConfiguration()).thenReturn(config);
+
 
         // Given
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());

@@ -17,7 +17,6 @@ import java.io.File;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.Before;
-import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,11 +29,14 @@ import java.util.Map;
 
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.Plugin;
-
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatRuntimeException;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_DIST;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_REPO;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.PLUGIN_OPTIONS;
+
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
@@ -44,7 +46,12 @@ import static org.mockito.Mockito.when;
  * @author roland
  */
 
-public class WildflyJARGeneratorTest {
+
+class WildflyJARGeneratorTest {
+
+    @TempDir
+    Path temporaryFolder;
+    
     private GeneratorContext context;
     private JavaProject project;
     @Before
@@ -54,25 +61,25 @@ public class WildflyJARGeneratorTest {
     }
 
     @Test
-    public void notApplicable() throws IOException {
+    void notApplicable() {
         WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
         assertThat(generator.isApplicable(Collections.emptyList())).isFalse();
     }
 
     // To be revisited if we enable jolokia and prometheus.
     @Test
-    public void getEnv() throws IOException {
+    void getEnv() {
         WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
         Map<String, String> extraEnv = generator.getEnv(true);
         assertThat(extraEnv).isNotNull().hasSize(4);
     }
     
     @Test
-    public void getExtraOptions() throws IOException {
+    void getExtraOptions() {
         WildflyJARGenerator generator = new WildflyJARGenerator(createGeneratorContext());
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull()
-                .singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
+            .singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
     }
     
     @Test
@@ -175,10 +182,10 @@ public class WildflyJARGeneratorTest {
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull()
-                .singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
+            .singleElement()
+            .isEqualTo("-Djava.net.preferIPv4Stack=true");
     }
     
-    @Test
     public void slimServerNoDist() {
         Map<String, Object> options = new HashMap<>();
         Map<String, String> pluginOptions = new HashMap<>();
@@ -187,7 +194,9 @@ public class WildflyJARGeneratorTest {
         GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
-        assertThat(extraOptions).isNotNull().singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
+        assertThat(extraOptions).isNotNull()
+            .singleElement()
+            .isEqualTo("-Djava.net.preferIPv4Stack=true");
     }
     
     @Test
@@ -200,7 +209,9 @@ public class WildflyJARGeneratorTest {
         GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
-        assertThat(extraOptions).isNotNull().singleElement().isEqualTo("-Djava.net.preferIPv4Stack=true");
+        assertThat(extraOptions).isNotNull()
+            .singleElement()
+            .isEqualTo("-Djava.net.preferIPv4Stack=true");
     }
     
     @Test
@@ -213,11 +224,13 @@ public class WildflyJARGeneratorTest {
         GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
-        assertThat(extraOptions).isNotNull().hasSize(2)
-                .first().isEqualTo("-Djava.net.preferIPv4Stack=true");
-        assertThat(extraOptions.get(1)).isEqualTo("-Dmaven.repo.local=/deployments/myrepo");
+        assertThat(extraOptions).isNotNull()
+            .hasSize(2)
+            .satisfies(o -> assertThat(o).first()
+                .isEqualTo("-Djava.net.preferIPv4Stack=true"))
+            .satisfies(o -> assertThat(o).last()
+                .isEqualTo("-Dmaven.repo.local=/deployments/myrepo"));
     }
-    
     private GeneratorContext contextForSlimServer(Map<String, Object> bootableJarconfig, Path dir) {
         Plugin plugin
                 = Plugin.builder().artifactId("wildfly-jar-maven-plugin").

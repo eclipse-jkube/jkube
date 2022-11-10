@@ -16,54 +16,54 @@ package org.eclipse.jkube.gradle.plugin.task;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenShiftHelmTaskTest {
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+class OpenShiftHelmTaskTest {
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
-  private TestOpenShiftExtension extension;
   private MockedConstruction<HelmService> helmServiceMockedConstruction;
 
-  @Before
-  public void setUp() {
-    extension = new TestOpenShiftExtension();
+  @BeforeEach
+  void setUp() {
+    TestOpenShiftExtension extension = new TestOpenShiftExtension();
     helmServiceMockedConstruction = mockConstruction(HelmService.class);
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
   }
 
-  @Test
-  public void runTask_withNoTemplateDir_shouldThrowException() {
-    // Given
-    OpenShiftHelmTask kubernetesHelmTask = new OpenShiftHelmTask(OpenShiftExtension.class);
-
-    // When
-    IllegalStateException illegalStateException = assertThrows(IllegalStateException.class, kubernetesHelmTask::runTask);
-
-    // Then
-    assertThat(illegalStateException)
-        .hasMessageContaining("META-INF/jkube/openshift")
-        .getCause()
-        .isInstanceOf(NoSuchFileException.class);
+  @AfterEach
+  void tearDown() {
+    helmServiceMockedConstruction.close();
   }
 
   @Test
-  public void runTask_withTemplateDir_shouldCallHelmService() throws IOException {
+  void runTask_withNoTemplateDir_shouldThrowException() {
+    // Given
+    OpenShiftHelmTask kubernetesHelmTask = new OpenShiftHelmTask(OpenShiftExtension.class);
+
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(kubernetesHelmTask::runTask)
+        .withMessageContaining("META-INF/jkube/openshift")
+        .withCauseInstanceOf(NoSuchFileException.class);
+  }
+
+  @Test
+  void runTask_withTemplateDir_shouldCallHelmService() throws IOException {
     // Given
     taskEnvironment.withOpenShiftTemplate();
     OpenShiftHelmTask kubernetesHelmTask = new OpenShiftHelmTask(OpenShiftExtension.class);
@@ -75,8 +75,4 @@ public class OpenShiftHelmTaskTest {
     verify((helmServiceMockedConstruction.constructed().iterator().next()), times(1)).generateHelmCharts(any());
   }
 
-  @After
-  public void tearDown() {
-    helmServiceMockedConstruction.close();
-  }
 }

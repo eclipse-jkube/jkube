@@ -13,7 +13,7 @@ customized to use an official
 
 ## Requirements:
 
-- JDK 8 or 11+
+- JDK 11+
 - OpenShift Cluster (OpenShift, CRC, etc.)
 - Registered pull secret in your cluster ([Registry Service Accounts](https://access.redhat.com/terms-based-registry/#/accounts))
 

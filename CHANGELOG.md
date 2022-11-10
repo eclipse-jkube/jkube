@@ -21,6 +21,12 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.10-SNAPSHOT
+* Fix #443: Add health check enricher for SmallRye Health
+* Fix #508: Remote development feature
+* Fix #1668: Allow additional services (via fragments) besides the default
+* Fix #1684: Podman builds with errors are correctly processed and reported 
+* Fix #1704: `k8s:watch` in `jkube.watch.mode=copy` doesn't work
+* Fix #1888: KubernetesExtension has helper method to add image with builder
 
 ### 1.9.1 (2022-09-14)
 * Fix #1747: Apply service doesn't attempt to create OpenShift Projects in Kubernetes clusters
