@@ -14,15 +14,13 @@
 package org.eclipse.jkube.springboot.watcher;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
@@ -30,145 +28,122 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
-import java.net.URLClassLoader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
-@SuppressWarnings({"ResultOfMethodCallIgnored", "AccessStaticViaInstance", "unused"})
 public class SpringBootWatcherTest {
-    @Mocked
-    private PortForwardService portForwardService;
 
-    @Mocked
+    @Rule
+    public TemporaryFolder project = new TemporaryFolder();
     private NamespacedKubernetesClient kubernetesClient;
 
-    @Mocked
     private WatcherContext watcherContext;
 
-    @Mocked
-    private JKubeConfiguration jkubeConfiguration;
-
-    @Mocked
-    private JavaProject javaProject;
-
-    @Mocked
-    private KubernetesHelper kubernetesHelper;
-
-    @Mocked
-    private SpringBootUtil springBootUtil;
-
     @Before
-    public void setup() {
-        // @formatter:off
-        new Expectations() {{
-            watcherContext.getBuildContext();
-            result = jkubeConfiguration;
-
-            jkubeConfiguration.getProject();
-            result = javaProject;
-
-            javaProject.getProperties();
-            result = new Properties();
-        }};
-        // @formatter:on
+    public void setup() throws IOException {
+        watcherContext = WatcherContext.builder()
+          .logger(new KitLogger.SilentLogger())
+          .buildContext(JKubeConfiguration.builder()
+            .project(JavaProject.builder()
+              .outputDirectory(project.newFolder("target"))
+              .build())
+            .build())
+          .build();
+        kubernetesClient = mock(NamespacedKubernetesClient.class);
     }
 
     @Test
     public void testGetPortForwardUrl() {
-        // Given
-        Properties properties = new Properties();
-        properties.put("server.port", "9001");
-        // @formatter:off
-        new Expectations() {{
-            javaProject.getCompileClassPathElements();
-            result = Collections.singletonList("/foo");
+        try (MockedStatic<SpringBootUtil> springBootUtilMockedStatic = Mockito.mockStatic(SpringBootUtil.class);
+             MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic = Mockito.mockStatic(KubernetesHelper.class);
+             MockedConstruction<PortForwardService> portForwardServiceMockedConstruction = Mockito.mockConstruction(PortForwardService.class)) {
+            // Given
+            Properties properties = new Properties();
+            properties.put("server.port", "9001");
+            springBootUtilMockedStatic.when(() -> SpringBootUtil.getSpringBootApplicationProperties(any())).thenReturn(properties);
+            List<HasMetadata> resources = new ArrayList<>();
+            resources.add(new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata()
+                    .withNewSpec()
+                    .withNewSelector()
+                    .withMatchLabels(Collections.singletonMap("foo", "bar"))
+                    .endSelector()
+                    .endSpec()
+                    .build());
+            resources.add(new ServiceBuilder().withNewMetadata().withName("s1").endMetadata().build());
+            kubernetesHelperMockedStatic.when(() -> KubernetesHelper.extractPodLabelSelector(resources))
+                .thenReturn(new LabelSelectorBuilder().build());
+            SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
-            javaProject.getOutputDirectory().getAbsolutePath();
-            result = "target/classes";
-
-            springBootUtil.getSpringBootApplicationProperties((URLClassLoader) any);
-            result = properties;
-        }};
-        // @formatter:on
-        List<HasMetadata> resources = new ArrayList<>();
-        resources.add(new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata()
-                .withNewSpec()
-                .withNewSelector()
-                .withMatchLabels(Collections.singletonMap("foo", "bar"))
-                .endSelector()
-                .endSpec()
-                .build());
-        resources.add(new ServiceBuilder().withNewMetadata().withName("s1").endMetadata().build());
-        SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
-
-        // When
-        String portForwardUrl = springBootWatcher.getPortForwardUrl(kubernetesClient, resources);
-
-        // Then
-        assertTrue(portForwardUrl.contains("http://localhost:"));
-        new Verifications() {{
-            portForwardService.forwardPortAsync(kubernetesClient, (LabelSelector) any, 9001, anyInt);
-        }};
+            // When
+            String portForwardUrl = springBootWatcher.getPortForwardUrl(kubernetesClient, resources);
+            // Then
+            assertThat(portForwardUrl).contains("http://localhost:");
+            assertThat(portForwardServiceMockedConstruction.constructed()).hasSize(1);
+            verify(portForwardServiceMockedConstruction.constructed().get(0))
+                .forwardPortAsync(eq(kubernetesClient), any(), eq(9001), anyInt());
+        }
     }
 
     @Test
     public void isApplicable_whenDetectsSpringBootMavenPlugin_thenReturnsTrue() {
         // Given
-        // @formatter:off
-        new Expectations() {{
-            javaProject.getPlugins();
-            result = Collections.singletonList(Plugin.builder().artifactId("spring-boot-maven-plugin").build());
-        }};
-        // @formatter:on
+        watcherContext = watcherContext.toBuilder()
+          .buildContext(watcherContext.getBuildContext().toBuilder()
+            .project(JavaProject.builder().plugin(Plugin.builder().artifactId("spring-boot-maven-plugin").build()).build())
+            .build())
+          .build();
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
         // When
         boolean isApplicable = springBootWatcher.isApplicable(Collections.emptyList(), Collections.emptyList(), PlatformMode.kubernetes);
 
         // Then
-        assertTrue(isApplicable);
+        assertThat(isApplicable).isTrue();
     }
 
     @Test
     public void isApplicable_whenDetectsSpringBootGradlePlugin_thenReturnsTrue() {
         // Given
-        // @formatter:off
-        new Expectations() {{
-            javaProject.getPlugins();
-            result = Collections.singletonList(Plugin.builder().artifactId("org.springframework.boot.gradle.plugin").build());
-        }};
-        // @formatter:on
+        watcherContext = watcherContext.toBuilder()
+          .buildContext(watcherContext.getBuildContext().toBuilder()
+            .project(JavaProject.builder().plugin(Plugin.builder().artifactId("org.springframework.boot.gradle.plugin").build()).build())
+            .build())
+          .build();
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
         // When
         boolean isApplicable = springBootWatcher.isApplicable(Collections.emptyList(), Collections.emptyList(), PlatformMode.kubernetes);
 
         // Then
-        assertTrue(isApplicable);
+        assertThat(isApplicable).isTrue();
     }
 
     @Test
     public void isApplicable_whenNoPluginProvided_thenReturnsFalse() {
         // Given
-        // @formatter:off
-        new Expectations() {{
-            javaProject.getPlugins();
-            result = Collections.emptyList();
-        }};
-        // @formatter:on
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
         // When
         boolean isApplicable = springBootWatcher.isApplicable(Collections.emptyList(), Collections.emptyList(), PlatformMode.kubernetes);
 
         // Then
-        assertFalse(isApplicable);
+        assertThat(isApplicable).isFalse();
     }
 }

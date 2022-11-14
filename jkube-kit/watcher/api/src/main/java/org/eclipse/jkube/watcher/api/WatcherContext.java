@@ -28,7 +28,7 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 /**
  * @author nicola
  */
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
