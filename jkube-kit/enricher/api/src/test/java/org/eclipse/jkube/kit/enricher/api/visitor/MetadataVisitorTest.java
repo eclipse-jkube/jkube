@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.api.visitor;
 
 import java.util.Properties;
 
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
@@ -347,5 +348,25 @@ class MetadataVisitorTest {
     // Then
     assertThat(route.build().getMetadata().getAnnotations()).containsOnly( entry("route", "Yay"));
     assertThat(route.build().getMetadata().getLabels()).containsOnly(entry("route", "Yay"));
+  }
+
+  @Test
+  public void metadataVisit_whenMultilineAnnotationProvided_shouldAddTrailingNewline() {
+    // Given
+    Properties allProps = new Properties();
+    final ObjectMetaBuilder db = new ObjectMetaBuilder();
+    allProps.put("multiline/config", "proxyMetadata:\n ISTIO_META_DNS_CAPTURE: \"false\"\nholdUntilProxyStarts: true");
+    ResourceConfig rc = ResourceConfig.builder()
+        .annotations(MetaDataConfig.builder()
+            .all(allProps)
+            .build())
+        .build();
+
+    // When
+    MetadataVisitor.metadata(rc).visit(db);
+
+    // Then
+    assertThat(db.build().getAnnotations())
+        .containsOnly(entry("multiline/config", "proxyMetadata:\n ISTIO_META_DNS_CAPTURE: \"false\"\nholdUntilProxyStarts: true\n"));
   }
 }

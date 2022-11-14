@@ -12,6 +12,10 @@ repositories {
     mavenCentral()
 }
 
+Properties allAnnotations = new Properties();
+allAnnotations.put("keyinall", "valueinall");
+allAnnotations.put("multiline/config", "proxyMetadata:\n ISTIO_META_DNS_CAPTURE: \"false\"\nholdUntilProxyStarts: true");
+
 kubernetes {
     offline = true
     images {
@@ -48,9 +52,7 @@ kubernetes {
             }
         }
         annotations {
-            all {
-                keyinall = 'valueinall'
-            }
+            all = allAnnotations
             pod {
                 keyinpodtemplate = 'valueinpodtemplate'
             }
@@ -115,9 +117,7 @@ openshift {
             }
         }
         annotations {
-            all {
-                keyinall = 'valueinall'
-            }
+            all = allAnnotations
             pod {
                 keyinpodtemplate = 'valueinpodtemplate'
             }

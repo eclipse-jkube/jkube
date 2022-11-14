@@ -1,0 +1,72 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        proxy.istio.io/config: |
+          proxyMetadata:
+              ISTIO_META_DNS_CAPTURE: "false"
+          holdApplicationUntilProxyStarts: true
+        keyinall: valueinall
+        jkube.io/git-branch: "@ignore@"
+        jkube.io/scm-url: "@ignore@"
+        jkube.io/git-url: "@ignore@"
+        jkube.io/scm-tag: "@ignore@"
+        jkube.io/git-commit: "@ignore@"
+      labels:
+        keyinall: valueinall
+        app: jkube-maven-metadata-labels-annotations
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube
+      name: jkube-maven-metadata-labels-annotations
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        matchLabels:
+          app: jkube-maven-metadata-labels-annotations
+          provider: jkube
+          group: org.eclipse.jkube
+      template:
+        metadata:
+          annotations:
+            proxy.istio.io/config: |
+              proxyMetadata:
+                  ISTIO_META_DNS_CAPTURE: "false"
+              holdApplicationUntilProxyStarts: true
+            keyinall: valueinall
+            jkube.io/git-branch: "@ignore@"
+            keyinpodtemplate: valueinpodtemplate
+            jkube.io/scm-url: "@ignore@"
+            jkube.io/git-url: "@ignore@"
+            jkube.io/scm-tag: "@ignore@"
+            jkube.io/git-commit: "@ignore@"
+          labels:
+            keyinall: valueinall
+            keyinpodtemplate: valueinpodtemplate
+            app: jkube-maven-metadata-labels-annotations
+            provider: jkube
+            version: "@ignore@"
+            group: org.eclipse.jkube
+          name: jkube-maven-metadata-labels-annotations
+        spec:
+          containers:
+            - env:
+                - name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: HOSTNAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+              image: metadata-annotations:latest
+              imagePullPolicy: IfNotPresent
+              name: orgeclipsejkube-jkube-maven-metadata-labels-annotations
+              securityContext:
+                privileged: false
+
