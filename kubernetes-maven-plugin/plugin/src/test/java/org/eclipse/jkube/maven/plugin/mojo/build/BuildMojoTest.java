@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
-import mockit.Expectations;
-import mockit.Mocked;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -25,18 +23,16 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class BuildMojoTest {
-    @Mocked
     private MavenProject mavenProject;
-
     @BeforeEach
     void setUp() {
-        // @formatter:off
-        new Expectations(){{
-            mavenProject.getBuild().getDirectory(); result = "target";
-        }};
-        // @formatter:on
+        mavenProject = mock(MavenProject.class,RETURNS_DEEP_STUBS);
+        when(mavenProject.getBuild().getDirectory()).thenReturn("target");
     }
 
     @Test
