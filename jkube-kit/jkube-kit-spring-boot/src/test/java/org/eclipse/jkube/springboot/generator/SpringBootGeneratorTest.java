@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.springboot.generator;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,8 +31,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class SpringBootGeneratorTest {
 
@@ -42,26 +39,21 @@ public class SpringBootGeneratorTest {
 
   private GeneratorContext context;
 
-  private JavaProject project;
-
-  private SpringBootGenerator springBootGenerator;
-
   @Before
   public void setUp() throws Exception {
-    context = mock(GeneratorContext.class);
-    project = mock(JavaProject.class);
-    when(context.getProject()).thenReturn(project);
-    when(project.getOutputDirectory()).thenReturn(new File(temporaryFolder.newFolder("springboot-test-project").getAbsolutePath()));
-    when(project.getPlugins()).thenReturn(Collections.emptyList());
-    when(project.getVersion()).thenReturn("1.0.0");
-    when(context.getLogger()).thenReturn(new KitLogger.SilentLogger());
-    springBootGenerator = new SpringBootGenerator(context);
+    context = GeneratorContext.builder()
+      .logger(new KitLogger.SilentLogger())
+      .project(JavaProject.builder()
+        .outputDirectory(temporaryFolder.newFolder("target"))
+        .version("1.0.0")
+        .build())
+      .build();
   }
 
   @Test
   public void isApplicable_withNoImageConfigurations_shouldReturnFalse() {
     // When
-    final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
+    final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
     // Then
     assertThat(result).isFalse();
   }
@@ -69,12 +61,12 @@ public class SpringBootGeneratorTest {
   @Test
   public void isApplicable_withNoImageConfigurationsAndMavenPlugin_shouldReturnTrue() {
     // Given
-    withPlugins(Collections.singletonList(Plugin.builder()
+    withPlugin(Plugin.builder()
         .groupId("org.springframework.boot")
         .artifactId("spring-boot-maven-plugin")
-        .build()));
+        .build());
     // When
-    final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
+    final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
     // Then
     assertThat(result).isTrue();
   }
@@ -82,12 +74,12 @@ public class SpringBootGeneratorTest {
   @Test
   public void isApplicable_withNoImageConfigurationsAndGradlePlugin_shouldReturnTrue() {
     // Given
-    withPlugins(Collections.singletonList(Plugin.builder()
+    withPlugin(Plugin.builder()
         .groupId("org.springframework.boot")
         .artifactId("org.springframework.boot.gradle.plugin")
-        .build()));
+        .build());
     // When
-    final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
+    final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
     // Then
     assertThat(result).isTrue();
   }
@@ -95,7 +87,7 @@ public class SpringBootGeneratorTest {
   @Test
   public void getExtraJavaOptions_withDefaults_shouldBeEmpty() {
     // When
-    final List<String> result = springBootGenerator.getExtraJavaOptions();
+    final List<String> result = new SpringBootGenerator(context).getExtraJavaOptions();
     // Then
     assertThat(result).isNotNull().isEmpty();
   }
@@ -103,7 +95,7 @@ public class SpringBootGeneratorTest {
   @Test
   public void customize_withEmptyList_shouldReturnAddedImage() {
     // When
-    final List<ImageConfiguration> configs = springBootGenerator.customize(new ArrayList<>(), true);
+    final List<ImageConfiguration> configs = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
     // Then
     assertThat(configs)
         .singleElement()
@@ -115,7 +107,9 @@ public class SpringBootGeneratorTest {
         .containsEntry("JAVA_APP_DIR", "/deployments");
   }
 
-  private void withPlugins(List<Plugin> plugins) {
-    when(project.getPlugins()).thenReturn(plugins);
+  private void withPlugin(Plugin plugin) {
+    context = context.toBuilder()
+      .project(JavaProject.builder().plugin(plugin).build())
+      .build();
   }
 }
