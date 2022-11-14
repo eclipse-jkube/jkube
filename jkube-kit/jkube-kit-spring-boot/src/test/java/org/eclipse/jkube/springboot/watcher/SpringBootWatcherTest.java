@@ -28,10 +28,14 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,28 +45,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class SpringBootWatcherTest {
+
+    @Rule
+    public TemporaryFolder project = new TemporaryFolder();
     private NamespacedKubernetesClient kubernetesClient;
 
     private WatcherContext watcherContext;
 
-    private JavaProject javaProject;
-
     @Before
-    public void setup() {
-        javaProject = mock(JavaProject.class,RETURNS_DEEP_STUBS);
-        JKubeConfiguration jkubeConfiguration = mock(JKubeConfiguration.class);
-        watcherContext = mock(WatcherContext.class);
+    public void setup() throws IOException {
+        watcherContext = WatcherContext.builder()
+          .logger(new KitLogger.SilentLogger())
+          .buildContext(JKubeConfiguration.builder()
+            .project(JavaProject.builder()
+              .outputDirectory(project.newFolder("target"))
+              .build())
+            .build())
+          .build();
         kubernetesClient = mock(NamespacedKubernetesClient.class);
-        when(watcherContext.getBuildContext()).thenReturn(jkubeConfiguration);
-        when(watcherContext.getLogger()).thenReturn(new KitLogger.SilentLogger());
-        when(jkubeConfiguration.getProject()).thenReturn(javaProject);
-        when(javaProject.getProperties()).thenReturn(new Properties());
     }
 
     @Test
@@ -73,9 +77,8 @@ public class SpringBootWatcherTest {
             // Given
             Properties properties = new Properties();
             properties.put("server.port", "9001");
-            when(javaProject.getCompileClassPathElements()).thenReturn(Collections.singletonList("/foo"));
-            when(javaProject.getOutputDirectory().getAbsolutePath()).thenReturn("target/classes");
-            springBootUtilMockedStatic.when(() -> SpringBootUtil.getSpringBootApplicationProperties(any())).thenReturn(properties);            List<HasMetadata> resources = new ArrayList<>();
+            springBootUtilMockedStatic.when(() -> SpringBootUtil.getSpringBootApplicationProperties(any())).thenReturn(properties);
+            List<HasMetadata> resources = new ArrayList<>();
             resources.add(new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata()
                     .withNewSpec()
                     .withNewSelector()
@@ -101,7 +104,11 @@ public class SpringBootWatcherTest {
     @Test
     public void isApplicable_whenDetectsSpringBootMavenPlugin_thenReturnsTrue() {
         // Given
-        when(javaProject.getPlugins()).thenReturn(Collections.singletonList(Plugin.builder().artifactId("spring-boot-maven-plugin").build()));
+        watcherContext = watcherContext.toBuilder()
+          .buildContext(watcherContext.getBuildContext().toBuilder()
+            .project(JavaProject.builder().plugin(Plugin.builder().artifactId("spring-boot-maven-plugin").build()).build())
+            .build())
+          .build();
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
         // When
@@ -114,7 +121,11 @@ public class SpringBootWatcherTest {
     @Test
     public void isApplicable_whenDetectsSpringBootGradlePlugin_thenReturnsTrue() {
         // Given
-        when(javaProject.getPlugins()).thenReturn(Collections.singletonList(Plugin.builder().artifactId("org.springframework.boot.gradle.plugin").build()));
+        watcherContext = watcherContext.toBuilder()
+          .buildContext(watcherContext.getBuildContext().toBuilder()
+            .project(JavaProject.builder().plugin(Plugin.builder().artifactId("org.springframework.boot.gradle.plugin").build()).build())
+            .build())
+          .build();
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
         // When
@@ -127,7 +138,6 @@ public class SpringBootWatcherTest {
     @Test
     public void isApplicable_whenNoPluginProvided_thenReturnsFalse() {
         // Given
-        when(javaProject.getPlugins()).thenReturn(Collections.emptyList());
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
         // When
