@@ -64,7 +64,7 @@
     <version.plexus-utils>3.0.24</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
-    <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
+    <version.wagon-ssh-external>3.5.2</version.wagon-ssh-external>
     <version.ow2.asm>9.4</version.ow2.asm>
 
     <!-- =======================================================  -->
