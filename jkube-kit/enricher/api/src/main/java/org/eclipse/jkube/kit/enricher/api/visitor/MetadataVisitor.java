@@ -113,7 +113,7 @@ public class MetadataVisitor<T extends VisitableBuilder> extends TypedVisitor<T>
   private Map<String, String> overlayMap(Properties properties, Map<String, String> originalMap) {
     final Map<String, String> ret = new HashMap<>(Optional.ofNullable(originalMap).orElse(Collections.emptyMap()));
     for (Map.Entry<String, String> entry : toMap(properties).entrySet()) {
-      ret.putIfAbsent(entry.getKey(), entry.getValue());
+      ret.putIfAbsent(entry.getKey(), appendTrailingNewLineIfMultiline(entry.getValue()));
     }
     return ret;
   }
@@ -124,6 +124,13 @@ public class MetadataVisitor<T extends VisitableBuilder> extends TypedVisitor<T>
 
   private static MetaDataConfig getLabels(ResourceConfig resourceConfig) {
     return Optional.ofNullable(resourceConfig).map(ResourceConfig::getLabels).orElse(new MetaDataConfig());
+  }
+
+  private String appendTrailingNewLineIfMultiline(String value) {
+    if (value.contains(System.lineSeparator()) && !value.endsWith(System.lineSeparator())) {
+      return value + System.lineSeparator();
+    }
+    return value;
   }
 
   // =======================================================================================

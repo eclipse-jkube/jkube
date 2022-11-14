@@ -8,6 +8,10 @@ items:
     annotations:
       keyinserviceaccount: valueinserviceaccount
       keyinall: valueinall
+      multiline/config: |
+        proxyMetadata:
+         ISTIO_META_DNS_CAPTURE: "false"
+        holdUntilProxyStarts: true
     labels:
       keyinserviceaccount: valueinserviceaccount
       keyinall: valueinall
@@ -27,6 +31,10 @@ items:
       jkube.io/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
       jkube.io/git-commit: "@ignore@"
+      multiline/config: |
+        proxyMetadata:
+         ISTIO_META_DNS_CAPTURE: "false"
+        holdUntilProxyStarts: true
     labels:
       keyinall: valueinall
       keyinservice: valueinservice
@@ -56,6 +64,10 @@ items:
       jkube.io/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
       jkube.io/git-commit: "@ignore@"
+      multiline/config: |
+        proxyMetadata:
+         ISTIO_META_DNS_CAPTURE: "false"
+        holdUntilProxyStarts: true
     labels:
       keyindeployment: valueindeployment
       keyinall: valueinall
@@ -128,6 +140,10 @@ items:
       app.openshift.io/vcs-uri: "@ignore@"
       jkube.io/git-commit: "@ignore@"
       keyinall: valueinall
+      multiline/config: |
+        proxyMetadata:
+         ISTIO_META_DNS_CAPTURE: "false"
+        holdUntilProxyStarts: true
       keyinroute: valueinroute
       jkube.io/git-branch: "@ignore@"
     labels:
