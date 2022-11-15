@@ -32,6 +32,8 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -79,46 +81,37 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     protected abstract String getSpringBootVersion();
 
     @Test
-    void testZeroConfig() {
+    void zeroConfig() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(propertyHelper.getActuatorDefaultBasePath() + "/health").isEqualTo(probe.getHttpGet().getPath());
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8080);
+        assertHTTPGetPathAndPort(probe, propertyHelper.getActuatorDefaultBasePath() + "/health", 8080);
     }
 
     @Test
-    void testWithServerPort() {
+    void withServerPort() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(propertyHelper.getActuatorDefaultBasePath() + "/health").isEqualTo(probe.getHttpGet().getPath());
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, propertyHelper.getActuatorDefaultBasePath() + "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndManagementPort() {
+    void withServerPortAndManagementPort() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
         props.put(propertyHelper.getManagementPortPropertyKey(), "8383");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(propertyHelper.getActuatorDefaultBasePath() + "/health").isEqualTo(probe.getHttpGet().getPath());
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, propertyHelper.getActuatorDefaultBasePath() + "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementPortAndServerContextPath() {
+    void withServerPortAndManagementPortAndServerContextPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -126,14 +119,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getServerContextPathPropertyKey(), "/p1");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(propertyHelper.getActuatorDefaultBasePath() + "/health").isEqualTo(probe.getHttpGet().getPath());
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, propertyHelper.getActuatorDefaultBasePath() + "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementPortAndServerContextPathAndActuatorDefaultBasePath() {
+    void withServerPortAndManagementPortAndServerContextPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -142,14 +132,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/p2");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p2" + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, "/p2" + "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementPortAndServerContextPathAndActuatorDefaultBasePathSlash() {
+    void withServerPortAndManagementPortAndServerContextPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -158,14 +145,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementPortAndManagementContextPath() {
+    void withServerPortAndManagementPortAndManagementContextPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -174,14 +158,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getManagementContextPathPropertyKey(), "/p2");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat( probe.getHttpGet().getPath()).isEqualTo("/p2" + propertyHelper.getActuatorDefaultBasePath() + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, "/p2" + propertyHelper.getActuatorDefaultBasePath() + "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementPortAndManagementContextPathAndActuatorDefaultBasePath() {
+    void withServerPortAndManagementPortAndManagementContextPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -191,14 +172,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/p3");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p2/p3" + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, "/p2/p3" + "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementPortAndManagementContextPathAndActuatorDefaultBasePathSlash() {
+    void withServerPortAndManagementPortAndManagementContextPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -208,14 +186,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/health");
-        assertThat( probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementPortAndManagementContextPathAndServletPath() {
+    void withServerPortAndManagementPortAndManagementContextPathAndServletPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -225,14 +200,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getServletPathPropertyKey(), "/servlet");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p2" + propertyHelper.getActuatorDefaultBasePath() + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, "/p2" + propertyHelper.getActuatorDefaultBasePath() + "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
+    void withServerPortAndManagementPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -243,14 +215,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/p3");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p2/p3" + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, "/p2/p3" + "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
+    void withServerPortAndManagementPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -261,28 +230,22 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8383);
+        assertHTTPGetPathAndPort(probe, "/health", 8383);
     }
 
     @Test
-    void testWithServerPortAndManagementContextPath() {
+    void withServerPortAndManagementContextPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
         props.put(propertyHelper.getManagementContextPathPropertyKey(), "/p1");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p1" + propertyHelper.getActuatorDefaultBasePath() +"/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/p1" + propertyHelper.getActuatorDefaultBasePath() +"/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndManagementContextPathAndActuatorDefaultBasePath() {
+    void withServerPortAndManagementContextPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -290,14 +253,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/p2");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p1/p2" +"/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/p1/p2" +"/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndManagementContextPathAndActuatorDefaultBasePathSlash() {
+    void withServerPortAndManagementContextPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -305,14 +265,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndServerContextPathAndManagementContextPath() {
+    void withServerPortAndServerContextPathAndManagementContextPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -320,14 +277,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getServerContextPathPropertyKey(), "/p2");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p2/p1" + propertyHelper.getActuatorDefaultBasePath() + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/p2/p1" + propertyHelper.getActuatorDefaultBasePath() + "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndServerContextPathAndManagementContextPathAndActuatorDefaultBasePath() {
+    void withServerPortAndServerContextPathAndManagementContextPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -336,14 +290,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/p3");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p2/p1/p3" + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/p2/p1/p3" + "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndServerContextPathAndManagementContextPathAndActuatorDefaultBasePathSlash() {
+    void withServerPortAndServerContextPathAndManagementContextPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -352,28 +303,22 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndServletPath() {
+    void withServerPortAndServletPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
         props.put(propertyHelper.getServletPathPropertyKey(), "/servlet");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/servlet" + propertyHelper.getActuatorDefaultBasePath() + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/servlet" + propertyHelper.getActuatorDefaultBasePath() + "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndServletAndActuatorDefaultBasePathPath() {
+    void withServerPortAndServletAndActuatorDefaultBasePathPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -381,14 +326,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/p1");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/servlet/p1" + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/servlet/p1" + "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndServletPathAndActuatorDefaultBasePathSlash() {
+    void withServerPortAndServletPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -396,14 +338,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndManagementContextPathAndServletPath() {
+    void withServerPortAndManagementContextPathAndServletPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -411,14 +350,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getManagementContextPathPropertyKey(), "/p1");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/servlet/p1" + propertyHelper.getActuatorDefaultBasePath() + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/servlet/p1" + propertyHelper.getActuatorDefaultBasePath() + "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
+    void withServerPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -427,14 +363,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/p2");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/servlet/p1/p2" + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/servlet/p1/p2" + "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
+    void withServerPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -443,14 +376,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndServerContextPathAndManagementContextPathAndServletPath() {
+    void withServerPortAndServerContextPathAndManagementContextPathAndServletPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -459,14 +389,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getServerContextPathPropertyKey(), "/p2");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p2/servlet/p1" + propertyHelper.getActuatorDefaultBasePath() + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/p2/servlet/p1" + propertyHelper.getActuatorDefaultBasePath() + "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndServerContextPathAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
+    void withServerPortAndServerContextPathAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -476,14 +403,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/p3");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/p2/servlet/p1/p3" + "/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/p2/servlet/p1/p3" + "/health", 8282);
     }
 
     @Test
-    void testWithServerPortAndServerContextPathAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
+    void withServerPortAndServerContextPathAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -493,55 +417,43 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getActuatorBasePathPropertyKey(), "/");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getPath()).isEqualTo("/health");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8282);
+        assertHTTPGetPathAndPort(probe, "/health", 8282);
     }
 
     @Test
-    void testSchemeWithServerPort() {
+    void schemeWithServerPort() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8443");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTP");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8443);
+        assertHTTPGetSchemeAndPort(probe, "HTTP", 8443);
     }
 
     @Test
-    void testSchemeWithServerPortAndManagementKeystore() {
+    void schemeWithServerPortAndManagementKeystore() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8080");
         props.put(propertyHelper.getManagementKeystorePropertyKey(), "classpath:keystore.p12");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTP");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8080);
+        assertHTTPGetSchemeAndPort(probe, "HTTP", 8080);
     }
 
     @Test
-    void testSchemeWithServerPortAndServerKeystore() {
+    void schemeWithServerPortAndServerKeystore() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8443");
         props.put(propertyHelper.getServerKeystorePropertyKey(), "classpath:keystore.p12");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTPS");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8443);
+        assertHTTPGetSchemeAndPort(probe, "HTTPS", 8443);
     }
 
     @Test
-    void testSchemeWithServerPortAndManagementPortAndServerKeystore() {
+    void schemeWithServerPortAndManagementPortAndServerKeystore() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8443");
@@ -549,14 +461,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getServerKeystorePropertyKey(), "classpath:keystore.p12");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat( probe.getHttpGet().getScheme()).isEqualTo("HTTP");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8081);
+        assertHTTPGetSchemeAndPort(probe, "HTTP", 8081);
     }
 
     @Test
-    void testSchemeWithServerPortAndManagementPortAndManagementKeystore() {
+    void schemeWithServerPortAndManagementPortAndManagementKeystore() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8080");
@@ -564,10 +473,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put(propertyHelper.getManagementKeystorePropertyKey(), "classpath:keystore.p12");
 
         Probe probe = enricher.buildProbe(props, 10, null, null, 3, 1);
-        assertThat(probe).isNotNull();
-        assertThat(probe.getHttpGet()).isNotNull();
-        assertThat(probe.getHttpGet().getScheme()).isEqualTo("HTTPS");
-        assertThat(probe.getHttpGet().getPort().getIntVal().intValue()).isEqualTo(8443);
+        assertHTTPGetSchemeAndPort(probe, "HTTPS", 8443);
     }
 
     @Test
@@ -577,13 +483,12 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
           .thenReturn(true);
         when(context.getProjectClassLoaders().getCompileClassLoader())
           .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
-        Probe probe = enricher.getReadinessProbe();
-        assertThat(probe).isNotNull();
-        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(10);
 
-        probe = enricher.getLivenessProbe();
-        assertThat(probe).isNotNull();
-        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(180);
+        Probe readinessProbe = enricher.getReadinessProbe();
+        assertHealthCheckDelays(readinessProbe, 10, null, null);
+
+        Probe livenessProbe = enricher.getLivenessProbe();
+        assertHealthCheckDelays(livenessProbe, 180, null, null);
     }
 
     @Test
@@ -601,16 +506,11 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
 
-        Probe probe = enricher.getReadinessProbe();
-        assertThat(probe).isNotNull();
-        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(20);
-        assertThat(probe.getPeriodSeconds()).isNull();
-        assertThat(probe.getTimeoutSeconds().intValue()).isEqualTo(120);
-        probe = enricher.getLivenessProbe();
-        assertThat(probe).isNotNull();
-        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(360);
-        assertThat(probe.getPeriodSeconds()).isNull();
-        assertThat(probe.getTimeoutSeconds().intValue()).isEqualTo(120);
+        Probe readinessProbe = enricher.getReadinessProbe();
+        assertHealthCheckDelays(readinessProbe, 20, null, 120);
+
+        Probe livenessProbe = enricher.getLivenessProbe();
+        assertHealthCheckDelays(livenessProbe, 360, null, 120);
     }
 
     @Test
@@ -629,15 +529,31 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
 
-        Probe probe = enricher.getReadinessProbe();
-        assertThat(probe).isNotNull();
-        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(30);
-        assertThat(probe.getPeriodSeconds().intValue()).isEqualTo(40);
+        Probe readinessProbe = enricher.getReadinessProbe();
+        assertHealthCheckDelays(readinessProbe, 30, 40, null);
 
-        probe = enricher.getLivenessProbe();
-        assertThat(probe).isNotNull();
-        assertThat(probe.getInitialDelaySeconds().intValue()).isEqualTo(460);
-        assertThat(probe.getPeriodSeconds().intValue()).isEqualTo(50);
+        Probe livenessProbe = enricher.getLivenessProbe();
+        assertHealthCheckDelays(livenessProbe, 460, 50, null);
     }
 
+    private void assertHTTPGetPathAndPort(Probe probe, String path, int port) {
+      assertThat(probe).isNotNull()
+          .extracting(Probe::getHttpGet).isNotNull()
+          .hasFieldOrPropertyWithValue("path", path)
+          .hasFieldOrPropertyWithValue("port.intVal", port);
+    }
+
+    private void assertHTTPGetSchemeAndPort(Probe probe, String scheme, int port) {
+      assertThat(probe).isNotNull()
+          .extracting(Probe::getHttpGet).isNotNull()
+          .hasFieldOrPropertyWithValue("scheme", scheme)
+          .hasFieldOrPropertyWithValue("port.intVal", port);
+    }
+
+    private void assertHealthCheckDelays(Probe probe, int initialDelaySeconds, Integer periodSeconds, Integer timeoutSeconds) {
+      assertThat(probe).isNotNull()
+          .hasFieldOrPropertyWithValue("initialDelaySeconds", initialDelaySeconds)
+          .hasFieldOrPropertyWithValue("periodSeconds", periodSeconds)
+          .hasFieldOrPropertyWithValue("timeoutSeconds", timeoutSeconds);
+    }
 }
