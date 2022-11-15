@@ -28,8 +28,12 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -41,8 +45,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -100,13 +106,15 @@ class SpringBootWatcherTest {
         }
     }
 
-    @Test
-    void isApplicable_whenDetectsSpringBootMavenPlugin_thenReturnsTrue() {
+    @DisplayName("isApplicable")
+    @ParameterizedTest(name = "with ''{0}'' should return ''{2}''")
+    @MethodSource("plugins")
+    void isApplicable(String pluginType, List<Plugin> plugins, boolean expected) {
         // Given
         watcherContext = watcherContext.toBuilder()
-          .buildContext(watcherContext.getBuildContext().toBuilder()
-            .project(JavaProject.builder().plugin(Plugin.builder().artifactId("spring-boot-maven-plugin").build()).build())
-            .build())
+                .buildContext(watcherContext.getBuildContext().toBuilder()
+                .project(JavaProject.builder().plugins(plugins).build())
+                .build())
           .build();
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 
@@ -114,35 +122,13 @@ class SpringBootWatcherTest {
         boolean isApplicable = springBootWatcher.isApplicable(Collections.emptyList(), Collections.emptyList(), PlatformMode.kubernetes);
 
         // Then
-        assertThat(isApplicable).isTrue();
+        assertThat(isApplicable).isEqualTo(expected);
     }
 
-    @Test
-    void isApplicable_whenDetectsSpringBootGradlePlugin_thenReturnsTrue() {
-        // Given
-        watcherContext = watcherContext.toBuilder()
-          .buildContext(watcherContext.getBuildContext().toBuilder()
-            .project(JavaProject.builder().plugin(Plugin.builder().artifactId("org.springframework.boot.gradle.plugin").build()).build())
-            .build())
-          .build();
-        SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
-
-        // When
-        boolean isApplicable = springBootWatcher.isApplicable(Collections.emptyList(), Collections.emptyList(), PlatformMode.kubernetes);
-
-        // Then
-        assertThat(isApplicable).isTrue();
-    }
-
-    @Test
-    void isApplicable_whenNoPluginProvided_thenReturnsFalse() {
-        // Given
-        SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
-
-        // When
-        boolean isApplicable = springBootWatcher.isApplicable(Collections.emptyList(), Collections.emptyList(), PlatformMode.kubernetes);
-
-        // Then
-        assertThat(isApplicable).isFalse();
+    static Stream<Arguments> plugins() {
+      return Stream.of(
+          arguments("spring boot maven plugin", Collections.singletonList(Plugin.builder().artifactId("spring-boot-maven-plugin").build()), true),
+          arguments("spring boot gradle plugin", Collections.singletonList(Plugin.builder().artifactId("org.springframework.boot.gradle.plugin").build()), true),
+          arguments("no plugin", Collections.emptyList(), false));
     }
 }
