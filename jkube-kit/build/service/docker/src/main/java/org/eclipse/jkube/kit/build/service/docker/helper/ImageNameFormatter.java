@@ -21,6 +21,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.DEFAULT_FILTER;
+import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.interpolate;
+
 /**
  * Replace placeholders in an image name with certain properties found in the
  * project
@@ -40,9 +43,11 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
     private final FormatParameterReplacer formatParamReplacer;
 
     private final Date now;
+    private JavaProject project;
 
     public ImageNameFormatter(JavaProject project, Date now) {
         this.now = now;
+        this.project = project;
         formatParamReplacer = new FormatParameterReplacer(initLookups(project));
     }
 
@@ -52,6 +57,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
             return null;
         }
 
+        name = interpolate(name, project.getProperties(), DEFAULT_FILTER);
         return formatParamReplacer.replace(name);
     }
 

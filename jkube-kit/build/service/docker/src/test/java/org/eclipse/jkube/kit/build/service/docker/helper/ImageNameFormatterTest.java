@@ -78,6 +78,8 @@ class ImageNameFormatterTest {
     @Test
     void artifact() {
         project.setArtifactId("Docker....Maven.....Plugin");
+        project.setProperties(new Properties());
+
         assertThat(formatter.format("--> %a <--")).isEqualTo("--> docker.maven.plugin <--");
     }
 
@@ -119,5 +121,15 @@ class ImageNameFormatterTest {
         final String result = formatter.format("%g/name");
         // Then
         assertThat(result).isEqualTo("this.it..is/name");
+    }
+
+    @Test
+    void format_whenPropertyInImageName_thenResolveProperty() {
+        // Given
+        project.getProperties().put("git.commit.id.abbrev", "der12");
+        // When
+        final String result = formatter.format("registry.gitlab.com/myproject/myrepo/mycontainer:${git.commit.id.abbrev}");
+        // Then
+        assertThat(result).isEqualTo("registry.gitlab.com/myproject/myrepo/mycontainer:der12");
     }
 }

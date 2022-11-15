@@ -23,6 +23,7 @@ Usage:
 ### 1.11-SNAPSHOT
 * Fix #1459: Route Generation should support `8443` as default web port
 * Fix #1546: Migrate to JUnit5 testing framework
+* Fix #1858: Properties in image name not replaced
 * Fix #1935: `oc:remote-dev` goal / `ocRemoteDev` task have wrong log prefixes
 
 ### 1.10.1 (2022-11-16)
