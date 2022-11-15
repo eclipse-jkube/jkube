@@ -16,6 +16,8 @@ package org.eclipse.jkube.springboot.enricher;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.Properties;
@@ -29,10 +31,9 @@ import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnricher.REQUIRED_CLASSES;
@@ -48,23 +49,20 @@ import static org.mockito.Mockito.when;
  */
 public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
-    @Rule
-    public TemporaryFolder project = new TemporaryFolder();
-
     protected JKubeEnricherContext context;
 
     protected SpringBootConfigurationHelper propertyHelper;
 
     private ProjectClassLoaders projectClassLoaders;
 
-    @Before
-    public void init() throws IOException {
+    @BeforeEach
+    void init(@TempDir Path project) throws IOException {
         projectClassLoaders = mock(ProjectClassLoaders.class, RETURNS_DEEP_STUBS);
         context = spy(JKubeEnricherContext.builder()
           .log(new KitLogger.SilentLogger())
           .project(JavaProject.builder()
-            .baseDirectory(project.getRoot())
-            .outputDirectory(project.newFolder("target"))
+            .baseDirectory(project.toFile())
+            .outputDirectory(Files.createDirectory(project.resolve("target")).toFile())
             .groupId("com.example")
             .artifactId("foo")
             .dependenciesWithTransitive(Collections.singletonList(Dependency.builder()
@@ -81,7 +79,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     protected abstract String getSpringBootVersion();
 
     @Test
-    public void testZeroConfig() {
+    void testZeroConfig() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
 
@@ -93,7 +91,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPort() {
+    void testWithServerPort() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -106,7 +104,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPort() {
+    void testWithServerPortAndManagementPort() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -120,7 +118,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPortAndServerContextPath() {
+    void testWithServerPortAndManagementPortAndServerContextPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -135,7 +133,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPortAndServerContextPathAndActuatorDefaultBasePath() {
+    void testWithServerPortAndManagementPortAndServerContextPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -151,7 +149,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPortAndServerContextPathAndActuatorDefaultBasePathSlash() {
+    void testWithServerPortAndManagementPortAndServerContextPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -167,7 +165,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPortAndManagementContextPath() {
+    void testWithServerPortAndManagementPortAndManagementContextPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -183,7 +181,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPortAndManagementContextPathAndActuatorDefaultBasePath() {
+    void testWithServerPortAndManagementPortAndManagementContextPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -200,7 +198,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPortAndManagementContextPathAndActuatorDefaultBasePathSlash() {
+    void testWithServerPortAndManagementPortAndManagementContextPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -217,7 +215,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPortAndManagementContextPathAndServletPath() {
+    void testWithServerPortAndManagementPortAndManagementContextPathAndServletPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -234,7 +232,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
+    void testWithServerPortAndManagementPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -252,7 +250,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
+    void testWithServerPortAndManagementPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -270,7 +268,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementContextPath() {
+    void testWithServerPortAndManagementContextPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -284,7 +282,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementContextPathAndActuatorDefaultBasePath() {
+    void testWithServerPortAndManagementContextPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -299,7 +297,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementContextPathAndActuatorDefaultBasePathSlash() {
+    void testWithServerPortAndManagementContextPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -314,7 +312,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndServerContextPathAndManagementContextPath() {
+    void testWithServerPortAndServerContextPathAndManagementContextPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -329,7 +327,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndServerContextPathAndManagementContextPathAndActuatorDefaultBasePath() {
+    void testWithServerPortAndServerContextPathAndManagementContextPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -345,7 +343,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndServerContextPathAndManagementContextPathAndActuatorDefaultBasePathSlash() {
+    void testWithServerPortAndServerContextPathAndManagementContextPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -361,7 +359,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndServletPath() {
+    void testWithServerPortAndServletPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -375,7 +373,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndServletAndActuatorDefaultBasePathPath() {
+    void testWithServerPortAndServletAndActuatorDefaultBasePathPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -390,7 +388,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndServletPathAndActuatorDefaultBasePathSlash() {
+    void testWithServerPortAndServletPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -405,7 +403,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementContextPathAndServletPath() {
+    void testWithServerPortAndManagementContextPathAndServletPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -420,7 +418,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
+    void testWithServerPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -436,7 +434,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
+    void testWithServerPortAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -452,7 +450,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndServerContextPathAndManagementContextPathAndServletPath() {
+    void testWithServerPortAndServerContextPathAndManagementContextPathAndServletPath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -468,7 +466,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndServerContextPathAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
+    void testWithServerPortAndServerContextPathAndManagementContextPathAndServletPathAndActuatorDefaultBasePath() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -485,7 +483,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testWithServerPortAndServerContextPathAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
+    void testWithServerPortAndServerContextPathAndManagementContextPathAndServletPathAndActuatorDefaultBasePathSlash() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8282");
@@ -502,7 +500,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testSchemeWithServerPort() {
+    void testSchemeWithServerPort() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8443");
@@ -515,7 +513,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testSchemeWithServerPortAndManagementKeystore() {
+    void testSchemeWithServerPortAndManagementKeystore() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8080");
@@ -529,7 +527,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testSchemeWithServerPortAndServerKeystore() {
+    void testSchemeWithServerPortAndServerKeystore() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8443");
@@ -543,7 +541,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testSchemeWithServerPortAndManagementPortAndServerKeystore() {
+    void testSchemeWithServerPortAndManagementPortAndServerKeystore() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8443");
@@ -558,7 +556,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testSchemeWithServerPortAndManagementPortAndManagementKeystore() {
+    void testSchemeWithServerPortAndManagementPortAndManagementKeystore() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         Properties props = new Properties();
         props.put(propertyHelper.getServerPortPropertyKey(), "8080");
@@ -573,7 +571,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testDefaultInitialDelayForLivenessAndReadiness() {
+    void testDefaultInitialDelayForLivenessAndReadiness() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES))
           .thenReturn(true);
@@ -589,7 +587,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testCustomInitialDelayForLivenessAndReadinessAndTimeout() {
+    void testCustomInitialDelayForLivenessAndReadinessAndTimeout() {
         TreeMap<String, Object> enricherConfig = new TreeMap<>();
         enricherConfig.put("readinessProbeInitialDelaySeconds", "20");
         enricherConfig.put("livenessProbeInitialDelaySeconds", "360");
@@ -616,7 +614,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
-    public void testCustomPropertiesForLivenessAndReadiness() {
+    void testCustomPropertiesForLivenessAndReadiness() {
         TreeMap<String, Object> enricherConfig = new TreeMap<>();
         enricherConfig.put("readinessProbeInitialDelaySeconds", "30");
         enricherConfig.put("readinessProbePeriodSeconds", "40");
