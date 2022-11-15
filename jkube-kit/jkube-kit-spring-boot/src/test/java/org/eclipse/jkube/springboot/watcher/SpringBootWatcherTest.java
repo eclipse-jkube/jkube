@@ -27,15 +27,16 @@ import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
 import org.eclipse.jkube.watcher.api.WatcherContext;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,21 +49,19 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-public class SpringBootWatcherTest {
+class SpringBootWatcherTest {
 
-    @Rule
-    public TemporaryFolder project = new TemporaryFolder();
     private NamespacedKubernetesClient kubernetesClient;
 
     private WatcherContext watcherContext;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup(@TempDir Path project) throws IOException {
         watcherContext = WatcherContext.builder()
           .logger(new KitLogger.SilentLogger())
           .buildContext(JKubeConfiguration.builder()
             .project(JavaProject.builder()
-              .outputDirectory(project.newFolder("target"))
+              .outputDirectory(Files.createDirectory(project.resolve("target")).toFile())
               .build())
             .build())
           .build();
@@ -70,7 +69,7 @@ public class SpringBootWatcherTest {
     }
 
     @Test
-    public void testGetPortForwardUrl() {
+    void getPortForwardUrl() {
         try (MockedStatic<SpringBootUtil> springBootUtilMockedStatic = Mockito.mockStatic(SpringBootUtil.class);
              MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic = Mockito.mockStatic(KubernetesHelper.class);
              MockedConstruction<PortForwardService> portForwardServiceMockedConstruction = Mockito.mockConstruction(PortForwardService.class)) {
@@ -102,7 +101,7 @@ public class SpringBootWatcherTest {
     }
 
     @Test
-    public void isApplicable_whenDetectsSpringBootMavenPlugin_thenReturnsTrue() {
+    void isApplicable_whenDetectsSpringBootMavenPlugin_thenReturnsTrue() {
         // Given
         watcherContext = watcherContext.toBuilder()
           .buildContext(watcherContext.getBuildContext().toBuilder()
@@ -119,7 +118,7 @@ public class SpringBootWatcherTest {
     }
 
     @Test
-    public void isApplicable_whenDetectsSpringBootGradlePlugin_thenReturnsTrue() {
+    void isApplicable_whenDetectsSpringBootGradlePlugin_thenReturnsTrue() {
         // Given
         watcherContext = watcherContext.toBuilder()
           .buildContext(watcherContext.getBuildContext().toBuilder()
@@ -136,7 +135,7 @@ public class SpringBootWatcherTest {
     }
 
     @Test
-    public void isApplicable_whenNoPluginProvided_thenReturnsFalse() {
+    void isApplicable_whenNoPluginProvided_thenReturnsFalse() {
         // Given
         SpringBootWatcher springBootWatcher = new SpringBootWatcher(watcherContext);
 

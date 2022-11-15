@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.springboot.generator;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,33 +28,29 @@ import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SpringBootGeneratorTest {
-
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
+class SpringBootGeneratorTest {
 
   private GeneratorContext context;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
     context = GeneratorContext.builder()
       .logger(new KitLogger.SilentLogger())
       .project(JavaProject.builder()
-        .outputDirectory(temporaryFolder.newFolder("target"))
+        .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
         .version("1.0.0")
         .build())
       .build();
   }
 
   @Test
-  public void isApplicable_withNoImageConfigurations_shouldReturnFalse() {
+  void isApplicable_withNoImageConfigurations_shouldReturnFalse() {
     // When
     final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
     // Then
@@ -59,7 +58,7 @@ public class SpringBootGeneratorTest {
   }
 
   @Test
-  public void isApplicable_withNoImageConfigurationsAndMavenPlugin_shouldReturnTrue() {
+  void isApplicable_withNoImageConfigurationsAndMavenPlugin_shouldReturnTrue() {
     // Given
     withPlugin(Plugin.builder()
         .groupId("org.springframework.boot")
@@ -72,7 +71,7 @@ public class SpringBootGeneratorTest {
   }
 
   @Test
-  public void isApplicable_withNoImageConfigurationsAndGradlePlugin_shouldReturnTrue() {
+  void isApplicable_withNoImageConfigurationsAndGradlePlugin_shouldReturnTrue() {
     // Given
     withPlugin(Plugin.builder()
         .groupId("org.springframework.boot")
@@ -85,7 +84,7 @@ public class SpringBootGeneratorTest {
   }
 
   @Test
-  public void getExtraJavaOptions_withDefaults_shouldBeEmpty() {
+  void getExtraJavaOptions_withDefaults_shouldBeEmpty() {
     // When
     final List<String> result = new SpringBootGenerator(context).getExtraJavaOptions();
     // Then
@@ -93,7 +92,7 @@ public class SpringBootGeneratorTest {
   }
 
   @Test
-  public void customize_withEmptyList_shouldReturnAddedImage() {
+  void customize_withEmptyList_shouldReturnAddedImage() {
     // When
     final List<ImageConfiguration> configs = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
     // Then
