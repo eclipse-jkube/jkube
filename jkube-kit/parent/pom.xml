@@ -44,7 +44,7 @@
     <version.httpclient>4.5.13</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
     <version.jansi>2.4.0</version.jansi>
-    <version.javassist>3.20.0-GA</version.javassist>
+    <version.javassist>3.29.2-GA</version.javassist>
     <!-- Don't upgrade Eclipse JGit to 6.x for Java 8 compatibility -->
     <version.jgit>5.12.0.202106070339-r</version.jgit>
     <version.jnr-unixsocket>0.38.17</version.jnr-unixsocket>
