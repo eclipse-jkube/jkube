@@ -24,6 +24,8 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -293,19 +295,39 @@ class RouteEnricherTest {
                 .contains("test-svc", "example.com", "Service", "test-svc", 80);
     }
 
+    @Test
+    public void create_withNoExposeLabelPort8443_shouldCreateRoute() {
+        // Given
+        mockJKubeEnricherContext();
+        klb.addToItems(getMockServiceBuilder(8443, Collections.emptyMap()).build());
+
+        // When
+        new RouteEnricher(context).create(PlatformMode.openshift, klb);
+
+        // Then
+        assertThat(klb.build().getItems())
+            .hasSize(2)
+            .extracting("kind")
+            .containsExactly("Service", "Route");
+    }
+
     private ServiceBuilder getMockServiceBuilder() {
+        return getMockServiceBuilder(8080, Collections.singletonMap("expose", "true"));
+    }
+
+    private ServiceBuilder getMockServiceBuilder(int port, Map<String, String> labels) {
         // @formatter:off
         return new ServiceBuilder()
                 .editOrNewMetadata()
                 .withName("test-svc")
-                .addToLabels("expose", "true")
+                .withLabels(labels)
                 .endMetadata()
                 .editOrNewSpec()
                 .addNewPort()
                 .withName("http")
-                .withPort(8080)
+                .withPort(port)
                 .withProtocol("TCP")
-                .withTargetPort(new IntOrString(8080))
+                .withTargetPort(new IntOrString(port))
                 .endPort()
                 .addToSelector("group", "test")
                 .withType("LoadBalancer")
