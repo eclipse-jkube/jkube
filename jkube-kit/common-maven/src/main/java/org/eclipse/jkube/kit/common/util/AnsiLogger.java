@@ -85,7 +85,7 @@ public class AnsiLogger implements KitLogger {
 
     /** {@inheritDoc} */
     public void debug(String message, Object ... params) {
-      if (isDebugEnabled() && AnsiConsole.isInstalled()) {
+      if (isDebugEnabled() && isAnsiConsoleInstalled()) {
         log.debug(prefix + format(message, params));
       } else if (isDebugEnabled()) {
         fallbackLogger.debug(message, params);
@@ -94,7 +94,7 @@ public class AnsiLogger implements KitLogger {
 
     /** {@inheritDoc} */
     public void info(String message, Object ... params) {
-      if (AnsiConsole.isInstalled()) {
+      if (isAnsiConsoleInstalled()) {
         log.info(colored(message, INFO, params));
       } else {
         fallbackLogger.info(message, params);
@@ -104,7 +104,7 @@ public class AnsiLogger implements KitLogger {
     /** {@inheritDoc} */
     public void verbose(LogVerboseCategory logVerboseCategory, String message, Object ... params) {
       final boolean logVerbose = isVerbose && verboseModes != null && verboseModes.contains(logVerboseCategory);
-        if (logVerbose && AnsiConsole.isInstalled()) {
+        if (logVerbose && isAnsiConsoleInstalled()) {
           log.info(ansi().fgBright(BLACK).a(prefix).a(format(message, params)).reset().toString());
         } else {
           fallbackLogger.info(message, params);
@@ -113,7 +113,7 @@ public class AnsiLogger implements KitLogger {
 
     /** {@inheritDoc} */
     public void warn(String format, Object ... params) {
-      if (AnsiConsole.isInstalled()) {
+      if (isAnsiConsoleInstalled()) {
         log.warn(colored(format, WARNING, params));
       } else {
         fallbackLogger.warn(format, params);
@@ -122,7 +122,7 @@ public class AnsiLogger implements KitLogger {
 
     /** {@inheritDoc} */
     public void error(String message, Object ... params) {
-      if (AnsiConsole.isInstalled()) {
+      if (isAnsiConsoleInstalled()) {
         log.error(colored(message, ERROR, params));
       } else {
         fallbackLogger.error(message, params);
@@ -161,7 +161,7 @@ public class AnsiLogger implements KitLogger {
     @Override
     public void progressUpdate(String layerId, String status, String progressMessage) {
         if (!batchMode && log.isInfoEnabled() && StringUtils.isNotEmpty(layerId)) {
-            if (useAnsi && AnsiConsole.isInstalled()) {
+            if (useAnsi && isAnsiConsoleInstalled()) {
                 updateAnsiProgress(layerId, status, progressMessage);
             } else {
                 updateNonAnsiProgress();
@@ -286,5 +286,16 @@ public class AnsiLogger implements KitLogger {
             }
         }
         return ret;
+    }
+
+    private static boolean isAnsiConsoleInstalled() {
+        // Maven 3.6.3 uses jansi 1.17 which doesn't include this method
+        try {
+            AnsiConsole.class.getMethod("isInstalled");
+            return AnsiConsole.isInstalled();
+        } catch (NoSuchMethodException ex) {
+            // Assume AnsiConsole is always installed in case the method doesn't exist
+            return true;
+        }
     }
 }
