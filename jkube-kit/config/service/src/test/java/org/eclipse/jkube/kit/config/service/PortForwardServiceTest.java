@@ -53,7 +53,7 @@ class PortForwardServiceTest {
 
     @BeforeEach
     public void setUp() throws Exception{
-        logger = mock(KitLogger.class);
+        logger = new KitLogger.SilentLogger();
     }
 
     @Test
