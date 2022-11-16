@@ -87,7 +87,7 @@ class DebugServiceTest {
 
   @BeforeEach
   void setUp() {
-    logger = mock(KitLogger.class);
+    logger = new KitLogger.SilentLogger();
     mockedKubernetesClient = mock(KubernetesClient.class, RETURNS_DEEP_STUBS);
     adaptedNamespacedKubernetesClient = mock(NamespacedKubernetesClient.class);
     namespacedKubernetesClient = mock(NamespacedKubernetesClient.class);
