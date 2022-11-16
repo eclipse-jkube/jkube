@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'io.quarkus'
-    id 'org.eclipse.jkube.openshift' version '1.10.0'
+    id 'org.eclipse.jkube.openshift' version '1.10.1'
 }
 
 repositories {
