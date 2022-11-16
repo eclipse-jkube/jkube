@@ -37,7 +37,7 @@ public interface ServiceExposer extends Enricher {
   String EXPOSE_LABEL = "expose";
 
   final class Util {
-    private static final Set<Integer> WEB_PORTS = new HashSet<>(Arrays.asList(80, 443, 8080, 9080, 9090, 9443));
+    private static final Set<Integer> WEB_PORTS = new HashSet<>(Arrays.asList(80, 443, 8443, 8080, 9080, 9090, 9443));
 
     private Util() {}
 

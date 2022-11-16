@@ -30,6 +30,7 @@ Usage:
 ### 1.10.0 (2022-11-10)
 * Fix #443: Add health check enricher for SmallRye Health
 * Fix #508: Kubernetes Remote Development (inner-loop)
+* Fix #1459: Route Generation should support `8443` as default web port
 * Fix #1668: Allow additional services (via fragments) besides the default
 * Fix #1684: Podman builds with errors are correctly processed and reported 
 * Fix #1704: `k8s:watch` with `jkube.watch.mode=copy` works as expected
