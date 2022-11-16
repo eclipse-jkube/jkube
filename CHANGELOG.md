@@ -22,6 +22,8 @@ Usage:
 ```
 ### 1.11-SNAPSHOT
 
+### 1.10.1
+* Fix #1915: Maven 3.6.3 is still supported
 
 ### 1.10.0 (2022-11-10)
 * Fix #443: Add health check enricher for SmallRye Health
