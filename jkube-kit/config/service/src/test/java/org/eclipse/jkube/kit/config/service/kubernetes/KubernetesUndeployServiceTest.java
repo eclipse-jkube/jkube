@@ -73,7 +73,7 @@ class KubernetesUndeployServiceTest {
 
   @BeforeEach
   void setUp() {
-    logger = mock(KitLogger.class);
+    logger = new KitLogger.SilentLogger();
     jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     mockedKubernetesClient = mock(KubernetesClient.class);
     mockedNamespaceableResource = mock(NamespaceableResource.class);
