@@ -42,7 +42,7 @@ class PortForwardMonitorTest {
 
   @Test
   void eventReceivedForDeletionCloses() {
-    logger = mock(KitLogger.class);
+    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -54,7 +54,7 @@ class PortForwardMonitorTest {
 
   @Test
   void eventReceivedForDeletedPodCloses() {
-    logger = mock(KitLogger.class);
+    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -67,7 +67,7 @@ class PortForwardMonitorTest {
 
   @Test
   void closeCountsDown() {
-    logger = mock(KitLogger.class);
+    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -78,7 +78,7 @@ class PortForwardMonitorTest {
 
   @Test
   void closeWithExceptionCountsDown() {
-    logger = mock(KitLogger.class);
+    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
