@@ -30,7 +30,7 @@ class PortForwardMonitorTest {
 
   @Test
   void eventReceivedDoesNothing() {
-    logger = mock(KitLogger.class);
+    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
