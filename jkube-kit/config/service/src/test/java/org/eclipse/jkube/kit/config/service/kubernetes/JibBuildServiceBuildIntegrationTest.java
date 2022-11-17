@@ -32,6 +32,8 @@ import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.apache.commons.io.FileUtils;
@@ -43,15 +45,9 @@ import org.junit.jupiter.api.io.TempDir;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 @SuppressWarnings({"unused"})
 class JibBuildServiceBuildIntegrationTest {
 
-  private JKubeServiceHub hub;
-  private KitLogger log;
   private File projectRoot;
   private File targetDirectory;
   private ImageConfiguration imageConfiguration;
@@ -61,26 +57,27 @@ class JibBuildServiceBuildIntegrationTest {
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
     projectRoot = temporaryFolder.toFile();
-    hub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
-    log = new KitLogger.SilentLogger();
     imageConfiguration = ImageConfiguration.builder()
         .name("registry/image-name:tag")
         .build(BuildConfiguration.builder().build())
         .build();
     targetDirectory = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-    final JKubeConfiguration configuration = JKubeConfiguration.builder()
+    final JKubeServiceHub hub = JKubeServiceHub.builder()
+      .log(new KitLogger.SilentLogger())
+      .platformMode(RuntimeMode.KUBERNETES)
+      .buildServiceConfig(BuildServiceConfig.builder().build())
+      .configuration(JKubeConfiguration.builder()
         .outputDirectory("target/docker")
         .project(JavaProject.builder()
-            .buildFinalName("final-artifact")
-            .packaging("jar")
-            .baseDirectory(projectRoot)
-            .buildDirectory(targetDirectory)
-            .properties(new Properties())
-            .build())
+          .buildFinalName("final-artifact")
+          .packaging("jar")
+          .baseDirectory(projectRoot)
+          .buildDirectory(targetDirectory)
+          .properties(new Properties())
+          .build())
         .registryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
-        .build();
-    when(hub.getConfiguration()).thenReturn(configuration);
-    when(hub.getLog()).thenReturn(log);
+        .build())
+      .build();
     jibBuildService = new JibBuildService(hub);
   }
 

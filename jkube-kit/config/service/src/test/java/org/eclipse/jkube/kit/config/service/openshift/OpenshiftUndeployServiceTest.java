@@ -14,18 +14,23 @@
 package org.eclipse.jkube.kit.config.service.openshift;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import io.fabric8.kubernetes.client.GracePeriodConfigurable;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.openshift.api.model.BuildConfigListBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.utils.Serialization;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -35,7 +40,6 @@ import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.BuildBuilder;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.BuildConfigBuilder;
-import io.fabric8.openshift.api.model.BuildListBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentTriggerImageChangeParamsBuilder;
@@ -44,266 +48,249 @@ import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.TagReferenceBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.MockedStatic;
 
-import static io.fabric8.kubernetes.api.model.DeletionPropagation.BACKGROUND;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 
-@SuppressWarnings({"unused", "rawtypes", "unchecked"})
+@SuppressWarnings({"unused", "unchecked"})
+@EnableKubernetesMockClient(crud = true)
 class OpenshiftUndeployServiceTest {
 
   @TempDir
-  File temporaryFolder;
+  private Path tempDir;
   private KitLogger logger;
-  private JKubeServiceHub jKubeServiceHub;
+  private KubernetesClient kubernetesClient;
   private OpenShiftClient openShiftClient;
-  private MixedOperation mixedOperation;
-  private NonNamespaceOperation nonNamespaceOperation;
-  private NamespaceableResource mockedNamespaceableResource;
-  private Resource mockedResource;
-  private GracePeriodConfigurable mockedGracePeriodConfigurable;
-  private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
+  private Object effectiveClient;
+  private ResourceConfig resourceConfig;
   private OpenshiftUndeployService openshiftUndeployService;
 
   @BeforeEach
   void setUp() {
-    openShiftClient = mock(OpenShiftClient.class);
-    mixedOperation = mock(MixedOperation.class);
-    mockedResource = mock(Resource.class);
-    nonNamespaceOperation = mock(NonNamespaceOperation.class);
-    mockedNamespaceableResource = mock(NamespaceableResource.class);
-    mockedGracePeriodConfigurable = mock(GracePeriodConfigurable.class);
-    final JKubeServiceHub jKubeServiceHub = mock(JKubeServiceHub.class);
-    kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
-    when(jKubeServiceHub.getClient()).thenReturn(openShiftClient);
-    when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
-    when(openShiftClient.isSupported()).thenReturn(true);
-    openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, new KitLogger.SilentLogger());
-  }
-
-  @AfterEach
-  void tearDown() {
-    openshiftUndeployService = null;
-    kubernetesHelperMockedStatic.close();
+    logger = spy(new KitLogger.SilentLogger());
+    final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
+      .log(logger)
+      .platformMode(RuntimeMode.KUBERNETES)
+      .configuration(JKubeConfiguration.builder().build())
+      .clusterAccess(new ClusterAccess(logger, ClusterConfiguration.builder().namespace("test").build()) {
+        @Override
+        public <T extends KubernetesClient> T createDefaultClient() {
+          return (T)effectiveClient;
+        }
+      })
+      .build();
+    resourceConfig = ResourceConfig.builder().namespace("test").build();
+    openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, logger);
   }
 
   @Test
   void deleteWithKubernetesClient_shouldOnlyDeleteProvidedEntity() throws Exception {
     // Given
-    final Pod entity = new Pod();
-    withLoadedEntities(entity);
-    mockKubernetesClientResourceDeleteCall(entity);
+    effectiveClient = kubernetesClient;
+    final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
+    openShiftClient.pods().resource(pod).create();
+    final File manifest = serializedManifest(pod);
     // When
-    openshiftUndeployService.undeploy(null, ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
+    openshiftUndeployService.undeploy(null, resourceConfig, manifest);
     // Then
-    assertDeleteCount(1);
-    assertResourceDeleted(entity);
+    assertThat(openShiftClient.pods().withName("MrPoddington").get()).isNull();
+    assertThat(openShiftClient.pods().inAnyNamespace().list().getItems()).isEmpty();
   }
 
   @Test
   void deleteWithOpenShiftClientAndNoImageStream_shouldOnlyDeleteProvidedEntity() throws Exception {
     // Given
-    final Pod entity = new Pod();
-    withLoadedEntities(entity);
-    mockKubernetesClientResourceDeleteCall(entity);
+    effectiveClient = openShiftClient;
+    final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
+    openShiftClient.resource(pod).create();
+    final File manifest = serializedManifest(pod);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
+    openshiftUndeployService.undeploy(null, resourceConfig, manifest);
     // Then
-    assertDeleteCount(1);
-    assertResourceDeleted(entity);
+    assertThat(openShiftClient.pods().withName("MrPoddington").get()).isNull();
+    assertThat(openShiftClient.pods().inAnyNamespace().list().getItems()).isEmpty();
   }
 
   @Test
   void deleteWithOpenShiftClientAndImageStream_shouldDeleteProvidedImageStream() throws Exception {
     // Given
+    effectiveClient = openShiftClient;
     final ImageStream entity = new ImageStreamBuilder()
         .withNewMetadata().withName("image").endMetadata()
         .withNewSpec().withTags().endSpec()
         .build();
-    withLoadedEntities(entity);
-    mockKubernetesClientResourceDeleteCall(entity);
+    openShiftClient.resource(entity).create();
+    final File manifest = serializedManifest(entity);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
+    openshiftUndeployService.undeploy(null, resourceConfig, manifest);
     // Then
-    assertDeleteCount(1);
-    assertResourceDeleted(entity);
+    assertThat(openShiftClient.imageStreams().withName("image").get()).isNull();
+    assertThat(openShiftClient.imageStreams().inAnyNamespace().list().getItems()).isEmpty();
   }
 
   @Test
   void deleteWithOpenShiftClientAndImageStream_shouldDeleteProvidedImageStreamAndRelatedBuildEntities()
       throws Exception {
     // Given
-    final Build build = new BuildBuilder().withNewSpec().withNewOutput().withNewTo().withName("image:latest")
-        .endTo().endOutput().endSpec().build();
-    final BuildConfig buildConfig = new BuildConfigBuilder().withNewSpec().withNewOutput().withNewTo().withName("image:latest")
-        .endTo().endOutput().endSpec().build();
-    with(build, buildConfig);
-    final ImageStream entity = new ImageStreamBuilder()
-        .withNewMetadata().withName("image").endMetadata()
-        .withNewSpec().withTags(new TagReferenceBuilder().withName("latest").build()).endSpec()
-        .build();
-    withLoadedEntities(entity);
-    mockKubernetesClientResourceDeleteCall(entity);
-    mockKubernetesClientResourceDeleteCall(build);
-    mockKubernetesClientResourceDeleteCall(buildConfig);
+    effectiveClient = openShiftClient;
+    final Build build = new BuildBuilder()
+      .withNewMetadata().withName("build").endMetadata()
+      .withNewSpec().withNewOutput().withNewTo().withName("image-stream:latest")
+      .endTo().endOutput().endSpec().build();
+    final BuildConfig buildConfig = new BuildConfigBuilder()
+      .withNewMetadata().withName("build-config").endMetadata()
+      .withNewSpec().withNewOutput().withNewTo().withName("image-stream:latest")
+      .endTo().endOutput().endSpec().build();
+    final BuildConfig buildConfigUnrelated = new BuildConfigBuilder()
+      .withNewMetadata().withName("build-config-unrelated").endMetadata()
+      .withNewSpec().withNewOutput().withNewTo().withName("image-stream-other:latest")
+      .endTo().endOutput().endSpec().build();
+    final ImageStream imageStream = new ImageStreamBuilder()
+      .withNewMetadata().withName("image-stream").endMetadata()
+      .withNewSpec().withTags(new TagReferenceBuilder().withName("latest").build()).endSpec().build();
+    for (HasMetadata entity : new HasMetadata[]{build, buildConfig, buildConfigUnrelated, imageStream}) {
+      kubernetesClient.resource(entity).create();
+    }
+    final File manifest = serializedManifest(imageStream);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
+    openshiftUndeployService.undeploy(null,  resourceConfig, manifest);
     // Then
-    assertDeleteCount(3);
-    assertResourceDeleted(entity);
-    assertResourceDeleted(build);
-    assertResourceDeleted(buildConfig);
+    assertThat(openShiftClient.builds().withName("build").get()).isNull();
+    assertThat(openShiftClient.builds().inAnyNamespace().list().getItems()).isEmpty();
+    assertThat(openShiftClient.buildConfigs().withName("build-config").get()).isNull();
+    assertThat(openShiftClient.buildConfigs().withName("build-config-unrelated").get()).isNotNull();
+    assertThat(openShiftClient.imageStreams().withName("image-stream").get()).isNull();
+    assertThat(openShiftClient.imageStreams().inAnyNamespace().list().getItems()).isEmpty();
   }
 
   @Test
   void deleteWithOpenShiftClientAndDeploymentConfig_shouldDeleteProvidedDeploymentConfigAndRelatedBuildEntities()
       throws Exception {
-
     // Given
-    final Build build = new BuildBuilder().withNewSpec().withNewOutput().withNewTo().withName("image:latest")
-        .endTo().endOutput().endSpec().build();
-    final BuildConfig buildConfig = new BuildConfigBuilder().withNewSpec().withNewOutput().withNewTo().withName("image:latest")
-        .endTo().endOutput().endSpec().build();
-    with(build, buildConfig);
-    final DeploymentConfig entity = new DeploymentConfigBuilder()
-        .withNewMetadata().withName("image").endMetadata()
+    effectiveClient = openShiftClient;
+    final Build build = new BuildBuilder()
+      .withNewMetadata().withName("build").endMetadata()
+      .withNewSpec().withNewOutput().withNewTo().withName("image-stream:latest")
+      .endTo().endOutput().endSpec().build();
+    final BuildConfig buildConfig = new BuildConfigBuilder()
+      .withNewMetadata().withName("build-config").endMetadata()
+      .withNewSpec().withNewOutput().withNewTo().withName("image-stream:latest")
+      .endTo().endOutput().endSpec().build();
+    final DeploymentConfig deploymentConfig = new DeploymentConfigBuilder()
+        .withNewMetadata().withName("deployment-config").endMetadata()
         .withNewSpec().withTriggers(new DeploymentTriggerPolicyBuilder()
             .withType("ImageChange")
             .withImageChangeParams(new DeploymentTriggerImageChangeParamsBuilder()
                 .withFrom(new ObjectReferenceBuilder()
-                    .withName("image:latest")
+                    .withName("image-stream:latest")
                     .withKind("ImageStreamTag")
                     .build())
                 .build())
             .build()
           )
         .endSpec().build();
-    withLoadedEntities(entity);
-    mockKubernetesClientResourceDeleteCall(entity);
-    mockKubernetesClientResourceDeleteCall(build);
-    mockKubernetesClientResourceDeleteCall(buildConfig);
+    for (HasMetadata entity : new HasMetadata[]{build, buildConfig, deploymentConfig}) {
+      kubernetesClient.resource(entity).create();
+    }
+    final File manifest = serializedManifest(deploymentConfig);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
+    openshiftUndeployService.undeploy(null,  resourceConfig, manifest);
     // Then
-    assertDeleteCount(3);
-    assertResourceDeleted(entity);
-    assertResourceDeleted(build);
-    assertResourceDeleted(buildConfig);
+    assertThat(openShiftClient.builds().withName("build").get()).isNull();
+    assertThat(openShiftClient.builds().inAnyNamespace().list().getItems()).isEmpty();
+    assertThat(openShiftClient.buildConfigs().withName("build-config").get()).isNull();
+    assertThat(openShiftClient.buildConfigs().inAnyNamespace().list().getItems()).isEmpty();
+    assertThat(openShiftClient.deploymentConfigs().withName("deployment-config").get()).isNull();
+    assertThat(openShiftClient.deploymentConfigs().inAnyNamespace().list().getItems()).isEmpty();
   }
 
   @Test
   void deleteWithOpenShiftClientAndDeploymentConfigNoMatchingLabel_shouldDeleteProvidedDeploymentConfigOnly()
       throws Exception {
-
     // Given
-    final Build build = new BuildBuilder().withNewSpec().withNewOutput().withNewTo().withName("image:latest")
-        .endTo().endOutput().endSpec().build();
-    final BuildConfig buildConfig = new BuildConfigBuilder().withNewSpec().withNewOutput().withNewTo().withName("image:latest")
-        .endTo().endOutput().endSpec().build();
-    with(build, buildConfig);
-    final DeploymentConfig entity = new DeploymentConfigBuilder()
-        .withNewMetadata().withName("image").withLabels(
-            Collections.singletonMap("provider", "different")
-        ).endMetadata()
-        .withNewSpec().withTriggers(new DeploymentTriggerPolicyBuilder()
-            .withType("ImageChange")
-            .withImageChangeParams(new DeploymentTriggerImageChangeParamsBuilder()
-                .withFrom(new ObjectReferenceBuilder()
-                    .withName("image:latest")
-                    .withKind("ImageStreamTag")
-                    .build())
-                .build())
-            .build()
-        )
-        .endSpec().build();
-    mockKubernetesClientResourceDeleteCall(entity);
-    mockKubernetesClientResourceDeleteCall(build);
-    mockKubernetesClientResourceDeleteCall(buildConfig);
-    withLoadedEntities(entity);
+    effectiveClient = openShiftClient;
+    final Build build = new BuildBuilder()
+      .withNewMetadata().withName("build").endMetadata()
+      .withNewSpec().withNewOutput().withNewTo().withName("image-stream:latest")
+      .endTo().endOutput().endSpec().build();
+    final BuildConfig buildConfig = new BuildConfigBuilder()
+      .withNewMetadata().withName("build-config").endMetadata()
+      .withNewSpec().withNewOutput().withNewTo().withName("image-stream:latest")
+      .endTo().endOutput().endSpec().build();
+    final DeploymentConfig deploymentConfig = new DeploymentConfigBuilder()
+      .withNewMetadata().withName("deployment-config").addToLabels("provider", "different").endMetadata()
+      .withNewSpec().withTriggers(new DeploymentTriggerPolicyBuilder()
+        .withType("ImageChange")
+        .withImageChangeParams(new DeploymentTriggerImageChangeParamsBuilder()
+          .withFrom(new ObjectReferenceBuilder()
+            .withName("image-stream:latest")
+            .withKind("ImageStreamTag")
+            .build())
+          .build())
+        .build()
+      )
+      .endSpec().build();
+    for (HasMetadata entity : new HasMetadata[]{build, buildConfig, deploymentConfig}) {
+      kubernetesClient.resource(entity).create();
+    }
+    final File manifest = serializedManifest(deploymentConfig);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
+    openshiftUndeployService.undeploy(null,  resourceConfig, manifest);
     // Then
-    assertDeleteCount(1);
-    assertResourceDeleted(entity);
+    assertThat(openShiftClient.builds().withName("build").get()).isNotNull();
+    assertThat(openShiftClient.buildConfigs().withName("build-config").get()).isNotNull();
+    assertThat(openShiftClient.deploymentConfigs().withName("deployment-config").get()).isNull();
+    assertThat(openShiftClient.deploymentConfigs().inAnyNamespace().list().getItems()).isEmpty();
   }
 
   @Test
   void deleteWithOpenShiftClientAndDeploymentConfig_shouldDeleteProvidedDeploymentConfigAndRelatedMatchingBuildEntities()
       throws Exception {
-
     // Given
+    effectiveClient = openShiftClient;
     final Build build = new BuildBuilder()
-        .withNewMetadata().withLabels(Collections.singletonMap("provider", "jkube")).endMetadata()
-        .withNewSpec().withNewOutput().withNewTo().withName("image:latest")
-        .endTo().endOutput().endSpec().build();
-    final BuildConfig buildConfig = new BuildConfigBuilder().withNewSpec().withNewOutput().withNewTo().withName("image:latest")
-        .endTo().endOutput().endSpec().build();
-    with(build, buildConfig);
-    final DeploymentConfig entity = new DeploymentConfigBuilder()
-        .withNewMetadata().withName("image").withLabels(
-            Collections.singletonMap("provider", "jkube")
-        ).endMetadata()
-        .withNewSpec().withTriggers(new DeploymentTriggerPolicyBuilder()
-            .withType("ImageChange")
-            .withImageChangeParams(new DeploymentTriggerImageChangeParamsBuilder()
-                .withFrom(new ObjectReferenceBuilder()
-                    .withName("image:latest")
-                    .withKind("ImageStreamTag")
-                    .build())
-                .build())
-            .build()
-        )
-        .endSpec().build();
-    withLoadedEntities(entity);
-    mockKubernetesClientResourceDeleteCall(entity);
-    mockKubernetesClientResourceDeleteCall(build);
-    mockKubernetesClientResourceDeleteCall(buildConfig);
+      .withNewMetadata().withName("build").addToLabels("provider", "jkube").endMetadata()
+      .withNewSpec().withNewOutput().withNewTo().withName("image-stream:latest")
+      .endTo().endOutput().endSpec().build();
+    final BuildConfig buildConfig = new BuildConfigBuilder()
+      .withNewMetadata().withName("build-config").endMetadata()
+      .withNewSpec().withNewOutput().withNewTo().withName("image-stream:latest")
+      .endTo().endOutput().endSpec().build();
+    final DeploymentConfig deploymentConfig = new DeploymentConfigBuilder()
+      .withNewMetadata().withName("deployment-config").addToLabels("provider", "jkube").endMetadata()
+      .withNewSpec().withTriggers(new DeploymentTriggerPolicyBuilder()
+        .withType("ImageChange")
+        .withImageChangeParams(new DeploymentTriggerImageChangeParamsBuilder()
+          .withFrom(new ObjectReferenceBuilder()
+            .withName("image-stream:latest")
+            .withKind("ImageStreamTag")
+            .build())
+          .build())
+        .build()
+      )
+      .endSpec().build();
+    for (HasMetadata entity : new HasMetadata[]{build, buildConfig, deploymentConfig}) {
+      kubernetesClient.resource(entity).create();
+    }
+    final File manifest = serializedManifest(deploymentConfig);
     // When
-    openshiftUndeployService.undeploy(null,  ResourceConfig.builder().build(), File.createTempFile("junit", "ext", temporaryFolder));
+    openshiftUndeployService.undeploy(null,  resourceConfig, manifest);
     // Then
-    assertDeleteCount(2);
-    assertResourceDeleted(entity);
-    assertResourceDeleted(build);
+    assertThat(openShiftClient.builds().withName("build").get()).isNull();
+    assertThat(openShiftClient.builds().inAnyNamespace().list().getItems()).isEmpty();
+    assertThat(openShiftClient.buildConfigs().withName("build-config").get()).isNotNull();
+    assertThat(openShiftClient.deploymentConfigs().withName("deployment-config").get()).isNull();
+    assertThat(openShiftClient.deploymentConfigs().inAnyNamespace().list().getItems()).isEmpty();
   }
 
-  private void withLoadedEntities(HasMetadata... entities) {
-    kubernetesHelperMockedStatic.when(() -> KubernetesHelper.loadResources(any())).thenReturn(Arrays.asList(entities));
-  }
-
-  private void with(Build build, BuildConfig buildConfig) {
-    when(openShiftClient.builds()).thenReturn(mixedOperation);
-    when(openShiftClient.buildConfigs()).thenReturn(mixedOperation);
-    when(mixedOperation.inNamespace(null)).thenReturn(nonNamespaceOperation);
-    when(nonNamespaceOperation.list()).thenReturn(
-        new BuildListBuilder().withItems(build).build(),
-        new BuildConfigListBuilder().withItems(buildConfig).build()
-    );
-  }
-
-  private void assertResourceDeleted(HasMetadata entity) {
-    verify(openShiftClient).resource(entity);
-  }
-
-  private void assertDeleteCount(int totalDeletions) {
-    kubernetesHelperMockedStatic.verify(()-> KubernetesHelper.getKind(any()), times(totalDeletions));
-    verify(mockedNamespaceableResource, times(totalDeletions)).inNamespace(null);
-    verify(mockedResource, times(totalDeletions)).withPropagationPolicy(BACKGROUND);
-    verify(mockedGracePeriodConfigurable, times(totalDeletions)).delete();
-  }
-
-  private <T extends HasMetadata> void mockKubernetesClientResourceDeleteCall(T kubernetesResource) {
-    when(openShiftClient.resource(kubernetesResource)).thenReturn(mockedNamespaceableResource);
-    when(mockedNamespaceableResource.inNamespace(null)).thenReturn(mockedResource);
-    when(mockedResource.withPropagationPolicy(any())).thenReturn(mockedGracePeriodConfigurable);
-    when(mockedGracePeriodConfigurable.delete()).thenReturn(Collections.emptyList());
+  private File serializedManifest(HasMetadata... resources) throws IOException {
+    final File file = Files.createFile(tempDir.resolve("openshift.yml")).toFile();
+    FileUtils.write(file,
+      Serialization.asJson(new KubernetesListBuilder().addToItems(resources).build()),
+      Charset.defaultCharset());
+    return file;
   }
 }

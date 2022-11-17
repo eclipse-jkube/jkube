@@ -32,6 +32,11 @@ public class PortForwardTask implements Runnable, AutoCloseable {
   private final CountDownLatch podAvailableLatch;
   private final AtomicBoolean closed = new AtomicBoolean(false);
 
+  public PortForwardTask(
+    NamespacedKubernetesClient kubernetesClient, String podName, LocalPortForward localPortForward, KitLogger logger) {
+    this(kubernetesClient, podName, localPortForward, logger, new CountDownLatch(1));
+  }
+
   @Override
   public void run() {
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {

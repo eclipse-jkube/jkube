@@ -49,8 +49,7 @@ class PatchServiceTest {
 
     @BeforeEach
     void setUp() {
-        KitLogger log = new KitLogger.SilentLogger();
-        patchService = new PatchService(client, log);
+        patchService = new PatchService(client, new KitLogger.SilentLogger());
         Serialization.jsonMapper().disable(SerializationFeature.INDENT_OUTPUT);
     }
 

@@ -15,80 +15,73 @@
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-import io.fabric8.kubernetes.api.model.APIResource;
-import io.fabric8.kubernetes.api.model.APIResourceBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
-import io.fabric8.kubernetes.client.GracePeriodConfigurable;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NamespaceableResource;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.kubernetes.client.utils.Serialization;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Service;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.MockedStatic;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"unused", "rawtypes", "unchecked"})
+@SuppressWarnings({"unused", "unchecked"})
+@EnableKubernetesMockClient(crud = true)
 class KubernetesUndeployServiceTest {
+
+  @TempDir
+  private Path tempDir;
+  private KubernetesClient kubernetesClient;
+  private KubernetesMockServer mockServer;
   private KitLogger logger;
-  private JKubeServiceHub jKubeServiceHub;
-  private MockedStatic<KubernetesHelper> kubernetesHelper;
   private KubernetesUndeployService kubernetesUndeployService;
-  private KubernetesClient mockedKubernetesClient;
-  private NamespaceableResource mockedNamespaceableResource;
-  private Resource mockedResource;
-  private MixedOperation mockedMixedOperation;
-  private GracePeriodConfigurable mockedGracePeriodConfigurable;
-  private NonNamespaceOperation mockedNonNamespaceOperation;
 
   @BeforeEach
   void setUp() {
-    logger = new KitLogger.SilentLogger();
-    jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
-    mockedKubernetesClient = mock(KubernetesClient.class);
-    mockedNamespaceableResource = mock(NamespaceableResource.class);
-    mockedResource = mock(Resource.class);
-    mockedGracePeriodConfigurable = mock(GracePeriodConfigurable.class);
-    mockedMixedOperation = mock(MixedOperation.class);
-    mockedNonNamespaceOperation = mock(NonNamespaceOperation.class);
-    kubernetesHelper = mockStatic(KubernetesHelper.class);
-    when(jKubeServiceHub.getClient()).thenReturn(mockedKubernetesClient);
+    logger = spy(new KitLogger.SilentLogger());
+    final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
+      .log(logger)
+      .platformMode(RuntimeMode.KUBERNETES)
+      .configuration(JKubeConfiguration.builder().build())
+      .clusterAccess(new ClusterAccess(logger, ClusterConfiguration.builder().namespace("test").build()) {
+        @Override
+        public <T extends KubernetesClient> T createDefaultClient() {
+          return (T)kubernetesClient;
+        }
+      })
+      .build();
     kubernetesUndeployService = new KubernetesUndeployService(jKubeServiceHub, logger);
-  }
-
-  @AfterEach
-  void tearDown() {
-    kubernetesHelper.close();
   }
 
   @Test
@@ -98,125 +91,90 @@ class KubernetesUndeployServiceTest {
     // When
     kubernetesUndeployService.undeploy(null, ResourceConfig.builder().build(), nonexistent, null);
     // Then
-    verify(logger,times(1)).warn("No such generated manifests found for this project, ignoring.");
+    verify(logger, times(1))
+      .warn("No such generated manifests found for this project, ignoring.");
   }
 
   @Test
   void undeploy_withManifest_shouldDeleteAllEntities() throws Exception {
     // Given
-    File file = mock(File.class);
     final ResourceConfig resourceConfig = ResourceConfig.builder().namespace("default").build();
     final Namespace namespace = new NamespaceBuilder().withNewMetadata().withName("default").endMetadata().build();
     final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").endMetadata().build();
-    final Service service = new Service();
-    when(file.exists()).thenReturn(true);
-    when(file.isFile()).thenReturn(true);
-    mockKubernetesClientResourceDeleteCall(pod, "default");
-    mockKubernetesClientResourceDeleteCall(service, "default");
-    mockKubernetesClientResourceDeleteCall(namespace, "default");
-    kubernetesHelper.when(() -> KubernetesHelper.loadResources(file)).thenReturn(Arrays.asList(namespace, pod, service));
-    // When
-    kubernetesUndeployService.undeploy(null, resourceConfig, file);
-    // Then
-    kubernetesHelper.verify(() -> KubernetesHelper.getKind(any(HasMetadata.class)), times(3));
-    verify(jKubeServiceHub, times(3)).getClient();
-    verify(mockedKubernetesClient).resource(pod);
-    verify(mockedKubernetesClient).resource(namespace);
-    verify(mockedKubernetesClient).resource(service);
-    verify(mockedNamespaceableResource, times(3)).inNamespace("default");
-    verify(mockedResource, times(3)).withPropagationPolicy(DeletionPropagation.BACKGROUND);
-    verify(mockedGracePeriodConfigurable, times(3)).delete();
-  }
-
-  @Test
-  void undeploy_withManifestAndCustomResources_shouldDeleteAllEntities(@TempDir File temporaryFolder) throws Exception {
-    // Given
-    ResourceConfig resourceConfig = mock(ResourceConfig.class);
-    final File manifest = File.createTempFile("temp", ".yml", temporaryFolder);
-    final File crManifest = File.createTempFile("temp-cr", ".yml", temporaryFolder);
-    final String crdId = "org.eclipse.jkube/v1alpha1#Crd";
-    final Service service = new Service();
-    final GenericKubernetesResource customResource = new GenericKubernetesResourceBuilder()
-        .withApiVersion("org.eclipse.jkube/v1alpha1")
-        .withKind("Crd")
-        .build();
-    customResource.setMetadata(new ObjectMetaBuilder().withName("my-cr").build());
-    final APIResource customResourceApiResource = new APIResourceBuilder()
-        .withGroup("org.eclipse.jkube")
-        .withNamespaced(false)
-        .withKind("Crd")
-        .withName("crds")
-        .withSingularName("crd")
-        .build();
-    mockKubernetesClientResourceDeleteCall(service, null);
-    mockKubernetesClientGenericResourceGetCall(customResource, "my-cr");
-    mockKubernetesClientGenericResourceDeleteCall(customResource, null, "my-cr");
-    kubernetesHelper.when(() -> KubernetesHelper.loadResources(manifest)).thenReturn(Arrays.asList(service, customResource));
-    kubernetesHelper.when(() -> KubernetesHelper.getFullyQualifiedApiGroupWithKind(customResource)).thenReturn(crdId);
+    final Service service = new ServiceBuilder().withNewMetadata().withName("atYourService").endMetadata().build();
+    final ConfigMap control = new ConfigMapBuilder().withNewMetadata().withName("control").endMetadata().build();
+    for (HasMetadata entity : new HasMetadata[]{namespace, pod, service, control}) {
+      kubernetesClient.resource(entity).inNamespace("default").create();
+    }
+    final File manifest = serializedManifest(namespace, pod, service);
     // When
     kubernetesUndeployService.undeploy(null, resourceConfig, manifest);
     // Then
-    verify(jKubeServiceHub,times(3)).getClient();
-    verify(mockedKubernetesClient).resource(service);
-    verify(mockedKubernetesClient, times(2)).genericKubernetesResources("org.eclipse.jkube/v1alpha1", "Crd");
-    verify(mockedNamespaceableResource).inNamespace(null);
-    verify(mockedMixedOperation, times(2)).inNamespace(null);
-    verify(mockedNonNamespaceOperation, times(2)).withName("my-cr");
-    verify(mockedGracePeriodConfigurable).delete();
-    verify(mockedResource).get();
-    verify(mockedResource).delete();
+    assertThat(kubernetesClient.namespaces().withName("default").get()).isNull();
+    assertThat(kubernetesClient.pods().inNamespace("default").withName("MrPoddington").get()).isNull();
+    assertThat(kubernetesClient.services().inNamespace("default").withName("atYourService").get()).isNull();
+    assertThat(kubernetesClient.configMaps().inNamespace("default").withName("control").get()).isNotNull();
+  }
+
+  @Test
+  void undeploy_withManifestAndCustomResources_shouldDeleteAllEntities() throws Exception {
+    // Given
+    final CustomResourceDefinitionContext context = new CustomResourceDefinitionContext.Builder()
+      .withGroup("org.eclipse.jkube")
+      .withVersion("v1alpha1")
+      .withPlural("crds")
+      .withKind("Crd")
+      .build();
+    mockServer.expectCustomResource(context);
+    final ResourceConfig resourceConfig = ResourceConfig.builder().build();
+    final String crdId = "org.eclipse.jkube/v1alpha1#Crd";
+    final GenericKubernetesResource customResource = new GenericKubernetesResourceBuilder()
+        .withApiVersion("org.eclipse.jkube/v1alpha1")
+        .withKind("Crd")
+        .withMetadata(new ObjectMetaBuilder().withName("my-cr").build())
+        .build();
+    final GenericKubernetesResource control = new GenericKubernetesResourceBuilder(customResource)
+      .editMetadata().withName("control").endMetadata().build();
+    for (GenericKubernetesResource entity : new GenericKubernetesResource[]{customResource, control}) {
+      kubernetesClient.genericKubernetesResources(context).resource(entity).create();
+    }
+    final File manifest = serializedManifest(customResource);
+    // When
+    kubernetesUndeployService.undeploy(null, resourceConfig, manifest);
+    // Then
+    assertThat(kubernetesClient.genericKubernetesResources(context).withName("my-cr").get()).isNull();
+    assertThat(kubernetesClient.genericKubernetesResources(context).withName("control").get()).isNotNull();
   }
 
   @Test
   void undeploy_withManifest_shouldDeleteEntitiesInMultipleNamespaces() throws Exception {
-    File file = mock(File.class);
     // Given
     final ResourceConfig resourceConfig = ResourceConfig.builder().build();
-    final ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1").withNamespace("ns1").endMetadata().build();
-    final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington").withNamespace("ns2").endMetadata().build();
-    final Service service = new Service();
-    when(file.isFile()).thenReturn(true);
-    when(file.exists()).thenReturn(true);
-    kubernetesHelper.when(() -> KubernetesHelper.loadResources(file)).thenReturn(Arrays.asList(configMap, pod, service));
-    kubernetesHelper.when(() -> KubernetesHelper.getNamespace(configMap)).thenReturn("ns1");
-    kubernetesHelper.when(() -> KubernetesHelper.getNamespace(pod)).thenReturn("ns2");
-    mockKubernetesClientResourceDeleteCall(pod, "ns2");
-    mockKubernetesClientResourceDeleteCall(service, "default");
-    mockKubernetesClientResourceDeleteCall(configMap, "ns1");
-    kubernetesHelper.when(KubernetesHelper::getDefaultNamespace).thenReturn("default");
+    final ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("cm1")
+      .withNamespace("ns1").endMetadata().build();
+    final Pod pod = new PodBuilder().withNewMetadata().withName("MrPoddington")
+      .withNamespace("ns2").endMetadata().build();
+    final Service service = new ServiceBuilder().withNewMetadata().withName("atYourService").endMetadata().build();
+    final ConfigMap control = new ConfigMapBuilder().withNewMetadata().withName("control")
+      .withNamespace("ns2").endMetadata().build();
+    for (HasMetadata entity : new HasMetadata[]{configMap, pod, service, control}) {
+      kubernetesClient.resource(entity).create();
+    }
+    final File manifest = serializedManifest(configMap, pod, service);
     // When
-    kubernetesUndeployService.undeploy(null, resourceConfig, file);
+    kubernetesUndeployService.undeploy(null, resourceConfig, manifest);
     // Then
-    kubernetesHelper.verify(() -> KubernetesHelper.getKind(any(HasMetadata.class)), times(3));
-    verify(jKubeServiceHub, times(3)).getClient();
-    verify(mockedKubernetesClient).resource(pod);
-    verify(mockedKubernetesClient).resource(configMap);
-    verify(mockedKubernetesClient).resource(service);
-    verify(mockedNamespaceableResource, times(1)).inNamespace("default");
-    verify(mockedNamespaceableResource, times(1)).inNamespace("ns1");
-    verify(mockedNamespaceableResource, times(1)).inNamespace("ns2");
-    verify(mockedResource, times(3)).withPropagationPolicy(DeletionPropagation.BACKGROUND);
-    verify(mockedGracePeriodConfigurable, times(3)).delete();
+    assertThat(kubernetesClient.configMaps().inNamespace("ns1").withName("cm1").get()).isNull();
+    assertThat(kubernetesClient.pods().inNamespace("ns2").withName("MrPoddington").get()).isNull();
+    assertThat(kubernetesClient.services().inNamespace("test").withName("atYourService").get()).isNull();
+    assertThat(kubernetesClient.configMaps().inNamespace("ns2").withName("control").get()).isNotNull();
   }
 
-  private <T extends HasMetadata> void mockKubernetesClientResourceDeleteCall(T kubernetesResource, String namespace) {
-    when(mockedKubernetesClient.resource(kubernetesResource)).thenReturn(mockedNamespaceableResource);
-    when(mockedNamespaceableResource.inNamespace(namespace)).thenReturn(mockedResource);
-    when(mockedResource.withPropagationPolicy(any())).thenReturn(mockedGracePeriodConfigurable);
-    when(mockedGracePeriodConfigurable.delete()).thenReturn(Collections.emptyList());
-  }
-
-  private void mockKubernetesClientGenericResourceDeleteCall(GenericKubernetesResource customResource, String namespace, String name) {
-    when(mockedKubernetesClient.genericKubernetesResources(anyString(), anyString())).thenReturn(mockedMixedOperation);
-    when(mockedMixedOperation.inNamespace(namespace)).thenReturn(mockedNonNamespaceOperation);
-    when(mockedNonNamespaceOperation.withName(name)).thenReturn(mockedResource);
-    when(mockedResource.delete()).thenReturn(Collections.emptyList());
-  }
-
-  private void mockKubernetesClientGenericResourceGetCall(GenericKubernetesResource customResource, String name) {
-    when(mockedKubernetesClient.genericKubernetesResources(anyString(), anyString())).thenReturn(mockedMixedOperation);
-    when(mockedMixedOperation.inNamespace(null)).thenReturn(mockedNonNamespaceOperation);
-    when(mockedNonNamespaceOperation.withName(name)).thenReturn(mockedResource);
-    when(mockedResource.get()).thenReturn(mock(GenericKubernetesResource.class));
+  private File serializedManifest(HasMetadata... resources) throws IOException {
+    final File file = Files.createFile(tempDir.resolve("kubernetes.yml")).toFile();
+    FileUtils.write(file,
+      Serialization.asJson(new KubernetesListBuilder().addToItems(resources).build()),
+      Charset.defaultCharset());
+    return file;
   }
 }

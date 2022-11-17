@@ -17,20 +17,24 @@ import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 class PortForwardMonitorTest {
 
   private KitLogger logger;
 
+  @BeforeEach
+  void setUp() {
+    logger = new KitLogger.StdoutLogger();
+  }
+
   @Test
   void eventReceivedDoesNothing() {
-    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -42,7 +46,6 @@ class PortForwardMonitorTest {
 
   @Test
   void eventReceivedForDeletionCloses() {
-    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -54,7 +57,6 @@ class PortForwardMonitorTest {
 
   @Test
   void eventReceivedForDeletedPodCloses() {
-    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -67,7 +69,6 @@ class PortForwardMonitorTest {
 
   @Test
   void closeCountsDown() {
-    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
@@ -78,7 +79,6 @@ class PortForwardMonitorTest {
 
   @Test
   void closeWithExceptionCountsDown() {
-    logger = new KitLogger.SilentLogger();
     // Given
     final CountDownLatch cdl = new CountDownLatch(1);
     // When
