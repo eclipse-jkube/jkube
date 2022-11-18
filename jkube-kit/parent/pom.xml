@@ -58,7 +58,6 @@
     <version.mockwebserver>0.2.2</version.mockwebserver>
     <version.networknt.validator>1.0.53</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
-    <version.plexus-archiver>4.6.0</version.plexus-archiver>
     <version.plexus-classworlds>2.6.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
     <version.plexus-utils>3.0.24</version.plexus-utils>
@@ -636,18 +635,6 @@
         <groupId>org.apache.maven.shared</groupId>
         <artifactId>maven-filtering</artifactId>
         <version>${version.maven-filtering}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>*</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>org.codehaus.plexus</groupId>
-        <artifactId>plexus-archiver</artifactId>
-        <version>${version.plexus-archiver}</version>
         <exclusions>
           <exclusion>
             <groupId>*</groupId>
