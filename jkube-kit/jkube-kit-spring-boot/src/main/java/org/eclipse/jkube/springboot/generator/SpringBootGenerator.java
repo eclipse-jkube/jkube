@@ -19,6 +19,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -167,7 +168,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
     }
 
     private void copyFilesToFatJar(List<File> libs, List<File> classes, File target) throws IOException {
-        File tmpZip = File.createTempFile(target.getName(), null);
+        File tmpZip = Files.createTempFile(target.getName(), null).toFile();
         tmpZip.delete();
 
         // Using Apache commons rename, because renameTo has issues across file systems

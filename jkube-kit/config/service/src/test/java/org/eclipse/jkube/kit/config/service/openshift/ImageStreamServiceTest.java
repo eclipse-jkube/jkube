@@ -73,7 +73,7 @@ class ImageStreamServiceTest {
         final ImageStream lookedUpIs = lookupImageStream("ab12cd");
         setupClientMock(lookedUpIs,"default", "test");
         ImageName name = new ImageName("test:1.0");
-        File target = File.createTempFile("ImageStreamServiceTest",".yml", temporaryFolder);
+        File target = Files.createTempFile(temporaryFolder.toPath(), "ImageStreamServiceTest", ".yml").toFile();
         service.appendImageStreamResource(name, target);
         assertThat(target).exists();
 

@@ -16,6 +16,7 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -62,7 +63,7 @@ class WatchMojoTest {
 
   @BeforeEach
   void setUp(@TempDir File temporaryFolder) throws IOException {
-    kubernetesManifestFile =  File.createTempFile("kubernetes", ".yml", temporaryFolder);
+    kubernetesManifestFile =  Files.createTempFile(temporaryFolder.toPath(), "kubernetes", ".yml").toFile();
     mockedJKubeServiceHub = mock(JKubeServiceHub.class);
     mavenProject = mock(MavenProject.class);
     mavenSettings = mock(Settings.class);

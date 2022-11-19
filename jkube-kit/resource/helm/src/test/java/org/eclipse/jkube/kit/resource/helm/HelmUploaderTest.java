@@ -17,6 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.nio.file.Files;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.AfterEach;
@@ -75,7 +76,7 @@ class HelmUploaderTest {
     HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
     HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
     // Given
-    File file = File.createTempFile("test", "tmp", temporaryFolder);
+    File file = Files.createTempFile(temporaryFolder.toPath(), "test", "tmp").toFile();
     when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(500);
     when(httpURLConnection.getErrorStream()).thenReturn(new ByteArrayInputStream("Server error in ES".getBytes()));
@@ -95,7 +96,7 @@ class HelmUploaderTest {
     // Given
     HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
     HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
-    File file = File.createTempFile("test", "tmp", temporaryFolder);
+    File file = Files.createTempFile(temporaryFolder.toPath(), "test", "tmp").toFile();
     when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(500);
     when(httpURLConnection.getErrorStream()).thenReturn(null);
@@ -114,7 +115,7 @@ class HelmUploaderTest {
     // Given
     HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
     HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
-    File file = File.createTempFile("test", "tmp", temporaryFolder);
+    File file = Files.createTempFile(temporaryFolder.toPath(), "test", "tmp").toFile();
     when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(500);
     when(httpURLConnection.getErrorStream()).thenReturn(null);
@@ -133,7 +134,7 @@ class HelmUploaderTest {
     // Given
     HelmRepository helmRepository = mock(HelmRepository.class, RETURNS_DEEP_STUBS);
     HttpURLConnection httpURLConnection = mock(HttpURLConnection.class);
-    File file = File.createTempFile("test", "tmp", temporaryFolder);
+    File file = Files.createTempFile(temporaryFolder.toPath(), "test", "tmp").toFile();
     when(helmRepository.getType().createConnection(any(File.class), eq(helmRepository))).thenReturn(httpURLConnection);
     when(httpURLConnection.getResponseCode()).thenReturn(201);
     when(httpURLConnection.getInputStream()).thenReturn(null);

@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.resource.helm;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -143,7 +144,7 @@ class HelmConfigTest {
   @Test
   void createHelmConfig() throws IOException {
     // Given
-    File file = File.createTempFile("test", ".tmp");
+    File file = Files.createTempFile("test", ".tmp").toFile();
     file.deleteOnExit();
 
     HelmConfig helmConfig = new HelmConfig();

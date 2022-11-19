@@ -43,8 +43,8 @@ class AssemblyFileSetUtilsTest {
   void calculateFilePermissionsFileWithNoFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().build();
-    final File sourceFile = File.createTempFile("source-file", "txt", temp);
-    final File aFile = File.createTempFile("just-a-file", "txt", temp);
+    final File sourceFile = Files.createTempFile(temp.toPath(), "source-file", "txt").toFile();
+    final File aFile = Files.createTempFile(temp.toPath(), "just-a-file", "txt").toFile();
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceFile, aFile, afs);
     // Then
@@ -55,8 +55,8 @@ class AssemblyFileSetUtilsTest {
   void calculateFilePermissionsFileWithFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().fileMode("0777").build();
-    final File sourceFile = File.createTempFile("source-file", "txt", temp);
-    final File aFile = File.createTempFile("just-a-file", "txt", temp);
+    final File sourceFile = Files.createTempFile(temp.toPath(), "source-file", "txt").toFile();
+    final File aFile = Files.createTempFile(temp.toPath(), "just-a-file", "txt").toFile();
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceFile, aFile, afs);
     // Then

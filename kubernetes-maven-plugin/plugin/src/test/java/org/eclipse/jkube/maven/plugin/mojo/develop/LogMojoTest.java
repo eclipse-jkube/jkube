@@ -15,6 +15,7 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -65,7 +66,7 @@ class LogMojoTest {
         });
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class);
     podLogServiceMockedConstruction = mockConstruction(PodLogService.class);
-    kubernetesManifestFile = File.createTempFile("kubernetes", ".yml", temporaryFolder);
+    kubernetesManifestFile = Files.createTempFile(temporaryFolder.toPath(), "kubernetes", ".yml").toFile();
     mavenProject = mock(MavenProject.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
     // @formatter:off
