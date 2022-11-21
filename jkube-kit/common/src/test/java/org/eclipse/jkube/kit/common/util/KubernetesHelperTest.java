@@ -48,11 +48,13 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Template;
+import org.eclipse.jkube.kit.common.TestHttpStaticServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.jkube.kit.common.util.IoUtil.getFreeRandomPort;
 
 class KubernetesHelperTest {
 
@@ -73,18 +75,22 @@ class KubernetesHelperTest {
     }
 
     @Test
-    void testResourceFragmentsWithRemotes() {
-        // Given
-        List<String> remoteStrList = getRemoteFragments();
-        File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
+    void testResourceFragmentsWithRemotes() throws IOException {
+        int port = getFreeRandomPort();
+        File remoteDirectory = new File(getClass().getResource("/remote-resources").getFile());
+        try (TestHttpStaticServer ignore = new TestHttpStaticServer(port, remoteDirectory)) {
+            // Given
+            List<String> remoteStrList = getRemoteFragments(port);
+            File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
 
-        // When
-        File[] fragments = KubernetesHelper.listResourceFragments(remoteStrList, logger, localResourceDir);
+            // When
+            File[] fragments = KubernetesHelper.listResourceFragments(remoteStrList, logger, localResourceDir);
 
-        // Then
-        assertLocalFragments(fragments, 4);
-        assertThat(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("deployment.yaml"))).isTrue();
-        assertThat(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("sa.yml"))).isTrue();
+            // Then
+            assertLocalFragments(fragments, 4);
+            assertThat(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("deployment.yaml"))).isTrue();
+            assertThat(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("sa.yml"))).isTrue();
+        }
     }
 
     @Test
@@ -107,32 +113,40 @@ class KubernetesHelperTest {
     }
 
     @Test
-    void testGetResourceFragmentFromSourceWithNullResourceDirAndSomeRemotes() {
-        // Given
-        List<String> remotes = getRemoteFragments();
+    void testGetResourceFragmentFromSourceWithNullResourceDirAndSomeRemotes() throws IOException {
+        int port = getFreeRandomPort();
+        File remoteDirectory = new File(getClass().getResource("/remote-resources").getFile());
+        try (TestHttpStaticServer ignore = new TestHttpStaticServer(port, remoteDirectory)) {
+            // Given
+            List<String> remotes = getRemoteFragments(port);
 
-        // When
-        File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(null, remotes, "deployment.yaml", logger);
+            // When
+            File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(null, remotes, "deployment.yaml", logger);
 
-        // Then
-        assertThat(fragmentFile).isNotNull()
+            // Then
+            assertThat(fragmentFile).isNotNull()
                 .exists()
                 .hasName("deployment.yaml");
+        }
     }
 
     @Test
-    void testGetResourceFragmentFromSourceWithSomeResourceDirAndSomeRemotes() {
-        // Given
-        File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
-        List<String> remotes = getRemoteFragments();
+    void testGetResourceFragmentFromSourceWithSomeResourceDirAndSomeRemotes() throws IOException {
+        int port = getFreeRandomPort();
+        File remoteDirectory = new File(getClass().getResource("/remote-resources").getFile());
+        try (TestHttpStaticServer ignore = new TestHttpStaticServer(port, remoteDirectory)) {
+            // Given
+            File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
+            List<String> remotes = getRemoteFragments(port);
 
-        // When
-        File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(localResourceDir, remotes, "sa.yml", logger);
+            // When
+            File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(localResourceDir, remotes, "sa.yml", logger);
 
-        // Then
-        assertThat(fragmentFile).isNotNull()
+            // Then
+            assertThat(fragmentFile).isNotNull()
                 .exists()
                 .hasName("sa.yml");
+        }
     }
 
     @Test
@@ -414,11 +428,11 @@ class KubernetesHelperTest {
         return envVarList;
     }
 
-    private List<String> getRemoteFragments() {
+    private List<String> getRemoteFragments(int port) {
         List<String> remoteStrList = new ArrayList<>();
 
-        remoteStrList.add("https://gist.githubusercontent.com/lordofthejars/ac2823cec7831697d09444bbaa76cd50/raw/e4b43f1b6494766dfc635b5959af7730c1a58a93/deployment.yaml");
-        remoteStrList.add("https://gist.githubusercontent.com/rohanKanojia/c4ac4ae5533f0bf0dd77d13c905face7/raw/8a7de1e27c1f437c1ccbd186ed247efd967953ee/sa.yml");
+        remoteStrList.add(String.format("http://localhost:%d/deployment.yaml", port));
+        remoteStrList.add(String.format("http://localhost:%d/sa.yml", port));
         return remoteStrList;
     }
 }
