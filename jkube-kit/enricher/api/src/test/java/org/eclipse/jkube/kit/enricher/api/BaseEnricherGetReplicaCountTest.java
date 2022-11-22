@@ -20,7 +20,9 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -33,23 +35,40 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class BaseEnricherGetReplicaCountTest {
 
+  @Nested
+  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
   @DisplayName("with no list builder")
-  @ParameterizedTest(name = "and {0} should return ''{2}'' replicas")
-  @MethodSource("getReplicaCountsData")
-  void getReplicaCounts(String description, ResourceConfig resourceConfig, int expectedReplicas) {
-    // Given & When
-    int result = getReplicaCount(null, resourceConfig, 1337);
-    // Then
-    assertThat(result).isEqualTo(expectedReplicas);
+  class NoListBuilder {
+
+    @Test
+    @DisplayName("no resource config, should return default value")
+    void nullResourceConfig() {
+      // When
+      int result = getReplicaCount(null, null, 42);
+      // Then
+      assertThat(result).isEqualTo(42);
+    }
+
+    @DisplayName("with resource config")
+    @ParameterizedTest(name = "and {0} replicas should return ''{1}'' replicas")
+    @MethodSource("getReplicaCountsData")
+    void resourceConfig(Integer replicas, int expectedReplicas) {
+      // Given
+      final ResourceConfig resourceConfig = ResourceConfig.builder().replicas(replicas).build();
+      // When
+      int result = getReplicaCount(null, resourceConfig, 42);
+      // Then
+      assertThat(result).isEqualTo(expectedReplicas);
+    }
+
+    Stream<Arguments> getReplicaCountsData() {
+      return Stream.of(
+        arguments(null, 42),
+        arguments(1337, 1337)
+      );
+    }
   }
 
-  static Stream<Arguments> getReplicaCountsData() {
-    return Stream.of(
-        arguments("no resource config", null, 1337),
-        arguments("empty resource config", new ResourceConfig(), 1337),
-        arguments("configured resource config", ResourceConfig.builder().replicas(313373).build(), 313373)
-    );
-  }
 
   @Test
   void withEmptyListBuilderAndEmptyResourceConfig_shouldReturnDefault() {
@@ -62,11 +81,11 @@ class BaseEnricherGetReplicaCountTest {
   @Test
   void withDeploymentConfigInListBuilderAndEmptyResourceConfig_shouldReturnDeploymentConfig() {
     // Given
-    KubernetesListBuilder klb = new KubernetesListBuilder()
+    final KubernetesListBuilder klb = new KubernetesListBuilder()
             .addToItems(new DeploymentConfigBuilder().withNewSpec().withReplicas(1).endSpec());
-    ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
+    final ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
     // When
-    int result = getReplicaCount(klb, resourceConfig, 1337);
+    final int result = getReplicaCount(klb, resourceConfig, 1337);
     // Then
     assertThat(result).isEqualTo(1);
   }
@@ -74,10 +93,10 @@ class BaseEnricherGetReplicaCountTest {
   @Test
   void withDeploymentAndDeploymentConfigInListBuilderAndEmptyResourceConfig_shouldReturnValueInFirstItem() {
     // Given
-    KubernetesListBuilder klb = new KubernetesListBuilder()
+    final KubernetesListBuilder klb = new KubernetesListBuilder()
             .addToItems(new DeploymentBuilder().withNewSpec().withReplicas(2).endSpec())
             .addToItems(new DeploymentConfigBuilder().withNewSpec().withReplicas(1).endSpec());
-    ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
+    final ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
     // When
     int result = getReplicaCount(klb, resourceConfig, 1337);
     // Then
