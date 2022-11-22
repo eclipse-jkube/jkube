@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 class ContainerHandlerTest {
 
@@ -426,25 +427,32 @@ class ContainerHandlerTest {
       }
 
       @Test
-      @DisplayName("with multiple mount paths, should return name")
+      @DisplayName("with multiple mount paths for same volume config, should return multiple mounts")
       void withMultipleMountPaths_shouldReturnName() {
         ContainerHandler handler = createContainerHandler(project);
 
         images.add(imageConfiguration);
 
-        List<String> mounts = new ArrayList<>();
-        mounts.add("/path/etc");
-        mounts.add("/path/system");
-        mounts.add("/path/sys");
-
-        VolumeConfig volumeConfigWithNameAndMultipleMounts = VolumeConfig.builder().name("test").mounts(mounts).build();
+        VolumeConfig volumeConfigWithNameAndMultipleMounts = VolumeConfig.builder()
+          .name("test")
+          .mount("/path/etc")
+          .mount("/path/system")
+          .mount("/path/sys")
+          .build();
         volumes.add(volumeConfigWithNameAndMultipleMounts);
         ResourceConfig config1 = ResourceConfig.builder().volumes(volumes).build();
         List<io.fabric8.kubernetes.api.model.VolumeMount> volumeMounts = handler.getContainers(config1, images).get(0)
             .getVolumeMounts();
         assertThat(volumeMounts).hasSize(3)
-            .extracting(io.fabric8.kubernetes.api.model.VolumeMount::getName).asList()
-            .containsExactly("test", "test", "test");
+          .extracting(
+            io.fabric8.kubernetes.api.model.VolumeMount::getName,
+            io.fabric8.kubernetes.api.model.VolumeMount::getMountPath
+          )
+          .containsExactly(
+            tuple("test", "/path/etc"),
+            tuple("test", "/path/system"),
+            tuple("test", "/path/sys")
+          );
       }
 
       @Test
