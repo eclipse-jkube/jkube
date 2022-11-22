@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.11-SNAPSHOT
+* Fix #1546: Migrate to JUnit5 testing framework
 
 ### 1.10.1 (2022-11-16)
 * Fix #1915: Maven 3.6.3 is still supported
