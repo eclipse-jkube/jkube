@@ -11,6 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
+
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
 import java.io.IOException;
@@ -20,7 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.build.api.helper.KubernetesConfigAuthUtil;
@@ -32,10 +32,6 @@ import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import mockit.Expectations;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
@@ -43,27 +39,30 @@ import org.apache.http.impl.bootstrap.ServerBootstrap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static java.util.UUID.randomUUID;
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings("unused")
 class AuthConfigFactoryTest {
     static final String ECR_NAME = "123456789012.dkr.ecr.bla.amazonaws.com";
     private AuthConfigFactory factory;
     private GsonBuilder gsonBuilder;
-
-    @Mocked
     private KitLogger log;
-
-    @Mocked
     private AwsSdkHelper awsSdkHelper;
-
     private HttpServer httpServer;
 
     @BeforeEach
     void containerSetup() {
+        log = new KitLogger.SilentLogger();
+        awsSdkHelper = mock(AwsSdkHelper.class);
         factory = new AuthConfigFactory(log, awsSdkHelper);
         gsonBuilder = new GsonBuilder();
     }
@@ -77,7 +76,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromSystemProperties() throws IOException {
+    void getAuthConfigFromSystemProperties() throws IOException {
         // Given
         System.setProperty("jkube.docker.username", "testuser");
         System.setProperty("jkube.docker.password", "testpass");
@@ -93,20 +92,15 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromOpenShiftConfig() {
+    void getAuthConfigFromOpenShiftConfig() {
         // Given
         System.setProperty("jkube.docker.useOpenShiftAuth", "true");
         Map<String, Object> authConfigMap = new HashMap<>();
-        new MockUp<KubernetesConfigAuthUtil>() {
-            @Mock
-            AuthConfig readKubeConfigAuth() {
-                return AuthConfig.builder()
+        try (MockedStatic<KubernetesConfigAuthUtil> mockStatic = Mockito.mockStatic(KubernetesConfigAuthUtil.class)) {
+            mockStatic.when(KubernetesConfigAuthUtil::readKubeConfigAuth).thenReturn(AuthConfig.builder()
                     .username("test")
                     .password("sometoken")
-                    .build();
-            }
-        };
-        try {
+                    .build());
             // When
             AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromOpenShiftConfig(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
             // Then
@@ -117,29 +111,25 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromOpenShiftConfigWithAuthConfigMap() {
+    void getAuthConfigFromOpenShiftConfigWithAuthConfigMap() {
         // Given
         Map<String, Object> authConfigMap = new HashMap<>();
         authConfigMap.put("useOpenShiftAuth", "true");
-        new MockUp<KubernetesConfigAuthUtil>() {
-            @Mock
-            AuthConfig readKubeConfigAuth() {
-                return AuthConfig.builder()
-                    .username("test")
-                    .password("sometoken")
-                    .build();
-            }
-        };
+        try (MockedStatic<KubernetesConfigAuthUtil> mockStatic = Mockito.mockStatic(KubernetesConfigAuthUtil.class)) {
+            mockStatic.when(KubernetesConfigAuthUtil::readKubeConfigAuth).thenReturn(AuthConfig.builder()
+                .username("test")
+                .password("sometoken")
+                .build());
+            // When
+            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromOpenShiftConfig(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
 
-        // When
-        AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromOpenShiftConfig(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
-
-        // Then
-        assertAuthConfig(authConfig, "test", "sometoken");
+            // Then
+            assertAuthConfig(authConfig, "test", "sometoken");
+        }
     }
 
     @Test
-    void testGetAuthConfigFromPluginConfiguration() {
+    void getAuthConfigFromPluginConfiguration() {
         // Given
         Map<String, Object> authConfigMap = new HashMap<>();
         authConfigMap.put("username", "testuser");
@@ -155,7 +145,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromSettings() {
+    void getAuthConfigFromSettings() {
         // Given
         List<RegistryServerConfiguration> settings = new ArrayList<>();
         settings.add(RegistryServerConfiguration.builder()
@@ -163,7 +153,6 @@ class AuthConfigFactoryTest {
                 .username("testuser")
                 .password("testpass")
                 .build());
-
         // When
         AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromSettings(settings, "testuser", "testregistry.io", s -> s);
 
@@ -172,36 +161,32 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromDockerConfig(@Mocked KitLogger logger) throws IOException {
+    void getAuthConfigFromDockerConfig() throws IOException {
         // Given
-        new MockUp<DockerFileUtil>() {
-            @Mock
-            JsonObject readDockerConfig() {
-                JsonObject dockerConfig = new JsonObject();
-                JsonObject auths = new JsonObject();
-                JsonObject creds = new JsonObject();
-                creds.addProperty("auth", "dGVzdHVzZXI6dGVzdHBhc3M=");
-                auths.add("https://index.docker.io/v1/", creds);
-                dockerConfig.add("auths", auths);
-                return dockerConfig;
-            }
-        };
+        JsonObject dockerConfig = new JsonObject();
+        JsonObject auths = new JsonObject();
+        JsonObject creds = new JsonObject();
+        creds.addProperty("auth", "dGVzdHVzZXI6dGVzdHBhc3M=");
+        auths.add("https://index.docker.io/v1/", creds);
+        dockerConfig.add("auths", auths);
+        try (MockedStatic<DockerFileUtil> mockStatic = Mockito.mockStatic(DockerFileUtil.class)) {
+            mockStatic.when(DockerFileUtil::readDockerConfig).thenReturn(dockerConfig);
+            // When
+            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromDockerConfig("https://index.docker.io/v1/", log);
 
-        // When
-        AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromDockerConfig("https://index.docker.io/v1/", logger);
-
-        // Then
-        assertAuthConfig(authConfig, "testuser", "testpass");
+            // Then
+            assertAuthConfig(authConfig, "testuser", "testpass");
+        }
     }
 
     @Test
-    void testGetStandardAuthConfigFromProperties(@Mocked KitLogger logger) throws IOException {
+    void getStandardAuthConfigFromProperties() throws IOException {
         // Given
         System.setProperty("jkube.docker.username", "testuser");
         System.setProperty("jkube.docker.password", "testpass");
         try {
             // When
-            AuthConfigFactory authConfigFactory = new AuthConfigFactory(logger);
+            AuthConfigFactory authConfigFactory = new AuthConfigFactory(log);
             AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), Collections.emptyList(), "testuser", "testregistry.io", s -> s);
             // Then
             assertAuthConfig(authConfig, "testuser", "testpass");
@@ -212,7 +197,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetStandardAuthConfigFromMavenSettings(@Mocked KitLogger logger) throws IOException {
+    void getStandardAuthConfigFromMavenSettings() throws IOException {
         // Given
         List<RegistryServerConfiguration> settings = new ArrayList<>();
         settings.add(RegistryServerConfiguration.builder()
@@ -222,7 +207,7 @@ class AuthConfigFactoryTest {
                 .build());
 
         // When
-        AuthConfigFactory authConfigFactory = new AuthConfigFactory(logger);
+        AuthConfigFactory authConfigFactory = new AuthConfigFactory(log);
         AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), settings, "testuser", "testregistry.io", s -> s);
 
         // Then
@@ -231,94 +216,106 @@ class AuthConfigFactoryTest {
 
     @Test
     void getAuthConfigViaAwsSdk() throws IOException {
-        new Expectations() {{
-            awsSdkHelper.isDefaultAWSCredentialsProviderChainPresentInClassPath();
-            result = true;
-        }};
         String accessKeyId = randomUUID().toString();
         String secretAccessKey = randomUUID().toString();
-        new MockedAwsSdkAuthConfigFactory(accessKeyId, secretAccessKey);
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(AuthConfig.builder()
+            .username(accessKeyId)
+            .password(secretAccessKey)
+            .build()))
+        ) {
+            when(awsSdkHelper.isDefaultAWSCredentialsProviderChainPresentInClassPath()).thenReturn(true);
 
-        AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
+            AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-        verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, null);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null);
+        }
     }
 
     @Test
     void ecsTaskRole() throws IOException {
-        givenAwsSdkIsDisabled();
-        String containerCredentialsUri = "/v2/credentials/" + randomUUID();
-        String accessKeyId = randomUUID().toString();
-        String secretAccessKey = randomUUID().toString();
-        String sessionToken = randomUUID().toString();
-        givenEcsMetadataService(containerCredentialsUri, accessKeyId, secretAccessKey, sessionToken);
-        setupEcsMetadataConfiguration(httpServer, containerCredentialsUri);
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null))
+        ) {
+            String containerCredentialsUri = "/v2/credentials/" + randomUUID();
+            String accessKeyId = randomUUID().toString();
+            String secretAccessKey = randomUUID().toString();
+            String sessionToken = randomUUID().toString();
+            givenEcsMetadataService(containerCredentialsUri, accessKeyId, secretAccessKey, sessionToken);
+            setupEcsMetadataConfiguration(httpServer, containerCredentialsUri);
 
-        AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
+            AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-        verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, sessionToken);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, sessionToken);
+        }
     }
 
     @Test
     void fargateTaskRole() throws IOException {
-        givenAwsSdkIsDisabled();
-        String containerCredentialsUri = "v2/credentials/" + randomUUID();
-        String accessKeyId = randomUUID().toString();
-        String secretAccessKey = randomUUID().toString();
-        String sessionToken = randomUUID().toString();
-        givenEcsMetadataService("/" + containerCredentialsUri, accessKeyId, secretAccessKey, sessionToken);
-        setupEcsMetadataConfiguration(httpServer, containerCredentialsUri);
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null))
+        ) {
+            String containerCredentialsUri = "v2/credentials/" + randomUUID();
+            String accessKeyId = randomUUID().toString();
+            String secretAccessKey = randomUUID().toString();
+            String sessionToken = randomUUID().toString();
+            givenEcsMetadataService("/" + containerCredentialsUri, accessKeyId, secretAccessKey, sessionToken);
+            setupEcsMetadataConfiguration(httpServer, containerCredentialsUri);
 
-        AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
+            AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-        verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, sessionToken);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, sessionToken);
+        }
     }
 
     @Test
     void awsTemporaryCredentialsArePickedUpFromEnvironment() throws IOException {
-        givenAwsSdkIsDisabled();
-        String accessKeyId = randomUUID().toString();
-        String secretAccessKey = randomUUID().toString();
-        String sessionToken = randomUUID().toString();
-        new Expectations() {{
-            awsSdkHelper.getAwsAccessKeyIdEnvVar();
-            result = accessKeyId;
-            awsSdkHelper.getAwsSecretAccessKeyEnvVar();
-            result = secretAccessKey;
-            awsSdkHelper.getAwsSessionTokenEnvVar();
-            result = sessionToken;
-        }};
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null))
+        ) {
+            String accessKeyId = randomUUID().toString();
+            String secretAccessKey = randomUUID().toString();
+            String sessionToken = randomUUID().toString();
+            when(awsSdkHelper.getAwsAccessKeyIdEnvVar()).thenReturn(accessKeyId);
+            when(awsSdkHelper.getAwsSecretAccessKeyEnvVar()).thenReturn(secretAccessKey);
+            when(awsSdkHelper.getAwsSessionTokenEnvVar()).thenReturn(sessionToken);
+            AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-        AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
-
-        verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, sessionToken);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, sessionToken);
+        }
     }
 
     @Test
     void awsStaticCredentialsArePickedUpFromEnvironment() throws IOException {
-        givenAwsSdkIsDisabled();
-        String accessKeyId = randomUUID().toString();
-        String secretAccessKey = randomUUID().toString();
-        new Expectations() {{
-            awsSdkHelper.getAwsAccessKeyIdEnvVar();
-            result = accessKeyId;
-            awsSdkHelper.getAwsSecretAccessKeyEnvVar();
-            result = secretAccessKey;
-        }};
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null))
+        ) {
+            String accessKeyId = randomUUID().toString();
+            String secretAccessKey = randomUUID().toString();
+            when(awsSdkHelper.getAwsAccessKeyIdEnvVar()).thenReturn(accessKeyId);
+            when(awsSdkHelper.getAwsSecretAccessKeyEnvVar()).thenReturn(secretAccessKey);
 
-        AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
+            AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-        verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null, null);
+            verifyAuthConfig(authConfig, accessKeyId, secretAccessKey, null);
+        }
     }
 
     @Test
     void incompleteAwsCredentialsAreIgnored() throws IOException {
-        givenAwsSdkIsDisabled();
-        System.setProperty("AWS_ACCESS_KEY_ID", randomUUID().toString());
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null));
+         MockedStatic<DockerFileUtil> dfu = mockStatic(DockerFileUtil.class)
+        ) {
+            System.setProperty("AWS_ACCESS_KEY_ID", randomUUID().toString());
+            dfu.when(DockerFileUtil::readDockerConfig).thenReturn(null);
 
-        AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
+            AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
-        assertThat(authConfig).isNull();
+            assertThat(authConfig).isNull();
+        } finally {
+            System.clearProperty("AWS_ACCESS_KEY_ID");
+        }
     }
 
     private void givenEcsMetadataService(String containerCredentialsUri, String accessKeyId, String secretAccessKey, String sessionToken) throws IOException {
@@ -342,66 +339,19 @@ class AuthConfigFactoryTest {
     }
 
     private void setupEcsMetadataConfiguration(HttpServer httpServer, String containerCredentialsUri) {
-        new Expectations() {{
-            awsSdkHelper.getEcsMetadataEndpoint();
-            result = "http://" +
-                    httpServer.getInetAddress().getHostAddress()+":" + httpServer.getLocalPort();
-
-            awsSdkHelper.getAwsContainerCredentialsRelativeUri();
-            result = containerCredentialsUri;
-        }};
+        when(awsSdkHelper.getEcsMetadataEndpoint()).thenReturn("http://" +
+                httpServer.getInetAddress().getHostAddress()+":" + httpServer.getLocalPort());
+        when(awsSdkHelper.getAwsContainerCredentialsRelativeUri()).thenReturn(containerCredentialsUri);
     }
 
-    private static void givenAwsSdkIsDisabled() {
-        new DisableAwsSdkAuthConfigFactory();
-    }
-
-    private void verifyAuthConfig(AuthConfig config, String username, String password, String email, String auth) {
+    private void verifyAuthConfig(AuthConfig config, String username, String password, String auth) {
         assertThat(config).isNotNull();
         JsonObject params = gsonBuilder.create().fromJson(new String(Base64.decodeBase64(config.toHeaderValue(log).getBytes())), JsonObject.class);
         assertThat(params)
                 .returns(username, p -> p.get("username").getAsString())
                 .returns(password, p -> p.get("password").getAsString());
-        if (email != null) {
-            assertThat(params.get("email").getAsString()).isEqualTo(email);
-        }
         if (auth != null) {
             assertThat(params.get("auth").getAsString()).isEqualTo(auth);
-        }
-    }
-
-    private static class MockedAwsSdkAuthConfigFactory extends MockUp<AwsSdkAuthConfigFactory> {
-        private final String accessKeyId;
-        private final String secretAccessKey;
-
-        MockedAwsSdkAuthConfigFactory(String accessKeyId, String secretAccessKey) {
-            this.accessKeyId = accessKeyId;
-            this.secretAccessKey = secretAccessKey;
-        }
-
-        @Mock
-        void $init(KitLogger log) { }
-
-        @Mock
-        AuthConfig createAuthConfig() {
-            return AuthConfig.builder()
-                    .username(accessKeyId)
-                    .password(secretAccessKey)
-                    .email(null)
-                    .auth(null)
-                    .identityToken(null)
-                    .build();
-        }
-
-    }
-
-    private static class DisableAwsSdkAuthConfigFactory extends MockUp<AwsSdkAuthConfigFactory> {
-        @Mock
-        void $init(KitLogger log) { }
-
-        @Mock
-        AuthConfig createAuthConfig() {
-            return null;
         }
     }
 
@@ -411,3 +361,4 @@ class AuthConfigFactoryTest {
                 .hasFieldOrPropertyWithValue("password", password);
     }
 }
+

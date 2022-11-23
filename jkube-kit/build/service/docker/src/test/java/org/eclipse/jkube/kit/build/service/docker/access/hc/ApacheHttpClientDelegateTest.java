@@ -19,36 +19,30 @@ import java.util.Collections;
 import java.util.function.BiConsumer;
 
 import org.eclipse.jkube.kit.build.service.docker.access.hc.util.ClientBuilder;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"rawtypes", "unused"})
 class ApacheHttpClientDelegateTest {
 
-  @Mocked
-  private ClientBuilder clientBuilder;
-  @Mocked
   private CloseableHttpClient httpClient;
-
   private ApacheHttpClientDelegate apacheHttpClientDelegate;
 
   @BeforeEach
   void setUp() throws Exception {
-    // @formatter:off
-    new Expectations() {{
-      clientBuilder.buildBasicClient(); result = httpClient;
-    }};
-    // @formatter:on
+    httpClient = mock(CloseableHttpClient.class);
+    final ClientBuilder clientBuilder = mock(ClientBuilder.class);
+    when(clientBuilder.buildBasicClient()).thenReturn(httpClient);
     apacheHttpClientDelegate = new ApacheHttpClientDelegate(clientBuilder, false);
   }
 
@@ -61,13 +55,9 @@ class ApacheHttpClientDelegateTest {
   @Test
   void delete() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      httpClient.execute((HttpUriRequest) any, (ResponseHandler) any); result = 1337;
-    }};
-    // @formatter:on
+    when(httpClient.execute(any(), any(ResponseHandler.class))).thenReturn(1337);
     // When
-    final int result = apacheHttpClientDelegate.delete("http://example.com");
+    final int result = apacheHttpClientDelegate.delete("https://example.com");
     // Then
     assertThat(result).isEqualTo(1337);
     verifyHttpClientExecute((request, responseHandler) ->
@@ -81,13 +71,9 @@ class ApacheHttpClientDelegateTest {
   @Test
   void get() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      httpClient.execute((HttpUriRequest) any, (ResponseHandler) any); result = "Response";
-    }};
-    // @formatter:on
+    when(httpClient.execute(any(), any(ResponseHandler.class))).thenReturn("Response");
     // When
-    final String response = apacheHttpClientDelegate.get("http://example.com");
+    final String response = apacheHttpClientDelegate.get("https://example.com");
     // Then
     assertThat(response).isEqualTo("Response");
     verifyHttpClientExecute((request, responseHandler) ->{
@@ -104,14 +90,10 @@ class ApacheHttpClientDelegateTest {
   @Test
   void postWithStringBody() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      httpClient.execute((HttpUriRequest) any, (ResponseHandler) any); result = "Response";
-    }};
-    // @formatter:on
+    when(httpClient.execute(any(), any(ResponseHandler.class))).thenReturn("Response");
     // When
     final String response = apacheHttpClientDelegate.post(
-        "http://example.com", "{body}", Collections.singletonMap("EXTRA", "HEADER"), null);
+        "https://example.com", "{body}", Collections.singletonMap("EXTRA", "HEADER"), null);
     // Then
     assertThat(response).isEqualTo("Response");
     verifyHttpClientExecute((request, responseHandler) ->
@@ -128,14 +110,10 @@ class ApacheHttpClientDelegateTest {
   @Test
   void postWithFileBody() throws IOException {
     // Given
-    // @formatter:off
-    new Expectations() {{
-      httpClient.execute((HttpUriRequest) any, (ResponseHandler) any); result = "Response";
-    }};
-    // @formatter:on
+    when(httpClient.execute(any(), any(ResponseHandler.class))).thenReturn("Response");
     // When
     final String response = apacheHttpClientDelegate.post(
-        "http://example.com", new File("fake-file.tar"), null);
+        "https://example.com", new File("fake-file.tar"), null);
     // Then
     assertThat(response).isEqualTo("Response");
     verifyHttpClientExecute((request, responseHandler) ->
@@ -148,15 +126,11 @@ class ApacheHttpClientDelegateTest {
     );
   }
 
-  private <H extends ResponseHandler> void verifyHttpClientExecute(BiConsumer<HttpUriRequest, H> consumer) throws IOException {
-    // @formatter:off
-    new Verifications() {{
-      HttpUriRequest request;
-      H responseHandler;
-      httpClient.execute(request = withCapture(), responseHandler = withCapture());
-      consumer.accept(request, responseHandler);
-    }};
-    // @formatter:on
+  private void verifyHttpClientExecute(BiConsumer<HttpUriRequest, ResponseHandler<?>> consumer) throws IOException {
+    ArgumentCaptor<HttpUriRequest> httpUriRequestArgumentCaptor = ArgumentCaptor.forClass(HttpUriRequest.class);
+    ArgumentCaptor<ResponseHandler<Object>> hArgumentCaptor = ArgumentCaptor.forClass(ResponseHandler.class);
+    verify(httpClient).execute(httpUriRequestArgumentCaptor.capture(), hArgumentCaptor.capture());
+    consumer.accept(httpUriRequestArgumentCaptor.getValue(),hArgumentCaptor.getValue());
   }
 
 }

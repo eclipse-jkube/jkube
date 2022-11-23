@@ -42,7 +42,7 @@ class HcChunkedResponseHandlerWrapperTest {
     handler = new TestJsonEntityResponseHandler();
     hcChunkedResponseHandlerWrapper = new HcChunkedResponseHandlerWrapper(handler);
   }
-
+  
   @Test
   void handleResponseWithInvalidStatusAndJsonBody() throws IOException {
     final HttpResponse response = response(400, "WRONG!!",

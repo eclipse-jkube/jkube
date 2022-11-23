@@ -29,7 +29,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,14 +40,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author roland
  */
 class DockerRegistryAuthHandlerTest {
-
-  @Mocked
   private KitLogger log;
-
   private DockerRegistryAuthHandler handler;
 
   @BeforeEach
   void setup() {
+    log = new KitLogger.SilentLogger();
     handler = new DockerRegistryAuthHandler(log);
   }
 
@@ -74,7 +71,7 @@ class DockerRegistryAuthHandlerTest {
     executeWithTempHomeDir(homeDir -> {
       writeDockerConfigJson(createDockerConfig(homeDir), null, singletonMap("registry1", "credHelper1-does-not-exist"));
       AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, "roland", "localhost:5000", s -> s);
-      verifyAuthConfig(config, "roland", "secret", "roland@jolokia.org");
+      verifyAuthConfig(config);
     });
   }
 
@@ -146,9 +143,9 @@ class DockerRegistryAuthHandlerTest {
   private void checkDockerAuthLogin(File homeDir, String configRegistry, String lookupRegistry)
       throws IOException {
 
-    writeDockerConfigJson(createDockerConfig(homeDir), "roland", "secret", "roland@jolokia.org", configRegistry);
+    writeDockerConfigJson(createDockerConfig(homeDir), configRegistry);
     AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, "roland", lookupRegistry, s -> s);
-    verifyAuthConfig(config, "roland", "secret", "roland@jolokia.org");
+    verifyAuthConfig(config);
   }
 
   private File createDockerConfig(File homeDir) {
@@ -157,12 +154,12 @@ class DockerRegistryAuthHandlerTest {
     return dockerDir;
   }
 
-  private void writeDockerConfigJson(File dockerDir, String user, String password,
-      String email, String registry) throws IOException {
+  private void writeDockerConfigJson(File dockerDir,
+                                     String registry) throws IOException {
     File configFile = new File(dockerDir, "config.json");
 
     JsonObject config = new JsonObject();
-    addAuths(config, user, password, email, registry);
+    addAuths(config, registry);
 
     try (Writer writer = new FileWriter(configFile)) {
       new Gson().toJson(config, writer);
@@ -181,31 +178,29 @@ class DockerRegistryAuthHandlerTest {
       config.addProperty("credsStore", credsStore);
     }
 
-    addAuths(config, "roland", "secret", "roland@jolokia.org", "localhost:5000");
+    addAuths(config, "localhost:5000");
 
     try (Writer writer = new FileWriter(configFile)) {
       new Gson().toJson(config, writer);
     }
   }
 
-  private void addAuths(JsonObject config, String user, String password, String email, String registry) {
+  private void addAuths(JsonObject config, String registry) {
     JsonObject auths = new JsonObject();
     JsonObject value = new JsonObject();
-    value.addProperty("auth", new String(Base64.getEncoder().encode((user + ":" + password).getBytes())));
-    value.addProperty("email", email);
+    value.addProperty("auth", new String(Base64.getEncoder().encode(("roland" + ":" + "secret").getBytes())));
+    value.addProperty("email", "roland@jolokia.org");
     auths.add(registry, value);
     config.add("auths", auths);
   }
 
-  private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
+  private void verifyAuthConfig(AuthConfig config) {
     JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())),
         JsonObject.class);
     assertThat(params)
-            .returns(username, j -> j.get("username").getAsString())
-            .returns(password, j -> j.get("password").getAsString());
-    if (email != null) {
-      assertThat(params.get("email").getAsString()).isEqualTo(email);
-    }
+            .returns("roland", j -> j.get("username").getAsString())
+            .returns("secret", j -> j.get("password").getAsString());
+    assertThat(params.get("email").getAsString()).isEqualTo("roland@jolokia.org");
   }
 
 }
