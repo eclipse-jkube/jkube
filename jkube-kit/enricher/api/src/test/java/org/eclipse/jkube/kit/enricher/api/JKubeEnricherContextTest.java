@@ -21,7 +21,7 @@ import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.io.File;
@@ -36,9 +36,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class JKubeEnricherContextTest {
+class JKubeEnricherContextTest {
   @Test
-  public void builder_whenInvoked_shouldConstructJKubeEnricherContext() {
+  void builder_whenInvoked_shouldConstructJKubeEnricherContext() {
     // Given + When
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
         .jKubeBuildStrategy(JKubeBuildStrategy.jib)
@@ -60,7 +60,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void getGav_whenInvoked_shouldReturnExpectedGroupArtifactVersion() {
+  void getGav_whenInvoked_shouldReturnExpectedGroupArtifactVersion() {
     // Given + When
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
         .project(JavaProject.builder()
@@ -76,7 +76,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void getDockerJsonConfigString_whenNoServerPresent_shouldReturnBlankString() {
+  void getDockerJsonConfigString_whenNoServerPresent_shouldReturnBlankString() {
     // Given
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
         .project(JavaProject.builder()
@@ -92,7 +92,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void getDockerJsonConfigString_whenServerPresent_shouldReturnDockerJsonString() {
+  void getDockerJsonConfigString_whenServerPresent_shouldReturnDockerJsonString() {
     // Given
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
         .project(JavaProject.builder()
@@ -114,7 +114,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void getProperty_whenPropertyPresent_shouldReturnValue() {
+  void getProperty_whenPropertyPresent_shouldReturnValue() {
     // Given
     Properties properties = new Properties();
     properties.put("key1", "value1");
@@ -133,7 +133,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void getProperty_whenPropertyAbsent_shouldReturnNull() {
+  void getProperty_whenPropertyAbsent_shouldReturnNull() {
     // Given
     Properties properties = new Properties();
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
@@ -151,7 +151,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void getBuildStrategy_whenBuildStrategyPresent_shouldReturnBuildStrategy() {
+  void getBuildStrategy_whenBuildStrategyPresent_shouldReturnBuildStrategy() {
     // Given
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
         .project(JavaProject.builder()
@@ -168,7 +168,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void getDependencies_whenTransitiveTrue_shouldGetTransitiveDeps() {
+  void getDependencies_whenTransitiveTrue_shouldGetTransitiveDeps() {
     // Given
     JavaProject javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
@@ -184,7 +184,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void getDependencies_whenTransitiveFalse_shouldGetDeps() {
+  void getDependencies_whenTransitiveFalse_shouldGetDeps() {
     // Given
     JavaProject javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
@@ -200,7 +200,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void hasPlugin_withNullGroup_shouldSearchPluginWithArtifactId() {
+  void hasPlugin_withNullGroup_shouldSearchPluginWithArtifactId() {
     try (MockedStatic<JKubeProjectUtil> jKubeProjectUtilMockedStatic = mockStatic(JKubeProjectUtil.class)) {
       // Given
       JavaProject javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
@@ -217,7 +217,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void hasPlugin_withGroup_shouldSearchPluginWithArtifactId() {
+  void hasPlugin_withGroup_shouldSearchPluginWithArtifactId() {
     try (MockedStatic<JKubeProjectUtil> jKubeProjectUtilMockedStatic = mockStatic(JKubeProjectUtil.class)) {
       // Given
       JavaProject javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
@@ -234,7 +234,7 @@ public class JKubeEnricherContextTest {
   }
 
   @Test
-  public void getProjectClassLoaders_whenInvoked_shouldCreateClassLoaderFromCompileClasspathElements() {
+  void getProjectClassLoaders_whenInvoked_shouldCreateClassLoaderFromCompileClasspathElements() {
     try (MockedStatic<ClassUtil> classUtilMockedStatic = mockStatic(ClassUtil.class)) {
       // Given
       File targetDir = new File("target");

@@ -32,8 +32,8 @@ import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.handler.DeploymentHandler;
 import org.eclipse.jkube.kit.enricher.handler.StatefulSetHandler;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Properties;
@@ -46,21 +46,21 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class ControllerViaPluginConfigurationEnricherTest {
+class ControllerViaPluginConfigurationEnricherTest {
   private ControllerViaPluginConfigurationEnricher controllerViaPluginConfigurationEnricher;
   private KubernetesListBuilder kubernetesListBuilder;
   private EnricherContext context;
   private DeploymentHandler mockedDeploymentHandler;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     when(context.getGav().getSanitizedArtifactId()).thenReturn("test-project");
     kubernetesListBuilder = new KubernetesListBuilder();
   }
 
   @Test
-  public void create_withDeploymentFragment_shouldMergeOpinionatedDefaultsWithFragment() {
+  void create_withDeploymentFragment_shouldMergeOpinionatedDefaultsWithFragment() {
     // Given
     mockDeploymentHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
@@ -74,7 +74,7 @@ public class ControllerViaPluginConfigurationEnricherTest {
   }
 
   @Test
-  public void create_withDeploymentFragmentAndConfiguredControllerName_shouldConsiderConfiguredNameInMergedResource() {
+  void create_withDeploymentFragmentAndConfiguredControllerName_shouldConsiderConfiguredNameInMergedResource() {
     // Given
     mockDeploymentHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
@@ -91,7 +91,7 @@ public class ControllerViaPluginConfigurationEnricherTest {
   }
 
   @Test
-  public void create_withDeploymentFragmentWithExistingNameAndConfiguredControllerName_shouldConsiderExistingNameInMergedResource() {
+  void create_withDeploymentFragmentWithExistingNameAndConfiguredControllerName_shouldConsiderExistingNameInMergedResource() {
     // Given
     mockDeploymentHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
@@ -111,7 +111,7 @@ public class ControllerViaPluginConfigurationEnricherTest {
   }
 
   @Test
-  public void create_withStatefulSetFragment_shouldMergeOpinionatedDefaultsWithFragment() {
+  void create_withStatefulSetFragment_shouldMergeOpinionatedDefaultsWithFragment() {
     // Given
     mockStatefulSetHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
@@ -125,7 +125,7 @@ public class ControllerViaPluginConfigurationEnricherTest {
   }
 
   @Test
-  public void create_withStatefulSetFragmentAndConfiguredControllerName_shouldConsiderConfiguredNameInMergedResource() {
+  void create_withStatefulSetFragmentAndConfiguredControllerName_shouldConsiderConfiguredNameInMergedResource() {
     // Given
     mockStatefulSetHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
@@ -142,7 +142,7 @@ public class ControllerViaPluginConfigurationEnricherTest {
   }
 
   @Test
-  public void create_withStatefulSetFragmentWithExistingNameAndConfiguredControllerName_shouldConsiderExistingNameInMergedResource() {
+  void create_withStatefulSetFragmentWithExistingNameAndConfiguredControllerName_shouldConsiderExistingNameInMergedResource() {
     // Given
     mockStatefulSetHandler();
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
@@ -162,7 +162,7 @@ public class ControllerViaPluginConfigurationEnricherTest {
   }
 
   @Test
-  public void create_withDeploymentFragmentAndImagePullPolicyPropertySet_shouldSendConfiguredPolicyToDeploymentHandler() {
+  void create_withDeploymentFragmentAndImagePullPolicyPropertySet_shouldSendConfiguredPolicyToDeploymentHandler() {
     // Given
     mockDeploymentHandler();
     ArgumentCaptor<ResourceConfig> resourceConfigArgumentCaptor = ArgumentCaptor.forClass(ResourceConfig.class);
@@ -187,17 +187,14 @@ public class ControllerViaPluginConfigurationEnricherTest {
     assertThat(kubernetesListBuilder.build())
         .extracting(KubernetesList::getItems)
         .asList()
-        .hasSize(1)
-        .first()
-        .asInstanceOf(InstanceOfAssertFactories.type(Deployment.class))
+        .singleElement(InstanceOfAssertFactories.type(Deployment.class))
         .hasFieldOrPropertyWithValue("metadata.name", name)
         .extracting(Deployment::getSpec)
         .extracting(DeploymentSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
         .asList()
-        .first()
-        .asInstanceOf(InstanceOfAssertFactories.type(Container.class))
+        .first(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getEnv)
         .asList()
         .contains(new EnvVarBuilder().withName("FOO").withValue("bar").build());
@@ -207,17 +204,14 @@ public class ControllerViaPluginConfigurationEnricherTest {
     assertThat(kubernetesListBuilder.build())
         .extracting(KubernetesList::getItems)
         .asList()
-        .hasSize(1)
-        .first()
-        .asInstanceOf(InstanceOfAssertFactories.type(StatefulSet.class))
+        .singleElement(InstanceOfAssertFactories.type(StatefulSet.class))
         .hasFieldOrPropertyWithValue("metadata.name", name)
         .extracting(StatefulSet::getSpec)
         .extracting(StatefulSetSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
         .asList()
-        .first()
-        .asInstanceOf(InstanceOfAssertFactories.type(Container.class))
+        .first(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getEnv)
         .asList()
         .contains(new EnvVarBuilder().withName("FOO").withValue("bar").build());

@@ -50,6 +50,12 @@ These tasks can be categorized in multiple groups:
 | *<<jkubeUndeploy>>*
 | Deletes the kubernetes resources that you deployed via the <<jkubeApply>> task
 
+| <<jkube:remote-dev>>
+| Start a remote development session
+
+| *<<jkube:watch>>*
+| Watch for file changes and perform rebuilds and redeployments
+
 |===
 
 include::build/_index.adoc[]

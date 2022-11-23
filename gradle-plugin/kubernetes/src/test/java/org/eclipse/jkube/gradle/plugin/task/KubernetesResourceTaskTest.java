@@ -26,26 +26,26 @@ import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.when;
 
-public class KubernetesResourceTaskTest {
+class KubernetesResourceTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class))
         .thenReturn(new TestKubernetesExtension());
   }
 
   @Test
-  public void runTask_withImageConfiguration_shouldGenerateResources() {
+  void runTask_withImageConfiguration_shouldGenerateResources() {
     // Given
     KubernetesResourceTask resourceTask = new KubernetesResourceTask(KubernetesExtension.class);
     // When
@@ -60,7 +60,7 @@ public class KubernetesResourceTaskTest {
   }
 
   @Test
-  public void runTask_withMultipleFiles_shouldInterpolateApplicableFragments() throws IOException {
+  void runTask_withMultipleFiles_shouldInterpolateApplicableFragments() throws IOException {
     // Given
     final Map<String, Object> properties = new HashMap<>();
     properties.put("some.property", "value");
@@ -82,7 +82,7 @@ public class KubernetesResourceTaskTest {
   }
 
   @Test
-  public void runTask_withSkipResource_shouldDoNothing() {
+  void runTask_withSkipResource_shouldDoNothing() {
     // Given
     KubernetesExtension extension = new TestKubernetesExtension() {
       @Override

@@ -15,42 +15,33 @@ package org.eclipse.jkube.gradle.plugin.tests;
 
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
-import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(Parameterized.class)
-public class MultiEnvironmentsIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class MultiEnvironmentsIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "environment {0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "common" , "common"},
-        new Object[] { "dev" , "dev"},
-        new Object[] { "prod" , "prod"},
-        new Object[] { "common,dev", "common-and-dev"},
-        new Object[] { "common,prod", "common-and-prod"}
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("common", "common"),
+        arguments("dev", "dev"),
+        arguments("prod", "prod"),
+        arguments("common,dev", "common-and-dev"),
+        arguments("common,prod", "common-and-prod")
     );
   }
 
-  @Parameterized.Parameter
-  public String environment;
-
-  @Parameterized.Parameter (1)
-  public String expectedDirectory;
-
-  @Test
-  public void k8sResource_whenRun_generatesK8sManifestsContainingConfigMap() throws IOException, ParseException {
+  @ParameterizedTest(name = "environment {0}")
+  @MethodSource("data")
+  void k8sResource_whenRun_generatesK8sManifestsContainingConfigMap(String environment, String expectedDirectory) throws IOException, ParseException {
     // When
     gradleRunner.withITProject("multi-environments")
         .withArguments("build", "-Pjkube.environment=" + environment, "k8sResource", "--stacktrace")
@@ -60,8 +51,9 @@ public class MultiEnvironmentsIT {
         gradleRunner.resolveFile("expected", expectedDirectory, "kubernetes.yml"));
   }
 
-  @Test
-  public void ocResource_whenRun_generatesOpenShiftManifestsContainingConfigMap() throws IOException, ParseException {
+  @ParameterizedTest(name = "environment {0}")
+  @MethodSource("data")
+  void ocResource_whenRun_generatesOpenShiftManifestsContainingConfigMap(String environment, String expectedDirectory) throws IOException, ParseException {
     // When
     gradleRunner.withITProject("multi-environments")
         .withArguments("build", "-Pjkube.environment=" + environment, "ocResource", "--stacktrace")

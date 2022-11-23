@@ -16,36 +16,21 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@RunWith(Parameterized.class)
-public class ProbesGroovyDSLIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class ProbesGroovyDSLIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "{0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "startup" },
-        new Object[] { "liveness-readiness" },
-        new Object[] { "none" }
-    );
-  }
-
-  @Parameterized.Parameter
-  public String probeConfigMode;
-
-  @Test
-  public void k8sResource_whenRun_generatesK8sManifestsWithProbes() throws IOException, ParseException {
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(strings = {"startup", "liveness-readiness", "none"})
+  void k8sResource_whenRun_generatesK8sManifestsWithProbes(String probeConfigMode) throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("probes-groovy-dsl-config")
         .withArguments("build", "k8sResource", "-PprobeConfigMode=" + probeConfigMode, "--stacktrace")
@@ -61,8 +46,9 @@ public class ProbesGroovyDSLIT {
         .contains("jkube-revision-history: Adding revision history limit to 2");
   }
 
-  @Test
-  public void ocResource_whenRun_generatesOpenShiftManifests() throws IOException, ParseException {
+  @ParameterizedTest(name = "{0}")
+  @ValueSource(strings = {"startup", "liveness-readiness", "none"})
+  void ocResource_whenRun_generatesOpenShiftManifests(String probeConfigMode) throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("probes-groovy-dsl-config")
         .withArguments("build", "ocResource", "-PprobeConfigMode=" + probeConfigMode, "--stacktrace")

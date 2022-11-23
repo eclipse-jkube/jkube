@@ -18,8 +18,9 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import mockit.Mocked;
-import mockit.Verifications;
+import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.junit.jupiter.api.Test;
@@ -30,27 +31,37 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings("unused")
+@EnableKubernetesMockClient(crud = true)
 class KubernetesClientUtilTest {
 
-  @Mocked
   private KubernetesClient kubernetesClient;
+  private KubernetesMockServer mockServer;
 
   @Test
   void doDeleteAndWait_withExistingResource_shouldDeleteAndReachWaitLimit() {
     // Given
-    GenericKubernetesResource resource = new GenericKubernetesResourceBuilder()
+    final CustomResourceDefinitionContext context = new CustomResourceDefinitionContext.Builder()
+      .withGroup("org.eclipse.jkube")
+      .withVersion("v1beta1")
+      .withPlural("crds")
+      .withKind("JKubeCustomResource")
+      .build();
+    mockServer.expectCustomResource(context);
+    final GenericKubernetesResource existingResource = kubernetesClient
+      .genericKubernetesResources("org.eclipse.jkube/v1beta1", "JKubeCustomResource")
+      .inNamespace("namespace")
+      .resource(new GenericKubernetesResourceBuilder()
         .withApiVersion("org.eclipse.jkube/v1beta1")
         .withKind("JKubeCustomResource")
         .withNewMetadata().withName("name").endMetadata()
-        .build();
+        .build())
+      .create();
     // When
-    doDeleteAndWait(kubernetesClient, resource, "namespace",  2L);
+    doDeleteAndWait(kubernetesClient, existingResource, "namespace",  2L);
     // Then
-    // @formatter:off
-    new Verifications(){{
-      kubernetesClient.genericKubernetesResources("org.eclipse.jkube/v1beta1", "JKubeCustomResource").inNamespace("namespace").withName("name").delete(); times = 1;
-    }};
-    // @formatter:on
+    assertThat(kubernetesClient.genericKubernetesResources(context).inNamespace("namespace").withName("name").get())
+      .isNull();
   }
 
   @Test

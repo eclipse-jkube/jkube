@@ -13,73 +13,85 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.ReplicationController;
-import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
-import io.fabric8.kubernetes.api.model.ReplicationControllerSpecBuilder;
-import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import io.fabric8.openshift.api.model.DeploymentConfig;
-import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
-import mockit.Expectations;
-import mockit.Verifications;
-import org.eclipse.jkube.kit.common.KitLogger;
-
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
+import io.fabric8.kubernetes.api.model.PodStatusBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationController;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpecBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpecBuilder;
-import mockit.Mocked;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.openshift.api.model.DeploymentConfig;
+import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
+import io.fabric8.openshift.client.OpenShiftClient;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.groups.Tuple;
-import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
+import java.net.InetAddress;
+import java.net.Socket;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SuppressWarnings("unused")
+@EnableKubernetesMockClient(crud = true)
 class DebugServiceTest {
-
-  @Mocked
   private KitLogger logger;
-
-  @Mocked
   private NamespacedKubernetesClient kubernetesClient;
-
-  @Mocked
-  private PortForwardService portForwardService;
-
-  @Mocked
-  private ApplyService applyService;
-
-  @Mocked
-  private PortForwardPodWatcher portForwardPodWatcher;
-
+  private KubernetesMockServer mockServer;
+  private ExecutorService singleThreadExecutor;
   private DebugService debugService;
 
   @BeforeEach
   void setUp() {
-    debugService = new DebugService(logger, kubernetesClient, portForwardService, applyService);
+    logger = spy(new KitLogger.SilentLogger());
+    singleThreadExecutor = Executors.newSingleThreadExecutor();
+    final ApplyService applyService = new ApplyService(kubernetesClient, logger);
+    applyService.setNamespace(kubernetesClient.getNamespace());
+    debugService = new DebugService(logger, kubernetesClient, new PortForwardService(logger), applyService);
+  }
+
+  @AfterEach
+  void tearDown() {
+    singleThreadExecutor.shutdownNow();
   }
 
   @Test
-  void initDebugEnvVarsMap() {
+  @DisplayName("initDebugEnvVars, returns a Map containing JKube's specific debug environment variables")
+  void initDebugEnvVarsMapAddsJKubeDebugVariables() {
     // When
     final Map<String, String> result = debugService.initDebugEnvVarsMap(false);
     // Then
@@ -89,6 +101,7 @@ class DebugServiceTest {
   }
 
   @Test
+  @DisplayName("enableDebugging, with null entity, does nothing")
   void enableDebuggingWithNullEntity() {
     // When - Then
     assertThatCode(() -> debugService.enableDebugging(null, "file.name", false))
@@ -96,6 +109,7 @@ class DebugServiceTest {
   }
 
   @Test
+  @DisplayName("enableDebugging, with not applicable entity, does nothing")
   void enableDebuggingWithNotApplicableEntity() {
     // Given
     final ConfigMap configMap = new ConfigMap();
@@ -106,13 +120,14 @@ class DebugServiceTest {
   }
 
   @Test
+  @DisplayName("enableDebugging, with Deployment entity, adds debug environment variables to PodSpec")
   void enableDebuggingWithDeployment() {
     // Given
     final Deployment deployment = initDeployment();
     // When
     debugService.enableDebugging(deployment, "file.name", false);
     // Then
-    assertThat(deployment)
+    assertThat(kubernetesClient.apps().deployments().withName("test-app").get())
         .extracting("spec.template.spec.containers").asList()
         .flatExtracting("env")
         .extracting("name", "value")
@@ -128,7 +143,7 @@ class DebugServiceTest {
     // When
     debugService.enableDebugging(replicaSet, "file.name", false);
     // Then
-    assertThat(replicaSet)
+    assertThat(kubernetesClient.apps().replicaSets().withName("test-app").get())
         .extracting("spec.template.spec.containers").asList()
         .flatExtracting("env")
         .extracting("name", "value")
@@ -141,12 +156,11 @@ class DebugServiceTest {
   void enableDebuggingWithReplicationController() {
     // Given
     final ReplicationController replicationController = initReplicationController();
-    mockFromServer(replicationController);
-    // @formatter:on
+    kubernetesClient.resource(replicationController).createOrReplace();
     // When
     debugService.enableDebugging(replicationController, "file.name", false);
     // Then
-    assertThat(replicationController)
+    assertThat(kubernetesClient.replicationControllers().withName("test-app").get())
         .extracting("spec.template.spec.containers").asList()
         .flatExtracting("env")
         .extracting("name", "value")
@@ -159,11 +173,11 @@ class DebugServiceTest {
   void enableDebuggingWithDeploymentConfig() {
     // Given
     final DeploymentConfig deploymentConfig = initDeploymentConfig();
-    mockFromServer(deploymentConfig);
+    kubernetesClient.resource(deploymentConfig).createOrReplace();
     // When
     debugService.enableDebugging(deploymentConfig, "file.name", false);
     // Then
-    assertThat(deploymentConfig)
+    assertThat(kubernetesClient.adapt(OpenShiftClient.class).deploymentConfigs().withName("test-app").get())
         .extracting("spec.template.spec.containers").asList()
         .flatExtracting("env")
         .extracting("name", "value")
@@ -173,79 +187,56 @@ class DebugServiceTest {
   }
 
   @Test
-  void debugWithNotApplicableEntitiesShouldReturn() {
+  void debugWithNotApplicableEntitiesLogsError() {
     // When
     debugService.debug("namespace", "file.name", Collections.emptySet(), null, false, logger);
     // Then
-    // @formatter:off
-    new Verifications() {{
-      logger.error("Unable to proceed with Debug. No application resource found running in the cluster");
-      times = 1;
-    }};
-    // @formatter:on
+    verify(logger, times(1))
+      .error("Unable to proceed with Debug. No application resource found running in the cluster");
   }
 
   @Test
-  void debugWithApplicableEntities(@Mocked CountDownLatch cdl) {
+  void debugWithApplicableEntities() throws Exception {
     // Given
-    final Deployment deployment = mockDebugDeployment(cdl);
+    final Deployment deployment = withDeploymentRollout(initDeployment());
+    final CompletableFuture<RecordedRequest> portForwardRequest = new CompletableFuture<>();
+    mockServer.expect().get().withPath("/api/v1/namespaces/test/pods/pod-in-debug-mode/portforward?ports=5005")
+      .andReply(200, r -> {
+        portForwardRequest.complete(r);
+        return "";
+      }).always();
     // When
-    debugService.debug(
-        "namespace", "file.name", new HashSet<>(Collections.singletonList(deployment)),
-        "1337", false, logger);
+    singleThreadExecutor.submit(() -> debugService.debug( "test", "file.name",
+      Collections.singletonList(deployment), "1337", false, logger));
+    verify(logger, timeout(10000L))
+      .info(startsWith("Now you can start a Remote debug session by using localhost"), anyInt());
+    try (final Socket ignored = new Socket(InetAddress.getLocalHost(), 1337)) {
+      // The socket connection triggers the KubernetesClient request to the k8s portforward endpoint
+    }
     // Then
-    verifyDebugCompletedSuccessfully(deployment, 1337, false);
+    assertThat(portForwardRequest).succeedsWithin(10, TimeUnit.SECONDS);
   }
 
   @Test
-  void debugWithApplicableEntitiesAndSuspend(@Mocked CountDownLatch cdl) {
+  void debugWithApplicableEntitiesAndSuspend() throws Exception {
     // Given
-    final Deployment deployment = mockDebugDeployment(cdl);
+    final Deployment deployment = withDeploymentRollout(initDeployment());
+    final CompletableFuture<RecordedRequest> portForwardRequest = new CompletableFuture<>();
+    mockServer.expect().get().withPath("/api/v1/namespaces/test/pods/pod-in-debug-mode/portforward?ports=5005")
+      .andReply(200, r -> {
+        portForwardRequest.complete(r);
+        return "";
+      }).always();
     // When
-    debugService.debug(
-        "namespace", "file.name", new HashSet<>(Collections.singletonList(deployment)),
-        "31337", true, logger);
+    singleThreadExecutor.submit(() -> debugService.debug( "test", "file.name",
+      Collections.singletonList(deployment), "1337", true, logger));
+    verify(logger, timeout(10000L))
+      .info(startsWith("Now you can start a Remote debug session by using localhost"), anyInt());
+    try (final Socket ignored = new Socket(InetAddress.getLocalHost(), 1337)) {
+      // The socket connection triggers the KubernetesClient request to the k8s portforward endpoint
+    }
     // Then
-    verifyDebugCompletedSuccessfully(deployment, 31337, true);
-  }
-
-  @SuppressWarnings("ResultOfMethodCallIgnored")
-  private Deployment mockDebugDeployment(CountDownLatch cdl) {
-    final Deployment deployment = initDeployment();
-    // @formatter:off
-    new Expectations() {{
-      applyService.isAlreadyApplied(deployment); result = true;
-      portForwardPodWatcher.getPodReadyLatch(); result = cdl;
-      cdl.getCount(); result = 1L;
-    }};
-    // @formatter:on
-    return deployment;
-  }
-
-  private void verifyDebugCompletedSuccessfully(Deployment deployment, int localDebugPort, boolean debugSuspend) {
-    // @formatter:off
-    new Verifications() {{
-      logger.info("No Active debug pod with provided selector and environment variables found! Waiting for pod to be ready...");
-      times = 1;
-      portForwardService.startPortForward(kubernetesClient, anyString, 5005, localDebugPort);
-      times = 1;
-    }};
-    // @formatter:on
-    assertThat(deployment)
-        .extracting("spec.template.spec.containers").asList()
-        .flatExtracting("env")
-        .extracting("name", "value")
-        .contains(
-            new Tuple("JAVA_DEBUG_SUSPEND", String.valueOf(debugSuspend)),
-            new Tuple("JAVA_ENABLE_DEBUG", "true"));
-  }
-
-  private void mockFromServer(HasMetadata entity) {
-    // @formatter:off
-    new Expectations() {{
-      kubernetesClient.resource(entity).fromServer().get(); result = entity;
-    }};
-    // @formatter:on
+    assertThat(portForwardRequest).succeedsWithin(10, TimeUnit.SECONDS);
   }
 
   private static Map<String, String> initLabels() {
@@ -262,14 +253,17 @@ class DebugServiceTest {
 
   private static PodTemplateSpec initPodTemplateSpec() {
     return new PodTemplateSpecBuilder()
-        .withSpec(new PodSpecBuilder()
-            .addNewContainer()
-            .withImage("foo/test-app:0.0.1")
-            .withName("test-app")
-            .addNewPort().withContainerPort(8080).withName("http").withProtocol("TCP").endPort()
-            .endContainer()
-            .build())
-        .build();
+      .withMetadata(new ObjectMetaBuilder()
+        .withLabels(initLabels())
+        .build())
+      .withSpec(new PodSpecBuilder()
+        .addNewContainer()
+        .withImage("foo/test-app:0.0.1")
+        .withName("test-app")
+        .addNewPort().withContainerPort(8080).withName("http").withProtocol("TCP").endPort()
+        .endContainer()
+        .build())
+      .build();
   }
 
   private static Deployment initDeployment() {
@@ -326,5 +320,25 @@ class DebugServiceTest {
             .withTemplate(initPodTemplateSpec())
             .build())
         .build();
+  }
+
+  private Deployment withDeploymentRollout(Deployment deployment) {
+    mockServer.expect().put()
+      .withPath("/apis/apps/v1/namespaces/test/deployments/" + deployment.getMetadata().getName())
+      .andReply(200, r -> {
+        final Deployment d = Serialization.unmarshal(r.getBody().readUtf8(), Deployment.class);
+        kubernetesClient.resource(new PodBuilder()
+          .withMetadata(new ObjectMetaBuilder(d.getSpec().getTemplate().getMetadata())
+            .withName("pod-in-debug-mode")
+            .build())
+          .withSpec(d.getSpec().getTemplate().getSpec())
+          .withStatus(new PodStatusBuilder()
+            .withPhase("Running")
+            .build())
+          .build()).create();
+        return d;
+      })
+      .always();
+    return kubernetesClient.resource(deployment).create();
   }
 }

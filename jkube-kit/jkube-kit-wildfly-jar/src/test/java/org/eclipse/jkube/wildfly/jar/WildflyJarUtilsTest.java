@@ -15,10 +15,9 @@ package org.eclipse.jkube.wildfly.jar;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
@@ -26,18 +25,18 @@ import java.util.Properties;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.wildfly.jar.WildflyJarUtils.isStartupEndpointSupported;
 
-public class WildflyJarUtilsTest {
+class WildflyJarUtilsTest {
   private JavaProject project;
 
-  @Before
-  public void setup() throws IOException {
+  @BeforeEach
+  void setup() {
     project = JavaProject.builder()
         .properties(new Properties())
         .build();
   }
 
   @Test
-  public void isStartupEndpointSupported_withWildflyJar_Before25_0shouldReturnFalse() {
+  void isStartupEndpointSupported_withWildflyJar_before25_0_shouldReturnFalse() {
     // Given
     project.setDependencies(createNewJavaProjectDependencyList("24.0.1.Final"));
     // When
@@ -47,7 +46,7 @@ public class WildflyJarUtilsTest {
   }
 
   @Test
-  public void isStartupEndpointSupported_withWildflyJar_After25_0shouldReturnTrue() {
+  void isStartupEndpointSupported_withWildflyJar_after25_0_shouldReturnTrue() {
     // Given
     project.setDependencies(createNewJavaProjectDependencyList("26.1.1.Final"));
     // When

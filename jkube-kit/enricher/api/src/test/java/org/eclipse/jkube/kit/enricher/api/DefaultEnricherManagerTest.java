@@ -25,20 +25,20 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import mockit.Mocked;
 import mockit.Verifications;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DefaultEnricherManagerTest {
+class DefaultEnricherManagerTest {
 
   @Mocked
-  KitLogger logger;
+  private KitLogger logger;
 
   private EnricherManager enricherManager;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-enricher"));
     final EnricherContext enricherContext = JKubeEnricherContext.builder()
@@ -50,7 +50,7 @@ public class DefaultEnricherManagerTest {
   }
 
   @Test
-  public void constructor() {
+  void constructor() {
     // @formatter:off
     new Verifications() {{
       logger.verbose("- %s", "fake-enricher"); times = 1;
@@ -59,7 +59,7 @@ public class DefaultEnricherManagerTest {
   }
 
   @Test
-  public void createDefaultResources_withDefaults_createsResources() {
+  void createDefaultResources_withDefaults_createsResources() {
     // Given
     final KubernetesListBuilder klb = new KubernetesListBuilder();
     // When
@@ -72,7 +72,7 @@ public class DefaultEnricherManagerTest {
   }
 
   @Test
-  public void enrich_withDefaults_createsResources() {
+  void enrich_withDefaults_createsResources() {
     // Given
     final KubernetesListBuilder klb = new KubernetesListBuilder();
     // When

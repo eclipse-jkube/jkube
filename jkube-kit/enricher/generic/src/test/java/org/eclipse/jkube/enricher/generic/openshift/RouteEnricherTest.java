@@ -15,31 +15,24 @@ package org.eclipse.jkube.enricher.generic.openshift;
 
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
-public class RouteEnricherTest {
-    @Mocked
+class RouteEnricherTest {
     private JKubeEnricherContext context;
-
     private static final String OPENSHIFT_GENERATE_ROUTE = "jkube.openshift.generateRoute";
     private static final String ROUTE_TLS_TERMINATION = "jkube.enricher.jkube-openshift-route.tlsTermination";
     private static final String EDGE_TERMINATION_POLICY = "jkube.enricher.jkube-openshift-route.tlsInsecureEdgeTerminationPolicy";
@@ -47,15 +40,16 @@ public class RouteEnricherTest {
     private ProcessorConfig processorConfig;
     private KubernetesListBuilder klb;
 
-    @Before
-    public void setUpExpectations() {
+    @BeforeEach
+    void setUpExpectations() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
         properties = new Properties();
         processorConfig = new ProcessorConfig();
         klb = new KubernetesListBuilder();
     }
 
     @Test
-    public void testCreateWithGenerateExtraPropertyInOpenShiftShouldNotAddRoute() {
+    void create_withGenerateExtraPropertyInOpenShift_shouldNotAddRoute() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -70,7 +64,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testCreateWithGenerateEnricherPropertyInOpenShiftShouldNotAddRoute() {
+    void create_withGenerateEnricherPropertyInOpenShift_shouldNotAddRoute() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -85,7 +79,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testCreateWithDefaultsAndRouteDomainInOpenShiftShouldAddRouteWithDomainPostfix() {
+    void create_withDefaultsAndRouteDomainInOpenShift_shouldAddRouteWithDomainPostfix() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -95,16 +89,17 @@ public class RouteEnricherTest {
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
         assertThat(klb.build().getItems())
-            .hasSize(2)
-            .extracting("kind")
-            .containsExactly("Service", "Route");
-        assertThat(klb.build().getItems().get(1))
+            .satisfies(i -> assertThat(i)
+                .extracting("kind")
+                .containsExactly("Service", "Route")
+            )
+            .last()
             .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
             .contains("test-svc", "test-svc.jkube.eclipse.org", "Service", "test-svc", 8080);
     }
 
     @Test
-    public void testCreateWithDefaultsAndExistingRouteWithMatchingNameInBuilderInOpenShiftShouldReuseExistingRoute() {
+    void create_withDefaultsAndExistingRouteWithMatchingNameInBuilderInOpenShift_shouldReuseExistingRoute() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -124,15 +119,17 @@ public class RouteEnricherTest {
         // Then
         assertThat(klb.build().getItems())
             .hasSize(2)
-            .extracting("kind")
-            .containsExactly("Service", "Route");
-        assertThat(klb.build().getItems().get(1))
+            .satisfies(i -> assertThat(i)
+                .extracting("kind")
+                .containsExactly("Service", "Route")
+            )
+            .last()
             .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
             .contains("test-svc", "example.com", "Service", "test-svc", 1337);
     }
 
     @Test
-    public void testMergeRouteWithRouteFragmentAtZeroIndex() {
+    void mergeRoute_withRouteFragmentAtZeroIndex() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(new RouteBuilder()
@@ -154,17 +151,18 @@ public class RouteEnricherTest {
         // When
         new RouteEnricher(context).create(PlatformMode.openshift, klb);
         // Then
-        assertThat(klb.build().getItems())
-                .hasSize(2)
+        assertThat(klb.build().getItems()).hasSize(2)
+            .satisfies(i -> assertThat(i)
                 .extracting("kind")
-                .containsExactly("Service", "Route");
-        assertThat(klb.build().getItems().get(1))
-                .extracting("metadata.name", "spec.to.kind", "spec.to.name", "spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
-                .contains("test-svc", "Service", "test-svc", "Redirect", "edge");
+                .containsExactly("Service", "Route")
+            )
+            .last()
+            .extracting("metadata.name", "spec.to.kind", "spec.to.name", "spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
+            .contains("test-svc", "Service", "test-svc", "Redirect", "edge");
     }
 
     @Test
-    public void testCreateOpinionatedRouteFromService() {
+    void create_opinionatedRouteFromService() {
         // Given
         ServiceBuilder serviceBuilder = getMockServiceBuilder();
 
@@ -172,14 +170,13 @@ public class RouteEnricherTest {
         Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
 
         // Then
-        assertNotNull(route);
-        assertThat(route)
-                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-                .contains("test-svc", "example.com", "Service", "test-svc", 8080);
+        assertThat(route).isNotNull()
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+            .contains("test-svc", "example.com", "Service", "test-svc", 8080);
     }
 
     @Test
-    public void testCreateOpinionatedRouteFromServiceWithNullService() {
+    void create_opinionatedRouteFromServiceWithNullService() {
         // Given
         ServiceBuilder serviceBuilder = new ServiceBuilder();
 
@@ -187,11 +184,11 @@ public class RouteEnricherTest {
         Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
 
         // Then
-        assertNull(route);
+        assertThat(route).isNull();
     }
 
     @Test
-    public void testMergeRouteWithEmptyFragment() {
+    void mergeRoute_withEmptyFragment() {
         // Given
         Route opinionatedRoute = getMockOpinionatedRoute();
         Route fragmentRoute = new RouteBuilder().build();
@@ -200,12 +197,12 @@ public class RouteEnricherTest {
         Route result = RouteEnricher.mergeRoute(fragmentRoute, opinionatedRoute);
 
         // Then
-        assertNotNull(result);
-        assertEquals(opinionatedRoute, result);
+        assertThat(result).isNotNull()
+            .isEqualTo(opinionatedRoute);
     }
 
     @Test
-    public void testMergeRouteWithNonEmptyFragment() {
+    void mergeRoute_withNonEmptyFragment() {
         // Given
         Route opinionatedRoute = getMockOpinionatedRoute();
         Route fragmentRoute = new RouteBuilder()
@@ -221,8 +218,7 @@ public class RouteEnricherTest {
         Route result = RouteEnricher.mergeRoute(fragmentRoute, opinionatedRoute);
 
         // Then
-        assertNotNull(result);
-        assertThat(result)
+        assertThat(result).isNotNull()
                 .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name",
                         "spec.port.targetPort.intVal", "spec.tls.insecureEdgeTerminationPolicy", "spec.tls.termination")
                 .contains("test-svc", "example.com", "Service", "test-svc",
@@ -230,7 +226,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testEnrichNoTls(){
+    void enrichNoTls(){
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -250,7 +246,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testEnrichWithTls(){
+    void enrichWithTls(){
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder().build());
@@ -270,7 +266,7 @@ public class RouteEnricherTest {
     }
 
     @Test
-    public void testRouteTargetPortFromServicePort() {
+    void routeTargetPortFromServicePort() {
         // Given
         ServiceBuilder serviceBuilder = new ServiceBuilder()
                 .editOrNewMetadata()
@@ -292,8 +288,7 @@ public class RouteEnricherTest {
         Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
 
         // Then
-        assertNotNull(route);
-        assertThat(route)
+        assertThat(route).isNotNull()
                 .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
                 .contains("test-svc", "example.com", "Service", "test-svc", 80);
     }
@@ -343,36 +338,16 @@ public class RouteEnricherTest {
     }
 
     private void mockJKubeEnricherContext() {
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); result = properties;
-            context.getConfiguration().getProcessorConfig(); result = processorConfig;
-        }};
-        // @formatter:on
-    }
-
-    private void mockJKubeEnricherContextProcessorConfigNotCalled() {
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); minTimes = 0;
-        }};
-        // @formatter:on
+        when(context.getProperties()).thenReturn(properties);
+        when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
     }
 
     private void mockJKubeEnricherContextPropertiesNotCalled() {
-        // @formatter:off
-        new Expectations() {{
-            context.getProperties(); minTimes = 0;
-        }};
-        // @formatter:on
+        when(context.getProperties()).thenReturn(properties);
     }
 
     private void mockJKubeEnricherContextResourceConfigWithRouteDomain(String routeDomain) {
-        // @formatter:off
-        new Expectations() {{
-            context.getConfiguration().getResource().getRouteDomain(); result = routeDomain;
-        }};
-        // @formatter:on
+        when(context.getConfiguration().getResource().getRouteDomain()).thenReturn(routeDomain);
     }
 }
 

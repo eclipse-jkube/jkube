@@ -28,8 +28,8 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -41,14 +41,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author kamesh
  */
-public class DefaultControllerEnricherTest {
+class DefaultControllerEnricherTest {
 
     private Map<String, Map<String, Object>> config;
     private EnricherContext context;
     private Properties properties;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    void setUp() throws Exception {
         config = new HashMap<>();
         properties = new Properties();
         context = JKubeEnricherContext.builder()
@@ -68,7 +68,7 @@ public class DefaultControllerEnricherTest {
     }
 
     @Test
-    public void checkReplicaCount() {
+    void checkReplicaCount() {
         givenReplicaCountInEnricherConfig(String.valueOf(3));
 
         // When
@@ -80,7 +80,7 @@ public class DefaultControllerEnricherTest {
     }
 
     @Test
-    public void checkDefaultReplicaCount() {
+    void checkDefaultReplicaCount() {
         givenReplicaCountInEnricherConfig(String.valueOf(1));
 
         // When
@@ -92,42 +92,42 @@ public class DefaultControllerEnricherTest {
     }
 
     @Test
-    public void create_withImagePullPolicyConfigured_shouldUseConfiguredImagePullPolicy() {
-        // Given
-        properties.put("jkube.enricher.jkube-controller.pullPolicy", "Never");
+    void create_withImagePullPolicyConfigured_shouldUseConfiguredImagePullPolicy() {
+      // Given
+      properties.put("jkube.enricher.jkube-controller.pullPolicy", "Never");
 
-        // When
-        KubernetesListBuilder builder = enrich();
+      // When
+      KubernetesListBuilder builder = enrich();
 
-        // Then
-        assertReplicas(builder, 1);
-        assertImagePullPolicy(builder, "Never");
+      // Then
+      assertReplicas(builder, 1);
+      assertImagePullPolicy(builder, "Never");
     }
 
     @Test
-    public void create_withImagePullPolicyProperty_shouldUseConfiguredImagePullPolicy() {
-        // Given
-        properties.put("jkube.imagePullPolicy", "Never");
+    void create_withImagePullPolicyProperty_shouldUseConfiguredImagePullPolicy() {
+      // Given
+      properties.put("jkube.imagePullPolicy", "Never");
 
-        // When
-        KubernetesListBuilder builder = enrich();
+      // When
+      KubernetesListBuilder builder = enrich();
 
-        // Then
-        assertReplicas(builder, 1);
-        assertImagePullPolicy(builder, "Never");
+      // Then
+      assertReplicas(builder, 1);
+      assertImagePullPolicy(builder, "Never");
     }
 
     @Test
-    public void create_withReplicasConfigured_shouldUseConfiguredReplicas() {
-        // Given
-        properties.put("jkube.enricher.jkube-controller.replicaCount", "5");
+    void create_withReplicasConfigured_shouldUseConfiguredReplicas() {
+      // Given
+      properties.put("jkube.enricher.jkube-controller.replicaCount", "5");
 
-        // When
-        KubernetesListBuilder builder = enrich();
+      // When
+      KubernetesListBuilder builder = enrich();
 
-        // Then
-        assertReplicas(builder, 5);
-        assertImagePullPolicy(builder, "IfNotPresent");
+      // Then
+      assertReplicas(builder, 5);
+      assertImagePullPolicy(builder, "IfNotPresent");
     }
 
     private KubernetesListBuilder enrich() {
@@ -139,16 +139,14 @@ public class DefaultControllerEnricherTest {
 
     private void assertReplicas(KubernetesListBuilder kubernetesListBuilder, int expectedReplicas) {
         assertThat(kubernetesListBuilder.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Deployment.class))
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
             .hasFieldOrPropertyWithValue("metadata.name", "artifact-id")
             .hasFieldOrPropertyWithValue("spec.replicas", expectedReplicas);
     }
 
     private void assertImagePullPolicy(KubernetesListBuilder kubernetesListBuilder, String expectedImagePullPolicy) {
         assertThat(kubernetesListBuilder.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Deployment.class))
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
             .extracting(Deployment::getSpec)
             .extracting(DeploymentSpec::getTemplate)
             .extracting(PodTemplateSpec::getSpec)

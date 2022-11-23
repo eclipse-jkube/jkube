@@ -60,6 +60,7 @@
     - jkube-healthcheck-webapp
     - jkube-healthcheck-micronaut
     - jkube-healthcheck-openliberty
+    - jkube-healthcheck-smallrye
     - jkube-prometheus
     - jkube-service-discovery
 

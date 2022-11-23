@@ -16,45 +16,34 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(Parameterized.class)
-public class NamespaceIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class NamespaceIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "{0} : jkube.namespace = {1}, jkube.enricher.jkube-namespace.namespace={2}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "default", "", "" },
-        new Object[] { "set-namespace", "namespace-to-operate", ""},
-        new Object[] { "create-namespace", "", "namespace-to-create-name" },
-        new Object[] { "create-and-set-namespace", "namespace-to-create-and-operate", "namespace-to-create-and-operate"},
-        new Object[] { "create-and-set-different-namespace", "namespace-to-operate", "namespace-to-create-name" }
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("default", "", ""),
+        arguments("set-namespace", "namespace-to-operate", ""),
+        arguments("create-namespace", "", "namespace-to-create-name"),
+        arguments("create-and-set-namespace", "namespace-to-create-and-operate", "namespace-to-create-and-operate"),
+        arguments("create-and-set-different-namespace", "namespace-to-operate", "namespace-to-create-name")
     );
   }
 
-  @Parameterized.Parameter
-  public String expectedDirectory;
-
-  @Parameterized.Parameter (1)
-  public String namespaceViaJKubeNamespaceProperty;
-
-  @Parameterized.Parameter (2)
-  public String namespaceViaNamespaceEnricherConfig;
-
-
-  @Test
-  public void k8sResourceTask_whenRunWithConfiguredWithNamespace_generatesK8sManifestWithExpectedNamespace() throws IOException, ParseException {
+  @ParameterizedTest(name = "{0} : jkube.namespace = {1}, jkube.enricher.jkube-namespace.namespace={2}")
+  @MethodSource("data")
+  void k8sResourceTask_whenRunWithConfiguredWithNamespace_generatesK8sManifestWithExpectedNamespace(String expectedDirectory, String namespaceViaJKubeNamespaceProperty, String namespaceViaNamespaceEnricherConfig) throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("namespace")
         .withArguments("-Pjkube.enricher.jkube-namespace.namespace=" + namespaceViaNamespaceEnricherConfig,
@@ -70,8 +59,9 @@ public class NamespaceIT {
         .contains("validating");
   }
 
-  @Test
-  public void ocResourceTask_whenRunWithConfiguredWithNamespace_generatesOpenShiftManifestWithExpectedNamespace() throws IOException, ParseException {
+  @ParameterizedTest(name = "{0} : jkube.namespace = {1}, jkube.enricher.jkube-namespace.namespace={2}")
+  @MethodSource("data")
+  void ocResourceTask_whenRunWithConfiguredWithNamespace_generatesOpenShiftManifestWithExpectedNamespace(String expectedDirectory, String namespaceViaJKubeNamespaceProperty, String namespaceViaNamespaceEnricherConfig) throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("namespace")
         .withArguments("-Pjkube.enricher.jkube-namespace.namespace=" + namespaceViaNamespaceEnricherConfig,

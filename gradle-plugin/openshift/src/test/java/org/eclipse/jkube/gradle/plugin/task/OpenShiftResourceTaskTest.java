@@ -23,9 +23,9 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -33,15 +33,15 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-public class OpenShiftResourceTaskTest {
+class OpenShiftResourceTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private OpenShiftExtension extension;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     extension = new TestOpenShiftExtension();
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     when(taskEnvironment.project.getGroup()).thenReturn("org.eclipse.jkube.testing");
@@ -49,7 +49,7 @@ public class OpenShiftResourceTaskTest {
   }
 
   @Test
-  public void runTask_withImageConfiguration_shouldGenerateResources() {
+  void runTask_withImageConfiguration_shouldGenerateResources() {
     // Given
     OpenShiftResourceTask resourceTask = new OpenShiftResourceTask(OpenShiftExtension.class);
     // When
@@ -64,7 +64,7 @@ public class OpenShiftResourceTaskTest {
   }
 
   @Test
-  public void runTask_resolvesGroupInImageNameToNamespaceSetViaConfiguration_whenNoNamespaceDetected() {
+  void runTask_resolvesGroupInImageNameToNamespaceSetViaConfiguration_whenNoNamespaceDetected() {
     try (MockedStatic<KubernetesHelper> kubernetesHelper = Mockito.mockStatic(KubernetesHelper.class)) {
       // Given
       kubernetesHelper.when(KubernetesHelper::getDefaultNamespace).thenReturn("test-custom-namespace");
@@ -84,7 +84,6 @@ public class OpenShiftResourceTaskTest {
 
       // Then
       assertThat(resourceTask.resolvedImages)
-        .hasSize(1)
         .singleElement()
         .hasFieldOrPropertyWithValue("name", "test-custom-namespace/test-project");
     }

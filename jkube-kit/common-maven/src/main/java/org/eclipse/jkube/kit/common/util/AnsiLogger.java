@@ -53,6 +53,8 @@ public class AnsiLogger implements KitLogger {
     private final String prefix;
     private final boolean batchMode;
 
+    private final KitLogger fallbackLogger;
+
     private boolean isVerbose = false;
     private List<LogVerboseCategory> verboseModes = null;
 
@@ -76,37 +78,55 @@ public class AnsiLogger implements KitLogger {
         this.log = log;
         this.prefix = prefix;
         this.batchMode = batchMode;
+        this.fallbackLogger = new StdoutLogger();
         checkVerboseLoggingEnabled(verbose);
         initializeColor(useColor);
     }
 
     /** {@inheritDoc} */
     public void debug(String message, Object ... params) {
-        if (isDebugEnabled()) {
-            log.debug(prefix + format(message, params));
-        }
+      if (isDebugEnabled() && isAnsiConsoleInstalled()) {
+        log.debug(prefix + format(message, params));
+      } else if (isDebugEnabled()) {
+        fallbackLogger.debug(message, params);
+      }
     }
 
     /** {@inheritDoc} */
     public void info(String message, Object ... params) {
-      log.info(colored(message, INFO, params));
+      if (isAnsiConsoleInstalled()) {
+        log.info(colored(message, INFO, params));
+      } else {
+        fallbackLogger.info(message, params);
+      }
     }
 
     /** {@inheritDoc} */
     public void verbose(LogVerboseCategory logVerboseCategory, String message, Object ... params) {
-        if (isVerbose && verboseModes != null && verboseModes.contains(logVerboseCategory)) {
-            log.info(ansi().fgBright(BLACK).a(prefix).a(format(message, params)).reset().toString());
+      final boolean logVerbose = isVerbose && verboseModes != null && verboseModes.contains(logVerboseCategory);
+        if (logVerbose && isAnsiConsoleInstalled()) {
+          log.info(ansi().fgBright(BLACK).a(prefix).a(format(message, params)).reset().toString());
+        } else {
+          fallbackLogger.info(message, params);
         }
     }
 
     /** {@inheritDoc} */
     public void warn(String format, Object ... params) {
-      log.warn(colored(format, WARNING, params));
+      if (isAnsiConsoleInstalled()) {
+        log.warn(colored(format, WARNING, params));
+      } else {
+        fallbackLogger.warn(format, params);
+      }
     }
 
     /** {@inheritDoc} */
     public void error(String message, Object ... params) {
-      log.error(colored(message, ERROR, params));
+      if (isAnsiConsoleInstalled()) {
+        log.error(colored(message, ERROR, params));
+      } else {
+        fallbackLogger.error(message, params);
+      }
     }
 
     /**
@@ -141,7 +161,7 @@ public class AnsiLogger implements KitLogger {
     @Override
     public void progressUpdate(String layerId, String status, String progressMessage) {
         if (!batchMode && log.isInfoEnabled() && StringUtils.isNotEmpty(layerId)) {
-            if (useAnsi) {
+            if (useAnsi && isAnsiConsoleInstalled()) {
                 updateAnsiProgress(layerId, status, progressMessage);
             } else {
                 updateNonAnsiProgress();
@@ -266,5 +286,16 @@ public class AnsiLogger implements KitLogger {
             }
         }
         return ret;
+    }
+
+    private static boolean isAnsiConsoleInstalled() {
+        // Maven 3.6.3 uses jansi 1.17 which doesn't include this method
+        try {
+            AnsiConsole.class.getMethod("isInstalled");
+            return AnsiConsole.isInstalled();
+        } catch (NoSuchMethodException ex) {
+            // Assume AnsiConsole is always installed in case the method doesn't exist
+            return true;
+        }
     }
 }

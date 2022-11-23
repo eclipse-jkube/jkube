@@ -1,0 +1,32 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'war'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'io.smallrye:smallrye-health:3.2.1'
+    implementation 'javax.enterprise:cdi-api:2.0'
+    implementation 'org.glassfish:javax.json:1.1.4'
+    implementation 'javax.servlet:javax.servlet-api:3.0.1'
+}
+
+war {
+    webXml = file('src/main/resources/WEB-INF/web.xml')
+}
+
+kubernetes {
+    offline = true
+}
+
+openshift {
+    offline = true
+}

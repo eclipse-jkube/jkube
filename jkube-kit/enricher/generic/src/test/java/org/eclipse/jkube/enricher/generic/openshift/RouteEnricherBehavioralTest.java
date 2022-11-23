@@ -21,20 +21,20 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class RouteEnricherBehavioralTest {
+class RouteEnricherBehavioralTest {
 
   private JKubeEnricherContext context;
   private KubernetesListBuilder klb;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() {
     context = JKubeEnricherContext.builder()
       .project(JavaProject.builder()
         .properties(new Properties())
@@ -46,7 +46,7 @@ public class RouteEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withNoServices_shouldNotCreateRoute() {
+  void create_withNoServices_shouldNotCreateRoute() {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
@@ -54,7 +54,7 @@ public class RouteEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServicesInKubernetes_shouldNotCreateRoute() {
+  void create_withServicesInKubernetes_shouldNotCreateRoute() {
     // Given
     klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
       .withNewSpec().addNewPort().withPort(80).endPort().endSpec().endServiceItem();
@@ -66,7 +66,7 @@ public class RouteEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServiceNotExposed_shouldNotCreateRoute() {
+  void create_withServiceNotExposed_shouldNotCreateRoute() {
     // Given
     klb.addNewServiceItem().withNewMetadata().addToLabels("expose", "false").withName("http").endMetadata()
       .withNewSpec().addNewPort().withPort(80).endPort().endSpec().endServiceItem();
@@ -78,7 +78,7 @@ public class RouteEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServiceWithNowWebPort_shouldNotCreateRoute() {
+  void create_withServiceWithNowWebPort_shouldNotCreateRoute() {
     // Given
     klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
       .withNewSpec().addNewPort().withPort(21).endPort().endSpec().endServiceItem();
@@ -90,7 +90,7 @@ public class RouteEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServiceWithNowWebPortAndCreateExternalUrls_shouldCreateRoute() {
+  void create_withServiceWithNowWebPortAndCreateExternalUrls_shouldCreateRoute() {
     // Given
     context.getProject().getProperties().put("jkube.createExternalUrls", "true");
     klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
@@ -99,7 +99,7 @@ public class RouteEnricherBehavioralTest {
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
     assertThat(klb.buildItems()).hasSize(2)
-      .element(1)
+      .last()
       .hasFieldOrPropertyWithValue("apiVersion", "route.openshift.io/v1")
       .hasFieldOrPropertyWithValue("metadata.name", "http")
       .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 21)
@@ -108,7 +108,7 @@ public class RouteEnricherBehavioralTest {
   }
 
   @Test
-  public void create_withServices_shouldCreateRoute() {
+  void create_withServices_shouldCreateRoute() {
     // Given
     klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
       .withNewSpec().addNewPort().withPort(80).endPort().endSpec().endServiceItem();
@@ -116,7 +116,7 @@ public class RouteEnricherBehavioralTest {
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
     assertThat(klb.buildItems()).hasSize(2)
-      .element(1)
+      .last()
       .hasFieldOrPropertyWithValue("apiVersion", "route.openshift.io/v1")
       .hasFieldOrPropertyWithValue("metadata.name", "http")
       .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 80)

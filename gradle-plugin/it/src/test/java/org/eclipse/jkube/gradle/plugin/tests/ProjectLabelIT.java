@@ -16,43 +16,37 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(Parameterized.class)
-public class ProjectLabelIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class ProjectLabelIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "k8sResource {0} configured project-label ")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "default" , new String[] {}},
-        new Object[] { "custom" , new String[] {"-Pjkube.enricher.jkube-project-label.useProjectLabel=true", "-Pjkube.enricher.jkube-project-label.provider=custom-provider"}},
-        new Object[] { "app" , new String[] {"-Pjkube.enricher.jkube-project-label.app=custom-app" }},
-        new Object[] { "group", new String[] {"-Pjkube.enricher.jkube-project-label.group=org.example"}},
-        new Object[] { "version", new String[] {"-Pjkube.enricher.jkube-project-label.version=0.1.0"}}
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("default" , new String[] {}),
+        arguments("custom" , new String[] {"-Pjkube.enricher.jkube-project-label.useProjectLabel=true", "-Pjkube.enricher.jkube-project-label.provider=custom-provider"}),
+        arguments("app" , new String[] {"-Pjkube.enricher.jkube-project-label.app=custom-app" }),
+        arguments("group", new String[] {"-Pjkube.enricher.jkube-project-label.group=org.example"}),
+        arguments("version", new String[] {"-Pjkube.enricher.jkube-project-label.version=0.1.0"})
     );
   }
 
-  @Parameterized.Parameter
-  public String expectedDir;
-
-  @Parameterized.Parameter (1)
-  public String[] arguments;
-
-  @Test
-  public void k8sResource_whenRun_generatesK8sManifestsWithProjectLabels() throws IOException, ParseException {
+  @ParameterizedTest(name = "k8sResource {0} configured project-label ")
+  @MethodSource("data")
+  void k8sResource_whenRun_generatesK8sManifestsWithProjectLabels(String expectedDir, String[] arguments) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("k8sResource");
@@ -70,8 +64,9 @@ public class ProjectLabelIT {
         .contains("validating");
   }
 
-  @Test
-  public void ocResource_whenRun_generatesOpenShiftManifestsWithProjectLabels() throws IOException, ParseException {
+  @ParameterizedTest(name = "k8sResource {0} configured project-label ")
+  @MethodSource("data")
+  void ocResource_whenRun_generatesOpenShiftManifestsWithProjectLabels(String expectedDir, String[] arguments) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("ocResource");

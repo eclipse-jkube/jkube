@@ -16,39 +16,26 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-@RunWith(Parameterized.class)
-public class ImageChangeTriggerIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class ImageChangeTriggerIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "ocResource {0} ")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { new String[] {"-Pjkube.openshift.imageChangeTriggers=false" }},
-        new Object[] { new String[] {"-Pjkube.build.strategy=jib" }}
-    );
-  }
-
-  @Parameterized.Parameter
-  public String[] arguments;
-
-  @Test
-  public void ocResource_whenRunWithProvidedArg_generatesDeploymentConfigWithNoImageChangeTrigger() throws IOException, ParseException {
+  @ParameterizedTest(name = "ocResource {0} ")
+  @ValueSource(strings = {"-Pjkube.openshift.imageChangeTriggers=false", "-Pjkube.build.strategy=jib"})
+  void ocResource_whenRunWithProvidedArg_generatesDeploymentConfigWithNoImageChangeTrigger(String arguments) throws IOException, ParseException {
     // When
-    List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
+    List<String> gradleArgs = new ArrayList<>(Collections.singletonList(arguments));
     gradleArgs.add("ocResource");
     gradleArgs.add("--stacktrace");
     final BuildResult result = gradleRunner.withITProject("imagechangetrigger")

@@ -27,6 +27,7 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmPushTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesPushTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 
 import org.eclipse.jkube.gradle.plugin.task.KubernetesUndeployTask;
@@ -63,6 +64,7 @@ public class KubernetesPlugin extends AbstractJKubePlugin<KubernetesExtension> {
     register(project, "k8sUndeploy", KubernetesUndeployTask.class);
     register(project, "k8sHelm", KubernetesHelmTask.class);
     register(project, "k8sHelmPush", KubernetesHelmPushTask.class);
+    register(project, "k8sRemoteDev", KubernetesRemoteDevTask.class);
     register(project, "k8sWatch", KubernetesWatchTask.class);
   }
 

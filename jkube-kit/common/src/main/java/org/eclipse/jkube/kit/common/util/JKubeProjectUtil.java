@@ -77,20 +77,22 @@ public class JKubeProjectUtil {
         return getDependency(jkubeProject, groupId, artifactId) != null;
     }
 
+    public static boolean hasTransitiveDependency(JavaProject javaProject, String groupId, String artifactId) {
+      return getTransitiveDependency(javaProject, groupId, artifactId) != null;
+    }
+
     public static boolean hasDependencyWithGroupId(JavaProject project, String groupId) {
       return Optional.ofNullable(project).map(JavaProject::getDependencies)
           .map(deps -> deps.stream().anyMatch(dep -> Objects.equals(dep.getGroupId(), groupId)))
           .orElse(false);
     }
 
+    public static Dependency getTransitiveDependency(JavaProject javaProject, String groupId, String artifactId) {
+      return getDependencyByGroupArtifact(javaProject.getDependenciesWithTransitive(), groupId, artifactId);
+    }
+
     public static Dependency getDependency(JavaProject jkubeProject, String groupId, String artifactId) {
-        List<Dependency> dependencyList = jkubeProject.getDependencies();
-        if (dependencyList != null) {
-            return iterateOverListWithCondition(dependencyList, dependency ->
-                Objects.equals(dependency.getGroupId(), groupId) && Objects.equals(dependency.getArtifactId(), artifactId))
-                .orElse(null);
-        }
-        return null;
+        return getDependencyByGroupArtifact(jkubeProject.getDependencies(), groupId, artifactId);
     }
 
   /**
@@ -197,5 +199,14 @@ public class JKubeProjectUtil {
       throw new IllegalStateException("Cannot find artifact " + String.format("%s-%s.%s", artifactId, version, type) + " within the resolved resources");
     }
     return artifact;
+  }
+
+  private static Dependency getDependencyByGroupArtifact(List<Dependency> dependencyList, String groupId, String artifactId) {
+    if (dependencyList != null) {
+      return iterateOverListWithCondition(dependencyList, dependency ->
+          Objects.equals(dependency.getGroupId(), groupId) && Objects.equals(dependency.getArtifactId(), artifactId))
+          .orElse(null);
+    }
+    return null;
   }
 }

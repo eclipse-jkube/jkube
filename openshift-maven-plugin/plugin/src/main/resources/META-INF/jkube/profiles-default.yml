@@ -55,6 +55,7 @@
     - jkube-healthcheck-webapp
     - jkube-healthcheck-micronaut
     - jkube-healthcheck-openliberty
+    - jkube-healthcheck-smallrye
 
     # DeploymentConfigEnricher converts Deployment into DeploymentConfig
     - jkube-openshift-deploymentconfig

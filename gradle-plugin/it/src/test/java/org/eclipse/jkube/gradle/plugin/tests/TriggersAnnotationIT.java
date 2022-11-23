@@ -16,19 +16,19 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class TriggersAnnotationIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class TriggersAnnotationIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  public void k8sResourceTask_whenRun_generatesK8sManifestWithTriggersAnnotation() throws IOException, ParseException {
+  void k8sResourceTask_whenRun_generatesK8sManifestWithTriggersAnnotation() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("triggersannotation")
         .withArguments("k8sResource", "--stacktrace")
@@ -44,7 +44,7 @@ public class TriggersAnnotationIT {
   }
 
   @Test
-  public void ocResourceTask_whenRun_generatesOpenShiftManifestWithTriggersAnnotation() throws IOException, ParseException {
+  void ocResourceTask_whenRun_generatesOpenShiftManifestWithTriggersAnnotation() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("triggersannotation")
         .withArguments("ocResource", "--stacktrace")

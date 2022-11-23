@@ -25,15 +25,14 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,16 +41,22 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.util.Map;
 
-public class VolumePermissionEnricherTest {
-
-    @Mocked
+class VolumePermissionEnricherTest {
     private JKubeEnricherContext context;
 
     // *******************************
     // Tests
     // *******************************
+    @BeforeEach
+    void setUp() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    }
 
     private static final class TestConfig {
         private final String permission;
@@ -68,11 +73,9 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void alreadyExistingInitContainer(@Mocked final ProcessorConfig config) throws Exception {
-        new Expectations() {{
-            context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
-        }};
-
+    void alreadyExistingInitContainer() {
+        final ProcessorConfig config = mock(ProcessorConfig.class);
+        when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
         PodTemplateBuilder ptb = createEmptyPodTemplate();
         addVolume(ptb, "VolumeA");
 
@@ -87,25 +90,22 @@ public class VolumePermissionEnricherTest {
         enricher.enrich(PlatformMode.kubernetes,klb);
 
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(PodTemplate.class))
+            .singleElement(InstanceOfAssertFactories.type(PodTemplate.class))
             .extracting(PodTemplate::getTemplate)
             .extracting(PodTemplateSpec::getSpec)
             .extracting(PodSpec::getInitContainers)
             .asList()
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Container.class))
+            .singleElement(InstanceOfAssertFactories.type(Container.class))
             .hasFieldOrPropertyWithValue("resources", null)
             .extracting(Container::getVolumeMounts)
             .asList()
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(VolumeMount.class))
+            .singleElement(InstanceOfAssertFactories.type(VolumeMount.class))
             .extracting(VolumeMount::getMountPath)
             .isEqualTo("blub");
     }
 
     @Test
-    public void testAdapt() {
+    void adapt() {
         final TestConfig[] data = new TestConfig[]{
             new TestConfig("busybox",null, null),
             new TestConfig("busybox1",null, null),
@@ -119,9 +119,7 @@ public class VolumePermissionEnricherTest {
                         Collections.singletonMap("permission", tc.permission)));
 
             // Setup mock behaviour
-            new Expectations() {{
-                context.getConfiguration(); result = Configuration.builder().processorConfig(config).build();
-            }};
+            when(context.getConfiguration()).thenReturn(Configuration.builder().processorConfig(config).build());
 
             VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
 
@@ -149,8 +147,7 @@ public class VolumePermissionEnricherTest {
                 .extracting(PodTemplateSpec::getSpec)
                 .extracting(PodSpec::getInitContainers)
                 .asList()
-                .hasSize(1)
-                .first(InstanceOfAssertFactories.type(Container.class))
+                .singleElement(InstanceOfAssertFactories.type(Container.class))
                 .hasFieldOrPropertyWithValue("image", tc.imageName)
                 .hasFieldOrPropertyWithValue("name", tc.initContainerName)
                 .hasFieldOrPropertyWithValue("command", getExpectedCommand(tc))
@@ -160,14 +157,11 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void enrich_withPersistentVolumeClaim_shouldAddStorageClassToSpec() {
+    void enrich_withPersistentVolumeClaim_shouldAddStorageClassToSpec() {
         // Given
         Properties properties = new Properties();
         properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
-        new Expectations() {{
-            context.getProperties();
-            result = properties;
-        }};
+        when(context.getProperties()).thenReturn(properties);
         VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
         KubernetesListBuilder klb = new KubernetesListBuilder();
         klb.addToItems(createNewPersistentVolumeClaim("pv1"));
@@ -177,8 +171,7 @@ public class VolumePermissionEnricherTest {
 
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
+            .singleElement(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
             .hasFieldOrPropertyWithValue("spec.storageClassName", "standard")
             .extracting("metadata.annotations")
             .asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
@@ -186,15 +179,12 @@ public class VolumePermissionEnricherTest {
     }
 
     @Test
-    public void enrich_withPersistentVolumeClaimAndUseAnnotationEnabled_shouldAddStorageClassAnnotation() {
+    void enrich_withPersistentVolumeClaimAndUseAnnotationEnabled_shouldAddStorageClassAnnotation() {
         // Given
         Properties properties = new Properties();
         properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
         properties.put("jkube.enricher.jkube-volume-permission.useStorageClassAnnotation", "true");
-        new Expectations() {{
-            context.getProperties();
-            result = properties;
-        }};
+        when(context.getProperties()).thenReturn(properties);
         VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
         KubernetesListBuilder klb = new KubernetesListBuilder();
         klb.addToItems(createNewPersistentVolumeClaim("pv1"));
@@ -204,14 +194,13 @@ public class VolumePermissionEnricherTest {
 
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
+            .singleElement(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
             .hasFieldOrPropertyWithValue("metadata.annotations", Collections.singletonMap("volume.beta.kubernetes.io/storage-class", "standard"))
             .hasFieldOrPropertyWithValue("spec.storageClassName", null);
     }
 
     @Test
-    public void enrich_withResourcesEnabledInConfiguration_shouldAddRequestsLimitsToVolumeInitContainer() {
+    void enrich_withResourcesEnabledInConfiguration_shouldAddRequestsLimitsToVolumeInitContainer() {
         // Given
         Properties properties = new Properties();
         Map<String, Quantity> limitMap = new HashMap<>();
@@ -224,9 +213,9 @@ public class VolumePermissionEnricherTest {
         properties.put("jkube.enricher.jkube-volume-permission.memoryLimit", "128Mi");
         properties.put("jkube.enricher.jkube-volume-permission.cpuRequest", "250m");
         properties.put("jkube.enricher.jkube-volume-permission.memoryRequest", "64Mi");
-        new Expectations() {{
-            context.getProperties(); result = properties;
-        }};
+
+        when(context.getProperties()).thenReturn(properties);
+
         VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
         KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
         kubernetesListBuilder.addToPodTemplateItems(addVolume(createEmptyPodTemplate(), "volumeC").build());
@@ -236,14 +225,12 @@ public class VolumePermissionEnricherTest {
 
         // Then
         assertThat(kubernetesListBuilder.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(PodTemplate.class))
+            .singleElement(InstanceOfAssertFactories.type(PodTemplate.class))
             .extracting(PodTemplate::getTemplate)
             .extracting(PodTemplateSpec::getSpec)
             .extracting(PodSpec::getInitContainers)
             .asList()
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Container.class))
+            .singleElement(InstanceOfAssertFactories.type(Container.class))
             .extracting(Container::getResources)
             .hasFieldOrPropertyWithValue("requests", requestsMap)
             .hasFieldOrPropertyWithValue("limits", limitMap);

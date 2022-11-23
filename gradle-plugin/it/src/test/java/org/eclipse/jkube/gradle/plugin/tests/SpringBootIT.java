@@ -19,17 +19,17 @@ import org.eclipse.jkube.kit.common.ResourceVerify;
 
 import net.minidev.json.parser.ParseException;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class SpringBootIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class SpringBootIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  public void k8sResource_whenRun_generatesK8sManifests() throws IOException, ParseException {
+  void k8sResource_whenRun_generatesK8sManifests() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("spring-boot")
         .withArguments("build", "k8sResource", "--stacktrace")
@@ -48,7 +48,7 @@ public class SpringBootIT {
   }
 
   @Test
-  public void ocResource_whenRun_generatesOpenShiftManifests() throws IOException, ParseException {
+  void ocResource_whenRun_generatesOpenShiftManifests() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("spring-boot")
         .withArguments("build", "ocResource", "--stacktrace")

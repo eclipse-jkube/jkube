@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -27,20 +26,26 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
-public class FileDataSecretEnricherTest {
+class FileDataSecretEnricherTest {
 
     private static final String TEST_APPLICATION_PROPERTIES_PATH = "src/test/resources/test-application.properties";
     private static final String TEST_APPLICATION_PROPERTIES = "test-application.properties";
-    @Mocked
     private JKubeEnricherContext context;
 
+    @BeforeEach
+    void setupExpectations() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+    }
+
     @Test
-    public void shouldMaterializeFileContentFromDeprecatedAnnotation() throws IOException {
+    void shouldMaterializeFileContentFrom_deprecatedAnnotation() {
         // Given
         final FileDataSecretEnricher fileDataSecretEnricher =
                 new FileDataSecretEnricher(context);
@@ -52,23 +57,18 @@ public class FileDataSecretEnricherTest {
 
         // Then
         final Secret secret = (Secret) builder.buildFirstItem();
-
-        final Map<String, String> data = secret.getData();
-        assertThat(data)
-            .containsEntry(TEST_APPLICATION_PROPERTIES, Base64Util
-                .encodeToString(Files.readAllBytes(Paths.get(TEST_APPLICATION_PROPERTIES_PATH))));
-
-        final Map<String, String> annotations = secret.getMetadata().getAnnotations();
-        assertThat(annotations)
-                .isEmpty();
+        assertThat(secret)
+            .satisfies(s -> assertThat(s.getData())
+                .containsEntry(TEST_APPLICATION_PROPERTIES, Base64Util.encodeToString(Files.readAllBytes(Paths.get(TEST_APPLICATION_PROPERTIES_PATH))))
+            )
+            .satisfies(s -> assertThat(s.getMetadata().getAnnotations()).isEmpty());
     }
 
 
     @Test
-    public void shouldMaterializeFileContentFrom_Annotation() throws IOException {
+    void shouldMaterializeFileContentFrom_Annotation() {
         // Given
-        final FileDataSecretEnricher fileDataSecretEnricher =
-            new FileDataSecretEnricher(context);
+        final FileDataSecretEnricher fileDataSecretEnricher = new FileDataSecretEnricher(context);
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         builder.addToSecretItems(createBaseSecret("jkube.eclipse.org/secret/"));
 
@@ -77,16 +77,12 @@ public class FileDataSecretEnricherTest {
 
         // Then
         final Secret secret = (Secret) builder.buildFirstItem();
-
-        final Map<String, String> data = secret.getData();
-        assertThat(data)
-            .containsEntry(TEST_APPLICATION_PROPERTIES, Base64Util
-                .encodeToString(Files.readAllBytes(Paths.get(TEST_APPLICATION_PROPERTIES_PATH))));
-
-        final Map<String, String> annotations = secret.getMetadata().getAnnotations();
-        assertThat(annotations)
-            .isEmpty();
-    }
+        assertThat(secret)
+            .satisfies(s -> assertThat(s.getData())
+                .containsEntry(TEST_APPLICATION_PROPERTIES, Base64Util.encodeToString(Files.readAllBytes(Paths.get(TEST_APPLICATION_PROPERTIES_PATH))))
+            )
+            .satisfies(s -> assertThat(s.getMetadata().getAnnotations()).isEmpty());
+      }
 
     private Secret createBaseSecret(String annotationPrefix) {
         ObjectMetaBuilder metaBuilder = new ObjectMetaBuilder()

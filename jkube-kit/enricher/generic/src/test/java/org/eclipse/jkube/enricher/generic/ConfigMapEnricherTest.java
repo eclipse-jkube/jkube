@@ -14,9 +14,11 @@
 package org.eclipse.jkube.enricher.generic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -32,135 +34,119 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class ConfigMapEnricherTest {
-
-    @Mocked
+class ConfigMapEnricherTest {
     private JKubeEnricherContext context;
 
+    @BeforeEach
+    void setUpExpectations() {
+        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+    }
+
     @Test
-    public void should_materialize_file_content_from_deprecated_annotation() throws Exception {
+    void should_materialize_file_content_from_deprecated_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-application.properties",
                 "src/test/resources/test-application.properties", "maven.jkube.io/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
-
-        final Map<String, String> data = configMap.getData();
-        assertThat(data).containsEntry("test-application.properties",
-                readFileContentsAsString("src/test/resources/test-application.properties"));
-
-        final Map<String, String> annotations = configMap.getMetadata().getAnnotations();
-        assertThat(annotations).isEmpty();
+        assertThat(configMap)
+            .satisfies(m -> assertThat(m.getData())
+                .containsEntry("test-application.properties", readFileContentsAsString("src/test/resources/test-application.properties"))
+            )
+            .satisfies(m -> assertThat(m.getMetadata().getAnnotations()).isEmpty());
     }
 
     @Test
-    public void should_materialize_dir_content_from_deprecated_annotation() throws Exception {
+    void should_materialize_dir_content_from_deprecated_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-dir", "src/test/resources/test-dir", "maven.jkube.io/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
-
-        final Map<String, String> data = configMap.getData();
-        assertThat(data).containsEntry("test-application.properties",
-                readFileContentsAsString("src/test/resources/test-dir/test-application.properties"))
-                .doesNotContainKey("test-dir-empty");
-        final Map<String, String> binaryData = configMap.getBinaryData();
-        assertThat(binaryData).containsEntry("test.bin", "wA==");
-
-        final Map<String, String> annotations = configMap.getMetadata().getAnnotations();
-        assertThat(annotations).isEmpty();
+        assertThat(configMap)
+            .satisfies(m -> assertThat(m.getData())
+                .containsEntry("test-application.properties", readFileContentsAsString("src/test/resources/test-dir/test-application.properties"))
+                .doesNotContainKey("test-dir-empty")
+            )
+            .satisfies(m -> assertThat(m.getBinaryData())
+                .containsEntry("test.bin", "wA==")
+            )
+            .satisfies(m -> assertThat(m.getMetadata().getAnnotations()).isEmpty());
     }
 
     @Test
-    public void should_materialize_binary_file_content_from_deprecated_annotation() {
+    void should_materialize_binary_file_content_from_deprecated_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test.bin", "src/test/resources/test.bin", "maven.jkube.io/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
-
-        final Map<String, String> data = configMap.getData();
-        assertThat(data).isEmpty();
-
-        final Map<String, String> binaryData = configMap.getBinaryData();
-        assertThat(binaryData).containsEntry("test.bin", "wA==");
-
-        final Map<String, String> annotations = configMap.getMetadata().getAnnotations();
-        assertThat(annotations).isEmpty();
+        assertThat(configMap)
+            .satisfies(m -> assertThat(m.getData()).isEmpty())
+            .satisfies(m -> assertThat(m.getBinaryData())
+                .containsEntry("test.bin", "wA==")
+            )
+            .satisfies(m -> assertThat(m.getMetadata().getAnnotations()).isEmpty());
     }
 
     @Test
-    public void should_materialize_file_content_from_annotation() throws Exception {
+    void should_materialize_file_content_from_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-application.properties",
             "src/test/resources/test-application.properties", "jkube.eclipse.org/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
-
-        final Map<String, String> data = configMap.getData();
-        assertThat(data).containsEntry("test-application.properties",
-            readFileContentsAsString("src/test/resources/test-application.properties"));
-
-        final Map<String, String> annotations = configMap.getMetadata().getAnnotations();
-        assertThat(annotations).isEmpty();
+        assertThat(configMap)
+            .satisfies(m -> assertThat(m.getData())
+                .containsEntry("test-application.properties", readFileContentsAsString("src/test/resources/test-application.properties"))
+            )
+            .satisfies(m -> assertThat(m.getMetadata().getAnnotations()).isEmpty());
     }
 
     @Test
-    public void should_materialize_dir_content_from_annotation() throws Exception {
+    void should_materialize_dir_content_from_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-dir", "src/test/resources/test-dir", "jkube.eclipse.org/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
-
-        final Map<String, String> data = configMap.getData();
-        assertThat(data).containsEntry("test-application.properties",
-                readFileContentsAsString("src/test/resources/test-dir/test-application.properties"))
-            .doesNotContainKey("test-dir-empty");
-        final Map<String, String> binaryData = configMap.getBinaryData();
-        assertThat(binaryData).containsEntry("test.bin", "wA==");
-
-        final Map<String, String> annotations = configMap.getMetadata().getAnnotations();
-        assertThat(annotations).isEmpty();
+        assertThat(configMap)
+            .satisfies(m -> assertThat(m.getData())
+                .containsEntry("test-application.properties", readFileContentsAsString("src/test/resources/test-dir/test-application.properties"))
+                .doesNotContainKey("test-dir-empty")
+            )
+            .satisfies(m -> assertThat(m.getBinaryData())
+                .containsEntry("test.bin", "wA==")
+            )
+            .satisfies(m -> assertThat(m.getMetadata().getAnnotations()).isEmpty());
     }
 
     @Test
-    public void should_materialize_binary_file_content_from_annotation() {
+    void should_materialize_binary_file_content_from_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test.bin", "src/test/resources/test.bin", "jkube.eclipse.org/cm/");
         final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
-
-        final Map<String, String> data = configMap.getData();
-        assertThat(data).isEmpty();
-
-        final Map<String, String> binaryData = configMap.getBinaryData();
-        assertThat(binaryData).containsEntry("test.bin", "wA==");
-
-        final Map<String, String> annotations = configMap.getMetadata().getAnnotations();
-        assertThat(annotations).isEmpty();
+        assertThat(configMap)
+            .satisfies(m -> assertThat(m.getData()).isEmpty())
+            .satisfies(m -> assertThat(m.getBinaryData())
+                .containsEntry("test.bin", "wA==")
+            )
+            .satisfies(m -> assertThat(m.getMetadata().getAnnotations()).isEmpty());
     }
 
     @Test
-    public void should_materialize_file_content_from_xml() throws Exception {
+    void should_materialize_file_content_from_xml() throws Exception {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap(
                 "src/test/resources/test-application.properties");
         final ResourceConfig config = ResourceConfig.builder().configMap(baseConfigMap).build();
-        new Expectations() {
-            {
-                context.getConfiguration();
-                result = Configuration.builder().resource(config).build();
-            }
-        };
-
+        when(context.getConfiguration()).thenReturn(Configuration.builder().resource(config).build());
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
@@ -172,25 +158,16 @@ public class ConfigMapEnricherTest {
     }
 
     @Test
-    public void should_materialize_binary_file_content_from_xml() {
+    void should_materialize_binary_file_content_from_xml() {
         final org.eclipse.jkube.kit.config.resource.ConfigMap baseConfigMap = createXmlConfigMap("src/test/resources/test.bin");
         final ResourceConfig config = ResourceConfig.builder().configMap(baseConfigMap).build();
-        new Expectations() {
-            {
-                context.getConfiguration();
-                result = Configuration.builder().resource(config).build();
-            }
-        };
-
+        when(context.getConfiguration()).thenReturn(Configuration.builder().resource(config).build());
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
-
-        final Map<String, String> data = configMap.getData();
-        assertThat(data).isNullOrEmpty();
-
-        final Map<String, String> binaryData = configMap.getBinaryData();
-        assertThat(binaryData).containsEntry("test.bin", "wA==");
+        assertThat(configMap)
+            .satisfies(m -> assertThat(m.getData()).isNullOrEmpty())
+            .satisfies(m -> assertThat(m.getBinaryData()).containsEntry("test.bin", "wA=="));
     }
 
     private org.eclipse.jkube.kit.config.resource.ConfigMap createXmlConfigMap(final String file) {
@@ -212,7 +189,7 @@ public class ConfigMapEnricherTest {
         return new ConfigMapBuilder().withData(data).withMetadata(metaBuilder.build()).build();
     }
 
-    private String readFileContentsAsString(final String filePath) throws URISyntaxException, IOException {
+    private String readFileContentsAsString(final String filePath) throws IOException {
         return new String(readFileContentAsBytes(filePath));
     }
 

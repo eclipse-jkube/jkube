@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.watcher.standard;
 
+import io.fabric8.kubernetes.api.model.Status;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,24 +25,13 @@ public class ExecListenerLatch implements ExecListener {
   private final CountDownLatch cdl;
   private final AtomicInteger closeCode;
   private final AtomicReference<String> closeReason;
-  private final Runnable onOpen;
+  private final AtomicReference<Status> exitStatus;
 
   public ExecListenerLatch() {
-    this(null);
-  }
-
-  public ExecListenerLatch(Runnable onOpen) {
     cdl = new CountDownLatch(1);
     closeCode = new AtomicInteger(-1);
     closeReason = new AtomicReference<>();
-    this.onOpen = onOpen;
-  }
-
-  @Override
-  public void onOpen() {
-    if (onOpen != null) {
-      onOpen.run();
-    }
+    exitStatus = new AtomicReference<>();
   }
 
   @Override
@@ -55,6 +44,11 @@ public class ExecListenerLatch implements ExecListener {
     closeCode.set(code);
     closeReason.set(reason);
     cdl.countDown();
+  }
+
+  @Override
+  public void onExit(int code, Status status) {
+    exitStatus.set(status);
   }
 
   public boolean await(long timeout, TimeUnit timeUnit) throws InterruptedException {
@@ -87,6 +81,10 @@ public class ExecListenerLatch implements ExecListener {
 
   public String getCloseReason() {
     return closeReason.get();
+  }
+
+  public Status getExitStatus() {
+    return exitStatus.get();
   }
 
 }

@@ -19,30 +19,33 @@ import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ServiceAccountEnricherTest {
-    @Mocked
+class ServiceAccountEnricherTest {
     private JKubeEnricherContext context;
 
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    @BeforeEach
+    void setUp() {
+        context = JKubeEnricherContext.builder()
+          .project(JavaProject.builder()
+            .properties(new Properties())
+            .build())
+          .resources(ResourceConfig.builder().build())
+          .build();
     }
 
     @Test
-    public void create_withServiceAccountInResourceConfig_shouldCreateServiceAccount() {
+    void create_withServiceAccountInResourceConfig_shouldCreateServiceAccount() {
         // Given
         givenServiceAccountConfiguredInResourceConfiguration();
 
@@ -54,7 +57,7 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_whenServiceAccountConfiguredInDeployment_thenServiceAccountCreated() {
+    void create_whenServiceAccountConfiguredInDeployment_thenServiceAccountCreated() {
         // Given
         Deployment deploymentFragment = createNewDeploymentFragmentWithServiceAccountConfigured("sa1").build();
 
@@ -66,7 +69,7 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_whenServiceAccountNameConfiguredInDeployment_thenServiceAccountCreated() {
+    void create_whenServiceAccountNameConfiguredInDeployment_thenServiceAccountCreated() {
         // Given
         Deployment deploymentFragment = createNewDeploymentFragmentWithServiceAccountNameConfigured("sa1").build();
 
@@ -78,7 +81,7 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_withAlreadyExistingServiceAccount_shouldNotCreateServiceAccount() {
+    void create_withAlreadyExistingServiceAccount_shouldNotCreateServiceAccount() {
         // Given
         final KubernetesListBuilder builder = new KubernetesListBuilder()
             .withItems(createNewDeploymentFragmentWithServiceAccountNameConfigured("ribbon").build(),
@@ -93,33 +96,28 @@ public class ServiceAccountEnricherTest {
     }
 
     @Test
-    public void create_withSkipCreateEnabledAndPluginConfiguration_shouldNotCreateServiceAccount() {
+    void create_withSkipCreateEnabledAndPluginConfiguration_shouldNotCreateServiceAccount() {
         // Given
-        Properties properties = new Properties();
-        properties.put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
+        context.getProperties().put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         builder.addToItems(createNewDeploymentFragment().build());
         givenServiceAccountConfiguredInResourceConfiguration();
-        givenProperties(properties);
 
         // When
         new ServiceAccountEnricher(context).create(PlatformMode.kubernetes, builder);
 
         // Then
         assertThat(builder.buildItems())
-            .hasSize(1)
-            .first(InstanceOfAssertFactories.type(Deployment.class))
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
             .hasFieldOrPropertyWithValue("spec.template.spec.serviceAccountName", "ribbon");
     }
 
     @Test
-    public void create_withSkipCreateEnabledAndFragment_shouldNotCreateServiceAccount() {
+    void create_withSkipCreateEnabledAndFragment_shouldNotCreateServiceAccount() {
         // Given
-        Properties properties = new Properties();
-        properties.put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
+        context.getProperties().put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         builder.addToItems(createNewDeploymentFragmentWithServiceAccountConfigured("already-exist"));
-        givenProperties(properties);
 
         // When
         new ServiceAccountEnricher(context).create(PlatformMode.kubernetes, builder);
@@ -135,25 +133,16 @@ public class ServiceAccountEnricherTest {
         saEnricher.create(PlatformMode.kubernetes, builder);
 
         final ServiceAccount serviceAccount = (ServiceAccount) builder.buildLastItem();
-        assertThat(serviceAccount).isNotNull();
-        assertThat(serviceAccount.getMetadata().getName()).isEqualTo(expectedServiceAccountName);
+        assertThat(serviceAccount).isNotNull()
+            .hasFieldOrPropertyWithValue("metadata.name", expectedServiceAccountName);
     }
 
     private void givenServiceAccountConfiguredInResourceConfiguration() {
-        new Expectations() {{
-            context.getConfiguration();
-            result = Configuration.builder()
-                .resource(ResourceConfig.builder()
-                    .serviceAccount(ServiceAccountConfig.builder().name("ribbon").deploymentRef("cheese").build()).build())
-                .build();
-        }};
-    }
-
-    private void givenProperties(Properties properties) {
-        new Expectations() {{
-            context.getProperties();
-            result = properties;
-        }};
+        context = context.toBuilder()
+          .resources(ResourceConfig.builder()
+            .serviceAccount(ServiceAccountConfig.builder().name("ribbon").deploymentRef("cheese").build())
+            .build())
+          .build();
     }
 
     private DeploymentBuilder createNewDeploymentFragment() {

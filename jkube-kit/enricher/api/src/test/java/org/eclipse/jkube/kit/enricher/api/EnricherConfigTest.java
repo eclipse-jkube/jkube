@@ -20,22 +20,22 @@ import mockit.Expectations;
 import mockit.Mocked;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
  */
-public class EnricherConfigTest {
+class EnricherConfigTest {
 
   private enum Config implements Configs.Config {
-    TYPE;
+    TYPE
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   @Test
-  public void simple(@Mocked EnricherContext context) {
+  void simple(@Mocked EnricherContext context) {
     Map<String, Map<String, Object>> configMap = Collections.singletonMap("default.service",
         Collections.singletonMap("TYPE", "LoadBalancer"));
     // @formatter:off
@@ -44,6 +44,6 @@ public class EnricherConfigTest {
     }};
     // @formatter:on
     EnricherConfig config = new EnricherConfig("default.service", context);
-    assertEquals("LoadBalancer", config.get(EnricherConfigTest.Config.TYPE));
+    assertThat(config.get(EnricherConfigTest.Config.TYPE)).isEqualTo("LoadBalancer");
   }
 }

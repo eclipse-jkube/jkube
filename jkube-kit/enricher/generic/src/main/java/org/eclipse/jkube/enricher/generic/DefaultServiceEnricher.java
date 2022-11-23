@@ -240,10 +240,18 @@ public class DefaultServiceEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<ServiceBuilder>() {
             @Override
             public void visit(ServiceBuilder element) {
-                hasService.set(true);
+                if (hasControllerMatchedService(element)) {
+                    hasService.set(true);
+                }
             }
         });
         return hasService.get();
+    }
+
+    private boolean hasControllerMatchedService(ServiceBuilder serviceBuilder) {
+        String defaultName = JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId());
+        String svcName = KubernetesHelper.getName(serviceBuilder.buildMetadata());
+        return defaultName.equals(svcName);
     }
 
     private void mergeInDefaultServiceParameters(KubernetesListBuilder builder, final Service defaultService) {

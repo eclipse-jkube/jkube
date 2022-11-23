@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
-    <version>1.10-SNAPSHOT</version>
+    <version>1.11-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -38,37 +38,35 @@
     <version.commons-codec>1.15</version.commons-codec>
     <version.commons-compress>1.21</version.commons-compress>
     <version.commons-lang3>3.11</version.commons-lang3>
-    <version.commons-text>1.9</version.commons-text>
+    <version.commons-text>1.10.0</version.commons-text>
     <version.gson>2.8.9</version.gson>
     <version.httpcore>4.4.15</version.httpcore>
     <version.httpclient>4.5.13</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
     <version.jansi>2.4.0</version.jansi>
-    <version.javassist>3.20.0-GA</version.javassist>
+    <version.javassist>3.29.2-GA</version.javassist>
     <!-- Don't upgrade Eclipse JGit to 6.x for Java 8 compatibility -->
     <version.jgit>5.12.0.202106070339-r</version.jgit>
     <version.jnr-unixsocket>0.38.17</version.jnr-unixsocket>
     <version.jsr305>3.0.2</version.jsr305>
-    <version.JUnitParams>1.1.1</version.JUnitParams>
-    <version.lombok>1.18.22</version.lombok>
-    <version.maven-archiver>3.5.0</version.maven-archiver>
+    <version.lombok>1.18.24</version.lombok>
+    <version.maven-archiver>3.6.0</version.maven-archiver>
     <version.maven-core>3.6.3</version.maven-core>
     <version.maven-filtering>3.3.0</version.maven-filtering>
     <version.maven-plugin-annotations>3.6.0</version.maven-plugin-annotations>
     <version.mockwebserver>0.2.2</version.mockwebserver>
-    <version.networknt.validator>1.0.53</version.networknt.validator>
+    <version.networknt.validator>1.0.73</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
-    <version.plexus-archiver>3.6.0</version.plexus-archiver>
     <version.plexus-classworlds>2.6.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
     <version.plexus-utils>3.0.24</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
-    <version.ow2.asm>5.0.3</version.ow2.asm>
+    <version.ow2.asm>9.4</version.ow2.asm>
 
     <!-- =======================================================  -->
-    <version.image.jkube-images>0.0.16</version.image.jkube-images>
+    <version.image.jkube-images>0.0.17</version.image.jkube-images>
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
     <version.image.java.upstream.docker>${version.image.jkube-images}</version.image.java.upstream.docker>
@@ -91,6 +89,7 @@
     <!-- Default images used in the default generators. Please note that the generators make some assumption about
          these images (e.g. where the deployment directory is), so don't change them arbitrarily -->
 
+    <image.remote-dev>quay.io/jkube/jkube-remote-dev:${version.image.jkube-images}</image.remote-dev>
     <!-- java (java-exec, spring-boot) -->
     <image.java.upstream.s2i>quay.io/jkube/jkube-java:${version.image.java.upstream.s2i}</image.java.upstream.s2i>
     <image.java.upstream.docker>quay.io/jkube/jkube-java:${version.image.java.upstream.docker}</image.java.upstream.docker>
@@ -113,7 +112,7 @@
     <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
     <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
 
-    <jib-core.version>0.22.0</jib-core.version>
+    <jib-core.version>0.23.0</jib-core.version>
   </properties>
 
   <dependencyManagement>
@@ -257,6 +256,18 @@
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-profiles</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-microprofile</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-remote-dev</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -552,6 +563,12 @@
         <version>${version.ow2.asm}</version>
       </dependency>
 
+      <dependency>
+        <groupId>org.apache.sshd</groupId>
+        <artifactId>sshd-core</artifactId>
+        <version>${version.sshd}</version>
+      </dependency>
+
       <!-- == maven ===================================== -->
       <dependency>
         <groupId>org.apache.maven</groupId>
@@ -627,18 +644,6 @@
 
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
-        <artifactId>plexus-archiver</artifactId>
-        <version>${version.plexus-archiver}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>*</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-classworlds</artifactId>
         <version>${version.plexus-classworlds}</version>
       </dependency>
@@ -661,12 +666,6 @@
         </exclusions>
       </dependency>
       <!-- == test ====================================== -->
-      <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-        <version>${version.junit}</version>
-        <scope>test</scope>
-      </dependency>
 
       <dependency>
         <groupId>org.junit.jupiter</groupId>
@@ -727,14 +726,6 @@
         <scope>test</scope>
         <exclusions>
           <exclusion>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.fabric8</groupId>
-            <artifactId>mockwebserver</artifactId>
-          </exclusion>
-          <exclusion>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
           </exclusion>
@@ -747,13 +738,6 @@
             <artifactId>junit-jupiter-api</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-
-      <dependency>
-        <groupId>pl.pragmatists</groupId>
-        <artifactId>JUnitParams</artifactId>
-        <version>${version.JUnitParams}</version>
-        <scope>test</scope>
       </dependency>
 
       <!-- == doc ====================================== -->

@@ -16,6 +16,9 @@ package org.eclipse.jkube.kit.enricher.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -27,21 +30,19 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-public class DeploymentHandlerTest {
+class DeploymentHandlerTest {
 
     @Mocked
-    ProbeHandler probeHandler;
+    private ProbeHandler probeHandler;
 
     @Mocked
-    JavaProject project;
+    private JavaProject project;
 
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();
@@ -54,8 +55,8 @@ public class DeploymentHandlerTest {
 
     private DeploymentHandler deploymentHandler;
 
-    @Before
-    public void before(){
+    @BeforeEach
+    void before(){
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -87,7 +88,7 @@ public class DeploymentHandlerTest {
     }
 
     @Test
-    public void deploymentTemplateHandlerTest() {
+    void get_withValidControllerName_shouldReturnConfigWithContainers() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
@@ -97,27 +98,28 @@ public class DeploymentHandlerTest {
                 .build();
 
         Deployment deployment = deploymentHandler.get(config, images);
-
-        //Assertion
-        assertNotNull(deployment.getSpec());
-        assertNotNull(deployment.getMetadata());
-        assertEquals(5,deployment.getSpec().getReplicas().intValue());
-        assertNotNull(deployment.getSpec().getTemplate());
-        assertEquals("testing",deployment.getMetadata().getName());
-        assertEquals("test-account",deployment.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(deployment.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",deployment.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",deployment.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(deployment.getSpec().getTemplate().getSpec().getContainers());
-
+        assertThat(deployment.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(deployment)
+            .satisfies(d -> assertThat(d.getMetadata())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("name", "testing")
+            )
+            .satisfies(d -> assertThat(d.getSpec())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("replicas", 5)
+                .extracting(DeploymentSpec::getTemplate).isNotNull()
+                .extracting(PodTemplateSpec::getSpec)
+                .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
+                .extracting(PodSpec::getVolumes).isNotNull()
+                .asList()
+                .first()
+                .hasFieldOrPropertyWithValue("name", "test")
+                .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
+            );
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void deploymentTemplateHandlerWithInvalidNameTest() {
-        // with invalid controller name
+    @Test
+    void get_withInvalidControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
@@ -125,25 +127,27 @@ public class DeploymentHandlerTest {
                 .replicas(5)
                 .volumes(volumes1)
                 .build();
-
-        deploymentHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> deploymentHandler.get(config, images))
+            .withMessageStartingWith("Invalid upper case letter 'T'")
+            .withMessageEndingWith("controller name value: TesTing");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void deploymentTemplateHandlerWithoutControllerTest() {
-        // without controller name
+    @Test
+    void get_withoutControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
                 .replicas(5)
                 .volumes(volumes1)
                 .build();
-
-        deploymentHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> deploymentHandler.get(config, images))
+            .withMessage("No controller name is specified!");
     }
 
     @Test
-    public void overrideReplicas() {
+    void overrideReplicas() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
             .editOrNewSpec().withReplicas(1).endSpec()
@@ -152,7 +156,7 @@ public class DeploymentHandlerTest {
         deploymentHandler.overrideReplicas(klb, 1337);
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first().hasFieldOrPropertyWithValue("spec.replicas", 1337);
+            .singleElement()
+            .hasFieldOrPropertyWithValue("spec.replicas", 1337);
     }
 }

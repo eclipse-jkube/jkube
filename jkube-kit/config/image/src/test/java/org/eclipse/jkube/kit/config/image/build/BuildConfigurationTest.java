@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
 
+import org.assertj.core.api.Assertions;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -34,6 +35,7 @@ import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.bzip2;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -154,11 +156,12 @@ class BuildConfigurationTest {
   @Test
   void compressionStringInvalid() {
     final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
-    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () -> builder.compressionString("bzip"));
-    assertThat(result)
-        .hasMessageStartingWith("No enum constant")
-        .hasMessageEndingWith("ArchiveCompression.bzip");
+    Assertions.assertThatThrownBy(() ->builder.compressionString("bzip")).
+            isInstanceOf(IllegalArgumentException.class)
+            .hasMessageStartingWith("No enum constant")
+            .hasMessageEndingWith("ArchiveCompression.bzip");
   }
+
 
   @ParameterizedTest(name = "{0} : should be {1}")
   @MethodSource("isValidWindowsFileNameTestData")

@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.springboot.generator;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -20,97 +23,78 @@ import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
-public class SpringBootGeneratorTest {
+class SpringBootGeneratorTest {
 
-  @Rule
-  public TemporaryFolder temporaryFolder = new TemporaryFolder();
-
-  @Mocked
   private GeneratorContext context;
 
-  @Mocked
-  private JavaProject project;
-
-  private SpringBootGenerator springBootGenerator;
-
-  @Before
-  public void setUp() throws Exception {
-    // @formatter:off
-    new Expectations() {{
-      context.getProject(); result = project;
-      project.getOutputDirectory(); result = temporaryFolder.newFolder("springboot-test-project").getAbsolutePath();
-      project.getPlugins(); result = Collections.emptyList(); minTimes = 0;
-      project.getVersion(); result = "1.0.0"; minTimes = 0;
-    }};
-    // @formatter:on
-    springBootGenerator = new SpringBootGenerator(context);
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
+    context = GeneratorContext.builder()
+      .logger(new KitLogger.SilentLogger())
+      .project(JavaProject.builder()
+        .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
+        .version("1.0.0")
+        .build())
+      .build();
   }
 
   @Test
-  public void isApplicable_withNoImageConfigurations_shouldReturnFalse() {
+  void isApplicable_withNoImageConfigurations_shouldReturnFalse() {
     // When
-    final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
+    final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
     // Then
-    assertFalse(result);
+    assertThat(result).isFalse();
   }
 
   @Test
-  public void isApplicable_withNoImageConfigurationsAndMavenPlugin_shouldReturnTrue() {
+  void isApplicable_withNoImageConfigurationsAndMavenPlugin_shouldReturnTrue() {
     // Given
-    withPlugins(Collections.singletonList(Plugin.builder()
+    withPlugin(Plugin.builder()
         .groupId("org.springframework.boot")
         .artifactId("spring-boot-maven-plugin")
-        .build()));
+        .build());
     // When
-    final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
+    final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
   @Test
-  public void isApplicable_withNoImageConfigurationsAndGradlePlugin_shouldReturnTrue() {
+  void isApplicable_withNoImageConfigurationsAndGradlePlugin_shouldReturnTrue() {
     // Given
-    withPlugins(Collections.singletonList(Plugin.builder()
+    withPlugin(Plugin.builder()
         .groupId("org.springframework.boot")
         .artifactId("org.springframework.boot.gradle.plugin")
-        .build()));
+        .build());
     // When
-    final boolean result = springBootGenerator.isApplicable(Collections.emptyList());
+    final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
     // Then
-    assertTrue(result);
+    assertThat(result).isTrue();
   }
 
   @Test
-  public void getExtraJavaOptions_withDefaults_shouldBeEmpty() {
+  void getExtraJavaOptions_withDefaults_shouldBeEmpty() {
     // When
-    final List<String> result = springBootGenerator.getExtraJavaOptions();
+    final List<String> result = new SpringBootGenerator(context).getExtraJavaOptions();
     // Then
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
+    assertThat(result).isNotNull().isEmpty();
   }
 
   @Test
-  public void customize_withEmptyList_shouldReturnAddedImage() {
+  void customize_withEmptyList_shouldReturnAddedImage() {
     // When
-    final List<ImageConfiguration> configs = springBootGenerator.customize(new ArrayList<>(), true);
+    final List<ImageConfiguration> configs = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
     // Then
     assertThat(configs)
         .singleElement()
@@ -122,11 +106,9 @@ public class SpringBootGeneratorTest {
         .containsEntry("JAVA_APP_DIR", "/deployments");
   }
 
-  private void withPlugins(List<Plugin> plugins) {
-    // @formatter:off
-    new Expectations() {{
-      project.getPlugins(); result = plugins;
-    }};
-    // @formatter:on
+  private void withPlugin(Plugin plugin) {
+    context = context.toBuilder()
+      .project(JavaProject.builder().plugin(plugin).build())
+      .build();
   }
 }

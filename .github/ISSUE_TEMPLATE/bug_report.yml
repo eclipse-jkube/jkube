@@ -45,8 +45,9 @@ body:
       label: Eclipse JKube version
       description: Eclipse JKube version (can be found in pom.xml dependency or build.gradle implementation section)
       options:
-        - "1.9.1"
+        - "1.10.0"
         - "SNAPSHOT"
+        - "1.9.1"
         - "1.8.0"
         - "1.7.0"
         - "1.6.0"
@@ -156,12 +157,11 @@ body:
       label: Kubernetes API Server version
       description: Kubernetes API Server version
       options:
-        - "1.24.1"
-        - "1.23.7"
-        - "1.22.3"
+        - "1.25.3"
         - "next (development version)"
-        - "1.21.6"
-        - "1.20.12"
+        - "1.24.7"
+        - "1.23.13"
+        - "1.22.15"
         - "other (please specify in additional context)"
     validations:
       required: true

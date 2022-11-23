@@ -13,21 +13,20 @@
  */
 package org.eclipse.jkube.enricher.generic.ingress;
 
-import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class ExtensionsV1Beta1IngressConverterTest {
+class ExtensionsV1Beta1IngressConverterTest {
     @Test
-    public void testConvertWithNullInput() {
+    void convert_withNullInput() {
         assertThat(ExtensionsV1beta1IngressConverter.convert(null)).isNull();
     }
 
     @Test
-    public void testConvertWithNullSpec() {
+    void convert_withNullSpec() {
         // Given
         final io.fabric8.kubernetes.api.model.networking.v1.Ingress from = new IngressBuilder()
             .withNewMetadata().withName("ingress").endMetadata().build();
@@ -40,7 +39,7 @@ public class ExtensionsV1Beta1IngressConverterTest {
     }
 
     @Test
-    public void testConvert() {
+    void convert() {
         // Given
         io.fabric8.kubernetes.api.model.networking.v1.Ingress networkV1Ingress = new IngressBuilder()
                 .withNewMetadata().withName("test-ing").endMetadata()
@@ -76,28 +75,27 @@ public class ExtensionsV1Beta1IngressConverterTest {
 
         // Then
         assertThat(ingress)
-                .hasFieldOrPropertyWithValue("metadata.name", "test-ing")
-                .hasFieldOrPropertyWithValue("spec.ingressClassName", "external-lb")
-                .satisfies(ir -> assertThat(ir.getSpec().getTls())
-                        .asList().hasSize(1)
-                        .element(0)
-                        .hasFieldOrPropertyWithValue("secretName", "test-jkube-ingress")
-                        .extracting("hosts").asList().hasSize(1)
-                        .element(0).isEqualTo("test-svc.org.eclipse.jkube"))
-                .extracting("spec.rules").asList().hasSize(1).element(0)
-                .hasFieldOrPropertyWithValue("host", "test-svc.org.eclipse.jkube")
-                .extracting("http.paths").asList().element(0)
-                .hasFieldOrPropertyWithValue("path", "/testpath")
-                .hasFieldOrPropertyWithValue("pathType", "Prefix")
-                .hasFieldOrPropertyWithValue("backend.serviceName", "test")
-                .hasFieldOrPropertyWithValue("backend.servicePort", new IntOrString(80))
-                .hasFieldOrPropertyWithValue("backend.resource.apiGroup", "k8s.example.com")
-                .hasFieldOrPropertyWithValue("backend.resource.kind", "StorageBucket")
-                .hasFieldOrPropertyWithValue("backend.resource.name", "icon-assets");
+            .hasFieldOrPropertyWithValue("metadata.name", "test-ing")
+            .hasFieldOrPropertyWithValue("spec.ingressClassName", "external-lb")
+            .satisfies(ir -> assertThat(ir.getSpec().getTls())
+                .asList().singleElement()
+                .hasFieldOrPropertyWithValue("secretName", "test-jkube-ingress")
+                .extracting("hosts").asList().singleElement()
+                .isEqualTo("test-svc.org.eclipse.jkube"))
+            .extracting("spec.rules").asList().singleElement()
+            .hasFieldOrPropertyWithValue("host", "test-svc.org.eclipse.jkube")
+            .extracting("http.paths").asList().first()
+            .hasFieldOrPropertyWithValue("path", "/testpath")
+            .hasFieldOrPropertyWithValue("pathType", "Prefix")
+            .hasFieldOrPropertyWithValue("backend.serviceName", "test")
+            .hasFieldOrPropertyWithValue("backend.servicePort.intVal", 80)
+            .hasFieldOrPropertyWithValue("backend.resource.apiGroup", "k8s.example.com")
+            .hasFieldOrPropertyWithValue("backend.resource.kind", "StorageBucket")
+            .hasFieldOrPropertyWithValue("backend.resource.name", "icon-assets");
     }
 
     @Test
-    public void testConvertWithDefaultBackend() {
+    void convert_withDefaultBackend() {
         // Given
         io.fabric8.kubernetes.api.model.networking.v1.Ingress networkV1Ingress = new IngressBuilder()
                 .withNewMetadata().withName("test-jkube").endMetadata()
@@ -116,8 +114,8 @@ public class ExtensionsV1Beta1IngressConverterTest {
 
         // Then
         assertThat(ingress)
-                .isNotNull()
-                .hasFieldOrPropertyWithValue("spec.backend.serviceName", "test-jkube-ingress")
-                .hasFieldOrPropertyWithValue("spec.backend.servicePort", new IntOrString(8080));
+            .isNotNull()
+            .hasFieldOrPropertyWithValue("spec.backend.serviceName", "test-jkube-ingress")
+            .hasFieldOrPropertyWithValue("spec.backend.servicePort.intVal", 8080);
     }
 }

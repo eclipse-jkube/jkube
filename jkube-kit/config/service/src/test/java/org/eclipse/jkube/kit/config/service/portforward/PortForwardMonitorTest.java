@@ -16,8 +16,8 @@ package org.eclipse.jkube.kit.config.service.portforward;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.WatcherException;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -26,8 +26,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class PortForwardMonitorTest {
 
-  @Mocked
   private KitLogger logger;
+
+  @BeforeEach
+  void setUp() {
+    logger = new KitLogger.StdoutLogger();
+  }
 
   @Test
   void eventReceivedDoesNothing() {
