@@ -48,22 +48,20 @@ import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 class AuthConfigFactoryTest {
     static final String ECR_NAME = "123456789012.dkr.ecr.bla.amazonaws.com";
     private AuthConfigFactory factory;
     private GsonBuilder gsonBuilder;
-
     private KitLogger log;
-
     private AwsSdkHelper awsSdkHelper;
-
     private HttpServer httpServer;
 
     @BeforeEach
     void containerSetup() {
-        log = mock(KitLogger.SilentLogger.class);
+        log = new KitLogger.SilentLogger();
         awsSdkHelper = mock(AwsSdkHelper.class);
         factory = new AuthConfigFactory(log, awsSdkHelper);
         gsonBuilder = new GsonBuilder();
@@ -78,7 +76,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromSystemProperties() throws IOException {
+    void getAuthConfigFromSystemProperties() throws IOException {
         // Given
         System.setProperty("jkube.docker.username", "testuser");
         System.setProperty("jkube.docker.password", "testpass");
@@ -94,7 +92,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromOpenShiftConfig() {
+    void getAuthConfigFromOpenShiftConfig() {
         // Given
         System.setProperty("jkube.docker.useOpenShiftAuth", "true");
         Map<String, Object> authConfigMap = new HashMap<>();
@@ -113,7 +111,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromOpenShiftConfigWithAuthConfigMap() {
+    void getAuthConfigFromOpenShiftConfigWithAuthConfigMap() {
         // Given
         Map<String, Object> authConfigMap = new HashMap<>();
         authConfigMap.put("useOpenShiftAuth", "true");
@@ -131,7 +129,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromPluginConfiguration() {
+    void getAuthConfigFromPluginConfiguration() {
         // Given
         Map<String, Object> authConfigMap = new HashMap<>();
         authConfigMap.put("username", "testuser");
@@ -147,7 +145,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromSettings() {
+    void getAuthConfigFromSettings() {
         // Given
         List<RegistryServerConfiguration> settings = new ArrayList<>();
         settings.add(RegistryServerConfiguration.builder()
@@ -163,8 +161,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetAuthConfigFromDockerConfig() throws IOException {
-        KitLogger logger = mock(KitLogger.SilentLogger.class);
+    void getAuthConfigFromDockerConfig() throws IOException {
         // Given
         JsonObject dockerConfig = new JsonObject();
         JsonObject auths = new JsonObject();
@@ -175,7 +172,7 @@ class AuthConfigFactoryTest {
         try (MockedStatic<DockerFileUtil> mockStatic = Mockito.mockStatic(DockerFileUtil.class)) {
             mockStatic.when(DockerFileUtil::readDockerConfig).thenReturn(dockerConfig);
             // When
-            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromDockerConfig("https://index.docker.io/v1/", logger);
+            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromDockerConfig("https://index.docker.io/v1/", log);
 
             // Then
             assertAuthConfig(authConfig, "testuser", "testpass");
@@ -183,14 +180,13 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetStandardAuthConfigFromProperties() throws IOException {
-        KitLogger logger = mock(KitLogger.SilentLogger.class);
+    void getStandardAuthConfigFromProperties() throws IOException {
         // Given
         System.setProperty("jkube.docker.username", "testuser");
         System.setProperty("jkube.docker.password", "testpass");
         try {
             // When
-            AuthConfigFactory authConfigFactory = new AuthConfigFactory(logger);
+            AuthConfigFactory authConfigFactory = new AuthConfigFactory(log);
             AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), Collections.emptyList(), "testuser", "testregistry.io", s -> s);
             // Then
             assertAuthConfig(authConfig, "testuser", "testpass");
@@ -201,8 +197,7 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void testGetStandardAuthConfigFromMavenSettings() throws IOException {
-        KitLogger logger = mock(KitLogger.SilentLogger.class);
+    void getStandardAuthConfigFromMavenSettings() throws IOException {
         // Given
         List<RegistryServerConfiguration> settings = new ArrayList<>();
         settings.add(RegistryServerConfiguration.builder()
@@ -212,7 +207,7 @@ class AuthConfigFactoryTest {
                 .build());
 
         // When
-        AuthConfigFactory authConfigFactory = new AuthConfigFactory(logger);
+        AuthConfigFactory authConfigFactory = new AuthConfigFactory(log);
         AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), settings, "testuser", "testregistry.io", s -> s);
 
         // Then
@@ -223,13 +218,12 @@ class AuthConfigFactoryTest {
     void getAuthConfigViaAwsSdk() throws IOException {
         String accessKeyId = randomUUID().toString();
         String secretAccessKey = randomUUID().toString();
-        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(AuthConfig.builder()
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(AuthConfig.builder()
             .username(accessKeyId)
             .password(secretAccessKey)
-            .email(null)
-            .auth(null)
-            .identityToken(null)
-            .build()))) {
+            .build()))
+        ) {
             when(awsSdkHelper.isDefaultAWSCredentialsProviderChainPresentInClassPath()).thenReturn(true);
 
             AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
@@ -240,7 +234,9 @@ class AuthConfigFactoryTest {
 
     @Test
     void ecsTaskRole() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null))
+        ) {
             String containerCredentialsUri = "/v2/credentials/" + randomUUID();
             String accessKeyId = randomUUID().toString();
             String secretAccessKey = randomUUID().toString();
@@ -256,7 +252,9 @@ class AuthConfigFactoryTest {
 
     @Test
     void fargateTaskRole() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null))
+        ) {
             String containerCredentialsUri = "v2/credentials/" + randomUUID();
             String accessKeyId = randomUUID().toString();
             String secretAccessKey = randomUUID().toString();
@@ -272,7 +270,9 @@ class AuthConfigFactoryTest {
 
     @Test
     void awsTemporaryCredentialsArePickedUpFromEnvironment() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null))
+        ) {
             String accessKeyId = randomUUID().toString();
             String secretAccessKey = randomUUID().toString();
             String sessionToken = randomUUID().toString();
@@ -287,7 +287,9 @@ class AuthConfigFactoryTest {
 
     @Test
     void awsStaticCredentialsArePickedUpFromEnvironment() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null))
+        ) {
             String accessKeyId = randomUUID().toString();
             String secretAccessKey = randomUUID().toString();
             when(awsSdkHelper.getAwsAccessKeyIdEnvVar()).thenReturn(accessKeyId);
@@ -301,12 +303,18 @@ class AuthConfigFactoryTest {
 
     @Test
     void incompleteAwsCredentialsAreIgnored() throws IOException {
-        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) -> when(mock.createAuthConfig()).thenReturn(null))) {
+        try (MockedConstruction<AwsSdkAuthConfigFactory> ignored = mockConstruction(AwsSdkAuthConfigFactory.class, (mock, ctx) ->
+          when(mock.createAuthConfig()).thenReturn(null));
+         MockedStatic<DockerFileUtil> dfu = mockStatic(DockerFileUtil.class)
+        ) {
             System.setProperty("AWS_ACCESS_KEY_ID", randomUUID().toString());
+            dfu.when(DockerFileUtil::readDockerConfig).thenReturn(null);
 
             AuthConfig authConfig = factory.createAuthConfig(false, true, null, Collections.emptyList(), "user", ECR_NAME, s -> s);
 
             assertThat(authConfig).isNull();
+        } finally {
+            System.clearProperty("AWS_ACCESS_KEY_ID");
         }
     }
 

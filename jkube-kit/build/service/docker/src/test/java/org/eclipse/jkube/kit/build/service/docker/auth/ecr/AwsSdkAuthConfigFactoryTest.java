@@ -30,9 +30,8 @@ class AwsSdkAuthConfigFactoryTest {
 
     @BeforeEach
     void setup() {
-        KitLogger log = new KitLogger.SilentLogger();
         awsSdkHelper = mock(AwsSdkHelper.class);
-        objectUnderTest = new AwsSdkAuthConfigFactory(log, awsSdkHelper);
+        objectUnderTest = new AwsSdkAuthConfigFactory(new KitLogger.SilentLogger(), awsSdkHelper);
     }
 
     @Test

@@ -31,16 +31,11 @@ import static org.mockito.Mockito.mock;
 
 class WatchServiceTest {
 
-    ArchiveService archiveService;
-
-    BuildService buildService;
-
-    QueryService queryService;
-
-    RunService runService;
-
-    KitLogger logger;
-
+    private ArchiveService archiveService;
+    private BuildService buildService;
+    private QueryService queryService;
+    private RunService runService;
+    private KitLogger logger;
     private ImageConfiguration imageConfiguration;
 
     @BeforeEach
@@ -49,7 +44,7 @@ class WatchServiceTest {
         buildService = mock(BuildService.class);
         queryService = mock(QueryService.class);
         runService = mock(RunService.class);
-        logger = mock(KitLogger.SilentLogger.class);
+        logger = new KitLogger.SilentLogger();
         imageConfiguration = ImageConfiguration.builder()
                 .name("test-app")
                 .watch(WatchImageConfiguration.builder()
@@ -59,7 +54,7 @@ class WatchServiceTest {
     }
 
     @Test
-    void testRestartContainerAndCallPostGoalRestartDisabled() throws Exception {
+    void restartContainerAndCallPostGoalRestartDisabled() throws Exception {
         // Given
         AtomicReference<String> stringAtomicReference = new AtomicReference<>("oldVal");
         String mavenGoalToExecute = "org.apache.maven.plugins:maven-help-plugin:help";
@@ -77,7 +72,7 @@ class WatchServiceTest {
     }
 
     @Test
-    void testRestartContainerAndCallPostGoalRestartEnabled() throws Exception {
+    void restartContainerAndCallPostGoalRestartEnabled() throws Exception {
         // Given
         AtomicBoolean restarted = new AtomicBoolean(false);
         WatchContext watchContext = WatchContext.builder()
@@ -93,7 +88,7 @@ class WatchServiceTest {
     }
 
     @Test
-    void testCopyFilesToContainer() throws Exception {
+    void copyFilesToContainer() throws Exception {
         // Given
         AtomicBoolean fileCopied = new AtomicBoolean(false);
         WatchContext watchContext = WatchContext.builder()
@@ -113,7 +108,7 @@ class WatchServiceTest {
     }
 
     @Test
-    void testCallPostExec() throws Exception {
+    void callPostExec() throws Exception {
         // Given
         AtomicBoolean postExecCommandExecuted = new AtomicBoolean(false);
         WatchContext watchContext = WatchContext.builder()

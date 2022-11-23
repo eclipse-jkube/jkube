@@ -33,12 +33,11 @@ class CredentialHelperClientTest {
 
     @BeforeEach
     void givenCredentialHelperClient() {
-        KitLogger logger = new KitLogger.SilentLogger();
-        this.credentialHelperClient = new CredentialHelperClient(logger, "desktop");
+        this.credentialHelperClient = new CredentialHelperClient(new KitLogger.SilentLogger(), "desktop");
     }
 
     @Test
-    void testUsernamePasswordAuthConfig() {
+    void usernamePasswordAuthConfig() {
         givenJson("{\"ServerURL\":\"registry.mycompany.com\",\"Username\":\"jane_doe\",\"Secret\":\"not-really\"}");
 
         whenJsonObjectConvertedToAuthConfig();
@@ -49,7 +48,7 @@ class CredentialHelperClientTest {
     }
 
     @Test
-    void testTokenAuthConfig() {
+    void tokenAuthConfig() {
         givenJson("{\"ServerURL\":\"registry.cloud-provider.com\",\"Username\":\"<token>\",\"Secret\":\"gigantic-mess-of-jwt\"}");
 
         whenJsonObjectConvertedToAuthConfig();

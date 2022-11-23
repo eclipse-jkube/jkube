@@ -14,16 +14,19 @@
 package org.eclipse.jkube.kit.build.service.docker.helper;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Date;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 /**
  * @author roland
@@ -35,8 +38,10 @@ class ImageNameFormatterTest {
 
     @BeforeEach
     void setUp(){
-        project = mock(JavaProject.class,RETURNS_DEEP_STUBS);
-        formatter = new ImageNameFormatter(project,now);
+        project = JavaProject.builder()
+          .properties(new Properties())
+          .build();
+        formatter = new ImageNameFormatter(project, now);
     }
     @Test
     void simple() {
@@ -50,38 +55,36 @@ class ImageNameFormatterTest {
                 .withMessage("No image name format element '%z' known");
     }
 
-    @Test
-    void defaultUserName() {
+    @ParameterizedTest(name = "with groupId = ''{0}'' shoud return ''{1}''")
+    @DisplayName("format with %g")
+    @MethodSource("formatWithPercentGData")
+    void formatWithPercentG(String groupId, String expectedName) {
+        project.setGroupId(groupId);
+        final String result = formatter.format("%g");
+        assertThat(result).isEqualTo(expectedName);
+    }
 
-        final String[] data = {
-            "io.fabric8", "fabric8",
-            "io.FABRIC8", "fabric8",
-            "io.fabric8.", "fabric8",
-            "io.fabric8", "fabric8",
-            "fabric8....", "fabric8",
-            "io.fabric8___", "fabric8__"
-        };
-
-        for (int i = 0; i < data.length; i+=2) {
-            when(project.getProperties()).thenReturn(new Properties());
-            when(project.getGroupId()).thenReturn(data[i]);
-            String value = formatter.format("%g");
-            assertThat(value).as("Idx. " + i / 2).isEqualTo(data[i+1]);
-        }
+    static Stream<Arguments> formatWithPercentGData() {
+        return Stream.of(
+          arguments("io.fabric8", "fabric8"),
+          arguments("io.FABRIC8", "fabric8"),
+          arguments("io.fabric8.", "fabric8"),
+          arguments("io.fabric8", "fabric8"),
+          arguments("fabric8....", "fabric8"),
+          arguments("io.fabric8___", "fabric8__")
+        );
     }
 
     @Test
     void artifact() {
-        when(project.getArtifactId()).thenReturn("Docker....Maven.....Plugin");
+        project.setArtifactId("Docker....Maven.....Plugin");
         assertThat(formatter.format("--> %a <--")).isEqualTo("--> docker.maven.plugin <--");
     }
 
     @Test
     void tagWithProperty() {
         // Given
-        final Properties props = new Properties();
-        props.put("jkube.image.tag","1.2.3");
-        when(project.getProperties()).thenReturn(props);
+        project.getProperties().put("jkube.image.tag", "1.2.3");
         // When
         final String result = formatter.format("%t");
         // Then
@@ -89,22 +92,20 @@ class ImageNameFormatterTest {
     }
 
     @Test
-    void tag() {
-        when(project.getArtifactId()).thenReturn("docker-maven-plugin");
-        when(project.getGroupId()).thenReturn("io.fabric8");
-        when(project.getVersion()).thenReturn("1.2.3-SNAPSHOT");
-        when(project.getProperties()).thenReturn(new Properties());
+    void tagWithSnapshot() {
+        project.setArtifactId("docker-maven-plugin");
+        project.setGroupId("io.fabric8");
+        project.setVersion("1.2.3-SNAPSHOT");
         assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:latest");
         assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3-SNAPSHOT");
         assertThat(formatter.format("%g/%a:%t")).matches(".*snapshot-[\\d-]+$");
     }
 
     @Test
-    void nonSnapshotArtifact() {
-        when(project.getArtifactId()).thenReturn("docker-maven-plugin");
-        when(project.getGroupId()).thenReturn("io.fabric8");
-        when(project.getVersion()).thenReturn("1.2.3");
-        when(project.getProperties()).thenReturn(new Properties());
+    void tagWithnonSnapshotArtifact() {
+        project.setArtifactId("docker-maven-plugin");
+        project.setGroupId("io.fabric8");
+        project.setVersion("1.2.3");
         assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
         assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
         assertThat(formatter.format("%g/%a:%t")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
@@ -113,9 +114,7 @@ class ImageNameFormatterTest {
     @Test
     void groupIdWithProperty() {
         // Given
-        Properties props = new Properties();
-        props.put("jkube.image.user","this.it..is");
-        when(project.getProperties()).thenReturn(props);
+        project.getProperties().put("jkube.image.user","this.it..is");
         // When
         final String result = formatter.format("%g/name");
         // Then
