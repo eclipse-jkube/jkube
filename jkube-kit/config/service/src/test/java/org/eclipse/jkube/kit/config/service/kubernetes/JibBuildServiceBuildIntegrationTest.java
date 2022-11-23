@@ -73,6 +73,7 @@ class JibBuildServiceBuildIntegrationTest {
           .packaging("jar")
           .baseDirectory(projectRoot)
           .buildDirectory(targetDirectory)
+          .outputDirectory(targetDirectory)
           .properties(new Properties())
           .build())
         .registryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
