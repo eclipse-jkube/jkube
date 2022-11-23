@@ -29,6 +29,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatRuntimeException;
@@ -43,6 +44,9 @@ import static org.mockito.Mockito.when;
  */
 
 class WildflyJARGeneratorTest {
+
+    @TempDir
+    Path temporaryFolder;
 
     private GeneratorContext context;
 
@@ -86,29 +90,24 @@ class WildflyJARGeneratorTest {
         Path targetDir = tmpDir.resolve("target");
         Path repoDir = targetDir.resolve("myrepo");
         Files.createDirectories(repoDir);
-        try {
-            GeneratorContext ctx = contextForSlimServer(options, tmpDir);
-            WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
-            List<String> extraOptions = generator.getExtraJavaOptions();
-            assertThat(extraOptions).isNotNull()
-                    .hasSize(2)
-                    .satisfies(option -> assertThat(option).first()
-                            .isEqualTo("-Djava.net.preferIPv4Stack=true"))
-                    .satisfies(option -> assertThat(option).last()
-                            .isEqualTo("-Dmaven.repo.local=/deployments/myrepo"));
+        GeneratorContext ctx = contextForSlimServer(options, tmpDir);
+        WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
+        List<String> extraOptions = generator.getExtraJavaOptions();
+        assertThat(extraOptions).isNotNull()
+                .hasSize(2)
+                .satisfies(option -> assertThat(option).first()
+                        .isEqualTo("-Djava.net.preferIPv4Stack=true"))
+                .satisfies(option -> assertThat(option).last()
+                        .isEqualTo("-Dmaven.repo.local=/deployments/myrepo"));
 
-            List<AssemblyFileSet> fileSets = generator.addAdditionalFiles();
-            assertThat(fileSets).isNotEmpty()
-                    .last()
-                    .hasFieldOrPropertyWithValue("directory", targetDir.toFile())
-                    .extracting(AssemblyFileSet::getIncludes).asList()
-                    .singleElement()
-                    .isEqualTo("myrepo");
-        } finally {
-            Files.delete(repoDir);
-            Files.delete(targetDir);
-            Files.delete(tmpDir);
-        }
+        List<AssemblyFileSet> fileSets = generator.addAdditionalFiles();
+        assertThat(fileSets).isNotEmpty()
+                .last()
+                .hasFieldOrPropertyWithValue("directory", targetDir.toFile())
+                .extracting(AssemblyFileSet::getIncludes).asList()
+                .singleElement()
+                .isEqualTo("myrepo");
+
     }
     
     @Test
@@ -122,29 +121,23 @@ class WildflyJARGeneratorTest {
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_DIST, null);
         pluginOptions.put(JBOSS_MAVEN_REPO, repoDir.toString());
-        try {
-            GeneratorContext ctx = contextForSlimServer(options, null);
-            WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
-            List<String> extraOptions = generator.getExtraJavaOptions();
-            assertThat(extraOptions).isNotNull()
-                    .hasSize(2)
-                    .satisfies(option -> assertThat(option).first()
-                            .isEqualTo("-Djava.net.preferIPv4Stack=true"))
-                    .satisfies(option -> assertThat(option).last()
-                            .isEqualTo("-Dmaven.repo.local=/deployments/myrepo"));
+        GeneratorContext ctx = contextForSlimServer(options, null);
+        WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
 
-            List<AssemblyFileSet> fileSets = generator.addAdditionalFiles();
-            assertThat(fileSets).isNotEmpty()
-                    .last()
-                    .hasFieldOrPropertyWithValue("directory", targetDir.toFile())
-                    .extracting(AssemblyFileSet::getIncludes).asList()
-                    .singleElement()
-                    .isEqualTo("myrepo");
-        } finally {
-            Files.delete(repoDir);
-            Files.delete(targetDir);
-            Files.delete(tmpDir);
-        }
+        List<String> extraOptions = generator.getExtraJavaOptions();
+        assertThat(extraOptions).isNotNull()
+                .hasSize(2)
+                .satisfies(option -> assertThat(option).first()
+                        .isEqualTo("-Djava.net.preferIPv4Stack=true"))
+                .satisfies(option -> assertThat(option).last()
+                        .isEqualTo("-Dmaven.repo.local=/deployments/myrepo"));
+        List<AssemblyFileSet> fileSets = generator.addAdditionalFiles();
+        assertThat(fileSets).isNotEmpty()
+                .last()
+                .hasFieldOrPropertyWithValue("directory", targetDir.toFile())
+                .extracting(AssemblyFileSet::getIncludes).asList()
+                .singleElement()
+                .isEqualTo("myrepo");
     }
     
     @Test
@@ -157,24 +150,21 @@ class WildflyJARGeneratorTest {
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_DIST, null);
         pluginOptions.put(JBOSS_MAVEN_REPO, repoDir.toString());
-        try {
-            GeneratorContext ctx = contextForSlimServer(options, null);
-            WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
-            List<String> extraOptions = generator.getExtraJavaOptions();
-            assertThat(extraOptions).isNotNull()
-                    .hasSize(2)
-                    .satisfies(option -> assertThat(option).first()
-                            .isEqualTo("-Djava.net.preferIPv4Stack=true"))
-                    .satisfies(option -> assertThat(option).last()
-                            .isEqualTo("-Dmaven.repo.local=/deployments/myrepo"));
+        GeneratorContext ctx = contextForSlimServer(options, null);
+        WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
 
-            assertThatRuntimeException()
-                    .isThrownBy(generator::addAdditionalFiles)
-                    .withMessage("Error, WildFly bootable JAR generator can't retrieve generated maven local cache, directory "
-                            + repoDir + " doesn't exist.");
-        } finally {
-            Files.delete(tmpDir);
-        }
+        List<String> extraOptions = generator.getExtraJavaOptions();
+        assertThat(extraOptions).isNotNull()
+                .hasSize(2)
+                .satisfies(option -> assertThat(option).first()
+                        .isEqualTo("-Djava.net.preferIPv4Stack=true"))
+                .satisfies(option -> assertThat(option).last()
+                        .isEqualTo("-Dmaven.repo.local=/deployments/myrepo"));
+        assertThatRuntimeException()
+                .isThrownBy(generator::addAdditionalFiles)
+                .withMessage("Error, WildFly bootable JAR generator can't retrieve generated maven local cache, directory "
+                        + repoDir + " doesn't exist.");
+
     }
     
     @Test
