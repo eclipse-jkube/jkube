@@ -1,0 +1,96 @@
+[[resource-route-generation]]
+=== Route Generation
+
+ifeval::["{plugin-type}" == "maven"]
+When the `{goal-prefix}:resource` goal is run,
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+When the `{task-prefix}Resource` goal is run,
+endif::[]
+
+an {cluster}
+https://docs.openshift.org/latest/architecture/networking/routes.html[Route] descriptor (`route.yml`) will also be
+generated along the service if an {cluster} cluster is targeted.
+If you do not want to generate a Route descriptor, you can set the `jkube.openshift.generateRoute` property to `false`.
+
+*Note:*
+Routes will be automatically generated for Services with recognized web ports (`80`, `443`, `8080`, `8443`, `9080`, , `9090`, `9443`).
+
+If your service exposes any other port and you still want to generate a Route, you can do any of the following:
+
+* Force the route creation by setting the `jkube.createExternalUrls` property to `true`.
+* Force the route creation by using the `expose: true` label in the `Service`:
+** Add the `expose: true` label in a `Service` fragment.
+** Add the `expose: true` label by leveraging the <<jkube-service, JKube Service Enricher>> (`jkube.enricher.jkube-service.expose`).
+
+.Route Generation Configuration
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *generateRoute*
+| If value is set to `false` then no Route descriptor will be generated.
+By default it is set to `true`, which will create a `route.yml` descriptor and also add Route resource to `openshift.yml`.
+| `jkube.openshift.generateRoute`
+
+  `jkube.enricher.jkube-openshift-route.generateRoute`
+
+| *tlsTermination*
+a| tlsTermination indicates termination type. The following values are supported:
+
+* edge (default)
+* passthrough
+* reencrypt
+
+See https://docs.openshift.com/container-platform/3.11/architecture/networking/routes.html#secured-routes or https://docs.openshift.com/container-platform/latest/networking/routes/secured-routes.html
+| `jkube.enricher.jkube-openshift-route.tlsTermination`
+
+| *tlsInsecureEdgeTerminationPolicy*
+a| tlsInsecureEdgeTerminationPolicy indicates the desired behavior for insecure connections to a route.
+While each router may make its own decisions on which ports to expose, this is normally port 80.
+
+* Allow - traffic is sent to the server on the insecure port (default)
+* Disable - no traffic is allowed on the insecure port.
+* Redirect - clients are redirected to the secure port.
+
+See https://docs.openshift.com/container-platform/latest/rest_api/network_apis/route-route-openshift-io-v1.html
+| `jkube.enricher.jkube-openshift-route.tlsInsecureEdgeTerminationPolicy`
+|===
+
+Below is an example of generating a Route with "edge" termination and "Allow" insecureEdgeTerminationPolicy:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_route_edge_insecure.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_route_edge_insecure.adoc[]
+endif::[]
+
+
+Adding certificates for routes is not directly supported in the pom, but can be added via a yaml fragment.
+
+If you do not want to generate a Route descriptor, you can also specify so in the plugin configuration in your POM as seen below.
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_generate_route_false.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_generate_route_false.adoc[]
+endif::[]
+
+
+If you are using resource fragments, then also you can configure it in your Service resource fragment (e.g. `service.yml`).
+You need to add an `expose` label to the `metadata` section of your service and set it to `false`.
+
+.Example for not generating route resource by configuring it in resource fragments
+
+[source, yaml]
+----
+metadata:
+  annotations:
+    api.service.kubernetes.io/path: /hello
+  labels:
+    expose: "false"
+spec:
+  type: LoadBalancer
+----

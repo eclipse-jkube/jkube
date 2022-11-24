@@ -1,0 +1,20 @@
+.Example for generating route resource by configuring it in `pom.xml`
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <version>{version}</version>
+  <configuration>
+    <enricher>
+      <config>
+        <jkube-openshift-route>
+          <generateRoute>true</generateRoute>
+          <tlsInsecureEdgeTerminationPolicy>Allow</tlsInsecureEdgeTerminationPolicy>
+          <tlsTermination>edge</tlsTermination>
+        </jkube-openshift-route>
+      </config>
+    </enricher>
+  </configuration>
+</plugin>
+----

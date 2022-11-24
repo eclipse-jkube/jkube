@@ -389,3 +389,7 @@ kind: ServiceAccount
 metadata:
   name: build-robot
 ----
+
+ifeval::["{task-prefix}" == "oc"]
+include::{kitdoc-path}/inc/route-generation/_route_generation.adoc[]
+endif::[]

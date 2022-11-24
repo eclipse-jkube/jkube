@@ -296,7 +296,7 @@ class RouteEnricherTest {
     }
 
     @Test
-    public void create_withNoExposeLabelPort8443_shouldCreateRoute() {
+    void create_withNoExposeLabelPort8443_shouldCreateRoute() {
         // Given
         mockJKubeEnricherContext();
         klb.addToItems(getMockServiceBuilder(8443, Collections.emptyMap()).build());
