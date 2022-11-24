@@ -1,5 +1,3 @@
-:kitdoc-path: ../../../../../jkube-kit/doc/src/main/asciidoc
-
 [[groovy-configuration]]
 = Gradle Groovy DSL Configuration
 
@@ -505,7 +503,7 @@ The `build` section is mandatory and is explained in <<build-configuration, belo
 
 include::image/_naming.adoc[]
 
-include::../{kitdoc-path}/inc/build/_index.adoc[]
+include::{kitdoc-path}/inc/build/_index.adoc[]
 
 [[misc-env]]
 == Environment and Labels

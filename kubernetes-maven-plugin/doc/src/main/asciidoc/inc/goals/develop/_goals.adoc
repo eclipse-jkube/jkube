@@ -1,6 +1,5 @@
 [[goals-overview-develop]]
 # Development Goals
-:kitdoc-path: ../../../../../../../../jkube-kit/doc/src/main/asciidoc
 
 include::_jkube-deploy.adoc[]
 include::_jkube-undeploy.adoc[]
