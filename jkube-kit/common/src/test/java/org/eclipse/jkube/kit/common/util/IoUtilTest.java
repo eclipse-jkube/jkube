@@ -19,6 +19,7 @@ import java.net.ServerSocket;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -66,21 +67,19 @@ class IoUtilTest {
     @Test
     void invokeExceptionWhenCouldntFindPort() throws IOException {
 
-        // find open port to occupy
+        // find an open port to occupy
         int foundPort = IoUtil.getFreeRandomPort(30000, 65000, 1000);
 
         // use port
-        try(ServerSocket ignored = new ServerSocket(foundPort)) {
+        try (ServerSocket ignored = new ServerSocket(foundPort)) {
+            String expectedMessage = "Cannot find a free random port in the range [" + foundPort + ", " + foundPort + "] after 3 attempts";
 
             // try to use the used port
-            Exception exception = assertThrows(IllegalStateException.class,
-                    () -> IoUtil.getFreeRandomPort(foundPort, foundPort, 3));
-
-            String expectedMessage = "Cannot find a free random port in the range [" + foundPort + ", " + foundPort + "] after 3 attempts";
-            String actualMessage = exception.getMessage();
-
-            assertTrue(actualMessage.contains(expectedMessage));
+            assertThatThrownBy(() -> IoUtil.getFreeRandomPort(foundPort, foundPort, 3))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessage(expectedMessage);
         }
+
     }
 
     @Test
