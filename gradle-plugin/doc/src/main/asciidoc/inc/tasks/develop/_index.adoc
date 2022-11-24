@@ -1,6 +1,5 @@
 [[task-overview-develop]]
 == Development Tasks
-:kitdoc-path: ../../../../../../../../jkube-kit/doc/src/main/asciidoc
 
 include::_jkube-undeploy.adoc[]
 

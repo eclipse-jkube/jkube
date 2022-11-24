@@ -10,7 +10,7 @@
 :doctype: book
 :icons: font
 :plugindir: ../../../../../kubernetes
-:kitdoc-path: ../../../../../jkube-kit/doc/src/main/asciidoc
+:kitdoc-path: {docdir}/../../../../../jkube-kit/doc/src/main/asciidoc
 :plugin-type: gradle
 :plugin-configuration-type: Groovy DSL
 

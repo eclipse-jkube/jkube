@@ -1,5 +1,3 @@
-:kitdoc-path: ../../../../../jkube-kit/doc/src/main/asciidoc
-
 [[jkube:build]]
 == *{goal-prefix}:build*
 
