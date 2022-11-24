@@ -70,18 +70,17 @@ class IoUtilTest {
         int foundPort = IoUtil.getFreeRandomPort(30000, 65000, 1000);
 
         // use port
-        //noinspection resource
-        ServerSocket ignored = new ServerSocket(foundPort);
+        try(ServerSocket ignored = new ServerSocket(foundPort)) {
 
-        // try to use the used port
-        Exception exception = assertThrows(IllegalStateException.class,
-                () -> IoUtil.getFreeRandomPort(foundPort, foundPort, 3));
+            // try to use the used port
+            Exception exception = assertThrows(IllegalStateException.class,
+                    () -> IoUtil.getFreeRandomPort(foundPort, foundPort, 3));
 
+            String expectedMessage = "Cannot find a free random port in the range [" + foundPort + ", " + foundPort + "] after 3 attempts";
+            String actualMessage = exception.getMessage();
 
-        String expectedMessage = "Cannot find a free random port in the range [" + foundPort + ", " + foundPort + "] after 3 attempts";
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));
+            assertTrue(actualMessage.contains(expectedMessage));
+        }
     }
 
     @Test
