@@ -1,0 +1,18 @@
+.Example for not generating route resource by configuring it in `pom.xml`
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <version>{version}</version>
+  <configuration>
+    <enricher>
+      <config>
+        <jkube-openshift-route>
+          <generateRoute>false</generateRoute>
+        </jkube-openshift-route>
+      </config>
+    </enricher>
+  </configuration>
+</plugin>
+----

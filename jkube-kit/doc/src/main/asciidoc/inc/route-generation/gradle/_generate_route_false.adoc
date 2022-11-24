@@ -1,0 +1,13 @@
+.Example for not generating route resource by configuring it in `build.gradle`
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+    enricher {
+        config {
+            'jkube-openshift-route' {
+                generateRoute = false
+            }
+        }
+    }
+}
+----
