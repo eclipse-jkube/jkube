@@ -20,18 +20,20 @@ import java.util.Date;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test exchange of local stored credentials for temporary ecr credentials
@@ -40,10 +42,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @since 2016-12-21
  */
 class EcrExtendedAuthTest {
-
-    @Mocked
     private KitLogger logger;
 
+    @BeforeEach
+    void setUp(){
+        logger = new KitLogger.SilentLogger();
+    }
     @Test
     void testIsNotAws() {
         assertThat(new EcrExtendedAuth(logger, "jolokia").isAwsRegistry()).isFalse();
@@ -72,20 +76,19 @@ class EcrExtendedAuthTest {
     }
 
     @Test
-    void testClientClosedAndCredentialsDecoded(@Mocked final CloseableHttpClient closeableHttpClient,
-            @Mocked final CloseableHttpResponse closeableHttpResponse,
-            @Mocked final StatusLine statusLine)
+    void testClientClosedAndCredentialsDecoded()
         throws IOException, IllegalStateException {
-
+        final CloseableHttpClient closeableHttpClient = mock(CloseableHttpClient.class);
+        final CloseableHttpResponse closeableHttpResponse = mock(CloseableHttpResponse.class);
+        final StatusLine statusLine = mock(StatusLine.class);
         final HttpEntity entity = new StringEntity("{\"authorizationData\": [{"
                                                    + "\"authorizationToken\": \"QVdTOnBhc3N3b3Jk\","
                                                    + "\"expiresAt\": 1448878779.809,"
                                                    + "\"proxyEndpoint\": \"https://012345678910.dkr.ecr.eu-west-1.amazonaws.com\"}]}");
-
-        new Expectations() {{
-            statusLine.getStatusCode(); result = 200;
-            closeableHttpResponse.getEntity(); result = entity;
-        }};
+        when(closeableHttpClient.execute(any())).thenReturn(closeableHttpResponse);
+        when(closeableHttpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(closeableHttpResponse.getEntity()).thenReturn(entity);
         EcrExtendedAuth eea = new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com") {
             CloseableHttpClient createClient() {
                 return closeableHttpClient;
@@ -100,10 +103,7 @@ class EcrExtendedAuthTest {
         assertThat(awsCredentials)
                 .hasFieldOrPropertyWithValue("username", "AWS")
                 .hasFieldOrPropertyWithValue("password", "password");
-
-        new Verifications() {{
-             closeableHttpClient.close();
-         }};
+        verify(closeableHttpClient).close();
     }
 
 }

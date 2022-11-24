@@ -29,8 +29,13 @@ public class PortForwardTask implements Runnable, AutoCloseable {
   private final String podName;
   private final LocalPortForward localPortForward;
   private final KitLogger logger;
-  private final CountDownLatch podAvailableLatch = new CountDownLatch(1);
+  private final CountDownLatch podAvailableLatch;
   private final AtomicBoolean closed = new AtomicBoolean(false);
+
+  public PortForwardTask(
+    NamespacedKubernetesClient kubernetesClient, String podName, LocalPortForward localPortForward, KitLogger logger) {
+    this(kubernetesClient, podName, localPortForward, logger, new CountDownLatch(1));
+  }
 
   @Override
   public void run() {

@@ -18,13 +18,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>jkube-kit-build</artifactId>
-  <version>1.10-SNAPSHOT</version>
+  <version>1.11-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>1.10-SNAPSHOT</version>
+    <version>1.11-SNAPSHOT</version>
     <relativePath>parent/pom.xml</relativePath>
   </parent>
 
@@ -54,13 +54,16 @@
       <module>resource/helm</module>
       <module>watcher/api</module>
       <module>watcher/standard</module>
+      <module>remote-dev</module>
       <module>jkube-kit-spring-boot</module>
       <module>jkube-kit-thorntail-v2</module>
       <module>jkube-kit-vertx</module>
       <module>jkube-kit-quarkus</module>
       <module>jkube-kit-micronaut</module>
+      <module>jkube-kit-microprofile</module>
       <module>jkube-kit-openliberty</module>
       <module>jkube-kit-wildfly-jar</module>
+      <module>jkube-kit-smallrye</module>
   </modules>
 
   <profiles>

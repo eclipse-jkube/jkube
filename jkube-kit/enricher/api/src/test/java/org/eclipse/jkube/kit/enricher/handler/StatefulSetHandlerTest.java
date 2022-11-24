@@ -16,6 +16,9 @@ package org.eclipse.jkube.kit.enricher.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -27,35 +30,31 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-public class StatefulSetHandlerTest {
+class StatefulSetHandlerTest {
 
     @Mocked
-    ProbeHandler probeHandler;
+    private ProbeHandler probeHandler;
 
     @Mocked
-    JavaProject project;
+    private JavaProject project;
 
-    List<String> mounts = new ArrayList<>();
-    List<VolumeConfig> volumes1 = new ArrayList<>();
-
-    List<ImageConfiguration> images = new ArrayList<>();
-
-    List<String> ports = new ArrayList<>();
-
-    List<String> tags = new ArrayList<>();
-
+    private List<VolumeConfig> volumes;
+    private List<ImageConfiguration> images;
     private StatefulSetHandler statefulSetHandler;
 
-    @Before
-    public void before(){
+    @BeforeEach
+    void setUp(){
+        volumes = new ArrayList<>();
+        images = new ArrayList<>();
+        List<String> mounts = new ArrayList<>();
+        List<String> ports = new ArrayList<>();
+        List<String> tags = new ArrayList<>();
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -67,9 +66,9 @@ public class StatefulSetHandlerTest {
         tags.add("latest");
         tags.add("test");
 
-        VolumeConfig volumeConfig1 = VolumeConfig.builder()
+        VolumeConfig volumeConfig = VolumeConfig.builder()
                 .name("test").mounts(mounts).type("hostPath").path("/test/path").build();
-        volumes1.add(volumeConfig1);
+        volumes.add(volumeConfig);
 
         //container name with alias
         final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder()
@@ -87,64 +86,67 @@ public class StatefulSetHandlerTest {
     }
 
     @Test
-    public void statefulSetHandlerTest() {
+    void get_withValidControllerName_shouldReturnConfigWithContainers() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
 
         StatefulSet statefulSet = statefulSetHandler.get(config,images);
-
-        //Assertion
-        assertNotNull(statefulSet.getSpec());
-        assertNotNull(statefulSet.getMetadata());
-        assertEquals(5,statefulSet.getSpec().getReplicas().intValue());
-        assertNotNull(statefulSet.getSpec().getTemplate());
-        assertEquals("testing",statefulSet.getMetadata().getName());
-        assertEquals("testing",statefulSet.getSpec().getServiceName());
-        assertEquals("test-account",statefulSet.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(statefulSet.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",statefulSet.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",statefulSet.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(statefulSet.getSpec().getTemplate().getSpec().getContainers());
-
+        assertThat(statefulSet.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(statefulSet)
+            .satisfies(ss -> assertThat(ss.getMetadata())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("name", "testing")
+            )
+            .satisfies(ss -> assertThat(ss.getSpec())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("replicas", 5)
+                .hasFieldOrPropertyWithValue("serviceName", "testing")
+                .extracting(StatefulSetSpec::getTemplate).isNotNull()
+                .extracting(PodTemplateSpec::getSpec)
+                .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
+                .extracting(PodSpec::getVolumes).asList()
+                .isNotEmpty()
+                .first()
+                .hasFieldOrPropertyWithValue("name", "test")
+                .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
+            );
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void statefulSetHandlerWithInvalidNameTest() {
-        // with invalid controller name
+    @Test
+    void get_withInvalidControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
-
-        statefulSetHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> statefulSetHandler.get(config, images))
+            .withMessageStartingWith("Invalid upper case letter")
+            .withMessageEndingWith("controller name value: TesTing");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void statefulSetHandlerWithoutControllerTest() {
-        // without controller name
+    @Test
+    void get_withoutControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
-
-        statefulSetHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> statefulSetHandler.get(config, images))
+            .withMessage("No controller name is specified!");
     }
 
     @Test
-    public void overrideReplicas() {
+    void overrideReplicas() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new StatefulSetBuilder()
             .editOrNewSpec().withReplicas(1).endSpec()
@@ -153,7 +155,7 @@ public class StatefulSetHandlerTest {
         statefulSetHandler.overrideReplicas(klb, 1337);
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first().hasFieldOrPropertyWithValue("spec.replicas", 1337);
+            .singleElement()
+            .hasFieldOrPropertyWithValue("spec.replicas", 1337);
     }
 }

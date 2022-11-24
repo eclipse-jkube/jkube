@@ -16,6 +16,8 @@ package org.eclipse.jkube.enricher.generic.openshift;
 import java.util.Properties;
 import java.util.function.Consumer;
 
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
@@ -23,103 +25,93 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfig;
-import mockit.Delegate;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DeploymentConfigEnricherTest {
+class DeploymentConfigEnricherTest {
 
-  @Mocked
   private JKubeEnricherContext context;
-
-  private Properties properties;
   private DeploymentConfigEnricher deploymentConfigEnricher;
   private KubernetesListBuilder kubernetesListBuilder;
 
-  @Before
-  public void setUp() throws Exception {
-    properties = new Properties();
-    // @formatter:off
-    new Expectations() {{
-      context.getProperties(); result = properties; minTimes = 0;
-      context.getProperty(anyString);
-      result = new Delegate<String>() {String delegate(String arg) {return properties.getProperty(arg);}};
-      minTimes = 0;
-    }};
-    // @formatter:on
+  @BeforeEach
+  void setUp() {
+    context = JKubeEnricherContext.builder()
+      .log(new KitLogger.SilentLogger())
+      .project(JavaProject.builder()
+        .properties(new Properties())
+        .build())
+      .build();
     deploymentConfigEnricher = new DeploymentConfigEnricher(context);
     kubernetesListBuilder = new KubernetesListBuilder();
   }
 
   @Test
-  public void create_inKubernetes_shouldSkip() {
+  void create_inKubernetes_shouldSkip() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
     // When
     deploymentConfigEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems())
-        .hasSize(1)
-        .first().isInstanceOf(io.fabric8.kubernetes.api.model.apps.Deployment.class);
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .isInstanceOf(io.fabric8.kubernetes.api.model.apps.Deployment.class);
   }
 
   @Test
-  public void create_inOpenShiftWithSwitchToDeployment_shouldSkip() {
+  void create_inOpenShiftWithSwitchToDeployment_shouldSkip() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    properties.put("jkube.build.switchToDeployment", "true");
+    context.getProperties().put("jkube.build.switchToDeployment", "true");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().isInstanceOf(io.fabric8.kubernetes.api.model.apps.Deployment.class);
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .isInstanceOf(io.fabric8.kubernetes.api.model.apps.Deployment.class);
   }
 
   @Test
-  public void create_inOpenShiftWithDefaultControllerEnricherTypeAsDeployment_shouldSkip() {
+  void create_inOpenShiftWithDefaultControllerEnricherTypeAsDeployment_shouldSkip() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    properties.put("jkube.enricher.jkube-controller.type", "Deployment");
+    context.getProperties().put("jkube.enricher.jkube-controller.type", "Deployment");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().isInstanceOf(io.fabric8.kubernetes.api.model.apps.Deployment.class);
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .isInstanceOf(io.fabric8.kubernetes.api.model.apps.Deployment.class);
   }
 
   @Test
-  public void create_inOpenShift_shouldConvert() {
+  void create_inOpenShift_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().satisfies(assertDeploymentConfig("Rolling"))
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .satisfies(assertDeploymentConfig("Rolling"))
         .hasFieldOrPropertyWithValue("spec.strategy.recreateParams", null)
         .hasFieldOrPropertyWithValue("spec.strategy.rollingParams.timeoutSeconds", 3600L);
   }
 
   @Test
-  public void create_inOpenShiftWithDefaultControllerEnricherTypeAsDeploymentConfig_shouldConvert() {
+  void create_inOpenShiftWithDefaultControllerEnricherTypeAsDeploymentConfig_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    properties.put("jkube.enricher.jkube-controller.type", "DeploymentConfig");
+    context.getProperties().put("jkube.enricher.jkube-controller.type", "DeploymentConfig");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().satisfies(assertDeploymentConfig("Rolling"))
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .satisfies(assertDeploymentConfig("Rolling"))
         .hasFieldOrPropertyWithValue("spec.strategy.recreateParams", null)
         .hasFieldOrPropertyWithValue("spec.strategy.rollingParams.timeoutSeconds", 3600L);
   }
 
   @Test
-  public void create_inOpenShiftWithRecreateStrategy_shouldConvert() {
+  void create_inOpenShiftWithRecreateStrategy_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment()
         .editSpec().editOrNewStrategy().withType("Recreate").endStrategy().endSpec()
@@ -127,14 +119,14 @@ public class DeploymentConfigEnricherTest {
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().satisfies(assertDeploymentConfig("Recreate"))
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .satisfies(assertDeploymentConfig("Recreate"))
         .hasFieldOrPropertyWithValue("spec.strategy.recreateParams.timeoutSeconds", 3600L)
         .hasFieldOrPropertyWithValue("spec.strategy.rollingParams", null);
   }
 
   @Test
-  public void create_inOpenShiftWithRollingStrategy_shouldConvert() {
+  void create_inOpenShiftWithRollingStrategy_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment()
         .editSpec().editOrNewStrategy().withType("Rolling").endStrategy().endSpec()
@@ -142,14 +134,14 @@ public class DeploymentConfigEnricherTest {
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().satisfies(assertDeploymentConfig("Rolling"))
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .satisfies(assertDeploymentConfig("Rolling"))
         .hasFieldOrPropertyWithValue("spec.strategy.recreateParams", null)
         .hasFieldOrPropertyWithValue("spec.strategy.rollingParams.timeoutSeconds", 3600L);
   }
 
   @Test
-  public void create_inOpenShiftWithCustomStrategy_shouldConvert() {
+  void create_inOpenShiftWithCustomStrategy_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment()
         .editSpec().editOrNewStrategy().withType("Custom").endStrategy().endSpec()
@@ -157,49 +149,49 @@ public class DeploymentConfigEnricherTest {
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().satisfies(assertDeploymentConfig("Custom"))
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .satisfies(assertDeploymentConfig("Custom"))
         .hasFieldOrPropertyWithValue("spec.strategy.recreateParams", null)
         .hasFieldOrPropertyWithValue("spec.strategy.rollingParams", null);
   }
 
   @Test
-  public void create_inOpenShiftWithExtensionsDeployment_shouldConvert() {
+  void create_inOpenShiftWithExtensionsDeployment_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(extensionsV1beta1Deployment().build());
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().satisfies(assertDeploymentConfig("Rolling"))
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .satisfies(assertDeploymentConfig("Rolling"))
         .hasFieldOrPropertyWithValue("spec.strategy.recreateParams", null)
         .hasFieldOrPropertyWithValue("spec.strategy.rollingParams.timeoutSeconds", 3600L);
   }
 
   @Test
-  public void create_inOpenShiftWithCustomTimeout_shouldConvert() {
+  void create_inOpenShiftWithCustomTimeout_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    properties.put("jkube.openshift.deployTimeoutSeconds", "60");
+    context.getProperties().put("jkube.openshift.deployTimeoutSeconds", "60");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().satisfies(assertDeploymentConfig("Rolling"))
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .satisfies(assertDeploymentConfig("Rolling"))
         .hasFieldOrPropertyWithValue("spec.strategy.recreateParams", null)
         .hasFieldOrPropertyWithValue("spec.strategy.rollingParams.timeoutSeconds", 60L);
   }
 
   @Test
-  public void create_inOpenShiftWithNegativeTimeout_shouldConvert() {
+  void create_inOpenShiftWithNegativeTimeout_shouldConvert() {
     // Given
     kubernetesListBuilder.addToItems(appsV1Deployment().build());
-    properties.put("jkube.openshift.deployTimeoutSeconds", "-60");
+    context.getProperties().put("jkube.openshift.deployTimeoutSeconds", "-60");
     // When
     deploymentConfigEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1)
-        .first().satisfies(assertDeploymentConfig(null))
+    assertThat(kubernetesListBuilder.buildItems()).singleElement()
+        .satisfies(assertDeploymentConfig(null))
         .hasFieldOrPropertyWithValue("spec.strategy", null);
   }
 

@@ -21,14 +21,14 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.config.service.DebugService;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
@@ -36,40 +36,39 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KubernetesDebugTaskTest {
+class KubernetesDebugTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<DebugService> debugServiceMockedConstruction;
   private TestKubernetesExtension extension;
 
-  @Before
-  public void setUp() throws IOException {
+  @BeforeEach
+  void setUp() throws IOException {
     debugServiceMockedConstruction = mockConstruction(DebugService.class);
     extension = new TestKubernetesExtension();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     debugServiceMockedConstruction.close();
   }
 
   @Test
-  public void runTask_withNoManifest_shouldThrowException() {
+  void runTask_withNoManifest_shouldThrowException() {
     // Given
     extension.isFailOnNoKubernetesJson = true;
     final KubernetesDebugTask debugTask = new KubernetesDebugTask(KubernetesExtension.class);
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class, debugTask::runTask);
-    // Then
-    assertThat(result)
-        .hasMessageMatching("No such generated manifest file: .+kubernetes\\.yml");
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(debugTask::runTask)
+        .withMessageMatching("No such generated manifest file: .+kubernetes\\.yml");
   }
 
   @Test
-  public void runTask_withManifest_shouldStartDebug() throws Exception {
+  void runTask_withManifest_shouldStartDebug() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
     final KubernetesDebugTask debugTask = new KubernetesDebugTask(KubernetesExtension.class);

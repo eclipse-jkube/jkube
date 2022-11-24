@@ -182,7 +182,7 @@ class OpenLibertyHealthCheckEnricherTest {
   }
 
   private void withMicroprofileDependency(String microProfileVersion) {
-    when(javaProject.getDependencies()).thenReturn(Collections.singletonList(Dependency.builder()
+    when(javaProject.getDependenciesWithTransitive()).thenReturn(Collections.singletonList(Dependency.builder()
             .groupId("org.eclipse.microprofile")
             .artifactId("microprofile")
             .version(microProfileVersion)

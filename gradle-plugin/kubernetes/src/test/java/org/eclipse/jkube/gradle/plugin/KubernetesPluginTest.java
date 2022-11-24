@@ -29,8 +29,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskProvider;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,18 +42,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class KubernetesPluginTest {
+class KubernetesPluginTest {
 
   private Project project;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
   }
 
   @SuppressWarnings("unchecked")
   @Test
-  public void apply_withValidProject_shouldConfigureTasks() {
+  void apply_withValidProject_shouldConfigureTasks() {
     // Given
     final JKubeTask mockTask = mock(JKubeTask.class, RETURNS_DEEP_STUBS);
     final AtomicReference<Action<? super Task>> action = new AtomicReference<>();
@@ -76,7 +76,7 @@ public class KubernetesPluginTest {
   }
 
   @Test
-  public void getTaskPrecedence_withValidProject_shouldReturnTaskPrecedence() {
+  void getTaskPrecedence_withValidProject_shouldReturnTaskPrecedence() {
     //When
     final Map<String, Collection<Class<? extends Task>>> result = new KubernetesPlugin().getTaskPrecedence();
     // Then

@@ -22,9 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -39,15 +36,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.config.image.build.BuildConfiguration.DEFAULT_CLEANUP;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  * @since 05/12/14
  */
 
-@SuppressWarnings({"unchecked", "ResultOfMethodCallIgnored", "unused"})
 class PropertyConfigHandlerTest {
-    @Mocked
     private JavaProject javaProject;
 
     private PropertyConfigHandler configHandler;
@@ -56,6 +53,7 @@ class PropertyConfigHandlerTest {
 
     @BeforeEach
     void setUp() {
+        javaProject = mock(JavaProject.class);
         configHandler = new PropertyConfigHandler();
         imageConfiguration = buildAnUnresolvedImage();
     }
@@ -96,7 +94,7 @@ class PropertyConfigHandlerTest {
                 )
                 .build();
 
-        makeExternalConfigUse(PropertyMode.Override);
+        makeExternalConfigUse();
 
         List<ImageConfiguration> configs = resolveImage(
                 imageConfiguration,props(
@@ -120,7 +118,7 @@ class PropertyConfigHandlerTest {
 
     @Test
     void testInvalidPropertyMode() {
-        makeExternalConfigUse(PropertyMode.Override);
+        makeExternalConfigUse();
         imageConfiguration.getExternalConfig().put("mode", "invalid");
         assertThatIllegalArgumentException()
                 .isThrownBy(() -> resolveImage(imageConfiguration, props()));
@@ -169,7 +167,7 @@ class PropertyConfigHandlerTest {
                 )
                 .build();
 
-        makeExternalConfigUse(PropertyMode.Override);
+        makeExternalConfigUse();
 
         List<ImageConfiguration> configs = resolveImage(
                 imageConfiguration,props(
@@ -270,14 +268,14 @@ class PropertyConfigHandlerTest {
 
         assertThat(configs).hasSize(1);
         ImageConfiguration calcConfig = configs.get(0);
-        for (Map<String, String> env : new Map[] { calcConfig.getBuildConfiguration().getEnv(),
+        for (Map env : new Map[] { calcConfig.getBuildConfiguration().getEnv(),
                 calcConfig.getRunConfiguration().getEnv()}) {
           assertThat(env).hasSize(2)
               .contains(
                   entry("HOME", "/tmp"),
                   entry("root.dir", "/bla"));
         }
-        for (Map<String, String> labels : new Map[] { calcConfig.getBuildConfiguration().getLabels(),
+        for (Map labels : new Map[] { calcConfig.getBuildConfiguration().getLabels(),
                 calcConfig.getRunConfiguration().getLabels()}) {
           assertThat(labels).hasSize(3)
               .contains(
@@ -446,24 +444,15 @@ class PropertyConfigHandlerTest {
         return external;
     }
 
-    private void makeExternalConfigUse(PropertyMode mode) {
+    private void makeExternalConfigUse() {
         Map<String, String> external = imageConfiguration.getExternalConfig();
         external.put("type", "properties");
-        if(mode != null) {
-            external.put("mode", mode.name());
-        } else {
-            external.remove("mode");
-        }
+        external.put("mode", PropertyMode.Override.name());
     }
 
     private List<ImageConfiguration> resolveImage(ImageConfiguration image, final Properties properties) {
-        //MavenProject project = mock(MavenProject.class);
-        //when(project.getProperties()).thenReturn(properties);
-        new Expectations() {{
-            javaProject.getProperties(); result = properties;
-            javaProject.getBaseDirectory(); minTimes = 0; maxTimes = 1; result = new File("./");
-        }};
-
+        when(javaProject.getProperties()).thenReturn(properties);
+        when(javaProject.getBaseDirectory()).thenReturn(new File("./"));
         return configHandler.resolve(image, javaProject);
     }
 
@@ -570,15 +559,15 @@ class PropertyConfigHandlerTest {
                 .returns("10", c -> c.getLog().getDriver().getOpts().get("max-file"));
 
         assertThat(runConfig.getUlimits()).isNotNull();
-        assertUlimitEquals(ulimit("memlock",10,10),runConfig.getUlimits().get(0));
-        assertUlimitEquals(ulimit("memlock",null,-1),runConfig.getUlimits().get(1));
-        assertUlimitEquals(ulimit("memlock",1024,null),runConfig.getUlimits().get(2));
-        assertUlimitEquals(ulimit("memlock",2048,null),runConfig.getUlimits().get(3));
+        assertUlimitEquals(ulimit(10,10),runConfig.getUlimits().get(0));
+        assertUlimitEquals(ulimit(null,-1),runConfig.getUlimits().get(1));
+        assertUlimitEquals(ulimit(1024,null),runConfig.getUlimits().get(2));
+        assertUlimitEquals(ulimit(2048,null),runConfig.getUlimits().get(3));
         validateEnv(runConfig.getEnv());
     }
 
-    private UlimitConfig ulimit(String name, Integer hard, Integer soft) {
-        return new UlimitConfig(name, hard, soft);
+    private UlimitConfig ulimit(Integer hard, Integer soft) {
+        return new UlimitConfig("memlock", hard, soft);
     }
 
     private Properties props(String ... args) {

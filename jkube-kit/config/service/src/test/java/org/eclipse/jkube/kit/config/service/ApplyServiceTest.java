@@ -52,7 +52,6 @@ import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -64,17 +63,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableKubernetesMockClient
 class ApplyServiceTest {
-
-    @Mocked
     private KitLogger log;
 
     KubernetesMockServer mockServer;
     OpenShiftClient client;
 
-    private ApplyService applyService;
+   private ApplyService applyService;
 
     @BeforeEach
     void setUp() {
+        log = new KitLogger.SilentLogger();
         applyService = new ApplyService(client, log);
         applyService.setNamespace("default");
     }

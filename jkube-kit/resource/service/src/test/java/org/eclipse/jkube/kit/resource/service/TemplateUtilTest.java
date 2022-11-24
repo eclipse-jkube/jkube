@@ -20,32 +20,38 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.ParameterBuilder;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.interpolateTemplateVariables;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
-@SuppressWarnings({"AccessStaticViaInstance", "ConstantConditions", "unused"})
 class TemplateUtilTest {
-
-  @Mocked
-  private FileUtils fileUtils;
+  private MockedStatic<FileUtils> fileUtils;
 
   private KubernetesListBuilder klb;
 
   @BeforeEach
   void initGlobalVariables() {
     klb = new KubernetesListBuilder();
-  }
+    fileUtils = mockStatic(FileUtils.class);
 
+  }
+  @AfterEach
+  public void close() {
+    fileUtils.close();
+  }
   @Test
   void getSingletonTemplateWithNullShouldReturnNull() {
     assertThat(getSingletonTemplate(null)).isNull();
@@ -103,64 +109,44 @@ class TemplateUtilTest {
   }
 
   @Test
-  void interpolateTemplateVariablesWithReadFileException() throws IOException {
+  void interpolateTemplateVariablesWithReadFileException() {
     // Given
     klb.addToItems(new TemplateBuilder()
         .addToParameters(new ParameterBuilder().withName("param1").withValue("value1").build())
         .build());
-    mockReadFileToString(new IOException());
+    fileUtils.when(() -> FileUtils.readFileToString(isNull(),  eq(Charset.defaultCharset()))).thenThrow(new IOException());
     // When
-    final IOException result = assertThrows(IOException.class, () -> {
-      interpolateTemplateVariables(klb.build(), null);
-      fail();
-    });
-    // Then
-    assertThat(result)
-        .isNotNull()
-        .hasMessage("Failed to load null for template variable replacement");
+    assertThatIOException()
+            .isThrownBy(() -> interpolateTemplateVariables(klb.build(), null))
+            .isNotNull()
+            .withMessage("Failed to load null for template variable replacement");
   }
 
   @Test
-  void interpolateTemplateVariablesWithWriteFileException() throws IOException {
+  void interpolateTemplateVariablesWithWriteFileException() {
     // Given
     klb.addToItems(new TemplateBuilder()
         .addToParameters(new ParameterBuilder().withName("param1").withValue("value1").build())
         .build());
     mockReadFileToString("One parameter: ${param1}, and non-existent ${oops}");
-    // @formatter:off
-    new Expectations() {{
-      fileUtils.writeStringToFile(null, anyString, Charset.defaultCharset());
-      result = new IOException();
-    }};
-    // @formatter:on
-    // When
-    final IOException result = assertThrows(IOException.class, () -> {
-      interpolateTemplateVariables(klb.build(), null);
-      fail();
-    });
-    // Then
-    assertThat(result)
-        .isNotNull()
-        .hasMessage("Failed to save null after replacing template expressions");
+    fileUtils.when(() -> FileUtils.writeStringToFile(isNull(), anyString(), eq(Charset.defaultCharset()))).thenThrow(new IOException());
+    // When + Then
+    assertThatIOException()
+            .isThrownBy(() -> interpolateTemplateVariables(klb.build(), null))
+            .isNotNull()
+            .withMessage("Failed to save null after replacing template expressions");
+
   }
 
-  private void mockReadFileToString(Object readString) throws IOException {
-    // @formatter:off
-    new Expectations() {{
-      fileUtils.readFileToString(null, Charset.defaultCharset()); result = readString;
-    }};
-    // @formatter:on
+  private void mockReadFileToString(Object readString)  {
+    fileUtils.when(() -> FileUtils.readFileToString(isNull(),  eq(Charset.defaultCharset()))).thenReturn(readString);
   }
 
-  private void verifyWriteStringToFile(int numTimes, String expectedString) throws IOException {
-    // @formatter:off
-    new Verifications() {{
-      String s;
-      fileUtils.writeStringToFile(null, s = withCapture(), Charset.defaultCharset()); times = numTimes;
-      if (numTimes > 0) {
-        assertThat(s).isEqualTo(expectedString);
-      }
-    }};
-    // @formatter:on
+  private void verifyWriteStringToFile(int numTimes, String expectedString){
+    ArgumentCaptor<String> s = ArgumentCaptor.forClass(String.class);
+    fileUtils.verify(() -> FileUtils.writeStringToFile(isNull(), s.capture(), eq(Charset.defaultCharset())),times(numTimes));
+    if (numTimes > 0) {
+      assertThat(s.getValue()).isEqualTo(expectedString);
+    }
   }
 }

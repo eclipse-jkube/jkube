@@ -32,41 +32,40 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
-@SuppressWarnings("unused")
 class DefaultResourceServiceTest {
 
-  @Mocked
   private EnricherManager enricherManager;
-  @Mocked
   private KitLogger kitLogger;
-  @Mocked
-  private ResourceConfig resourceConfig;
-  @Mocked
-  private JavaProject project;
-
   private File targetDir;
   private ResourceServiceConfig resourceServiceConfig;
   private DefaultResourceService defaultResourceService;
 
   @BeforeEach
   void init(@TempDir Path temporaryFolder) throws IOException {
+    enricherManager = mock(EnricherManager.class);
+    kitLogger = new KitLogger.SilentLogger();
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     resourceServiceConfig = ResourceServiceConfig.builder()
         .interpolateTemplateParameters(true)
         .targetDir(targetDir)
-        .project(project)
+        .project(JavaProject.builder().build())
         .resourceFileType(ResourceFileType.yaml)
         .resourceDirs(Collections.singletonList(Files.createDirectory(temporaryFolder.resolve("resources")).toFile()))
-        .resourceConfig(resourceConfig)
+        .resourceConfig(ResourceConfig.builder().build())
         .build();
     defaultResourceService = new DefaultResourceService(resourceServiceConfig);
   }
@@ -108,20 +107,17 @@ class DefaultResourceServiceTest {
                 .build());
   }
 
-  @SuppressWarnings("AccessStaticViaInstance")
   @Test
-  void writeResources(@Mocked WriteUtil writeUtil, @Mocked TemplateUtil templateUtil) throws IOException {
-    // When
-    defaultResourceService.writeResources(null, ResourceClassifier.KUBERNETES, kitLogger);
-    // Then
-    // @formatter:off
-    new Verifications() {{
-      writeUtil.writeResourcesIndividualAndComposite(
-          null, new File(targetDir, "kubernetes"), ResourceFileType.yaml, kitLogger);
-      times = 1;
-      templateUtil.interpolateTemplateVariables(null, (File)any);
-      times = 1;
-    }};
-    // @formatter:on
+  void writeResources() throws IOException {
+    try (
+      MockedStatic<WriteUtil> writeUtil = mockStatic(WriteUtil.class);
+      MockedStatic<TemplateUtil> templateUtil = mockStatic(TemplateUtil.class)
+    ) {
+      // When
+      defaultResourceService.writeResources(null, ResourceClassifier.KUBERNETES, kitLogger);
+      // Then
+      writeUtil.verify(() -> WriteUtil.writeResourcesIndividualAndComposite(isNull(), eq(new File(targetDir, "kubernetes")), eq(ResourceFileType.yaml), eq(kitLogger)), times(1));
+      templateUtil.verify(() -> TemplateUtil.interpolateTemplateVariables(isNull(), any()), times(1));
+    }
   }
 }

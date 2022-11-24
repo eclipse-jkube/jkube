@@ -44,7 +44,9 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import groovy.lang.Closure;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.jkube.kit.remotedev.RemoteDevelopmentConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.gradle.api.Action;
 import org.gradle.api.provider.Property;
 
 import static org.eclipse.jkube.gradle.plugin.GroovyUtil.closureTo;
@@ -285,6 +287,8 @@ public abstract class KubernetesExtension {
 
   public HelmConfig helm;
 
+  public RemoteDevelopmentConfig remoteDevelopment;
+
   public RuntimeMode getRuntimeMode() {
     return RuntimeMode.KUBERNETES;
   }
@@ -386,6 +390,28 @@ public abstract class KubernetesExtension {
     images.add(closureTo(closure, ImageConfiguration.class));
   }
 
+  /**
+   * Provide support for image configurations using an image builder:
+   *
+   * <pre>
+   * {@code
+   *   addImage {builder ->
+   *     builder.name = 'the name'
+   *   }
+   * }
+   * </pre>
+   *
+   * @param action With the image builder consumer
+   */
+  public void addImage(Action<? super ImageConfiguration.ImageConfigurationBuilder> action) {
+    if (images == null) {
+      images = new ArrayList<>();
+    }
+    final ImageConfiguration.ImageConfigurationBuilder imageBuilder = ImageConfiguration.builder();
+    action.execute(imageBuilder);
+    images.add(imageBuilder.build());
+  }
+
   public void machine(Closure<?> closure) {
     machine = closureTo(closure, DockerMachineConfiguration.class);
   }
@@ -411,6 +437,10 @@ public abstract class KubernetesExtension {
 
   public void helm(Closure<?> closure) {
     helm = closureTo(closure, HelmConfig.class);
+  }
+
+  public void remoteDevelopment(Closure<?> closure) {
+    remoteDevelopment = closureTo(closure, RemoteDevelopmentConfig.class);
   }
 
   public JKubeBuildStrategy getBuildStrategyOrDefault() {

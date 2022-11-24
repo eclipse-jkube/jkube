@@ -44,7 +44,7 @@ public enum ResourceFileType {
     };
 
     private final String extension;
-    private String artifactType;
+    private final String artifactType;
 
     ResourceFileType(String extension, String artifactType) {
         this.extension = extension;

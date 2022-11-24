@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.build.service.docker.auth;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,9 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CredentialHelperClientTest {
     private final Gson gson = new Gson();
 
-    @Mocked
-    private KitLogger logger;
-
     private CredentialHelperClient credentialHelperClient;
 
     private JsonObject jsonObject;
@@ -37,11 +33,11 @@ class CredentialHelperClientTest {
 
     @BeforeEach
     void givenCredentialHelperClient() {
-        this.credentialHelperClient = new CredentialHelperClient(logger, "desktop");
+        this.credentialHelperClient = new CredentialHelperClient(new KitLogger.SilentLogger(), "desktop");
     }
 
     @Test
-    void testUsernamePasswordAuthConfig() {
+    void usernamePasswordAuthConfig() {
         givenJson("{\"ServerURL\":\"registry.mycompany.com\",\"Username\":\"jane_doe\",\"Secret\":\"not-really\"}");
 
         whenJsonObjectConvertedToAuthConfig();
@@ -52,7 +48,7 @@ class CredentialHelperClientTest {
     }
 
     @Test
-    void testTokenAuthConfig() {
+    void tokenAuthConfig() {
         givenJson("{\"ServerURL\":\"registry.cloud-provider.com\",\"Username\":\"<token>\",\"Secret\":\"gigantic-mess-of-jwt\"}");
 
         whenJsonObjectConvertedToAuthConfig();

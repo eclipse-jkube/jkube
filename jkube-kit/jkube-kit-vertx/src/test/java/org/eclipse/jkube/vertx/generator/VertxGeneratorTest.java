@@ -24,10 +24,9 @@ import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,10 +38,7 @@ import static org.mockito.Mockito.when;
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class VertxGeneratorTest {
-
-  @Rule
-  public TemporaryFolder folder = new TemporaryFolder();
+class VertxGeneratorTest {
 
   private JavaProject project;
 
@@ -50,12 +46,12 @@ public class VertxGeneratorTest {
   private Dependency dropwizard;
   private Dependency core;
 
-  @Before
-  public void init() throws IOException {
+  @BeforeEach
+  void init(@TempDir File folder) throws IOException {
     dropwizard = Dependency.builder().groupId("io.vertx").artifactId("vertx-dropwizard-metrics").version("3.4.2")
-        .type("jar").scope("compile").file(folder.newFile("vertx-dropwizard-metrics.jar")).build();
+        .type("jar").scope("compile").file(File.createTempFile("vertx-dropwizard-metrics", ".jar", folder)).build();
     core = Dependency.builder().groupId("io.vertx").artifactId("vertx-core").version("3.4.2").type("jar")
-        .scope("compile").file(folder.newFile("vertx-core.jar")).build();
+        .scope("compile").file(File.createTempFile("vertx-core", ".jar", folder)).build();
     project = mock(JavaProject.class, RETURNS_DEEP_STUBS);
     KitLogger logger = mock(KitLogger.class, RETURNS_DEEP_STUBS);
     context = GeneratorContext.builder()
@@ -65,7 +61,7 @@ public class VertxGeneratorTest {
   }
 
   @Test
-  public void testDefaultOptions() {
+  void defaultOptions() {
     // Given
     when(project.getOutputDirectory()).thenReturn(new File("target/tmp/target"));
     // When
@@ -75,7 +71,7 @@ public class VertxGeneratorTest {
   }
 
   @Test
-  public void testWithMetrics() {
+  void withMetrics() {
     // Given
     when(project.getDependencies()).thenReturn(Arrays.asList(dropwizard, core));
     // When
@@ -89,7 +85,7 @@ public class VertxGeneratorTest {
   }
 
     @Test
-    public void testWithInfinispanClusterManager() {
+    void withInfinispanClusterManager() {
       try (MockedStatic<JKubeProjectUtil> mockedJKubeProjectUtil = mockStatic(JKubeProjectUtil.class)) {
         // Given
         mockedJKubeProjectUtil

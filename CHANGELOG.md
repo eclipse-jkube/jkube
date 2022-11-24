@@ -20,7 +20,19 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.10-SNAPSHOT
+### 1.11-SNAPSHOT
+* Fix #1546: Migrate to JUnit5 testing framework
+
+### 1.10.1 (2022-11-16)
+* Fix #1915: Maven 3.6.3 is still supported
+
+### 1.10.0 (2022-11-10)
+* Fix #443: Add health check enricher for SmallRye Health
+* Fix #508: Kubernetes Remote Development (inner-loop)
+* Fix #1668: Allow additional services (via fragments) besides the default
+* Fix #1684: Podman builds with errors are correctly processed and reported 
+* Fix #1704: `k8s:watch` with `jkube.watch.mode=copy` works as expected
+* Fix #1888: KubernetesExtension has helper method to add image with builder
 
 ### 1.9.1 (2022-09-14)
 * Fix #1747: Apply service doesn't attempt to create OpenShift Projects in Kubernetes clusters

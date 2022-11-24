@@ -16,45 +16,36 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-@RunWith(Parameterized.class)
-public class ServiceAccountIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class ServiceAccountIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
-  @Parameterized.Parameters(name = "resource task on project = {0} with {1}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "serviceaccount", new String[] {}, "default"},
-        new Object[] { "serviceaccount-via-groovy-dsl", new String[] {}, "default"},
-        new Object[] { "serviceaccount", new String[] {"-Pjkube.enricher.jkube-serviceaccount.skipCreate=true"}, "skip-create"},
-        new Object[] { "serviceaccount-via-groovy-dsl", new String[] {"-Pjkube.enricher.jkube-serviceaccount.skipCreate=true"}, "skip-create"}
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("serviceaccount", new String[] {}, "default"),
+        arguments("serviceaccount-via-groovy-dsl", new String[] {}, "default"),
+        arguments("serviceaccount", new String[] {"-Pjkube.enricher.jkube-serviceaccount.skipCreate=true"}, "skip-create"),
+        arguments("serviceaccount-via-groovy-dsl", new String[] {"-Pjkube.enricher.jkube-serviceaccount.skipCreate=true"}, "skip-create")
     );
   }
 
-  @Parameterized.Parameter
-  public String testProjectDir;
-
-  @Parameterized.Parameter (1)
-  public String[] arguments;
-
-  @Parameterized.Parameter (2)
-  public String expectedDir;
-
-  @Test
-  public void k8sResource_whenRun_generatesServiceAccount() throws IOException, ParseException {
+  @ParameterizedTest(name = "resource task on project = {0} with {1}")
+  @MethodSource("data")
+  void k8sResource_whenRun_generatesServiceAccount(String testProjectDir, String[] arguments, String expectedDir) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("k8sResource");
@@ -71,8 +62,9 @@ public class ServiceAccountIT {
         .contains("validating");
   }
 
-  @Test
-  public void ocResource_whenRun_generatesServiceAccount() throws IOException, ParseException {
+  @ParameterizedTest(name = "resource task on project = {0} with {1}")
+  @MethodSource("data")
+  void ocResource_whenRun_generatesServiceAccount(String testProjectDir, String[] arguments, String expectedDir) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
     gradleArgs.add("ocResource");

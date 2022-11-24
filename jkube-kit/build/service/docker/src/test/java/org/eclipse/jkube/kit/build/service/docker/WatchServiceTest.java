@@ -23,33 +23,28 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
-
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class WatchServiceTest {
-    @Mocked
-    ArchiveService archiveService;
 
-    @Mocked
-    BuildService buildService;
-
-    @Mocked
-    QueryService queryService;
-
-    @Mocked
-    RunService runService;
-
-    @Mocked
-    KitLogger logger;
-
+    private ArchiveService archiveService;
+    private BuildService buildService;
+    private QueryService queryService;
+    private RunService runService;
+    private KitLogger logger;
     private ImageConfiguration imageConfiguration;
 
     @BeforeEach
     void setUp() {
+        archiveService = mock(ArchiveService.class);
+        buildService = mock(BuildService.class);
+        queryService = mock(QueryService.class);
+        runService = mock(RunService.class);
+        logger = new KitLogger.SilentLogger();
         imageConfiguration = ImageConfiguration.builder()
                 .name("test-app")
                 .watch(WatchImageConfiguration.builder()
@@ -59,7 +54,7 @@ class WatchServiceTest {
     }
 
     @Test
-    void testRestartContainerAndCallPostGoalRestartDisabled() throws Exception {
+    void restartContainerAndCallPostGoalRestartDisabled() throws Exception {
         // Given
         AtomicReference<String> stringAtomicReference = new AtomicReference<>("oldVal");
         String mavenGoalToExecute = "org.apache.maven.plugins:maven-help-plugin:help";
@@ -70,16 +65,14 @@ class WatchServiceTest {
                 .build();
         WatchService.ImageWatcher imageWatcher =  new WatchService.ImageWatcher(imageConfiguration, watchContext, "test-img", "efe1234");
         WatchService watchService = new WatchService(archiveService, buildService, queryService, runService, logger);
-
         // When
         watchService.restartContainerAndCallPostGoal(imageWatcher, false);
-
         // Then
         assertThat(stringAtomicReference).hasValue(mavenGoalToExecute);
     }
 
     @Test
-    void testRestartContainerAndCallPostGoalRestartEnabled() throws Exception {
+    void restartContainerAndCallPostGoalRestartEnabled() throws Exception {
         // Given
         AtomicBoolean restarted = new AtomicBoolean(false);
         WatchContext watchContext = WatchContext.builder()
@@ -88,16 +81,14 @@ class WatchServiceTest {
                 .build();
         WatchService.ImageWatcher imageWatcher =  new WatchService.ImageWatcher(imageConfiguration, watchContext, "test-img", "efe1234");
         WatchService watchService = new WatchService(archiveService, buildService,  queryService, runService, logger);
-
         // When
         watchService.restartContainerAndCallPostGoal(imageWatcher, true);
-
         // Then
         assertThat(restarted).isTrue();
     }
 
     @Test
-    void testCopyFilesToContainer() throws Exception {
+    void copyFilesToContainer() throws Exception {
         // Given
         AtomicBoolean fileCopied = new AtomicBoolean(false);
         WatchContext watchContext = WatchContext.builder()
@@ -117,7 +108,7 @@ class WatchServiceTest {
     }
 
     @Test
-    void testCallPostExec() throws Exception {
+    void callPostExec() throws Exception {
         // Given
         AtomicBoolean postExecCommandExecuted = new AtomicBoolean(false);
         WatchContext watchContext = WatchContext.builder()

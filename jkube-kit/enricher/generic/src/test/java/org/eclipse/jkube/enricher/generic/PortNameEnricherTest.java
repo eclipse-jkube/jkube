@@ -22,21 +22,26 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author dgaur
  */
-public class PortNameEnricherTest {
-
-  @Mocked
+class PortNameEnricherTest {
   private JKubeEnricherContext context;
 
+  @BeforeEach
+  void setUp() {
+    context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+  }
+
   @Test
-  public void defaultConfigurationInKubernetesShouldEnrichWithDefaults() {
+  void defaultConfigurationInKubernetesShouldEnrichWithDefaults() {
     // Given
     final KubernetesListBuilder klb = initKubernetesList();
     // When
@@ -55,7 +60,7 @@ public class PortNameEnricherTest {
   }
 
   @Test
-  public void defaultConfigurationInOpenShiftShouldEnrichWithDefaults() {
+  void defaultConfigurationInOpenShiftShouldEnrichWithDefaults() {
     // Given
     final KubernetesListBuilder klb = initKubernetesList();
     // When

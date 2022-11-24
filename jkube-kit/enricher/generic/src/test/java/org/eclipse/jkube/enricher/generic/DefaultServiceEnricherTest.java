@@ -29,187 +29,139 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  */
-public class DefaultServiceEnricherTest {
+class DefaultServiceEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
 
-    @Mocked
-    ImageConfiguration imageConfiguration;
+    private ImageConfiguration imageConfiguration;
 
-    @Mocked
-    GroupArtifactVersion groupArtifactVersion;
+    private GroupArtifactVersion groupArtifactVersion;
 
-    @Test
-    public void checkDefaultConfiguration() {
+    @BeforeEach
+    void setUp() {
+        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+        imageConfiguration = mock(ImageConfiguration.class);
+        groupArtifactVersion = mock(GroupArtifactVersion.class);
+    }
+
+    @Nested
+    @DisplayName("check port config")
+    class PortConfig {
+      @Test
+      void defaultConfiguration() {
         setupExpectations("type", "LoadBalancer");
+        HasMetadata resource = enrich();
+        assertAll(
+            () -> assertThat(resource).hasFieldOrPropertyWithValue("spec.type", "LoadBalancer"),
+            () -> assertPort(resource, 1, 0, 80, 80, "http", "TCP"));
+      }
 
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(1);
-
-        assertThat(object)
-                .hasFieldOrPropertyWithValue("spec.type", "LoadBalancer");
-
-        assertPort(object, 0, 80, 80, "http", "TCP");
-    }
-
-    @Test
-    public void portOverride() {
+      @Test
+      void portOverride() {
         setupExpectations("port", "8080", "multiPort", "true");
+        HasMetadata resource = enrich();
+        assertAll(
+            () -> assertPort(resource, 2, 0, 8080, 80, "http", "TCP"),
+            () -> assertPort(resource, 2, 1, 53, 53, "domain", "UDP"));
+      }
 
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(2);
-
-        assertPort(object, 0, 8080, 80, "http", "TCP");
-        assertPort(object, 1, 53, 53, "domain", "UDP");
-    }
-
-    @Test
-    public void portOverrideWithMapping() {
+      @Test
+      void portOverrideWithMapping() {
         setupExpectations("port", "443:8181/udp", "multiPort", "true", "normalizePort", "true");
+        HasMetadata resource = enrich();
+        assertAll(
+            () -> assertPort(resource, 2, 0, 80, 8181, "https", "UDP"),
+            () -> assertPort(resource, 2, 1, 53, 53, "domain", "UDP"));
+      }
 
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(2);
-
-        assertPort(object, 0, 80, 8181, "https", "UDP");
-        assertPort(object, 1, 53, 53, "domain", "UDP");
-    }
-
-    @Test
-    public void portConfigWithMultipleMappings() {
+      @Test
+      void withMultipleMappings() {
         setupExpectations("port", "443:81,853:53", "multiPort", "true");
+        HasMetadata resource = enrich();
+        assertAll(
+            () -> assertPort(resource, 2, 0, 443, 81, "https", "TCP"),
+            () -> assertPort(resource, 2, 1, 853, 53, "domain-s", "TCP"));
+      }
 
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(2);
-
-        assertPort(object, 0, 443, 81, "https", "TCP");
-        assertPort(object, 1, 853, 53, "domain-s", "TCP");
-    }
-
-    @Test
-    public void portConfigWithMultipleMapping1() {
+      @Test
+      void withMultipleMapping1() {
         setupExpectations("port", "8080:8081,8443:8443", "multiPort", "true", "normalizePort", "true");
+        HasMetadata resource = enrich();
+        assertAll(
+            () -> assertPort(resource, 2, 0, 80, 8081, "http", "TCP"),
+            () -> assertPort(resource, 2, 1, 443, 8443, "https", "TCP"));
+      }
 
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(2);
-
-        assertPort(object, 0, 80, 8081, "http", "TCP");
-        assertPort(object, 1, 443, 8443, "https", "TCP");
-    }
-
-
-    @Test
-    public void portConfigWithMultipleMappingsNoMultiPort() {
+      @Test
+      void withMultipleMappingsNoMultiPort() {
         setupExpectations("port", "443:81,853:53", "multiPort", "false");
+        HasMetadata resource = enrich();
+        assertPort(resource, 1, 0, 443, 81, "https", "TCP");
+      }
 
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(1);
-
-        assertPort(object, 0, 443, 81, "https", "TCP");
-    }
-
-    @Test
-    public void portConfigWithMultipleMappingsNoMultiPortNoImagePort() {
+      @Test
+      void withMultipleMappingsNoMultiPortNoImagePort() {
         setupExpectations(false, "port", "443:81,853:53", "multiPort", "false");
+        HasMetadata resource = enrich();
+        assertPort(resource, 1, 0, 443, 81, "https", "TCP");
+      }
 
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(1);
-
-        assertPort(object, 0, 443, 81, "https", "TCP");
-    }
-
-    @Test
-    public void portConfigWithMortPortsThanImagePorts() {
+      @Test
+      void withMorePortsThanImagePorts() {
         setupExpectations("port", "443:81,853:53,22/udp", "multiPort", "true");
+        HasMetadata resource = enrich();
+        assertAll(
+            () -> assertPort(resource, 3, 0, 443, 81, "https", "TCP"),
+            () -> assertPort(resource, 3, 1, 853, 53, "domain-s", "TCP"),
+            () -> assertPort(resource, 3, 2, 22, 22, "ssh", "UDP"));
+      }
 
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(3);
-
-        assertPort(object, 0, 443, 81, "https", "TCP");
-        assertPort(object, 1, 853, 53, "domain-s", "TCP");
-        assertPort(object, 2, 22, 22, "ssh", "UDP");
-    }
-
-    @Test
-    public void portConfigWithMortPortsThanImagePortsAndNoMultiPort() {
+      @Test
+      void withMorePortsThanImagePortsAndNoMultiPort() {
         setupExpectations("port", "443:81,853:53,22");
+        HasMetadata resource = enrich();
+        assertPort(resource, 1, 0, 443, 81, "https", "TCP");
+      }
 
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(1);
-
-        assertPort(object, 0, 443, 81, "https", "TCP");
-    }
-
-    @Test
-    public void portConfigWithoutPortsFromImageConfig() {
+      @Test
+      void withoutPortsFromImageConfig() {
         setupExpectations(false, "port", "443:81,853:53/UdP,22/TCP", "multiPort", "true");
-
-        HasMetadata object = enrich();
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .hasSize(3);
-
-        assertPort(object, 0, 443, 81, "https", "TCP");
-        assertPort(object, 1, 853, 53, "domain-s", "UDP");
-        assertPort(object, 2, 22, 22, "ssh", "TCP");
+        HasMetadata resource = enrich();
+        assertAll(
+            () -> assertPort(resource, 3, 0, 443, 81, "https", "TCP"),
+            () -> assertPort(resource, 3, 1, 853, 53, "domain-s", "UDP"),
+            () -> assertPort(resource, 3, 2, 22, 22, "ssh", "TCP"));
+      }
     }
 
     @Test
-    public void headlessServicePositive() {
+    void headlessServicePositive() {
         setupExpectations(false, "headless", "true");
-        HasMetadata object = enrich();
-
-        assertThat(object)
-                .hasFieldOrPropertyWithValue("spec.clusterIP", "None");
-
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .isEmpty();
+        HasMetadata resource = enrich();
+        assertThat(resource)
+            .hasFieldOrPropertyWithValue("spec.clusterIP", "None")
+            .extracting("spec.ports")
+            .asList()
+            .isEmpty();
     }
 
     @Test
-    public void headlessServiceNegative() {
+    void headlessServiceNegative() {
         setupExpectations(false, "headless", "false");
         DefaultServiceEnricher serviceEnricher = new DefaultServiceEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
@@ -217,55 +169,43 @@ public class DefaultServiceEnricherTest {
 
         // Validate that the generated resource contains
         KubernetesList list = builder.build();
-        assertTrue(list.getItems().isEmpty());
+        assertThat(list.getItems()).isEmpty();
     }
 
     @Test
-    public void miscConfiguration() {
+    void miscConfiguration() {
         setupExpectations("headless", "true", "type", "NodePort", "expose", "true");
-        HasMetadata object = enrich();
-
-        assertThat(object)
-                .hasFieldOrPropertyWithValue("spec.type", "NodePort")
-                .hasFieldOrPropertyWithValue("metadata.labels.expose", "true")
-                .hasFieldOrPropertyWithValue("spec.clusterIP", null);
+        HasMetadata resource = enrich();
+        assertThat(resource)
+            .hasFieldOrPropertyWithValue("spec.type", "NodePort")
+            .hasFieldOrPropertyWithValue("metadata.labels.expose", "true")
+            .hasFieldOrPropertyWithValue("spec.clusterIP", null);
     }
 
     @Test
-    public void serviceImageLabelEnrichment() {
+    void serviceImageLabelEnrichment() {
         ImageConfiguration imageConfigurationWithLabels = ImageConfiguration.builder()
                 .name("test-label")
                 .alias("test")
+                .build(BuildConfiguration.builder()
+                    .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
+                    .ports(Arrays.asList("80", "53/UDP"))
+                    .build())
                 .build();
         final TreeMap<String, Object> config = new TreeMap<>();
         config.put("type", "LoadBalancer");
-
-        new Expectations() {{
-
-            Configuration configuration = Configuration.builder()
+        Configuration configuration = Configuration.builder()
                     .image(imageConfigurationWithLabels)
                     .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-service", config)))
                     .build();
-
-            groupArtifactVersion.getSanitizedArtifactId();
-            result = "jkube-service";
-
-            context.getConfiguration();
-            result = configuration;
-
-            imageConfigurationWithLabels.getBuildConfiguration();
-            result = BuildConfiguration.builder()
-                    .labels(Collections.singletonMap("jkube.generator.service.ports", "9090"))
-                    .ports(Arrays.asList("80", "53/UDP"))
-                    .build();
-        }};
-
-        HasMetadata object = enrich();
-        assertPort(object, 0, 9090, 9090, "http", "TCP");
+        when(groupArtifactVersion.getSanitizedArtifactId()).thenReturn("jkube-service");
+        when(context.getConfiguration()).thenReturn(configuration);
+        HasMetadata resource = enrich();
+        assertPort(resource, 1, 0, 9090, 9090, "http", "TCP");
     }
 
     @Test
-    public void getPortToExpose_withHttpPort() {
+    void getPortToExpose_withHttpPort() {
         // Given
         final ServiceBuilder serviceBuilder = new ServiceBuilder()
             .withNewSpec()
@@ -280,7 +220,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void getPortToExpose_withNoHttpPort() {
+    void getPortToExpose_withNoHttpPort() {
         // Given
         final ServiceBuilder serviceBuilder = new ServiceBuilder()
             .withNewSpec()
@@ -295,7 +235,7 @@ public class DefaultServiceEnricherTest {
     }
 
     @Test
-    public void getPortToExpose_withNoPort() {
+    void getPortToExpose_withNoPort() {
         // Given
         final ServiceBuilder serviceBuilder = new ServiceBuilder().withNewSpec().endSpec();
         // When
@@ -314,19 +254,19 @@ public class DefaultServiceEnricherTest {
 
         // Validate that the generated resource contains
         KubernetesList list = builder.build();
-        assertEquals(1, list.getItems().size());
+        assertThat(list.getItems()).hasSize(1);
         return list.getItems().get(0);
     }
 
-    private void assertPort(HasMetadata object, int idx, int port, int targetPort, String name, String protocol) {
-        assertThat(object)
-                .extracting("spec.ports")
-                .asList()
-                .element(idx)
-                .hasFieldOrPropertyWithValue("port", port)
-                .hasFieldOrPropertyWithValue("targetPort.IntVal", targetPort)
-                .hasFieldOrPropertyWithValue("name", name)
-                .hasFieldOrPropertyWithValue("protocol", protocol);
+    private void assertPort(HasMetadata resource, int noOfPorts, int idx, int port, int targetPort, String name, String protocol) {
+      assertThat(resource)
+          .extracting("spec.ports").asList()
+          .hasSize(noOfPorts)
+          .element(idx)
+          .hasFieldOrPropertyWithValue("port", port)
+          .hasFieldOrPropertyWithValue("targetPort.IntVal", targetPort)
+          .hasFieldOrPropertyWithValue("name", name)
+          .hasFieldOrPropertyWithValue("protocol", protocol);
     }
 
     private void setupExpectations(String ... configParams) {
@@ -339,20 +279,13 @@ public class DefaultServiceEnricherTest {
         for (int i = 0; i < configParams.length; i += 2) {
                 config.put(configParams[i],configParams[i+1]);
         }
-
-        new Expectations() {{
-
-            Configuration configuration = Configuration.builder()
+        Configuration configuration = Configuration.builder()
                 .image(imageConfiguration)
                 .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-service", config)))
                 .build();
 
-            context.getConfiguration();
-            result = configuration;
-
-            imageConfiguration.getBuildConfiguration();
-            result = initBuildConfig(withPorts);
-        }};
+        when(context.getConfiguration()).thenReturn(configuration);
+        when(imageConfiguration.getBuildConfiguration()).thenReturn(initBuildConfig(withPorts));
     }
 
     private BuildConfiguration initBuildConfig(boolean withPorts) {

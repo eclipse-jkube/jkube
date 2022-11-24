@@ -11,15 +11,17 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.common.util;
+package org.eclipse.jkube.microprofile;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import static org.eclipse.jkube.kit.common.util.SemanticVersionUtil.isVersionAtLeast;
 
 public class MicroprofileHealthUtil {
-  private static final String MICROPROFILE_HEALTH_DEPENDENCY = "microprofile-health";
+  private static final String MICROPROFILE_HEALTH_DEPENDENCY = "microprofile-health-api";
+  private static final String MICROPROFILE_HEALTH_GROUP = "org.eclipse.microprofile.health";
   private static final String MICROPROFILE_DEPENDENCY = "microprofile";
   private static final String MICROPROFILE_GROUP = "org.eclipse.microprofile";
   private static final int MICROPROFILE_HEALTH_SUPPORTED_VERSION_MAJOR = 3;
@@ -31,19 +33,19 @@ public class MicroprofileHealthUtil {
   private MicroprofileHealthUtil() { }
 
   public static boolean hasMicroProfileHealthDependency(JavaProject javaProject) {
-    return JKubeProjectUtil.hasDependency(javaProject, MICROPROFILE_GROUP , MICROPROFILE_HEALTH_DEPENDENCY);
+    return JKubeProjectUtil.hasTransitiveDependency(javaProject, MICROPROFILE_HEALTH_GROUP , MICROPROFILE_HEALTH_DEPENDENCY);
   }
 
   public static boolean hasMicroProfileDependency(JavaProject javaProject) {
-    return JKubeProjectUtil.hasDependency(javaProject, MICROPROFILE_GROUP , MICROPROFILE_DEPENDENCY);
+    return JKubeProjectUtil.hasTransitiveDependency(javaProject, MICROPROFILE_GROUP , MICROPROFILE_DEPENDENCY);
   }
 
   public static boolean isStartupEndpointSupported(JavaProject javaProject) {
     String microProfileHealthVersion;
     if (hasMicroProfileDependency(javaProject)) {
-      microProfileHealthVersion = getMicroProfileVersionFromArtifactId(javaProject, MICROPROFILE_DEPENDENCY);
+      microProfileHealthVersion = getMicroProfileVersionFromArtifactId(javaProject, MICROPROFILE_GROUP, MICROPROFILE_DEPENDENCY);
     } else if (hasMicroProfileHealthDependency(javaProject)) {
-      microProfileHealthVersion = getMicroProfileVersionFromArtifactId(javaProject, MICROPROFILE_HEALTH_DEPENDENCY);
+      microProfileHealthVersion = getMicroProfileVersionFromArtifactId(javaProject, MICROPROFILE_HEALTH_GROUP, MICROPROFILE_HEALTH_DEPENDENCY);
     } else {
       return false;
     }
@@ -51,8 +53,8 @@ public class MicroprofileHealthUtil {
     return isVersionAtLeast(MICROPROFILE_HEALTH_SUPPORTED_VERSION_MAJOR, MICROPROFILE_HEALTH_SUPPORTED_VERSION_MINOR, microProfileHealthVersion);
   }
 
-  private static String getMicroProfileVersionFromArtifactId(JavaProject javaProject, String artifactId) {
-    Dependency microProfileDep = JKubeProjectUtil.getDependency(javaProject, MICROPROFILE_GROUP, artifactId);
+  private static String getMicroProfileVersionFromArtifactId(JavaProject javaProject, String groupId, String artifactId) {
+    Dependency microProfileDep = JKubeProjectUtil.getTransitiveDependency(javaProject, groupId, artifactId);
     if (microProfileDep != null) {
       return microProfileDep.getVersion();
     }

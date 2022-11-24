@@ -27,21 +27,27 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-public class DefaultControllerEnricherCreateTest {
+class DefaultControllerEnricherCreateTest {
 
   private JKubeEnricherContext buildContext;
   private Properties properties;
   private KubernetesListBuilder klb;
 
-  @Before
-  public void setUp() throws Exception {
+  @BeforeEach
+  void setUp() throws Exception {
     properties = new Properties();
     buildContext = JKubeEnricherContext.builder()
         .log(new KitLogger.SilentLogger())
@@ -57,7 +63,7 @@ public class DefaultControllerEnricherCreateTest {
   }
 
   @Test
-  public void create_inKubernetesNoType_shouldCreateDeployment() {
+  void create_inKubernetesNoType_shouldCreateDeployment() {
     // When
     new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
@@ -67,93 +73,50 @@ public class DefaultControllerEnricherCreateTest {
         .isInstanceOf(Deployment.class);
   }
 
-  /*
-   * This test may seem odd, since what JKube produces for OpenShift environments are DeploymentConfig.
-   *
-   * However, this is taken care of by the DeploymentConfigEnricher which will convert Deployment to
-   * DeploymentConfig if the environment and configuration is appropriate.
-   */
-  @Test
-  public void create_inOpenShiftWithDeploymentConfigType_shouldCreateDeployment() {
+  @DisplayName("create with different controllers")
+  @ParameterizedTest(name = "in ''{1}'' mode with ''{0}'' controller type, should create ''{0}''")
+  @MethodSource("controllers")
+  void create_withDifferentControllers(String controllerType, PlatformMode platformMode, Class<? extends KubernetesListBuilder> clazz) {
     // Given
-    properties.put("jkube.enricher.jkube-controller.type", "DeploymentConfig");
+    properties.put("jkube.enricher.jkube-controller.type", controllerType);
     // When
-    new DefaultControllerEnricher(buildContext).create(PlatformMode.openshift, klb);
+    new DefaultControllerEnricher(buildContext).create(platformMode, klb);
     // Then
     assertThat(klb.buildItems())
-        .hasSize(1)
-        .first()
-        .isInstanceOf(Deployment.class);
+        .singleElement()
+        .isInstanceOf(clazz);
+  }
+
+  static Stream<Arguments> controllers() {
+    return Stream.of(
+      /*
+       * This test may seem odd, since what JKube produces for OpenShift environments are DeploymentConfig.
+       *
+       * However, this is taken care of by the DeploymentConfigEnricher which will convert Deployment to
+       * DeploymentConfig if the environment and configuration is appropriate.
+       */
+        arguments("DeploymentConfig", PlatformMode.openshift, Deployment.class),
+        arguments("StatefulSet", PlatformMode.kubernetes, StatefulSet.class),
+        arguments("DAEMONSET", PlatformMode.kubernetes, DaemonSet.class),
+        arguments("rePlicaSeT", PlatformMode.kubernetes, ReplicaSet.class),
+        arguments("ReplicationController", PlatformMode.kubernetes, ReplicationController.class));
   }
 
   @Test
-  public void create_inKubernetesWithStatefulSetType_shouldCreateStatefulSet() {
-    // Given
-    properties.put("jkube.enricher.jkube-controller.type", "StatefulSet");
-    // When
-    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
-    // Then
-    assertThat(klb.buildItems())
-        .hasSize(1)
-        .first()
-        .isInstanceOf(StatefulSet.class);
-  }
-
-  @Test
-  public void create_inKubernetesWithDaemonSetType_shouldCreateDaemonSet() {
-    // Given
-    properties.put("jkube.enricher.jkube-controller.type", "DAEMONSET");
-    // When
-    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
-    // Then
-    assertThat(klb.buildItems())
-        .hasSize(1)
-        .first()
-        .isInstanceOf(DaemonSet.class);
-  }
-
-  @Test
-  public void create_inKubernetesWithReplicaSetType_shouldCreateReplicaSet() {
-    // Given
-    properties.put("jkube.enricher.jkube-controller.type", "rePlicaSeT");
-    // When
-    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
-    // Then
-    assertThat(klb.buildItems())
-        .hasSize(1)
-        .first()
-        .isInstanceOf(ReplicaSet.class);
-  }
-
-  @Test
-  public void create_inKubernetesWithReplicationControllerType_shouldCreateReplicationController() {
-    // Given
-    properties.put("jkube.enricher.jkube-controller.type", "ReplicationController");
-    // When
-    new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
-    // Then
-    assertThat(klb.buildItems())
-        .hasSize(1)
-        .first()
-        .isInstanceOf(ReplicationController.class);
-  }
-
-  @Test
-  public void create_inKubernetesWithJobType_shouldCreateJob() {
+  void create_inKubernetesWithJobType_shouldCreateJob() {
     // Given
     properties.put("jkube.enricher.jkube-controller.type", "Job");
     // When
     new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
-        .hasSize(1)
-        .first()
+        .singleElement()
         .isInstanceOf(Job.class)
         .hasFieldOrPropertyWithValue("spec.template.spec.restartPolicy", "OnFailure");
   }
 
   @Test
-  public void create_inKubernetesWithJobTypeAndConfiguredRestartPolicy_shouldCreateJobWithConfiguredRestartPolicy() {
+  void create_inKubernetesWithJobTypeAndConfiguredRestartPolicy_shouldCreateJobWithConfiguredRestartPolicy() {
     // Given
     buildContext = buildContext.toBuilder().resources(ResourceConfig.builder().restartPolicy("Never").build()).build();
     properties.put("jkube.enricher.jkube-controller.type", "Job");
@@ -161,14 +124,13 @@ public class DefaultControllerEnricherCreateTest {
     new DefaultControllerEnricher(buildContext).create(PlatformMode.kubernetes, klb);
     // Then
     assertThat(klb.buildItems())
-        .hasSize(1)
-        .first()
+        .singleElement()
         .isInstanceOf(Job.class)
         .hasFieldOrPropertyWithValue("spec.template.spec.restartPolicy", "Never");
   }
 
   @Test
-  public void create_inKubernetesWithNoImages_shouldSkip() {
+  void create_inKubernetesWithNoImages_shouldSkip() {
     // Given
     buildContext = buildContext.toBuilder().clearImages().build();
     // When

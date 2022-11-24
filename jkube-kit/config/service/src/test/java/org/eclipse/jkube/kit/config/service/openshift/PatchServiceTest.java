@@ -30,7 +30,6 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.PatchService;
-import mockit.Mocked;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,8 +41,6 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 @EnableKubernetesMockClient
 class PatchServiceTest {
-    @Mocked
-    private KitLogger log;
 
     KubernetesMockServer mockServer;
     OpenShiftClient client;
@@ -52,7 +49,7 @@ class PatchServiceTest {
 
     @BeforeEach
     void setUp() {
-        patchService = new PatchService(client, log);
+        patchService = new PatchService(client, new KitLogger.SilentLogger());
         Serialization.jsonMapper().disable(SerializationFeature.INDENT_OUTPUT);
     }
 

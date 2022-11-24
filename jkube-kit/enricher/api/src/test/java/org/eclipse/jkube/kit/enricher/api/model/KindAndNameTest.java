@@ -15,55 +15,45 @@ package org.eclipse.jkube.kit.enricher.api.model;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public class KindAndNameTest {
 
-    @Test
-    public void simpleTest() {
+class KindAndNameTest {
 
-        ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("CMTest").endMetadata().addToData("foo","bar").build();
+  @Test
+  void simpleTest() {
+    ConfigMap configMap = new ConfigMapBuilder().withNewMetadata().withName("CMTest").endMetadata().addToData("foo", "bar")
+        .build();
 
-        KindAndName kindAndName = new KindAndName(configMap);
+    KindAndName kindAndName = new KindAndName(configMap);
+    assertThat(kindAndName)
+        .hasFieldOrPropertyWithValue("kind", "ConfigMap")
+        .hasFieldOrPropertyWithValue("name", "CMTest");
+  }
 
-        assertEquals("ConfigMap",kindAndName.getKind());
-        assertEquals("CMTest",kindAndName.getName());
-    }
+  @Test
+  void equalsTest() {
+    KindAndName kindAndName = new KindAndName("kindTest", "nameTest");
+    KindAndName secondKindAndName = new KindAndName("kindTest", "nameTest");
+    KindAndName thirdKindAndName = new KindAndName("kindTest1", "nameTest1");
+    KindAndName fourthKindAndName = new KindAndName("kindTest1", "nameTest");
+    KindAndName fifthKindAndName = new KindAndName("kindTest", "nameTest1");
 
-    @Test
-    public void equalsTest(){
+    assertThat(kindAndName).isNotNull()
+        .isEqualTo(secondKindAndName)
+        .isNotEqualTo(thirdKindAndName)
+        .isNotEqualTo(fourthKindAndName)
+        .isNotEqualTo(fifthKindAndName);
+  }
 
-        KindAndName kindAndName = new KindAndName("kindTest","nameTest");
-        KindAndName secondKindAndName = new KindAndName("kindTest","nameTest");
-        KindAndName thirdKindAndName = new KindAndName("kindTest1","nameTest1");
-        KindAndName fourthKindAndName = new KindAndName("kindTest1","nameTest");
-        KindAndName fifthKindAndName = new KindAndName("kindTest","nameTest1");
+  @Test
+  void testHashCode() {
+    KindAndName kindAndName = new KindAndName("kindTest", "nameTest");
+    KindAndName secondKindAndName = new KindAndName("", "");
 
-        //if checking same object
-        assertEquals(kindAndName, kindAndName);
-
-        //if one null is passed
-        assertNotNull(kindAndName);
-
-        //if two different are checked with same value
-        assertEquals(kindAndName, secondKindAndName);
-
-        //if two different are passsed with different combinations of value
-        assertNotEquals(kindAndName, thirdKindAndName);
-        assertNotEquals(kindAndName, fourthKindAndName);
-        assertNotEquals(kindAndName, fifthKindAndName);
-    }
-
-    @Test
-    public void testHashCode(){
-        KindAndName kindAndName = new KindAndName("kindTest","nameTest");
-        KindAndName secondKindAndName = new KindAndName("","");
-
-        assertEquals(1812739127,kindAndName.hashCode());
-        assertEquals(0,secondKindAndName.hashCode());
-    }
+    assertThat(kindAndName.hashCode()).isEqualTo(1812739127);
+    assertThat(secondKindAndName.hashCode()).isZero();
+  }
 }

@@ -21,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -67,6 +68,33 @@ class JKubeProjectUtilTest {
     ));
     // When
     final boolean result = JKubeProjectUtil.hasDependencyWithGroupId(project, "io.nothere");
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void hasTransitiveDependency_whenGroupArtifactMatchesInProvidedDeps_shouldReturnTrue() {
+    // Given
+    final JavaProject project = mock(JavaProject.class);
+    when(project.getDependenciesWithTransitive()).thenReturn(Collections.singletonList(
+        Dependency.builder().groupId("org.example").artifactId("artifact").version("1.3.37").build()
+    ));
+
+    // When
+    final boolean result = JKubeProjectUtil.hasTransitiveDependency(project, "org.example", "artifact");
+
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void hasTransitiveDependency_whenGroupArtifactNoMatchInProvidedDeps_shouldReturnTrue() {
+    // Given
+    final JavaProject project = mock(JavaProject.class);
+
+    // When
+    final boolean result = JKubeProjectUtil.hasTransitiveDependency(project, "org.example", "artifact");
+
     // Then
     assertThat(result).isFalse();
   }

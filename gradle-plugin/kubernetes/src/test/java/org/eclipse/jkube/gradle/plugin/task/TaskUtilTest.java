@@ -19,8 +19,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,18 +32,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class TaskUtilTest {
+class TaskUtilTest {
   private TestKubernetesExtension extension;
   private KitLogger kitLogger;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     extension = new TestKubernetesExtension();
     kitLogger = mock(KitLogger.class, RETURNS_DEEP_STUBS);
   }
 
   @Test
-  public void buildServiceConfigBuilder_shouldInitializeBuildServiceConfigWithDefaults() {
+  void buildServiceConfigBuilder_shouldInitializeBuildServiceConfigWithDefaults() {
     // When
     BuildServiceConfig buildServiceConfig = TaskUtil.buildServiceConfigBuilder(extension).build();
 
@@ -56,7 +56,7 @@ public class TaskUtilTest {
   }
 
   @Test
-  public void buildServiceConfigBuilder_shouldInitializeBuildServiceConfigWithConfiguredValues() {
+  void buildServiceConfigBuilder_shouldInitializeBuildServiceConfigWithConfiguredValues() {
     // Given
     extension.buildRecreate = "true";
     extension.isForcePull = true;
@@ -75,7 +75,7 @@ public class TaskUtilTest {
   }
 
   @Test
-  public void initDockerAccess_withDockerAccessRequired_shouldReturnDockerAccess() {
+  void initDockerAccess_withDockerAccessRequired_shouldReturnDockerAccess() {
     try (MockedConstruction<DockerAccessFactory> daf = mockConstruction(DockerAccessFactory.class)) {
       // When
       TaskUtil.initDockerAccess(extension, kitLogger);
@@ -86,7 +86,7 @@ public class TaskUtilTest {
   }
 
   @Test
-  public void initDockerAccess_withNoDockerAccessRequired_shouldReturnNull() {
+  void initDockerAccess_withNoDockerAccessRequired_shouldReturnNull() {
     try (MockedConstruction<DockerAccessFactory> daf = mockConstruction(DockerAccessFactory.class)) {
       // Given
       extension.buildStrategy = JKubeBuildStrategy.jib;

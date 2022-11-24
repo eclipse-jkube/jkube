@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
@@ -26,94 +26,64 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Collections;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author nicola
  */
-public class ImageEnricherTest {
+class ImageEnricherTest {
 
-    @Mocked
     private JKubeEnricherContext context;
-
-    @Mocked
     ImageConfiguration imageConfiguration;
 
     private ImageEnricher imageEnricher;
 
-    @Before
-    public void prepareMock() {
+    @BeforeEach
+    void prepareMock() {
+        context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+        imageConfiguration = mock(ImageConfiguration.class,RETURNS_DEEP_STUBS);
         // Setup mock behaviour
         givenResourceConfigWithEnvVar("MY_KEY", "MY_VALUE");
-        // @formatter:off
-        new Expectations() {{
-            imageConfiguration.getName(); result = "busybox";
-            imageConfiguration.getAlias(); result = "busybox";
-        }};
-        // @formatter:on
+        when(imageConfiguration.getName()).thenReturn("busybox");
+        when(imageConfiguration.getAlias()).thenReturn("busybox");
 
         imageEnricher = new ImageEnricher(context);
     }
 
-    @Test
-    public void checkEnrichDeployment() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
-
+    @DisplayName("check enriched resource type")
+    @ParameterizedTest(name = "{1}")
+    @MethodSource("resources")
+    void checkEnrich(HasMetadata item, String kind) {
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(item);
         imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "Deployment", "MY_KEY", "MY_VALUE");
+        assertCorrectlyGeneratedResources(builder.build(), kind, "MY_KEY", "MY_VALUE");
+    }
+
+    static Stream<Arguments> resources() {
+      return Stream.of(
+          arguments(new DeploymentBuilder().build(), "Deployment"),
+          arguments(new ReplicaSetBuilder().build(), "ReplicaSet"),
+          arguments(new DaemonSetBuilder().build(), "DaemonSet"),
+          arguments(new StatefulSetBuilder().build(), "StatefulSet"),
+          arguments(new DeploymentConfigBuilder().build(), "DeploymentConfig"));
     }
 
     @Test
-    public void checkEnrichReplicaSet() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new ReplicaSetBuilder().build());
-
-        imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "ReplicaSet", "MY_KEY", "MY_VALUE");
-    }
-
-    @Test
-    public void checkEnrichReplicationController() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder()
-                .addNewReplicationControllerItem()
-                .endReplicationControllerItem();
-
-        imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "ReplicationController", "MY_KEY", "MY_VALUE");
-    }
-
-    @Test
-    public void checkEnrichDaemonSet() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DaemonSetBuilder().build());
-
-        imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "DaemonSet", "MY_KEY", "MY_VALUE");
-    }
-
-    @Test
-    public void checkEnrichStatefulSet() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new StatefulSetBuilder().build());
-
-        imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "StatefulSet", "MY_KEY", "MY_VALUE");
-    }
-
-    @Test
-    public void checkEnrichDeploymentConfig() throws Exception {
-        KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentConfigBuilder().build());
-
-        imageEnricher.create(PlatformMode.kubernetes, builder);
-        assertCorrectlyGeneratedResources(builder.build(), "DeploymentConfig", "MY_KEY", "MY_VALUE");
-    }
-
-    @Test
-    public void create_whenEnvironmentVariableAbsent_thenAddsEnvironmentVariable() throws JsonProcessingException {
+    void create_whenEnvironmentVariableAbsent_thenAddsEnvironmentVariable() {
         // Given
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder().build());
 
@@ -125,7 +95,7 @@ public class ImageEnricherTest {
     }
 
     @Test
-    public void create_whenEnvironmentVariablePresentWithDifferentValue_thenOldValueIsPreserved() throws JsonProcessingException {
+    void create_whenEnvironmentVariablePresentWithDifferentValue_thenOldValueIsPreserved() {
         // Given
         givenResourceConfigWithEnvVar("key", "valueNew");
         KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
@@ -147,35 +117,26 @@ public class ImageEnricherTest {
         assertCorrectlyGeneratedResources(builder.build(), "Deployment", "key", "valueOld");
     }
 
-    private void assertCorrectlyGeneratedResources(KubernetesList list, String kind, String expectedKey, String expectedValue) throws JsonProcessingException {
-        assertThat(list.getItems())
-                .hasSize(1)
-                .first()
-                .hasFieldOrPropertyWithValue("kind", kind);
-
-        assertThat(list.getItems())
-                .extracting("spec.template.spec.containers")
-                .first()
-                .asList()
-                .extracting("env")
-                .first()
-                .asList()
-                .first()
-                .hasFieldOrPropertyWithValue("name", expectedKey)
-                .hasFieldOrPropertyWithValue("value", expectedValue);
+    private void assertCorrectlyGeneratedResources(KubernetesList list, String kind, String expectedKey, String expectedValue) {
+      assertThat(list.getItems())
+          .satisfies(l -> assertThat(l).singleElement()
+              .hasFieldOrPropertyWithValue("kind", kind)
+          )
+          .satisfies(l -> assertThat(l)
+              .extracting("spec.template.spec.containers").first().asList()
+              .extracting("env").first().asList().first()
+              .hasFieldOrPropertyWithValue("name", expectedKey)
+              .hasFieldOrPropertyWithValue("value", expectedValue)
+          );
     }
 
     private void givenResourceConfigWithEnvVar(String name, String value) {
-        // @formatter:off
-        new Expectations() {{
-            Configuration configuration = Configuration.builder()
-              .resource(ResourceConfig.builder()
-                .env(Collections.singletonMap(name, value))
-                .build())
-              .image(imageConfiguration)
-              .build();
-            context.getConfiguration(); result = configuration;
-        }};
-        // @formatter:on
+        Configuration configuration = Configuration.builder()
+                .resource(ResourceConfig.builder()
+                        .env(Collections.singletonMap(name, value))
+                        .build())
+                .image(imageConfiguration)
+                .build();
+        when(context.getConfiguration()).thenReturn(configuration);
     }
 }

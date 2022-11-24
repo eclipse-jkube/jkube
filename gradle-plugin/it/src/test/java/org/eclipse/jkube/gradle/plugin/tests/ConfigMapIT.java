@@ -16,19 +16,19 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class ConfigMapIT {
-  @Rule
-  public final ITGradleRunner gradleRunner = new ITGradleRunner();
+class ConfigMapIT {
+  @RegisterExtension
+  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  public void k8sResource_whenRun_generatesK8sManifestsContainingConfigMap() throws IOException, ParseException {
+  void k8sResource_whenRun_generatesK8sManifestsContainingConfigMap() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("configmap")
         .withArguments("build", "k8sResource", "--stacktrace")
@@ -47,7 +47,7 @@ public class ConfigMapIT {
   }
 
   @Test
-  public void ocResource_whenRun_generatesOpenShiftManifestsContainingConfigMap() throws IOException, ParseException {
+  void ocResource_whenRun_generatesOpenShiftManifestsContainingConfigMap() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("configmap")
         .withArguments("build", "ocResource", "--stacktrace")

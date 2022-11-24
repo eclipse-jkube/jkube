@@ -28,38 +28,37 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.assertj.core.groups.Tuple;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-public class DeploymentConfigHandlerTest {
+class DeploymentConfigHandlerTest {
 
   private ResourceConfig.ResourceConfigBuilder resourceConfigBuilder;
   private DeploymentConfigHandler deploymentConfigHandler;
 
-  @Before
-  public void before(){
+  @BeforeEach
+  void before(){
     resourceConfigBuilder = ResourceConfig.builder();
     deploymentConfigHandler = new DeploymentConfigHandler(new PodTemplateHandler(new ContainerHandler(new Properties(),
         new GroupArtifactVersion("g", "a", "v"), new ProbeHandler())));
   }
 
   @Test
-  public void get_withNoImagesAndNoControllerName_shouldThrowException() {
+  void get_withNoImagesAndNoControllerName_shouldThrowException() {
     // Given
     final ResourceConfig resourceConfig = resourceConfigBuilder.build();
     final List<ImageConfiguration> images = Collections.emptyList();
-    // When
-    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class,
-        () -> deploymentConfigHandler.get(resourceConfig, images));
-    // Then
-    assertThat(result).hasMessage("No controller name is specified!");
+    // When & Then
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> deploymentConfigHandler.get(resourceConfig, images))
+        .withMessage("No controller name is specified!");
   }
 
   @Test
-  public void get_withNoImages_shouldReturnConfigWithNoContainers() {
+  void get_withNoImages_shouldReturnConfigWithNoContainers() {
     // Given
     final ResourceConfig resourceConfig = resourceConfigBuilder.controllerName("controller").build();
     final List<ImageConfiguration> images = Collections.emptyList();
@@ -72,7 +71,7 @@ public class DeploymentConfigHandlerTest {
   }
 
   @Test
-  public void get_withImages_shouldReturnConfigWithContainers() {
+  void get_withImages_shouldReturnConfigWithContainers() {
     // Given
     final ResourceConfig resourceConfig = resourceConfigBuilder.controllerName("controller").build();
     final List<ImageConfiguration> images = Arrays.asList(
@@ -90,7 +89,7 @@ public class DeploymentConfigHandlerTest {
   }
 
   @Test
-  public void getPodTemplateSpec_withNoImages_shouldReturnPodTemplateSpecWithNoContainers() {
+  void getPodTemplateSpec_withNoImages_shouldReturnPodTemplateSpecWithNoContainers() {
     // Given
     final ResourceConfig resourceConfig = resourceConfigBuilder.controllerName("controller").build();
     final List<ImageConfiguration> images = Collections.emptyList();
@@ -101,7 +100,7 @@ public class DeploymentConfigHandlerTest {
   }
 
   @Test
-  public void overrideReplicas() {
+  void overrideReplicas() {
     // Given
     final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new DeploymentConfigBuilder()
         .editOrNewSpec().withReplicas(1).endSpec()
@@ -109,8 +108,7 @@ public class DeploymentConfigHandlerTest {
     // When
     deploymentConfigHandler.overrideReplicas(klb, 1337);
     // Then
-    assertThat(klb.buildItems())
-        .hasSize(1)
-        .first().hasFieldOrPropertyWithValue("spec.replicas", 1337);
+    assertThat(klb.buildItems()).singleElement()
+        .hasFieldOrPropertyWithValue("spec.replicas", 1337);
   }
 }

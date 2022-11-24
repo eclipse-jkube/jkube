@@ -24,35 +24,37 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import io.fabric8.openshift.api.model.DeploymentTriggerImageChangeParamsBuilder;
 import io.fabric8.openshift.api.model.DeploymentTriggerPolicy;
 import io.fabric8.openshift.api.model.DeploymentTriggerPolicyBuilder;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-public class ImageChangeTriggerEnricherTest {
-  @Mocked
+class ImageChangeTriggerEnricherTest {
   private JKubeEnricherContext context;
 
+  @BeforeEach
+  void setUp() {
+    context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+  }
+
   @Test
-  public void create_shouldAddImageChangeTriggers_whenDeploymentConfigPresent() {
+  void create_shouldAddImageChangeTriggers_whenDeploymentConfigPresent() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");
-    new Expectations() {{
-      context.getProperties();
-      result = properties;
-      context.getProcessingInstructions();
-      result = Collections.singletonMap("IMAGECHANGE_TRIGGER", "test-container");
-    }};
+    when(context.getProperties()).thenReturn(properties);
+    when(context.getProcessingInstructions()).thenReturn(Collections.singletonMap("IMAGECHANGE_TRIGGER", "test-container"));
     ImageChangeTriggerEnricher imageChangeTriggerEnricher = new ImageChangeTriggerEnricher(context);
     KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
     kubernetesListBuilder.addToItems(createNewDeploymentConfigBuilder());
@@ -65,16 +67,12 @@ public class ImageChangeTriggerEnricherTest {
   }
 
   @Test
-  public void create_withEnricherAllTrue_shouldAddTriggersToAllContainers() {
+  void create_withEnricherAllTrue_shouldAddTriggersToAllContainers() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");
-    new Expectations() {{
-      context.getProperty("jkube.openshift.enrichAllWithImageChangeTrigger");
-      result = "true";
-      context.getProperties();
-      result = properties;
-    }};
+    when(context.getProperty("jkube.openshift.enrichAllWithImageChangeTrigger")).thenReturn("true");
+    when(context.getProperties()).thenReturn(properties);
     ImageChangeTriggerEnricher imageChangeTriggerEnricher = new ImageChangeTriggerEnricher(context);
     KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
     kubernetesListBuilder.addToItems(createNewDeploymentConfigBuilder().editSpec().editTemplate().editSpec().addNewContainer()
@@ -92,15 +90,12 @@ public class ImageChangeTriggerEnricherTest {
   }
 
   @Test
-  public void create_withContainersInConfig_shouldAddImageChangeTriggerDeploymentConfigPresent() {
+  void create_withContainersInConfig_shouldAddImageChangeTriggerDeploymentConfigPresent() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");
     properties.put("jkube.enricher.jkube-openshift-imageChangeTrigger.containers", "test-container");
-    new Expectations() {{
-      context.getProperties();
-      result = properties;
-    }};
+    when(context.getProperties()).thenReturn(properties);
     ImageChangeTriggerEnricher imageChangeTriggerEnricher = new ImageChangeTriggerEnricher(context);
     KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
     kubernetesListBuilder.addToItems(createNewDeploymentConfigBuilder());
@@ -113,18 +108,13 @@ public class ImageChangeTriggerEnricherTest {
   }
 
   @Test
-  public void create_withTrimImageInContainerSpec_shouldTrimImageInContainers() {
+  void create_withTrimImageInContainerSpec_shouldTrimImageInContainers() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");
-    new Expectations() {{
-      context.getProperties();
-      result = properties;
-      context.getProperty("jkube.openshift.trimImageInContainerSpec");
-      result = "true";
-      context.getProcessingInstructions();
-      result = Collections.singletonMap("IMAGECHANGE_TRIGGER", "test-container");
-    }};
+    when(context.getProperties()).thenReturn(properties);
+    when(context.getProperty("jkube.openshift.trimImageInContainerSpec")).thenReturn("true");
+    when(context.getProcessingInstructions()).thenReturn(Collections.singletonMap("IMAGECHANGE_TRIGGER", "test-container"));
     ImageChangeTriggerEnricher imageChangeTriggerEnricher = new ImageChangeTriggerEnricher(context);
     KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
     kubernetesListBuilder.addToItems(createNewDeploymentConfigBuilder());
@@ -135,8 +125,7 @@ public class ImageChangeTriggerEnricherTest {
     // Then
     assertDeploymentConfigHasTriggers(kubernetesListBuilder, 1, createNewDeploymentTriggerPolicy("test-container", "test-container:latest"));
     assertThat(kubernetesListBuilder.buildItems())
-        .hasSize(1)
-        .first(InstanceOfAssertFactories.type(DeploymentConfig.class))
+        .singleElement(InstanceOfAssertFactories.type(DeploymentConfig.class))
         .extracting(DeploymentConfig::getSpec)
         .extracting(DeploymentConfigSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
@@ -148,16 +137,12 @@ public class ImageChangeTriggerEnricherTest {
   }
 
   @Test
-  public void create_withJibBuildStrategy_thenNoImageChangeTriggerAdded() {
+  void create_withJibBuildStrategy_thenNoImageChangeTriggerAdded() {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.internal.effective.platform.mode", "OPENSHIFT");
-    new Expectations() {{
-      context.getProperties();
-      result = properties;
-      context.getConfiguration().getJKubeBuildStrategy();
-      result = JKubeBuildStrategy.jib;
-    }};
+    when(context.getProperties()).thenReturn(properties);
+    when(context.getConfiguration().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.jib);
     ImageChangeTriggerEnricher imageChangeTriggerEnricher = new ImageChangeTriggerEnricher(context);
     KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
     kubernetesListBuilder.addToItems(createNewDeploymentConfigBuilder());
@@ -166,8 +151,8 @@ public class ImageChangeTriggerEnricherTest {
     imageChangeTriggerEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
 
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).hasSize(1).asList()
-        .first()
+    assertThat(kubernetesListBuilder.buildItems()).asList()
+        .singleElement()
         .extracting("spec.triggers")
         .asList()
         .isEmpty();
@@ -191,9 +176,8 @@ public class ImageChangeTriggerEnricherTest {
   private void assertDeploymentConfigHasTriggers(KubernetesListBuilder kubernetesListBuilder, int triggersSize, DeploymentTriggerPolicy... triggerPolicies) {
     List<HasMetadata> items = kubernetesListBuilder.buildItems();
     assertThat(items)
-        .hasSize(1)
         .asList()
-        .first()
+        .singleElement()
         .extracting("spec.triggers")
         .asList()
         .hasSize(triggersSize)

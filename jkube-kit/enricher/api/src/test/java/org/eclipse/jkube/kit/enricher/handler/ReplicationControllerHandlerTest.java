@@ -16,6 +16,9 @@ package org.eclipse.jkube.kit.enricher.handler;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -27,35 +30,31 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import mockit.Mocked;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-public class ReplicationControllerHandlerTest {
+class ReplicationControllerHandlerTest {
 
     @Mocked
-    ProbeHandler probeHandler;
+    private ProbeHandler probeHandler;
 
     @Mocked
-    JavaProject project;
+    private JavaProject project;
 
-    List<String> mounts = new ArrayList<>();
-    List<VolumeConfig> volumes1 = new ArrayList<>();
-
-    List<ImageConfiguration> images = new ArrayList<>();
-
-    List<String> ports = new ArrayList<>();
-
-    List<String> tags = new ArrayList<>();
-
+    private List<VolumeConfig> volumes;
+    private List<ImageConfiguration> images;
     private ReplicationControllerHandler replicationControllerHandler;
 
-    @Before
-    public void before(){
+    @BeforeEach
+    void setUp(){
+        volumes = new ArrayList<>();
+        images = new ArrayList<>();
+        List<String> mounts = new ArrayList<>();
+        List<String> ports = new ArrayList<>();
+        List<String> tags = new ArrayList<>();
 
         //volume config with name and multiple mount
         mounts.add("/path/system");
@@ -67,9 +66,9 @@ public class ReplicationControllerHandlerTest {
         tags.add("latest");
         tags.add("test");
 
-        VolumeConfig volumeConfig1 = VolumeConfig.builder()
+        VolumeConfig volumeConfig = VolumeConfig.builder()
                 .name("test").mounts(mounts).type("hostPath").path("/test/path").build();
-        volumes1.add(volumeConfig1);
+        volumes.add(volumeConfig);
 
         //container name with alias
         final BuildConfiguration buildImageConfiguration = BuildConfiguration.builder()
@@ -79,7 +78,6 @@ public class ReplicationControllerHandlerTest {
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("test").alias("test-app").build(buildImageConfiguration)
                 .registry("docker.io").build();
-
         images.add(imageConfiguration);
 
         replicationControllerHandler = new ReplicationControllerHandler(new PodTemplateHandler(new ContainerHandler(
@@ -87,63 +85,66 @@ public class ReplicationControllerHandlerTest {
     }
 
     @Test
-    public void replicationControllerHandlerTest() {
+    void get_withValidControllerName_shouldReturnConfigWithContainers() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
 
         ReplicationController replicationController = replicationControllerHandler.get(config,images);
-
-        //Assertion
-        assertNotNull(replicationController.getSpec());
-        assertNotNull(replicationController.getMetadata());
-        assertEquals(5,replicationController.getSpec().getReplicas().intValue());
-        assertNotNull(replicationController.getSpec().getTemplate());
-        assertEquals("testing",replicationController.getMetadata().getName());
-        assertEquals("test-account",replicationController.getSpec().getTemplate()
-                .getSpec().getServiceAccountName());
-        assertFalse(replicationController.getSpec().getTemplate().getSpec().getVolumes().isEmpty());
-        assertEquals("test",replicationController.getSpec().getTemplate().getSpec().
-                getVolumes().get(0).getName());
-        assertEquals("/test/path",replicationController.getSpec().getTemplate()
-                .getSpec().getVolumes().get(0).getHostPath().getPath());
-        assertNotNull(replicationController.getSpec().getTemplate().getSpec().getContainers());
-
+        assertThat(replicationController.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
+        assertThat(replicationController)
+            .satisfies(rc -> assertThat(rc.getMetadata())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("name", "testing")
+            )
+            .satisfies(rc -> assertThat(rc.getSpec())
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("replicas", 5)
+                .extracting(ReplicationControllerSpec::getTemplate).isNotNull()
+                .extracting(PodTemplateSpec::getSpec)
+                .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
+                .extracting(PodSpec::getVolumes).asList()
+                .isNotEmpty()
+                .first()
+                .hasFieldOrPropertyWithValue("name", "test")
+                .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
+            );
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void replicationControllerHandlerWithInvalidNameTest() {
-        // with invalid controller name
+    @Test
+    void get_withInvalidControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
-
-        replicationControllerHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> replicationControllerHandler.get(config, images))
+            .withMessageStartingWith("Invalid upper case letter 'T'")
+            .withMessageEndingWith("controller name value: TesTing");
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void replicationControllerHandlerWithoutControllerTest() {
-        // without controller name
+    @Test
+    void get_withoutControllerName_shouldThrowException() {
         ResourceConfig config = ResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .serviceAccount("test-account")
                 .replicas(5)
-                .volumes(volumes1)
+                .volumes(volumes)
                 .build();
-
-        replicationControllerHandler.get(config, images);
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> replicationControllerHandler.get(config, images))
+            .withMessage("No replication controller name is specified!");
     }
 
     @Test
-    public void overrideReplicas() {
+    void overrideReplicas() {
         // Given
         final KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(new ReplicationControllerBuilder()
             .editOrNewSpec().withReplicas(1).endSpec()
@@ -152,7 +153,7 @@ public class ReplicationControllerHandlerTest {
         replicationControllerHandler.overrideReplicas(klb, 1337);
         // Then
         assertThat(klb.buildItems())
-            .hasSize(1)
-            .first().hasFieldOrPropertyWithValue("spec.replicas", 1337);
+            .singleElement()
+            .hasFieldOrPropertyWithValue("spec.replicas", 1337);
     }
 }

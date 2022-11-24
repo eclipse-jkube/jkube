@@ -21,7 +21,7 @@
     <parent>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>kubernetes-maven-plugin-parent</artifactId>
-      <version>1.10-SNAPSHOT</version>
+      <version>1.11-SNAPSHOT</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -127,6 +127,12 @@
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-smallrye</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-profiles</artifactId>
         </dependency>
 
@@ -134,6 +140,11 @@
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-watcher-standard</artifactId>
         </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-remote-dev</artifactId>
+      </dependency>
 
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -146,8 +157,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.jmockit</groupId>
-            <artifactId>jmockit</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>

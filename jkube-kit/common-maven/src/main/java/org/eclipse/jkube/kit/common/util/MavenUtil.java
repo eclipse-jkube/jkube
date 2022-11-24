@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -22,9 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
 
 import org.apache.maven.plugin.BuildPluginManager;
@@ -35,7 +31,6 @@ import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
-import com.google.common.base.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -46,88 +41,15 @@ import org.apache.maven.model.Site;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
-import org.codehaus.plexus.archiver.tar.TarArchiver;
-import org.codehaus.plexus.archiver.tar.TarLongFileMode;
-import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import static org.eclipse.jkube.kit.common.util.EnvUtil.greaterOrEqualsVersion;
 
 /**
  * @author roland
- * @since 31/03/16
  */
 public class MavenUtil {
-
-    private static final String DEFAULT_CONFIG_FILE_NAME = "kubernetes.json";
-
     private MavenUtil() {}
-
-    public static boolean isKubernetesJsonArtifact(String classifier, String type) {
-        return "json".equals(type) && "kubernetes".equals(classifier);
-    }
-
-    public static boolean hasKubernetesJson(File f) throws IOException {
-        try (FileInputStream fis = new FileInputStream(f); JarInputStream jis = new JarInputStream(fis)) {
-            for (JarEntry entry = jis.getNextJarEntry(); entry != null; entry = jis.getNextJarEntry()) {
-                if (entry.getName().equals(DEFAULT_CONFIG_FILE_NAME)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns true if the maven project has a dependency with the given groupId and artifactId (if not null)
-     *
-     * @param project MavenProject object for project
-     * @param groupId group id of project
-     * @param artifactId artifact id of project
-     * @return boolean value indicating whether dependency is there or not
-     */
-    public static boolean hasDependency(MavenProject project, String groupId, String artifactId) {
-        return getDependencyVersion(project, groupId, artifactId) != null;
-    }
-
-    /**
-     * Returns the version associated to the dependency with the given groupId and artifactId (if present)
-     *
-     * @param project MavenProject object for project
-     * @param groupId group id
-     * @param artifactId artifact id
-     * @return version associated to dependency
-     */
-    public static String getDependencyVersion(MavenProject project, String groupId, String artifactId) {
-        Set<Artifact> artifacts = project.getArtifacts();
-        if (artifacts != null) {
-            for (Artifact artifact : artifacts) {
-                String scope = artifact.getScope();
-                if (Objects.equal("test", scope)) {
-                    continue;
-                }
-                if (artifactId != null && !Objects.equal(artifactId, artifact.getArtifactId())) {
-                    continue;
-                }
-                if (Objects.equal(groupId, artifact.getGroupId())) {
-                    return artifact.getVersion();
-                }
-            }
-        }
-        return null;
-    }
-
-    public static boolean hasPlugin(MavenProject project, String groupId, String artifactId) {
-        return project.getPlugin(groupId + ":" + artifactId) != null;
-    }
-
-    public static boolean hasPluginOfAnyGroupId(MavenProject project, String pluginArtifact) {
-        return getPluginOfAnyGroupId(project, pluginArtifact) != null;
-    }
-
-    public static org.apache.maven.model.Plugin getPluginOfAnyGroupId(MavenProject project, String pluginArtifact) {
-        return getPlugin(project, null, pluginArtifact);
-    }
 
     /**
      * Returns a list of {@link Plugin}
@@ -179,56 +101,6 @@ public class MavenUtil {
   }
 
     /**
-     * Returns the plugin with the given groupId (if present) and artifactId.
-     *
-     * @param project MavenProject of project
-     * @param groupId group id
-     * @param artifactId artifact id
-     * @return return Plugin object for the specific plugin
-     */
-    public static org.apache.maven.model.Plugin getPlugin(MavenProject project, String groupId, String artifactId) {
-        if (artifactId == null) {
-            throw new IllegalArgumentException("artifactId cannot be null");
-        }
-
-        List<org.apache.maven.model.Plugin> plugins = project.getBuildPlugins();
-        if (plugins != null) {
-            for (org.apache.maven.model.Plugin plugin : plugins) {
-                boolean matchesArtifactId = artifactId.equals(plugin.getArtifactId());
-                boolean matchesGroupId = groupId == null || groupId.equals(plugin.getGroupId());
-
-                if (matchesGroupId && matchesArtifactId) {
-                    return plugin;
-                }
-            }
-        }
-        return null;
-    }
-
-    public static void createArchive(File sourceDir, File destinationFile, TarArchiver archiver) throws IOException {
-        try {
-            archiver.setCompression(TarArchiver.TarCompressionMethod.gzip);
-            archiver.setLongfile(TarLongFileMode.posix);
-            archiver.addDirectory(sourceDir);
-            archiver.setDestFile(destinationFile);
-            archiver.createArchive();
-        } catch (IOException e) {
-            throw new IOException("Failed to create archive " + destinationFile + ": " + e, e);
-        }
-    }
-
-
-    public static void createArchive(File sourceDir, File destinationFile, ZipArchiver archiver) throws IOException {
-        try {
-            archiver.addDirectory(sourceDir);
-            archiver.setDestFile(destinationFile);
-            archiver.createArchive();
-        } catch (IOException e) {
-            throw new IOException("Failed to create archive " + destinationFile + ": " + e, e);
-        }
-    }
-
-    /**
      * Returns the version from the list of pre-configured versions of common groupId/artifact pairs
      *
      * @param groupId group id
@@ -254,20 +126,6 @@ public class MavenUtil {
 
         }
         return version;
-    }
-
-    /**
-     * Return all properties in Maven project, merged with all System properties (-D flags sent to Maven).
-     * <p>
-     * System properties always takes precedence.
-     *
-     * @param project Project to extract Properties from
-     * @return Properties merged
-     */
-    public static Properties getPropertiesWithSystemOverrides(MavenProject project) {
-        Properties properties = new Properties(project.getProperties());
-        properties.putAll(System.getProperties());
-        return properties;
     }
 
     public static boolean isMaven350OrLater(MavenSession mavenSession) {

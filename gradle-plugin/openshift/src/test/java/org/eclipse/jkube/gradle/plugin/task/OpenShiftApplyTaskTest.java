@@ -13,8 +13,6 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 
@@ -24,15 +22,15 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jgit.util.FileUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -41,17 +39,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class OpenShiftApplyTaskTest {
+class OpenShiftApplyTaskTest {
 
-  @Rule
-  public TaskEnvironment taskEnvironment = new TaskEnvironment();
+  @RegisterExtension
+  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedConstruction<ApplyService> applyServiceMockedConstruction;
   private TestOpenShiftExtension extension;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       final OpenShiftClient openShiftClient = mock(OpenShiftClient.class);
       when(mock.createDefaultClient()).thenReturn(openShiftClient);
@@ -65,42 +63,39 @@ public class OpenShiftApplyTaskTest {
     extension.isFailOnNoKubernetesJson = false;
   }
 
-  @After
-  public void tearDown() {
+  @AfterEach
+  void tearDown() {
     applyServiceMockedConstruction.close();
     clusterAccessMockedConstruction.close();
   }
 
   @Test
-  public void runTask_withOffline_shouldThrowException() {
+  void runTask_withOffline_shouldThrowException() {
     // Given
     extension.isOffline = true;
     final OpenShiftApplyTask ocApplyTask = new OpenShiftApplyTask(OpenShiftExtension.class);
 
-    // When
-    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, ocApplyTask::runTask);
-
-    // Then
-    assertThat(result)
-      .hasMessage("Connection to Cluster required. Please check if offline mode is set to false");
+    // When & Then
+    assertThatIllegalArgumentException()
+        .isThrownBy(ocApplyTask::runTask)
+        .withMessage("Connection to Cluster required. Please check if offline mode is set to false");
   }
 
   @Test
-  public void runTask_withNoManifest_shouldThrowException() {
+  void runTask_withNoManifest_shouldThrowException() {
     // Given
     extension.isFailOnNoKubernetesJson = true;
     final OpenShiftApplyTask ocApplyTask = new OpenShiftApplyTask(OpenShiftExtension.class);
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class, ocApplyTask::runTask);
-    // Then
-    assertThat(result)
-      .hasMessageMatching("No such generated manifest file: .+openshift\\.yml");
+    // When & Then
+    assertThatIllegalStateException()
+        .isThrownBy(ocApplyTask::runTask)
+        .withMessageMatching("No such generated manifest file: .+openshift\\.yml");
   }
 
   @Test
-  public void configureApplyService_withManifest_shouldSetDefaults() throws Exception {
+  void configureApplyService_withManifest_shouldSetDefaults() throws Exception {
     // Given
-    withOpenShiftManifest();
+    taskEnvironment.withOpenShiftManifest();
     final OpenShiftApplyTask ocApplyTask = new OpenShiftApplyTask(OpenShiftExtension.class);
     // When
     ocApplyTask.runTask();
@@ -123,9 +118,9 @@ public class OpenShiftApplyTaskTest {
   }
 
   @Test
-  public void runTask_withManifest_shouldApplyEntities() throws Exception {
+  void runTask_withManifest_shouldApplyEntities() throws Exception {
     // Given
-    withOpenShiftManifest();
+    taskEnvironment.withOpenShiftManifest();
     final OpenShiftApplyTask ocApplyTask = new OpenShiftApplyTask(OpenShiftExtension.class);
     // When
     ocApplyTask.runTask();
@@ -133,10 +128,5 @@ public class OpenShiftApplyTaskTest {
     assertThat(applyServiceMockedConstruction.constructed()).hasSize(1);
     verify(applyServiceMockedConstruction.constructed().iterator().next(), times(1))
       .applyEntities(any(), eq(Collections.emptyList()), any(), eq(5L));
-  }
-
-  private void withOpenShiftManifest() throws IOException {
-    final File manifestsDir = taskEnvironment.newFolder("build", "classes", "java", "main", "META-INF", "jkube");
-    FileUtils.touch(new File(manifestsDir, "openshift.yml").toPath());
   }
 }

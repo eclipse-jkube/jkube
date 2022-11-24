@@ -35,18 +35,18 @@ import io.fabric8.openshift.api.model.BuildConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.RouteBuilder;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
-public class MetadataVisitorTest {
+class MetadataVisitorTest {
 
   private ResourceConfig resourceConfig;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     final MetaDataConfig annotations = MetaDataConfig.builder()
         .all(new Properties())
         .deployment(new Properties())
@@ -74,7 +74,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void configMap() {
+  void configMap() {
     // Given
     final KubernetesListBuilder klb = new KubernetesListBuilder();
     klb.addToItems(new ConfigMapBuilder().editOrNewMetadata().endMetadata());
@@ -88,7 +88,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void configMap_nullResourceConfig() {
+  void configMap_nullResourceConfig() {
     // Given
     final KubernetesListBuilder klb = new KubernetesListBuilder();
     klb.addToItems(new ConfigMapBuilder().editOrNewMetadata().endMetadata());
@@ -100,7 +100,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void job() {
+  void job() {
     // Given
     final KubernetesListBuilder klb = new KubernetesListBuilder();
     klb.addToItems(new JobBuilder().editOrNewMetadata().endMetadata());
@@ -114,7 +114,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void deployment() {
+  void deployment() {
     // Given
     final DeploymentBuilder db = new DeploymentBuilder();
     // When
@@ -125,7 +125,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void extensionsDeployment() {
+  void extensionsDeployment() {
     // Given
     final io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder db =
         new io.fabric8.kubernetes.api.model.extensions.DeploymentBuilder();
@@ -137,7 +137,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void deploymentConfig() {
+  void deploymentConfig() {
     // Given
     final DeploymentConfigBuilder dc = new DeploymentConfigBuilder();
     // When
@@ -148,7 +148,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void replicaSetBuilder() {
+  void replicaSetBuilder() {
     // Given
     final ReplicaSetBuilder rs = new ReplicaSetBuilder();
     // When
@@ -161,7 +161,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void replicaSetBuilder_preservesOriginalValues() {
+  void replicaSetBuilder_preservesOriginalValues() {
     // Given
     final ReplicaSetBuilder rs = new ReplicaSetBuilder();
     rs.editOrNewMetadata().addToAnnotations("extra", "EXTRA").endMetadata();
@@ -176,7 +176,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void replicationController() {
+  void replicationController() {
     // Given
     final ReplicationControllerBuilder rc = new ReplicationControllerBuilder();
     // When
@@ -188,7 +188,7 @@ public class MetadataVisitorTest {
         .containsOnly(entry("replica-set", "Yay"));
   }
   @Test
-  public void podTemplateSpecBuilder() {
+  void podTemplateSpecBuilder() {
     // Given
     final PodTemplateSpecBuilder pb = new PodTemplateSpecBuilder();
     // When
@@ -201,7 +201,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void serviceBuilder() {
+  void serviceBuilder() {
     // Given
     final ServiceBuilder sb = new ServiceBuilder();
     // When
@@ -214,7 +214,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void serviceBuilder_preservesOriginalValues() {
+  void serviceBuilder_preservesOriginalValues() {
     // Given
     final ServiceBuilder sb = new ServiceBuilder();
     sb.editOrNewMetadata().addToAnnotations("service", "to-be-preserved").endMetadata();
@@ -228,7 +228,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void daemonSet() {
+  void daemonSet() {
     // Given
     final DaemonSetBuilder ds = new DaemonSetBuilder();
     // When
@@ -241,7 +241,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void statefulSet() {
+  void statefulSet() {
     // Given
     final StatefulSetBuilder ss = new StatefulSetBuilder();
     // When
@@ -254,7 +254,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void imageStream() {
+  void imageStream() {
     // Given
     final ImageStreamBuilder is = new ImageStreamBuilder();
     // When
@@ -267,7 +267,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void buildConfig() {
+  void buildConfig() {
     // Given
     final BuildConfigBuilder bc = new BuildConfigBuilder();
     // When
@@ -280,7 +280,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void build() {
+  void build() {
     // Given
     final BuildBuilder b = new BuildBuilder();
     // When
@@ -293,7 +293,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void extensionsIngress() {
+  void extensionsIngress() {
     // Given
     final IngressBuilder ib = new IngressBuilder();
     // When
@@ -304,7 +304,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void ingressV1beta1() {
+  void ingressV1beta1() {
     // Given
     final io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBuilder ib =
         new io.fabric8.kubernetes.api.model.networking.v1beta1.IngressBuilder();
@@ -316,7 +316,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void ingressV1() {
+  void ingressV1() {
     // Given
     final io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder ib =
         new io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder();
@@ -328,7 +328,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void serviceAccount() {
+  void serviceAccount() {
     // Given
     final ServiceAccountBuilder sa = new ServiceAccountBuilder();
     // When
@@ -339,7 +339,7 @@ public class MetadataVisitorTest {
   }
 
   @Test
-  public void route() {
+  void route() {
     // Given
     final RouteBuilder route = new RouteBuilder();
     // When

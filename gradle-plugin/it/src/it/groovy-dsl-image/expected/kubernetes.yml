@@ -77,3 +77,21 @@ items:
             protocol: TCP
           securityContext:
             privileged: false
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: repository/groovy-dsl-image-with-builder:latest
+          imagePullPolicy: IfNotPresent
+          name: repository-groovy-dsl-image
+          ports:
+          - containerPort: 8082
+            name: us-cli
+            protocol: TCP
+          securityContext:
+            privileged: false

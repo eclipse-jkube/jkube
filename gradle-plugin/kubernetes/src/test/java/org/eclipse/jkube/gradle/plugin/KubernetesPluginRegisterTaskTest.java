@@ -13,8 +13,7 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
 import org.eclipse.jkube.gradle.plugin.task.KubernetesApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
@@ -24,56 +23,54 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmPushTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesPushTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesUndeployTask;
 
 import org.eclipse.jkube.gradle.plugin.task.KubernetesWatchTask;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@RunWith(Parameterized.class)
-public class KubernetesPluginRegisterTaskTest {
+class KubernetesPluginRegisterTaskTest {
 
-  @Parameterized.Parameters(name = "{index} {0}")
-  public static Collection<Object[]> data() {
-    return Arrays.asList(
-        new Object[] { "k8sApply", KubernetesApplyTask.class },
-        new Object[] { "k8sBuild", KubernetesBuildTask.class },
-        new Object[] { "k8sConfigView", KubernetesConfigViewTask.class },
-        new Object[] { "k8sDebug", KubernetesDebugTask.class },
-        new Object[] { "k8sLog", KubernetesLogTask.class },
-        new Object[] { "k8sPush", KubernetesPushTask.class },
-        new Object[] { "k8sResource", KubernetesResourceTask.class },
-        new Object[] { "k8sUndeploy", KubernetesUndeployTask.class },
-        new Object[] { "k8sHelm", KubernetesHelmTask.class },
-        new Object[] { "k8sHelmPush", KubernetesHelmPushTask.class },
-        new Object[] { "k8sWatch", KubernetesWatchTask.class});
+  static Stream<Arguments> data() {
+    return Stream.of(
+        arguments("k8sApply", KubernetesApplyTask.class),
+        arguments("k8sBuild", KubernetesBuildTask.class),
+        arguments("k8sConfigView", KubernetesConfigViewTask.class),
+        arguments("k8sDebug", KubernetesDebugTask.class),
+        arguments("k8sLog", KubernetesLogTask.class),
+        arguments("k8sPush", KubernetesPushTask.class),
+        arguments("k8sResource", KubernetesResourceTask.class),
+        arguments("k8sUndeploy", KubernetesUndeployTask.class),
+        arguments("k8sHelm", KubernetesHelmTask.class),
+        arguments("k8sHelmPush", KubernetesHelmPushTask.class),
+        arguments("k8sRemoteDev", KubernetesRemoteDevTask.class),
+        arguments("k8sWatch", KubernetesWatchTask.class)
+    );
   }
-
-  @Parameterized.Parameter
-  public String task;
-
-  @Parameterized.Parameter(1)
-  public Class<Task> taskClass;
 
   private Project project;
 
-  @Before
-  public void setUp() {
+  @BeforeEach
+  void setUp() {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
   }
 
-  @Test
-  public void apply_withValidProject_shouldCreateExtensionAndRegisterTask() {
+  @ParameterizedTest(name = "{index}: with valid project, should create extension and register task ''{0}'' ")
+  @MethodSource("data")
+  void apply_withValidProject_shouldCreateExtensionAndRegisterTask(String task, Class<Task> taskClass) {
     // When
     new KubernetesPlugin().apply(project);
     // Then
