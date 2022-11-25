@@ -200,7 +200,7 @@ include::enricher/port-name/_jkube_port_name.adoc[]
 
 include::enricher/project-label/_jkube_project_label.adoc[]
 
-include::enricher/replicacount/_jkube_replicacount.adoc[]
+include::enricher/_jkube_replicas.adoc[]
 
 include::enricher/revisionhistory/_jkube_revision_history.adoc[]
 
@@ -231,8 +231,6 @@ include::enricher/_jkube_maven_scm_enricher.adoc[]
 include::enricher/_jkube_maven_issue_mgmt.adoc[]
 
 include::enricher/_jkube_prometheus.adoc[]
-
-include::enricher/_jkube_replicas.adoc[]
 
 endif::[]
 

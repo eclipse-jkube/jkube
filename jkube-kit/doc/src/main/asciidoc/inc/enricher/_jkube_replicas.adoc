@@ -8,6 +8,7 @@ generated or processed by JKube (including those from <<jkube-dependency, depend
 
 In order to use this enricher you need to configure the `jkube.replicas` property:
 
+ifeval::["{plugin-type}" == "maven"]
 [source, sh, subs="+attributes"]
 ----
 mvn -Djkube.replicas=42 {goal-prefix}:resource
@@ -23,5 +24,18 @@ mvn -Djkube.replicas=42 {goal-prefix}:resource
   </properties>
 </project>
 ----
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[source, sh, subs="+attributes"]
+----
+gradle -Pjkube.replicas=42 {task-prefix}Resource
+----
+
+[source,properties,subs="attributes+"]
+.gradle.properties
+----
+jkube.replicas = 42
+----
+endif::[]
 
 You can use this Enricher at runtime to temporarily force the number of replicas to a given value.
