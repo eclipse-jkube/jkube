@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
-import mockit.Mocked;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -34,13 +33,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
 class ReplicaSetHandlerTest {
-
-    @Mocked
     private ProbeHandler probeHandler;
 
-    @Mocked
     private JavaProject project;
 
     private List<VolumeConfig> volumes;
@@ -49,6 +46,8 @@ class ReplicaSetHandlerTest {
 
     @BeforeEach
     void setUp(){
+        probeHandler = mock(ProbeHandler.class);
+        project = mock(JavaProject.class);
         volumes = new ArrayList<>();
         images = new ArrayList<>();
         List<String> mounts = new ArrayList<>();

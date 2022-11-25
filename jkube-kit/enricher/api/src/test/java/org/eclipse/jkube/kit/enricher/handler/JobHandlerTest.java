@@ -28,18 +28,15 @@ import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
 class JobHandlerTest {
-
-    @Mocked
     private ProbeHandler probeHandler;
-    @Mocked
     private JavaProject project;
     private List<VolumeConfig> volumes;
     private List<ImageConfiguration> images;
@@ -47,6 +44,8 @@ class JobHandlerTest {
 
     @BeforeEach
     void setUp(){
+        probeHandler = mock(ProbeHandler.class);
+        project = mock(JavaProject.class);
         volumes = new ArrayList<>();
         images = new ArrayList<>();
         List<String> mounts = new ArrayList<>();

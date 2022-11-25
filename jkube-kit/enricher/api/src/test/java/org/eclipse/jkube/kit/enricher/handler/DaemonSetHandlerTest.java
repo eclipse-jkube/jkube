@@ -28,16 +28,15 @@ import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
 class DaemonSetHandlerTest {
 
-    @Mocked
     private ProbeHandler probeHandler;
     private List<VolumeConfig> volumes;
     private List<ImageConfiguration> images;
@@ -45,6 +44,7 @@ class DaemonSetHandlerTest {
 
     @BeforeEach
     void before(){
+        probeHandler = mock(ProbeHandler.class);
         volumes = new ArrayList<>();
         images = new ArrayList<>();
         List<String> mounts = new ArrayList<>();

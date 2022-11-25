@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
-import mockit.Mocked;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,10 +34,9 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.mock;
 
 class ContainerHandlerTest {
-
-    @Mocked
     private ProbeHandler probeHandler;
     private JavaProject project;
     private ResourceConfig config;
@@ -54,6 +52,7 @@ class ContainerHandlerTest {
 
     @BeforeEach
     void setUp() {
+      probeHandler = mock(ProbeHandler.class);
       project = JavaProject.builder().properties(new Properties()).build();
       config = ResourceConfig.builder()
           .imagePullPolicy("IfNotPresent")

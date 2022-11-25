@@ -29,19 +29,17 @@ import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
 class DeploymentHandlerTest {
 
-    @Mocked
     private ProbeHandler probeHandler;
 
-    @Mocked
     private JavaProject project;
 
     List<String> mounts = new ArrayList<>();
@@ -57,7 +55,8 @@ class DeploymentHandlerTest {
 
     @BeforeEach
     void before(){
-
+        probeHandler = mock(ProbeHandler.class);
+        project = mock(JavaProject.class);
         //volume config with name and multiple mount
         mounts.add("/path/system");
         mounts.add("/path/sys");
