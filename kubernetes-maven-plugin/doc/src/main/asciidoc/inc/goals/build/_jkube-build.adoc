@@ -438,7 +438,7 @@ The `<build>` section is mandatory and is explained in <<build-configuration, be
 include::../../image/_naming.adoc[]
 include::../../image/_example.adoc[]
 
-include::../../../{kitdoc-path}/inc/build/_index.adoc[]
+include::{kitdoc-path}/inc/build/_index.adoc[]
 
 [[misc-env]]
 === Environment and Labels
