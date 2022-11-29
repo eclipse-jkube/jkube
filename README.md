@@ -70,9 +70,6 @@ Some thin adapter Maven specific modules like [jkube-kit-enricher-maven](enriche
 
 ## Getting started
 
-Want to test drive JKube? check our getting started [Katacoda course](https://katacoda.com/jkubeio/courses/getting-started)
-to see what JKube can do for you and your project directly from your browser.
-
 Check out our [Maven quickstarts](https://github.com/eclipse/jkube/tree/master/quickstarts/maven) to see how JKube fits
 with the Java framework of your choice.https://github.com/eclipse/jkube/tree/master/quickstarts/maven
 
