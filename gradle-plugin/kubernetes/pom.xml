@@ -25,10 +25,6 @@
       <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <prerequisites>
-        <maven>3.0.3</maven>
-    </prerequisites>
-
     <!--
         GAV has to be compliant with plugin id
         https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_markers
