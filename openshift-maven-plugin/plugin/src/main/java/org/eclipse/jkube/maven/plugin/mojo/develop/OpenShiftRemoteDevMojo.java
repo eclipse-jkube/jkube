@@ -16,7 +16,12 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 @Mojo(name = "remote-dev", requiresDependencyResolution = ResolutionScope.COMPILE_PLUS_RUNTIME, defaultPhase = LifecyclePhase.VALIDATE)
 public class OpenShiftRemoteDevMojo extends RemoteDevMojo {
+  @Override
+  protected String getLogPrefix() {
+    return OpenShift.DEFAULT_LOG_PREFIX;
+  }
 }
