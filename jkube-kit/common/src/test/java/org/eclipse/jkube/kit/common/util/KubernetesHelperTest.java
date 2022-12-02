@@ -54,7 +54,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
-import static org.eclipse.jkube.kit.common.util.IoUtil.getFreeRandomPort;
 
 class KubernetesHelperTest {
 
@@ -75,12 +74,11 @@ class KubernetesHelperTest {
     }
 
     @Test
-    void testResourceFragmentsWithRemotes() throws IOException {
-        int port = getFreeRandomPort();
+    void resourceFragmentsWithRemotes() throws IOException {
         File remoteDirectory = new File(getClass().getResource("/remote-resources").getFile());
-        try (TestHttpStaticServer ignore = new TestHttpStaticServer(port, remoteDirectory)) {
+        try (TestHttpStaticServer http = new TestHttpStaticServer(remoteDirectory)) {
             // Given
-            List<String> remoteStrList = getRemoteFragments(port);
+            List<String> remoteStrList = getRemoteFragments(http.getPort());
             File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
 
             // When
@@ -113,12 +111,11 @@ class KubernetesHelperTest {
     }
 
     @Test
-    void testGetResourceFragmentFromSourceWithNullResourceDirAndSomeRemotes() throws IOException {
-        int port = getFreeRandomPort();
+    void getResourceFragmentFromSourceWithNullResourceDirAndSomeRemotes() throws IOException {
         File remoteDirectory = new File(getClass().getResource("/remote-resources").getFile());
-        try (TestHttpStaticServer ignore = new TestHttpStaticServer(port, remoteDirectory)) {
+        try (TestHttpStaticServer http = new TestHttpStaticServer(remoteDirectory)) {
             // Given
-            List<String> remotes = getRemoteFragments(port);
+            List<String> remotes = getRemoteFragments(http.getPort());
 
             // When
             File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(null, remotes, "deployment.yaml", logger);
@@ -131,13 +128,12 @@ class KubernetesHelperTest {
     }
 
     @Test
-    void testGetResourceFragmentFromSourceWithSomeResourceDirAndSomeRemotes() throws IOException {
-        int port = getFreeRandomPort();
+    void getResourceFragmentFromSourceWithSomeResourceDirAndSomeRemotes() throws IOException {
         File remoteDirectory = new File(getClass().getResource("/remote-resources").getFile());
-        try (TestHttpStaticServer ignore = new TestHttpStaticServer(port, remoteDirectory)) {
+        try (TestHttpStaticServer http = new TestHttpStaticServer(remoteDirectory)) {
             // Given
             File localResourceDir = new File(getClass().getResource("/util/fragments").getPath());
-            List<String> remotes = getRemoteFragments(port);
+            List<String> remotes = getRemoteFragments(http.getPort());
 
             // When
             File fragmentFile = KubernetesHelper.getResourceFragmentFromSource(localResourceDir, remotes, "sa.yml", logger);

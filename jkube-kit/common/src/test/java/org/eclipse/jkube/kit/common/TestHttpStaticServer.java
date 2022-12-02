@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.kit.common;
 
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpServer;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,54 +24,75 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.net.URLConnection;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import static org.eclipse.jkube.kit.common.util.AsyncUtil.async;
+import static org.eclipse.jkube.kit.common.util.IoUtil.getFreeRandomPort;
 
 public class TestHttpStaticServer implements Closeable {
-  private final HttpServer server;
-  private final File staticDirectory;
+
   private static final Logger log = LoggerFactory.getLogger(TestHttpStaticServer.class);
+  private final CompletableFuture<HttpServer> server;
 
-  public TestHttpStaticServer(int port, File staticDirectory) throws IOException {
-    server = HttpServer.create(new InetSocketAddress(port), 0);
-    this.staticDirectory = staticDirectory;
-    ExecutorService executorService = Executors.newSingleThreadExecutor();
-    executorService.submit(this::startServer);
-  }
-
-  private void startServer() {
-    server.createContext("/", exchange -> {
-      File file = new File(staticDirectory, exchange.getRequestURI().getPath()).getCanonicalFile();
-
-      if (file.isFile()) {
-        Headers headers = exchange.getResponseHeaders();
-        headers.set("Content-Type", "text/html");
-        exchange.sendResponseHeaders(200, 0);
-
-        try (OutputStream outputStream = exchange.getResponseBody();
-             FileInputStream fis = new FileInputStream(file)) {
-          final byte[] buffer = new byte[0x10000];
-          int count;
-          while ((count = fis.read(buffer)) >= 0) {
-            outputStream.write(buffer, 0, count);
-          }
-        }
-      } else {
-        String response = "404 (Not Found)\n";
-        exchange.sendResponseHeaders(404 , response.length());
-        try (OutputStream os = exchange.getResponseBody()) {
-          os.write(response.getBytes());
-        }
-      }
-    });
-    server.setExecutor(null);
-    log.info("Starting server");
-    server.start();
+  public TestHttpStaticServer(File staticDirectory) {
+    server = async(startServer(staticDirectory));
   }
 
   @Override
   public void close() throws IOException {
     log.info("Stopping server");
-    server.stop(0);
+    getServer().stop(0);
+  }
+
+  private static Callable<HttpServer> startServer(File staticDirectory) {
+    return () -> {
+      final int port = getFreeRandomPort();
+      final HttpServer ret = HttpServer.create(new InetSocketAddress(port), 0);
+      ret.createContext("/", exchange -> {
+        final File file = new File(staticDirectory, exchange.getRequestURI().getPath()).getCanonicalFile();
+        if (file.isFile()) {
+
+          try (
+            OutputStream outputStream = exchange.getResponseBody();
+            FileInputStream fis = new FileInputStream(file)
+          ) {
+            exchange.getResponseHeaders().set("Content-Type",
+              Optional.ofNullable(URLConnection.guessContentTypeFromStream(fis)).orElse("application/octet-stream"));
+            exchange.sendResponseHeaders(200, 0);
+            IOUtils.copy(fis, outputStream);
+          }
+        } else {
+          String response = "404 (Not Found)\n";
+          exchange.sendResponseHeaders(404 , response.length());
+          try (OutputStream os = exchange.getResponseBody()) {
+            os.write(response.getBytes());
+          }
+        }
+      });
+      log.info("Starting server");
+      ret.start();
+      return ret;
+    };
+  }
+
+  public int getPort() {
+    return getServer().getAddress().getPort();
+  }
+
+  private HttpServer getServer() {
+    try {
+      return server.get(10, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    } catch (TimeoutException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
