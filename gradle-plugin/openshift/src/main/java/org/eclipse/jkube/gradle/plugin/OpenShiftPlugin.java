@@ -23,7 +23,6 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
-import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
@@ -31,6 +30,7 @@ import org.eclipse.jkube.gradle.plugin.task.OpenShiftDebugTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftPushTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftRemoteDevTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftUndeployTask;
 
@@ -68,7 +68,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
     register(project, "ocUndeploy", OpenShiftUndeployTask.class);
     register(project, "ocHelm", OpenShiftHelmTask.class);
     register(project, "ocHelmPush", OpenShiftHelmPushTask.class);
-    register(project, "ocRemoteDev", KubernetesRemoteDevTask.class);
+    register(project, "ocRemoteDev", OpenShiftRemoteDevTask.class);
     register(project, "ocWatch", OpenShiftWatchTask.class);
   }
 
