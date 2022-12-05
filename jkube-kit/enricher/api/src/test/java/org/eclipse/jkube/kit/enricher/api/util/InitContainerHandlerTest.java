@@ -23,13 +23,14 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
-import mockit.Expectations;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
 
 /**
  * @author roland
@@ -37,13 +38,13 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 class InitContainerHandlerTest {
 
-    @Mocked
     private KitLogger log;
 
     private InitContainerHandler handler;
 
     @BeforeEach
     void setUp() {
+        log = spy(new KitLogger.SilentLogger());
         handler = new InitContainerHandler(log);
     }
 
@@ -89,10 +90,6 @@ class InitContainerHandlerTest {
 
     @Test
     void existingSame() {
-        new Expectations() {{
-            log.warn(anyString, withSubstring("blub"));
-        }};
-
         PodTemplateSpecBuilder builder = getPodTemplateBuilder("blub", "foo/blub");
         assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
         Container initContainer = createInitContainer("blub", "foo/blub");

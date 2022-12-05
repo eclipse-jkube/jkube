@@ -15,11 +15,11 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -29,20 +29,14 @@ import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
 class DeploymentHandlerTest {
-
-    @Mocked
-    private ProbeHandler probeHandler;
-
-    @Mocked
-    private JavaProject project;
 
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();
@@ -57,7 +51,6 @@ class DeploymentHandlerTest {
 
     @BeforeEach
     void before(){
-
         //volume config with name and multiple mount
         mounts.add("/path/system");
         mounts.add("/path/sys");
@@ -83,8 +76,8 @@ class DeploymentHandlerTest {
 
         images.add(imageConfiguration);
 
-        deploymentHandler = new DeploymentHandler(new PodTemplateHandler(new ContainerHandler(project.getProperties(),
-            new GroupArtifactVersion("g", "a", "v"), probeHandler)));
+        deploymentHandler = new DeploymentHandler(new PodTemplateHandler(new ContainerHandler(new Properties(),
+            new GroupArtifactVersion("g", "a", "v"), mock(ProbeHandler.class))));
     }
 
     @Test

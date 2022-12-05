@@ -15,11 +15,11 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -29,20 +29,14 @@ import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
-import mockit.Mocked;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.Mockito.mock;
 
 class ReplicationControllerHandlerTest {
-
-    @Mocked
-    private ProbeHandler probeHandler;
-
-    @Mocked
-    private JavaProject project;
 
     private List<VolumeConfig> volumes;
     private List<ImageConfiguration> images;
@@ -81,7 +75,7 @@ class ReplicationControllerHandlerTest {
         images.add(imageConfiguration);
 
         replicationControllerHandler = new ReplicationControllerHandler(new PodTemplateHandler(new ContainerHandler(
-            project.getProperties(), new GroupArtifactVersion("g","a","v"), probeHandler)));
+            new Properties(), new GroupArtifactVersion("g","a","v"), mock(ProbeHandler.class))));
     }
 
     @Test
