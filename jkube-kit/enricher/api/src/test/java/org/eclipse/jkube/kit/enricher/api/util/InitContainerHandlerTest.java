@@ -90,7 +90,6 @@ class InitContainerHandlerTest {
 
     @Test
     void existingSame() {
-        doNothing().when(log).warn(anyString(), anyString());
         PodTemplateSpecBuilder builder = getPodTemplateBuilder("blub", "foo/blub");
         assertThat(handler.hasInitContainer(builder, "blub")).isTrue();
         Container initContainer = createInitContainer("blub", "foo/blub");

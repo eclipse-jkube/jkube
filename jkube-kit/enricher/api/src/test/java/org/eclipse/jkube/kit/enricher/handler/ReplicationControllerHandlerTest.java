@@ -15,11 +15,11 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -38,18 +38,12 @@ import static org.mockito.Mockito.mock;
 
 class ReplicationControllerHandlerTest {
 
-    private ProbeHandler probeHandler;
-
-    private JavaProject project;
-
     private List<VolumeConfig> volumes;
     private List<ImageConfiguration> images;
     private ReplicationControllerHandler replicationControllerHandler;
 
     @BeforeEach
     void setUp(){
-        probeHandler = mock(ProbeHandler.class);
-        project = mock(JavaProject.class);
         volumes = new ArrayList<>();
         images = new ArrayList<>();
         List<String> mounts = new ArrayList<>();
@@ -81,7 +75,7 @@ class ReplicationControllerHandlerTest {
         images.add(imageConfiguration);
 
         replicationControllerHandler = new ReplicationControllerHandler(new PodTemplateHandler(new ContainerHandler(
-            project.getProperties(), new GroupArtifactVersion("g","a","v"), probeHandler)));
+            new Properties(), new GroupArtifactVersion("g","a","v"), mock(ProbeHandler.class))));
     }
 
     @Test

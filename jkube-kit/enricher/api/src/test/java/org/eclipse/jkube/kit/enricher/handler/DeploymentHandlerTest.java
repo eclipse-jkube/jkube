@@ -15,11 +15,11 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -38,10 +38,6 @@ import static org.mockito.Mockito.mock;
 
 class DeploymentHandlerTest {
 
-    private ProbeHandler probeHandler;
-
-    private JavaProject project;
-
     List<String> mounts = new ArrayList<>();
     List<VolumeConfig> volumes1 = new ArrayList<>();
 
@@ -55,8 +51,6 @@ class DeploymentHandlerTest {
 
     @BeforeEach
     void before(){
-        probeHandler = mock(ProbeHandler.class);
-        project = mock(JavaProject.class);
         //volume config with name and multiple mount
         mounts.add("/path/system");
         mounts.add("/path/sys");
@@ -82,8 +76,8 @@ class DeploymentHandlerTest {
 
         images.add(imageConfiguration);
 
-        deploymentHandler = new DeploymentHandler(new PodTemplateHandler(new ContainerHandler(project.getProperties(),
-            new GroupArtifactVersion("g", "a", "v"), probeHandler)));
+        deploymentHandler = new DeploymentHandler(new PodTemplateHandler(new ContainerHandler(new Properties(),
+            new GroupArtifactVersion("g", "a", "v"), mock(ProbeHandler.class))));
     }
 
     @Test
