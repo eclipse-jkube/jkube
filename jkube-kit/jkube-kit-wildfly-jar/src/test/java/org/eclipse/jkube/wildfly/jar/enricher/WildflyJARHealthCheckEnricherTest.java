@@ -36,59 +36,62 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import mockit.Expectations;
-import mockit.Mocked;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 class WildflyJARHealthCheckEnricherTest {
 
-    @Mocked
     protected JKubeEnricherContext context;
 
-    private void setupExpectations(JavaProject project, Map<String, Object> bootableJarConfig, Map<String, Map<String, Object>> jkubeConfig) {
+    private JavaProject project;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
+        project = mock(JavaProject.class);
+        when(context.getProject()).thenReturn(project);
+    }
+    private void setupExpectations(Map<String, Object> bootableJarConfig, Map<String, Map<String, Object>> jkubeConfig) {
       Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
           .configuration(bootableJarConfig).build();
         List<Plugin> lst = new ArrayList<>();
         lst.add(plugin);
         ProcessorConfig c = new ProcessorConfig(null, null, jkubeConfig);
-        new Expectations() {{
-            project.getPlugins(); result = lst;
-            context.getProject(); result = project;
-            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
-            configBuilder.processorConfig(c);
-            context.getConfiguration(); result = configBuilder.build();
-        }};
+        Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
+        configBuilder.processorConfig(c);
+        when(project.getPlugins()).thenReturn(lst);
+        when(context.getProject()).thenReturn(project);
+        when(context.getConfiguration()).thenReturn(configBuilder.build());
     }
 
     private void setupExpectations(Map<String, Map<String, Object>> jkubeConfig) {
         ProcessorConfig c = new ProcessorConfig(null, null, jkubeConfig);
-        new Expectations() {{
-            Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
-            configBuilder.processorConfig(c);
-            context.getConfiguration();
-            result = configBuilder.build();
-        }};
+        Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
+        configBuilder.processorConfig(c);
+        when(context.getConfiguration()).thenReturn(configBuilder.build());
     }
 
     @Test
     @DisplayName("with default configuration, should not add probes")
-    void defaultConfiguration_shouldNotAddProbes(@Mocked final JavaProject project) {
-        setupExpectations(project, Collections.emptyMap(), Collections.emptyMap());
+    void defaultConfiguration_shouldNotAddProbes() {
+        setupExpectations(Collections.emptyMap(), Collections.emptyMap());
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
         assertNoProbesAdded(enricher);
     }
 
     @Test
     @DisplayName("cloud configuration with wildfly jar version before 25.0.0, should not add startup probe")
-    void cloudConfiguration_withWildflyJarBefore25_0shouldNotAdd_startupProbe(@Mocked final JavaProject project) {
-        wildFlyJarDependencyWithVersion(project, "24.1.1.Final");
+    void cloudConfiguration_withWildflyJarBefore25_0shouldNotAdd_startupProbe() {
+        wildFlyJarDependencyWithVersion("24.1.1.Final");
         
         Map<String, Object> config = new HashMap<>();
         config.put("cloud", null);
-        setupExpectations(project, config, Collections.emptyMap());
+        setupExpectations(config, Collections.emptyMap());
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
 
         Probe livenessProbe = enricher.getLivenessProbe();
@@ -103,12 +106,12 @@ class WildflyJARHealthCheckEnricherTest {
 
     @Test
     @DisplayName("cloud configuration with wildfly jar version after 25.0, should not add startup probe")
-    void cloudConfiguration_withWildflyJarAfter25_0shouldAdd_startupProbe(@Mocked final JavaProject project) {
-        wildFlyJarDependencyWithVersion(project, "26.1.1.Final");
+    void cloudConfiguration_withWildflyJarAfter25_0shouldAdd_startupProbe() {
+        wildFlyJarDependencyWithVersion("26.1.1.Final");
 
         Map<String, Object> config = new HashMap<>();
         config.put("cloud", null);
-        setupExpectations(project, config, Collections.emptyMap());
+        setupExpectations(config, Collections.emptyMap());
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
 
         Probe livenessProbe = enricher.getLivenessProbe();
@@ -123,8 +126,8 @@ class WildflyJARHealthCheckEnricherTest {
 
     @Test
     @DisplayName("custom configuration with wildfly jar version before 25.0, should not add startup probe")
-    void withCustomConfigurationComingFromConf_withWildflyJarBefore25_0shouldNotAdd_startupProbe(@Mocked final JavaProject project) {
-        wildFlyJarDependencyWithVersion(project, "24.1.1.Final");
+    void withCustomConfigurationComingFromConf_withWildflyJarBefore25_0shouldNotAdd_startupProbe() {
+        wildFlyJarDependencyWithVersion("24.1.1.Final");
 
         Map<String, Object> jarConfig = new HashMap<>();
         jarConfig.put("cloud", null);
@@ -141,14 +144,14 @@ class WildflyJARHealthCheckEnricherTest {
                 + "\"successThreshold\":\"10\","
                 + "\"periodSeconds\":\"15\""
                 + "}");
-        setupExpectations(project, jarConfig, config);
+        setupExpectations(jarConfig, config);
 
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
         Probe livenessProbe = enricher.getLivenessProbe();
-        assertProbeAdded(livenessProbe, "HTTPS", "/foo/live", 8080, 99, 27, 10, 15);
+        assertProbeAdded(livenessProbe, "/foo/live", 8080, 99, 27, 10, 15);
 
         Probe readinessProbe = enricher.getReadinessProbe();
-        assertProbeAdded(readinessProbe, "HTTPS", "/foo/ready", 8080, 77, 27, 10, 15);
+        assertProbeAdded(readinessProbe, "/foo/ready", 8080, 77, 27, 10, 15);
 
         Probe startupProbe = enricher.getStartupProbe();
         assertThat(startupProbe).isNull();
@@ -156,8 +159,8 @@ class WildflyJARHealthCheckEnricherTest {
 
     @Test
     @DisplayName("custom configuration with wildfly jar version after 25.0, should add startup probe")
-    void withCustomConfigurationComingFromConf_withWildflyJarAfter25_0shouldAdd_startupProbe(@Mocked final JavaProject project) {
-        wildFlyJarDependencyWithVersion(project, "26.1.1.Final");
+    void withCustomConfigurationComingFromConf_withWildflyJarAfter25_0shouldAdd_startupProbe() {
+        wildFlyJarDependencyWithVersion( "26.1.1.Final");
         Map<String, Object> jarConfig = new HashMap<>();
         jarConfig.put("cloud", null);
         Map<String, Map<String, Object>> config = createFakeConfig(
@@ -173,28 +176,28 @@ class WildflyJARHealthCheckEnricherTest {
                 + "\"successThreshold\":\"1\","
                 + "\"periodSeconds\":\"10\""
                 + "}");
-        setupExpectations(project, jarConfig, config);
+        setupExpectations(jarConfig, config);
 
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
         Probe livenessProbe = enricher.getLivenessProbe();
-        assertProbeAdded(livenessProbe, "HTTPS", "/foo/live", 1234, 99, 3, 1, 10);
+        assertProbeAdded(livenessProbe, "/foo/live", 1234, 99, 3, 1, 10);
 
         Probe readinessProbe = enricher.getReadinessProbe();
-        assertProbeAdded(readinessProbe, "HTTPS", "/foo/ready", 1234, 77, 3, 1, 10);
+        assertProbeAdded(readinessProbe, "/foo/ready", 1234, 77, 3, 1, 10);
 
         Probe startupProbe = enricher.getStartupProbe();
-        assertProbeAdded(startupProbe, "HTTPS", "/foo/started", 1234, 10, 3, 1, 10);
+        assertProbeAdded(startupProbe, "/foo/started", 1234, 10, 3, 1, 10);
     }
 
     @Test
     @DisplayName("with negative port, should disable health checks")
-    void withNegativePort_shouldDisableHealth(@Mocked final JavaProject project) {
+    void withNegativePort_shouldDisableHealth() {
         Map<String, Object> jarConfig = new HashMap<>();
         jarConfig.put("cloud", null);
         Map<String, Map<String, Object>> config = createFakeConfig("{"
                 + "\"port\":\"-1\""
                 + "}");
-        setupExpectations(project, jarConfig, config);
+        setupExpectations(jarConfig, config);
 
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
         assertNoProbesAdded(enricher);
@@ -202,8 +205,8 @@ class WildflyJARHealthCheckEnricherTest {
 
     @Test
     @DisplayName("when true health is enforced with wildfly jar version before 25.0, should not add startup probe")
-    void enforceTrueHealth_withWildflyJarBefore25_0shouldNotAdd_startupProbe(@Mocked final JavaProject project) {
-        wildFlyJarDependencyWithVersion(project, "24.1.1.Final");
+    void enforceTrueHealth_withWildflyJarBefore25_0shouldNotAdd_startupProbe() {
+        wildFlyJarDependencyWithVersion("24.1.1.Final");
         Map<String, Map<String, Object>> config = createFakeConfig("{"
                 + "\"enforceProbes\":\"true\""
                 + "}");
@@ -223,8 +226,8 @@ class WildflyJARHealthCheckEnricherTest {
 
     @Test
     @DisplayName("when true health is enforced with wildfly jar version after 25.0, should add startup probe")
-    void enforceTrueHealth_withWildflyJarAfter25_0shouldAddStartupProbe(@Mocked final JavaProject project) {
-        wildFlyJarDependencyWithVersion(project, "26.1.1.Final");
+    void enforceTrueHealth_withWildflyJarAfter25_0shouldAddStartupProbe() {
+        wildFlyJarDependencyWithVersion("26.1.1.Final");
         Map<String, Map<String, Object>> config = createFakeConfig("{"
                 + "\"enforceProbes\":\"true\""
                 + "}");
@@ -286,15 +289,12 @@ class WildflyJARHealthCheckEnricherTest {
             .isEqualTo("metadata.name");
     }
 
-    private void wildFlyJarDependencyWithVersion(JavaProject project, String wildflyJarVersion) {
-        new Expectations() {{
-            project.getDependencies();
-            result = Collections.singletonList(Dependency.builder()
+    private void wildFlyJarDependencyWithVersion(String wildflyJarVersion) {
+        when(project.getDependencies()).thenReturn(Collections.singletonList(Dependency.builder()
                 .groupId("org.wildfly.plugins")
                 .artifactId("wildfly-jar-maven-plugin")
                 .version(wildflyJarVersion)
-                .build());
-        }};
+                .build()));
     }
 
     @SuppressWarnings("unchecked")
@@ -319,9 +319,9 @@ class WildflyJARHealthCheckEnricherTest {
           .hasFieldOrPropertyWithValue("port.intVal", port);
     }
 
-    private void assertProbeAdded(Probe probe, String scheme, String path, int port,
-        int initialDelay, int failureThreshold, int successThreshold, int periodSeconds) {
-      assertHttpGet(probe, scheme, path, port);
+    private void assertProbeAdded(Probe probe, String path, int port,
+                                  int initialDelay, int failureThreshold, int successThreshold, int periodSeconds) {
+      assertHttpGet(probe, "HTTPS", path, port);
       assertThat(probe).isNotNull()
           .returns(initialDelay, Probe::getInitialDelaySeconds)
           .returns(failureThreshold, Probe::getFailureThreshold)
