@@ -24,7 +24,7 @@ public class ImagePullCache {
     // Key for the previously used image cache
     private static final String CONTEXT_KEY_PREVIOUSLY_PULLED = "CONTEXT_KEY_PREVIOUSLY_PULLED";
 
-    private Backend backend;
+    private final Backend backend;
 
     public ImagePullCache(Backend backend) {
         this.backend = backend;
