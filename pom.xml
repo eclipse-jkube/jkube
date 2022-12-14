@@ -110,7 +110,7 @@
     <version.maven-resources-plugin>3.3.0</version.maven-resources-plugin>
     <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
     <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
-    <version.mockito>4.6.1</version.mockito>
+    <version.mockito>4.10.0</version.mockito>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.sshd>2.9.1</version.sshd>
