@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpecBuilder;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 import java.util.List;
@@ -43,7 +43,7 @@ public class JobHandler implements ControllerHandler<Job> {
   }
 
   @Override
-  public Job get(ResourceConfig config, List<ImageConfiguration> images) {
+  public Job get(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new JobBuilder()
         .withMetadata(createJobSpecMetaData(config))
         .withSpec(createJobSpec(config, images))
@@ -51,7 +51,7 @@ public class JobHandler implements ControllerHandler<Job> {
   }
 
   @Override
-  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  public PodTemplateSpec getPodTemplateSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
   }
 
@@ -65,13 +65,13 @@ public class JobHandler implements ControllerHandler<Job> {
     // NOOP
   }
 
-  private ObjectMeta createJobSpecMetaData(ResourceConfig config) {
+  private ObjectMeta createJobSpecMetaData(ControllerResourceConfig config) {
     return new ObjectMetaBuilder()
         .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
         .build();
   }
 
-  private JobSpec createJobSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  private JobSpec createJobSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new JobSpecBuilder()
         .withTemplate(podTemplateHandler.getPodTemplate(config, Optional.ofNullable(config.getRestartPolicy()).orElse(DEFAULT_JOB_RESTART_POLICY), images))
         .build();

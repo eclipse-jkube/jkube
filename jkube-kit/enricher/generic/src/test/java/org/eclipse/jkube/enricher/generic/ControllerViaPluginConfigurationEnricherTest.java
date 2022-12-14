@@ -26,6 +26,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
@@ -56,6 +57,8 @@ class ControllerViaPluginConfigurationEnricherTest {
   void setUp() {
     context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     when(context.getGav().getSanitizedArtifactId()).thenReturn("test-project");
+    when(context.getConfiguration().getResource()).thenReturn(ResourceConfig.builder()
+        .build());
     kubernetesListBuilder = new KubernetesListBuilder();
   }
 
@@ -165,7 +168,7 @@ class ControllerViaPluginConfigurationEnricherTest {
   void create_withDeploymentFragmentAndImagePullPolicyPropertySet_shouldSendConfiguredPolicyToDeploymentHandler() {
     // Given
     mockDeploymentHandler();
-    ArgumentCaptor<ResourceConfig> resourceConfigArgumentCaptor = ArgumentCaptor.forClass(ResourceConfig.class);
+    ArgumentCaptor<ControllerResourceConfig> controllerResourceConfigArgumentCaptor = ArgumentCaptor.forClass(ControllerResourceConfig.class);
     controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
     when(context.getProperty("jkube.imagePullPolicy")).thenReturn("Never");
     DeploymentBuilder deploymentFragment = createNewDeploymentBuilder().withNewMetadata()
@@ -178,8 +181,8 @@ class ControllerViaPluginConfigurationEnricherTest {
 
     // Then
     verify(mockedDeploymentHandler, times(1))
-        .get(resourceConfigArgumentCaptor.capture(), any());
-    assertThat(resourceConfigArgumentCaptor.getValue())
+        .get(controllerResourceConfigArgumentCaptor.capture(), any());
+    assertThat(controllerResourceConfigArgumentCaptor.getValue())
         .hasFieldOrPropertyWithValue("imagePullPolicy", "Never");
   }
 

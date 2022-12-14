@@ -18,6 +18,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.eclipse.jkube.kit.common.Arguments;
 
 import java.io.Serializable;
 import java.util.Optional;

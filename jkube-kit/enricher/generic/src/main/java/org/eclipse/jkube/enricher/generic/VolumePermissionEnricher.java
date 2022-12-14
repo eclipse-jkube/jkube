@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.ResourceRequirements;
 import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -35,8 +34,8 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.util.InitContainerHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -53,8 +52,6 @@ public class VolumePermissionEnricher extends BaseEnricher {
 
     public static final String ENRICHER_NAME = "jkube-volume-permission";
     static final String VOLUME_STORAGE_CLASS_ANNOTATION = "volume.beta.kubernetes.io/storage-class";
-
-    private final InitContainerHandler initContainerHandler;
 
     @AllArgsConstructor
     enum Config implements Configs.Config {
@@ -75,7 +72,6 @@ public class VolumePermissionEnricher extends BaseEnricher {
 
     public VolumePermissionEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
-        initContainerHandler = new InitContainerHandler(buildContext.getLog());
     }
 
     @Override
@@ -100,8 +96,8 @@ public class VolumePermissionEnricher extends BaseEnricher {
 
                 log.verbose("Adding init container for changing persistent volumes access mode to %s",
                         getConfig(Config.PERMISSION));
-                if (!initContainerHandler.hasInitContainer(builder, ENRICHER_NAME)) {
-                    initContainerHandler.appendInitContainer(builder, createPvInitContainer(podSpec));
+                if (!KubernetesResourceUtil.hasInitContainer(builder, ENRICHER_NAME)) {
+                    KubernetesResourceUtil.appendInitContainer(builder, createPvInitContainer(podSpec), log);
                 }
             }
 

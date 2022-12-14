@@ -17,7 +17,7 @@ import java.util.List;
 
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -41,7 +41,7 @@ public class ReplicaSetHandler implements ControllerHandler<ReplicaSet> {
   }
 
   @Override
-  public ReplicaSet get(ResourceConfig config, List<ImageConfiguration> images) {
+  public ReplicaSet get(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new ReplicaSetBuilder()
         .withMetadata(createRsMetaData(config))
         .withSpec(createSpec(config, images))
@@ -49,7 +49,7 @@ public class ReplicaSetHandler implements ControllerHandler<ReplicaSet> {
   }
 
   @Override
-  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  public PodTemplateSpec getPodTemplateSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
   }
 
@@ -68,13 +68,13 @@ public class ReplicaSetHandler implements ControllerHandler<ReplicaSet> {
     });
   }
 
-  private ObjectMeta createRsMetaData(ResourceConfig config) {
+  private ObjectMeta createRsMetaData(ControllerResourceConfig config) {
     return new ObjectMetaBuilder()
         .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
         .build();
   }
 
-  private ReplicaSetSpec createSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  private ReplicaSetSpec createSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new ReplicaSetSpecBuilder()
         .withReplicas(config.getReplicas())
         .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))

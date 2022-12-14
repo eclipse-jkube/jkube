@@ -24,7 +24,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.log.LogCallback;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogGetHandle;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpec;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.common.Arguments;
 
 import java.io.File;
 import java.util.List;

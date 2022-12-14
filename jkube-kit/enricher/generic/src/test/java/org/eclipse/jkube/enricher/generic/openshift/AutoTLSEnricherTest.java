@@ -22,10 +22,16 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplate;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.Volume;
+import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -43,6 +49,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -148,6 +155,84 @@ class AutoTLSEnricherTest {
             mount = mounts.get(1).getAsJsonObject();
             assertThat(mount.get("name").getAsString()).isEqualTo(tc.jksVolumeName);
         }
+    }
+
+    @Test
+    void enrich_withAlreadyExistingContainer_shouldAddVolumeMountsToContainer() {
+        // Given
+        KubernetesListBuilder klb = new KubernetesListBuilder();
+        Properties properties = new Properties();
+        properties.put(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, "OPENSHIFT");
+        when(context.getProperties()).thenReturn(properties);
+        klb.addToItems(new DeploymentBuilder()
+                .withNewSpec()
+                .withNewTemplate()
+                .withNewSpec()
+                .addNewContainer()
+                .withName("c1")
+                .endContainer()
+                .endSpec()
+                .endTemplate()
+                .endSpec()
+            .build());
+        AutoTLSEnricher autoTLSEnricher = new AutoTLSEnricher(context);
+
+        // When
+        autoTLSEnricher.enrich(PlatformMode.openshift, klb);
+
+        // Then
+        assertPodTemplateSpecContainsInitContainerAndVolumeMounts(klb);
+    }
+
+    @Test
+    void enrich_withAlreadyExistingContainerWithVolumeMounts_shouldNotAddVolumeMountsToContainer() {
+        // Given
+        KubernetesListBuilder klb = new KubernetesListBuilder();
+        Properties properties = new Properties();
+        properties.put(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, "OPENSHIFT");
+        when(context.getProperties()).thenReturn(properties);
+        klb.addToItems(new DeploymentBuilder()
+            .withNewSpec()
+            .withNewTemplate()
+            .withNewSpec()
+            .addNewContainer()
+            .withName("c1")
+            .endContainer()
+            .addNewVolume().withName("tls-pem").endVolume()
+            .addNewVolume().withName("tls-jks").endVolume()
+            .endSpec()
+            .endTemplate()
+            .endSpec()
+            .build());
+        AutoTLSEnricher autoTLSEnricher = new AutoTLSEnricher(context);
+
+        // When
+        autoTLSEnricher.enrich(PlatformMode.openshift, klb);
+
+        // Then
+        assertPodTemplateSpecContainsInitContainerAndVolumeMounts(klb);
+    }
+
+    private void assertPodTemplateSpecContainsInitContainerAndVolumeMounts(KubernetesListBuilder klb) {
+        assertThat(klb.buildItems())
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
+            .extracting(Deployment::getSpec)
+            .extracting(DeploymentSpec::getTemplate)
+            .extracting(PodTemplateSpec::getSpec)
+            .satisfies(t -> assertThat(t.getVolumes()).hasSize(2)
+                .extracting(Volume::getName)
+                .contains("tls-pem", "tls-jks"))
+            .satisfies(t -> assertThat(t.getInitContainers())
+                .singleElement(InstanceOfAssertFactories.type(Container.class))
+                .satisfies(c -> assertThat(c.getVolumeMounts())
+                    .extracting(VolumeMount::getMountPath, VolumeMount::getName)
+                    .contains(tuple("/tls-pem", "tls-pem"), tuple("/tls-jks", "tls-jks"))))
+            .satisfies(t -> assertThat(t.getContainers())
+                .hasSize(1)
+                .singleElement(InstanceOfAssertFactories.type(Container.class))
+                .satisfies(c -> assertThat(c.getVolumeMounts())
+                    .extracting(VolumeMount::getMountPath, VolumeMount::getName)
+                    .contains(tuple("/var/run/secrets/jkube.io/tls-pem", "tls-pem"), tuple("/var/run/secrets/jkube.io/tls-jks", "tls-jks"))));
     }
 }
 

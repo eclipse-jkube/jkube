@@ -16,12 +16,15 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -32,14 +35,18 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.MockedConstruction;
 
 import java.util.Collections;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.enricher.generic.ImageEnricher.containerImageName;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -77,6 +84,7 @@ class ImageEnricherTest {
       return Stream.of(
           arguments(new DeploymentBuilder().build(), "Deployment"),
           arguments(new ReplicaSetBuilder().build(), "ReplicaSet"),
+          arguments(new ReplicationControllerBuilder().build(), "ReplicationController"),
           arguments(new DaemonSetBuilder().build(), "DaemonSet"),
           arguments(new StatefulSetBuilder().build(), "StatefulSet"),
           arguments(new DeploymentConfigBuilder().build(), "DeploymentConfig"));
@@ -117,6 +125,34 @@ class ImageEnricherTest {
         assertCorrectlyGeneratedResources(builder.build(), "Deployment", "key", "valueOld");
     }
 
+    @Test
+    void create_whenNoImageConfiguration_thenSkip() {
+        try (MockedConstruction<PrefixedLogger> prefixedLoggerMockedConstruction = mockConstruction(PrefixedLogger.class)) {
+            // Given
+            KubernetesListBuilder builder = new KubernetesListBuilder();
+            when(context.getConfiguration()).thenReturn(Configuration.builder()
+                .images(Collections.emptyList())
+                .build());
+            imageEnricher = new ImageEnricher(context);
+
+            // When
+            imageEnricher.create(PlatformMode.kubernetes, builder);
+
+            // Then
+            assertThat(prefixedLoggerMockedConstruction.constructed()).hasSize(1);
+            verify(prefixedLoggerMockedConstruction.constructed().get(0))
+                .verbose("No images resolved. Skipping ...");
+        }
+    }
+
+    @Test
+    void containerImageName_whenRegistryPresent_thenAddRegistryPrefixToImageName() {
+        assertThat(containerImageName(ImageConfiguration.builder()
+            .name("foo/bar:latest")
+            .registry("example.com")
+            .build())).isEqualTo("example.com/foo/bar:latest");
+    }
+
     private void assertCorrectlyGeneratedResources(KubernetesList list, String kind, String expectedKey, String expectedValue) {
       assertThat(list.getItems())
           .satisfies(l -> assertThat(l).singleElement()
@@ -133,8 +169,10 @@ class ImageEnricherTest {
     private void givenResourceConfigWithEnvVar(String name, String value) {
         Configuration configuration = Configuration.builder()
                 .resource(ResourceConfig.builder()
+                    .controller(ControllerResourceConfig.builder()
                         .env(Collections.singletonMap(name, value))
                         .build())
+                    .build())
                 .image(imageConfiguration)
                 .build();
         when(context.getConfiguration()).thenReturn(configuration);

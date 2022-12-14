@@ -20,8 +20,8 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -36,12 +36,12 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 
 class DeploymentConfigHandlerTest {
 
-  private ResourceConfig.ResourceConfigBuilder resourceConfigBuilder;
+  private ControllerResourceConfig.ControllerResourceConfigBuilder controllerResourceConfigBuilder;
   private DeploymentConfigHandler deploymentConfigHandler;
 
   @BeforeEach
-  void before(){
-    resourceConfigBuilder = ResourceConfig.builder();
+  void before() {
+    controllerResourceConfigBuilder = ControllerResourceConfig.builder();
     deploymentConfigHandler = new DeploymentConfigHandler(new PodTemplateHandler(new ContainerHandler(new Properties(),
         new GroupArtifactVersion("g", "a", "v"), new ProbeHandler())));
   }
@@ -49,21 +49,21 @@ class DeploymentConfigHandlerTest {
   @Test
   void get_withNoImagesAndNoControllerName_shouldThrowException() {
     // Given
-    final ResourceConfig resourceConfig = resourceConfigBuilder.build();
+    final ControllerResourceConfig controllerResourceConfig = controllerResourceConfigBuilder.build();
     final List<ImageConfiguration> images = Collections.emptyList();
     // When & Then
     assertThatIllegalArgumentException()
-        .isThrownBy(() -> deploymentConfigHandler.get(resourceConfig, images))
+        .isThrownBy(() -> deploymentConfigHandler.get(controllerResourceConfig, images))
         .withMessage("No controller name is specified!");
   }
 
   @Test
   void get_withNoImages_shouldReturnConfigWithNoContainers() {
     // Given
-    final ResourceConfig resourceConfig = resourceConfigBuilder.controllerName("controller").build();
+    final ControllerResourceConfig controllerResourceConfig = controllerResourceConfigBuilder.controllerName("controller").build();
     final List<ImageConfiguration> images = Collections.emptyList();
     // When
-    final DeploymentConfig result = deploymentConfigHandler.get(resourceConfig, images);
+    final DeploymentConfig result = deploymentConfigHandler.get(controllerResourceConfig, images);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("metadata.name", "controller")
@@ -73,13 +73,13 @@ class DeploymentConfigHandlerTest {
   @Test
   void get_withImages_shouldReturnConfigWithContainers() {
     // Given
-    final ResourceConfig resourceConfig = resourceConfigBuilder.controllerName("controller").build();
+    final ControllerResourceConfig controllerResourceConfig = controllerResourceConfigBuilder.controllerName("controller").build();
     final List<ImageConfiguration> images = Arrays.asList(
         ImageConfiguration.builder().name("busybox").build(BuildConfiguration.builder().build()).build(),
         ImageConfiguration.builder().name("jkubeio/java:latest").build(BuildConfiguration.builder().build()).build()
     );
     // When
-    final DeploymentConfig result = deploymentConfigHandler.get(resourceConfig, images);
+    final DeploymentConfig result = deploymentConfigHandler.get(controllerResourceConfig, images);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("metadata.name", "controller")
@@ -91,10 +91,10 @@ class DeploymentConfigHandlerTest {
   @Test
   void getPodTemplateSpec_withNoImages_shouldReturnPodTemplateSpecWithNoContainers() {
     // Given
-    final ResourceConfig resourceConfig = resourceConfigBuilder.controllerName("controller").build();
+    final ControllerResourceConfig controllerResourceConfig = controllerResourceConfigBuilder.controllerName("controller").build();
     final List<ImageConfiguration> images = Collections.emptyList();
     // When
-    final PodTemplateSpec result = deploymentConfigHandler.getPodTemplateSpec(resourceConfig, images);
+    final PodTemplateSpec result = deploymentConfigHandler.getPodTemplateSpec(controllerResourceConfig, images);
     // Then
     assertThat(result).extracting("spec.containers").asList().isEmpty();
   }

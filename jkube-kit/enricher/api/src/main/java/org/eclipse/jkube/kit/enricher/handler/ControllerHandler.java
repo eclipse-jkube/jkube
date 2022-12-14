@@ -17,15 +17,15 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 
 import java.util.List;
 
 public interface ControllerHandler<T extends HasMetadata> {
 
-  T get(ResourceConfig config, List<ImageConfiguration> images);
+  T get(ControllerResourceConfig config, List<ImageConfiguration> images);
 
-  PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images);
+  PodTemplateSpec getPodTemplateSpec(ControllerResourceConfig config, List<ImageConfiguration> images);
 
   PodTemplateSpec getPodTemplate(T controller);
 

@@ -33,7 +33,7 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -41,6 +41,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isContainerImage;
 
 /**
  * @author roland
@@ -57,11 +59,11 @@ public class ContainerHandler {
         this.groupArtifactVersion = groupArtifactVersion;
     }
 
-    List<Container> getContainers(ResourceConfig config, List<ImageConfiguration> images)  {
+    List<Container> getContainers(ControllerResourceConfig config, List<ImageConfiguration> images)  {
         List<Container> ret = new ArrayList<>();
 
         for (ImageConfiguration imageConfig : images) {
-            if (imageConfig.getBuildConfiguration() != null) {
+            if (isContainerImage(imageConfig, config)) {
                 Probe livenessProbe = probeHandler.getProbe(config.getLiveness());
                 Probe readinessProbe = probeHandler.getProbe(config.getReadiness());
                 Probe startupProbe = probeHandler.getProbe(config.getStartup());
@@ -84,7 +86,7 @@ public class ContainerHandler {
         return ret;
     }
 
-    private List<EnvVar> getEnvVars(ResourceConfig config) {
+    private List<EnvVar> getEnvVars(ControllerResourceConfig config) {
         List<EnvVar> envVars = KubernetesHelper.convertToEnvVarList(config.getEnv());
 
         // TODO: This should go into an extra enricher so that this behaviour can be switched on / off
@@ -102,8 +104,7 @@ public class ContainerHandler {
         return envVars;
     }
 
-
-    private String getImagePullPolicy(ResourceConfig config) {
+    private String getImagePullPolicy(ControllerResourceConfig config) {
         String pullPolicy = config.getImagePullPolicy();
         if (StringUtils.isBlank(pullPolicy) &&
             this.groupArtifactVersion.isSnapshot()) {
@@ -136,14 +137,13 @@ public class ContainerHandler {
         return configurationProperties;
     }
 
-    private SecurityContext createSecurityContext(ResourceConfig config) {
+    private SecurityContext createSecurityContext(ControllerResourceConfig config) {
         return new SecurityContextBuilder()
             .withPrivileged(config.isContainerPrivileged())
             .build();
     }
 
-
-    private List<VolumeMount> getVolumeMounts(ResourceConfig config) {
+    private List<VolumeMount> getVolumeMounts(ControllerResourceConfig config) {
         List<VolumeConfig> volumeConfigs = config.getVolumes();
 
         List<VolumeMount> ret = new ArrayList<>();
@@ -194,5 +194,4 @@ public class ContainerHandler {
         }
         return portBuilder.build();
     }
-
 }

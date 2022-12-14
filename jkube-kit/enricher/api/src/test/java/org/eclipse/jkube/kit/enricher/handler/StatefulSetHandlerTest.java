@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -81,10 +81,9 @@ class StatefulSetHandlerTest {
 
     @Test
     void get_withValidControllerName_shouldReturnConfigWithContainers() {
-        ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .serviceAccount("test-account")
                 .replicas(5)
                 .volumes(volumes)
                 .build();
@@ -102,7 +101,6 @@ class StatefulSetHandlerTest {
                 .hasFieldOrPropertyWithValue("serviceName", "testing")
                 .extracting(StatefulSetSpec::getTemplate).isNotNull()
                 .extracting(PodTemplateSpec::getSpec)
-                .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
                 .extracting(PodSpec::getVolumes).asList()
                 .isNotEmpty()
                 .first()
@@ -113,10 +111,9 @@ class StatefulSetHandlerTest {
 
     @Test
     void get_withInvalidControllerName_shouldThrowException() {
-        ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("TesTing")
-                .serviceAccount("test-account")
                 .replicas(5)
                 .volumes(volumes)
                 .build();
@@ -128,9 +125,8 @@ class StatefulSetHandlerTest {
 
     @Test
     void get_withoutControllerName_shouldThrowException() {
-        ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
-                .serviceAccount("test-account")
                 .replicas(5)
                 .volumes(volumes)
                 .build();

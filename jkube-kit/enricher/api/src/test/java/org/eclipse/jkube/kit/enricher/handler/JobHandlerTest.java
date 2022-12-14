@@ -22,8 +22,8 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -78,15 +78,14 @@ class JobHandlerTest {
 
     @Test
     void get_withValidControllerName_shouldReturnConfigWithContainers() {
-        ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .serviceAccount("test-account")
                 .restartPolicy("OnFailure")
                 .volumes(volumes)
                 .build();
 
-        Job job = jobHandler.get(config,images);
+        Job job = jobHandler.get(config, images);
         assertThat(job.getSpec().getTemplate().getSpec().getContainers()).isNotNull();
         assertThat(job)
             .satisfies(j -> assertThat(j.getMetadata())
@@ -97,7 +96,6 @@ class JobHandlerTest {
                 .isNotNull()
                 .extracting(JobSpec::getTemplate).isNotNull()
                 .extracting(PodTemplateSpec::getSpec)
-                .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
                 .hasFieldOrPropertyWithValue("restartPolicy", "OnFailure")
                 .extracting(PodSpec::getVolumes).asList()
                 .first()
@@ -108,10 +106,9 @@ class JobHandlerTest {
 
     @Test
     void get_withInvalidControllerName_shouldThrowException() {
-      ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
               .imagePullPolicy("IfNotPresent")
               .controllerName("TesTing")
-              .serviceAccount("test-account")
               .volumes(volumes)
               .build();
 
@@ -123,9 +120,8 @@ class JobHandlerTest {
 
     @Test
     void get_withoutControllerName_shouldThrowException() {
-      ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
               .imagePullPolicy("IfNotPresent")
-              .serviceAccount("test-account")
               .volumes(volumes)
               .build();
 

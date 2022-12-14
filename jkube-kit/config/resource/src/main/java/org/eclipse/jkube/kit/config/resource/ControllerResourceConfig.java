@@ -18,26 +18,28 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
+
+import java.util.List;
+import java.util.Map;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @EqualsAndHashCode
-public class MappingConfig {
-
-    private String kind;
-
-    private String filenameTypes;
-
-    public String[] getFilenamesAsArray() {
-        if (this.filenameTypes == null) {
-            return new String[0];
-        }
-        return filenameTypes.split(",\\s*");
-    }
-
-    public boolean isValid() {
-        return kind != null &&  filenameTypes != null && filenameTypes.length() > 0;
-    }
+public class ControllerResourceConfig {
+  private Map<String, String> env;
+  @Singular
+  private List<VolumeConfig> volumes;
+  @Singular
+  private List<InitContainerConfig> initContainers;
+  private String controllerName;
+  private ProbeConfig liveness;
+  private ProbeConfig readiness;
+  private ProbeConfig startup;
+  private boolean containerPrivileged;
+  private String imagePullPolicy;
+  private Integer replicas;
+  private String restartPolicy;
 }

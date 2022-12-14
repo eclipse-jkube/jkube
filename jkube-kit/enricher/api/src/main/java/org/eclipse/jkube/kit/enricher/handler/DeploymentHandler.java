@@ -17,7 +17,7 @@ import java.util.List;
 
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -37,7 +37,7 @@ public class DeploymentHandler implements ControllerHandler<Deployment> {
   }
 
   @Override
-  public Deployment get(ResourceConfig config, List<ImageConfiguration> images) {
+  public Deployment get(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new DeploymentBuilder()
         .withMetadata(createDeploymentMetaData(config))
         .withSpec(createDeploymentSpec(config, images))
@@ -45,7 +45,7 @@ public class DeploymentHandler implements ControllerHandler<Deployment> {
   }
 
   @Override
-  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  public PodTemplateSpec getPodTemplateSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
   }
 
@@ -64,13 +64,13 @@ public class DeploymentHandler implements ControllerHandler<Deployment> {
     });
   }
 
-  private ObjectMeta createDeploymentMetaData(ResourceConfig config) {
+  private ObjectMeta createDeploymentMetaData(ControllerResourceConfig config) {
     return new ObjectMetaBuilder()
         .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
         .build();
   }
 
-  private DeploymentSpec createDeploymentSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  private DeploymentSpec createDeploymentSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new DeploymentSpecBuilder()
         .withReplicas(config.getReplicas())
         .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))

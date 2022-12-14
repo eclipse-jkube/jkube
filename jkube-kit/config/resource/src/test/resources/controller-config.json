@@ -1,0 +1,45 @@
+{
+  "env": {
+    "KEY1": "VALUE1"
+  },
+  "volumes": [{
+    "name": "workdir",
+    "type": "emptyDir",
+    "path": "/work-dir"
+  }],
+  "controllerName": "test-controller",
+  "containerPrivileged": false,
+  "imagePullPolicy": "IfNotPresent",
+  "replicas": 3,
+  "restartPolicy": "OnFailure",
+  "initContainers": [{
+    "name": "init1",
+    "env": {
+      "FOO": "BAR"
+    },
+    "imageName": "busybox:latest",
+    "imagePullPolicy": "IfNotPresent",
+    "cmd": {
+      "exec": ["sleep", "10"]
+    },
+    "volumes": [{
+      "name": "workdir",
+      "path": "/work-dir"
+    }]
+  }],
+  "liveness": {
+    "getUrl": "http://:8080/q/health",
+    "initialDelaySeconds": 3,
+    "timeoutSeconds": 3
+  },
+  "readiness": {
+    "getUrl": "http://:8080/q/health",
+    "initialDelaySeconds": 3,
+    "timeoutSeconds": 3
+  },
+  "startup": {
+    "getUrl": "http://:8080/q/health",
+    "initialDelaySeconds": 3,
+    "timeoutSeconds": 3
+  }
+}

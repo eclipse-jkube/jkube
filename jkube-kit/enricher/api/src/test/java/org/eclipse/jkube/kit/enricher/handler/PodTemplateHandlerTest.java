@@ -19,7 +19,7 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,17 +76,15 @@ class PodTemplateHandlerTest {
 
     @Test
     void getPodTemplate_withoutVolumeConfig_shouldGeneratePodTemplateWithoutVolume() {
-        ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .serviceAccount("test-account")
                 .replicas(5)
                 .build();
 
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
         assertThat(podTemplateSpec.getSpec().getVolumes()).isEmpty();
         assertThat(podTemplateSpec.getSpec())
-            .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
             .extracting(PodSpec::getContainers).isNotNull()
             .asList()
             .first()
@@ -97,7 +95,7 @@ class PodTemplateHandlerTest {
 
     @Test
     void getPodTemplate_withEmptyVolumeAndWithoutServiceAccount_shouldGeneratePodTemplateWithNoVolume(){
-        ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
                 .replicas(5)
@@ -118,10 +116,9 @@ class PodTemplateHandlerTest {
           .mounts(mounts).type("hostPath").path("/test/path").build();
       volumes.add(volumeConfig);
 
-      ResourceConfig config = ResourceConfig.builder()
+      ControllerResourceConfig config = ControllerResourceConfig.builder()
           .imagePullPolicy("IfNotPresent")
           .controllerName("testing")
-          .serviceAccount("test-account")
           .replicas(5)
           .volumes(volumes)
           .build();
@@ -130,7 +127,6 @@ class PodTemplateHandlerTest {
 
       assertThat(podTemplateSpec.getSpec().getContainers()).isNotNull();
       assertThat(podTemplateSpec.getSpec())
-          .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
           .extracting(PodSpec::getVolumes).asList()
           .isNotEmpty()
           .first()
@@ -144,17 +140,15 @@ class PodTemplateHandlerTest {
                 .mounts(mounts).type("hoStPath").path("/test/path").build();
         volumes.add(volumeConfig1);
 
-        ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .serviceAccount("test-account")
                 .replicas(5)
                 .volumes(volumes)
                 .build();
 
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
         assertThat(podTemplateSpec.getSpec())
-            .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
             .returns(true, s -> s.getVolumes().isEmpty())
             .extracting(PodSpec::getContainers)
             .isNotNull();
@@ -165,26 +159,24 @@ class PodTemplateHandlerTest {
         VolumeConfig volumeConfig1 = VolumeConfig.builder().name("test").mounts(mounts).build();
         volumes.add(volumeConfig1);
 
-        ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
                 .imagePullPolicy("IfNotPresent")
                 .controllerName("testing")
-                .serviceAccount("test-account")
                 .replicas(5)
                 .volumes(volumes)
                 .build();
 
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
         assertThat(podTemplateSpec.getSpec())
-            .hasFieldOrPropertyWithValue("serviceAccountName", "test-account")
             .returns(true, s -> s.getVolumes().isEmpty())
             .extracting(PodSpec::getContainers)
             .isNotNull();
     }
 
     @Test
-    void getPodTemplate_withRestartPolicyAndResourceConfig_shouldGeneratePodTemplateWithConfiguredRestartPolicy() {
+    void getPodTemplate_withRestartPolicyAndControllerResourceConfig_shouldGeneratePodTemplateWithConfiguredRestartPolicy() {
         // Given
-        ResourceConfig config = ResourceConfig.builder().build();
+        ControllerResourceConfig config = ControllerResourceConfig.builder().build();
 
         // When
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, "Always", images);

@@ -21,12 +21,14 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeType;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createNewInitContainersFromConfig;
 
 /**
  * @author roland
@@ -39,7 +41,7 @@ public class PodTemplateHandler {
         this.containerHandler = containerHandler;
     }
 
-    public PodTemplateSpec getPodTemplate(ResourceConfig config, String restartPolicy, List<ImageConfiguration> images)  {
+    public PodTemplateSpec getPodTemplate(ControllerResourceConfig config, String restartPolicy, List<ImageConfiguration> images)  {
         return new PodTemplateSpecBuilder()
             .withMetadata(createPodMetaData())
             .withSpec(createPodSpec(config, restartPolicy, images))
@@ -50,17 +52,17 @@ public class PodTemplateHandler {
         return new ObjectMetaBuilder().build();
     }
 
-    private PodSpec createPodSpec(ResourceConfig config, String restartPolicy, List<ImageConfiguration> images) {
+    private PodSpec createPodSpec(ControllerResourceConfig config, String restartPolicy, List<ImageConfiguration> images) {
 
         return new PodSpecBuilder()
-            .withServiceAccountName(config.getServiceAccount())
             .withRestartPolicy(restartPolicy)
             .withContainers(containerHandler.getContainers(config,images))
+            .withInitContainers(createNewInitContainersFromConfig(config.getInitContainers()))
             .withVolumes(getVolumes(config))
             .build();
     }
 
-    private List<Volume> getVolumes(ResourceConfig config) {
+    private List<Volume> getVolumes(ControllerResourceConfig config) {
         List<VolumeConfig> volumeConfigs = config.getVolumes();
 
         List<Volume> ret = new ArrayList<>();

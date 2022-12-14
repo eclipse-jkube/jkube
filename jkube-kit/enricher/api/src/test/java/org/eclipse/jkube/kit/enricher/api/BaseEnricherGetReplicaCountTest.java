@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.enricher.api;
 
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -41,8 +41,8 @@ class BaseEnricherGetReplicaCountTest {
   class NoListBuilder {
 
     @Test
-    @DisplayName("no resource config, should return default value")
-    void nullResourceConfig() {
+    @DisplayName("no controller resource config, should return default value")
+    void nullControllerResourceConfig() {
       // When
       int result = getReplicaCount(null, null, 42);
       // Then
@@ -54,7 +54,7 @@ class BaseEnricherGetReplicaCountTest {
     @MethodSource("getReplicaCountsData")
     void resourceConfig(Integer replicas, int expectedReplicas) {
       // Given
-      final ResourceConfig resourceConfig = ResourceConfig.builder().replicas(replicas).build();
+      final ControllerResourceConfig resourceConfig = ControllerResourceConfig.builder().replicas(replicas).build();
       // When
       int result = getReplicaCount(null, resourceConfig, 42);
       // Then
@@ -71,19 +71,19 @@ class BaseEnricherGetReplicaCountTest {
 
 
   @Test
-  void withEmptyListBuilderAndEmptyResourceConfig_shouldReturnDefault() {
+  void withEmptyListBuilderAndEmptyControllerResourceConfig_shouldReturnDefault() {
     // When
-    int result = getReplicaCount(new KubernetesListBuilder().addToItems(new ConfigMapBuilder()), new ResourceConfig(), 1337);
+    int result = getReplicaCount(new KubernetesListBuilder().addToItems(new ConfigMapBuilder()), new ControllerResourceConfig(), 1337);
     // Then
     assertThat(result).isEqualTo(1337);
   }
 
   @Test
-  void withDeploymentConfigInListBuilderAndEmptyResourceConfig_shouldReturnDeploymentConfig() {
+  void withDeploymentConfigInListBuilderAndEmptyControllerResourceConfig_shouldReturnDeploymentConfig() {
     // Given
     final KubernetesListBuilder klb = new KubernetesListBuilder()
             .addToItems(new DeploymentConfigBuilder().withNewSpec().withReplicas(1).endSpec());
-    final ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
+    final ControllerResourceConfig resourceConfig = ControllerResourceConfig.builder().replicas(313373).build();
     // When
     final int result = getReplicaCount(klb, resourceConfig, 1337);
     // Then
@@ -91,12 +91,12 @@ class BaseEnricherGetReplicaCountTest {
   }
 
   @Test
-  void withDeploymentAndDeploymentConfigInListBuilderAndEmptyResourceConfig_shouldReturnValueInFirstItem() {
+  void withDeploymentAndDeploymentConfigInListBuilderAndEmptyControllerResourceConfig_shouldReturnValueInFirstItem() {
     // Given
     final KubernetesListBuilder klb = new KubernetesListBuilder()
             .addToItems(new DeploymentBuilder().withNewSpec().withReplicas(2).endSpec())
             .addToItems(new DeploymentConfigBuilder().withNewSpec().withReplicas(1).endSpec());
-    final ResourceConfig resourceConfig = ResourceConfig.builder().replicas(313373).build();
+    final ControllerResourceConfig resourceConfig = ControllerResourceConfig.builder().replicas(313373).build();
     // When
     int result = getReplicaCount(klb, resourceConfig, 1337);
     // Then

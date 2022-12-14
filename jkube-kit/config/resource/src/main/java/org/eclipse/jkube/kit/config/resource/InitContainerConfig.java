@@ -18,26 +18,21 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.eclipse.jkube.kit.common.Arguments;
+
+import java.util.List;
+import java.util.Map;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @EqualsAndHashCode
-public class MappingConfig {
-
-    private String kind;
-
-    private String filenameTypes;
-
-    public String[] getFilenamesAsArray() {
-        if (this.filenameTypes == null) {
-            return new String[0];
-        }
-        return filenameTypes.split(",\\s*");
-    }
-
-    public boolean isValid() {
-        return kind != null &&  filenameTypes != null && filenameTypes.length() > 0;
-    }
+public class InitContainerConfig {
+  private Map<String, String> env;
+  private String name;
+  private String imageName;
+  private String imagePullPolicy;
+  private Arguments cmd;
+  private List<VolumeConfig> volumes;
 }

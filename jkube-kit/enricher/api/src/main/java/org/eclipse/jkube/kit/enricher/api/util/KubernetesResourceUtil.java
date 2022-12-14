@@ -41,7 +41,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
@@ -49,7 +54,9 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.resource.InitContainerConfig;
 import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
@@ -71,8 +78,10 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.FILENAME_PATTERN;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.convertToEnvVarList;
 
 /**
  * Utility class for handling Kubernetes resource descriptors
@@ -717,6 +726,118 @@ public class KubernetesResourceUtil {
         } else {
             addNewEntryToExistingConfigMap(configMapBuilder, createConfigMapEntry(key, filePath), filePath);
         }
+    }
+
+    public static boolean hasInitContainer(PodTemplateSpecBuilder builder, String name) {
+        return getInitContainer(builder, name) != null;
+    }
+
+    public static Container getInitContainer(PodTemplateSpecBuilder builder, String name) {
+        if (Boolean.TRUE.equals(builder.hasSpec())) {
+            List<Container> initContainerList = builder.buildSpec().getInitContainers();
+            for(Container initContainer : initContainerList) {
+                if(initContainer.getName().equals(name)) {
+                    return initContainer;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static void removeInitContainer(PodTemplateSpecBuilder builder, String initContainerName) {
+        Container initContainer = getInitContainer(builder, initContainerName);
+        if (initContainer != null) {
+            List<Container> initContainers = builder.buildSpec().getInitContainers();
+            initContainers.remove(initContainer);
+            builder.editSpec().withInitContainers(initContainers).endSpec();
+        }
+    }
+
+    public static void appendInitContainer(PodTemplateSpecBuilder builder, Container initContainer, KitLogger log) {
+        String name = initContainer.getName();
+        Container existing = getInitContainer(builder, name);
+        if (existing != null) {
+            if (existing.equals(initContainer)) {
+                log.warn("Trying to add init-container %s a second time. Ignoring ....", name);
+                return;
+            } else {
+                throw new IllegalArgumentException(
+                    String.format("PodSpec %s already contains a different init container with name %s but can not add a second one with the same name. " +
+                            "Please choose a different name for the init container",
+                        builder.build().getMetadata().getName(), name));
+            }
+        }
+
+        ensureSpec(builder);
+        builder.editSpec().addToInitContainers(initContainer).endSpec();
+    }
+
+    public static List<Container> createNewInitContainersFromConfig(List<InitContainerConfig> initContainerConfigs) {
+        List<Container> initContainers = new ArrayList<>();
+        for (InitContainerConfig initContainerConfig : initContainerConfigs) {
+            initContainers.add(createNewInitContainerFromConfig(initContainerConfig));
+        }
+        return initContainers;
+    }
+
+    public static Container createNewInitContainerFromConfig(InitContainerConfig initContainerConfig) {
+        ContainerBuilder containerBuilder =  new ContainerBuilder();
+        if (StringUtils.isNotBlank(initContainerConfig.getName())) {
+            containerBuilder.withName(initContainerConfig.getName());
+        }
+        if (StringUtils.isNotBlank(initContainerConfig.getImageName())) {
+            containerBuilder.withImage(initContainerConfig.getImageName());
+        }
+        if (StringUtils.isNotBlank(initContainerConfig.getImagePullPolicy())) {
+            containerBuilder.withImagePullPolicy(initContainerConfig.getImagePullPolicy());
+        }
+        if (initContainerConfig.getCmd() != null) {
+            containerBuilder.withCommand(initContainerConfig.getCmd().asStrings());
+        }
+        if (initContainerConfig.getVolumes() != null && !initContainerConfig.getVolumes().isEmpty()) {
+            containerBuilder.withVolumeMounts(createVolumeMountsFromConfig(initContainerConfig.getVolumes()));
+        }
+        if (initContainerConfig.getEnv() != null && !initContainerConfig.getEnv().isEmpty()) {
+            containerBuilder.withEnv(convertToEnvVarList(initContainerConfig.getEnv()));
+        }
+
+        return containerBuilder.build();
+    }
+
+    public static boolean isContainerImage(ImageConfiguration imageConfig, ControllerResourceConfig config) {
+        return imageConfig.getBuildConfiguration() != null && !isInitContainerImage(imageConfig, config);
+    }
+
+    public static boolean isInitContainerImage(ImageConfiguration imageConfiguration, ControllerResourceConfig config) {
+        if (config.getInitContainers() != null && !config.getInitContainers().isEmpty()) {
+            return config.getInitContainers()
+                .stream()
+                .map(InitContainerConfig::getImageName)
+                .collect(Collectors.toSet())
+                .contains(imageConfiguration.getName());
+        }
+        return false;
+    }
+
+    private static void ensureSpec(PodTemplateSpecBuilder obj) {
+        if (obj.buildSpec() == null) {
+            obj.withNewSpec().endSpec();
+        }
+    }
+
+    private static List<VolumeMount> createVolumeMountsFromConfig(List<VolumeConfig> volumeConfigs) {
+        List<VolumeMount> volumeMounts = new ArrayList<>();
+        for (VolumeConfig vc : volumeConfigs) {
+            VolumeMountBuilder volumeMountBuilder = new VolumeMountBuilder();
+            if (StringUtils.isNotBlank(vc.getName())) {
+                volumeMountBuilder.withName(vc.getName());
+            }
+            if (StringUtils.isNotBlank(vc.getPath())) {
+                volumeMountBuilder.withMountPath(vc.getPath());
+            }
+            volumeMounts.add(volumeMountBuilder.build());
+        }
+        return volumeMounts;
     }
 
     protected static HasMetadata mergeConfigMaps(ConfigMap cm1, ConfigMap cm2, KitLogger log, boolean switchOnLocalCustomisation) {
