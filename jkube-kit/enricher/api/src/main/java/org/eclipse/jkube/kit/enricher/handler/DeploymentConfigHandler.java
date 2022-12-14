@@ -17,7 +17,7 @@ import java.util.List;
 
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -37,7 +37,7 @@ public class DeploymentConfigHandler implements ControllerHandler<DeploymentConf
   }
 
   @Override
-  public DeploymentConfig get(ResourceConfig config, List<ImageConfiguration> images) {
+  public DeploymentConfig get(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new DeploymentConfigBuilder()
         .withMetadata(createMetaData(config))
         .withSpec(createDeploymentConfigSpec(config, images))
@@ -45,7 +45,7 @@ public class DeploymentConfigHandler implements ControllerHandler<DeploymentConf
   }
 
   @Override
-  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  public PodTemplateSpec getPodTemplateSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
   }
 
@@ -64,13 +64,13 @@ public class DeploymentConfigHandler implements ControllerHandler<DeploymentConf
     });
   }
 
-  private ObjectMeta createMetaData(ResourceConfig config) {
+  private ObjectMeta createMetaData(ControllerResourceConfig config) {
     return new ObjectMetaBuilder()
         .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
         .build();
   }
 
-  private DeploymentConfigSpec createDeploymentConfigSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  private DeploymentConfigSpec createDeploymentConfigSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new DeploymentConfigSpecBuilder()
         .withReplicas(config.getReplicas())
         .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))

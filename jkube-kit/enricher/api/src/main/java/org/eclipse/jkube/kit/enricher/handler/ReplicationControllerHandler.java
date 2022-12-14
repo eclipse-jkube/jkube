@@ -17,7 +17,7 @@ import java.util.List;
 
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -41,7 +41,7 @@ public class ReplicationControllerHandler implements ControllerHandler<Replicati
   }
 
   @Override
-  public ReplicationController get(ResourceConfig config, List<ImageConfiguration> images) {
+  public ReplicationController get(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new ReplicationControllerBuilder()
         .withMetadata(createRcMetaData(config))
         .withSpec(createRcSpec(config, images))
@@ -49,7 +49,7 @@ public class ReplicationControllerHandler implements ControllerHandler<Replicati
   }
 
   @Override
-  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  public PodTemplateSpec getPodTemplateSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
   }
 
@@ -70,13 +70,13 @@ public class ReplicationControllerHandler implements ControllerHandler<Replicati
 // ===========================================================
   // TODO: "replica set" config used
 
-  private ObjectMeta createRcMetaData(ResourceConfig config) {
+  private ObjectMeta createRcMetaData(ControllerResourceConfig config) {
     return new ObjectMetaBuilder()
         .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "replication controller name"))
         .build();
   }
 
-  private ReplicationControllerSpec createRcSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  private ReplicationControllerSpec createRcSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new ReplicationControllerSpecBuilder()
         .withReplicas(config.getReplicas())
         .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))

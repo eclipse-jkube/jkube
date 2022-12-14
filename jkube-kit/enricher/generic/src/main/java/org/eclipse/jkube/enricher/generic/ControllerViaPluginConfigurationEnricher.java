@@ -15,10 +15,12 @@ package org.eclipse.jkube.enricher.generic;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -73,11 +75,12 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
         final String name = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-        ResourceConfig xmlResourceConfig = getConfiguration().getResource();
-        final ResourceConfig config = ResourceConfig.builder()
+        ControllerResourceConfig providedControllerResourceConfig = getControllerResourceConfig();
+        final ControllerResourceConfig controllerResourceConfig = ControllerResourceConfig.builder()
                 .controllerName(name)
-                .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, Config.PULL_POLICY))
-                .replicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+                .imagePullPolicy(getImagePullPolicy(providedControllerResourceConfig, Config.PULL_POLICY))
+                .replicas(getReplicaCount(builder, providedControllerResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+                .initContainers(Optional.ofNullable(providedControllerResourceConfig.getInitContainers()).orElse(Collections.emptyList()))
                 .build();
 
         final List<ImageConfiguration> images = getImages();
@@ -85,7 +88,7 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
         if (KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS)) {
             // At least one image must be present, otherwise the resulting config will be invalid
             if (KubernetesResourceUtil.checkForKind(builder, "StatefulSet")) {
-                final StatefulSetSpec spec = statefulSetHandler.get(config, images).getSpec();
+                final StatefulSetSpec spec = statefulSetHandler.get(controllerResourceConfig, images).getSpec();
                 if (spec != null) {
                     builder.accept(new TypedVisitor<StatefulSetBuilder>() {
                         @Override
@@ -112,7 +115,7 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
                     }
                 }
             } else {
-                final DeploymentSpec spec = deployHandler.get(config, images).getSpec();
+                final DeploymentSpec spec = deployHandler.get(controllerResourceConfig, images).getSpec();
                 if (spec != null) {
                     builder.accept(new TypedVisitor<DeploymentBuilder>() {
                         @Override

@@ -22,6 +22,7 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -148,29 +149,37 @@ public class BaseEnricher implements Enricher {
     /**
      * This method overrides the controller name value by the value provided in XML config.
      *
-     * @param resourceConfig resource config from plugin configuration
+     * @param controllerResourceConfig Controller Resource config from plugin configuration
      * @param defaultValue default value
      * @return string as controller name
      */
-    protected String getControllerName(ResourceConfig resourceConfig, String defaultValue) {
-        return Optional.ofNullable(resourceConfig).map(ResourceConfig::getControllerName).orElse(defaultValue);
+    protected String getControllerName(ControllerResourceConfig controllerResourceConfig, String defaultValue) {
+        return Optional.ofNullable(controllerResourceConfig).map(ControllerResourceConfig::getControllerName).orElse(defaultValue);
+    }
+
+    protected ControllerResourceConfig getControllerResourceConfig() {
+        ResourceConfig resourceConfig = getConfiguration().getResource();
+        if (resourceConfig != null && resourceConfig.getController() != null) {
+            return resourceConfig.getController();
+        }
+        return ControllerResourceConfig.builder().build();
     }
 
     /**
      * This method overrides the ImagePullPolicy value by the value provided in
      * XML config.
      *
-     * @param resourceConfig resource config from plugin configuration
+     * @param controllerResourceConfig controller resource config from plugin configuration
      * @param enricherConfig Enricher specific configuration for ImagePullPolicy
      * @return string as image pull policy
      */
-    protected String getImagePullPolicy(ResourceConfig resourceConfig, Configs.Config enricherConfig) {
+    protected String getImagePullPolicy(ControllerResourceConfig controllerResourceConfig, Configs.Config enricherConfig) {
         String imagePullPolicyFromProperty = getValueFromConfig(JKUBE_ENFORCED_IMAGE_PULL_POLICY, null);
         if (StringUtils.isNotBlank(imagePullPolicyFromProperty)) {
             return imagePullPolicyFromProperty;
         }
-        if (resourceConfig != null && StringUtils.isNotBlank(resourceConfig.getImagePullPolicy())) {
-            return resourceConfig.getImagePullPolicy();
+        if (controllerResourceConfig != null && StringUtils.isNotBlank(controllerResourceConfig.getImagePullPolicy())) {
+            return controllerResourceConfig.getImagePullPolicy();
         }
         final String imagePullPolicyFromEnricherConfig = enricherConfig != null ? getConfig(enricherConfig) : null;
         if (StringUtils.isNotBlank(imagePullPolicyFromEnricherConfig)) {
@@ -196,12 +205,12 @@ public class BaseEnricher implements Enricher {
      * topmost priority.
      *
      * @param builder kubernetes list builder containing objects
-     * @param xmlResourceConfig xml resource config from plugin configuration
+     * @param controllerResourceConfig xml resource config from plugin configuration
      * @param defaultValue default value
      * @return resolved replica count
      */
-    protected static int getReplicaCount(KubernetesListBuilder builder, ResourceConfig xmlResourceConfig, int defaultValue) {
-        if (xmlResourceConfig != null) {
+    protected static int getReplicaCount(KubernetesListBuilder builder, ControllerResourceConfig controllerResourceConfig, int defaultValue) {
+        if (controllerResourceConfig != null) {
             final List<HasMetadata> items = Optional.ofNullable(builder)
                 .map(KubernetesListBuilder::buildItems).orElse(Collections.emptyList());
             for (HasMetadata item : items) {
@@ -212,7 +221,7 @@ public class BaseEnricher implements Enricher {
                     return ((DeploymentConfig)item).getSpec().getReplicas();
                 }
             }
-            return xmlResourceConfig.getReplicas() != null ? xmlResourceConfig.getReplicas() : defaultValue;
+            return controllerResourceConfig.getReplicas() != null ? controllerResourceConfig.getReplicas() : defaultValue;
         }
         return defaultValue;
     }

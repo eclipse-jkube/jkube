@@ -24,7 +24,7 @@ import java.util.Set;
 
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.common.Arguments;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

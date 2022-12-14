@@ -42,8 +42,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.extractContainerName;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isContainerImage;
 
 /**
  * Merge in image configuration like the image name into ReplicaSet and ReplicationController's
@@ -215,12 +216,14 @@ public class ImageEnricher extends BaseEnricher {
     private void mergeImageConfigurationWithContainerSpec(List<Container> containers) {
         int idx = 0;
         for (ImageConfiguration image : getImages()) {
-            Container container = getContainer(idx, containers);
-            mergeImagePullPolicy(image, container);
-            mergeImage(image, container);
-            mergeContainerName(image, container);
-            mergeEnvVariables(container);
-            idx++;
+            if (isContainerImage(image, getControllerResourceConfig())) {
+                Container container = getContainer(idx, containers);
+                mergeImagePullPolicy(image, container);
+                mergeImage(image, container);
+                mergeContainerName(image, container);
+                mergeEnvVariables(container);
+                idx++;
+            }
         }
     }
 
@@ -270,7 +273,7 @@ public class ImageEnricher extends BaseEnricher {
     }
 
     private void mergeEnvVariables(Container container) {
-        Optional.ofNullable(getConfiguration().getResource()).map(ResourceConfig::getEnv).ifPresent(resourceEnv -> {
+        Optional.ofNullable(getControllerResourceConfig()).map(ControllerResourceConfig::getEnv).ifPresent(resourceEnv -> {
             List<EnvVar> containerEnvVars = container.getEnv();
             if (containerEnvVars == null) {
                 containerEnvVars = new LinkedList<>();

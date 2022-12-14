@@ -31,7 +31,7 @@ import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import com.google.cloud.tools.jib.api.JibContainerBuilder;

@@ -1,0 +1,15 @@
+{
+  "name": "init1",
+  "env": {
+    "FOO": "BAR"
+  },
+  "imageName": "busybox:latest",
+  "imagePullPolicy": "IfNotPresent",
+  "cmd": {
+    "exec": ["sleep", "10"]
+  },
+  "volumes": [{
+    "name": "workdir",
+    "path": "/work-dir"
+  }]
+}

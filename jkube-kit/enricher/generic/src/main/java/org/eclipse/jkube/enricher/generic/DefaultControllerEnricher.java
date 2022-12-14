@@ -29,8 +29,8 @@ import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
@@ -101,13 +101,12 @@ public class DefaultControllerEnricher extends BaseEnricher {
   public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
     final String name = getConfig(Config.NAME,
         JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-    ResourceConfig providedResourceConfig = Optional.ofNullable(getConfiguration().getResource())
-        .orElse(ResourceConfig.builder().build());
-    ResourceConfig config = ResourceConfig.toBuilder(providedResourceConfig)
-        .controllerName(getControllerName(providedResourceConfig, name))
-        .imagePullPolicy(getImagePullPolicy(providedResourceConfig, Config.PULL_POLICY))
-        .replicas(getReplicaCount(builder, providedResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
-        .restartPolicy(providedResourceConfig.getRestartPolicy())
+    ControllerResourceConfig providedControllerResourceConfig = getControllerResourceConfig();
+    final ControllerResourceConfig controllerResourceConfig = providedControllerResourceConfig.toBuilder()
+        .controllerName(getControllerName(providedControllerResourceConfig, name))
+        .imagePullPolicy(getImagePullPolicy(providedControllerResourceConfig, Config.PULL_POLICY))
+        .replicas(getReplicaCount(builder, providedControllerResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+        .restartPolicy(providedControllerResourceConfig.getRestartPolicy())
         .build();
 
     final List<ImageConfiguration> images = getImages();
@@ -117,11 +116,11 @@ public class DefaultControllerEnricher extends BaseEnricher {
     if (!KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS) && !images.isEmpty()) {
       final ControllerHandler<? extends HasMetadata> ch = getContext().getHandlerHub()
           .getHandlerFor(fromType(getConfig(Config.TYPE)));
-      final HasMetadata resource = ch.get(config, images);
+      final HasMetadata resource = ch.get(controllerResourceConfig, images);
       log.info("Adding a default %s", resource.getKind());
       builder.addToItems(resource);
       setProcessingInstruction(FABRIC8_GENERATED_CONTAINERS,
-          getContainersFromPodSpec(ch.getPodTemplateSpec(config, images)));
+          getContainersFromPodSpec(ch.getPodTemplateSpec(controllerResourceConfig, images)));
     }
   }
 

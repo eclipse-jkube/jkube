@@ -26,7 +26,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.common.Arguments;
 
 /**
  * @author roland

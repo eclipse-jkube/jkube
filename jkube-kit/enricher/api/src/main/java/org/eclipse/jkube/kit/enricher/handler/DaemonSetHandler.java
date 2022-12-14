@@ -22,7 +22,7 @@ import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpecBuilder;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class DaemonSetHandler implements ControllerHandler<DaemonSet> {
   }
 
   @Override
-  public DaemonSet get(ResourceConfig config, List<ImageConfiguration> images) {
+  public DaemonSet get(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new DaemonSetBuilder()
         .withMetadata(createDaemonSetMetaData(config))
         .withSpec(createDaemonSetSpec(config, images))
@@ -47,7 +47,7 @@ public class DaemonSetHandler implements ControllerHandler<DaemonSet> {
   }
 
   @Override
-  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  public PodTemplateSpec getPodTemplateSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
   }
 
@@ -61,13 +61,13 @@ public class DaemonSetHandler implements ControllerHandler<DaemonSet> {
     // NOOP
   }
 
-  private ObjectMeta createDaemonSetMetaData(ResourceConfig config) {
+  private ObjectMeta createDaemonSetMetaData(ControllerResourceConfig config) {
     return new ObjectMetaBuilder()
         .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
         .build();
   }
 
-  private DaemonSetSpec createDaemonSetSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  private DaemonSetSpec createDaemonSetSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new DaemonSetSpecBuilder()
         .withTemplate(podTemplateHandler.getPodTemplate(config, config.getRestartPolicy(), images))
         .build();

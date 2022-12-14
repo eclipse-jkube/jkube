@@ -21,7 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.11-SNAPSHOT
-* Fix #2003: check local port available on start remote-dev
+* Fix #1316: Add support for adding InitContainers via plugin configuration
 * Fix #1439: Add hint to use jkube.domain if createExternalUrls is used without domain
 * Fix #1459: Route Generation should support `8443` as default web port
 * Fix #1546: Migrate to JUnit5 testing framework
@@ -30,6 +30,7 @@ Usage:
 * Fix #1935: `oc:remote-dev` goal / `ocRemoteDev` task have wrong log prefixes
 * Fix #1966: Old reference to fmp in documentation
 * Fix #1974: Remove unused methods in KubernetesResourceUtil
+* Fix #2003: check local port available on start remote-dev
 * Fix #2004: AnsiOutputStream exceptions don't prevent logging or program execution 
 * Fix #2008: resources validated after their generation by `k8s:resource`
 

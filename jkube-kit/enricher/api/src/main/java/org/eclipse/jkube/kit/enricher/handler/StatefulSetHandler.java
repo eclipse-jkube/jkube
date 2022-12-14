@@ -17,7 +17,7 @@ import java.util.List;
 
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -43,7 +43,7 @@ public class StatefulSetHandler implements ControllerHandler<StatefulSet> {
   }
 
   @Override
-  public StatefulSet get(ResourceConfig config, List<ImageConfiguration> images) {
+  public StatefulSet get(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new StatefulSetBuilder()
         .withMetadata(createStatefulSetMetaData(config))
         .withSpec(createStatefulSetSpec(config, images))
@@ -51,7 +51,7 @@ public class StatefulSetHandler implements ControllerHandler<StatefulSet> {
   }
 
   @Override
-  public PodTemplateSpec getPodTemplateSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  public PodTemplateSpec getPodTemplateSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return get(config, images).getSpec().getTemplate();
   }
 
@@ -70,13 +70,13 @@ public class StatefulSetHandler implements ControllerHandler<StatefulSet> {
     });
   }
 
-  private ObjectMeta createStatefulSetMetaData(ResourceConfig config) {
+  private ObjectMeta createStatefulSetMetaData(ControllerResourceConfig config) {
     return new ObjectMetaBuilder()
         .withName(KubernetesHelper.validateKubernetesId(config.getControllerName(), "controller name"))
         .build();
   }
 
-  private StatefulSetSpec createStatefulSetSpec(ResourceConfig config, List<ImageConfiguration> images) {
+  private StatefulSetSpec createStatefulSetSpec(ControllerResourceConfig config, List<ImageConfiguration> images) {
     return new StatefulSetSpecBuilder()
         .withReplicas(config.getReplicas())
         .withServiceName(config.getControllerName())

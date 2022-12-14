@@ -39,7 +39,7 @@ import org.eclipse.jkube.kit.build.service.docker.wait.WaitUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.common.Arguments;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -25,6 +25,7 @@ import java.util.Scanner;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jkube.kit.common.Arguments;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

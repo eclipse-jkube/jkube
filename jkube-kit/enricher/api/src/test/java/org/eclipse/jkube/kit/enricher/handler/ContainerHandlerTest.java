@@ -20,7 +20,8 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
+import org.eclipse.jkube.kit.config.resource.InitContainerConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.mock;
 class ContainerHandlerTest {
     private ProbeHandler probeHandler;
     private JavaProject project;
-    private ResourceConfig config;
+    private ControllerResourceConfig config;
     private List<String> ports;
     private List<String> tags;
     private List<ImageConfiguration> images;
@@ -54,7 +55,7 @@ class ContainerHandlerTest {
     void setUp() {
       probeHandler = mock(ProbeHandler.class);
       project = JavaProject.builder().properties(new Properties()).build();
-      config = ResourceConfig.builder()
+      config = ControllerResourceConfig.builder()
           .imagePullPolicy("IfNotPresent")
           .controllerName("testing")
           .replicas(5)
@@ -181,7 +182,7 @@ class ContainerHandlerTest {
         ImageConfiguration imageConfigWithoutNameAndRegistry = ImageConfiguration.builder().alias("test-app")
             .build(buildImageConfiguration).registry("docker.io").build();
 
-        ResourceConfig config1 = ResourceConfig.builder().imagePullPolicy("IfNotPresent").build();
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().imagePullPolicy("IfNotPresent").build();
 
         images.add(imageConfiguration);
         images.add(imageConfigWithNameAndWithoutRegistry);
@@ -217,6 +218,32 @@ class ContainerHandlerTest {
         // Then
         assertThat(containers).singleElement()
             .hasFieldOrPropertyWithValue("image", "quay.io/roman.gordill/customer-service-cache:latest");
+      }
+
+      @Test
+      @DisplayName("with initContainer config and image configuration, should not create new container")
+      void withInitContainerConfigAndImageConfiguration_shouldNotCreateNewContainer() {
+        // Given
+        ContainerHandler containerHandler = createContainerHandler(project);
+        List<ImageConfiguration> imageConfigurations = new ArrayList<>();
+        imageConfigurations.add(ImageConfiguration.builder()
+            .name("foo:latest")
+            .build(BuildConfiguration.builder()
+                .from("basefoo:latest")
+                .build())
+            .build());
+        config = config.toBuilder()
+            .initContainer(InitContainerConfig.builder()
+                .name("init1")
+                .imageName("foo:latest")
+                .build())
+            .build();
+
+        // When
+        List<Container> containers = containerHandler.getContainers(config, imageConfigurations);
+
+        // Then
+        assertThat(containers).isEmpty();
       }
     }
 
@@ -302,7 +329,7 @@ class ContainerHandlerTest {
         ContainerHandler handler2 = new ContainerHandler(projectWithoutSnapshotVersion.getProperties(), new GroupArtifactVersion("g","a", "3.5-NEW"), probeHandler);
 
         images.add(imageConfiguration);
-        ResourceConfig config1 = ResourceConfig.builder().imagePullPolicy("IfNotPresent").build();
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().imagePullPolicy("IfNotPresent").build();
 
         String handler1ImagePullPolicy = handler1.getContainers(config1, images).get(0).getImagePullPolicy();
         assertThat(handler1ImagePullPolicy).isEqualTo("IfNotPresent");
@@ -335,7 +362,7 @@ class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         //check if policy is not set then both in case of version is set or not
-        ResourceConfig config1 = ResourceConfig.builder().imagePullPolicy("").build();
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().imagePullPolicy("").build();
 
         String handler1ImagePullPolicy = handler1.getContainers(config1, images).get(0).getImagePullPolicy();
         assertThat(handler1ImagePullPolicy).isEqualTo("PullAlways");
@@ -350,7 +377,7 @@ class ContainerHandlerTest {
     @Test
     void getImage_withPullRegistry_shouldReturnImageWithConfiguredPullRegistry() {
       ContainerHandler handler = createContainerHandler(project);
-      ResourceConfig config1 = ResourceConfig.builder().imagePullPolicy("IfNotPresent").build();
+      ControllerResourceConfig config1 = ControllerResourceConfig.builder().imagePullPolicy("IfNotPresent").build();
 
       imageConfiguration = ImageConfiguration.builder()
           .name("test").alias("test-app").build(buildImageConfiguration).build();
@@ -378,7 +405,7 @@ class ContainerHandlerTest {
 
         VolumeConfig volumeConfigWithoutMount = VolumeConfig.builder().name("first").build();
         volumes.add(volumeConfigWithoutMount);
-        ResourceConfig config1 = ResourceConfig.builder().volumes(volumes).build();
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().volumes(volumes).build();
         List<io.fabric8.kubernetes.api.model.VolumeMount> volumeMounts = handler.getContainers(config1, images).get(0)
             .getVolumeMounts();
         assertThat(volumeMounts).isEmpty();
@@ -397,7 +424,7 @@ class ContainerHandlerTest {
         VolumeConfig volumeConfigWithoutNameAndWithMount = VolumeConfig.builder().mounts(mounts).build();
         volumes.add(volumeConfigWithoutNameAndWithMount);
 
-        ResourceConfig config1 = ResourceConfig.builder().volumes(volumes).build();
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().volumes(volumes).build();
         List<io.fabric8.kubernetes.api.model.VolumeMount> volumeMounts = handler.getContainers(config1, images).get(0)
             .getVolumeMounts();
         assertThat(volumeMounts).singleElement()
@@ -417,7 +444,7 @@ class ContainerHandlerTest {
 
         VolumeConfig volumeConfigWithNameAndSingleMount = VolumeConfig.builder().name("third").mounts(mounts).build();
         volumes.add(volumeConfigWithNameAndSingleMount);
-        ResourceConfig config1 = ResourceConfig.builder().volumes(volumes).build();
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().volumes(volumes).build();
         List<io.fabric8.kubernetes.api.model.VolumeMount> volumeMounts = handler.getContainers(config1, images).get(0)
             .getVolumeMounts();
         assertThat(volumeMounts).singleElement()
@@ -439,7 +466,7 @@ class ContainerHandlerTest {
           .mount("/path/sys")
           .build();
         volumes.add(volumeConfigWithNameAndMultipleMounts);
-        ResourceConfig config1 = ResourceConfig.builder().volumes(volumes).build();
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().volumes(volumes).build();
         List<io.fabric8.kubernetes.api.model.VolumeMount> volumeMounts = handler.getContainers(config1, images).get(0)
             .getVolumeMounts();
         assertThat(volumeMounts).hasSize(3)
@@ -462,7 +489,7 @@ class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         //empty volume
-        ResourceConfig config1 = ResourceConfig.builder().volumes(emptyVolumes).build();
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().volumes(emptyVolumes).build();
         List<io.fabric8.kubernetes.api.model.VolumeMount> volumeMounts = handler.getContainers(config1, images).get(0)
             .getVolumeMounts();
         assertThat(volumeMounts).isEmpty();

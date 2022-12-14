@@ -20,7 +20,7 @@ import org.eclipse.jkube.kit.config.image.RestartPolicy;
 import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
 import org.eclipse.jkube.kit.config.image.UlimitConfig;
 import org.eclipse.jkube.kit.build.service.docker.helper.VolumeBindingUtil;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.common.Arguments;
 
 import java.io.File;
 import java.util.ArrayList;

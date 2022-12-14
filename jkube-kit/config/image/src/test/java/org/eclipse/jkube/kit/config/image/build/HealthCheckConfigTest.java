@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.config.image.build;
 
 import java.util.stream.Stream;
 
+import org.eclipse.jkube.kit.common.Arguments;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;

@@ -1,0 +1,138 @@
+{
+  "env": {
+    "KEY1": "VALUE1"
+  },
+  "labels": {
+    "all": {
+      "label_key": "label_value"
+    }
+  },
+  "annotations": {
+    "all": {
+      "annotation_key": "annotation_value"
+    }
+  },
+  "secrets": [{
+    "name": "secret1",
+    "dockerServerId": "dockerhub"
+  }],
+  "services": [{
+    "name": "service1",
+    "headless": true,
+    "ports": [{
+      "port": 8080
+    }]
+  }],
+  "remotes": ["http://example.com/manifests/deployment.yaml"],
+  "configMap": {
+    "name": "configmap1",
+    "entries": [{
+      "name": "entryKey",
+      "value": "entryValue"
+    }]
+  },
+  "volumes": [{
+    "name": "workdir",
+    "type": "emptyDir",
+    "path": "/work-dir"
+  }],
+  "controllerName": "test-controller",
+  "containerPrivileged": false,
+  "imagePullPolicy": "IfNotPresent",
+  "replicas": 3,
+  "restartPolicy": "OnFailure",
+  "namespace": "foo-ns",
+  "serviceAccount": "foo-sa",
+  "serviceAccounts": [{
+    "name": "foo-sa",
+    "deploymentRef": "foo-deployment"
+  }],
+  "customResourceDefinitions": ["crontab.sample.example.com"],
+  "createExternalUrls": true,
+  "routeDomain": "example.com",
+  "liveness": {
+    "getUrl": "http://:8080/q/health",
+    "initialDelaySeconds": 3,
+    "timeoutSeconds": 3
+  },
+  "readiness": {
+    "getUrl": "http://:8080/q/health",
+    "initialDelaySeconds": 3,
+    "timeoutSeconds": 3
+  },
+  "startup": {
+    "getUrl": "http://:8080/q/health",
+    "initialDelaySeconds": 3,
+    "timeoutSeconds": 3
+  },
+  "controller": {
+    "env": {
+      "KEY1": "VALUE1"
+    },
+    "volumes": [{
+      "name": "workdir",
+      "type": "emptyDir",
+      "path": "/work-dir"
+    }],
+    "controllerName": "test-controller",
+    "containerPrivileged": false,
+    "imagePullPolicy": "IfNotPresent",
+    "replicas": 3,
+    "restartPolicy": "OnFailure",
+    "initContainers": [{
+      "name": "init1",
+      "env": {
+        "FOO": "BAR"
+      },
+      "imageName": "busybox:latest",
+      "imagePullPolicy": "IfNotPresent",
+      "cmd": {
+        "exec": ["sleep", "10"]
+      },
+      "volumes": [{
+        "name": "workdir",
+        "path": "/work-dir"
+      }]
+    }],
+    "liveness": {
+      "getUrl": "http://:8080/q/health",
+      "initialDelaySeconds": 3,
+      "timeoutSeconds": 3
+    },
+    "readiness": {
+      "getUrl": "http://:8080/q/health",
+      "initialDelaySeconds": 3,
+      "timeoutSeconds": 3
+    },
+    "startup": {
+      "getUrl": "http://:8080/q/health",
+      "initialDelaySeconds": 3,
+      "timeoutSeconds": 3
+    }
+  },
+  "openshiftBuildConfig": {
+    "limits": {
+      "memory": "128Mi",
+      "cpu": "500m"
+    },
+    "requests": {
+      "memory": "64Mi",
+      "cpu": "250m"
+    }
+  },
+  "ingress": {
+    "ingressRules": [{
+      "host": "example.com",
+      "paths": [{
+        "pathType": "Prefix",
+        "path": "/foo",
+        "serviceName": "service1",
+        "servicePort": "8080"
+      }]
+    }],
+    "ingressTlsConfigs": [{
+      "hosts": ["example.com"],
+      "secretName": "testsecret-tls"
+    }]
+  }
+}

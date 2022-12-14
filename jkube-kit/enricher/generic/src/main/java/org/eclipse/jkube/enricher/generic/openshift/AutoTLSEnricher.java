@@ -29,7 +29,7 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.api.util.InitContainerHandler;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,8 +47,6 @@ public class AutoTLSEnricher extends BaseEnricher {
     static final String AUTOTLS_ANNOTATION_KEY = "service.alpha.openshift.io/serving-cert-secret-name";
 
     private final String secretName;
-
-    private final InitContainerHandler initContainerHandler;
 
     @AllArgsConstructor
     private enum Config implements Configs.Config {
@@ -74,7 +72,6 @@ public class AutoTLSEnricher extends BaseEnricher {
         super(buildContext, ENRICHER_NAME);
 
         this.secretName = getConfig(Config.TLS_SECRET_NAME, getContext().getGav().getArtifactId() + "-tls");
-        this.initContainerHandler = new InitContainerHandler(buildContext.getLog());
     }
 
     @Override
@@ -86,7 +83,7 @@ public class AutoTLSEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<PodTemplateSpecBuilder>() {
             @Override
             public void visit(PodTemplateSpecBuilder builder) {
-                initContainerHandler.appendInitContainer(builder, createInitContainer());
+                KubernetesResourceUtil.appendInitContainer(builder, createInitContainer(), log);
             }
 
             private Container createInitContainer() {
