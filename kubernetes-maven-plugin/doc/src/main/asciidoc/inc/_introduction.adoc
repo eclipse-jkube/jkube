@@ -393,7 +393,7 @@ complete list of which (along with associated abbreviations) can be found in the
 
 
 
-NOTE: Now that sidecar containers are supported in this plugin(if `jkube.sidecar` is enabled), be careful whenever you're supplying container name in the resource fragment. If container specified in resource fragment doesn't have a name or it's name is equal to default fmp generated application's container name; it would not be treated as sidecar and it would be merged into main container. However, You can override plugin's default name for main container via `jkube.generator.alias` property.
+NOTE: Now that sidecar containers are supported in this plugin(if `jkube.sidecar` is enabled), be careful whenever you're supplying container name in the resource fragment. If container specified in resource fragment doesn't have a name or it's name is equal to default jkube generated application's container name; it would not be treated as sidecar and it would be merged into main container. However, You can override plugin's default name for main container via `jkube.generator.alias` property.
 
 '''
 
