@@ -25,6 +25,7 @@ Usage:
 * Fix #1546: Migrate to JUnit5 testing framework
 * Fix #1858: Properties in image name not replaced
 * Fix #1935: `oc:remote-dev` goal / `ocRemoteDev` task have wrong log prefixes
+* Fix #1966: Old reference to fmp in documentation
 
 ### 1.10.1 (2022-11-16)
 * Fix #1915: Maven 3.6.3 is still supported
