@@ -1,0 +1,101 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+kubernetes {
+    offline = true
+    images {
+        image1 {
+            name = 'main-container:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java-11'
+                ports = ['8080']
+            }
+        }
+        image2 {
+            name = 'init:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java-11'
+            }
+        }
+    }
+    resources {
+        controller {
+            initContainers = [
+               {
+                    name = 'init1'
+                    imageName = 'busybox:1.28'
+                    cmd {
+                        exec = ["wget", "-O", "/work-dir/index.html", "http://info.cern.ch"]
+                    }
+                    volumes = [{
+                        name = 'workdir'
+                        path = '/work-dir'
+                    }]
+                },{
+                    name = 'init2'
+                    imageName = 'init:latest'
+                }
+            ]
+            volumes = [{
+                           type = 'emptyDir'
+                           name = 'workdir'
+                           path = '/work-dir'
+            }]
+        }
+    }
+}
+
+openshift {
+    offline = true
+    images {
+        image1 {
+            name = 'main-container:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java-11'
+                ports = ['8080']
+            }
+        }
+        image2 {
+            name = 'init:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java-11'
+            }
+        }
+    }
+    resources {
+        controller {
+            initContainers = [
+                    {
+                        name = 'init1'
+                        imageName = 'busybox:1.28'
+                        cmd {
+                            exec = ["wget", "-O", "/work-dir/index.html", "http://info.cern.ch"]
+                        }
+                        volumes = [{
+                                       name = 'workdir'
+                                       path = '/work-dir'
+                                   }]
+                    },{
+                        name = 'init2'
+                        imageName = 'init:latest'
+                    }
+            ]
+            volumes = [{
+                type = 'emptyDir'
+                name = 'workdir'
+                path = '/work-dir'
+            }]
+        }
+    }
+}

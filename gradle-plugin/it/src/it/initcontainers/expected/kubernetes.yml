@@ -1,0 +1,106 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: initcontainers
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: initcontainers
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: initcontainers
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: initcontainers
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: initcontainers
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: initcontainers
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+    template:
+      metadata:
+        annotations:
+          jkube.io/git-url: "@ignore@"
+          jkube.io/git-commit: "@ignore@"
+          jkube.io/git-branch: "@ignore@"
+        labels:
+          app: initcontainers
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+        name: initcontainers
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: main-container:latest
+          imagePullPolicy: IfNotPresent
+          name: orgeclipsejkubeintegrationtestsgradle-initcontainers
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          securityContext:
+            privileged: false
+        initContainers:
+        - command:
+          - wget
+          - -O
+          - /work-dir/index.html
+          - http://info.cern.ch
+          env:
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: busybox:1.28
+          name: init1
+          volumeMounts:
+          - mountPath: /work-dir
+            name: workdir
+        - env:
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: init:latest
+          name: init2
+        volumes:
+          - emptyDir: {}
+            name: workdir
