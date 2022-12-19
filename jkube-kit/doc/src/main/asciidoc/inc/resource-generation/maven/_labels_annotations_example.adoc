@@ -1,0 +1,51 @@
+.Example for label and annotations
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <!-- ... -->
+  <configuration>
+    <!-- ... -->
+    <resources>
+      <labels> <!--1-->
+        <all> <!--2-->
+          <property> <!--3-->
+            <name>organisation</name>
+            <value>unesco</value>
+          </property>
+        </all>
+        <service> <!--4-->
+          <property>
+            <name>database</name>
+            <value>mysql</value>
+          </property>
+          <property>
+            <name>persistent</name>
+            <value>true</value>
+          </property>
+        </service>
+        <replicaSet> <!--5-->
+          <!-- ... -->
+        </replicaSet>
+        <pod> <!--6-->
+          <!-- ... -->
+        </pod>
+        <deployment> <!--7-->
+          <!-- ... -->
+        </deployment>
+      </labels>
+
+      <annotations> <!--8-->
+         <!-- ... -->
+      </annotations>
+    </resource>
+  </configuration>
+</plugin>
+----
+<1> `<labels>` section with `<resources>` contains labels which should be applied to objects of various kinds
+<2> Within `<all>` labels which should be applied to *every* object can be specified
+<3> Within `<property>` you can specify key value pairs
+<4> `<service>` labels are used to label services
+<5> `<replicaSet>` labels are for replica set and replication controller
+<6> `<pod>` holds labels for pod specifications in replication controller, replica sets and deployments
+<7> `<deployment>` is for labels on deployments (kubernetes) and deployment configs (openshift)
+<8> The subelements are also available for specifying annotations.

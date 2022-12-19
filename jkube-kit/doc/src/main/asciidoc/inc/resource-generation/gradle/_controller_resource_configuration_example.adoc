@@ -1,0 +1,44 @@
+.Example of Controller Resource Configuration
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+    resources {
+        env { //<1>
+            organization = 'Eclipse Foundation'
+            projectname = 'jkube'
+        }
+        controllerName = 'my-deploymentname' //<2>
+        containerPrivileged = 'true' //<3>
+        imagePullPolicy = 'Always' //<4>
+        replicas = '3' //<5>
+        liveness { //<6>
+            getUrl = 'http://:8080/q/health'
+            tcpPort = '8080'
+            initialDelaySeconds = '3'
+            timeoutSeconds = '3'
+        }
+        startup { //<7>
+          periodSeconds = 30
+          failureThreshold = 1
+          getUrl = "http://:8080/actuator/health"
+        }
+        volumes = [{ //<8>
+            name = 'scratch'
+            type = 'emptyDir'
+            medium = 'Memory'
+            mounts = [{
+                mount = '/var/scratch'
+            }]
+        }]
+    }
+}
+----
+
+<1> Environment variables added to all of your application Pods
+<2> Name of Controller(`metadata.name` set in generated Deployment, Job, ReplicaSet etc)
+<3> Setting https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod[Security Context] of all application Pods.
+<4> Configure how images would be updated. Can be one of `IfNotPresent`, `Always` or `Never`. Read https://kubernetes.io/docs/concepts/containers/images/#updating-images[Kubernetes Images docs] for more details.
+<5> Number of replicas of pods we want to have in our application
+<6> Define an HTTP liveness request, see https://kubernetes.io/docs/concepts/containers/images/#updating-images[Kubernetes Liveness/Readiness probes] for more details.
+<7> Define an HTTP startup request, see https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/[Kubernetes Startup probes] for more details.
+<8> Mounting an EmptyDir Volume to your application pods

@@ -1,0 +1,25 @@
+
+[[resource-validation]]
+=== Resource Validation
+Resource goal also validates the generated resource descriptors using API specification of https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json[Kubernetes].
+
+.Validation Configuration
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *skipResourceValidation*
+| If value is set to `true` then resource validation is skipped. This may be useful if resource validation is failing
+for some reason but you still want to continue the deployment.
+
+  Default is `false`.
+| `jkube.skipResourceValidation`
+
+| *failOnValidationError*
+| If value is set to `true` then any validation error will block the plugin execution. A warning will be printed
+otherwise.
+
+  Default is `false`.
+| `jkube.failOnValidationError`
+
+|===

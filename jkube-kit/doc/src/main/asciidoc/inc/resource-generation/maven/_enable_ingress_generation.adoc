@@ -1,0 +1,7 @@
+.Enable Ingress Generation by enabling createExternalUrl property
+[source,xml]
+----
+<properties>
+     <jkube.createExternalUrls>true</jkube.createExternalUrls>
+</properties>
+----

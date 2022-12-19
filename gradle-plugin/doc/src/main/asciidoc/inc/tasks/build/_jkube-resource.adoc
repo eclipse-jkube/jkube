@@ -9,7 +9,7 @@ endif::[]
 ifeval::["{task-prefix}" == "oc"]
 Generated resources are in `build/classes/java/main/META-INF/jkube/openshift` directory.
 endif::[]
-You can find all Groovy DSL configuration options for {task-prefix}Resource in <<kuberetes-resource-configuration, Kubernetes Resource configuration>> section.
+You can find all Groovy DSL configuration options for {task-prefix}Resource in <<kubernetes-resource-configuration, Kubernetes Resource configuration>> section.
 
 Resource task also validates the generated resource descriptors using API specification of https://raw.githubusercontent.com/kubernetes/kubernetes/master/api/openapi-spec/swagger.json[Kubernetes].
 You can see configuration options regarding Kubernetes resource validation in <<global-configuration, Global Configuration>> section.

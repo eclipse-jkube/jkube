@@ -27,27 +27,27 @@ endif::[]
 This creates a ConfigMap with key `test-application.properties` and value the content of the `src/test/resources/test-application.properties` file.
 If you set `name` tag then this is used as key instead of the filename.
 
-[[configmap-groovy-configuration]]
-===== ConfigMap Groovy Configuration
-Here are the supported options while providing `configMap` in Groovy configuration
+[[configmap-configuration]]
+===== ConfigMap {plugin-configuration-type} Configuration
+Here are the supported options while providing `configMap` in {plugin-configuration-type} configuration
 
-.Groovy configmap configuration `configMap`
+.{plugin-configuration-type} configmap configuration `configMap`
 [cols="1,5"]
 |===
 | Element | Description
 
-| <<configmap-entry-groovy-configuration, `entries`>>
+| <<configmap-entry-configuration, `entries`>>
 | data for ConfigMap
 
 | `name`
 | Name of the ConfigMap
 |===
 
-[[configmap-entry-groovy-configuration]]
-===== ConfigMap Entry Groovy Configuration
-`entries` is a list of `entry` configuration objects. Here are the supported options while providing `entry` in Groovy configuration
+[[configmap-entry-configuration]]
+===== ConfigMap Entry {plugin-configuration-type} Configuration
+`entries` is a list of `entry` configuration objects. Here are the supported options while providing `entry` in {plugin-configuration-type} configuration
 
-.Groovy configmap entry configuration `entry`
+.{plugin-configuration-type} configmap entry configuration `entry`
 [cols="1,5"]
 |===
 | Element | Description

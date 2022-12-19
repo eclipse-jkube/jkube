@@ -1,0 +1,47 @@
+
+[[probe-resources-configuration]]
+=== Probe Configuration
+Probe configuration is used for configuring https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes[liveness and readiness probes] for containers. Both `liveness` and `readiness` probes the following options:
+
+.{plugin-configuration-type} Probe configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `initialDelaySeconds`
+| Initial delay in seconds before the probe is started.
+
+| `timeoutSeconds`
+| Timeout in seconds how long the probe might take.
+
+| `exec`
+| Command to execute for probing.
+
+| `getUrl`
+| Probe URL for HTTP Probe. Configures HTTP probe fields like `host`, `scheme`, `path` etc by parsing URL. For example, a `getUrl = "http://:8080/health"` would result in probe generated with fields set like this:
+
+  host: ""
+
+  path: /health
+
+  port: 8080
+
+  scheme: HTTP
+
+Host name with empty value defaults to Pod IP. You probably want to set "Host" in httpHeaders instead.
+
+| `tcpPort`
+| TCP port to probe.
+
+| `failureThreshold`
+| When a probe fails, Kubernetes will try failureThreshold times before giving up
+
+| `successThreshold`
+|  Minimum consecutive successes for the probe to be considered successful after having failed.
+
+|  `httpHeaders`
+| Custom headers to set in the request.
+
+| `periodSeconds`
+| How often in seconds to perform the probe. Defaults to 10 seconds. Minimum value is 1.
+|===

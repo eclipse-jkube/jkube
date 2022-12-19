@@ -1,0 +1,62 @@
+[[labels-annotation-configuration]]
+=== Labels/Annotations
+
+Labels and annotations can be easily added to any resource object. This is best explained by an example.
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_labels_annotations_example.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_labels_annotations_example.adoc[]
+endif::[]
+
+Labels and annotations can be specified in free form as a map. In this map, the element name is the name of the label or annotation respectively, whereas the content is the value to set.
+
+The following subelements are possible for `labels` and `annotations` :
+
+.Label and annotation configuration
+[cols="1,6"]
+|===
+| Element | Description
+
+| *all*
+| All entries specified in the `all` sections are applied to all resource objects created.
+ifeval::["{goal-prefix}" == "oc"]
+  This also implies build object like image stream and build configs which are created implicitly for an <<build-openshift, {cluster} build>>.
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+  This also implies build object like image stream and build configs which are created implicitly for an <<build-openshift, {cluster} build>>.
+endif::[]
+
+| *deployment*
+| Labels and annotations applied to `Deployment` (for Kubernetes).
+ifeval::["{goal-prefix}" == "oc"]
+  This also implies build object like image stream and build configs which are created implicitly for an <<build-openshift, {cluster} build>>.
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+   And `DeploymentConfig` (for OpenShift) objects.
+endif::[]
+
+
+| *pod*
+| Labels and annotations applied pod specification as used in `ReplicationController`,  `ReplicaSets`, `Deployments` and `DeploymentConfigs` objects.
+
+
+| *replicaSet*
+| Labels and annotations applied to `ReplicaSet` and `ReplicationController` objects.
+
+| *service*
+| Labels and annotations applied to `Service` objects.
+
+| *ingress*
+| Labels and annotations applied to `Ingress` objects.
+
+| *serviceAccount*
+| Labels and annotations applied to `ServiceAccount` objects.
+ifeval::["{goal-prefix}" == "oc"]
+include::_labels_annotations_route_entry.adoc[]
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+include::_labels_annotations_route_entry.adoc[]
+endif::[]
+|===
