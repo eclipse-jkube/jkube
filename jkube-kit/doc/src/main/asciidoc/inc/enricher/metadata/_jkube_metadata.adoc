@@ -6,9 +6,9 @@ This enricher is responsible for adding labels and annotations to your resources
 You can also configure whether you want to add these labels/annotations to some specific resource or all resources.
 
 ifeval::["{plugin-type}" == "maven"]
-You can see an example if it's usage in {goal-prefix}:resource <<resource-labels-annotations, Labels And Annotations>> section.
+You can see an example if it's usage in {goal-prefix}:resource <<labels-annotation-configuration, Labels And Annotations>> section.
 endif::[]
 
 ifeval::["{plugin-type}" == "gradle"]
-You can see an example if it's usage in {task-prefix}Resource <<resource-labels-annotations, Labels And Annotations>> section.
+You can see an example if it's usage in {task-prefix}Resource <<labels-annotation-configuration, Labels And Annotations>> section.
 endif::[]

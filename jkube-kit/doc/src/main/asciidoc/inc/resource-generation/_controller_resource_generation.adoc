@@ -1,0 +1,70 @@
+
+[[resource-controller-generation]]
+=== Controller Generation
+
+In JKube terminology, a Controller resource is a Kubernetes resource which manages Pods created for your application. These can be one of the following resources:
+
+
+* https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/[ReplicationController]
+* https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/[ReplicaSet]
+* https://kubernetes.io/docs/concepts/workloads/controllers/deployment/[Deployment]
+* https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/[StatefulSet]
+* https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+* https://kubernetes.io/docs/concepts/workloads/controllers/job/[Job]
+ifeval::["{task-prefix}" == "oc"]
+* https://docs.openshift.com/container-platform/4.7/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are[DeploymentConfig]
+endif::[]
+
+By default, Deployment is generated in Kubernetes mode. You can easily configure different aspects of generated Controller resource using {plugin-configuration-type} configuration. Here is an example:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_controller_resource_configuration_example.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_controller_resource_configuration_example.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+Here are the fields available in `resources` {plugin-configuration-type} configuration that would work with {goal-prefix}:resource:
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Here are the fields available in `resources` {plugin-configuration-type} configuration that would work with {task-prefix}Resource:
+endif::[]
+
+.resources fields for configuring generated controllers
+[cols="1,5"]
+|===
+| Element | Description
+
+| `env`
+| Environment variables which will be added to containers in Pod template spec.
+
+| <<volume-resource-configuration, `volumes`>>
+| Configuration element for adding volume mounts to containers in Pod template spec
+
+| `controllerName`
+| Name of the controller resource(i.e. `Deployment`, `ReplicaSet`, `StatefulSet` etc) generated
+
+| <<probe-resources-configuration, `liveness`>>
+| Configuration element for adding a liveness probe
+
+| <<probe-resources-configuration, `readiness`>>
+| Configuration element for adding readiness probe
+
+| `containerPrivileged`
+| Run container in privileged mode. Sets `privileged: true` in generated Controller's PodTemplateSpec
+
+| `imagePullPolicy`
+| How images should be pulled (maps to ImagePullPolicy).
+
+| `replicas`
+| Number of replicas to create
+
+| `restartPolicy`
+| Pod's restart policy.
+
+For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster} assumes it to be `Always`)
+
+| `serviceAccount`
+| ServiceAccount name which will be used by pods created by controller resources(e.g. `Deployment`, `ReplicaSet` etc)
+|===

@@ -1,0 +1,38 @@
+.Example for Ingress Configuration
+[source,xml]
+----
+<configuration>
+    <resources>
+        <ingress>
+          <ingressTlsConfigs>
+            <ingressTlsConfig> <!--1-->
+               <hosts>
+                 <host>foo.bar.com</host>
+               </hosts>
+               <secretName>testsecret-tls</secretName>
+            </ingressTlsConfig>
+          </ingressTlsConfigs>
+          <ingressRules>
+            <ingressRule>
+              <host>foo.bar.com</host> <!--2-->
+              <paths>
+                <path>
+                  <pathType>Prefix</pathType> <!--3-->
+                  <path>/foo</path>  <!--4-->
+                  <serviceName>service1</serviceName> <!--5-->
+                  <servicePort>8080</servicePort> <!--6-->
+                </path>
+              </paths>
+            </ingressRule>
+          </ingressRules>
+        </ingress>
+    </resources>
+</configuration>
+----
+
+<1> https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress TLS] Configuration to specify Secret that contains TLS private key and certificate
+<2> Host names, can be precise matches or a wildcard. See https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards[Kubernetes Ingress Hostname] documentation for more details
+<3> https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types[Ingress Path Type], Can be one of `ImplementationSpecific`, `Exact` or `Prefix`
+<4> Ingress path corresponding to provided `service.name`
+<5> Service Name corresponding to path
+<6> Service Port corresponding to path

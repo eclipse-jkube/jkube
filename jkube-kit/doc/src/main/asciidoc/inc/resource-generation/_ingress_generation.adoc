@@ -1,0 +1,160 @@
+[[ingress-generation]]
+=== Ingress Generation
+
+ifeval::["{plugin-type}" == "maven"]
+When the `{goal-prefix}:resource` goal is run, an `Ingress` will be generated for each `Service` if the `jkube.createExternalUrls` property is enabled.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+When the `{task-prefix}Resource` goal is run, an `Ingress` will be generated for each `Service` if the `jkube.createExternalUrls` property is enabled.
+endif::[]
+
+The generated `Ingress` can be further customized by using an {plugin-configuration-type} configuration, or by providing a YAML resource fragment.
+
+
+**{plugin-configuration-type} Configuration**
+
+.Fields supported in `resources`
+[cols="1,5"]
+|===
+| Element | Description
+
+| <<ingress-resource-top-level-configuration, `ingress`>>
+| Configuration element for creating new Ingress
+
+| `routeDomain`
+| Set host for Ingress or OpenShift Route
+|===
+
+Here is an example of configuring Ingress using {plugin-configuration-type} configuration:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_enable_ingress_generation.adoc[]
+include::maven/_ingress_configuration_example.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_enable_ingress_generation.adoc[]
+include::gradle/_ingress_configuration_example.adoc[]
+endif::[]
+
+
+
+[[ingress-resource-top-level-configuration]]
+==== Ingress {plugin-configuration-type} Configuration
+Here are the supported options while providing `ingress` in {plugin-configuration-type} configuration
+
+.`ingress` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| <<ingress-rule-resource-configuration, `ingressRules`>>
+| IngressRule configuration
+
+| <<ingress-tls-configuration, `ingressTlsConfigs`>>
+| Ingress TLS configuration
+|===
+
+[[ingress-rule-resource-configuration]]
+==== IngressRule {plugin-configuration-type} Configuration
+Here are the supported options while providing `ingressRules` in {plugin-configuration-type} configuration
+
+.`ingressRule` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `host`
+| Host name
+
+| <<ingress-rule-path-configuration, `paths`>>
+| IngressRule path configuration
+|===
+
+[[ingress-rule-path-configuration]]
+==== IngressRule Path {plugin-configuration-type} Configuration
+Here are the supported options while providing `paths` in {plugin-configuration-type} configuration
+
+.IngressRule `path` {plugin-configuration-type} configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `pathType`
+| type of Path
+
+| `path`
+| path
+
+| `serviceName`
+| Service name
+
+| `servicePort`
+| Service port
+
+| <<ingress-rule-path-resource-resource-configuration,`resource`>>
+| Resource reference in Ingress backend
+|===
+
+[[ingress-rule-path-resource-resource-configuration]]
+==== IngressRule Path Resource {plugin-configuration-type} Configuration
+Here are the supported options while providing `resource` in IngressRule's path {plugin-configuration-type} configuration
+
+.IngressRule Path `resource` {plugin-configuration-type} configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `name`
+| Resource name
+
+| `kind`
+| Resource kind
+
+| `apiGroup`
+| Resource's apiGroup
+|===
+
+[[ingress-tls-configuration]]
+==== IngressRule Path Resource {plugin-configuration-type} Configuration
+Here are the supported options while providing `ingressTlsConfigs` in IngressRule's path {plugin-configuration-type} configuration
+
+.IngressTls `ingressTlsConfig` {plugin-configuration-type} configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `secretName`
+| Secret name
+
+| `hosts`
+| a list of string `host` objects
+|===
+
+**Ingress Yaml fragment**:
+
+You can create `Ingress` using YAML fragments too by placing the partial YAML file in the `src/main/jkube` directory. The following snippet contains an `Ingress` fragment example.
+
+.Ingress fragment Example
+[source,yaml]
+----
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tls-example-ingress
+spec:
+  tls:
+  - hosts:
+    - https-example.foo.com
+    secretName: testsecret-tls
+  rules:
+  - host: https-example.foo.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service1
+            port:
+              number: 80
+----

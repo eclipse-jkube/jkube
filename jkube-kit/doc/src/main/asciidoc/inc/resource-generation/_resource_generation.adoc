@@ -1,0 +1,17 @@
+This section includes {plugin-configuration-type} configuration options you can use to tweak generated Kubernetes manifests.
+
+include::_labels_annotations.adoc[]
+
+include::_controller_resource_generation.adoc[]
+
+include::_probes.adoc[]
+
+include::_volumes.adoc[]
+
+include::_secret_generation.adoc[]
+
+include::_ingress_generation.adoc[]
+
+include::_serviceaccount_generation.adoc[]
+
+include::_resource_validation.adoc[]

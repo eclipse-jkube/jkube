@@ -1,0 +1,30 @@
+.Example for Ingress Configuration
+[source,groovy,subs="attributes+"]]
+----
+{pluginExtension} {
+  resources {
+    ingress {
+      ingressTlsConfigs = [{ //<1>
+        hosts = ["foo.bar.com"]
+        secretName = "testsecret-tls"
+      }]
+      ingressRules = [{
+        host = "foo.bar.com" //<2>
+        paths = [{
+          pathType = "Prefix" //<3>
+          path = "/foo" //<4>
+          serviceName = "service1" //<5>
+          servicePort = "8080" //<6>
+        }]
+      }]
+    }
+  }
+}
+----
+
+<1> https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress TLS] Configuration to specify Secret that contains TLS private key and certificate
+<2> Host names, can be precise matches or a wildcard. See https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards[Kubernetes Ingress Hostname] documentation for more details
+<3> https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types[Ingress Path Type], Can be one of `ImplementationSpecific`, `Exact` or `Prefix`
+<4> Ingress path corresponding to provided `service.name`
+<5> Service Name corresponding to path
+<6> Service Port corresponding to path

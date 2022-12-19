@@ -47,7 +47,7 @@ endif::[]
 | Enricher | Description
 
 | <<jkube-configmap-file>>
-| Add ConfigMap elements defined as Groovy or as annotation.
+| Add ConfigMap elements defined as {plugin-configuration-type} or as annotation.
 
 | <<jkube-controller>>
 | Create default controller (replication controller, replica set or deployment https://kubernetes.io/docs/concepts/workloads/controllers/[Kubernetes doc]) if missing.

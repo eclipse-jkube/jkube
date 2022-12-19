@@ -1,0 +1,149 @@
+[[volume-resource-configuration]]
+=== Volume Configuration
+`volumes` field contains a list of `volume` configurations. Different configurations are supported in order to support different https://kubernetes.io/docs/concepts/storage/volumes/[Volumes in Kubernetes].
+
+Here are the options supported by a single `volume` :
+
+.{plugin-configuration-type} `volume` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `type`
+| type of Volume
+
+| `name`
+| name of volume to be mounted
+
+| `mounts`
+| List of mount paths of this volume.
+
+| `path`
+| Path for volume
+
+| `medium`
+| medium ,applicable for Volume type `emptyDir`
+
+| `repository`
+| repository ,applicable for Volume type `gitRepo`
+
+| `revision`
+| revision ,applicable for Volume type `gitRepo`
+
+| `secretName`
+| Secret name ,applicable for Volume type `secret`
+
+| `server`
+| Server name, applicable for Volume type `nfsPath`
+
+| `readOnly`
+| Whether it's read only or not
+
+| `pdName`
+| pdName, applicable for Volume type `gcePdName`
+
+| `fsType`
+| File system type for Volume
+
+| `partition`
+| partition, applicable for Volume type `gcePdName`
+
+| `endpoints`
+| endpoints, applicable for Volume type `glusterFsPath`
+
+| `claimRef`
+| Claim Reference, applicable for Volume type `persistentVolumeClaim`
+
+| `volumeId`
+| volume id
+
+| `diskName`
+| disk name, applicable for Volume type `azureDisk`
+
+| `diskUri`
+| disk uri, applicable for Volume type `azureDisk`
+
+| `kind`
+| kind, applicable for Volume type `azureDisk`
+
+| `cachingMode`
+| caching mode, applicable for Volume type `azureDisk`
+
+| `hostPathType`
+| Host Path type
+
+| `shareName`
+| Share name,  applicable for Volume type `azureFile`
+
+| `user`
+| User name
+
+| `secretFile`
+| Secret File, applicable for Volume type `cephfs`
+
+| `secretRef`
+| Secret reference, applicable for Volume type `cephfs`
+
+| `lun`
+| LUN(Logical Unit Number)
+
+| `targetWwns`
+| target WWNs, applicable for Volume type `fc`
+
+| `datasetName`
+| data set name, applicable for Volume type `flocker`
+
+| `portals`
+| list of portals, applicable for Volume type `iscsi`
+
+| `targetPortal`
+| target portal, applicable for Volume type `iscsi`
+
+| `registry`
+| registry, applicable for Volume type `quobyte`
+
+| `volume`
+| volume, applicable for Volume type `quobyte`
+
+| `group`
+| group, applicable for Volume type `quobyte`
+
+| `iqn`
+| IQN, applicable for Volume type `iscsi`
+
+| `monitors`
+| list of monitors, applicable for Volume type `rbd`
+
+| `pool`
+| pool, applicable for Volume type `rbd`
+
+| `keyring`
+| keyring, applicable for Volume type `rbd`
+
+| `image`
+| image, applicable for Volume type `rbd`
+
+| `gateway`
+| gateway, applicable for Volume type `scaleIO`
+
+| `system`
+| system, applicable for Volume type `scaleIO`
+
+| `protectionDomain`
+| protection domain, applicable for Volume type `scaleIO`
+
+| `storagePool`
+| storage pool, applicable for Volume type `scaleIO`
+
+| `volumeName`
+| volume name, applicable for Volume type `scaleIO` and `storageOS`
+
+| `configMapName`
+| ConfigMap name, applicable for Volume type `configMap`
+
+| `configMapItems`
+| List of ConfigMap items, applicable for Volume type `configMap`
+
+| `items`
+| List of items, applicable for Volume type `downwardAPI`
+|===

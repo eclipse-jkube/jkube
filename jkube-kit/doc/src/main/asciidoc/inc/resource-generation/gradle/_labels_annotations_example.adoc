@@ -1,0 +1,34 @@
+.Example for label and annotations
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+    resources {
+        labels {   //<1>
+            all {  //<2>
+                organisation = 'unesco' //<3>
+            }
+            service { //<4>
+                database = 'mysql',
+                persistent = 'true'
+            }
+            replicaSet { //<5>
+            }
+            pod { //<6>
+            }
+            deployment { //<7>
+            }
+        }
+        annotations { //<8>
+        }
+    }
+}
+----
+
+<1> `labels` section with `resources` contains labels which should be applied to objects of various kinds
+<2> Within `all` labels which should be applied to *every* object can be specified
+<3> Within `property` you can specify key value pairs
+<4> `service` labels are used to label services
+<5> `replicaSet` labels are for replica set and replication controller
+<6> `pod` holds labels for pod specifications in replication controller, replica sets and deployments
+<7> `deployment` is for labels on deployments (kubernetes) and deployment configs (openshift)
+<8> The subelements are also available for specifying annotations.
