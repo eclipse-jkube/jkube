@@ -276,56 +276,58 @@ An extract of the plugin configuration is shown below:
       </all>
     </labels>
 
-    <replicas>2</replicas> <!--4-->
-    <controllerName>${project.artifactId}</controllerName> <!--5-->
+    <controller>
+      <replicas>2</replicas> <!--4-->
+      <controllerName>${project.artifactId}</controllerName> <!--5-->
+      <liveness> <!--6-->
+        <getUrl>http://:8080/q/health</getUrl>
+        <initialDelaySeconds>3</initialDelaySeconds>
+        <timeoutSeconds>3</timeoutSeconds>
+      </liveness>
+      <startup> <!--7-->
+        <failureThreshold>30</failureThreshold>
+        <periodSeconds>10</periodSeconds>
+        <getUrl>http://:8080/actuator/health</getUrl>
+      </startup>
+    </controller>
 
-    <services> <!--6-->
+    <services> <!--8-->
       <service>
         <name>camel-service</name>
         <headless>true</headless>
       </service>
     </services>
 
-    <serviceAccounts> <!--7-->
+    <serviceAccounts> <!--9-->
       <serviceAccount>
         <name>build-robot</name>
       </serviceAccount>
     </serviceAccounts>
 
-    <annotations> <!--8-->
+    <annotations> <!--10-->
       <all>
         <version>${project.version}</version>
         <artifactId>${project.artifactId}</artifactId>
       </all>
-      <deployment> <!--9-->
+      <deployment> <!--11-->
         <my>deployment</my>
       </deployment>
     </annotations>
 
-    <configMap> <!--10-->
+    <configMap> <!--12-->
       <name>test</name>
       <entries>
-        <entry> <!--11-->
+        <entry> <!--13-->
           <name>key1</name>
           <value>value1</value>
         </entry>
-        <entry> <!--12-->
+        <entry> <!--14-->
           <name>key3</name>
           <file>${project.basedir}/src/main/resources/META-INF/resources/index.html</file>
         </entry>
       </entries>
     </configMap>
 
-    <liveness> <!--13-->
-      <getUrl>http://:8080/q/health</getUrl>
-      <initialDelaySeconds>3</initialDelaySeconds>
-      <timeoutSeconds>3</timeoutSeconds>
-    </liveness>
-    <startup> <!--14-->
-      <failureThreshold>30</failureThreshold>
-      <periodSeconds>10</periodSeconds>
-      <getUrl>http://:8080/actuator/health</getUrl>
-    </startup>
     <remotes> <!--15-->
        <remote>https://gist.githubusercontent.com/lordofthejars/ac2823cec7831697d09444bbaa76cd50/raw/e4b43f1b6494766dfc635b5959af7730c1a58a93/deployment.yaml</remote>
     </remotes>
@@ -337,15 +339,15 @@ An extract of the plugin configuration is shown below:
 <3> Labels which should be applied globally to all resource objects
 <4> Number of replicas desired
 <5> Name of controller created by plugin
-<6> One or more http://kubernetes.io/docs/user-guide/services/[Service] definitions.
-<7> ServiceAccount(s) to create
-<8> Annotations which should be applied either to all or to specific resources
-<9> Annotations applied to Deployment resources only
-<10> ConfigMap to be created
-<11> ConfigMap data entry as a string key value pair
-<12> ConfigMap data entry with value as file path, file's contents are loaded into ConfigMap as key value
-<13> Liveness Probe to be added in PodTemplateSpec of Controller resource
-<14> Startup Probe to be added in PodTemplateSpec of Controller resource
+<6> Liveness Probe to be added in PodTemplateSpec of Controller resource
+<7> Startup Probe to be added in PodTemplateSpec of Controller resource
+<8> One or more http://kubernetes.io/docs/user-guide/services/[Service] definitions.
+<9> ServiceAccount(s) to create
+<10> Annotations which should be applied either to all or to specific resources
+<11> Annotations applied to Deployment resources only
+<12> ConfigMap to be created
+<13> ConfigMap data entry as a string key value pair
+<14> ConfigMap data entry with value as file path, file's contents are loaded into ConfigMap as key value
 <15> Remote files used as resource fragments.
 
 The XML resource configuration is based on plain Kubernetes resource objects. When targeting OpenShift, Kubernetes resource descriptors will be automatically converted to their OpenShift counterparts, e.g. a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] will be converted to an OpenShift https://docs.openshift.com/container-platform/4.1/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are[DeploymentConfig].
