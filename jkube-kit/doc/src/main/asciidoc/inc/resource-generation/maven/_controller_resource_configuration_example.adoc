@@ -3,35 +3,37 @@
 ----
 <configuration>
     <resources>
-        <env> <!--1-->
-          <organization>Eclipse Foundation</organization>
-          <projectname>jkube</projectname>
-        </env>
-        <controllerName>my-deploymentname</controllerName> <!--2-->
-        <containerPrivileged>true</containerPrivileged> <!--3-->
-        <imagePullPolicy>Always</imagePullPolicy> <!--4-->
-        <replicas>3</replicas> <!--5-->
-        <liveness> <!--6-->
-            <getUrl>http://:8080/q/health</getUrl>
-            <tcpPort>8080</tcpPort>
-            <initialDelaySeconds>3</initialDelaySeconds>
-            <timeoutSeconds>3</timeoutSeconds>
-        </liveness>
-        <startup> <!--7-->
-            <periodSeconds>30</periodSeconds>
-            <failureThreshold>1</failureThreshold>
-            <getUrl>http://:8080/actuator/health</getUrl>
-        </startup>
-        <volumes> <!--8-->
-          <volume>
-            <name>scratch</name>
-            <type>emptyDir</type>
-            <medium>Memory</medium>
-            <mounts>
-              <mount>/var/scratch</mount>
-            </mounts>
-          </volume>
-        </volumes>
+        <controller>
+            <env> <!--1-->
+              <organization>Eclipse Foundation</organization>
+              <projectname>jkube</projectname>
+            </env>
+            <controllerName>my-deploymentname</controllerName> <!--2-->
+            <containerPrivileged>true</containerPrivileged> <!--3-->
+            <imagePullPolicy>Always</imagePullPolicy> <!--4-->
+            <replicas>3</replicas> <!--5-->
+            <liveness> <!--6-->
+                <getUrl>http://:8080/q/health</getUrl>
+                <tcpPort>8080</tcpPort>
+                <initialDelaySeconds>3</initialDelaySeconds>
+                <timeoutSeconds>3</timeoutSeconds>
+            </liveness>
+            <startup> <!--7-->
+                <periodSeconds>30</periodSeconds>
+                <failureThreshold>1</failureThreshold>
+                <getUrl>http://:8080/actuator/health</getUrl>
+            </startup>
+            <volumes> <!--8-->
+              <volume>
+                <name>scratch</name>
+                <type>emptyDir</type>
+                <medium>Memory</medium>
+                <mounts>
+                  <mount>/var/scratch</mount>
+                </mounts>
+              </volume>
+            </volumes>
+        </controller>
     </resources>
 </configuration>
 ----

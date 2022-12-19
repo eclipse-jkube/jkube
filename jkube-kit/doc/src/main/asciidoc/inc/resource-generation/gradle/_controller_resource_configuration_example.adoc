@@ -7,29 +7,29 @@
             organization = 'Eclipse Foundation'
             projectname = 'jkube'
         }
-        controllerName = 'my-deploymentname' //<2>
-        containerPrivileged = 'true' //<3>
-        imagePullPolicy = 'Always' //<4>
-        replicas = '3' //<5>
-        liveness { //<6>
-            getUrl = 'http://:8080/q/health'
-            tcpPort = '8080'
-            initialDelaySeconds = '3'
-            timeoutSeconds = '3'
-        }
-        startup { //<7>
-          periodSeconds = 30
-          failureThreshold = 1
-          getUrl = "http://:8080/actuator/health"
-        }
-        volumes = [{ //<8>
-            name = 'scratch'
-            type = 'emptyDir'
-            medium = 'Memory'
-            mounts = [{
-                mount = '/var/scratch'
+        controller {
+            controllerName = 'my-deploymentname' //<2>
+            containerPrivileged = 'true' //<3>
+            imagePullPolicy = 'Always' //<4>
+            replicas = '3' //<5>
+            liveness { //<6>
+                getUrl = 'http://:8080/q/health'
+                tcpPort = '8080'
+                initialDelaySeconds = '3'
+                timeoutSeconds = '3'
+            }
+            startup { //<7>
+              periodSeconds = 30
+              failureThreshold = 1
+              getUrl = "http://:8080/actuator/health"
+            }
+            volumes = [{ //<8>
+                name = 'scratch'
+                type = 'emptyDir'
+                medium = 'Memory'
+                mounts = ['/var/scratch']
             }]
-        }]
+        }
     }
 }
 ----
