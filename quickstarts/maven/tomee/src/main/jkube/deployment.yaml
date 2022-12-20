@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+metadata:
+  name: ${k8sgroupId}-${project.artifactId}
+spec:
+  strategy:
+    type: Recreate
+  template:
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        image: ${docker.host}/${project.groupId}.${project.artifactId}:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: ${tomee.port}
+          name: http
+          protocol: TCP
+        securityContext:
+          privileged: false
+      imagePullSecrets:
+        - name: netagehub
