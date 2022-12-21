@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-Tomee Sample
-
-=======
 ---
 name: "Maven :: Tomee"
 description: |
@@ -37,4 +33,3 @@ Once you've deployed the application _(please allow 1 minute for the application
 ```
 Hello World
 ```
->>>>>>> branch 'feature-1958' of git@github.com:semanticfire/jkube.git
