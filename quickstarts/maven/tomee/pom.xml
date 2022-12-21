@@ -6,24 +6,25 @@
 	<artifactId>tomee</artifactId>
 	<version>10.0.1</version>
 	<name>Eclipse JKube :: Quickstarts :: Maven :: Tomee</name>
-
+	<packaging>war</packaging>
 	<description>
 		Tomee deployment template for JKube
 	</description>
 	<properties>
 		<k8sgroupId>com-example-container</k8sgroupId>
 		<jkube.enricher.jkube-project-label.app>${k8sgroupId}-${project.artifactId}</jkube.enricher.jkube-project-label.app>
-		<tomee.version>8.0.2</tomee.version>
+		<tomee.version>8.0.13</tomee.version>
 		<tomee.port>8080</tomee.port>
 		<failOnMissingWebXml>false</failOnMissingWebXml>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<proj.hostname>container.example.com</proj.hostname>
-		<docker.host>dockerhub.example.com</docker.host>
+		<docker.host>hub.docker.com</docker.host>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd_HH-mm</maven.build.timestamp.format>
 		<work.version>${project.version}</work.version>
-
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<profiles>
 		<profile>
@@ -34,7 +35,24 @@
 		</profile>
 	</profiles>
 	<build>
+		<finalName>tomee</finalName>
 		<plugins>
+			<plugin>
+				<version>3.10.1</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>11</source>
+					<target>11</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.tomee.maven</groupId>
 				<artifactId>tomee-maven-plugin</artifactId>
@@ -53,17 +71,6 @@
 					<tomeeClassifier>microprofile</tomeeClassifier>
 					<tomeeHttpPort>${tomee.port}</tomeeHttpPort>
 					<simpleLog>true</simpleLog>
-					<inlinedTomEEXml>
-						<tomee>
-							
-						</tomee>
-					</inlinedTomEEXml>
-					<libs>
-
-					</libs>
-					<webapps>
-
-					</webapps>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -105,7 +112,7 @@
 
 							<name>${project.groupId}.${project.artifactId}:latest</name>
 							<build>
-								<from>openjdk:11-jre-alpine</from>
+								<from>adoptopenjdk:11-jre-hotspot</from>
 								<assembly>
 									<inline>
 										<files>
@@ -133,4 +140,12 @@
 			</plugin>
 		</plugins>
 	</build>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.tomee</groupId>
+			<artifactId>javaee-api</artifactId>
+			<version>8.0-6</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
 </project>
