@@ -28,9 +28,9 @@ import java.util.Map;
  */
 public class LogOutputSpecFactory {
     private static final String DEFAULT_PREFIX_FORMAT = "%a> ";
-    private boolean useColor;
-    private boolean logStdout;
-    private String logDate;
+    private final boolean useColor;
+    private final boolean logStdout;
+    private final String logDate;
 
     public LogOutputSpecFactory(boolean useColor, boolean logStdout) {
         this(useColor, logStdout, null);
