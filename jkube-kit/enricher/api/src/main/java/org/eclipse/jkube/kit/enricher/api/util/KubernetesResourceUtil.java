@@ -21,12 +21,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,24 +49,18 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
-import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
-import io.fabric8.kubernetes.api.model.PodStatus;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.openshift.api.model.Build;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.FILENAME_PATTERN;
 
@@ -81,7 +72,6 @@ import static org.eclipse.jkube.kit.common.util.KubernetesHelper.FILENAME_PATTER
 public class KubernetesResourceUtil {
     private KubernetesResourceUtil() { }
 
-    private static final Logger LOG = LoggerFactory.getLogger(KubernetesResourceUtil.class);
 
     public static final String API_VERSION = "v1";
     public static final String EXTENSIONS_VERSION = "extensions/v1beta1";
@@ -108,8 +98,6 @@ public class KubernetesResourceUtil {
     private static final Set<Class<?>> SIMPLE_FIELD_TYPES = new HashSet<>();
 
     private static final String CONTAINER_NAME_REGEX = "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$";
-
-    protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
 
     static {
         KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(String.class);
@@ -388,12 +376,6 @@ public class KubernetesResourceUtil {
         }
     }
 
-    public static Map<String, String> removeVersionSelector(Map<String, String> selector) {
-        Map<String, String> answer = new HashMap<>(selector);
-        answer.remove("version");
-        return answer;
-    }
-
     public static boolean checkForKind(KubernetesListBuilder builder, String... kinds) {
         Set<String> kindSet = new HashSet<>(Arrays.asList(kinds));
         for (HasMetadata item : builder.buildItems()) {
@@ -422,81 +404,6 @@ public class KubernetesResourceUtil {
         } else {
             throw new IllegalStateException(e.getMessage(), e);
         }
-    }
-
-    public static String getBuildStatusPhase(Build build) {
-        if (build != null && build.getStatus() != null) {
-            return build.getStatus().getPhase();
-        }
-        return null;
-    }
-
-    public static Date getCreationTimestamp(HasMetadata hasMetadata) {
-        ObjectMeta metadata = hasMetadata.getMetadata();
-        if (metadata != null) {
-            return parseTimestamp(metadata.getCreationTimestamp());
-        }
-        return null;
-    }
-
-    private static Date parseTimestamp(String text) {
-        if (StringUtils.isBlank(text)) {
-            return null;
-        }
-        return parseDate(text);
-    }
-
-    public static Date parseDate(String text) {
-        try {
-            return new SimpleDateFormat(DATE_TIME_FORMAT).parse(text);
-        } catch (ParseException e) {
-            LOG.warn("Unable to parse date: " + text, e);
-            return null;
-        }
-    }
-
-    public static boolean podHasContainerImage(Pod pod, String imageName) {
-        if (pod != null) {
-            PodSpec spec = pod.getSpec();
-            if (spec != null) {
-                List<Container> containers = spec.getContainers();
-                if (containers != null) {
-                    for (Container container : containers) {
-                        if (Objects.equals(imageName, container.getImage())) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    public static String getDockerContainerID(Pod pod) {
-        PodStatus status = pod.getStatus();
-        if (status != null) {
-            List<ContainerStatus> containerStatuses = status.getContainerStatuses();
-            if (containerStatuses != null) {
-                for (ContainerStatus containerStatus : containerStatuses) {
-                    String containerID = containerStatus.getContainerID();
-                    if (StringUtils.isNotBlank(containerID)) {
-                        String prefix = "://";
-                        int idx = containerID.indexOf(prefix);
-                        if (idx > 0) {
-                            return containerID.substring(idx + prefix.length());
-                        }
-                        return containerID;
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    public static boolean isNewerResource(HasMetadata newer, HasMetadata older) {
-        Date t1 = getCreationTimestamp(newer);
-        Date t2 = getCreationTimestamp(older);
-        return t1 != null && (t2 == null || t1.compareTo(t2) > 0);
     }
 
     /**
@@ -688,11 +595,6 @@ public class KubernetesResourceUtil {
         return SIMPLE_FIELD_TYPES.contains(type);
     }
 
-    public static boolean isAppCatalogResource(HasMetadata templateOrConfigMap) {
-        String catalogAnnotation = KubernetesHelper.getOrCreateAnnotations(templateOrConfigMap).get(Constants.RESOURCE_APP_CATALOG_ANNOTATION);
-        return "true".equals(catalogAnnotation);
-    }
-
     /**
      * Merges the given resources together into a single resource.
      *
@@ -716,26 +618,6 @@ public class KubernetesResourceUtil {
         mergeMetadata(item1, item2);
         return item1;
     }
-
-    public static boolean containsLabelInMetadata(ObjectMeta metadata, String labelKey, String labelValue) {
-        if (metadata != null && metadata.getLabels() != null) {
-            Map<String, String> labels = metadata.getLabels();
-            return labels.containsKey(labelKey) && labelValue.equals(labels.get(labelKey));
-        }
-        return false;
-    }
-
-    public static ObjectMeta removeLabel(ObjectMeta metadata, String labelKey, String labelValue) {
-        Map<String, String> labels;
-        if (metadata != null) {
-            labels = metadata.getLabels();
-            if (labels != null && labelValue.equals(labels.get(labelKey))) {
-                labels.remove(labelKey);
-            }
-        }
-        return metadata;
-    }
-
 
 
     protected static HasMetadata mergeConfigMaps(ConfigMap cm1, ConfigMap cm2, KitLogger log, boolean switchOnLocalCustomisation) {
