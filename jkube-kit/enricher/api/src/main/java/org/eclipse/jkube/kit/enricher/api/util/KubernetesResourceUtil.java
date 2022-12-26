@@ -21,8 +21,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
+import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -619,6 +629,95 @@ public class KubernetesResourceUtil {
         return item1;
     }
 
+    /**
+     * Create a ConfigMap entry based on file contents
+     *
+     * @param key key for entry
+     * @param file file path whose contents would be used in value of entry
+     * @return an entry containing key and value
+     * @deprecated Should be replaced with Fabric8 Kubernetes Client's methods
+     * @throws IOException in case of error while reading file
+     */
+    @Deprecated
+    public static Map.Entry<String, String> createConfigMapEntry(final String key, final Path file) throws IOException {
+        final byte[] bytes = Files.readAllBytes(file);
+        if (isFileWithBinaryContent(file)) {
+            final String value = Base64.getEncoder().encodeToString(bytes);
+            return new AbstractMap.SimpleEntry<>(key, value);
+        } else {
+            return new AbstractMap.SimpleEntry<>(key, new String(bytes));
+        }
+    }
+
+    /**
+     * Whether a file is binary file or not
+     *
+     * @param file file to check
+     * @return boolean value indicating whether file is binary file or not
+     * @deprecated Should be replaced with Fabric8 Kubernetes Client's methods
+     * @throws IOException in case of failure while reading file
+     */
+    @Deprecated
+    public static boolean isFileWithBinaryContent(final Path file) throws IOException {
+        final byte[] bytes = Files.readAllBytes(file);
+        try {
+            StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPORT)
+                .onUnmappableCharacter(CodingErrorAction.REPORT)
+                .decode(ByteBuffer.wrap(bytes));
+            return false;
+        } catch (CharacterCodingException e) {
+            return true;
+        }
+    }
+
+    /**
+     * Add ConfigMap entries from a directory to current ConfigMap
+     * @param configMapBuilder ConfigMap builder object
+     * @param path path to directory
+     * @deprecated Should be replaced with Fabric8 Kubernetes Client's methods
+     * @throws IOException in case of failure while reading directory
+     */
+    @Deprecated
+    public static void addNewEntriesFromDirectoryToExistingConfigMap(ConfigMapBuilder configMapBuilder, final Path path)
+        throws IOException {
+        try (Stream<Path> files = Files.list(path)) {
+            files.filter(p -> !Files.isDirectory(p, LinkOption.NOFOLLOW_LINKS)).forEach(file -> {
+                try {
+                    addNewEntryToExistingConfigMap(configMapBuilder, createConfigMapEntry(file.getFileName().toString(), file), file);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException(e);
+                }
+            });
+        }
+    }
+
+    /**
+     * Add single entry to ConfigMap
+     *
+     * @param configMapBuilder ConfigMap builder object
+     * @param entry key value pair which will be added to data/binaryData
+     * @param file file which needs to be processed
+     * @deprecated Should be replaced with Fabric8 Kubernetes Client's methods
+     * @throws IOException in case of failure while reading file
+     */
+    @Deprecated
+    public static void addNewEntryToExistingConfigMap(ConfigMapBuilder configMapBuilder, Map.Entry<String, String> entry, final Path file)
+        throws IOException {
+        if (isFileWithBinaryContent(file)) {
+            configMapBuilder.addToBinaryData(entry.getKey(), entry.getValue());
+        } else {
+            configMapBuilder.addToData(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public static void addNewConfigMapEntriesToExistingConfigMap(ConfigMapBuilder configMapBuilder, String key, Path filePath) throws IOException {
+        if (Files.isDirectory(filePath, LinkOption.NOFOLLOW_LINKS)) {
+            addNewEntriesFromDirectoryToExistingConfigMap(configMapBuilder, filePath);
+        } else {
+            addNewEntryToExistingConfigMap(configMapBuilder, createConfigMapEntry(key, filePath), filePath);
+        }
+    }
 
     protected static HasMetadata mergeConfigMaps(ConfigMap cm1, ConfigMap cm2, KitLogger log, boolean switchOnLocalCustomisation) {
         ConfigMap cm1OrCopy = cm1;

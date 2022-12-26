@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -24,6 +26,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.junit.jupiter.api.BeforeAll;
@@ -39,6 +42,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +58,8 @@ import static org.eclipse.jkube.kit.config.resource.PlatformMode.kubernetes;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.FILENAME_TO_KIND_MAPPER;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.KIND_TO_FILENAME_MAPPER;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.addNewConfigMapEntriesToExistingConfigMap;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createConfigMapEntry;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.getNameWithSuffix;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.initializeKindFilenameMapper;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -393,6 +400,91 @@ class KubernetesResourceUtilTest {
     assertThat(getNameWithSuffix("name", "CronTab")).isEqualTo("name-foo");
     assertThat(KIND_TO_FILENAME_MAPPER).containsKey("CronTab");
     assertThat(FILENAME_TO_KIND_MAPPER).containsKey("foo");
+  }
+
+  @Test
+  void createConfigMapEntry_whenKeyAndPathProvided_thenShouldCreateEntryWithFileContents() throws IOException {
+    // Given
+    URL fileUrl = getClass().getResource("/kubernetes-resource-util/configmap-directory/test.properties");
+    assertThat(fileUrl).isNotNull();
+
+    // When
+    Map.Entry<String, String> entry = createConfigMapEntry("custom-key", Paths.get(fileUrl.getFile()));
+
+    // Then
+    assertThat(entry)
+        .satisfies(e -> assertThat(e.getKey()).isEqualTo("custom-key"))
+        .satisfies(e -> assertThat(e.getValue()).isEqualTo("db.url=jdbc:mysql://localhost:3306/sample_db"));
+  }
+
+  @Test
+  void createConfigMapEntry_whenBinaryFileProvided_thenShouldCreateEntryWithFileContents() throws IOException {
+    // Given
+    URL fileUrl = getClass().getResource("/kubernetes-resource-util/test.bin");
+    assertThat(fileUrl).isNotNull();
+
+    // When
+    Map.Entry<String, String> entry = createConfigMapEntry("custom-key", Paths.get(fileUrl.getFile()));
+
+    // Then
+    assertThat(entry)
+        .satisfies(e -> assertThat(e.getKey()).isEqualTo("custom-key"))
+        .satisfies(e -> assertThat(e.getValue()).isEqualTo("wA=="));
+  }
+
+  @Test
+  void addNewConfigMapEntriesToExistingConfigMap_whenFileProvided_thenShouldCreateConfigMapWithFile() throws IOException {
+    // Given
+    URL fileUrl = getClass().getResource("/kubernetes-resource-util/configmap-directory/test.properties");
+    assertThat(fileUrl).isNotNull();
+    ConfigMapBuilder configMapBuilder = new ConfigMapBuilder();
+
+    // When
+    addNewConfigMapEntriesToExistingConfigMap(configMapBuilder, "custom-key", Paths.get(fileUrl.getFile()));
+
+    // Then
+    assertThat(configMapBuilder.build())
+        .asInstanceOf(InstanceOfAssertFactories.type(ConfigMap.class))
+        .extracting(ConfigMap::getData)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsEntry("custom-key", "db.url=jdbc:mysql://localhost:3306/sample_db");
+  }
+
+  @Test
+  void addNewConfigMapEntriesToExistingConfigMap_whenBinaryFileProvided_thenShouldCreateConfigMapWithBinaryContent() throws IOException {
+    // Given
+    URL fileUrl = getClass().getResource("/kubernetes-resource-util/test.bin");
+    assertThat(fileUrl).isNotNull();
+    ConfigMapBuilder configMapBuilder = new ConfigMapBuilder();
+
+    // When
+    addNewConfigMapEntriesToExistingConfigMap(configMapBuilder, "custom-key", Paths.get(fileUrl.getFile()));
+
+    // Then
+    assertThat(configMapBuilder.build())
+        .asInstanceOf(InstanceOfAssertFactories.type(ConfigMap.class))
+        .extracting(ConfigMap::getBinaryData)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsEntry("custom-key", "wA==");
+  }
+
+    @Test
+  void addNewConfigMapEntriesToExistingConfigMap_whenDirectoryProvided_thenShouldCreateConfigMapWithFilesInDir() throws IOException {
+    // Given
+    URL fileUrl = getClass().getResource("/kubernetes-resource-util/configmap-directory");
+    assertThat(fileUrl).isNotNull();
+    ConfigMapBuilder configMapBuilder = new ConfigMapBuilder();
+
+    // When
+    addNewConfigMapEntriesToExistingConfigMap(configMapBuilder, "custom-key", Paths.get(fileUrl.getFile()));
+
+    // Then
+    assertThat(configMapBuilder.build())
+        .asInstanceOf(InstanceOfAssertFactories.type(ConfigMap.class))
+        .extracting(ConfigMap::getData)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsEntry("test.properties", "db.url=jdbc:mysql://localhost:3306/sample_db")
+        .containsEntry("prod.properties", "db.url=jdbc:mysql://prod.example.com:3306/sample_db");
   }
 
   private static PodSpec defaultPodSpec() {
