@@ -13,22 +13,16 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import static java.util.Collections.singletonMap;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.addNewConfigMapEntriesToExistingConfigMap;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.addNewEntryToExistingConfigMap;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createConfigMapEntry;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.CodingErrorAction;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.config.resource.ConfigMapEntry;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -85,46 +79,14 @@ public class ConfigMapEnricher extends BaseEnricher {
             final String key = entry.getKey();
 
             if (key.startsWith(PREFIX_ANNOTATION) || key.startsWith(CONFIGMAP_PREFIX_ANNOTATION)) {
-                addConfigMapEntryFromDirOrFile(configMapBuilder, getOutput(key), entry.getValue());
+                Path filePath = Paths.get(entry.getValue());
+                addNewConfigMapEntriesToExistingConfigMap(configMapBuilder, getOutput(key), filePath);
                 it.remove();
             }
         }
     }
 
-    private void addConfigMapEntryFromDirOrFile(final ConfigMapBuilder configMapBuilder, final String key,
-            final String dirOrFilePath) throws IOException {
-        final Path path = Paths.get(dirOrFilePath);
 
-        if (Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS)) {
-            try (Stream<Path> files = Files.list(path)) {
-                files.filter(p -> !Files.isDirectory(p, LinkOption.NOFOLLOW_LINKS)).forEach(file -> {
-                    try {
-                        addConfigMapEntryFromFile(configMapBuilder, file.getFileName().toString(), file);
-                    } catch (IOException e) {
-                        throw new IllegalArgumentException(e);
-                    }
-                });
-            }
-        } else {
-            addConfigMapEntryFromFile(configMapBuilder, key, path);
-        }
-    }
-
-    private void addConfigMapEntryFromFile(final ConfigMapBuilder configMapBuilder, final String key, final Path file)
-            throws IOException {
-        final byte[] bytes = Files.readAllBytes(file);
-        try {
-            StandardCharsets.UTF_8.newDecoder()
-                    .onMalformedInput(CodingErrorAction.REPORT)
-                    .onUnmappableCharacter(CodingErrorAction.REPORT)
-                    .decode(ByteBuffer.wrap(bytes));
-            final String value = new String(bytes);
-            configMapBuilder.addToData(singletonMap(key, value));
-        } catch (CharacterCodingException e) {
-            final String value = Base64.getEncoder().encodeToString(bytes);
-            configMapBuilder.addToBinaryData(singletonMap(key, value));
-        }
-    }
 
     private String getOutput(String key) {
         if (key.startsWith(PREFIX_ANNOTATION)) {
@@ -168,10 +130,12 @@ public class ConfigMapEnricher extends BaseEnricher {
             } else {
                 final String file = configMapEntry.getFile();
                 if (file != null) {
+                    final Path filePath = Paths.get(file);
                     if (name == null) {
-                        name = Paths.get(file).getFileName().toString();
+                        name = filePath.getFileName().toString();
                     }
-                    addConfigMapEntryFromDirOrFile(configMapBuilder, name, file);
+                    Map.Entry<String, String> fileEntry = createConfigMapEntry(name, filePath);
+                    addNewEntryToExistingConfigMap(configMapBuilder, fileEntry, filePath);
                 }
             }
         }
