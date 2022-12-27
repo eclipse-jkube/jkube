@@ -85,6 +85,7 @@ public class IngressEnricher extends BaseEnricher implements ServiceExposer {
                     }
                 }
             });
+            logHintIfNoDomainOrHostProvided();
         }
     }
 
@@ -140,6 +141,32 @@ public class IngressEnricher extends BaseEnricher implements ServiceExposer {
             return routeDomainFromProperties;
         }
         return null;
+    }
+
+    void logHintIfNoDomainOrHostProvided() {
+        ResourceConfig resourceConfig = getContext().getConfiguration().getResource();
+        if (resourceConfig != null && resourceConfig.getIngress() != null) {
+            logHintIfNoDomainOrHostForResourceConfig(resourceConfig);
+        } else if (StringUtils.isBlank(getRouteDomain()) && StringUtils.isBlank(getConfig(Config.HOST))) {
+            logJKubeDomainHint();
+        }
+    }
+
+    private void logHintIfNoDomainOrHostForResourceConfig(ResourceConfig resourceConfig) {
+        List<IngressRuleConfig> ingressRuleConfigs = getIngressRuleXMLConfig(resourceConfig);
+        if (!ingressRuleConfigs.isEmpty()) {
+            Optional<String> configuredHost = ingressRuleConfigs.stream()
+                .map(IngressRuleConfig::getHost)
+                .filter(StringUtils::isNotBlank)
+                .findAny();
+            if (!configuredHost.isPresent()) {
+                logJKubeDomainHint();
+            }
+        }
+    }
+
+    private void logJKubeDomainHint() {
+        getContext().getLog().info("[[B]]HINT:[[B]] No host configured for Ingress. You might want to use `jkube.domain` to add desired host suffix");
     }
 
     static List<IngressRuleConfig> getIngressRuleXMLConfig(ResourceConfig resourceConfig) {

@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.IngressConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
@@ -44,6 +45,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.CREATE_EXTERNAL_URLS;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class IngressEnricherTest {
@@ -53,9 +56,13 @@ class IngressEnricherTest {
 
     private IngressEnricher ingressEnricher;
 
+    private KitLogger logger;
+
     @BeforeEach
     void setUp() throws Exception {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+        logger = spy(new KitLogger.SilentLogger());
+        when(context.getLog()).thenReturn(logger);
         imageConfiguration = mock(ImageConfiguration.class);
         ingressEnricher = new IngressEnricher(context);
     }
@@ -244,6 +251,42 @@ class IngressEnricherTest {
             .containsExactly("test.192.168.39.25.nip.io");
     }
 
+    @Test
+    void logHintIfNoDomainOrHostProvided_whenResourceConfigWithNoHost_thenLogHint() {
+        // Given
+        when(context.getConfiguration().getResource())
+            .thenReturn(ResourceConfig.builder()
+                .ingress(IngressConfig.builder()
+                    .ingressRule(IngressRuleConfig.builder()
+                        .path(IngressRulePathConfig.builder()
+                            .path("/foo")
+                            .serviceName("test-svc")
+                            .servicePort(8080)
+                            .build())
+                        .build())
+                    .build())
+                .build());
+
+        // When
+        ingressEnricher.logHintIfNoDomainOrHostProvided();
+
+        // Then
+        verify(logger)
+            .info("[[B]]HINT:[[B]] No host configured for Ingress. You might want to use `jkube.domain` to add desired host suffix");
+    }
+
+    @Test
+    void logHintIfNoDomainOrHostProvided_whenNoJkubeDomainNoHost_thenLogHint() {
+        // Given
+        when(context.getConfiguration().getResource()).thenReturn(null);
+
+        // When
+        ingressEnricher.logHintIfNoDomainOrHostProvided();
+
+        // Then
+        verify(logger)
+            .info("[[B]]HINT:[[B]] No host configured for Ingress. You might want to use `jkube.domain` to add desired host suffix");
+    }
 
     private ServiceBuilder initTestService() {
       return new ServiceBuilder()
