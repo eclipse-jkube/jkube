@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.11-SNAPSHOT
+* Fix #1439: Add hint to use jkube.domain if createExternalUrls is used without domain
 * Fix #1459: Route Generation should support `8443` as default web port
 * Fix #1546: Migrate to JUnit5 testing framework
 * Fix #1858: Properties in image name not replaced
