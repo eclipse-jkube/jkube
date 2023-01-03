@@ -19,27 +19,32 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.eclipse.jkube.quickstarts.maven</groupId>
 	<artifactId>tomee</artifactId>
-	<version>10.0.1</version>
+	<version>1.10.1</version>
 	<name>Eclipse JKube :: Quickstarts :: Maven :: Tomee</name>
 	<packaging>war</packaging>
+
 	<description>
 		Tomee deployment template for JKube
 	</description>
+
 	<properties>
-		<k8sgroupId>com-example-container</k8sgroupId>
-		<jkube.enricher.jkube-project-label.app>${k8sgroupId}-${project.artifactId}</jkube.enricher.jkube-project-label.app>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+		<jkube.version>${project.version}</jkube.version>
 		<tomee.version>8.0.13</tomee.version>
 		<tomee.port>8080</tomee.port>
 		<failOnMissingWebXml>false</failOnMissingWebXml>
-		<maven.compiler.source>11</maven.compiler.source>
-		<maven.compiler.target>11</maven.compiler.target>
+		<k8sgroupId>com-example-container</k8sgroupId>
+		<jkube.enricher.jkube-project-label.app>${k8sgroupId}-${project.artifactId}</jkube.enricher.jkube-project-label.app>
+		<jkube.image.name>${docker.registry}/${project.groupId}.${project.artifactId}:latest</jkube.image.name>
+		<docker.registry>docker.io</docker.registry>
 		<proj.hostname>container.example.com</proj.hostname>
-		<docker.host>hub.docker.com</docker.host>
 		<timestamp>${maven.build.timestamp}</timestamp>
 		<maven.build.timestamp.format>yyyy-MM-dd_HH-mm</maven.build.timestamp.format>
 		<work.version>${project.version}</work.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 	</properties>
 	<profiles>
 		<profile>
@@ -53,12 +58,12 @@
 		<finalName>tomee</finalName>
 		<plugins>
 			<plugin>
-				<version>3.10.1</version>
+				<version>${maven-compiler-plugin.version}</version>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>11</source>
-					<target>11</target>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -91,7 +96,7 @@
 			<plugin>
 				<groupId>org.eclipse.jkube</groupId>
 				<artifactId>kubernetes-maven-plugin</artifactId>
-				<version>1.10.1</version>
+				<version>${jkube.version}</version>
 				<executions>
 					<execution>
 						<id>k8s-build</id>
@@ -120,12 +125,22 @@
 								</property>
 							</all>
 						</labels>
+						<annotations>
+							<ingress>
+								<property>
+									<name>ingress.kubernetes.io/rewrite-target</name>
+									<value>/</value>
+								</property>
+								<property>
+									<name>cert-manager.io/cluster-issuer</name>
+									<value>letsencrypt-prod</value>
+								</property>
+							</ingress>
+						</annotations>
 					</resources>
 					<images>
 						<image>
-							<registry>${docker.host}</registry>
-
-							<name>${project.groupId}.${project.artifactId}:latest</name>
+							<name>${jkube.image.name}</name>
 							<build>
 								<from>adoptopenjdk:11-jre-hotspot</from>
 								<assembly>
@@ -150,7 +165,6 @@
 							</run>
 						</image>
 					</images>
-					<pushRegistry>${docker.host}}</pushRegistry>
 				</configuration>
 			</plugin>
 		</plugins>

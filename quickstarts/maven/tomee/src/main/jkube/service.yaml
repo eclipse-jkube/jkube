@@ -12,11 +12,6 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-apiVersion: v1
-metadata:
-  name: ${k8sgroupId}-${project.artifactId}-service
 spec:
-  selector:
-    app: ${k8sgroupId}-${project.artifactId}
   ports:
     - port: ${tomee.port}
