@@ -37,6 +37,7 @@
     # TODO: Documents and verify enrichers below
     - jkube-debug
     - jkube-volume-permission
+    - jkube-persistentvolumeclaim-storageclass
     - jkube-configmap-file
     - jkube-secret-file
 

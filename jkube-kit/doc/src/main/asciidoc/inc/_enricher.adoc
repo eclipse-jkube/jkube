@@ -99,6 +99,9 @@ include::enricher/project/_jkube_openshift_project_entry.adoc[]
 include::enricher/route/_jkube_openshift_route_entry.adoc[]
 endif::[]
 
+|<<jkube-persistentvolumeclaim-storageclass>>
+| Add name of StorageClass required by PersistentVolumeClaim either in metadata or in spec.
+
 | <<jkube-pod-annotation>>
 | Copy over annotations from a `Deployment` to a `Pod`
 
@@ -199,6 +202,8 @@ include::enricher/pod-annotation/_jkube_pod_annotation.adoc[]
 include::enricher/port-name/_jkube_port_name.adoc[]
 
 include::enricher/project-label/_jkube_project_label.adoc[]
+
+include::enricher/persistentvolumeclaim-storageclass/_jkube_persistentvolumeclaim_storageclass.adoc[]
 
 include::enricher/_jkube_replicas.adoc[]
 

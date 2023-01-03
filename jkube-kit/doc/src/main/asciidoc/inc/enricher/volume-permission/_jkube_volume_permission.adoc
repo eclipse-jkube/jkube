@@ -23,11 +23,15 @@ Defaults to `777`.
 | `jkube.enricher.jkube-volume-permission.permission`
 
 | *defaultStorageClass*
-| PersistentVolume storage class.
+| _Deprecated: Use <<jkube-persistentvolumeclaim-storageclass, PersistentVolumeClaimStorageClassEnricher>>'s defaultStorageClass field_
+
+PersistentVolume storage class.
 | `jkube.enricher.jkube-volume-permission.defaultStorageClass`
 
 | *useStorageClassAnnotation*
-| If enabled, storage class would be added to PersistentVolumeClaim metadata as `volume.beta.kubernetes.io/storage-class=<storageClassName>` annotation rather than `.spec.storageClassName`
+| _Deprecated: Use <<jkube-persistentvolumeclaim-storageclass, PersistentVolumeClaimStorageClassEnricher>>'s defaultStorageClass field_
+
+If enabled, storage class would be added to PersistentVolumeClaim metadata as `volume.beta.kubernetes.io/storage-class=<storageClassName>` annotation rather than `.spec.storageClassName`
 
 Defaults to `false`
 | `jkube.enricher.jkube-volume-permission.useStorageClassAnnotation`
