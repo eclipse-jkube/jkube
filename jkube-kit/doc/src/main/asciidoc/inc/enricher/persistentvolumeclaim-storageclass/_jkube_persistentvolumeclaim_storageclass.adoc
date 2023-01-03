@@ -1,0 +1,20 @@
+[[jkube-persistentvolumeclaim-storageclass]]
+==== jkube-persistentvolumeclaim-storageclass
+
+Enricher which fixes adds name of StorageClass required by PersistentVolumeClaim either in metadata or in spec.
+
+.Supported properties
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+| *defaultStorageClass*
+| PersistentVolume storage class.
+| `jkube.enricher.jkube-volume-permission.defaultStorageClass`
+
+| *useStorageClassAnnotation*
+| If enabled, storage class would be added to PersistentVolumeClaim metadata as `volume.beta.kubernetes.io/storage-class=<storageClassName>` annotation rather than `.spec.storageClassName`
+
+Defaults to `false`
+| `jkube.enricher.jkube-volume-permission.useStorageClassAnnotation`
+|===

@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
@@ -51,13 +50,20 @@ import java.util.Set;
 public class VolumePermissionEnricher extends BaseEnricher {
 
     public static final String ENRICHER_NAME = "jkube-volume-permission";
-    static final String VOLUME_STORAGE_CLASS_ANNOTATION = "volume.beta.kubernetes.io/storage-class";
 
     @AllArgsConstructor
     enum Config implements Configs.Config {
         IMAGE_NAME("imageName", "busybox"),
         PERMISSION("permission", "777"),
+        /**
+         * @deprecated Use configuration field in PersistentVolumeClaimStorageClassEnricher
+         */
+        @Deprecated
         DEFAULT_STORAGE_CLASS("defaultStorageClass", null),
+        /**
+         * @deprecated Use configuration field in PersistentVolumeClaimStorageClassEnricher
+         */
+        @Deprecated
         USE_ANNOTATION("useStorageClassAnnotation", "false"),
         CPU_LIMIT("cpuLimit", null),
         CPU_REQUEST("cpuRequest", null),
@@ -199,23 +205,27 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 return resourcesMap;
             }
         });
+    }
 
-        builder.accept(new TypedVisitor<PersistentVolumeClaimBuilder>() {
-            @Override
-            public void visit(PersistentVolumeClaimBuilder pvcBuilder) {
-                // lets ensure we have a default storage class so that PVs will get dynamically created OOTB
-                if (pvcBuilder.buildMetadata() == null) {
-                    pvcBuilder.withNewMetadata().endMetadata();
-                }
-                String storageClass = getConfig(Config.DEFAULT_STORAGE_CLASS);
-                if (StringUtils.isNotBlank(storageClass)) {
-                    if (Boolean.parseBoolean(getConfig(Config.USE_ANNOTATION))) {
-                        pvcBuilder.editMetadata().addToAnnotations(VOLUME_STORAGE_CLASS_ANNOTATION, storageClass).endMetadata();
-                    } else {
-                        pvcBuilder.editSpec().withStorageClassName(storageClass).endSpec();
-                    }
-                }
-            }
-        });
+    /**
+     * Get useAnnotation from enricher configuration
+     * TODO: This method is kept only for backward compatibility. This should
+     *       be removed in future. See <a href="https://github.com/eclipse/jkube/issues/1989">GitHub Issue</a> for more details
+     *
+     * @return boolean value indicating whether StorageClass annotation should be used or not
+     */
+    public boolean shouldUseAnnotation() {
+        return Boolean.parseBoolean(getConfig(Config.USE_ANNOTATION));
+    }
+
+    /**
+     * Get Default StorageClass from enricher configuration
+     *
+     * TODO: This method is kept only for backward compatibility. This should
+     *       be removed in future. See <a href="https://github.com/eclipse/jkube/issues/1989">GitHub Issue</a> for more details
+     * @return default storage class
+     */
+    public String getDefaultStorageClass() {
+        return getConfig(Config.DEFAULT_STORAGE_CLASS);
     }
 }

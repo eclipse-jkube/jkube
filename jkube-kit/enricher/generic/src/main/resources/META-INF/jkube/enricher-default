@@ -103,3 +103,6 @@ org.eclipse.jkube.enricher.generic.ReplicaCountEnricher
 
 # Set ImagePullPolicy on a Controller's container
 org.eclipse.jkube.enricher.generic.ImagePullPolicyEnricher
+
+# Set StorageClass name in PersistentVolumeClaim annotation or in spec
+org.eclipse.jkube.enricher.generic.PersistentVolumeClaimStorageClassEnricher

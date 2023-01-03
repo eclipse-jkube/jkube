@@ -16,8 +16,6 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
-import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplate;
 import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
@@ -157,49 +155,6 @@ class VolumePermissionEnricherTest {
     }
 
     @Test
-    void enrich_withPersistentVolumeClaim_shouldAddStorageClassToSpec() {
-        // Given
-        Properties properties = new Properties();
-        properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
-        when(context.getProperties()).thenReturn(properties);
-        VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
-        KubernetesListBuilder klb = new KubernetesListBuilder();
-        klb.addToItems(createNewPersistentVolumeClaim("pv1"));
-
-        // When
-        volumePermissionEnricher.enrich(PlatformMode.kubernetes, klb);
-
-        // Then
-        assertThat(klb.buildItems())
-            .singleElement(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
-            .hasFieldOrPropertyWithValue("spec.storageClassName", "standard")
-            .extracting("metadata.annotations")
-            .asInstanceOf(InstanceOfAssertFactories.map(String.class, Object.class))
-            .isNullOrEmpty();
-    }
-
-    @Test
-    void enrich_withPersistentVolumeClaimAndUseAnnotationEnabled_shouldAddStorageClassAnnotation() {
-        // Given
-        Properties properties = new Properties();
-        properties.put("jkube.enricher.jkube-volume-permission.defaultStorageClass", "standard");
-        properties.put("jkube.enricher.jkube-volume-permission.useStorageClassAnnotation", "true");
-        when(context.getProperties()).thenReturn(properties);
-        VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher(context);
-        KubernetesListBuilder klb = new KubernetesListBuilder();
-        klb.addToItems(createNewPersistentVolumeClaim("pv1"));
-
-        // When
-        volumePermissionEnricher.enrich(PlatformMode.kubernetes, klb);
-
-        // Then
-        assertThat(klb.buildItems())
-            .singleElement(InstanceOfAssertFactories.type(PersistentVolumeClaim.class))
-            .hasFieldOrPropertyWithValue("metadata.annotations", Collections.singletonMap("volume.beta.kubernetes.io/storage-class", "standard"))
-            .hasFieldOrPropertyWithValue("spec.storageClassName", null);
-    }
-
-    @Test
     void enrich_withResourcesEnabledInConfiguration_shouldAddRequestsLimitsToVolumeInitContainer() {
         // Given
         Properties properties = new Properties();
@@ -257,13 +212,6 @@ class VolumePermissionEnricherTest {
                                   .withNewMetadata().endMetadata()
                                   .withNewSpec().addNewContainer().endContainer().endSpec()
                                 .endTemplate();
-    }
-
-    private PersistentVolumeClaim createNewPersistentVolumeClaim(String name) {
-        return new PersistentVolumeClaimBuilder()
-            .withNewMetadata().withName(name).endMetadata()
-            .withNewSpec().endSpec()
-            .build();
     }
 
     private List<String> getExpectedCommand(TestConfig tc) {
