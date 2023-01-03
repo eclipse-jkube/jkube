@@ -39,7 +39,7 @@
     <version.commons-compress>1.21</version.commons-compress>
     <version.commons-lang3>3.11</version.commons-lang3>
     <version.commons-text>1.10.0</version.commons-text>
-    <version.gson>2.8.9</version.gson>
+    <version.gson>2.10</version.gson>
     <version.httpcore>4.4.15</version.httpcore>
     <version.httpclient>4.5.13</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
