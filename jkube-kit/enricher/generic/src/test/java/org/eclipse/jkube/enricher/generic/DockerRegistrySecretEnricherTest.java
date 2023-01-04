@@ -111,7 +111,7 @@ class DockerRegistrySecretEnricherTest {
         KubernetesList expected = builder.build();
 
         enricher.create(PlatformMode.kubernetes, builder);
-        assertThat(builder.build()).isEqualTo(expected);
+        assertThat(builder.build().getItems()).isEqualTo(expected.getItems());
     }
 
     @Test
@@ -125,7 +125,7 @@ class DockerRegistrySecretEnricherTest {
         KubernetesList expected = builder.build();
 
         enricher.create(PlatformMode.kubernetes, builder);
-        assertThat(builder.build()).isEqualTo(expected);
+        assertThat(builder.build().getItems()).isEqualTo(expected.getItems());
     }
 
     private Secret createBaseSecret(boolean withAnnotation, String annotationValue) {

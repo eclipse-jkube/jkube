@@ -99,7 +99,7 @@ class WriteUtilTest {
     klb.addToItems(
       new ConfigMapBuilder().withNewMetadata().withName("cm-1").endMetadata().build(),
       new SecretBuilder().withNewMetadata().withName("secret-1").endMetadata().build(),
-      new SecretBuilder().withNewMetadata().withName(" ").withClusterName("skipped (blank name)").endMetadata().build()
+      new SecretBuilder().withNewMetadata().withName(" ").endMetadata().build()
     );
     // When
     WriteUtil.writeResourcesIndividualAndComposite(klb.build(), resourceFileBase, null, log);
