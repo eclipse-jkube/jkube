@@ -304,7 +304,7 @@ class ApplyServiceTest {
                 .addToResources(virtualServiceResource(), gatewayResource()).build()))
             .times(2);
         mockServer.expect().get()
-            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways?fieldSelector=metadata.name%3Dmygateway-https")
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/gateways?fieldSelector=metadata.name%3Dmygateway-https&resourceVersion=0")
             .andReturn(HTTP_OK, new GenericKubernetesResourceBuilder()
                 .withApiVersion("networking.istio.io/v1alpha3")
                 .withKind("Gateway")
@@ -312,7 +312,7 @@ class ApplyServiceTest {
                 .build())
             .once();
         mockServer.expect().get()
-            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices?fieldSelector=metadata.name%3Dreviews-route")
+            .withPath("/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices?fieldSelector=metadata.name%3Dreviews-route&resourceVersion=0")
             .andReturn(HTTP_OK, new GenericKubernetesResourceBuilder()
                 .withApiVersion("networking.istio.io/v1alpha3")
                 .withKind("VirtualService")
