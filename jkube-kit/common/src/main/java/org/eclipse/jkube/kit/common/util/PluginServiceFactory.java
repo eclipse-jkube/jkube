@@ -20,7 +20,6 @@ import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -155,7 +154,7 @@ public final class PluginServiceFactory<C> {
         }
         final List<Class<?>> types = new ArrayList<>();
         types.add(constructorParameter.getClass());
-        types.addAll(Arrays.asList(constructorParameter.getClass().getInterfaces()));
+        types.addAll(getInterfacesForClass(constructorParameter.getClass()));
         for (Class<?> type : types) {
             try {
                 return clazz.getConstructor(type);
@@ -164,6 +163,15 @@ public final class PluginServiceFactory<C> {
             }
         }
         throw new IllegalStateException("Cannot load service " + clazz.getName());
+    }
+
+    private List<Class<?>> getInterfacesForClass(Class<?> clazz) {
+        List<Class<?>> interfacesList = new ArrayList<>();
+        for (Class<?> type : clazz.getInterfaces()) {
+            interfacesList.add(type);
+            interfacesList.addAll(getInterfacesForClass(type));
+        }
+        return interfacesList;
     }
 
     static class ServiceEntry implements Comparable<ServiceEntry> {
