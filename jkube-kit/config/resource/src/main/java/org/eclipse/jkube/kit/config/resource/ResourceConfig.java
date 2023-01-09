@@ -113,6 +113,7 @@ public class ResourceConfig {
   @Deprecated
   private String restartPolicy;
   private ControllerResourceConfig controller;
+  private boolean useLegacyJKubePrefix;
 
   public final ControllerResourceConfig getController() {
     if (controller != null && isAnyControllerLegacyConfigFieldSet()) {

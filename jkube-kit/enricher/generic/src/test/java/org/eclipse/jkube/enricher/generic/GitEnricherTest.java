@@ -34,7 +34,7 @@ class GitEnricherTest {
         Map<String, String> annotations;
 
         // When
-        annotations = GitEnricher.getAnnotations(PlatformMode.kubernetes, GIT_REMOTE_URL, GIT_BRANCH, GIT_COMMIT_ID);
+        annotations = GitEnricher.getAnnotations(PlatformMode.kubernetes, GIT_REMOTE_URL, GIT_BRANCH, GIT_COMMIT_ID, true);
 
         // Then
         assertJkubeAnnotations(annotations);
@@ -46,7 +46,7 @@ class GitEnricherTest {
         Map<String, String> annotations;
 
         // When
-        annotations = GitEnricher.getAnnotations(PlatformMode.openshift, GIT_REMOTE_URL, GIT_BRANCH, GIT_COMMIT_ID);
+        annotations = GitEnricher.getAnnotations(PlatformMode.openshift, GIT_REMOTE_URL, GIT_BRANCH, GIT_COMMIT_ID, true);
 
         // Then
         assertJkubeAnnotations(annotations);
@@ -60,7 +60,7 @@ class GitEnricherTest {
         Map<String, String> annotations;
 
         // When
-        annotations = GitEnricher.getAnnotations(PlatformMode.kubernetes, null, null, null);
+        annotations = GitEnricher.getAnnotations(PlatformMode.kubernetes, null, null, null, true);
 
         // Then
         assertThat(annotations).isEmpty();
@@ -72,7 +72,7 @@ class GitEnricherTest {
         Map<String, String> annotations;
 
         // When
-        annotations = GitEnricher.getAnnotations(PlatformMode.kubernetes, GIT_REMOTE_URL, GIT_BRANCH, null);
+        annotations = GitEnricher.getAnnotations(PlatformMode.kubernetes, GIT_REMOTE_URL, GIT_BRANCH, null, true);
 
         // Then
         assertJkubeAnnotationsRemoteUrlAndBranch(annotations);
@@ -80,7 +80,7 @@ class GitEnricherTest {
 
     private void assertJkubeAnnotations(Map<String, String> annotations) {
         assertJkubeAnnotationsRemoteUrlAndBranch(annotations);
-        assertThat(annotations).containsEntry(JKubeAnnotations.GIT_COMMIT.value(),GIT_COMMIT_ID);
+        assertThat(annotations).containsEntry(JKubeAnnotations.GIT_COMMIT.value(true), GIT_COMMIT_ID);
     }
 
     private void assertJkubeAnnotationsRemoteUrlAndBranch(Map<String, String> annotations) {

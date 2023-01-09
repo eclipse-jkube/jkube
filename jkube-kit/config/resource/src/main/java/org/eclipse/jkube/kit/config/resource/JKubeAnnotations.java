@@ -36,21 +36,35 @@ public enum JKubeAnnotations {
     SCM_TAG("scm-tag"),
     SCM_URL("scm-url"),
 
-    TARGET_PLATFORM("target-platform");
-
+    TARGET_PLATFORM("target-platform"),
+    ICON_URL("iconUrl");
+    private static final String JKUBE_ANNOTATION_PREFIX = "jkube.eclipse.org";
+    /**
+     * @deprecated in favor of <code>jkube.eclipse.org</code>
+     */
+    @Deprecated
+    private static final String DEPRECATED_JKUBE_ANNOTATION_PREFIX = "jkube.io";
     private final String annotation;
 
     JKubeAnnotations(String anno) {
-        this.annotation = "jkube.io/" + anno;
+        this.annotation = "/" + anno;
     }
 
     public String value() {
-        return annotation;
+        return value(false);
+    }
+
+    public String value(boolean useDeprecatedPrefix) {
+        if (useDeprecatedPrefix) {
+            return DEPRECATED_JKUBE_ANNOTATION_PREFIX + annotation;
+        }
+        return JKUBE_ANNOTATION_PREFIX + annotation;
     }
 
     @Override
     public String toString() {
         return value();
     }
+
 }
 

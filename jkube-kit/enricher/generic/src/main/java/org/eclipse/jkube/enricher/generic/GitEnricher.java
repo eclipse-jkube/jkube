@@ -55,6 +55,7 @@ public class GitEnricher extends BaseEnricher {
 
     private Map<String, String> getAnnotations(PlatformMode platformMode) {
         final Map<String, String> annotations = new HashMap<>();
+        boolean useDeprecatedAnnotationPrefix = shouldUseLegacyJKubePrefix();
         if (GitUtil.findGitFolder(getContext().getProjectDirectory()) != null) {
             try (Repository repository = GitUtil.getGitRepository(getContext().getProjectDirectory())) {
                 // Git annotations (if git is used as SCM)
@@ -64,7 +65,7 @@ public class GitEnricher extends BaseEnricher {
                         log.warn("Could not detect any git remote");
                     }
 
-                    annotations.putAll(getAnnotations(platformMode, gitRemoteUrl, repository.getBranch(), GitUtil.getGitCommitId(repository)));
+                    annotations.putAll(getAnnotations(platformMode, gitRemoteUrl, repository.getBranch(), GitUtil.getGitCommitId(repository), useDeprecatedAnnotationPrefix));
                 }
                 return annotations;
             } catch (IOException | GitAPIException e) {
@@ -135,11 +136,11 @@ public class GitEnricher extends BaseEnricher {
         });
     }
 
-    protected static Map<String, String> getAnnotations(PlatformMode platformMode, String gitRemoteUrl, String branch, String commitId) {
+    protected static Map<String, String> getAnnotations(PlatformMode platformMode, String gitRemoteUrl, String branch, String commitId, boolean useDeprecatedAnnotationPrefix) {
         Map<String, String> annotationsToBeAdded = new HashMap<>();
-        annotationsToBeAdded.putAll(addAnnotation(JKubeAnnotations.GIT_BRANCH.value(), branch));
-        annotationsToBeAdded.putAll(addAnnotation(JKubeAnnotations.GIT_COMMIT.value(), commitId));
-        annotationsToBeAdded.putAll(addAnnotation(JKubeAnnotations.GIT_URL.value(), gitRemoteUrl));
+        annotationsToBeAdded.putAll(addAnnotation(JKubeAnnotations.GIT_BRANCH.value(useDeprecatedAnnotationPrefix), branch));
+        annotationsToBeAdded.putAll(addAnnotation(JKubeAnnotations.GIT_COMMIT.value(useDeprecatedAnnotationPrefix), commitId));
+        annotationsToBeAdded.putAll(addAnnotation(JKubeAnnotations.GIT_URL.value(useDeprecatedAnnotationPrefix), gitRemoteUrl));
         if (platformMode.equals(PlatformMode.openshift)) {
             annotationsToBeAdded.putAll(addAnnotation(OpenShiftAnnotations.VCS_URI.value(), gitRemoteUrl));
             annotationsToBeAdded.putAll(addAnnotation(OpenShiftAnnotations.VCS_REF.value(), branch));

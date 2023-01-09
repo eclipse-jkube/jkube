@@ -54,6 +54,7 @@ public class MavenScmEnricher extends BaseEnricher {
 
     private Map<String, String> getAnnotations() {
         Map<String, String> annotations = new HashMap<>();
+        boolean useDeprecatedAnnotationPrefix = shouldUseLegacyJKubePrefix();
 
         if (getContext() instanceof JKubeEnricherContext) {
             JKubeEnricherContext jkubeEnricherContext = (JKubeEnricherContext) getContext();
@@ -63,10 +64,10 @@ public class MavenScmEnricher extends BaseEnricher {
                 String tag = rootProject.getScmTag();
 
                 if (StringUtils.isNotEmpty(tag)) {
-                    annotations.put(JKubeAnnotations.SCM_TAG.value(), tag);
+                    annotations.put(JKubeAnnotations.SCM_TAG.value(useDeprecatedAnnotationPrefix), tag);
                 }
                 if (StringUtils.isNotEmpty(url)) {
-                    annotations.put(JKubeAnnotations.SCM_URL.value(), url);
+                    annotations.put(JKubeAnnotations.SCM_URL.value(useDeprecatedAnnotationPrefix), url);
                 }
             }
         }

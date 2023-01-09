@@ -55,6 +55,7 @@ public class BaseEnricher implements Enricher {
     public static final String JKUBE_ENFORCED_REPLICAS = "jkube.replicas";
     public static final String JKUBE_DEFAULT_IMAGE_PULL_POLICY = "IfNotPresent";
     public static final String JKUBE_ENFORCED_IMAGE_PULL_POLICY = "jkube.imagePullPolicy";
+    private static final String JKUBE_USE_OLD_PREFIX = "jkube.useLegacyJKubePrefix";
 
     private final EnricherConfig config;
     private final String name;
@@ -237,6 +238,18 @@ public class BaseEnricher implements Enricher {
         }
         processingInstructionsMap.put(key, String.join(",", containerNames));
         enricherContext.setProcessingInstructions(processingInstructionsMap);
+    }
+
+    protected boolean shouldUseLegacyJKubePrefix() {
+        String valueFromProperties = getValueFromConfig(JKUBE_USE_OLD_PREFIX, null);
+        if (StringUtils.isNotBlank(valueFromProperties)) {
+            return Boolean.parseBoolean(valueFromProperties);
+        }
+        ResourceConfig resourceConfig = getConfiguration().getResource();
+        if (resourceConfig != null) {
+            return resourceConfig.isUseLegacyJKubePrefix();
+        }
+        return false;
     }
 
     /**
