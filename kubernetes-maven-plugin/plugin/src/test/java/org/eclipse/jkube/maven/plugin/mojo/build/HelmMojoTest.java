@@ -166,7 +166,7 @@ class HelmMojoTest {
     try (MockedConstruction<HelmService> helmServiceMockedConstruction = mockConstruction(HelmService.class)) {
       // Given
       final HasMetadata listEntry =  new ConfigMapBuilder()
-        .withNewMetadata().addToAnnotations("jkube.io/iconUrl", "https://my-icon").endMetadata()
+        .withNewMetadata().addToAnnotations("jkube.eclipse.org/iconUrl", "https://my-icon").endMetadata()
         .build();
       helmMojo.kubernetesManifest = Files.createFile(projectDir.resolve("kubernetes.yml")).toFile();
       resourceUtilMockedStatic.when(() -> ResourceUtil.load(helmMojo.kubernetesManifest, KubernetesResource.class))

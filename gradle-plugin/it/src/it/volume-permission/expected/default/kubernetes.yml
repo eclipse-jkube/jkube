@@ -6,10 +6,10 @@ items:
   kind: Service
   metadata:
     annotations:
-      jkube.io/iconUrl: "@ignore@"
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/iconUrl: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: volume-permission
       provider: jkube
@@ -44,7 +44,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      jkube.io/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
+      jkube.eclipse.org/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
     labels:
       app: volume-permission
       provider: jkube

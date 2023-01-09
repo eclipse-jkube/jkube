@@ -20,12 +20,12 @@ items:
   kind: Service
   metadata:
     annotations:
-      jkube.io/git-commit: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
       prometheus.io/port: "9779"
-      jkube.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
+      jkube.eclipse.org/git-branch: "@ignore@"
       prometheus.io/scrape: "true"
-      jkube.io/scm-tag: HEAD
+      jkube.eclipse.org/scm-tag: HEAD
     labels:
       app: jkube-maven-sample-zero-config
       provider: jkube
@@ -46,10 +46,10 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
-      jkube.io/scm-tag: HEAD
-      jkube.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+      jkube.eclipse.org/scm-tag: HEAD
+      jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
     labels:
       app: jkube-maven-sample-zero-config
       provider: jkube
@@ -67,10 +67,10 @@ items:
     template:
       metadata:
         annotations:
-          jkube.io/git-commit: "@ignore@"
-          jkube.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
-          jkube.io/git-branch: "@ignore@"
-          jkube.io/scm-tag: HEAD
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
+          jkube.eclipse.org/git-branch: "@ignore@"
+          jkube.eclipse.org/scm-tag: HEAD
         labels:
           app: jkube-maven-sample-zero-config
           provider: jkube

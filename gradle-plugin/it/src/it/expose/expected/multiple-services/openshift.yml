@@ -8,9 +8,9 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: expose
       provider: jkube
@@ -32,9 +32,9 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       expose: "false"
       app: expose
@@ -57,9 +57,9 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: expose
       provider: jkube
@@ -85,9 +85,9 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       expose: "true"
       app: expose
@@ -110,9 +110,9 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: expose
       provider: jkube
@@ -135,9 +135,9 @@ items:
         annotations:
           app.openshift.io/vcs-ref: "@ignore@"
           app.openshift.io/vcs-uri: "@ignore@"
-          jkube.io/git-url: "@ignore@"
-          jkube.io/git-commit: "@ignore@"
-          jkube.io/git-branch: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
         labels:
           app: expose
           provider: jkube
@@ -176,9 +176,9 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: expose
       provider: jkube
@@ -197,9 +197,9 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       expose: "true"
       app: expose

@@ -24,10 +24,10 @@ items:
     kind: Service
     metadata:
       annotations:
-        jkube.io/git-url: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
         keyinall: valueinall
-        jkube.io/git-branch: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
         keyinservice: valueinservice
         multiline/config: |
           proxyMetadata:
@@ -56,10 +56,10 @@ items:
     metadata:
       annotations:
         keyiningress: valueiningress
-        jkube.io/git-url: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
         keyinall: valueinall
-        jkube.io/git-branch: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
         multiline/config: |
           proxyMetadata:
            ISTIO_META_DNS_CAPTURE: "false"
@@ -83,10 +83,10 @@ items:
     metadata:
       annotations:
         keyinreplicaset: valueinreplicaset
-        jkube.io/git-url: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
         keyinall: valueinall
-        jkube.io/git-branch: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
         image.openshift.io/triggers: "@ignore@"
         multiline/config: |
           proxyMetadata:

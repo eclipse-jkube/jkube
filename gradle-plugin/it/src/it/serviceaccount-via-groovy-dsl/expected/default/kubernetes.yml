@@ -15,9 +15,9 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: serviceaccount-via-groovy-dsl
       provider: jkube
@@ -35,9 +35,9 @@ items:
     template:
       metadata:
         annotations:
-          jkube.io/git-url: "@ignore@"
-          jkube.io/git-commit: "@ignore@"
-          jkube.io/git-branch: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
         labels:
           app: serviceaccount-via-groovy-dsl
           provider: jkube
