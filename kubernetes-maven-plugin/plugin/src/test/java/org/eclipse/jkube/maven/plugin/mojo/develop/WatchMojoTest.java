@@ -26,6 +26,7 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorService;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -71,9 +72,10 @@ class WatchMojoTest {
     mockedDockerAccessFactory = mock(DockerAccessFactory.class);
     mockedJavaProject = mock(JavaProject.class);
     mockedClusterAccess = mock(ClusterAccess.class);
+    IngressControllerDetectorService mockedIngressControllerDetectorService = mock(IngressControllerDetectorService.class);
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
 
-    when(mockedJKubeServiceHub.getApplyService()).thenReturn(new ApplyService(mockKubernetesClient, new KitLogger.SilentLogger()));
+    when(mockedJKubeServiceHub.getApplyService()).thenReturn(new ApplyService(mockKubernetesClient, mockedIngressControllerDetectorService, new KitLogger.SilentLogger()));
     when(mockedJavaProject.getProperties()).thenReturn(new Properties());
     when(mavenProject.getArtifactId()).thenReturn("artifact-id");
     when(mavenProject.getVersion()).thenReturn("1337");

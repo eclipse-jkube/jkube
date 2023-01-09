@@ -40,6 +40,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HTTPHeader;
+import io.fabric8.kubernetes.api.model.authorization.v1.ResourceAttributesBuilder;
+import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
+import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -803,6 +806,32 @@ public class KubernetesHelper {
             }
         }
         return httpHeaders;
+    }
+
+    public static SelfSubjectAccessReview createNewSelfSubjectAccessReview(String group, String resource, String namespace, String verb) {
+        SelfSubjectAccessReviewBuilder ssarBuilder = new SelfSubjectAccessReviewBuilder();
+        ResourceAttributesBuilder resourceAttributesBuilder = new ResourceAttributesBuilder();
+        if (StringUtils.isNotBlank(group)) {
+            resourceAttributesBuilder.withGroup(group);
+        }
+        if (StringUtils.isNotBlank(resource)) {
+            resourceAttributesBuilder.withResource(resource);
+        }
+        if (StringUtils.isNotBlank(namespace)) {
+            resourceAttributesBuilder.withNamespace(namespace);
+        }
+        if (StringUtils.isNotBlank(verb)) {
+            resourceAttributesBuilder.withVerb(verb);
+        }
+        return ssarBuilder.withNewSpec()
+            .withResourceAttributes(resourceAttributesBuilder.build())
+            .endSpec()
+            .build();
+    }
+
+    public static boolean hasAccessForAction(KubernetesClient client, SelfSubjectAccessReview accessReview) {
+        SelfSubjectAccessReview accessReviewFromServer = client.authorization().v1().selfSubjectAccessReview().create(accessReview);
+        return accessReviewFromServer.getStatus().getAllowed();
     }
 }
 

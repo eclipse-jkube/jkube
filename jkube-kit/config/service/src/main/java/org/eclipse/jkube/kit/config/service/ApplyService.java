@@ -36,6 +36,7 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
+import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorService;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -112,12 +113,14 @@ public class ApplyService {
     private boolean rollingUpgradePreserveScale = true;
     private boolean recreateMode;
     private final PatchService patchService;
+    private final IngressControllerDetectorService ingressControllerDetectorService;
     // This map is to track projects created.
     private static final Set<String> projectsCreated = new HashSet<>();
 
-    public ApplyService(KubernetesClient kubernetesClient, KitLogger log) {
+    public ApplyService(KubernetesClient kubernetesClient, IngressControllerDetectorService ingressControllerDetectorService, KitLogger log) {
         this.kubernetesClient = kubernetesClient;
         this.patchService = new PatchService(kubernetesClient, log);
+        this.ingressControllerDetectorService = ingressControllerDetectorService;
         this.log = log;
     }
 
@@ -192,7 +195,11 @@ public class ApplyService {
         } else if (dto instanceof StatefulSet) {
             applyResource((StatefulSet) dto, sourceName, kubernetesClient.apps().statefulSets());
         } else if (dto instanceof Ingress) {
+            ingressControllerDetectorService.detect();
             applyResource((Ingress) dto, sourceName, kubernetesClient.extensions().ingresses());
+        }else if (dto instanceof io.fabric8.kubernetes.api.model.networking.v1.Ingress) {
+            ingressControllerDetectorService.detect();
+            applyResource((io.fabric8.kubernetes.api.model.networking.v1.Ingress) dto, sourceName, kubernetesClient.network().v1().ingresses());
         } else if (dto instanceof PersistentVolumeClaim) {
             applyPersistentVolumeClaim((PersistentVolumeClaim) dto, sourceName);
         } else if (dto instanceof CustomResourceDefinition) {
