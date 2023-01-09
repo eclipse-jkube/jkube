@@ -20,12 +20,12 @@ items:
   kind: Service
   metadata:
     annotations:
-      jkube.io/git-commit: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
       prometheus.io/scrape: "true"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
       prometheus.io/port: "9779"
-      jkube.io/issue-system: "GitHub"
-      jkube.io/issue-tracker-url: "https://github.com/reactiverse/vertx-maven-plugin/issues/"
+      jkube.eclipse.org/issue-system: "GitHub"
+      jkube.eclipse.org/issue-tracker-url: "https://github.com/reactiverse/vertx-maven-plugin/issues/"
     labels:
       provider: jkube
       app: jkube-maven-sample-zero-config
@@ -46,8 +46,8 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       provider: jkube
       app: jkube-maven-sample-zero-config
@@ -64,8 +64,8 @@ items:
     template:
       metadata:
         annotations:
-          jkube.io/git-commit: "@ignore@"
-          jkube.io/git-branch: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
         labels:
           provider: jkube
           app: jkube-maven-sample-zero-config

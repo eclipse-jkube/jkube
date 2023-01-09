@@ -26,11 +26,11 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       keyinall: valueinall
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
       keyinservice: valueinservice
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
       multiline/config: |
         proxyMetadata:
          ISTIO_META_DNS_CAPTURE: "false"
@@ -59,11 +59,11 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       keyinall: valueinall
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
       keyindeployment: valueindeployment
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
       multiline/config: |
         proxyMetadata:
          ISTIO_META_DNS_CAPTURE: "false"
@@ -92,12 +92,12 @@ items:
         annotations:
           app.openshift.io/vcs-ref: "@ignore@"
           keyinall: valueinall
-          jkube.io/git-branch: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
           keyindeployment: valueindeployment
           keyinpodtemplate: valueinpodtemplate
-          jkube.io/git-url: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
           app.openshift.io/vcs-uri: "@ignore@"
-          jkube.io/git-commit: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
         labels:
           keyinpodtemplate: valueinpodtemplate
           keyinall: valueinall
@@ -136,16 +136,16 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
       keyinall: valueinall
       multiline/config: |
         proxyMetadata:
          ISTIO_META_DNS_CAPTURE: "false"
         holdUntilProxyStarts: true
       keyinroute: valueinroute
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       keyinall: valueinall
       keyinroute: valueinroute

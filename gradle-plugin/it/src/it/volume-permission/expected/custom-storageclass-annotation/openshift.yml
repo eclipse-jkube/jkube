@@ -7,11 +7,11 @@ items:
     metadata:
       annotations:
         app.openshift.io/vcs-ref: "@ignore@"
-        jkube.io/git-branch: "@ignore@"
-        jkube.io/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
-        jkube.io/git-url: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+        jkube.eclipse.org/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
+        jkube.eclipse.org/git-url: "@ignore@"
         app.openshift.io/vcs-uri: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
       labels:
         app: volume-permission
         provider: jkube
@@ -48,7 +48,7 @@ items:
     kind: DeploymentConfig
     metadata:
       annotations:
-        jkube.io/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
+        jkube.eclipse.org/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
       labels:
         app: volume-permission
         provider: jkube
@@ -69,7 +69,7 @@ items:
       template:
         metadata:
           annotations:
-            jkube.io/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
+            jkube.eclipse.org/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
           labels:
             app: volume-permission
             provider: jkube
@@ -132,11 +132,11 @@ items:
     metadata:
       annotations:
         app.openshift.io/vcs-ref: "@ignore@"
-        jkube.io/git-branch: "@ignore@"
-        jkube.io/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
-        jkube.io/git-url: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+        jkube.eclipse.org/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
+        jkube.eclipse.org/git-url: "@ignore@"
         app.openshift.io/vcs-uri: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
       labels:
         app: volume-permission
         provider: jkube

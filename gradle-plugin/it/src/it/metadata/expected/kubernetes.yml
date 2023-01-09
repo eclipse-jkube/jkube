@@ -24,10 +24,10 @@ items:
     kind: Service
     metadata:
       annotations:
-        jkube.io/git-url: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
         keyinall: valueinall
-        jkube.io/git-branch: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
         keyinservice: valueinservice
         multiline/config: |
           proxyMetadata:
@@ -56,10 +56,10 @@ items:
     metadata:
       annotations:
         keyindeployment: valueindeployment
-        jkube.io/git-url: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
         keyinall: valueinall
-        jkube.io/git-branch: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
         multiline/config: |
           proxyMetadata:
            ISTIO_META_DNS_CAPTURE: "false"
@@ -85,10 +85,10 @@ items:
           annotations:
             keyindeployment: valueindeployment
             keyinpodtemplate: valueinpodtemplate
-            jkube.io/git-url: "@ignore@"
-            jkube.io/git-commit: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            jkube.eclipse.org/git-commit: "@ignore@"
             keyinall: valueinall
-            jkube.io/git-branch: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
           labels:
             keyinpodtemplate: valueinpodtemplate
             keyinall: valueinall
@@ -121,10 +121,10 @@ items:
     metadata:
       annotations:
         keyiningress: valueiningress
-        jkube.io/git-url: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
         keyinall: valueinall
-        jkube.io/git-branch: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         keyiningress: valueiningress
         keyinall: valueinall

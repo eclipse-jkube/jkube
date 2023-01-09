@@ -7,11 +7,11 @@ items:
   metadata:
     annotations:
       prometheus.io/path: /metrics
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
       prometheus.io/port: "@ignore@"
       prometheus.io/scrape: "@ignore@"
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
     labels:
       app: spring-boot-with-fragment
       provider: jkube
@@ -32,9 +32,9 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      jkube.io/git-url: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: spring-boot-with-fragment
       provider: jkube
@@ -52,9 +52,9 @@ items:
     template:
       metadata:
         annotations:
-          jkube.io/git-url: "@ignore@"
-          jkube.io/git-commit: "@ignore@"
-          jkube.io/git-branch: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
         labels:
           app: spring-boot-with-fragment
           provider: jkube

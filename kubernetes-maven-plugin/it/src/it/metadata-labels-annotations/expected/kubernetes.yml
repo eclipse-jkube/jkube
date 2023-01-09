@@ -11,11 +11,11 @@ items:
               ISTIO_META_DNS_CAPTURE: "false"
           holdApplicationUntilProxyStarts: true
         keyinall: valueinall
-        jkube.io/git-branch: "@ignore@"
-        jkube.io/scm-url: "@ignore@"
-        jkube.io/git-url: "@ignore@"
-        jkube.io/scm-tag: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+        jkube.eclipse.org/scm-url: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/scm-tag: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
       labels:
         keyinall: valueinall
         app: jkube-maven-metadata-labels-annotations
@@ -39,12 +39,12 @@ items:
                   ISTIO_META_DNS_CAPTURE: "false"
               holdApplicationUntilProxyStarts: true
             keyinall: valueinall
-            jkube.io/git-branch: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
             keyinpodtemplate: valueinpodtemplate
-            jkube.io/scm-url: "@ignore@"
-            jkube.io/git-url: "@ignore@"
-            jkube.io/scm-tag: "@ignore@"
-            jkube.io/git-commit: "@ignore@"
+            jkube.eclipse.org/scm-url: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            jkube.eclipse.org/scm-tag: "@ignore@"
+            jkube.eclipse.org/git-commit: "@ignore@"
           labels:
             keyinall: valueinall
             keyinpodtemplate: valueinpodtemplate

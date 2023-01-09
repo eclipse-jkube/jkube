@@ -19,9 +19,9 @@ metadata:
   annotations:
     jkube.helm.sh/provided-value: {{ .Values.i_should_be_quoted | upper | quote }}
     jkube.helm.sh/provided-value-scalar: {{ .Values.i_should_be_quoted | upper | quote }}
-    jkube.io/git-url: "@ignore@"
-    jkube.io/git-commit: "@ignore@"
-    jkube.io/git-branch: "@ignore@"
+    jkube.eclipse.org/git-url: "@ignore@"
+    jkube.eclipse.org/git-commit: "@ignore@"
+    jkube.eclipse.org/git-branch: "@ignore@"
   labels:
     app: helm-and-fragments
     provider: jkube
@@ -44,9 +44,9 @@ spec:
       annotations:
         jkube.helm.sh/provided-value: {{ .Values.i_should_be_quoted | upper | quote }}
         jkube.helm.sh/provided-value-scalar: {{ .Values.i_should_be_quoted | upper | quote }}
-        jkube.io/git-url: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
-        jkube.io/git-branch: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: helm-and-fragments
         provider: jkube

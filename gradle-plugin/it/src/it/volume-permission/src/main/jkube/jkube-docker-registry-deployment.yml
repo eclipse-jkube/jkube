@@ -17,7 +17,7 @@ apiVersion: "extensions/v1beta1"
 kind: "Deployment"
 metadata:
   annotations:
-    jkube.io/iconUrl: "https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png"
+    jkube.eclipse.org/iconUrl: "https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png"
   labels:
     provider: "jkube"
     app: "${name}"

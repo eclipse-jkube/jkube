@@ -20,12 +20,12 @@ items:
   kind: Service
   metadata:
     annotations:
-      jkube.io/git-commit: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
       prometheus.io/scrape: "true"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
       prometheus.io/port: "9779"
-      jkube.io/scm-tag: "HEAD"
-      jkube.io/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
+      jkube.eclipse.org/scm-tag: "HEAD"
+      jkube.eclipse.org/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
     labels:
       provider: jkube
       app: jkube-maven-sample-zero-config
@@ -46,10 +46,10 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
-      jkube.io/scm-tag: "HEAD"
-      jkube.io/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+      jkube.eclipse.org/scm-tag: "HEAD"
+      jkube.eclipse.org/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
     labels:
       provider: jkube
       app: jkube-maven-sample-zero-config
@@ -66,10 +66,10 @@ items:
     template:
       metadata:
         annotations:
-          jkube.io/git-commit: "@ignore@"
-          jkube.io/git-branch: "@ignore@"
-          jkube.io/scm-tag: "HEAD"
-          jkube.io/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
+          jkube.eclipse.org/scm-tag: "HEAD"
+          jkube.eclipse.org/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
         labels:
           provider: jkube
           app: jkube-maven-sample-zero-config

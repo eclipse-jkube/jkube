@@ -8,12 +8,12 @@ items:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
       prometheus.io/path: /metrics
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
       prometheus.io/port: "9779"
       prometheus.io/scrape: "true"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
     labels:
       app: probes-groovy-dsl-config
       provider: jkube
@@ -35,10 +35,10 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: probes-groovy-dsl-config
       provider: jkube
@@ -60,10 +60,10 @@ items:
       metadata:
         annotations:
           app.openshift.io/vcs-ref: "@ignore@"
-          jkube.io/git-url: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
           app.openshift.io/vcs-uri: "@ignore@"
-          jkube.io/git-commit: "@ignore@"
-          jkube.io/git-branch: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
         labels:
           app: probes-groovy-dsl-config
           provider: jkube
@@ -139,10 +139,10 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: probes-groovy-dsl-config
       provider: jkube

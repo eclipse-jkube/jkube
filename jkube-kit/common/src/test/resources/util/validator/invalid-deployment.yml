@@ -17,11 +17,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    jkube.io/git-url: git@github.com:manusa/jkube.git
-    jkube.io/git-commit: 082bc465b1e51433bfc14065b440ad8cf4a0b7c2
-    jkube.io/git-branch: master
-    jkube.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/external-resources
-    jkube.io/scm-tag: HEAD
+    jkube.eclipse.org/git-url: git@github.com:manusa/jkube.git
+    jkube.eclipse.org/git-commit: 082bc465b1e51433bfc14065b440ad8cf4a0b7c2
+    jkube.eclipse.org/git-branch: master
+    jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/external-resources
+    jkube.eclipse.org/scm-tag: HEAD
   labels:
     app: external-resources
     provider: jkube
@@ -39,11 +39,11 @@ spec:
   template:
     metadata:
       annotations:
-        jkube.io/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/external-resources
-        jkube.io/git-url: git@github.com:manusa/jkube.git
-        jkube.io/scm-tag: HEAD
-        jkube.io/git-commit: 082bc465b1e51433bfc14065b440ad8cf4a0b7c2
-        jkube.io/git-branch: master
+        jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/external-resources
+        jkube.eclipse.org/git-url: git@github.com:manusa/jkube.git
+        jkube.eclipse.org/scm-tag: HEAD
+        jkube.eclipse.org/git-commit: 082bc465b1e51433bfc14065b440ad8cf4a0b7c2
+        jkube.eclipse.org/git-branch: master
       labels:
         app: external-resources
         provider: jkube

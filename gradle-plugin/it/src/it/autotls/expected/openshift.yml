@@ -8,10 +8,10 @@ items:
       annotations:
         service.alpha.openshift.io/serving-cert-secret-name: autotls-tls
         app.openshift.io/vcs-ref: "@ignore@"
-        jkube.io/git-branch: "@ignore@"
-        jkube.io/git-url: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
         app.openshift.io/vcs-uri: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
       labels:
         app: autotls
         provider: jkube
@@ -33,10 +33,10 @@ items:
     metadata:
       annotations:
         app.openshift.io/vcs-ref: "@ignore@"
-        jkube.io/git-url: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
         app.openshift.io/vcs-uri: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
-        jkube.io/git-branch: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: autotls
         provider: jkube
@@ -58,10 +58,10 @@ items:
         metadata:
           annotations:
             app.openshift.io/vcs-ref: "@ignore@"
-            jkube.io/git-url: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
             app.openshift.io/vcs-uri: "@ignore@"
-            jkube.io/git-commit: "@ignore@"
-            jkube.io/git-branch: "@ignore@"
+            jkube.eclipse.org/git-commit: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
           labels:
             app: autotls
             provider: jkube
@@ -130,10 +130,10 @@ items:
     metadata:
       annotations:
         app.openshift.io/vcs-ref: "@ignore@"
-        jkube.io/git-url: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
         app.openshift.io/vcs-uri: "@ignore@"
-        jkube.io/git-commit: "@ignore@"
-        jkube.io/git-branch: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: autotls
         provider: jkube

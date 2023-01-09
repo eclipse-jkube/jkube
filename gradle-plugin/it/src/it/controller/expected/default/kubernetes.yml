@@ -22,9 +22,9 @@ items:
       template:
         metadata:
           annotations:
-            jkube.io/git-url: "@ignore@"
-            jkube.io/git-commit: "@ignore@"
-            jkube.io/git-branch: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            jkube.eclipse.org/git-commit: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
           labels:
             app: controller
             provider: jkube
