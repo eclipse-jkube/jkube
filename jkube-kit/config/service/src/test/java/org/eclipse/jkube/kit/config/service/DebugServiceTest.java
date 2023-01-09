@@ -42,6 +42,7 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,7 +80,8 @@ class DebugServiceTest {
   void setUp() {
     logger = spy(new KitLogger.SilentLogger());
     singleThreadExecutor = Executors.newSingleThreadExecutor();
-    final ApplyService applyService = new ApplyService(kubernetesClient, logger);
+    IngressControllerDetectorService ingressControllerDetectorService = new IngressControllerDetectorService(logger);
+    final ApplyService applyService = new ApplyService(kubernetesClient, ingressControllerDetectorService, logger);
     applyService.setNamespace(kubernetesClient.getNamespace());
     debugService = new DebugService(logger, kubernetesClient, new PortForwardService(logger), applyService);
   }

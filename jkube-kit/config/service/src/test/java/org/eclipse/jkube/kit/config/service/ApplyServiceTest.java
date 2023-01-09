@@ -35,6 +35,7 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorService;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -73,7 +74,8 @@ class ApplyServiceTest {
     @BeforeEach
     void setUp() {
         log = new KitLogger.SilentLogger();
-        applyService = new ApplyService(client, log);
+        IngressControllerDetectorService ingressControllerDetectorService = new IngressControllerDetectorService(log);
+        applyService = new ApplyService(client, ingressControllerDetectorService, log);
         applyService.setNamespace("default");
     }
 
@@ -419,7 +421,7 @@ class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("serviceaccount-default-create", "configmap-ns1-create", "ingress-ns2-create");
-        assertThat(mockServer.getRequestCount()).isEqualTo(5);
+        assertThat(mockServer.getRequestCount()).isEqualTo(6);
         applyService.setFallbackNamespace(null);
         applyService.setNamespace(configuredNamespace);
     }
@@ -451,7 +453,7 @@ class ApplyServiceTest {
 
         // Then
         collector.assertEventsRecordedInOrder("serviceaccount-default-ns-create", "configmap-default-ns-create", "ingress-default-ns-create");
-        assertThat(mockServer.getRequestCount()).isEqualTo(5);
+        assertThat(mockServer.getRequestCount()).isEqualTo(6);
         applyService.setFallbackNamespace(null);
     }
 

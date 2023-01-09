@@ -1,0 +1,4 @@
+org.eclipse.jkube.kit.config.service.ingresscontroller.NginxIngressControllerDetector,100
+org.eclipse.jkube.kit.config.service.ingresscontroller.ContourIngressControllerDetector,100
+org.eclipse.jkube.kit.config.service.ingresscontroller.KongIngressControllerDetector,100
+org.eclipse.jkube.kit.config.service.ingresscontroller.OpenShiftIngressControllerDetector,100

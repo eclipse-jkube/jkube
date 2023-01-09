@@ -22,6 +22,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
+import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
+import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
+import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatusBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.V1AuthorizationAPIGroupDSL;
+import io.fabric8.kubernetes.client.dsl.AuthorizationAPIGroupDSL;
+import io.fabric8.kubernetes.client.dsl.InOutCreateable;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -54,6 +62,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.hasAccessForAction;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class KubernetesHelperTest {
 
@@ -409,6 +421,53 @@ class KubernetesHelperTest {
             .containsEntry("template", "label");
     }
 
+    @Test
+    void createNewSelfSubjectAccessReview_whenGroupResourceNamespaceVerbProvided_thenShouldCreateSelfSubjectAccessReview() {
+        // When
+        SelfSubjectAccessReview selfSubjectAccessReview = KubernetesHelper.createNewSelfSubjectAccessReview("example.com", "foos", "test-ns", "list");
+
+        // Then
+        assertThat(selfSubjectAccessReview)
+            .hasFieldOrPropertyWithValue("spec.resourceAttributes.group", "example.com")
+            .hasFieldOrPropertyWithValue("spec.resourceAttributes.resource", "foos")
+            .hasFieldOrPropertyWithValue("spec.resourceAttributes.namespace", "test-ns")
+            .hasFieldOrPropertyWithValue("spec.resourceAttributes.verb", "list");
+    }
+
+    @Test
+    void hasAccessForAction_whenApiServerReturnsAllowedTrue_thenReturnTrue() {
+        try (KubernetesClient kubernetesClient = mock(KubernetesClient.class)) {
+            // Given
+            mockKubernetesClientAccessReviewCallReturns(kubernetesClient, new SubjectAccessReviewStatusBuilder()
+                .withAllowed(true)
+                .build());
+            SelfSubjectAccessReview selfSubjectAccessReview = createNewTestSelfSubjectAccessReview();
+
+            // When
+            boolean result = hasAccessForAction(kubernetesClient, selfSubjectAccessReview);
+
+            // Then
+            assertThat(result).isTrue();
+        }
+    }
+
+    @Test
+    void hasAccessForAction_whenApiServerReturnsAllowedFalse_thenReturnFalse() {
+        try (KubernetesClient kubernetesClient = mock(KubernetesClient.class)) {
+            // Given
+            mockKubernetesClientAccessReviewCallReturns(kubernetesClient, new SubjectAccessReviewStatusBuilder()
+                .withAllowed(false)
+                .build());
+            SelfSubjectAccessReview selfSubjectAccessReview = createNewTestSelfSubjectAccessReview();
+
+            // When
+            boolean result = hasAccessForAction(kubernetesClient, selfSubjectAccessReview);
+
+            // Then
+            assertThat(result).isFalse();
+        }
+    }
+
     private void assertLocalFragments(File[] fragments, int expectedSize) {
         assertThat(fragments).hasSize(expectedSize);
         assertThat(Arrays.stream(fragments).anyMatch( f -> f.getName().equals("deployment.yml"))).isTrue();
@@ -430,5 +489,25 @@ class KubernetesHelperTest {
         remoteStrList.add(String.format("http://localhost:%d/deployment.yaml", port));
         remoteStrList.add(String.format("http://localhost:%d/sa.yml", port));
         return remoteStrList;
+    }
+
+    private void mockKubernetesClientAccessReviewCallReturns(KubernetesClient kubernetesClient, SubjectAccessReviewStatus status) {
+        AuthorizationAPIGroupDSL authorizationAPIGroupDSL = mock(AuthorizationAPIGroupDSL.class);
+        V1AuthorizationAPIGroupDSL v1AuthorizationAPIGroupDSL = mock(V1AuthorizationAPIGroupDSL.class);
+        InOutCreateable<SelfSubjectAccessReview, SelfSubjectAccessReview> inOutCreateable = mock(InOutCreateable.class);
+        when(kubernetesClient.authorization()).thenReturn(authorizationAPIGroupDSL);
+        when(authorizationAPIGroupDSL.v1()).thenReturn(v1AuthorizationAPIGroupDSL);
+        when(v1AuthorizationAPIGroupDSL.selfSubjectAccessReview()).thenReturn(inOutCreateable);
+        when(inOutCreateable.create(any())).thenReturn(new SelfSubjectAccessReviewBuilder().withStatus(status).build());
+    }
+
+    private SelfSubjectAccessReview createNewTestSelfSubjectAccessReview() {
+        return new SelfSubjectAccessReviewBuilder()
+            .withNewSpec()
+            .withNewResourceAttributes()
+            .withGroup("foo")
+            .endResourceAttributes()
+            .endSpec()
+            .build();
     }
 }
