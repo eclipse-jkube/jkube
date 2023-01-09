@@ -111,7 +111,8 @@ public class MavenIssueManagementEnricher extends BaseEnricher {
 
     private Map<String, String> getAnnotations() {
         Map<String, String> annotations = new HashMap<>();
-
+        boolean useDeprecatedAnnotationPrefix = shouldUseLegacyJKubePrefix();
+        
         if (getContext() instanceof JKubeEnricherContext) {
             JKubeEnricherContext jkubeEnricherContext = (JKubeEnricherContext) getContext();
             JavaProject rootProject = jkubeEnricherContext.getProject();
@@ -119,8 +120,8 @@ public class MavenIssueManagementEnricher extends BaseEnricher {
                 String system = rootProject.getIssueManagementSystem();
                 String url = rootProject.getIssueManagementUrl();
                 if (StringUtils.isNotEmpty(system) && StringUtils.isNotEmpty(url)) {
-                    annotations.put(JKubeAnnotations.ISSUE_SYSTEM.value(), system);
-                    annotations.put(JKubeAnnotations.ISSUE_TRACKER_URL.value(), url);
+                    annotations.put(JKubeAnnotations.ISSUE_SYSTEM.value(useDeprecatedAnnotationPrefix), system);
+                    annotations.put(JKubeAnnotations.ISSUE_TRACKER_URL.value(useDeprecatedAnnotationPrefix), url);
                 }
             }
         }

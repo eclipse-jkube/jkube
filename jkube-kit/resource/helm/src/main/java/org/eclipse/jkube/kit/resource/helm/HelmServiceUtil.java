@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -184,7 +186,8 @@ public class HelmServiceUtil {
         throw new IllegalStateException("Failed to load kubernetes YAML " + manifest + ". " + e, e);
       }
       if (dto instanceof HasMetadata) {
-        answer = KubernetesHelper.getOrCreateAnnotations((HasMetadata) dto).get("jkube.io/iconUrl");
+        Map<String, String> annotations = KubernetesHelper.getOrCreateAnnotations((HasMetadata) dto);
+        answer = getJKubeIconUrlFromAnnotations(annotations);
       }
       answer = extractIconUrlAnnotationFromKubernetesList(answer, dto);
     }
@@ -270,7 +273,8 @@ public class HelmServiceUtil {
       List<HasMetadata> items = list.getItems();
       if (items != null) {
         for (HasMetadata item : items) {
-          answer = KubernetesHelper.getOrCreateAnnotations(item).get("jkube.io/iconUrl");
+          Map<String, String> annotations = KubernetesHelper.getOrCreateAnnotations(item);
+          answer = getJKubeIconUrlFromAnnotations(annotations);
           if (StringUtils.isNotBlank(answer)) {
             break;
           }
@@ -280,4 +284,13 @@ public class HelmServiceUtil {
     return answer;
   }
 
+  private static String getJKubeIconUrlFromAnnotations(Map<String, String> annotations) {
+    if (annotations.containsKey(JKubeAnnotations.ICON_URL.value(true))) {
+      return annotations.get(JKubeAnnotations.ICON_URL.value(true));
+    }
+    if (annotations.containsKey(JKubeAnnotations.ICON_URL.value())) {
+      return annotations.get(JKubeAnnotations.ICON_URL.value());
+    }
+    return null;
+  }
 }

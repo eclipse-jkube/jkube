@@ -349,11 +349,11 @@ public class KubernetesHelper {
         Throwable cause = e.getCause();
         if (cause instanceof UnknownHostException) {
             logger.error( "Could not connect to kubernetes cluster!");
-            logger.error("Have you started a local cluster via `mvn jkube:cluster-start` or connected to a remote cluster via `kubectl`?");
-            logger.info("For more help see: http://jkube.io/guide/getStarted/");
+            logger.error("Have you started a local cluster or connected to a remote cluster via `kubectl`?");
+            logger.info("For more help see: https://www.eclipse.org/jkube/docs/#getting-started");
             logger.error( "Connection error: %s", cause);
 
-            String message = "Could not connect to kubernetes cluster. Have you started a cluster via `minikube start` or connected to a remote cluster via `kubectl`? Error: " + cause;
+            String message = "Could not connect to kubernetes cluster. Have you started a local cluster or connected to a remote cluster via `kubectl`? Error: " + cause;
             throw new IllegalStateException(message, e);
         } else {
             throw new IllegalStateException(e.getMessage(), e);
