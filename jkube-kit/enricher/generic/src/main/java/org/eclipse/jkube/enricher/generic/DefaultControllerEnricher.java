@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.apps.DaemonSet;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -57,6 +58,7 @@ import static org.eclipse.jkube.enricher.generic.ControllerViaPluginConfiguratio
  *     <li>ReplicaSet</li>
  *     <li>ReplicationController</li>
  *     <li>Job</li>
+ *     <li>CronJob</li>
  * </ul>
  *
  * TODO: There is a certain overlap with the ImageEnricher with adding default images etc.. This must be resolved.
@@ -74,6 +76,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
     CONTROLLER_TYPES.put("REPLICASET", ReplicaSet.class);
     CONTROLLER_TYPES.put("REPLICATIONCONTROLLER", ReplicationController.class);
     CONTROLLER_TYPES.put("JOB", Job.class);
+    CONTROLLER_TYPES.put("CRONJOB", CronJob.class);
   }
 
   @AllArgsConstructor
@@ -85,7 +88,8 @@ public class DefaultControllerEnricher extends BaseEnricher {
     @Deprecated
     PULL_POLICY("pullPolicy", JKUBE_DEFAULT_IMAGE_PULL_POLICY),
     TYPE("type", null),
-    REPLICA_COUNT("replicaCount", "1");
+    REPLICA_COUNT("replicaCount", "1"),
+    SCHEDULE("schedule", null);
 
     @Getter
     protected String key;
@@ -106,6 +110,7 @@ public class DefaultControllerEnricher extends BaseEnricher {
         .imagePullPolicy(getImagePullPolicy(Config.PULL_POLICY))
         .replicas(getReplicaCount(builder, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
         .restartPolicy(getControllerResourceConfig().getRestartPolicy())
+        .schedule(getConfig(Config.SCHEDULE))
         .build();
 
     final List<ImageConfiguration> images = getImages();

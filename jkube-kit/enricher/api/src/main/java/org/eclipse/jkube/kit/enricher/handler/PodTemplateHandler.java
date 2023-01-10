@@ -77,6 +77,4 @@ public class PodTemplateHandler {
         return ret;
     }
 
-
-
 }

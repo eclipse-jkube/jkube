@@ -37,7 +37,7 @@ class HandlerHubControllerTest {
     final List<ControllerHandlerLazyBuilder<?>> result = handlerHub.getControllerHandlers();
     // Then
     assertThat(result)
-        .hasSize(7)
+        .hasSize(8)
         .extracting(ControllerHandlerLazyBuilder::get)
         .flatExtracting(Object::getClass)
         .containsExactlyInAnyOrder(
@@ -47,7 +47,8 @@ class HandlerHubControllerTest {
             JobHandler.class,
             ReplicaSetHandler.class,
             ReplicationControllerHandler.class,
-            StatefulSetHandler.class
+            StatefulSetHandler.class,
+            CronJobHandler.class
         );
   }
 

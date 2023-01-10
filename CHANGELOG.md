@@ -24,6 +24,7 @@ Usage:
 * Fix #1179: Move storageClass related functionality out of VolumePermissionEnricher to PersistentVolumeClaimStorageClassEnricher
 * Fix #1273: Deprecate `jkube.io` annotation prefix in favor of `jkube.eclipse.org` for JKubeAnnotations
 * Fix #2040: Add support for adding resource limits via controller resource config
+* Fix #1954: Add support for CronJob
 * Fix #2086: Allow concurrent remote-dev sessions (service selector includes session id)
 * Fix #2093: ClassCastException when extracting plugins from pom
 * Fix #2108: Bump BouncyCastle to 1.72

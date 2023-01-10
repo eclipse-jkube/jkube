@@ -43,4 +43,5 @@ public class ControllerResourceConfig {
   private Integer replicas;
   private String restartPolicy;
   private ContainerResourcesConfig containerResources;
+  private String schedule;
 }

@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 
 /**
@@ -57,7 +58,8 @@ public class HandlerHub {
                 new ReplicationControllerHandler(podTemplateHandler)),
             new ControllerHandlerLazyBuilder<>(StatefulSet.class,() -> new StatefulSetHandler(podTemplateHandler)),
             new ControllerHandlerLazyBuilder<>(DaemonSet.class,() -> new DaemonSetHandler(podTemplateHandler)),
-            new ControllerHandlerLazyBuilder<>(Job.class,() -> new JobHandler(podTemplateHandler))
+            new ControllerHandlerLazyBuilder<>(Job.class,() -> new JobHandler(podTemplateHandler)),
+            new ControllerHandlerLazyBuilder<>(CronJob.class, () -> new CronJobHandler(podTemplateHandler))
         );
         namespaceHandler = new LazyBuilder<>(NamespaceHandler::new);
         projectHandler = new LazyBuilder<>(ProjectHandler::new);
