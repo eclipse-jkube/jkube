@@ -96,7 +96,7 @@ public class KubernetesHelper {
     public static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
     public static final Pattern PROFILES_PATTERN = Pattern.compile(PROFILES_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
     protected static final String[] POD_CONTROLLER_KINDS =
-            { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job" };
+            { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job", "CronJob" };
 
     private KubernetesHelper() {}
 
@@ -119,6 +119,13 @@ public class KubernetesHelper {
             }
         }
         return currentValue;
+    }
+
+    public static String validateCronJobSchedule(String schedule) {
+        if (StringUtils.isBlank(schedule)) {
+            throw new IllegalArgumentException("No schedule is specified!");
+        }
+        return schedule;
     }
 
     public static Map<String, String> getOrCreateAnnotations(HasMetadata entity) {

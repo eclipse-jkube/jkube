@@ -44,7 +44,7 @@ import lombok.Getter;
 
 public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
     protected static final String[] POD_CONTROLLER_KINDS =
-            { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job" };
+            { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job", "CronJob" };
 
     private final ControllerHandler<Deployment> deployHandler;
     private final ControllerHandler<StatefulSet> statefulSetHandler;
@@ -57,7 +57,8 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
          */
         @Deprecated
         PULL_POLICY("pullPolicy", JKUBE_DEFAULT_IMAGE_PULL_POLICY),
-        REPLICA_COUNT("replicaCount", "1");
+        REPLICA_COUNT("replicaCount", "1"),
+        SCHEDULE("schedule", null);
 
         @Getter
         protected String key;
@@ -79,6 +80,7 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
                 .imagePullPolicy(getImagePullPolicy(Config.PULL_POLICY))
                 .replicas(getReplicaCount(builder, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
                 .initContainers(Optional.ofNullable(getControllerResourceConfig().getInitContainers()).orElse(Collections.emptyList()))
+                .schedule(getConfig(Config.SCHEDULE))
                 .build();
 
         final List<ImageConfiguration> images = getImages();
