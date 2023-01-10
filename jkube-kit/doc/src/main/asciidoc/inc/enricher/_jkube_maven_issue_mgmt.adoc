@@ -13,14 +13,25 @@ The following annotations will be added to the objects that support these annota
 [cols="2,2,3"]
 |===
 | Maven Issue Tracker Info | Annotation | Description
-
 | issueManagement/system
-| jkube.io/issue-system
+| jkube.eclipse.org/issue-system
 | The Issue Management system like Bugzilla, JIRA, GitHub etc.,
 
 | issueManagement/url
-| jkube.io/issue-tracker-url
+| jkube.eclipse.org/issue-tracker-url
 | The Issue Management url e.g. GitHub Issues Url
+
+| issueManagement/system
+| jkube.io/issue-system
+| _Deprecated: Use `jkube.eclipse.org/` annotation prefix._
+
+The Issue Management system like Bugzilla, JIRA, GitHub etc.,
+
+| issueManagement/url
+| jkube.io/issue-tracker-url
+| _Deprecated: Use `jkube.eclipse.org/` annotation prefix._
+
+The Issue Management url e.g. GitHub Issues Url
 
 |===
 
@@ -42,7 +53,7 @@ This information will be enriched as annotations in the generated manifest like,
   kind: Service
   metadata:
     annotations:
-      jkube.io/issue-system: "GitHub"
-      jkube.io/issue-tracker-url: "https://github.com/reactiverse/vertx-maven-plugin/issues/"
+      jkube.eclipse.org/issue-system: "GitHub"
+      jkube.eclipse.org/issue-tracker-url: "https://github.com/reactiverse/vertx-maven-plugin/issues/"
 # ...
 ----

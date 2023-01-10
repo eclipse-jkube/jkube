@@ -41,6 +41,9 @@ endif::[]
 
 | `serviceAccount`
 | ServiceAccount name which will be used by pods created by controller resources(e.g. `Deployment`, `ReplicaSet` etc)
+
+| `useLegacyJKubePrefix`
+| Use old `jkube.io/` annotation prefix instead of `jkube.eclipse.org/` annotation prefix
 |===
 
 [[generated-controller-resource-configuration]]
