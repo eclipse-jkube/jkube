@@ -74,7 +74,7 @@ Defaults to project description.
 
 | *icon*
 | The Chart URL to an SVG or PNG image to be used as an icon, default is extracted from the kubernetes manifest
-  (`kubernetes.yml`) `jkube.io/iconUrl` annotation if not provided.
+  (`kubernetes.yml`) `jkube.eclipse.org/iconUrl` annotation if not provided.
 | `jkube.helm.icon`
 
 | *keywords*

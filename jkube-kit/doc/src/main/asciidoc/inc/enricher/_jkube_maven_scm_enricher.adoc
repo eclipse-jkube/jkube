@@ -13,20 +13,44 @@ The following annotations will be added to the objects that supports annotations
 | Maven SCM Info | Annotation | Description
 
 | scm/connection
-| jkube.io/scm-con-url
+| jkube.eclipse.org/scm-con-url
 | The SCM connection that will be used to connect to the project's SCM
 
 | scm/developerConnection
-| jkube.io/scm-devcon-url
+| jkube.eclipse.org/scm-devcon-url
 | The SCM Developer Connection that will be used to connect to the project's developer SCM
 
 | scm/tag
-| jkube.io/scm-tag
+| jkube.eclipse.org/scm-tag
 | The SCM tag that will be used to checkout the sources, like HEAD dev-branch etc.,
 
 | scm/url
-| jkube.io/scm-url
+| jkube.eclipse.org/scm-url
 | The SCM web url that can be used to browse the SCM over web browser
+
+| scm/connection
+| jkube.io/scm-con-url
+| _Deprecated: Use `jkube.eclipse.org/` annotation prefix._
+
+The SCM connection that will be used to connect to the project's SCM
+
+| scm/developerConnection
+| jkube.io/scm-devcon-url
+| _Deprecated: Use `jkube.eclipse.org/` annotation prefix._
+
+The SCM Developer Connection that will be used to connect to the project's developer SCM
+
+| scm/tag
+| jkube.io/scm-tag
+| _Deprecated: Use `jkube.eclipse.org/` annotation prefix._
+
+The SCM tag that will be used to checkout the sources, like HEAD dev-branch etc.,
+
+| scm/url
+| jkube.io/scm-url
+| _Deprecated: Use `jkube.eclipse.org/` annotation prefix._
+
+The SCM web url that can be used to browse the SCM over web browser
 
 |===
 
@@ -47,10 +71,10 @@ This information will be enriched as annotations in the generated manifest like,
 # ...
   kind: Service
   metadata:
-    annotations
-      jkube.io/scm-con-url: "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git"
-      jkube.io/scm-devcon-url: "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git"
-      jkube.io/scm-tag: "HEAD"
-      jkube.io/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
+    annotations:
+      jkube.eclipse.org/scm-con-url: "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git"
+      jkube.eclipse.org/scm-devcon-url: "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git"
+      jkube.eclipse.org/scm-tag: "HEAD"
+      jkube.eclipse.org/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
 # ...
 ----

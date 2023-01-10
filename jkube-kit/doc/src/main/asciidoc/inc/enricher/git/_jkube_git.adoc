@@ -8,15 +8,29 @@ Enricher that adds info from `.git` directory as annotations. These are explaine
 [cols="1,1"]
 |===
 | Annotation | Description
-
-| `jkube.io/git-branch`
+| `jkube.eclipse.org/git-branch`
 | Current Git Branch
 
-| `jkube.io/git-commit`
+| `jkube.eclipse.org/git-commit`
 | Latest commit of current branch
 
-| `jkube.io/git-url`
+| `jkube.eclipse.org/git-url`
 | URL of your configured git remote
+
+| `jkube.io/git-branch`
+| _Deprecated: Use `jkube.eclipse.org/` annotation prefix._
+
+Current Git Branch
+
+| `jkube.io/git-commit`
+| _Deprecated: Use `jkube.eclipse.org/` annotation prefix._
+
+Latest commit of current branch
+
+| `jkube.io/git-url`
+| _Deprecated: Use `jkube.eclipse.org/` annotation prefix._
+
+URL of your configured git remote
 
 ifeval::["{goal-prefix}" == "oc"]
 include::openshift-annotations/_openshift_annotations.adoc[]
