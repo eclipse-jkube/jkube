@@ -369,11 +369,11 @@ public class PortMapping {
 
     private void updateDynamicProperties(Map<String, ?> dynamicPorts) {
         for (Map.Entry<String, ?> entry : dynamicPorts.entrySet()) {
-            String var = entry.getKey();
+            String entryKey = entry.getKey();
             String val = entry.getValue().toString();
 
-            projProperties.setProperty(var, val);
-            dynamicProperties.setProperty(var, val);
+            projProperties.setProperty(entryKey, val);
+            dynamicProperties.setProperty(entryKey, val);
         }
     }
 
