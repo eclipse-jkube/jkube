@@ -31,7 +31,24 @@ jobs:
       - name: Harden Runner
         uses: step-security/harden-runner@ebacdc22ef6c2cfb85ee5ded8f2e640f4c776dd5
         with:
-          egress-policy: audit # TODO: change to 'egress-policy: block' after couple of runs
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            access.redhat.com:443
+            api.adoptopenjdk.net:443
+            downloads.gradle-dn.com:443
+            github.com:443
+            jcenter.bintray.com:443
+            maven.repository.redhat.com:443
+            objects.githubusercontent.com:443
+            oss.sonatype.org:443
+            plugins-artifacts.gradle.org:443
+            plugins.gradle.org:443
+            repo.gradle.org:443
+            repo.maven.apache.org:443
+            repo1.maven.org:443
+            repository.jboss.org:443
+            services.gradle.org:443
 
       - name: Checkout
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
