@@ -17,6 +17,9 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.IoUtil;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -40,6 +44,11 @@ class RemoteDevelopmentServiceTest {
   void setUp() {
     mockServer.reset();
     logger = spy(new KitLogger.StdoutLogger());
+  }
+
+  @AfterEach
+  void tearDown() {
+    reset(logger);
   }
 
   @Test
@@ -67,18 +76,44 @@ class RemoteDevelopmentServiceTest {
   @Test
   @DisplayName("start initiates PortForwarder and KubernetesSshServiceForwarder")
   void startInitiatesChildProcesses() {
+    // When
+    startDevelopmentServiceWithConfig(RemoteDevelopmentConfig.builder().build());
+
+    // Then
+    verify(logger, times(1))
+      .debug("Creating or replacing Kubernetes services for exposed ports from local environment");
+    verify(logger, times(1))
+      .debug("Starting Kubernetes SSH service forwarder...");
+    verify(logger, times(1))
+      .debug("Starting port forwarder...");
+  }
+
+  @Test
+  @DisplayName("start initiates if LocalPort for remote service are available")
+  void startInitsIfLocalPortAvailable() {
+    RemoteService remoteService = RemoteService.builder()
+        .hostname("remote-host").localPort(IoUtil.getFreeRandomPort()).port(1234).build();
+    RemoteDevelopmentConfig config = RemoteDevelopmentConfig.builder().remoteService(remoteService).build();
+
+    // When
+    startDevelopmentServiceWithConfig(config);
+
+    // Then
+    verify(logger, times(1))
+      .debug("Local port '%s' for remote service '%s:%s' is available", 
+        remoteService.getLocalPort(),remoteService.getHostname(),remoteService.getPort());
+    verify(logger, times(1))
+      .debug("Creating or replacing Kubernetes services for exposed ports from local environment");
+  }
+
+  private void startDevelopmentServiceWithConfig(RemoteDevelopmentConfig remoteDevelopmentConfig) {
     CompletableFuture<Void> future = null;
     try {
-      // When
-      future = new RemoteDevelopmentService(logger, kubernetesClient,  RemoteDevelopmentConfig.builder().build())
+      future = new RemoteDevelopmentService(logger, kubernetesClient, remoteDevelopmentConfig)
         .start();
-      // Then
-      verify(logger, times(1))
-        .debug("Starting Kubernetes SSH service forwarder...");
-      verify(logger, times(1))
-        .debug("Starting port forwarder...");
     } finally {
       Optional.ofNullable(future).ifPresent(f -> f.cancel(true));
     }
   }
+
 }
