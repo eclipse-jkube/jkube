@@ -62,12 +62,12 @@ public class RemoteDevelopmentService {
 
   private void checkEnvironment() {
     for (RemoteService remoteService : context.getRemoteDevelopmentConfig().getRemoteServices()) {
-      try (ServerSocket ignore = new ServerSocket(remoteService.getPort())) {
+      try (ServerSocket ignore = new ServerSocket(remoteService.getLocalPort())) {
         logger.debug("Local port '%s' for remote service '%s:%s' is available",
           remoteService.getLocalPort(), remoteService.getHostname(), remoteService.getPort());
       } catch (Exception e) {
         throw new IllegalStateException(
-          "Local port '" + remoteService.getPort() + "' is already in use (" + remoteService.getHostname() + ")");
+          "Local port '" + remoteService.getLocalPort() + "' is already in use (" + remoteService.getHostname() + ")");
       }
       if (kubernetesClient.services().withName(remoteService.getHostname()).get() == null) {
         logger.warn("Service '%s' does not exist in the cluster, " +
