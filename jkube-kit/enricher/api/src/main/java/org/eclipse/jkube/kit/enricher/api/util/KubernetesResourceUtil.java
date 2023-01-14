@@ -569,10 +569,10 @@ public class KubernetesResourceUtil {
             envVars = new ArrayList<>();
             container.setEnv(envVars);
         }
-        for (EnvVar var : envVars) {
-            if (Objects.equals(var.getName(), envVar.getName())) {
+        for (EnvVar envVariable : envVars) {
+            if (Objects.equals(envVariable.getName(), envVar.getName())) {
                 // lets replace the object so that we can update the value or valueFrom
-                envVars.remove(var);
+                envVars.remove(envVariable);
                 envVars.add(envVar);
                 return;
             }
