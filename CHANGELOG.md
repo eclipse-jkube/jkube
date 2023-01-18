@@ -26,6 +26,7 @@ Usage:
 * Fix #1546: Migrate to JUnit5 testing framework
 * Fix #1858: Properties in image name not replaced
 * Fix #1935: `oc:remote-dev` goal / `ocRemoteDev` task have wrong log prefixes
+* Fix #1950: Add workaround to set OkHttp's `HttpLoggingInterceptor` log level to `BASIC` when trace enabled
 * Fix #1966: Old reference to fmp in documentation
 * Fix #1974: Remove unused methods in KubernetesResourceUtil
 

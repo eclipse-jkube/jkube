@@ -13,8 +13,10 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.service.MigrateService;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
@@ -31,8 +33,11 @@ import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
+
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
@@ -283,6 +288,28 @@ class JKubeServiceHubTest {
       assertThatIllegalArgumentException()
           .isThrownBy(jKubeServiceHub::getClient)
           .withMessage("Connection to Cluster required. Please check if offline mode is set to false");
+    }
+  }
+
+  @DisplayName("https://github.com/eclipse/jkube/issues/1950")
+  @Test
+  void getClient_whenTraceLoggingEnabled_thenSetHttpLoggingInterceptorLevelToBasic() {
+    // Given
+    Properties properties = new Properties();
+    properties.put("org.slf4j.simpleLogger.defaultLogLevel", "trace");
+    jKubeServiceHubBuilder.configuration(JKubeConfiguration.builder()
+            .project(JavaProject.builder()
+                .properties(properties)
+                .build())
+        .build());
+    jKubeServiceHubBuilder.clusterAccess(mock(ClusterAccess.class));
+
+    // When + Then
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
+      KubernetesClient kubernetesClient = jKubeServiceHub.getClient();
+
+      assertThat(System.getProperty("org.slf4j.simpleLogger.log.okhttp3.logging.HttpLoggingInterceptor"))
+          .isEqualTo("BASIC");
     }
   }
 

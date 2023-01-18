@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.service.MigrateService;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
@@ -102,7 +103,7 @@ public class JKubeServiceHub implements Closeable {
 
     private void initLazyBuilders() {
         clusterAccessLazyBuilder = new LazyBuilder<>(this::initClusterAccessIfNecessary);
-        kubernetesClientLazyBuilder = new LazyBuilder<>(() -> getClusterAccess().createDefaultClient());
+        kubernetesClientLazyBuilder = new LazyBuilder<>(this::createKubernetesClient);
         buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
         pluginManager = new LazyBuilder<>(() -> new PluginManager(this));
         applyService = new LazyBuilder<>(() -> new ApplyService(getClient(), log));
@@ -180,5 +181,22 @@ public class JKubeServiceHub implements Closeable {
 
     public ClusterAccess getClusterAccess() {
         return clusterAccessLazyBuilder.get();
+    }
+
+    private KubernetesClient createKubernetesClient() {
+        // Workaround for https://github.com/eclipse/jkube/issues/1950
+        // Forcefully set HttpLoggingInterceptor logging level to basic to not read requests/response bodies
+        setOkHttpLoggingLevelToBasicIfTraceEnabled();
+        return getClusterAccess().createDefaultClient();
+    }
+
+    private void setOkHttpLoggingLevelToBasicIfTraceEnabled() {
+        JKubeConfiguration config = getConfiguration();
+        if (config != null && config.getProject() != null && config.getProperties() != null) {
+            String logLevel = config.getProperties().getProperty("org.slf4j.simpleLogger.defaultLogLevel");
+            if (StringUtils.isNotBlank(logLevel) && logLevel.equals("trace")) {
+                System.setProperty("org.slf4j.simpleLogger.log.okhttp3.logging.HttpLoggingInterceptor", "BASIC");
+            }
+        }
     }
 }
