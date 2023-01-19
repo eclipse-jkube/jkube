@@ -213,8 +213,8 @@ public class ResourceMojo extends AbstractJKubeMojo {
                 final ResourceClassifier resourceClassifier = getResourceClassifier();
                 final KubernetesList resourceList = generateResources();
                 final File resourceClassifierDir = new File(this.targetDir, resourceClassifier.getValue());
-                validateIfRequired(resourceClassifierDir, resourceClassifier);
                 final File artifact = jkubeServiceHub.getResourceService().writeResources(resourceList, resourceClassifier, log);
+                validateIfRequired(resourceClassifierDir, resourceClassifier);
                 // Attach it to the Maven reactor so that it will also get deployed
                 projectHelper.attachArtifact(project, this.resourceFileType.getArtifactType(), resourceClassifier.getValue(), artifact);
             }
