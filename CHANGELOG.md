@@ -25,6 +25,7 @@ Usage:
 * Fix #1459: Route Generation should support `8443` as default web port
 * Fix #1546: Migrate to JUnit5 testing framework
 * Fix #1858: Properties in image name not replaced
+* Fix #1934: schema validation warnings during `mvn oc:resource` and `gradle k8sResource`
 * Fix #1935: `oc:remote-dev` goal / `ocRemoteDev` task have wrong log prefixes
 * Fix #1966: Old reference to fmp in documentation
 * Fix #1974: Remove unused methods in KubernetesResourceUtil

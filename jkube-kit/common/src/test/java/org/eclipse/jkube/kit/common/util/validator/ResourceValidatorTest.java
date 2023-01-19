@@ -14,6 +14,8 @@
 package org.eclipse.jkube.kit.common.util.validator;
 
 
+import com.networknt.schema.AbstractKeyword;
+import com.networknt.schema.NonValidationKeyword;
 import org.assertj.core.api.Condition;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.nio.file.Paths;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -64,6 +67,17 @@ class ResourceValidatorTest {
         .hasMessageStartingWith("Invalid Resource :")
         .hasMessageContaining("invalid-deployment.yml")
         .has(new HasErrMessage("$.spec.replicas: string found, integer expected"));
+  }
+
+  @Test
+  void createNonValidationKeywordList_whenInvoked_shouldReturnNonValidationKeywordList() {
+    // Given + When
+    List<NonValidationKeyword> nonValidationKeywordList = ResourceValidator.createNonValidationKeywordList();
+
+    // Then
+    assertThat(nonValidationKeywordList)
+        .extracting(AbstractKeyword::getValue)
+        .containsExactlyInAnyOrder("javaType", "javaInterfaces", "resources", "javaOmitEmpty", "existingJavaType", "$module");
   }
 
   private static final class HasErrMessage extends Condition<Throwable> {

@@ -160,9 +160,7 @@ public class ResourceValidator {
         checkIfKindPropertyExists(kind);
         getResourceProperties(kind, jsonSchema);
         final JsonMetaSchema metaSchema = JsonMetaSchema.builder(v201909.getUri(), v201909)
-            .addKeyword(new NonValidationKeyword("javaType"))
-            .addKeyword(new NonValidationKeyword("javaInterfaces"))
-            .addKeyword(new NonValidationKeyword("resources"))
+            .addKeywords(createNonValidationKeywordList())
             .build();
         return new JsonSchemaFactory.Builder()
             .defaultMetaSchemaURI(defaultUri).addMetaSchema(metaSchema).build()
@@ -199,7 +197,18 @@ public class ResourceValidator {
         return jsonObject;
     }
 
-    private class ConstraintViolationImpl implements ConstraintViolation<ValidationMessage> {
+    static List<NonValidationKeyword> createNonValidationKeywordList() {
+        List<NonValidationKeyword> nonValidationKeywords = new ArrayList<>();
+        nonValidationKeywords.add(new NonValidationKeyword("javaType"));
+        nonValidationKeywords.add(new NonValidationKeyword("javaInterfaces"));
+        nonValidationKeywords.add(new NonValidationKeyword("resources"));
+        nonValidationKeywords.add(new NonValidationKeyword("javaOmitEmpty"));
+        nonValidationKeywords.add(new NonValidationKeyword("existingJavaType"));
+        nonValidationKeywords.add(new NonValidationKeyword("$module"));
+        return nonValidationKeywords;
+    }
+
+    private static class ConstraintViolationImpl implements ConstraintViolation<ValidationMessage> {
 
         private ValidationMessage errorMsg;
 
