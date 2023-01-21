@@ -142,16 +142,8 @@ public class ImageName {
         return builder.toString();
     }
 
-    private boolean containsPeriodOrColon(String part) {
-        return containsPeriod(part) || containsColon(part);
-    }
-
-    private boolean containsPeriod(String part) {
+    private boolean isRegistryPart(String part) {
         return part.contains(".");
-    }
-
-    private boolean containsColon(String part) {
-        return part.contains(":");
     }
 
     /**
@@ -281,26 +273,18 @@ public class ImageName {
             registry = null;
             user = null;
             repository = parts[0];
-        } else if (parts.length >= 2) {
-            if (containsPeriodOrColon(parts[0])) {
-                if (parts.length > 2) {
-                    assignRegistryUserAndRepository(parts);
-                } else {
-                    checkWhetherFirstElementIsUserOrRegistryAndAssign(parts);
-                }
+        } else if (parts.length == 2) {
+            if (isRegistryPart(parts[0])) {
+                assignRegistryAndRepository(parts);
             } else {
-                registry = null;
-                user = parts[0];
-                repository = rest;
+                assignUserAndRepository(parts);
             }
-        }
-    }
-
-    private void checkWhetherFirstElementIsUserOrRegistryAndAssign(String[] parts) {
-        if (containsColon(parts[0])) {
-            assignRegistryAndRepository(parts);
-        } else {
-            assignUserAndRepository(parts);
+        } else if (parts.length >= 3) {
+            if (isRegistryPart(parts[0])) {
+                assignRegistryUserAndRepository(parts);
+            } else {
+                assignUserAndRepository(parts);
+            }
         }
     }
 

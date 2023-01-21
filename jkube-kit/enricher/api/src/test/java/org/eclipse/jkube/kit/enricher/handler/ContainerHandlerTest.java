@@ -201,13 +201,13 @@ class ContainerHandlerTest {
       }
 
       @Test
-      @DisplayName("with user, image and tag with period in image user, should return configured image")
-      void withUserAndImageAndTagWithPeriodInImageUser_shouldReturnConfiguredImage() {
+      @DisplayName("with user, image and tag with dash in image user, should return configured image")
+      void withUserAndImageAndTagWithDashInImageUser_shouldReturnConfiguredImage() {
         // Given
         ContainerHandler containerHandler = createContainerHandler(project);
         List<ImageConfiguration> imageConfigurations = new ArrayList<>();
         imageConfigurations.add(ImageConfiguration.builder()
-            .name("roman.gordill/customer-service-cache:latest")
+            .name("roman-gordill/customer-service-cache:latest")
             .registry("quay.io")
             .build(BuildConfiguration.builder()
                 .from("quay.io/jkube/jkube-java:0.0.13")
@@ -222,7 +222,7 @@ class ContainerHandlerTest {
 
         // Then
         assertThat(containers).singleElement()
-            .hasFieldOrPropertyWithValue("image", "quay.io/roman.gordill/customer-service-cache:latest");
+            .hasFieldOrPropertyWithValue("image", "quay.io/roman-gordill/customer-service-cache:latest");
       }
 
       @Test
