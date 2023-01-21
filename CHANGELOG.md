@@ -32,6 +32,7 @@ Usage:
 
 ### 1.13.0 (2023-06-14)
 * Fix #1478: Should detect and warn the user if creating ingress and ingress controller not available
+* Fix #1929: Docker Image Name parsing fix
 * Fix #2092: Support for `Chart.yaml` fragments
 * Fix #2150: Bump Kubernetes Client to 6.6.0 (fixes issues when trace-logging OpenShift builds)
 * Fix #2162: Bump Kubernetes Client to 6.6.1 (HttpClient with support for PUT + InputStream)
@@ -494,3 +495,4 @@ Only the set of documented features are available to users.
 
 ### 0.1.0 (2019-12-19)
 * Initial release
+
