@@ -154,19 +154,35 @@ class ImageNameTest {
     }
 
     @Test
-    void testImageNameWithUsernameHavingPeriods() {
+    void testImageNameWithUsernameHavingNumber() {
         // Given
-        String name = "roman.gordill/customer-service-cache:latest";
+        String name = "romangordill10/customer-service-cache:latest";
 
         // When
         ImageName imageName = new ImageName(name);
 
         // Then
         assertThat(imageName).isNotNull();
-        assertThat(imageName.getUser()).isEqualTo("roman.gordill");
-        assertThat(imageName.getRepository()).isEqualTo("roman.gordill/customer-service-cache");
+        assertThat(imageName.getUser()).isEqualTo("romangordill10");
+        assertThat(imageName.getRepository()).isEqualTo("romangordill10/customer-service-cache");
         assertThat(imageName.getTag()).isEqualTo("latest");
         assertThat(imageName.getRegistry()).isNull();
+    }
+
+    @Test
+    void testImageNameWithRegistry() {
+        // Given
+        String name = "foo.com/customer-service-cache:latest";
+
+        // When
+        ImageName imageName = new ImageName(name);
+
+        // Then
+        assertThat(imageName).isNotNull();
+        assertThat(imageName.getUser()).isNull();
+        assertThat(imageName.getRepository()).isEqualTo("customer-service-cache");
+        assertThat(imageName.getTag()).isEqualTo("latest");
+        assertThat(imageName.getRegistry()).isEqualTo("foo.com");
     }
 
     @Test
