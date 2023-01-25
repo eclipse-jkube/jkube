@@ -29,6 +29,7 @@ Usage:
 * Fix #1935: `oc:remote-dev` goal / `ocRemoteDev` task have wrong log prefixes
 * Fix #1966: Old reference to fmp in documentation
 * Fix #1974: Remove unused methods in KubernetesResourceUtil
+* Fix #2004: AnsiOutputStream exceptions don't prevent logging or program execution 
 * Fix #2008: resources validated after their generation by `k8s:resource`
 
 ### 1.10.1 (2022-11-16)
