@@ -13,45 +13,49 @@
  */
 package org.eclipse.jkube.kit.common.util.validator;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
+import javax.validation.Path;
+import javax.validation.metadata.ConstraintDescriptor;
+
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.ResourceClassifier;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.networknt.schema.JsonMetaSchema;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.NonValidationKeyword;
 import com.networknt.schema.ValidationMessage;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.ResourceClassifier;
-
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Path;
-import javax.validation.metadata.ConstraintDescriptor;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Validates Kubernetes/OpenShift resource descriptors using JSON schema validation method.
- * For Openshift it adds some some exceptions from JSON schema constraints and ignores some validation errors.
+ * For OpenShift, it adds some exceptions from JSON schema constraints and ignores some validation errors.
  */
 
 public class ResourceValidator {
 
-    public static final String SCHEMA_JSON = "/schema/kube-validation-schema.json";
+    public static final String SCHEMA_JSON = "schema/validation-schema.json";
     private KitLogger log;
-    private File resources[];
+    private final File[] resources;
     private ResourceClassifier target = ResourceClassifier.KUBERNETES;
-    private List<ValidationRule> ignoreValidationRules = new ArrayList<>();
+    private final List<ValidationRule> ignoreValidationRules = new ArrayList<>();
 
     /**
      * @param inputFile File/Directory path of resource descriptors
@@ -83,9 +87,11 @@ public class ResourceValidator {
      * required.
      */
     private void setupIgnoreRules(ResourceClassifier target) {
-        ignoreValidationRules.add(new IgnorePortValidationRule(IgnorePortValidationRule.TYPE));
-        ignoreValidationRules.add(new IgnoreResourceMemoryLimitRule(IgnoreResourceMemoryLimitRule.TYPE));
+        ignoreValidationRules.add(new IgnorePortValidationRule(ValidationRule.TYPE));
+        ignoreValidationRules.add(new IgnoreResourceMemoryLimitRule(ValidationRule.TYPE));
     }
+
+
 
     /**
      * Validates the resource descriptors as per JSON schema. If any resource is invalid it throws @{@link ConstraintViolationException} with
@@ -95,18 +101,16 @@ public class ResourceValidator {
      * @throws ConstraintViolationException  ConstraintViolationException
      * @throws IOException IOException
      */
-    public int validate() throws ConstraintViolationException, IOException {
+    public int validate() throws IOException {
         for(File resource: resources) {
             if (resource.isFile() && resource.exists()) {
-                try {
-                    log.info("validating %s resource", resource.toString());
-                    JsonNode inputSpecNode = geFileContent(resource);
-                    String kind = inputSpecNode.get("kind").toString();
-                    JsonSchema schema = getJsonSchema(prepareSchemaUrl(SCHEMA_JSON), kind);
+                log.info("validating %s resource", resource.toString());
+                JsonNode inputSpecNode = geFileContent(resource);
+                String kind = inputSpecNode.get("kind").toString();
+                for (URL schemaFile : Collections.list(ResourceValidator.class.getClassLoader().getResources(SCHEMA_JSON))) {
+                    JsonSchema schema = getJsonSchema(schemaFile, kind);
                     Set<ValidationMessage> errors = schema.validate(inputSpecNode);
                     processErrors(errors, resource);
-                } catch (URISyntaxException e) {
-                    throw new IOException(e);
                 }
             }
         }
@@ -121,7 +125,7 @@ public class ResourceValidator {
                 constraintViolations.add(new ConstraintViolationImpl(errorMsg));
         }
 
-        if(constraintViolations.size() > 0) {
+        if(!constraintViolations.isEmpty()) {
             throw new ConstraintViolationException(getErrorMessage(resource, constraintViolations), constraintViolations);
         }
     }
@@ -149,29 +153,33 @@ public class ResourceValidator {
         return  validationError.toString();
     }
 
-    private JsonSchema getJsonSchema(URI schemaUrl, String kind) throws IOException {
+    private JsonSchema getJsonSchema(URL schemaUrl, String kind) throws IOException {
+        final JsonMetaSchema v201909 = JsonMetaSchema.getV201909();
+        final String defaultUri = v201909.getUri();
+        JsonObject jsonSchema = fixUrlIfUnversioned(getSchemaJson(schemaUrl), defaultUri);
         checkIfKindPropertyExists(kind);
-        JsonSchemaFactory factory = new JsonSchemaFactory();
-        JsonObject jsonSchema = getSchemaJson(schemaUrl);
         getResourceProperties(kind, jsonSchema);
-
-        return factory.getSchema(jsonSchema.toString());
+        final JsonMetaSchema metaSchema = JsonMetaSchema.builder(v201909.getUri(), v201909)
+            .addKeywords(createNonValidationKeywordList())
+            .build();
+        return new JsonSchemaFactory.Builder()
+            .defaultMetaSchemaURI(defaultUri).addMetaSchema(metaSchema).build()
+            .getSchema(jsonSchema.toString());
     }
 
     private void getResourceProperties(String kind, JsonObject jsonSchema) {
-        jsonSchema.add("properties" , jsonSchema.get("resources").getAsJsonObject()
-                .getAsJsonObject(kind.replaceAll("\"", "").toLowerCase())
-                .getAsJsonObject("properties"));
+        String kindKey = kind.replaceAll("\"", "").toLowerCase();
+        if (jsonSchema.get("resources") != null && jsonSchema.get("resources").getAsJsonObject().get(kindKey) != null) {
+            jsonSchema.add("properties" , jsonSchema.get("resources").getAsJsonObject()
+                    .getAsJsonObject(kindKey)
+                    .getAsJsonObject("properties"));
+        }
     }
 
     private void checkIfKindPropertyExists(String kind) {
         if(kind == null) {
             throw new JsonIOException("Invalid kind of resource or 'kind' is missing from resource definition");
         }
-    }
-
-    private URI prepareSchemaUrl(String schemaFile) throws URISyntaxException {
-        return getClass().getResource(schemaFile).toURI();
     }
 
     private JsonNode geFileContent(File file) throws IOException {
@@ -181,15 +189,26 @@ public class ResourceValidator {
         }
     }
 
-    public JsonObject getSchemaJson(URI schemaUrl) throws IOException {
+    public JsonObject getSchemaJson(URL schemaUrl) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        String rootNode = objectMapper.readValue(schemaUrl.toURL(), JsonNode.class).toString();
+        String rootNode = objectMapper.readValue(schemaUrl, JsonNode.class).toString();
         JsonObject jsonObject = new JsonParser().parse(rootNode).getAsJsonObject();
         jsonObject.remove("id");
         return jsonObject;
     }
 
-    private class ConstraintViolationImpl implements ConstraintViolation<ValidationMessage> {
+    static List<NonValidationKeyword> createNonValidationKeywordList() {
+        List<NonValidationKeyword> nonValidationKeywords = new ArrayList<>();
+        nonValidationKeywords.add(new NonValidationKeyword("javaType"));
+        nonValidationKeywords.add(new NonValidationKeyword("javaInterfaces"));
+        nonValidationKeywords.add(new NonValidationKeyword("resources"));
+        nonValidationKeywords.add(new NonValidationKeyword("javaOmitEmpty"));
+        nonValidationKeywords.add(new NonValidationKeyword("existingJavaType"));
+        nonValidationKeywords.add(new NonValidationKeyword("$module"));
+        return nonValidationKeywords;
+    }
+
+    private static class ConstraintViolationImpl implements ConstraintViolation<ValidationMessage> {
 
         private ValidationMessage errorMsg;
 
@@ -257,4 +276,15 @@ public class ResourceValidator {
             return "[message=" + getMessage().replaceFirst("[$]", "") +", violation type="+errorMsg.getType()+"]";
         }
     }
+
+    private static JsonObject fixUrlIfUnversioned(JsonObject jsonSchema, String versionedUri) {
+        final String uri = jsonSchema.get("$schema").getAsString();
+        if (uri.matches("^https?://json-schema.org/draft-05/schema[^/]*$")) {
+            final JsonObject ret = jsonSchema.deepCopy();
+            ret.addProperty("$schema", versionedUri);
+            return ret;
+        }
+        return jsonSchema;
+    }
+
 }

@@ -1,0 +1,13 @@
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+  resources {
+    configMap {
+      name = 'configmap-test'
+      entries = [{
+        file = 'src/test/resources/test-application.properties'
+      }]
+    }
+  }
+}
+----

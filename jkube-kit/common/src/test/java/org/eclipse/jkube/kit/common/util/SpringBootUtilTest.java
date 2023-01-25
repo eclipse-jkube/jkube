@@ -13,87 +13,101 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.BeforeEach;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URLClassLoader;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Optional;
 import java.util.Properties;
 
-import org.junit.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+class SpringBootUtilTest {
 
-/**
- * Checking the behaviour of utility methods.
- */
-public class SpringBootUtilTest {
+    private JavaProject mavenProject;
 
-
-    @Test
-    public void testYamlToPropertiesParsing() {
-
-        Properties props = YamlUtil.getPropertiesFromYamlResource(SpringBootUtilTest.class.getResource("/util/test-application.yml"));
-        assertNotEquals(0, props.size());
-
-        assertEquals("8081", props.getProperty("management.port"));
-        assertEquals("jdbc:mysql://127.0.0.1:3306", props.getProperty("spring.datasource.url"));
-        assertEquals("value0", props.getProperty("example.nested.items[0].value"));
-        assertEquals("value1", props.getProperty("example.nested.items[1].value"));
-        assertEquals("sub0", props.getProperty("example.nested.items[2].elements[0].element[0].subelement"));
-        assertEquals("sub1", props.getProperty("example.nested.items[2].elements[0].element[1].subelement"));
-        assertEquals("integerKeyElement", props.getProperty("example.1"));
-
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testInvalidFileThrowsException() {
-        YamlUtil.getPropertiesFromYamlResource(SpringBootUtilTest.class.getResource("/util/invalid-application.yml"));
+    @BeforeEach
+    public void setUp() {
+        mavenProject = mock(JavaProject.class);
     }
 
     @Test
-    public void testNonExistentYamlToPropertiesParsing() {
+    void testGetSpringBootApplicationProperties(@TempDir File temporaryFolder) throws IOException {
+        //Given
+        File applicationProp =  new File(getClass().getResource("/util/spring-boot-application.properties").getPath());
+        String springActiveProfile = null;
+        File targetFolder = new File(temporaryFolder, "target");
+        File classesInTarget = new File(targetFolder, "classes");
+        boolean isTargetClassesCreated = classesInTarget.mkdirs();
+        File applicationPropertiesInsideTarget = new File(classesInTarget, "application.properties");
+        FileUtils.copyFile(applicationProp, applicationPropertiesInsideTarget);
+        URLClassLoader urlClassLoader = ClassUtil.createClassLoader(Arrays.asList(classesInTarget.getAbsolutePath(), applicationProp.getAbsolutePath()), classesInTarget.getAbsolutePath());
 
-        Properties props = YamlUtil.getPropertiesFromYamlResource(SpringBootUtilTest.class.getResource("/this-file-does-not-exist"));
-        assertNotNull(props);
-        assertEquals(0, props.size());
+        //When
+        Properties result =  SpringBootUtil.getSpringBootApplicationProperties(springActiveProfile ,urlClassLoader);
 
+        //Then
+        assertThat(isTargetClassesCreated).isTrue();
+        assertThat(result).containsOnly(
+                entry("spring.application.name", "demoservice"),
+                entry("server.port", "9090")
+        );
     }
 
     @Test
-    public void testPropertiesParsing() {
+    void testGetSpringBootDevToolsVersion() {
+        //Given
+        Dependency p = Dependency.builder().groupId("org.springframework.boot").version("1.6.3").build();
+        when(mavenProject.getDependencies()).thenReturn(Collections.singletonList(p));
 
-        Properties props = SpringBootUtil.getPropertiesResource(SpringBootUtilTest.class.getResource("/util/test-application.properties"));
-        assertNotEquals(0, props.size());
+        //when
+        Optional<String> result = SpringBootUtil.getSpringBootDevToolsVersion(mavenProject);
 
-        assertEquals("8081", props.getProperty("management.port"));
-        assertEquals("jdbc:mysql://127.0.0.1:3306", props.getProperty("spring.datasource.url"));
-        assertEquals("value0", props.getProperty("example.nested.items[0].value"));
-        assertEquals("value1", props.getProperty("example.nested.items[1].value"));
+        //Then
+        assertThat(result).isPresent().contains("1.6.3");
+    }
 
+
+    @Test
+    void testGetSpringBootVersion() {
+        //Given
+        Dependency p = Dependency.builder().groupId("org.springframework.boot").version("1.6.3").build();
+        when(mavenProject.getDependencies()).thenReturn(Collections.singletonList(p));
+
+        //when
+        Optional<String> result = SpringBootUtil.getSpringBootVersion(mavenProject);
+
+        //Then
+        assertThat(result).isPresent().contains("1.6.3");
     }
 
     @Test
-    public void testNonExistentPropertiesParsing() {
+    void testGetSpringBootActiveProfileWhenNotNull() {
+        //Given
+        Properties p = new Properties();
+        p.put("spring.profiles.active","spring-boot");
+        when(mavenProject.getProperties()).thenReturn(p);
 
-        Properties props = SpringBootUtil.getPropertiesResource(SpringBootUtilTest.class.getResource("/this-file-does-not-exist"));
-        assertNotNull(props);
-        assertEquals(0, props.size());
+        // When
+        String result = SpringBootUtil.getSpringBootActiveProfile(mavenProject);
 
+        //Then
+        assertThat(result).isEqualTo("spring-boot");
     }
 
     @Test
-    public void testMultipleProfilesParsing() {
-        Properties props = SpringBootUtil.getPropertiesFromApplicationYamlResource(null, getClass().getResource("/util/test-application-with-multiple-profiles.yml"));
-        assertTrue(props.size() > 0);
-
-        assertEquals("spring-boot-k8-recipes", props.get("spring.application.name"));
-        assertEquals("false", props.get("management.endpoints.enabled-by-default"));
-        assertEquals("true", props.get("management.endpoint.health.enabled"));
-        assertNull(props.get("cloud.kubernetes.reload.enabled"));
-
-        props = SpringBootUtil.getPropertiesFromApplicationYamlResource("kubernetes", getClass().getResource("/util/test-application-with-multiple-profiles.yml"));
-        assertEquals("true", props.get("cloud.kubernetes.reload.enabled"));
-        assertNull(props.get("spring.application.name"));
+    void testGetSpringBootActiveProfileWhenNull() {
+        assertThat(SpringBootUtil.getSpringBootActiveProfile(null)).isNull();
     }
-
 }

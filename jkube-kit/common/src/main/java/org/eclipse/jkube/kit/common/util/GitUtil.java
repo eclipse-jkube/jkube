@@ -15,8 +15,8 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.stream.StreamSupport;
 
-import org.apache.maven.project.MavenProject;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
@@ -29,6 +29,7 @@ import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
  */
 public class GitUtil {
 
+    private GitUtil() { }
 
     public static Repository getGitRepository(File currentDir) throws IOException {
 
@@ -42,11 +43,10 @@ public class GitUtil {
             return null;
         }
         FileRepositoryBuilder builder = new FileRepositoryBuilder();
-        Repository repository = builder
+        return builder
                 .readEnvironment()
                 .setGitDir(gitFolder)
                 .build();
-        return repository;
     }
 
     public static File findGitFolder(File basedir) {
@@ -62,15 +62,10 @@ public class GitUtil {
     }
 
     public static String getGitCommitId(Repository repository) throws GitAPIException {
-        try {
-            if (repository != null) {
-                Iterable<RevCommit> logs = new Git(repository).log().call();
-                for (RevCommit rev : logs) {
-                    return rev.getName();
-                }
-            }
-        } finally {
-
+        if (repository != null) {
+            return StreamSupport.stream(new Git(repository).log().call().spliterator(), false)
+                .map(RevCommit::getName)
+                .findFirst().orElse(null);
         }
         return null;
     }

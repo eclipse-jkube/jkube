@@ -23,17 +23,23 @@ import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaimVolumeSource;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
+import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.InitContainerHandler;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.InitContainerHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -42,7 +48,6 @@ import java.util.Set;
 
 /**
  * @author roland
- * @since 14/11/16
  */
 public class VolumePermissionEnricher extends BaseEnricher {
 
@@ -51,14 +56,24 @@ public class VolumePermissionEnricher extends BaseEnricher {
 
     private final InitContainerHandler initContainerHandler;
 
-    enum Config implements Configs.Key {
-        permission {{ d = "777"; }},
-        defaultStorageClass {{ d = null; }};
+    @AllArgsConstructor
+    enum Config implements Configs.Config {
+        IMAGE_NAME("imageName", "busybox"),
+        PERMISSION("permission", "777"),
+        DEFAULT_STORAGE_CLASS("defaultStorageClass", null),
+        USE_ANNOTATION("useStorageClassAnnotation", "false"),
+        CPU_LIMIT("cpuLimit", null),
+        CPU_REQUEST("cpuRequest", null),
+        MEMORY_LIMIT("memoryLimit", null),
+        MEMORY_REQUEST("memoryRequest", null);
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
-    public VolumePermissionEnricher(MavenEnricherContext buildContext) {
+    public VolumePermissionEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
         initContainerHandler = new InitContainerHandler(buildContext.getLog());
     }
@@ -84,7 +99,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 }
 
                 log.verbose("Adding init container for changing persistent volumes access mode to %s",
-                        getConfig(Config.permission));
+                        getConfig(Config.PERMISSION));
                 if (!initContainerHandler.hasInitContainer(builder, ENRICHER_NAME)) {
                     initContainerHandler.appendInitContainer(builder, createPvInitContainer(podSpec));
                 }
@@ -107,21 +122,23 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 Map<String, String> mountPoints = extractMountPoints(podSpec);
                 return new ContainerBuilder()
                         .withName(ENRICHER_NAME)
-                        .withImage("busybox")
+                        .withImage(getConfig(Config.IMAGE_NAME))
                         .withImagePullPolicy("IfNotPresent")
                         .withCommand(createChmodCommandArray(mountPoints))
                         .withVolumeMounts(createMounts(mountPoints))
+                        .withResources(new ResourceRequirementsBuilder()
+                            .withLimits(createResourcesMap(Config.CPU_LIMIT, Config.MEMORY_LIMIT))
+                            .withRequests(createResourcesMap(Config.CPU_REQUEST, Config.MEMORY_REQUEST))
+                            .build())
                         .build();
             }
 
             private List<String> createChmodCommandArray(Map<String, String> mountPoints) {
                 List<String> ret = new ArrayList<>();
                 ret.add("chmod");
-                ret.add(getConfig(Config.permission));
+                ret.add(getConfig(Config.PERMISSION));
                 Set<String> uniqueNames = new LinkedHashSet<>(mountPoints.values());
-                for (String name : uniqueNames) {
-                    ret.add(name);
-                }
+                ret.addAll(uniqueNames);
                 return ret;
             }
 
@@ -173,6 +190,18 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 throw new IllegalArgumentException("No matching volume mount found for volume "+ name);
             }
 
+            private Map<String, Quantity> createResourcesMap(Configs.Config cpu, Configs.Config memory) {
+                Map<String, Quantity> resourcesMap = new HashMap<>();
+                String cpuValue = getConfig(cpu);
+                if (StringUtils.isNotBlank(cpuValue)) {
+                    resourcesMap.put("cpu", new Quantity(cpuValue));
+                }
+                String memoryValue = getConfig(memory);
+                if (StringUtils.isNotBlank(memoryValue)) {
+                    resourcesMap.put("memory", new Quantity(memoryValue));
+                }
+                return resourcesMap;
+            }
         });
 
         builder.accept(new TypedVisitor<PersistentVolumeClaimBuilder>() {
@@ -182,9 +211,13 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 if (pvcBuilder.buildMetadata() == null) {
                     pvcBuilder.withNewMetadata().endMetadata();
                 }
-                String storageClass = getConfig(Config.defaultStorageClass);
-                if (StringUtils.isNotBlank(storageClass) && !pvcBuilder.buildMetadata().getAnnotations().containsKey(VOLUME_STORAGE_CLASS_ANNOTATION)) {
-                    pvcBuilder.editMetadata().addToAnnotations(VOLUME_STORAGE_CLASS_ANNOTATION, storageClass).endMetadata();
+                String storageClass = getConfig(Config.DEFAULT_STORAGE_CLASS);
+                if (StringUtils.isNotBlank(storageClass)) {
+                    if (Boolean.parseBoolean(getConfig(Config.USE_ANNOTATION))) {
+                        pvcBuilder.editMetadata().addToAnnotations(VOLUME_STORAGE_CLASS_ANNOTATION, storageClass).endMetadata();
+                    } else {
+                        pvcBuilder.editSpec().withStorageClassName(storageClass).endSpec();
+                    }
                 }
             }
         });

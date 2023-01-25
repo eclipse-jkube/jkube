@@ -15,15 +15,24 @@ package org.eclipse.jkube.kit.build.service.docker;
 
 import java.util.*;
 
-import org.eclipse.jkube.kit.build.maven.GavLabel;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
+import org.eclipse.jkube.kit.build.core.GavLabel;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * Tracker class for tracking started containers so that they can be shut down at the end when
  * <code>docker:start</code> and <code>docker:stop</code> are used in the same run
  */
 public class ContainerTracker {
+
+    private static class ContainerTrackerHolder {
+        public static final ContainerTracker INSTANCE = new ContainerTracker();
+    }
+
+    public static ContainerTracker getInstance() {
+        return ContainerTracker.ContainerTrackerHolder.INSTANCE;
+    }
 
     // Map holding associations between started containers and their images via name and aliases
     // Key: Image, Value: Container
@@ -108,11 +117,7 @@ public class ContainerTracker {
 
     private void updatePomLabelMap(GavLabel gavLabel, ContainerShutdownDescriptor descriptor) {
         if (gavLabel != null) {
-            List<ContainerShutdownDescriptor> descList = shutdownDescriptorPerPomLabelMap.get(gavLabel);
-            if (descList == null) {
-                descList = new ArrayList<>();
-                shutdownDescriptorPerPomLabelMap.put(gavLabel, descList);
-            }
+            List<ContainerShutdownDescriptor> descList = shutdownDescriptorPerPomLabelMap.computeIfAbsent(gavLabel, k -> new ArrayList<>());
             descList.add(descriptor);
         }
     }
@@ -129,7 +134,7 @@ public class ContainerTracker {
                     it.remove();
                 }
             }
-            if (descs.size() == 0) {
+            if (descs.isEmpty()) {
                 mapIt.remove();
             }
         }
@@ -210,7 +215,7 @@ public class ContainerTracker {
             this.containerId = containerId;
 
             RunImageConfiguration runConfig = imageConfig.getRunConfiguration();
-            WaitConfiguration waitConfig = runConfig != null ? runConfig.getWaitConfiguration() : null;
+            WaitConfiguration waitConfig = runConfig != null ? runConfig.getWait() : null;
             this.shutdownGracePeriod = waitConfig != null && waitConfig.getShutdown() != null ? waitConfig.getShutdown() : 0;
             this.killGracePeriod = waitConfig != null && waitConfig.getKill() != null ? waitConfig.getKill() : 0;
             if (waitConfig != null && waitConfig.getExec() != null) {

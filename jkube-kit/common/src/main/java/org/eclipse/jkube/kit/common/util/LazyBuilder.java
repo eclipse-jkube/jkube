@@ -13,29 +13,40 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
+
 /**
  * A builder that computes a specific object lazily.
  */
-public abstract class LazyBuilder<T> {
+public class LazyBuilder<T> {
 
-    private volatile T instance;
+    private final AtomicReference<T> instance;
+    private final Supplier<T> build;
 
-    public LazyBuilder() {
+    public LazyBuilder(Supplier<T> build) {
+        this.instance = new AtomicReference<>();
+        this.build = build;
     }
 
     public T get() {
-        T result = instance;
+        T result = instance.get();
         if (result == null) {
-            synchronized (this) {
-                result = instance;
-                if (result == null) {
-                    instance = result = build();
-                }
+            result = build.get();
+            if (!instance.compareAndSet(null, result)) {
+                return instance.get();
             }
         }
         return result;
     }
 
-    protected abstract T build();
+    /**
+     * Returns true if the builder was instantiated.
+     *
+     * @return true if an instance was built, false otherwise.
+     */
+    public boolean hasInstance() {
+        return instance.get() != null;
+    }
 
 }

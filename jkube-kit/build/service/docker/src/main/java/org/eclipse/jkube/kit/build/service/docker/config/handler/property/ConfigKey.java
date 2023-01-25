@@ -18,19 +18,14 @@ package org.eclipse.jkube.kit.build.service.docker.config.handler.property;
  * Enum holding possible configuration keys
  *
  * @author roland
- * @since 07/12/14
  */
 public enum ConfigKey {
 
     ALIAS,
     ARGS(ValueCombinePolicy.Merge),
     ASSEMBLY_BASEDIR("assembly.baseDir"),
-    ASSEMBLY_DESCRIPTOR("assembly.descriptor"),
-    ASSEMBLY_DESCRIPTOR_REF("assembly.descriptorRef"),
-    ASSEMBLY_EXPORT_BASEDIR("assembly.exportBaseDir"),
-    ASSEMBLY_IGNORE_PERMISSIONS("assembly.ignorePermissions"),
+    ASSEMBLY_EXPORT_TARGET_DIR("assembly.exportTargetDir"),
     ASSEMBLY_PERMISSIONS("assembly.permissions"),
-    ASSEMBLY_DOCKER_FILE_DIR("assembly.dockerFileDir"),
     ASSEMBLY_USER("assembly.user"),
     ASSEMBLY_MODE("assembly.mode"),
     ASSEMBLY_TARLONGFILEMODE("assembly.tarLongFileMode"),
@@ -40,10 +35,12 @@ public enum ConfigKey {
     CAP_ADD,
     CAP_DROP,
     CLEANUP,
+    CONTAINER_NAME_PATTERN,
     CPUSHARES,
     CPUS,
     CPUSET,
     NOCACHE,
+    CACHEFROM,
     OPTIMISE,
     CMD,
     CONTEXT_DIR,
@@ -53,7 +50,6 @@ public enum ConfigKey {
     DNS_SEARCH,
     DOCKER_ARCHIVE,
     DOCKER_FILE,
-    DOCKER_FILE_DIR,
     ENTRYPOINT,
     ENV,
     ENV_PROPERTY_FILE,
@@ -87,7 +83,6 @@ public enum ConfigKey {
     MEMORY,
     MEMORY_SWAP,
     NAME,
-    NAMING_STRATEGY,
     NET,
     NETWORK_MODE("network.mode"),
     NETWORK_NAME("network.name"),
@@ -155,7 +150,7 @@ public enum ConfigKey {
     private final String key;
     private final ValueCombinePolicy valueCombinePolicy;
 
-    public static String DEFAULT_PREFIX = "docker";
+    private static final String DEFAULT_PREFIX = "docker";
 
     // Convert to camel case
     private String toVarName(String s) {

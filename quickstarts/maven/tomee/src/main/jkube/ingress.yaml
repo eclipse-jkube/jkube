@@ -1,0 +1,31 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+apiVersion: networking.k8s.io/v1
+spec:
+  tls:
+  - hosts:
+    - ${proj.hostname}
+    secretName: letsencrypt-${k8sgroupId}-${project.artifactId}
+  rules:
+  - host: ${proj.hostname}
+    http:
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: ${project.artifactId}
+              port:
+                number: ${tomee.port}

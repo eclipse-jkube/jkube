@@ -1,0 +1,18 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+  enricher {
+    config {
+      'jkube-healthcheck-vertx' {
+          port = '8081'
+          readiness {
+              path = '/ready'
+          }
+          liveness {
+              path = '/health'
+          }
+      }
+    }
+  }
+}
+----

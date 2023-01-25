@@ -1,0 +1,77 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    jkube.helm.sh/provided-value: {{ .Values.i_should_be_quoted | upper | quote }}
+    jkube.helm.sh/provided-value-scalar: {{ .Values.i_should_be_quoted | upper | quote }}
+    jkube.io/git-url: "@ignore@"
+    jkube.io/git-commit: "@ignore@"
+    jkube.io/git-branch: "@ignore@"
+  labels:
+    app: helm-and-fragments
+    provider: jkube
+    version: "@ignore@"
+    group: org.eclipse.jkube
+  name: helm-and-fragments
+  namespace: {{ .Release.Namespace }}
+spec:
+  paused: {{ .Values.paused }}
+  replicas: {{ .Values.replicas }}
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: helm-and-fragments
+      provider: jkube
+      group: org.eclipse.jkube
+  template:
+    metadata:
+      namespace: {{ .Release.Namespace }}
+      annotations:
+        jkube.helm.sh/provided-value: {{ .Values.i_should_be_quoted | upper | quote }}
+        jkube.helm.sh/provided-value-scalar: {{ .Values.i_should_be_quoted | upper | quote }}
+        jkube.io/git-url: "@ignore@"
+        jkube.io/git-commit: "@ignore@"
+        jkube.io/git-branch: "@ignore@"
+      labels:
+        app: helm-and-fragments
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube
+    spec:
+      containers:
+      - env:
+        - name: PARAMETER_ENV
+          value: {{ .Values.parameter_with_no_value }}
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        image: marcnuri/yakc-kubernetes-dashboard:latest
+        imagePullPolicy: IfNotPresent
+        name: helm-and-fragments
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            memory: {{ .Values.deployment.limits.memory | default "512Mi" }}
+          requests:
+            memory: {{ .Values.deployment.requests.memory | default "256Mi" }}
+        securityContext:
+          privileged: false

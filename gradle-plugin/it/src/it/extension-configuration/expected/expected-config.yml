@@ -1,0 +1,114 @@
+skip: false
+usecolor: true
+offline: true
+buildStrategy: "jib"
+resourcetargetdirectory: "@endsWith('extension-configuration/build/META-INF/jkube')@"
+resourcesourcedirectory: "@endsWith('extension-configuration/src/main/jkube')@"
+resourceenvironment: "dev"
+useprojectclasspath: false
+workdirectory: "@endsWith('extension-configuration/build/jkube')@"
+skipresourcevalidation: false
+failonvalidationerror: false
+profile: "default"
+namespace: "default"
+mergewithdekorate: false
+interpolatetemplateparameters: false
+resourceFileType: "yaml"
+recreate: false
+skipapply: true
+createnewresources: false
+rollingupgrades: false
+failonnokubernetesjson: false
+servicesonly: false
+ignoreservices: false
+deletepodsonreplicationcontrollerupdate: false
+jsonlogdir: "@endsWith('extension-configuration/build/jkube/applyJson')@"
+serviceurlwaittimeseconds: 10
+skippush: true
+skiptag: true
+skipbuild: true
+skipresource: true
+pushregistry: quay.io
+pushretries: 5
+kubernetestemplate: "@endsWith('extension-configuration/build/META-INF/jkube/kubernetes')@"
+watchMode: "copy"
+watchinterval: 1000
+watchkeeprunning: true
+watchpostexec: "ls -lt"
+watchautocreatecustomnetworks: true
+watchkeepcontainer: true
+watchremovevolumes: true
+watchcontainernamepattern: "%g-%l"
+watchfollow: true
+watchshowlogs: "true"
+access:
+  namespace: "default"
+enricher:
+  excludes:
+  - "jkube-expose"
+generator:
+  includes:
+  - "openliberty"
+  - "spring-boot"
+  excludes:
+  - "webapp"
+watcher:
+  includes:
+    - "spring-boot"
+  config:
+    spring-boot:
+      serviceUrlWaitTimeSeconds: 10
+resources:
+  controllerName: "test"
+  configMap:
+    name: "configMap-name"
+    entries:
+    - name: "test"
+      value: "value"
+  containerPrivileged: false
+images:
+- name: "registry/extension-configuration:0.0.1-SNAPSHOT"
+  description: "[registry/extension-configuration:0.0.1-SNAPSHOT]"
+- name: "registry/image:tag"
+  build:
+    contextDir: "@endsWith('extension-configuration/src/main/context-dir')@"
+    dockerFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
+    from: "busybox"
+    skip: false
+    compression: "none"
+    dockerFileFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
+    dockerFileMode: true
+    contextDirRaw: "@endsWith('extension-configuration/src/main/context-dir')@"
+  runConfiguration:
+    restartPolicy:
+      retry: 0
+    networkingConfig:
+      standardNetwork: false
+    default: true
+  buildConfiguration:
+    contextDir: "@endsWith('extension-configuration/src/main/context-dir')@"
+    dockerFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
+    from: "busybox"
+    skip: false
+    compression: "none"
+    dockerFileFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
+    dockerFileMode: true
+    contextDirRaw: "@endsWith('extension-configuration/src/main/context-dir')@"
+  description: "[registry/image:tag]"
+mappings:
+- kind: "Var"
+  filenameTypes: "foo, bar"
+  filenamesAsArray:
+  - "foo"
+  - "bar"
+  valid: true
+helm:
+  chart: "This is a test"
+  sources:
+    - "https://different.source/yaml.yml"
+  maintainers:
+    - name: "John"
+      email: "john.doe@example.com"
+  icon: "This is the icon"
+  types:
+    - "KUBERNETES"

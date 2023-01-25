@@ -13,25 +13,21 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
-import org.apache.maven.plugins.annotations.Parameter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
 public class ServiceAccountConfig {
-    @Parameter
-    private String name;
 
-    @Parameter
-    private String deploymentRef;
+  private String name;
+  private String deploymentRef;
 
-    public ServiceAccountConfig(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDeploymentRef() {
-        return deploymentRef;
-    }
 }
 

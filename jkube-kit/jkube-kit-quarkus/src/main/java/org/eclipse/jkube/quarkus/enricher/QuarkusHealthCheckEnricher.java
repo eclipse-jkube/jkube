@@ -13,73 +13,94 @@
  */
 package org.eclipse.jkube.quarkus.enricher;
 
+import java.util.function.Function;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
+import org.eclipse.jkube.quarkus.QuarkusUtils;
+
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.specific.AbstractHealthCheckEnricher;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
-
+import static org.eclipse.jkube.quarkus.QuarkusUtils.QUARKUS_GROUP_ID;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.isStartupEndpointSupported;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
 
 /**
  * Enriches Quarkus containers with health checks if the quarkus-smallrye-health is present
  */
 public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
-    public QuarkusHealthCheckEnricher(MavenEnricherContext buildContext) {
+    public QuarkusHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-quarkus");
     }
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
-        scheme {{
-            d = "HTTP";
-        }},
-        port {{
-            d = "8080";
-        }},
-        failureThreshold                    {{ d = "3"; }},
-        successThreshold                    {{ d = "1"; }},
-        livenessInitialDelay,
-        readinessIntialDelay,
-        path {{
-            d = "/health";
-        }};
+        SCHEME("scheme", "HTTP"),
+        PORT("port", "8080"),
+        FAILURE_THRESHOLD("failureThreshold", "3"),
+        SUCCESS_THRESHOLD("successThreshold", "1"),
+        LIVENESS_INITIAL_DELAY("livenessInitialDelay", null),
+        READINESS_INITIAL_DELAY("readinessInitialDelay", null),
+        STARTUP_INITIAL_DELAY("startupInitialDelay", null),
+        HEALTH_PATH("path", null);
 
-        protected String d;
-
-        public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
     @Override
     protected Probe getReadinessProbe() {
-        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.readinessIntialDelay, "5")));
+        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.READINESS_INITIAL_DELAY, "5")),
+            QuarkusUtils::resolveQuarkusReadinessPath);
     }
 
     @Override
     protected Probe getLivenessProbe() {
-        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.livenessInitialDelay, "10")));
+        return discoverQuarkusHealthCheck(asInteger(getConfig(Config.LIVENESS_INITIAL_DELAY, "10")),
+            QuarkusUtils::resolveQuarkusLivenessPath);
+    }
+    
+    @Override
+    protected Probe getStartupProbe() {
+        if (isStartupEndpointSupported(getContext().getProject())) {
+            return discoverQuarkusHealthCheck(asInteger(getConfig(Config.STARTUP_INITIAL_DELAY, "5")),
+                QuarkusUtils::resolveQuarkusStartupPath);
+        }
+        return null;
     }
 
-    private Probe discoverQuarkusHealthCheck(int initialDelay) {
-        if (!getContext().hasDependency("io.quarkus", "quarkus-smallrye-health")) {
+    private Probe discoverQuarkusHealthCheck(int initialDelay, Function<JavaProject, String> pathResolver) {
+        if (!getContext().hasDependency(QUARKUS_GROUP_ID, "quarkus-smallrye-health")) {
             return null;
         }
-
         return new ProbeBuilder()
             .withNewHttpGet()
-              .withNewPort(asInteger(getConfig(Config.port)))
-              .withPath(getConfig(Config.path))
-              .withScheme(getConfig(Config.scheme))
+              .withNewPort(asInteger(getConfig(Config.PORT)))
+              .withPath(resolveHealthPath(pathResolver.apply(getContext().getProject())))
+              .withScheme(getConfig(Config.SCHEME))
             .endHttpGet()
-            .withFailureThreshold(asInteger(getConfig(Config.failureThreshold)))
-            .withSuccessThreshold(asInteger(getConfig(Config.successThreshold)))
+            .withFailureThreshold(asInteger(getConfig(Config.FAILURE_THRESHOLD)))
+            .withSuccessThreshold(asInteger(getConfig(Config.SUCCESS_THRESHOLD)))
             .withInitialDelaySeconds(initialDelay)
             .build();
     }
 
+    private String resolveHealthPath(String subPath) {
+        if (StringUtils.isNotBlank(getConfig(Config.HEALTH_PATH))) {
+            return concatPath(getConfig(Config.HEALTH_PATH), subPath);
+        }
+        return resolveCompleteQuarkusHealthRootPath(getContext().getProject(), subPath);
+    }
 }

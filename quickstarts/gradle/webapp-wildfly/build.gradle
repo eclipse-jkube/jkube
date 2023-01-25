@@ -1,0 +1,49 @@
+plugins {
+    id 'java'
+    id 'war'
+    id 'org.eclipse.jkube.kubernetes' version '1.10.1'
+    id 'org.eclipse.jkube.openshift' version '1.10.1'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+
+group 'org.eclipse.jkube.quickstart.gradle'
+version '1.0.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+dependencies {
+    implementation(platform("org.wildfly.bom:wildfly-jakartaee8-with-tools:26.0.0.Final"))
+    compileOnly("jakarta.enterprise:jakarta.enterprise.cdi-api")
+    compileOnly("jakarta.persistence:jakarta.persistence-api")
+    compileOnly("org.jboss.spec.javax.annotation:jboss-annotations-api_1.3_spec")
+    compileOnly("org.jboss.spec.javax.ejb:jboss-ejb-api_3.2_spec")
+    compileOnly("org.jboss.spec.javax.faces:jboss-jsf-api_2.3_spec")
+    compileOnly("org.jboss.spec.javax.transaction:jboss-transaction-api_1.3_spec")
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+openshift {
+    generator {
+        config {
+            'webapp' {
+                env = "GALLEON_PROVISION_LAYERS=web-server,ejb-lite,jsf,jpa,h2-driver"
+            }
+        }
+    }
+}

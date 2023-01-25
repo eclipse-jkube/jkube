@@ -1,0 +1,67 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+name: Quickstarts
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:  # added using https://github.com/step-security/secure-workflows
+  contents: read
+
+jobs:
+  verifications:
+    name: Quickstart Verifications
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@18bf8ad2ca49c14cbb28b91346d626ccfb00c518
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            access.redhat.com:443
+            api.adoptopenjdk.net:443
+            downloads.gradle-dn.com:443
+            github.com:443
+            jcenter.bintray.com:443
+            maven.repository.redhat.com:443
+            objects.githubusercontent.com:443
+            oss.sonatype.org:443
+            plugins-artifacts.gradle.org:443
+            plugins.gradle.org:443
+            repo.gradle.org:443
+            repo.maven.apache.org:443
+            repo1.maven.org:443
+            repository.jboss.org:443
+            services.gradle.org:443
+
+      - name: Checkout
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
+      - name: Setup Java 11
+        uses: actions/setup-java@1df8dbefe2a8cbc99770194893dd902763bee34b
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+      - name: Install JKube
+        run: mvn -f pom.xml -B -DskipTests clean install
+      - name: Change version to current JKube version
+        run: |
+          ./scripts/quickstarts.sh version
+      - name: Compile all Quickstarts
+        run: |
+          ./scripts/quickstarts.sh package

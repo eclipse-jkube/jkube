@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
 import org.eclipse.jkube.kit.build.service.docker.helper.DockerPathUtil;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,27 +23,29 @@ import java.io.IOException;
  */
 class ComposeUtils {
 
+    private ComposeUtils() { }
+
     /**
      * Resolves a docker-compose file against the supplied base directory.  The returned {@code File} is guaranteed to
      * be {@link File#isAbsolute() absolute}.
      * <p>
      * If {@code composeFile} is {@link File#isAbsolute() absolute}, then it is returned unmodified.  Otherwise, the
      * {@code composeFile} is returned as an absolute {@code File} using the {@link #resolveAbsolutely(String,
-     * MavenProject) resolved} {@code baseDir} as its parent.
+     * String) resolved} {@code baseDir} as its parent.
      * </p>
      *
      * @param baseDir the base directory containing the docker-compose file (ignored if {@code composeFile} is absolute)
      * @param composeFile the path of the docker-compose file, may be absolute
-     * @param project the {@code MavenProject} used to resolve the {@code baseDir}
+     * @param projectAbsolutePath the {@code String} used to resolve the {@code baseDir}
      * @return an absolute {@code File} reference to the {@code composeFile}
      */
-    static File resolveComposeFileAbsolutely(String baseDir, String composeFile, MavenProject project) {
+    static File resolveComposeFileAbsolutely(String baseDir, String composeFile, String projectAbsolutePath) {
         File yamlFile = new File(composeFile);
         if (yamlFile.isAbsolute()) {
             return yamlFile;
         }
 
-        File toCanonicalize = new File(resolveAbsolutely(baseDir, project), composeFile);
+        File toCanonicalize = new File(resolveAbsolutely(baseDir, projectAbsolutePath), composeFile);
 
         try {
             return toCanonicalize.getCanonicalFile();
@@ -54,25 +55,21 @@ class ComposeUtils {
     }
 
     /**
-     * Resolves the supplied resource (a path or directory on the filesystem) relative the Maven {@link
-     * MavenProject#getBasedir() base directory}.  The returned {@code File} is guaranteed to be {@link
+     * Resolves the supplied resource (a path or directory on the filesystem) relative the Maven base directory.  The returned {@code File} is guaranteed to be {@link
      * File#isAbsolute() absolute}.  The returned file is <em>not</em> guaranteed to exist.
      * <p>
      * If {@code pathToResolve} is {@link File#isAbsolute() absolute}, then it is returned unmodified.  Otherwise, the
-     * {@code pathToResolve} is returned as an absolute {@code File} using the {@link MavenProject#getBasedir() Maven
+     * {@code pathToResolve} is returned as an absolute {@code File} using the  Maven
      * Project base directory} as its parent.
      * </p>
      *
      * @param pathToResolve represents a filesystem resource, which may be an absolute path
-     * @param project the Maven project used to resolve non-absolute path resources, may be {@code null} if
+     * @param absolutePath absolute path of the Maven project used to resolve non-absolute path resources, may be {@code null} if
      *                {@code pathToResolve} is {@link File#isAbsolute() absolute}
      * @return an absolute {@code File} reference to {@code pathToResolve}; <em>not</em> guaranteed to exist
-     * @throws IllegalArgumentException if {@code pathToResolve} is relative, and {@code project} is {@code null} or
-     *                                  provides a relative {@link MavenProject#getBasedir() base directory}
      */
-    static File resolveAbsolutely(String pathToResolve, MavenProject project) {
+    static File resolveAbsolutely(String pathToResolve, String absolutePath) {
         // avoid an NPE if the Maven project is not needed by DockerPathUtil
-        return DockerPathUtil.resolveAbsolutely(pathToResolve,
-                (project == null) ? null : project.getBasedir().getAbsolutePath());
+        return DockerPathUtil.resolveAbsolutely(pathToResolve, absolutePath);
     }
 }

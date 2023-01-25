@@ -16,95 +16,109 @@ version: 2
 
 jobs:
   test:
-    machine: true
+    docker:
+      - image: cimg/openjdk:11.0
     steps:
     - checkout
     - restore_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-test-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run:
         command: |
           # Run maven build
-          mvn test -B -Pjacoco
+          ./mvnw -B -Pjacoco clean install
           # Run codeocov analysis
           bash <(curl -s https://codecov.io/bash)
     - save_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-test-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
 
   build:
-    machine: true
+    docker:
+      - image: cimg/openjdk:8.0
     steps:
     - checkout
     - restore_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-build-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run:
         command: |
+          if [[ `javac -version 2>&1` == *"1.8.0"* ]]; then
+            echo "Java 8 Present."
+          else
+            echo "Java 8 Not Present."
+            exit 1
+          fi
           # Run maven build
-          mvn clean install
+          ./mvnw clean install
     - save_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-build-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
-  
+
   javadoc:
-    machine: true
+    machine:
+      image: ubuntu-2004:202201-02
     steps:
     - checkout
     - restore_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-javadoc-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run:
         command: |
-          # Run Maven build
-          mvn clean install -DskipTests
-          # Run javadoc build
-          mvn javadoc:jar
+          # Run Maven build with javadoc jar generation
+          ./mvnw clean install javadoc:jar -DskipTests -Pjavadoc
     - save_cache:
-        key: jkube-kit-{{ checksum "pom.xml" }}
+        key: maven-javadoc-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
-  
+
   sonar:
-    machine: true
+    docker:
+      - image: cimg/openjdk:11.0
     steps:
     - checkout
     - restore_cache:
-        key: jkube-kit-sonar-{{ checksum "pom.xml" }}
+        key: maven-sonar-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run: |
-        MAVEN_OPTS="-Xmx3000m" mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
-        -Dsonar.projectKey=jkubeio_jkube \
-        -Dsonar.organization=jkubeio \
-        -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.login=${SONARQUBE_TOKEN}
+        MAVEN_OPTS="-Xmx3000m" ./mvnw -B -Pjacoco,sonar clean install
     - save_cache:
-        key: jkube-kit-sonar-{{ checksum "pom.xml" }}
+        key: maven-sonar-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
-                
+
   sonar-pr:
-    machine: true
+    docker:
+      - image: cimg/openjdk:11.0
     steps:
     - checkout
     - restore_cache:
-        key: jkube-sonar-pr-{{ checksum "pom.xml" }}
+        key: maven-sonar-pr-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run: |
         if [ -n "${CIRCLE_PR_NUMBER}" ]; then
-          MAVEN_OPTS="-Xmx3000m" mvn -B clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
-             -Dsonar.projectKey=jkubeio_jkube \
-             -Dsonar.organization=jkubeio \
+          MAVEN_OPTS="-Xmx3000m" ./mvnw -B -Pjacoco,sonar clean install \
              -Dsonar.pullrequest.key=${CIRCLE_PR_NUMBER} \
              -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
-             -Dsonar.pullrequest.base=master \
-             -Dsonar.host.url=https://sonarcloud.io \
-             -Dsonar.login=${SONARQUBE_TOKEN}
-
+             -Dsonar.pullrequest.base=master
         else
           echo "No Sonar PR analysis as this is not a pull request"
         fi
     - save_cache:
-        key: jkube-kit-sonar-pr-{{ checksum "pom.xml" }}
+        key: maven-sonar-pr-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
         paths:
         - ~/.m2
+
+  doc-preview-pr:
+    docker:
+      - image: cimg/openjdk:11.0
+    steps:
+    - checkout
+    - run: |
+        if [ -n "${CIRCLE_PR_NUMBER}" ]; then
+          ./scripts/generateDoc.sh
+        else
+          echo "No Doc preview run as this is not a pull request"
+        fi
+    - store_artifacts:
+        path: ./docs-generated/
 
 workflows:
   version: 2
@@ -118,3 +132,4 @@ workflows:
         filters:
           branches:
             only: master
+    - doc-preview-pr

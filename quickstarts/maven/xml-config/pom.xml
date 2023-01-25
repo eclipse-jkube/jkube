@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+  <artifactId>xml-config</artifactId>
+  <version>1.10.1</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: XML configuration</name>
+  <packaging>jar</packaging>
+
+  <description>
+    Apache Camel application.
+    Demonstrates how to configure Eclipse JKube build and resource properties using XML elements in the project's pom.xml plugin configuration.
+  </description>
+
+  <properties>
+    <jkube.version>${project.version}</jkube.version>
+    <!-- User part of the docker image to create. If you want to push the image
+         to a registry use a registry user here for which you have karma -->
+    <image.user>jkube</image.user>
+    <image.name>${project.artifactId}</image.name>
+
+    <!-- Versions -->
+    <camel.version>2.16.2</camel.version>
+    <weld.version>2.4.8.Final</weld.version>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-parent</artifactId>
+        <version>${camel.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+
+    <!-- Java 11 Compatibility -->
+    <!-- API, java.xml.bind module -->
+    <dependency>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <version>2.3.2</version>
+    </dependency>
+    <!-- Runtime, com.sun.xml.bind module -->
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>2.3.2</version>
+    </dependency>
+
+    <!-- == .:.:. Camel .:.:. == -->
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-cdi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>javax.enterprise</groupId>
+      <artifactId>cdi-api</artifactId>
+      <version>1.2</version>
+    </dependency>
+
+    <!-- == .:.:. CDI .:.:. == -->
+    <dependency>
+      <groupId>org.jboss.weld.se</groupId>
+      <artifactId>weld-se</artifactId>
+      <version>${weld.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.weld</groupId>
+      <artifactId>weld-core</artifactId>
+      <version>${weld.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.deltaspike.cdictrl</groupId>
+      <artifactId>deltaspike-cdictrl-weld</artifactId>
+      <version>1.5.1</version>
+    </dependency>
+
+    <!-- == .:.:. Logging .:.:. == -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>${project.artifactId}</finalName>
+
+    <plugins>
+      <plugin>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.3</version>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>2.18.1</version>
+        <inherited>true</inherited>
+        <configuration>
+          <excludes>
+            <exclude>**/*KT.java</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
+        <configuration>
+          <mainClass>org.apache.camel.cdi.Main</mainClass>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
+        <version>${jkube.version}</version>
+
+        <configuration>
+          <images>
+            <image>
+              <name>${image.user}/${image.name}:%l</name>
+              <!-- "alias" is used to correlate to the containers in the pod spec -->
+              <alias>camel-service</alias>
+              <build>
+                <from>quay.io/jkube/jkube-java-11:0.0.13</from>
+                <assembly>
+                  <targetDir>/deployments</targetDir>
+                  <inline>
+                    <fileSets>
+                      <fileSet>
+                        <directory>${project.build.directory}/lib</directory>
+                      </fileSet>
+                    </fileSets>
+                  </inline>
+                </assembly>
+                <env>
+                  <JAVA_LIB_DIR>/deployments/lib/*</JAVA_LIB_DIR>
+                  <JAVA_MAIN_CLASS>org.apache.camel.cdi.Main</JAVA_MAIN_CLASS>
+                </env>
+                <ports>
+                  <!-- Ports to expose in the pod specs -->
+                  <port>8787</port>
+                </ports>
+              </build>
+            </image>
+          </images>
+          <!-- resources to be created -->
+          <resources>
+            <!-- Labels that are applied to all created objects -->
+            <labels>
+              <all>
+                <extra-label>quickstarts-xml-configurations</extra-label>
+                <property>
+                  <name>test</name>
+                  <value>42</value>
+                </property>
+              </all>
+            </labels>
+            <!-- Name of the replication controller, which will have a sane default (container alisa, mvn coords, ..) -->
+            <controllerName>${project.artifactId}-controller</controllerName>
+            <!-- Replica count-->
+            <replicas>2</replicas>
+            <!-- Volumes used in the replicaSet -->
+            <volumes>
+              <volume>
+                <name>scratch</name>
+                <type>emptyDir</type>
+                <medium>Memory</medium>
+                <mounts>
+                  <mount>/var/scratch</mount>
+                </mounts>
+              </volume>
+              <volume>
+                <name>downward-api-volume</name>
+                <type>downwardAPI</type>
+                <items>
+                  <item>
+                    <path>labels</path>
+                    <fieldRef>
+                      <fieldPath>metadata.labels</fieldPath>
+                    </fieldRef>
+                  </item>
+                  <item>
+                    <path>annotations</path>
+                    <fieldRef>
+                      <fieldPath>metadata.annotations</fieldPath>
+                    </fieldRef>
+                  </item>
+                </items>
+              </volume>
+              <volume>
+                <name>config-vol</name>
+                <type>configMap</type> <!-- You must create a configmap before you can use it. -->
+                <configMapName>log-config</configMapName>
+                <configMapItems>
+                  <configMapItem>
+                    <key>log_level</key>
+                    <path>log_level</path>
+                  </configMapItem>
+                </configMapItems>
+              </volume>
+            </volumes>
+            <!-- Dedicated section for (multiple) services to define -->
+            <services>
+              <service>
+                <name>${project.artifactId}-service-one</name>
+                <headless>false</headless>
+                <type>NodePort</type>
+                <ports>
+                  <port>
+                    <protocol>tcp</protocol>
+                    <port>8787</port>
+                    <targetPort>8787</targetPort>
+                  </port>
+                </ports>
+              </service>
+            </services>
+            <configMap>
+              <name>log-config</name>
+              <entries>
+                <entry>
+                  <name>log_level</name>
+                  <value>INFO</value>
+                </entry>
+              </entries>
+            </configMap>
+          </resources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

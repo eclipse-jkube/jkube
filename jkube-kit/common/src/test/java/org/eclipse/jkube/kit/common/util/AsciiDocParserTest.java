@@ -15,15 +15,16 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AsciiDocParserTest {
+class AsciiDocParserTest {
 
     private static final String VALID_TABLE = "cols=2*,options=\"header\"]" + System.lineSeparator()
         + "|===" + System.lineSeparator()
@@ -62,59 +63,46 @@ public class AsciiDocParserTest {
         + "|===";
 
     @Test
-    public void should_serialize_kind_and_filename_from_valid_asciidoc_table() {
-
+    void should_serialize_kind_and_filename_from_valid_asciidoc_table() {
         // Given
-
         final AsciiDocParser asciiDocParser = new AsciiDocParser();
         final ByteArrayInputStream tableContent = new ByteArrayInputStream(VALID_TABLE.getBytes());
 
         // When
-
         final Map<String, List<String>> serializedContent = asciiDocParser.serializeKindFilenameTable(tableContent);
 
         // Then
         final Map<String, List<String>> expectedSerlializedContent = new HashMap<>();
         expectedSerlializedContent.put("ConfigMap", Arrays.asList("cm", "configmap"));
-        expectedSerlializedContent.put("CronJob", Arrays.asList("cronjob"));
+        expectedSerlializedContent.put("CronJob", Collections.singletonList("cronjob"));
 
         assertThat(serializedContent)
             .containsAllEntriesOf(expectedSerlializedContent);
     }
 
     @Test
-    public void should_throw_exception_if_no_end_of_table() {
-
+    void should_throw_exception_if_no_end_of_table() {
         // Given
-
         final AsciiDocParser asciiDocParser = new AsciiDocParser();
         final ByteArrayInputStream tableContent = new ByteArrayInputStream(NONE_END_VALID_TABLE.getBytes());
 
         // When
-
         Throwable error = catchThrowable(() -> asciiDocParser.serializeKindFilenameTable(tableContent));
 
         //Then
-
         assertThat(error).isInstanceOf(IllegalArgumentException.class);
-
     }
 
     @Test
-    public void should_throw_exception_if_more_than_two_columns_are_present() {
-
+    void should_throw_exception_if_more_than_two_columns_are_present() {
         // Given
-
         final AsciiDocParser asciiDocParser = new AsciiDocParser();
         final ByteArrayInputStream tableContent = new ByteArrayInputStream(INVALID_TABLE_WITH_THREE_COLUMNS.getBytes());
 
         // When
-
         Throwable error = catchThrowable(() -> asciiDocParser.serializeKindFilenameTable(tableContent));
 
         //Then
-
         assertThat(error).isInstanceOf(IllegalArgumentException.class);
-
     }
 }

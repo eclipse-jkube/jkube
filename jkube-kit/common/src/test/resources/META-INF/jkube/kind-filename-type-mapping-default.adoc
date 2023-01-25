@@ -1,0 +1,27 @@
+// =========================================================
+// Mapping file for K8s/OpenShift resource kind to filename extension.
+//
+// I.e for fragments the resource kind is inferred from the filename type"
+// myapp-deployment.yml maps to a Kubernetes Deployment
+//
+// Some hints for the format of this file which is used for documentation
+// and during runtime:
+// * There should be a exactly new line between rows
+// * 1 Kind can be mapped to N Filename types, given as comma separated list
+// * Columns should be ordered alphabetical by type (for better reading)
+// * Last filename type in the csv list must be the canonical one (full kind in all lowercase)
+|===
+|Kind |Filename Type
+
+|BuildConfig
+|`bc`, `buildconfig`
+
+|ClusterRole
+|`cr`, `crole`, `clusterrole`
+
+|ConfigMap
+|`cm`, `configmap`
+
+|CronJob
+|`cj`, `cronjob`
+|===

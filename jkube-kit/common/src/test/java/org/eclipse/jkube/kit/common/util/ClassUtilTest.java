@@ -13,52 +13,51 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import org.junit.jupiter.api.Test;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
-import org.junit.Test;
-
 import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
  * @since 01/08/16
  */
 
-public class ClassUtilTest {
+class ClassUtilTest {
 
     @Test
-    public void findOne() throws IOException {
+    void findOne() throws IOException {
         File root = getRelativePackagePath("mainclass/one");
         List<String> ret = ClassUtil.findMainClasses(root);
-        assertEquals(1,ret.size());
-        assertEquals("sub.OneMain", ret.get(0));
+        assertThat(ret).singleElement()
+                .isEqualTo("sub.OneMain");
     }
 
     @Test
-    public void findTwo() throws IOException {
+    void findTwo() throws IOException {
         File root = getRelativePackagePath("mainclass/two");
         Set<String> ret = new HashSet<>(ClassUtil.findMainClasses(root));
-        assertEquals(2,ret.size());
-        assertTrue(ret.contains("OneMain"));
-        assertTrue(ret.contains("another.sub.a.bit.deeper.TwoMain"));
+        assertThat(ret).hasSize(2)
+                .contains("OneMain", "another.sub.a.bit.deeper.TwoMain");
     }
 
     @Test
-    public void findNone() throws IOException {
+    void findNone() throws IOException {
         File root = getRelativePackagePath("mainclass/zero");
         List<String> ret = ClassUtil.findMainClasses(root);
-        assertEquals(0,ret.size());
+        assertThat(ret).isEmpty();
     }
 
     private File getRelativePackagePath(String subpath) {
     	File parent =        		
-            new File(getAbsolutePath(this.getClass().getProtectionDomain().getCodeSource().getLocation()));
+            new File(Objects.requireNonNull(getAbsolutePath(this.getClass().getProtectionDomain().getCodeSource().getLocation())));
         String intermediatePath = getClass().getPackage().getName().replace(".","/");
         return new File(new File(parent, intermediatePath),subpath);
     }

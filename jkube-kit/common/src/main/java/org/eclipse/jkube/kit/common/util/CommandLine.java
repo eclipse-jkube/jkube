@@ -21,6 +21,9 @@ import java.util.StringTokenizer;
 // Inspired from org.apache.maven.shared.utils.cli.CommandLineUtils#translateCommandline()
 // including a fixed for quoting
 public class CommandLine implements Cloneable {
+
+    private CommandLine() { }
+
     public static List<String>  translateCommandline(String toProcess) {
         if (toProcess == null || toProcess.length() == 0) {
             //no command? no string

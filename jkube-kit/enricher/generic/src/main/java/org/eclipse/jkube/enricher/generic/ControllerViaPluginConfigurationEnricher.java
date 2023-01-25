@@ -13,77 +13,86 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import java.util.Collections;
+import java.util.List;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.handler.ControllerHandler;
+
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodSpecBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentFluent;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
+import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetFluent;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
-import org.eclipse.jkube.maven.enricher.handler.DeploymentHandler;
-import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
-import org.eclipse.jkube.maven.enricher.handler.StatefulSetHandler;
-
-import java.util.Collections;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
     protected static final String[] POD_CONTROLLER_KINDS =
             { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job" };
 
-    private final DeploymentHandler deployHandler;
-    private final StatefulSetHandler statefulSetHandler;
+    private final ControllerHandler<Deployment> deployHandler;
+    private final ControllerHandler<StatefulSet> statefulSetHandler;
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
-        name,
-        pullPolicy           {{ d = "IfNotPresent"; }},
-        type                 {{ d = "deployment"; }},
-        replicaCount         {{ d = "1"; }};
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        NAME("name", null),
+        /**
+         * @deprecated in favor of <code>jkube.imagePullPolicy</code> property
+         */
+        @Deprecated
+        PULL_POLICY("pullPolicy", JKUBE_DEFAULT_IMAGE_PULL_POLICY),
+        REPLICA_COUNT("replicaCount", "1");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
-    public ControllerViaPluginConfigurationEnricher(MavenEnricherContext context) {
+    public ControllerViaPluginConfigurationEnricher(EnricherContext context) {
         super(context, "jkube-controller-from-configuration");
-        HandlerHub handlers = new HandlerHub(
-                getContext().getGav(), getContext().getConfiguration().getProperties());
-        deployHandler = handlers.getDeploymentHandler();
-        statefulSetHandler = handlers.getStatefulSetHandler();
+        deployHandler = context.getHandlerHub().getHandlerFor(Deployment.class);
+        statefulSetHandler = context.getHandlerHub().getHandlerFor(StatefulSet.class);
     }
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        final String name = getConfig(Config.name, MavenUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-        ResourceConfig xmlResourceConfig = getConfiguration().getResource().orElse(null);
-        final ResourceConfig config = new ResourceConfig.Builder()
+        final String name = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+        ResourceConfig xmlResourceConfig = getConfiguration().getResource();
+        final ResourceConfig config = ResourceConfig.builder()
                 .controllerName(name)
-                .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, getConfig(Config.pullPolicy)))
-                .withReplicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.replicaCount))))
+                .imagePullPolicy(getImagePullPolicy(xmlResourceConfig, Config.PULL_POLICY))
+                .replicas(getReplicaCount(builder, xmlResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
                 .build();
 
-        final List<ImageConfiguration> images = getImages().orElse(Collections.emptyList());
-
+        final List<ImageConfiguration> images = getImages();
         // Check if at least a replica set is added. If not add a default one
         if (KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS)) {
             // At least one image must be present, otherwise the resulting config will be invalid
             if (KubernetesResourceUtil.checkForKind(builder, "StatefulSet")) {
-                final StatefulSetSpec spec = statefulSetHandler.getStatefulSet(config, images).getSpec();
+                final StatefulSetSpec spec = statefulSetHandler.get(config, images).getSpec();
                 if (spec != null) {
                     builder.accept(new TypedVisitor<StatefulSetBuilder>() {
                         @Override
                         public void visit(StatefulSetBuilder statefulSetBuilder) {
+                            if (statefulSetBuilder.buildMetadata() == null || statefulSetBuilder.buildMetadata().getName() == null) {
+                                statefulSetBuilder.editOrNewMetadata().withName(name).endMetadata();
+                            }
                             statefulSetBuilder.editOrNewSpec().editOrNewTemplate().editOrNewSpec().endSpec().endTemplate().endSpec();
                             mergeStatefulSetSpec(statefulSetBuilder, spec);
                         }
@@ -103,11 +112,14 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
                     }
                 }
             } else {
-                final DeploymentSpec spec = deployHandler.getDeployment(config, images).getSpec();
+                final DeploymentSpec spec = deployHandler.get(config, images).getSpec();
                 if (spec != null) {
                     builder.accept(new TypedVisitor<DeploymentBuilder>() {
                         @Override
                         public void visit(DeploymentBuilder deploymentBuilder) {
+                            if (deploymentBuilder.buildMetadata() == null || deploymentBuilder.buildMetadata().getName() == null) {
+                                deploymentBuilder.editOrNewMetadata().withName(name).endMetadata();
+                            }
                             deploymentBuilder.editOrNewSpec().editOrNewTemplate().editOrNewSpec().endSpec().endTemplate().endSpec();
                             mergeDeploymentSpec(deploymentBuilder, spec);
                         }

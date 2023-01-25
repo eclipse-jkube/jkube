@@ -1,9 +1,14 @@
-[[k8s:resource]]
-== *k8s:resource*
+[[jkube:resource]]
+== *{goal-prefix}:resource*
 
-This goal generates kubernetes resources based upon your project. It can either be opinionated defaults or
-based upon the configuration provided in XML config or resource fragments in `src/main/jkube`. Generated
-resources are in `target/classes/META-INF/jkube/kubernetes` directory.
+This goal generates {cluster} resources based on your project. It can either be opinionated defaults or
+based on the configuration provided in XML config or resource fragments in `src/main/jkube`.
+ifeval::["{goal-prefix}" == "k8s"]
+Generated resources are in `target/classes/META-INF/jkube/kubernetes` directory.
+endif::[]
+ifeval::["{goal-prefix}" == "oc"]
+Generated resources are in `target/classes/META-INF/jkube/openshift` directory.
+endif::[]
 
 [[resource-labels-annotations]]
 === Labels and Annotations
@@ -15,18 +20,18 @@ Labels and annotations can be easily added to any resource object. This is best 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
-  ...
+  <!-- ... -->
   <configuration>
-    ...
+    <!-- ... -->
     <resources>
       <labels> <!--1-->
-        <all> <!--1-->
-          <property> <!--2-->
+        <all> <!--2-->
+          <property> <!--3-->
             <name>organisation</name>
             <value>unesco</value>
           </property>
         </all>
-        <service> <!--3-->
+        <service> <!--4-->
           <property>
             <name>database</name>
             <value>mysql</value>
@@ -36,23 +41,20 @@ Labels and annotations can be easily added to any resource object. This is best 
             <value>true</value>
           </property>
         </service>
-        <replicaSet> <!--4-->
-          ...
+        <replicaSet> <!--5-->
+          <!-- ... -->
         </replicaSet>
-        <pod> <!--5-->
-          ...
+        <pod> <!--6-->
+          <!-- ... -->
         </pod>
-        <deployment> <!--6-->
-          ...
+        <deployment> <!--7-->
+          <!-- ... -->
         </deployment>
       </labels>
 
-      <annotations> <!--7-->
-         ...
+      <annotations> <!--8-->
+         <!-- ... -->
       </annotations>
-      <remotes> <!--8-->
-        <remote>https://gist.githubusercontent.com/lordofthejars/ac2823cec7831697d09444bbaa76cd50/raw/e4b43f1b6494766dfc635b5959af7730c1a58a93/deployment.yaml</remote>
-      </remotes>
     </resource>
   </configuration>
 </plugin>
@@ -66,7 +68,7 @@ Labels and annotations can be easily added to any resource object. This is best 
 <7> The subelements are also available for specifying annotations.
 <8> `<remotes>` you can set location of fragments as `URL`.
 
-Labels and annotations can be specified in free form as a map. In this map the element name is the name of the label or annotation respectively, whereas the content is the value to set.
+Labels and annotations can be specified in free form as a map. In this map, the element name is the name of the label or annotation respectively, whereas the content is the value to set.
 
 The following subelements are possible for `<labels>` and `<annotations>` :
 
@@ -76,10 +78,16 @@ The following subelements are possible for `<labels>` and `<annotations>` :
 | Element | Description
 
 | *all*
-| All entries specified in the `<all>` sections are applied to all resource objects created. This also implies build object like image stream and build configs which are create implicitely for an <<build-openshift, OpenShift build>>.
+| All entries specified in the `<all>` sections are applied to all resource objects created.
+ifeval::["{goal-prefix}" == "oc"]
+  This also implies build object like image stream and build configs which are created implicitly for an <<build-openshift, {cluster} build>>.
+endif::[]
 
 | *deployment*
-| Labels and annotations applied to `Deployment` (for Kubernetes) and `DeploymentConfig` (for OpenShift) objects
+| Labels and annotations applied to `Deployment` (for Kubernetes).
+ifeval::["{goal-prefix}" == "oc"]
+   And `DeploymentConfig` (for OpenShift) objects.
+endif::[]
 
 
 | *pod*
@@ -91,6 +99,312 @@ The following subelements are possible for `<labels>` and `<annotations>` :
 
 | *service*
 | Labels and annotations applied to `Service` objects.
+
+| *ingress*
+| Labels and annotations applied to `Ingress` objects.
+
+| *serviceAccount*
+| Labels and annotations applied to `ServiceAccount` objects.
+ifeval::["{goal-prefix}" == "oc"]
+
+| *route*
+| Labels and annotations applied to `Route` objects.
+endif::[]
+|===
+
+[[controller-resource-generation]]
+=== Controller Generation
+
+In JKube terminology, a Controller resource is a Kubernetes resource which manages Pods created for your application. These can be one of the following resources:
+
+* https://kubernetes.io/docs/concepts/workloads/controllers/replicationcontroller/[ReplicationController]
+* https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/[ReplicaSet]
+* https://kubernetes.io/docs/concepts/workloads/controllers/deployment/[Deployment]
+* https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/[StatefulSet]
+* https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+* https://kubernetes.io/docs/concepts/workloads/controllers/job/[Job]
+ifeval::["{goal-prefix}" == "oc"]
+* https://docs.openshift.com/container-platform/4.7/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are[DeploymentConfig]
+endif::[]
+
+By default Deployment is generated in Kubernetes mode. You can easily configure different aspects of generated Controller resource using XML configuration. Here is an example:
+
+.Example of Controller Resource Configuration
+[source,xml]
+----
+<configuration>
+    <resources>
+        <env> <!--1-->
+          <organization>Eclipse Foundation</organization>
+          <projectname>jkube</projectname>
+        </env>
+        <controllerName>my-deploymentname</controllerName> <!--2-->
+        <containerPrivileged>true</containerPrivileged> <!--3-->
+        <imagePullPolicy>Always</imagePullPolicy> <!--4-->
+        <replicas>3</replicas> <!--5-->
+        <liveness> <!--6-->
+            <getUrl>http://:8080/q/health</getUrl>
+            <tcpPort>8080</tcpPort>
+            <initialDelaySeconds>3</initialDelaySeconds>
+            <timeoutSeconds>3</timeoutSeconds>
+        </liveness>
+        <volumes> <!--7-->
+          <volume>
+            <name>scratch</name>
+            <type>emptyDir</type>
+            <medium>Memory</medium>
+            <mounts>
+              <mount>/var/scratch</mount>
+            </mounts>
+          </volume>
+        </volumes>
+    </resources>
+</configuration>
+----
+
+<1> Environment variables added to all of your application Pods
+<2> Name of Controller(`metadata.name` set in generated Deployment, Job, ReplicaSet etc)
+<3> Setting https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod[Security Context] of all application Pods.
+<4> Configure how images would be updated. Can be one of `IfNotPresent`, `Always` or `Never`. Read https://kubernetes.io/docs/concepts/containers/images/#updating-images[Kubernetes Images docs] for more details.
+<5> Number of replicas of pods we want to have in our application
+<6> Define an HTTP liveness request, see https://kubernetes.io/docs/concepts/containers/images/#updating-images[Kubernetes Liveness/Readiness probes] for more details.
+<7> Mounting an EmptyDir Volume to your application pods
+
+Here are the fields available in `<resources>` XML configuration that would work with this enricher:
+
+.<resources> fields used by this enricher
+[cols="1,5"]
+|===
+| Element | Description
+
+| `env`
+| Environment variables which will be added to containers in Pod template spec.
+
+| <<volume-xml-configuration, `volumes`>>
+| Configuration element for adding volume mounts to containers in Pod template spec
+
+| `controllerName`
+| Name of the controller resource(i.e. `Deployment`, `ReplicaSet`, `StatefulSet` etc) generated
+
+| <<probe-xml-configuration, `liveness`>>
+| Configuration element for adding a liveness probe
+
+| <<probe-xml-configuration, `readiness`>>
+| Configuration element for adding readiness probe
+
+| `containerPrivileged`
+| Run container in privileged mode. Sets `privileged: true` in generated Controller's PodTemplateSpec
+
+| `imagePullPolicy`
+| How images should be pulled (maps to ImagePullPolicy).
+
+| `replicas`
+| Number of replicas to create
+
+| `restartPolicy`
+| Pod's restart policy.
+
+For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster} assumes it to be `Always`)
+
+| `serviceAccount`
+| ServiceAccount name which will be used by pods created by controller resources(e.g. `Deployment`, `ReplicaSet` etc)
+|===
+
+[[probe-xml-configuration]]
+==== Probe XML Configuration
+Probe configuration is used for configuring https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/#configure-probes[liveness and readiness probes] for containers. Both `<liveness>` and `<readiness>` probes the following options:
+
+.XML Probe configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `initialDelaySeconds`
+| Initial delay in seconds before the probe is started.
+
+| `timeoutSeconds`
+| Timeout in seconds how long the probe might take.
+
+| `exec`
+| Command to execute for probing.
+
+| `getUrl`
+| Probe URL for HTTP Probe. Configures HTTP probe fields like `host`, `scheme`, `path` etc by parsing URL. For example, a `<getUrl>http://:8080/health</getUrl>` would result in probe generated with fields set like this:
+
+  host: ""
+
+  path: /health
+
+  port: 8080
+
+  scheme: HTTP
+
+Host name with empty value defaults to Pod IP. You probably want to set "Host" in httpHeaders instead.
+
+| `tcpPort`
+| TCP port to probe.
+
+| `failureThreshold`
+| When a probe fails, Kubernetes will try failureThreshold times before giving up
+
+| `successThreshold`
+|  Minimum consecutive successes for the probe to be considered successful after having failed.
+
+|  `httpHeaders`
+| Custom headers to set in the request.
+
+| `periodSeconds`
+| How often in seconds to perform the probe. Defaults to 10 seconds. Minimum value is 1.
+|===
+
+[[volume-xml-configuration]]
+==== Volume XML Configuration
+`<volumes>` field contains a list of `<volume>` configurations. Different configurations are supported in order to support different https://kubernetes.io/docs/concepts/storage/volumes/[Volumes in Kubernetes].
+
+Here are the options supported by a single `<volume>` :
+
+.XML `<volume>` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `type`
+| type of Volume
+
+| `name`
+| name of volume to be mounted
+
+| `mounts`
+| List of mount paths of this volume.
+
+| `path`
+| Path for volume
+
+| `medium`
+| medium ,applicable for Volume type `emptyDir`
+
+| `repository`
+| repository ,applicable for Volume type `gitRepo`
+
+| `revision`
+| revision ,applicable for Volume type `gitRepo`
+
+| `secretName`
+| Secret name ,applicable for Volume type `secret`
+
+| `server`
+| Server name, applicable for Volume type `nfsPath`
+
+| `readOnly`
+| Whether it's read only or not
+
+| `pdName`
+| pdName, applicable for Volume type `gcePdName`
+
+| `fsType`
+| File system type for Volume
+
+| `partition`
+| partition, applicable for Volume type `gcePdName`
+
+| `endpoints`
+| endpoints, applicable for Volume type `glusterFsPath`
+
+| `claimRef`
+| Claim Reference, applicable for Volume type `persistentVolumeClaim`
+
+| `volumeId`
+| volume id
+
+| `diskName`
+| disk name, applicable for Volume type `azureDisk`
+
+| `diskUri`
+| disk uri, applicable for Volume type `azureDisk`
+
+| `kind`
+| kind, applicable for Volume type `azureDisk`
+
+| `cachingMode`
+| caching mode, applicable for Volume type `azureDisk`
+
+| `hostPathType`
+| Host Path type
+
+| `shareName`
+| Share name,  applicable for Volume type `azureFile`
+
+| `user`
+| User name
+
+| `secretFile`
+| Secret File, applicable for Volume type `cephfs`
+
+| `secretRef`
+| Secret reference, applicable for Volume type `cephfs`
+
+| `lun`
+| LUN(Logical Unit Number)
+
+| `targetWwns`
+| target WWNs, applicable for Volume type `fc`
+
+| `datasetName`
+| data set name, applicable for Volume type `flocker`
+
+| `portals`
+| list of portals, applicable for Volume type `iscsi`
+
+| `targetPortal`
+| target portal, applicable for Volume type `iscsi`
+
+| `registry`
+| registry, applicable for Volume type `quobyte`
+
+| `volume`
+| volume, applicable for Volume type `quobyte`
+
+| `group`
+| group, applicable for Volume type `quobyte`
+
+| `iqn`
+| IQN, applicable for Volume type `iscsi`
+
+| `monitors`
+| list of monitors, applicable for Volume type `rbd`
+
+| `pool`
+| pool, applicable for Volume type `rbd`
+
+| `keyring`
+| keyring, applicable for Volume type `rbd`
+
+| `image`
+| image, applicable for Volume type `rbd`
+
+| `gateway`
+| gateway, applicable for Volume type `scaleIO`
+
+| `system`
+| system, applicable for Volume type `scaleIO`
+
+| `protectionDomain`
+| protection domain, applicable for Volume type `scaleIO`
+
+| `storagePool`
+| storage pool, applicable for Volume type `scaleIO`
+
+| `volumeName`
+| volume name, applicable for Volume type `scaleIO` and `storageOS`
+
+| `configMapName`
+| ConfigMap name, applicable for Volume type `configMap`
+
+| `configMapItems`
+| List of ConfigMap items, applicable for Volume type `configMap`
+
+| `items`
+| List of items, applicable for Volume type `downwardAPI`
 |===
 
 [[resource-secrets]]
@@ -126,14 +440,17 @@ namespace, if provided
 
 This is best explained by an example.
 
-.Example for XML configuration
-
+.Example for Setting docker registry in properties
 [source,xml]
 ----
 <properties>
-    <docker.registry>docker.io</docker.registry>
+    <jkube.docker.registry>docker.io</docker.registry>
 </properties>
-...
+----
+
+.Example for specifying Secret Configuration to be created
+[source,xml]
+----
 <configuration>
     <resources>
         <secrets>
@@ -150,7 +467,7 @@ This is best explained by an example.
 
 
 You can create a secret using a yaml fragment. You can reference the docker server id with an annotation
-`maven.jkube.io/dockerServerId`. The yaml fragment file should be put under
+`jkube.eclipse.org/dockerServerId`. The yaml fragment file should be put under
 the `src/main/jkube/` folder.
 
 .Example
@@ -163,8 +480,251 @@ metadata:
   name: mydockerkey
   namespace: default
   annotations:
-    maven.jkube.io/dockerServerId: ${docker.registry}
+    jkube.eclipse.org/dockerServerId: ${docker.registry}
 type: kubernetes.io/dockercfg
+----
+
+[[ingress-generation]]
+=== Ingress Generation
+
+When the `{goal-prefix}:resource` goal is run, an `Ingress` will be generated for each `Service` if the `jkube.createExternalUrls` property is enabled.
+
+The generated `Ingress` can be further customized by using an XML configuration, or by providing a YAML resource fragment.
+
+**XML Configuration**
+
+.Fields supported in `<resources>`
+[cols="1,5"]
+|===
+| Element | Description
+
+| <<ingress-xml-configuration, `ingress`>>
+| Configuration element for creating new Ingress
+
+| `routeDomain`
+| Set host for Ingress or OpenShift Route
+|===
+
+Here is an example of configuring Ingress using XML configuration:
+
+.Enable Ingress Generation by enabling createExternalUrl property
+[source,xml]
+----
+<properties>
+     <jkube.createExternalUrls>true</jkube.createExternalUrls>
+</properties>
+----
+
+.Example for Ingress Configuration
+[source,xml]
+----
+<configuration>
+    <resources>
+        <ingress>
+          <ingressTlsConfigs>
+            <ingressTlsConfig> <!--1-->
+               <hosts>
+                 <host>foo.bar.com</host>
+               </hosts>
+               <secretName>testsecret-tls</secretName>
+            </ingressTlsConfig>
+          </ingressTlsConfigs>
+          <ingressRules>
+            <ingressRule>
+              <host>foo.bar.com</host> <!--2-->
+              <paths>
+                <path>
+                  <pathType>Prefix</pathType> <!--3-->
+                  <path>/foo</path>  <!--4-->
+                  <serviceName>service1</serviceName> <!--5-->
+                  <servicePort>8080</servicePort> <!--6-->
+                </path>
+              </paths>
+            </ingressRule>
+          </ingressRules>
+        </ingress>
+    </resources>
+</configuration>
+----
+
+<1> https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress TLS] Configuration to specify Secret that contains TLS private key and certificate
+<2> Host names, can be precise matches or a wildcard. See https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards[Kubernetes Ingress Hostname] documentation for more details
+<3> https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types[Ingress Path Type], Can be one of `ImplementationSpecific`, `Exact` or `Prefix`
+<4> Ingress path corresponding to provided `service.name`
+<5> Service Name corresponding to path
+<6> Service Port corresponding to path
+
+All the supported parameters in Ingress XML configuration are listed below:
+
+[[ingress-xml-configuration]]
+==== Ingress XML Configuration
+Here are the supported options while providing `<ingress>` in XML configuration
+
+.`<ingress>` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| <<ingress-rule-xml-configuration, `ingressRules`>>
+| IngressRule configuration
+
+| <<ingress-tls-configuration, `ingressTlsConfigs`>>
+| Ingress TLS configuration
+|===
+
+[[ingress-rule-xml-configuration]]
+==== IngressRule XML Configuration
+Here are the supported options while providing `<ingressRules>` in XML configuration
+
+.`<ingressRule>` configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `host`
+| Host name
+
+| <<ingress-rule-path-configuration, `paths`>>
+| IngressRule path configuration
+|===
+
+[[ingress-rule-path-configuration]]
+==== IngressRule Path XML Configuration
+Here are the supported options while providing `<paths>` in XML configuration
+
+.IngressRule `<path>` XML configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `pathType`
+| type of Path
+
+| `path`
+| path
+
+| `serviceName`
+| Service name
+
+| `servicePort`
+| Service port
+
+| <<ingress-rule-path-resource-xml-configuration,`resource`>>
+| Resource reference in Ingress backend
+|===
+
+[[ingress-rule-path-resource-xml-configuration]]
+==== IngressRule Path Resource XML Configuration
+Here are the supported options while providing `<resource>` in IngressRule's path XML configuration
+
+.IngressRule Path `<resource>` XML configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `name`
+| Resource name
+
+| `kind`
+| Resource kind
+
+| `apiGroup`
+| Resource's apiGroup
+|===
+
+[[ingress-tls-configuration]]
+==== IngressRule Path Resource XML Configuration
+Here are the supported options while providing `<ingressTlsConfigs>` in IngressRule's path XML configuration
+
+.IngressTls `<ingressTlsConfig>` XML configuration
+[cols="1,5"]
+|===
+| Element | Description
+
+| `secretName`
+| Secret name
+
+| `hosts`
+| a list of string `<host>` objects
+|===
+
+**Ingress Yaml fragment**:
+
+You can create `Ingress` using YAML fragments too by placing the partial YAML file in the `src/main/jkube` directory. The following snippet contains an `Ingress` fragment example.
+
+.Ingress fragment Example
+
+[source,yaml]
+----
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: tls-example-ingress
+spec:
+  tls:
+  - hosts:
+    - https-example.foo.com
+    secretName: testsecret-tls
+  rules:
+  - host: https-example.foo.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: service1
+            port:
+              number: 80
+----
+
+[[serviceaccount-generation]]
+=== ServiceAccount Generation
+
+You can configure `<resource>` configuration to generate a ServiceAccount or configure an already existing ServiceAccount into your generated Deployment.
+
+Here is an example of XML configuration to generate a ServiceAccount:
+
+.Example for Creating ServiceAccount via XML
+[source,xml]
+----
+<configuration>
+    <resources>
+      <serviceAccounts>
+        <serviceAccount>
+          <name>my-serviceaccount</name> <!--1-->
+          <deploymentRef>my-deployment-name</deploymentRef> <!--2-->
+        </serviceAccount>
+      </serviceAccounts>
+    </resources>
+</configuration>
+----
+<1> Name of ServiceAccount to be created
+<2> Deployment which will be using this ServiceAccount
+
+If you don't want to generate ServiceAccount but just use an existing ServiceAccount in your Deployment. You can configure it via `<serviceAccount>` field in resource configuration. Here is an example:
+
+.Example for Configuring already existing ServiceAccount into generated Deployment
+[source,xml]
+----
+<configuration>
+    <resources>
+      <serviceAccount>my-existing-serviceaccount</serviceAccount>
+    </resources>
+</configuration>
+----
+
+**Service Account Resource fragment**:
+
+If you don't want to use XML configuration, you can provide a resource fragment for ServiceAccount resource. Here is how it would look like:
+
+.ServiceAccount resource fragment
+[source,yaml]
+----
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: build-robot
 ----
 
 [[resource-validation]]
@@ -174,107 +734,134 @@ Resource goal also validates the generated resource descriptors using API specif
 .Validation Configuration
 [cols="1,6,1"]
 |===
-| Configuration | Description | Default
+| Element | Description | Property
 
-| *jkube.skipResourceValidation*
-| If value is set to `true` then resource validation is skipped. This may be useful if resource validation is failing for some reason but you still want to continue the deployment.
-| `false`
+| *skipResourceValidation*
+| If value is set to `true` then resource validation is skipped. This may be useful if resource validation is failing
+  for some reason but you still want to continue the deployment.
 
-| *jkube.failOnValidationError*
-| If value is set to `true` then any validation error will block the plugin execution. A warning will be printed otherwise.
-| `false`
+  Default is `false`.
+| `jkube.skipResourceValidation`
+
+| *failOnValidationError*
+| If value is set to `true` then any validation error will block the plugin execution. A warning will be printed
+  otherwise.
+
+  Default is `false`.
+| `jkube.failOnValidationError`
 
 |===
 
-[[resource-route-generation]]
-=== Route Generation
+ifeval::["{goal-prefix}" == "oc"]
+include::{kitdoc-path}/inc/route-generation/_route_generation.adoc[]
+endif::[]
 
-When the `k8s:resource` goal is run, an OpenShift https://docs.openshift.org/latest/architecture/networking/routes.html[Route] descriptor (`route.yml`) will also be generated along the service if an OpenShift cluster is targeted. 
-If you do not want to generate a Route descriptor, you can set the `jkube.openshift.generateRoute` property to `false`.
+[[Supported-Properties-Resource]]
+=== Supported Properties for Resource goal
 
-.Route Generation Configuration
-[cols="1.6.1"]
+.Options available with resource goal
+[cols="1,6,1"]
 |===
-| Configuration | Description | Default
+| Element | Description | Property
 
-| *jkube.openshift.generateRoute*
-| If value is set to `false` then no Route descriptor will be generated. By default it is set to `true`, which will create a `route.yml` descriptor and also add Route resource to `openshift.yml`.
-| `true`
-|===
+| *profile*
+| Profile to use. A profile contains the enrichers and generators to use as well as their configuration. Profiles are
+  looked up in the classpath and can be provided as yaml files.
 
-If you do not want to generate a Route descriptor, you can also specify so in the plugin configuration in your POM as seen below.
+  Defaults to `default`.
+| `jkube.profile`
 
-.Example for not generating route resource by configuring it in `pom.xml`
-
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-<plugin>
-    <groupId>org.eclipse.jkube</groupId>
-    <artifactId>k8s-maven-plugin</artifactId>
-    <version>{version}</version>
-    <configuration>
-        <generateRoute>false</generateRoute>
-    </configuration>
-</plugin>
-----
-
-If you are using resource fragments, then also you can configure it in your Service resource fragment (e.g. `service.yml`). You need to add an `expose` label to the `metadata` section of your service and set it to `false`.
-
-.Example for not generating route resource by configuring it in resource fragments
-
-[source.yaml]
-----
-metadata:
-  annotations:
-    api.service.kubernetes.io/path: /hello
-  labels:
-    expose: "false"
-spec:
-  type: LoadBalancer
-----
-
-In case both the label and the property have been set with conflicting values, precedence will be given to the property value, so if you set the label to `true` but set the property to `false` then no Route descriptor will be generated because precedence will be given to the property value.
-
-[[Other-flags]]
-=== Other flags
-
-.Other options available with resource goal
-[cols="1.6.3"]
-|===
-| Configuration | Description | Default
-
-| *jkube.profile*
-| Profile to use. A profile contains the enrichers and generators to use as well as their configuration. Profiles are looked up in the classpath and can be provided as yaml files.
-| `default`
-
-| *jkube.sidecar*
+| *sidecar*
 | Whether to enable sidecar behavior or not. By default pod specs are merged into main application container.
-| `false`
 
-| *jkube.skipHealthCheck*
+  Defaults to `false`.
+| `jkube.sidecar`
+
+| *skipHealthCheck*
 | Whether to skip health checks addition in generated resources or not.
-| `false`
 
-| *jkube.workDir*
-| The Jkube working directory
-| `${project.build.directory}/jkube`
+  Defaults to `false`.
+| `jkube.skipHealthCheck`
 
-| *jkube.environment*
-| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, plugin will look at `src/main/jkube/dev`.
-| `NULL`
+| *workDir*
+| The JKube working directory. Defaults to `${project.build.directory}/jkube`.
+| `jkube.workDir`
 
-| *jkube.useProjectClassPath*
-| Should we use the project's compile time classpath to scan for additional enrichers/generators?
-| `false`
+| *environment*
+| Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the
+  default one, plugin will look at `src/main/jkube/dev`.  Multiple environments can also be provided in form of comma separated strings.  Resource fragments in these directories will be combined while generating resources.
 
-| *jkube.resourceDir*
-| Folder where to find project specific files
-| `${basedir}/src/main/jkube`
+  Defaults to `null`.
+| `jkube.environment`
 
-| *jkube.targetDir*
-| The generated Kubernetes manifests
-| `${project.build.outputDirectory}/META-INF/jkube`
+| *useProjectClassPath*
+| Should we use the project's compile time classpath to scan for additional enrichers/generators.
+
+  Defaults to `false`.
+| `jkube.useProjectClassPath`
+
+| *resourceDir*
+| Folder where to find project specific files.
+
+  Defaults to `${basedir}/src/main/jkube`.
+| `jkube.resourceDir`
+
+| *targetDir*
+| The generated Kubernetes manifests target direcotry.
+
+  Defaults to `${project.build.outputDirectory}/META-INF/jkube`.
+| `jkube.targetDir`
+
+| *resourceType*
+| The artifact type for attaching the generated resource file to the project. Can be either 'json' or 'yaml'.
+
+  Defaults to `yaml`.
+| `jkube.resourceType`
+
+| *mergeWithDekorate*
+| When resource generation is delegated to Dekorate, should JKube resources be merged with Dekorate generated ones.
+
+  Defaults to `false`.
+| `jkube.mergeWithDekorate`
+
+| *interpolateTemplateParameters*
+| Interpolate parameter values from `*template.yml` fragments in the generated resource list (`kubernetes.yml`).
+
+  This is useful when using JKube in combination with Helm.
+
+  Placeholders for variables defined in template files can be used in the different resource fragments. Helm generated
+  charts will contain these placeholders/parameters.
+
+  For `resource` goal, these placeholders are replaced in the
+  aggregated resource list YAML file (not in the individual generated resources) if this option is enabled.
+
+  Defaults to `true`.
+| `jkube.interpolateTemplateParameters`
+
+| *skipResource*
+| Skip resource generation.
+
+  Defaults to `false`.
+| `jkube.skip.resource`
+
+| *createExternalUrls*
+| Should we create external Ingress for any LoadBalancer Services which don't already have them.
+
+  Defaults to `false`.
+| `jkube.createExternalUrls`
+
+| *domain*
+| Domain added to the Service ID when creating Kubernetes Ingresses or OpenShift routes.
+| `jkube.domain`
+
+| *replicas*
+| Number of replicas for the container.
+|
+
+| *offline*
+| Whether to try detecting Kubernetes Cluster or stay offline.
+
+  Defaults to `false`.
+| `jkube.offline`
 
 |===
-
-[[Other-flags]]

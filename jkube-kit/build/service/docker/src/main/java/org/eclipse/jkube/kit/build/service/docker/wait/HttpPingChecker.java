@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.wait;
 
-import org.eclipse.jkube.kit.build.service.docker.config.WaitConfiguration;
+import org.eclipse.jkube.kit.config.image.WaitConfiguration;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
@@ -39,10 +39,10 @@ import java.util.regex.Pattern;
  */
 public class HttpPingChecker implements WaitChecker {
 
-    private int statusMin;
-    private int statusMax;
-    private String url;
-    private String method;
+    private final int statusMin;
+    private final int statusMax;
+    private final String url;
+    private final String method;
     private boolean allowAllHosts;
 
     // Disable HTTP client retries by default.

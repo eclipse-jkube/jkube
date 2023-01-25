@@ -1,0 +1,27 @@
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<arquillian xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://jboss.org/schema/arquillian"
+            xsi:schemaLocation="http://jboss.org/schema/arquillian http://jboss.org/schema/arquillian/arquillian_1_0.xsd">
+
+  <extension qualifier="openshift">
+    <property name="namespace.use.current">true</property>
+    <!-- when switching namespace.use.current to false, switch enableImageStreamDetection to true -->
+    <property name="enableImageStreamDetection">false</property>
+    <property name="env.init.enabled">true</property>
+  </extension>
+  
+</arquillian>

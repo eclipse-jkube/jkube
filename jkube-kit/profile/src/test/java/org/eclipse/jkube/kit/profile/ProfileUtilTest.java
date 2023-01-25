@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.profile;
 
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,62 +24,55 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author roland
- * @since 24/07/16
  */
-public class ProfileUtilTest {
+class ProfileUtilTest {
 
     @Test
-    public void simple() throws IOException {
+    void simple() throws IOException {
         InputStream is = getClass().getResourceAsStream("/jkube/config/profiles-lookup-dir/profiles.yaml");
-        assertNotNull(is);
+        assertThat(is).isNotNull();
         List<Profile> profiles = ProfileUtil.fromYaml(is);
-        assertNotNull(profiles);
-        assertEquals(profiles.size(),3);
-        Profile profile = profiles.get(0);
-        assertEquals("simple", profile.getName());
-        ProcessorConfig config = profile.getEnricherConfig();
-        assertTrue(config.use("base"));
-        assertFalse(config.use("blub"));
-        config = profile.getGeneratorConfig();
-        assertFalse(config.use("java.app"));
-        assertTrue(config.use("spring.swarm"));
+        assertThat(profiles).isNotNull().hasSize(4)
+            .first().hasFieldOrPropertyWithValue("name", "simple")
+            .satisfies(profile -> assertThat(profile.getEnricherConfig())
+                .returns(true, c -> c.use("base"))
+                .returns(false, c -> c.use("blub")))
+            .satisfies(profile -> assertThat(profile.getGeneratorConfig())
+                .returns(false, c -> c.use("java.app"))
+                .returns(true, c -> c.use("spring.swarm")));
     }
 
     @Test
-    public void multiple() throws IOException {
+    void multiple() throws IOException {
         InputStream is = getClass().getResourceAsStream("/jkube/config/ProfileUtilTest-multiple.yml");
-        assertNotNull(is);
+        assertThat(is).isNotNull();
         List<Profile> profiles = ProfileUtil.fromYaml(is);
-        assertEquals(2,profiles.size());
+        assertThat(profiles).hasSize(2);
     }
 
     @Test
-    public void fromClasspath() throws IOException {
+    void fromClasspath() throws IOException {
         List<Profile> profiles = ProfileUtil.readAllFromClasspath("one", "");
-        assertEquals(1, profiles.size());
-        assertNotNull(profiles.get(0));
+        assertThat(profiles).singleElement().isNotNull();
     }
 
     @Test
-    public void lookup() throws IOException, URISyntaxException {
+    void lookup() throws IOException, URISyntaxException {
         File dir = getProfileDir();
         Profile profile = ProfileUtil.lookup("simple", dir);
-        assertEquals("simple", profile.getName());
-        assertEquals("http://jolokia.org", profile.getEnricherConfig().getConfig("base","url"));
+        assertThat(profile).hasFieldOrPropertyWithValue("name", "simple")
+            .extracting(c -> c.getEnricherConfig().getConfig().get("base").get("url"))
+            .isEqualTo("http://jolokia.org");
 
         profile = ProfileUtil.lookup("one", dir);
-        assertTrue(profile.getGeneratorConfig().use("foobar"));
+        assertThat(profile.getGeneratorConfig().use("foobar")).isTrue();
 
-        assertNull(ProfileUtil.lookup("three", dir));
+        assertThat(ProfileUtil.lookup("three", dir)).isNull();
     }
 
     public File getProfileDir() throws URISyntaxException {
@@ -87,56 +80,76 @@ public class ProfileUtilTest {
     }
 
     @Test
-    public void findProfile() throws URISyntaxException, IOException {
-        assertNotNull(ProfileUtil.findProfile("simple", getProfileDir()));
-        try {
-            ProfileUtil.findProfile("not-there", getProfileDir());
-            fail();
-        } catch (IllegalArgumentException exp) {
-            assertTrue(exp.getMessage().contains("not-there"));
-        }
-
+    void findProfile_whenValidProfileArg_returnsValidProfile() throws URISyntaxException, IOException {
+        assertThat(ProfileUtil.findProfile("simple", getProfileDir())).isNotNull();
     }
 
     @Test
-    public void mergeProfiles() throws Exception {
+    void findProfile_whenNonExistentProfileArg_throwsException () throws URISyntaxException {
+
+        List<File> profileDirs = Collections.singletonList(getProfileDir());
+
+        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("not-there", profileDirs));
+        assertThat(illegalArgumentException).hasMessageContaining("not-there");
+    }
+
+    @Test
+    void findProfile_whenProfileUsedWithInvalidParent_thenThrowsException() throws URISyntaxException {
+        // Given
+        File profileDir = getProfileDir();
+        // When
+        IllegalArgumentException illegalArgumentException = assertThrows(IllegalArgumentException.class, () -> ProfileUtil.findProfile("invalid-parent", profileDir));
+        // Then
+        assertThat(illegalArgumentException).hasMessage("No parent profile 'i-dont-exist' defined");
+    }
+
+    @Test
+    void mergeProfiles() throws Exception {
         Profile profile = ProfileUtil.findProfile("merge-1", getProfileDir());
-        assertFalse(profile.getEnricherConfig().use("jkube-project-label"));
-        assertTrue(profile.getEnricherConfig().use("jkube-image"));
+        assertThat(profile)
+            .satisfies(p -> assertThat(p.getEnricherConfig())
+                .returns(false, c -> c.use("jkube-project-label"))
+                .returns(true, c -> c.use("jkube-image")));
     }
 
     @Test
-    public void blendProfiles() throws Exception {
+    void blendProfiles() throws Exception {
 
         ProcessorConfig origConfig = new ProcessorConfig(Arrays.asList("i1", "i2"), Collections.singleton("spring.swarm"), null);
         ProcessorConfig mergeConfig = ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG,
-                                                                                "simple",
-                                                                                getProfileDir(),
-                                                                                origConfig);
-        assertTrue(mergeConfig.use("base"));
-        assertTrue(mergeConfig.use("i1"));
-        assertEquals(mergeConfig.getConfig("base", "url"),"http://jolokia.org");
+            "simple",
+            Collections.singletonList(getProfileDir()),
+            origConfig);
 
+        assertThat(mergeConfig)
+            .satisfies(config -> assertThat(config)
+                .returns(true, c -> c.use("base"))
+                .returns(true, c -> c.use("i1"))
+                .returns("http://jolokia.org", c -> c.getConfig().get("base").get("url")));
 
         mergeConfig = ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG,
-                                                                "simple",
-                                                                getProfileDir(),
-                                                                origConfig);
-        assertTrue(mergeConfig.use("i2"));
-        assertFalse(mergeConfig.use("spring.swarm"));
+            "simple",
+            Collections.singletonList(getProfileDir()),
+            origConfig);
 
+        assertThat(mergeConfig)
+            .satisfies(config -> assertThat(config)
+                .returns(true, c -> c.use("i2"))
+                .returns(false, c -> c.use("spring.swarm")));
     }
 
     @Test
-    public void shouldExtend() throws Exception {
+    void shouldExtend() throws Exception {
         Profile aProfile = ProfileUtil.findProfile("minimal", getProfileDir());
 
-        assertEquals("minimal", aProfile.getName());
-        assertEquals("simple", aProfile.getParentProfile());
-
-        assertTrue(aProfile.getEnricherConfig().use("jkube-name"));
-        assertTrue(aProfile.getEnricherConfig().use("default.service"));
-        assertTrue(aProfile.getGeneratorConfig().use("spring.swarm"));
-        assertFalse(aProfile.getGeneratorConfig().use("java.app"));
+        assertThat(aProfile).isNotNull()
+            .hasFieldOrPropertyWithValue("name", "minimal")
+            .hasFieldOrPropertyWithValue("parentProfile", "simple")
+            .satisfies(profile -> assertThat(profile.getEnricherConfig())
+                .returns(true, c -> c.use("jkube-name"))
+                .returns(true, c -> c.use("default.service")))
+            .satisfies(profile -> assertThat(profile.getGeneratorConfig())
+                .returns(true, c -> c.use("spring.swarm"))
+                .returns(false, c -> c.use("java.app")));
     }
 }

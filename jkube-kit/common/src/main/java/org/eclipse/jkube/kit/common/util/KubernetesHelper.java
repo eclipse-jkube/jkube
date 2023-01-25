@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,36 +27,40 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
-import io.fabric8.kubernetes.api.model.Config;
+import io.fabric8.kubernetes.api.model.HTTPHeader;
+import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
+import org.eclipse.jkube.kit.common.KitLogger;
+
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.Context;
-import io.fabric8.kubernetes.api.model.DoneablePod;
+import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelectorRequirement;
-import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodStatus;
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
@@ -68,32 +71,34 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import io.fabric8.kubernetes.api.model.batch.Job;
-import io.fabric8.kubernetes.api.model.batch.JobSpec;
+import io.fabric8.kubernetes.api.model.batch.v1.Job;
+import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
 import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
 import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.fabric8.kubernetes.internal.HasMetadataComparator;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
-import io.fabric8.openshift.api.model.Template;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.ResourceFileType;
+
 
 /**
  * @author roland
- * @since 23.05.17
  */
 public class KubernetesHelper {
     protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
+    private static final String FILENAME_PATTERN_REGEX = "^(?<name>.*?)(-(?<type>[^-]+))?\\.(?<ext>yaml|yml|json)$";
+    private static final String PROFILES_PATTERN_REGEX = "^profiles?\\.ya?ml$";
+    public static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
+    public static final Pattern PROFILES_PATTERN = Pattern.compile(PROFILES_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
+    protected static final String[] POD_CONTROLLER_KINDS =
+            { "ReplicationController", "ReplicaSet", "Deployment", "DeploymentConfig", "StatefulSet", "DaemonSet", "Job" };
+
+    private KubernetesHelper() {}
 
     /**
      * Validates that the given value is valid according to the kubernetes ID parsing rules, throwing an exception if not.
@@ -101,9 +106,8 @@ public class KubernetesHelper {
      * @param currentValue current value
      * @param description description
      * @return valid value according to kubernetes ID parsing rules
-     * @throws IllegalArgumentException exception if arguement is invalid
      */
-    public static String validateKubernetesId(String currentValue, String description) throws IllegalArgumentException {
+    public static String validateKubernetesId(String currentValue, String description) {
         if (StringUtils.isBlank(currentValue)) {
             throw new IllegalArgumentException("No " + description + " is specified!");
         }
@@ -115,36 +119,6 @@ public class KubernetesHelper {
             }
         }
         return currentValue;
-    }
-
-
-    /**
-     * Loads the Kubernetes JSON and converts it to a list of entities
-     *
-     * @param entity Kubernetes generic resource object
-     * @return list of objects of type HasMetadata
-     * @throws IOException IOException if anything wrong happens
-     */
-    @SuppressWarnings("unchecked")
-    public static List<HasMetadata> toItemList(Object entity) throws IOException {
-        if (entity instanceof List) {
-            return (List<HasMetadata>) entity;
-        } else if (entity instanceof HasMetadata[]) {
-            HasMetadata[] array = (HasMetadata[]) entity;
-            return Arrays.asList(array);
-        } else if (entity instanceof KubernetesList) {
-            KubernetesList config = (KubernetesList) entity;
-            return config.getItems();
-        } else if (entity instanceof Template) {
-            Template objects = (Template) entity;
-            return objects.getObjects();
-        } else {
-            List<HasMetadata> answer = new ArrayList<>();
-            if (entity instanceof HasMetadata) {
-                answer.add((HasMetadata) entity);
-            }
-            return answer;
-        }
     }
 
     public static Map<String, String> getOrCreateAnnotations(HasMetadata entity) {
@@ -201,7 +175,7 @@ public class KubernetesHelper {
         if (entity != null) {
             return getLabels(entity.getMetadata());
         }
-        return Collections.EMPTY_MAP;
+        return Collections.emptyMap();
     }
 
     /**
@@ -210,7 +184,6 @@ public class KubernetesHelper {
      * @param metadata metadata object ObjectMeta
      * @return labels in form of a hashmap
      */
-    @SuppressWarnings("unchecked")
     public static Map<String, String> getLabels(ObjectMeta metadata) {
         if (metadata != null) {
             Map<String, String> labels = metadata.getLabels();
@@ -218,7 +191,7 @@ public class KubernetesHelper {
                 return labels;
             }
         }
-        return Collections.EMPTY_MAP;
+        return Collections.emptyMap();
     }
 
     public static String getName(HasMetadata entity) {
@@ -278,50 +251,6 @@ public class KubernetesHelper {
             return null;
         }
     }
-
-
-    /**
-     * Creates an IntOrString from the given string which could be a number or a name
-     *
-     * @param intVal integer as value
-     * @return wrapped object as IntOrString
-     */
-    public static IntOrString createIntOrString(int intVal) {
-        IntOrString answer = new IntOrString();
-        answer.setIntVal(intVal);
-        answer.setKind(0);
-        return answer;
-    }
-
-    /**
-     * Creates an IntOrString from the given string which could be a number or a name
-     *
-     * @param nameOrNumber String containing name or number
-     * @return IntOrString object
-     */
-    public static IntOrString createIntOrString(String nameOrNumber) {
-        if (StringUtils.isBlank(nameOrNumber)) {
-            return null;
-        } else {
-            IntOrString answer = new IntOrString();
-            Integer intVal = null;
-            try {
-                intVal = Integer.parseInt(nameOrNumber);
-            } catch (Exception e) {
-                // ignore invalid number
-            }
-            if (intVal != null) {
-                answer.setIntVal(intVal);
-                answer.setKind(0);
-            } else {
-                answer.setStrVal(nameOrNumber);
-                answer.setKind(1);
-            }
-            return answer;
-        }
-    }
-
-
 
     /**
      * Returns true if the pod is running
@@ -390,15 +319,14 @@ public class KubernetesHelper {
             return getContainers(podSpec);
 
         }
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
-    @SuppressWarnings("unchecked")
     public static List<Container> getContainers(PodSpec podSpec) {
         if (podSpec != null) {
             return podSpec.getContainers();
         }
-        return Collections.EMPTY_LIST;
+        return Collections.emptyList();
     }
 
     private static String getAdditionalPropertyText(Map<String, Object> additionalProperties, String name) {
@@ -417,68 +345,7 @@ public class KubernetesHelper {
         return ns != null ? ns : "default";
     }
 
-    public static String currentUserName() {
-        Config config = parseConfigs();
-        if (config != null) {
-            Context context = getCurrentContext(config);
-            if (context != null) {
-                String user = context.getUser();
-                if (user != null) {
-                    String[] parts = user.split("/");
-                    if (parts.length > 0) {
-                        return parts[0];
-                    }
-                    return user;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static Config parseConfigs() {
-        File file = getKubernetesConfigFile();
-        if (file.exists() && file.isFile()) {
-            try {
-                return ResourceUtil.load(file, Config.class, ResourceFileType.yaml);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns the current context in the given config
-     */
-    private static Context getCurrentContext(Config config) {
-        String contextName = config.getCurrentContext();
-        if (contextName != null) {
-            List<NamedContext> contexts = config.getContexts();
-            if (contexts != null) {
-                for (NamedContext context : contexts) {
-                    if (Objects.equals(contextName, context.getName())) {
-                        return context.getContext();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private static File getKubernetesConfigFile() {
-        String file = System.getProperty("kubernetes.config.file");
-        if (file != null) {
-            return new File(file);
-        }
-        file = System.getenv("KUBECONFIG");
-        if (file != null) {
-            return new File(file);
-        }
-        String homeDir = System.getProperty("user.home", ".");
-        return new File(homeDir, ".kube/config");
-    }
-
-    public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger) throws IllegalStateException {
+    public static void handleKubernetesClientException(KubernetesClientException e, KitLogger logger) {
         Throwable cause = e.getCause();
         if (cause instanceof UnknownHostException) {
             logger.error( "Could not connect to kubernetes cluster!");
@@ -493,20 +360,11 @@ public class KubernetesHelper {
         }
     }
 
-    public static Set<HasMetadata> loadResources(File manifest) throws IOException {
-        Object dto = ResourceUtil.load(manifest, KubernetesResource.class);
-        if (dto == null) {
-            throw new IllegalStateException("Cannot load kubernetes manifest " + manifest);
-        }
-
-        if (dto instanceof Template) {
-            Template template = (Template) dto;
-            dto = OpenshiftHelper.processTemplatesLocally(template, false);
-        }
-
-        Set<HasMetadata> entities = new TreeSet<>(new HasMetadataComparator());
-        entities.addAll(KubernetesHelper.toItemList(dto));
-        return entities;
+    public static List<HasMetadata> loadResources(File manifest) throws IOException {
+        return ResourceUtil.deserializeKubernetesListOrTemplate(manifest).stream()
+            .distinct()
+            .sorted(new HasMetadataComparator())
+            .collect(Collectors.toList());
     }
 
     public static String getBuildStatusPhase(Build build) {
@@ -561,10 +419,8 @@ public class KubernetesHelper {
         return "";
     }
 
-
-
-    public static FilterWatchListDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> withSelector(NonNamespaceOperation<Pod, PodList, DoneablePod, PodResource<Pod, DoneablePod>> pods, LabelSelector selector, KitLogger log) {
-        FilterWatchListDeletable<Pod, PodList, Boolean, Watch, Watcher<Pod>> answer = pods;
+    public static FilterWatchListDeletable<Pod, PodList, PodResource> withSelector(NonNamespaceOperation<Pod, PodList, PodResource> pods, LabelSelector selector, KitLogger log) {
+        FilterWatchListDeletable<Pod, PodList, PodResource> answer = pods;
         Map<String, String> matchLabels = selector.getMatchLabels();
         if (matchLabels != null && !matchLabels.isEmpty()) {
             answer = answer.withLabels(matchLabels);
@@ -599,10 +455,10 @@ public class KubernetesHelper {
         return answer;
     }
 
-    public static LabelSelector getPodLabelSelector(Set<HasMetadata> entities) {
+    public static LabelSelector extractPodLabelSelector(Collection<HasMetadata> entities) {
         LabelSelector chosenSelector = null;
         for (HasMetadata entity : entities) {
-            LabelSelector selector = getPodLabelSelector(entity);
+            LabelSelector selector = extractPodLabelSelector(entity);
             if (selector != null) {
                 if (chosenSelector != null && !chosenSelector.equals(selector)) {
                     throw new IllegalArgumentException("Multiple selectors found for the given entities: " + chosenSelector + " - " + selector);
@@ -613,7 +469,7 @@ public class KubernetesHelper {
         return chosenSelector;
     }
 
-    public static LabelSelector getPodLabelSelector(HasMetadata entity) {
+    public static LabelSelector extractPodLabelSelector(HasMetadata entity) {
         LabelSelector selector = null;
         if (entity instanceof Deployment) {
             Deployment resource = (Deployment) entity;
@@ -652,13 +508,29 @@ public class KubernetesHelper {
                 selector = spec.getSelector();
             }
         } else if (entity instanceof Job) {
-            Job resource = (Job) entity;
-            JobSpec spec = resource.getSpec();
-            if (spec != null) {
-                selector = spec.getSelector();
-            }
+            selector = toLabelSelector((Job) entity);
         }
         return selector;
+    }
+
+    private static LabelSelector toLabelSelector(Job job) {
+      LabelSelector ret = null;
+      final JobSpec spec = job.getSpec();
+      if (spec != null) {
+        if (spec.getSelector() != null) {
+          ret = spec.getSelector();
+        } else if (spec.getTemplate() != null) {
+          ret = toLabelSelector(spec.getTemplate().getMetadata());
+        }
+      }
+      return ret;
+    }
+
+    private static LabelSelector toLabelSelector(ObjectMeta metadata) {
+      if (metadata != null && metadata.getLabels() != null && !metadata.getLabels().isEmpty()) {
+          return toLabelSelector(metadata.getLabels());
+      }
+      return null;
     }
 
     private static LabelSelector toLabelSelector(Map<String, String> matchLabels) {
@@ -702,7 +574,7 @@ public class KubernetesHelper {
             return null;
         }
         List<Pod> sortedPods = new ArrayList<>(pods);
-        Collections.sort(sortedPods, (p1, p2) -> {
+        sortedPods.sort((p1, p2) -> {
             Date t1 = getCreationTimestamp(p1);
             Date t2 = getCreationTimestamp(p2);
             if (t1 != null) {
@@ -719,58 +591,14 @@ public class KubernetesHelper {
         return sortedPods.get(sortedPods.size() - 1);
     }
 
-    public static void resolveTemplateVariablesIfAny(KubernetesList resources, File targetDir) throws IllegalStateException {
-        Template template = findTemplate(resources);
-        if (template != null) {
-            List<io.fabric8.openshift.api.model.Parameter> parameters = template.getParameters();
-            if (parameters == null || parameters.isEmpty()) {
-                return;
-            }
-            File kubernetesYaml = new File(targetDir, "kubernetes.yml");
-            resolveTemplateVariables(parameters, kubernetesYaml);
-        }
-    }
-
-    public static void resolveTemplateVariables(List<io.fabric8.openshift.api.model.Parameter> parameters, File kubernetesYaml) throws IllegalStateException {
-        String text;
-        try {
-            text = FileUtils.readFileToString(kubernetesYaml, Charset.defaultCharset());
-        } catch (IOException e) {
-            throw new IllegalStateException("Failed to load " + kubernetesYaml + " so we can replace template expressions " + e, e);
-        }
-        String original = text;
-        for (io.fabric8.openshift.api.model.Parameter parameter : parameters) {
-            String from = "${" + parameter.getName() + "}";
-            String to = parameter.getValue();
-            if (to == null) {
-                throw new IllegalStateException("Missing value for HELM template parameter " + from + " in " + kubernetesYaml);
-            }
-            text = text.replace(from, to);
-        }
-        if (!original.equals(text)) {
-            try {
-                FileUtils.writeStringToFile(kubernetesYaml, text, Charset.defaultCharset());
-            } catch (IOException e) {
-                throw new IllegalStateException("Failed to save " + kubernetesYaml + " after replacing template expressions " +e, e);
-            }
-        }
-    }
-
-    public static Template findTemplate(KubernetesList resources) {
-        return (Template) resources.getItems().stream()
-                .filter(template -> template instanceof Template)
-                .findFirst()
-                .orElse(null);
-    }
-
     /**
      * Convert a map of env vars to a list of K8s EnvVar objects.
-     * @param envVars the name-value map containing env vars which must not be null
+     * @param envVars the name-value map containing env vars
      * @return list of converted env vars
      */
     public static List<EnvVar> convertToEnvVarList(Map<String, String> envVars) {
         List<EnvVar> envList = new LinkedList<>();
-        for (Map.Entry<String, String> entry : envVars.entrySet()) {
+        for (Map.Entry<String, String> entry : Optional.ofNullable(envVars).orElse(Collections.emptyMap()).entrySet()) {
             String name = entry.getKey();
             String value = entry.getValue();
 
@@ -827,6 +655,147 @@ public class KubernetesHelper {
             }
         }
         return removed;
+    }
+
+
+    /**
+     * Get a specific resource fragment ending with some suffix in a specified directory
+     *
+     * @param resourceDirFinal resource directory
+     * @param remotes list remote fragments if provided
+     * @param resourceNameSuffix resource name suffix
+     * @param log log object
+     * @return file if present or null
+     */
+    public static File getResourceFragmentFromSource(File resourceDirFinal, List<String> remotes, String resourceNameSuffix, KitLogger log) {
+        for (File file : listResourceFragments(remotes, log, resourceDirFinal)) {
+            if (file.getName().endsWith(resourceNameSuffix)) {
+                return file;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get requests or limit objects from string hashmaps
+     *
+     * @param quantity hashmap of strings
+     * @return hashmap of string to quantity
+     */
+    public static Map<String, Quantity> getQuantityFromString(Map<String, String> quantity) {
+        Map<String, Quantity> stringQuantityMap = new HashMap<>();
+        if (quantity != null && !quantity.isEmpty()) {
+            for (Map.Entry<String, String> entry : quantity.entrySet()) {
+                stringQuantityMap.put(entry.getKey(), new Quantity(entry.getValue()));
+            }
+        }
+        return stringQuantityMap;
+    }
+
+    public static File[] listResourceFragments(List<String> remotes, KitLogger log, List<File> resourceDirs) {
+        return listResourceFragments(remotes, log, resourceDirs.stream().filter(Objects::nonNull).toArray(File[]::new));
+    }
+
+    public static File[] listResourceFragments(List<String> remotes, KitLogger log, File... resourceDirs) {
+        final List<File> resourceFiles = new ArrayList<>();
+        for (File resourceDir : resourceDirs) {
+            final File[] resourceFragments = listResourceFragments(resourceDir);
+            if (resourceFragments != null) {
+                Collections.addAll(resourceFiles, resourceFragments);
+            }
+        }
+
+        if(remotes != null) {
+            File[] remoteResourceFiles = listRemoteResourceFragments(remotes, log);
+            if (remoteResourceFiles.length > 0) {
+                Collections.addAll(resourceFiles, remoteResourceFiles);
+            }
+        }
+        return resourceFiles.toArray(new File[0]);
+    }
+
+    public static File[] listResourceFragments(File resourceDir) {
+        if (resourceDir == null) {
+            return new File[0];
+        }
+        return resourceDir.listFiles((File dir, String name) -> FILENAME_PATTERN.matcher(name).matches() && !PROFILES_PATTERN.matcher(name).matches());
+    }
+
+    private static File[] listRemoteResourceFragments(List<String> remotes, KitLogger log) {
+        if (!remotes.isEmpty()) {
+            final File remoteResources = FileUtil.createTempDirectory();
+            FileUtil.downloadRemotes(remoteResources, remotes, log);
+
+            if (remoteResources.isDirectory()) {
+                return remoteResources.listFiles();
+            }
+        }
+        return new File[0];
+    }
+
+    public static String getFullyQualifiedApiGroupWithKind(HasMetadata item) {
+        return ApiVersionUtil.joinApiGroupAndVersion(ApiVersionUtil.trimGroup(item.getApiVersion()), ApiVersionUtil.trimVersion(item.getApiVersion())) +
+            "#" + item.getKind();
+    }
+
+    public static String getNewestApplicationPodName(KubernetesClient client, String namespace, Collection<HasMetadata> resources) {
+        LabelSelector selector = extractPodLabelSelector(resources);
+        final PodList pods;
+        if (namespace != null) {
+            pods = client.pods().inNamespace(namespace).withLabelSelector(selector).list();
+        } else {
+            pods = client.pods().withLabelSelector(selector).list();
+        }
+        Pod newestPod = KubernetesHelper.getNewestPod(pods.getItems());
+        if (newestPod != null) {
+            return newestPod.getMetadata().getName();
+        }
+        return null;
+    }
+
+    public static String getAnnotationValue(HasMetadata item, String annotationKey) {
+        if (item != null) {
+            return getOrCreateAnnotations(item).get(annotationKey);
+        }
+        return null;
+    }
+
+    public static boolean containsPort(List<ContainerPort> ports, String portValue) {
+        for (ContainerPort port : ports) {
+            Integer containerPort = port.getContainerPort();
+            if (containerPort != null && containerPort == Integer.parseInt(portValue)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static ContainerPort addPort(String portNumberText, String portName, KitLogger log) {
+        if (StringUtils.isBlank(portNumberText)) {
+            return null;
+        }
+        int portValue;
+        try {
+            portValue = Integer.parseInt(portNumberText);
+        } catch (NumberFormatException e) {
+            log.warn("Could not parse remote debugging port %s as an integer: %s", portNumberText, e);
+            return null;
+        }
+        return new ContainerPortBuilder().withName(portName).withContainerPort(portValue).build();
+    }
+
+    public static boolean isControllerResource(HasMetadata h) {
+        return Arrays.stream(POD_CONTROLLER_KINDS).anyMatch(c -> c.equals(h.getKind()));
+    }
+
+    public static List<HTTPHeader> convertMapToHTTPHeaderList(Map<String, String> headers) {
+        List<HTTPHeader> httpHeaders = new ArrayList<>();
+        if (headers != null) {
+            for (Map.Entry<String, String> header : headers.entrySet()) {
+                httpHeaders.add(new HTTPHeader(header.getKey(), header.getValue()));
+            }
+        }
+        return httpHeaders;
     }
 }
 

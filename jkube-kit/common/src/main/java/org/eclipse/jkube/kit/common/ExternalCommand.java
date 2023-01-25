@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,7 +40,7 @@ public abstract class ExternalCommand {
 
     private int statusCode;
 
-    public ExternalCommand(KitLogger log) {
+    protected ExternalCommand(KitLogger log) {
         this.log = log;
     }
 
@@ -87,13 +86,17 @@ public abstract class ExternalCommand {
             statusCode = process.waitFor();
             executor.shutdown();
             executor.awaitTermination(10, TimeUnit.SECONDS);
-        } catch (IllegalThreadStateException | InterruptedException e) {
+        } catch (IllegalThreadStateException e) {
             process.destroy();
             statusCode = -1;
+        } catch (InterruptedException e) {
+            process.destroy();
+            statusCode = -1;
+            Thread.currentThread().interrupt();
         }
     }
 
-    private void inputStreamPump(OutputStream outputStream, String processInput) throws IOException {
+    private void inputStreamPump(OutputStream outputStream, String processInput) {
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream))) {
             if (processInput != null) {
                 writer.write(processInput);
@@ -141,23 +144,20 @@ public abstract class ExternalCommand {
     }
 
     private Future<IOException> startStreamPump(final InputStream errorStream) {
-        return executor.submit(new Callable<IOException>() {
-            @Override
-            public IOException call() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));) {
-                    for (; ; ) {
-                        String line = reader.readLine();
-                        if (line == null) {
-                            break;
-                        }
-                        synchronized (log) {
-                            log.warn(line);
-                        }
+        return executor.submit(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream))) {
+                for (; ; ) {
+                    String line = reader.readLine();
+                    if (line == null) {
+                        break;
                     }
-                    return null;
-                } catch (IOException e) {
-                    return e;
+                    synchronized (log) {
+                        log.warn(line);
+                    }
                 }
+                return null;
+            } catch (IOException e) {
+                return e;
             }
         });
     }

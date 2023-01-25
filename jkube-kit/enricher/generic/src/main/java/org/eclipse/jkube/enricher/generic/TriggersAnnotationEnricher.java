@@ -31,11 +31,13 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.openshift.api.model.ImageChangeTrigger;
 import io.fabric8.openshift.api.model.ImageChangeTriggerBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import java.util.ArrayList;
@@ -44,30 +46,28 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * This adds a `image.openshift.io/triggers` tag to all kubernetes resources in order to make them run on Openshift when using ImageStreams.
+ * This adds a `image.openshift.io/triggers` tag to all kubernetes resources in order to make them run on OpenShift when using ImageStreams.
  *
  * @author nicola
- * @since 10/05/18
  */
 public class TriggersAnnotationEnricher extends BaseEnricher {
 
     private static final String TRIGGERS_ANNOTATION = "image.openshift.io/triggers";
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
         /**
          * Comma-separated list of container names that should be enriched (default all that apply)
          */
-        containers;
+        CONTAINERS("containers");
 
-        protected String d; public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
     }
 
 
-    public TriggersAnnotationEnricher(MavenEnricherContext buildContext) {
+    public TriggersAnnotationEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-triggers-annotation");
     }
 
@@ -160,7 +160,7 @@ public class TriggersAnnotationEnricher extends BaseEnricher {
     }
 
     protected boolean isContainerAllowed(String containerName) {
-        String namesStr = this.getConfig(Config.containers);
+        String namesStr = this.getConfig(Config.CONTAINERS);
         Set<String> allowedNames = new HashSet<>();
         if (namesStr != null) {
             for (String name : namesStr.split(",")) {

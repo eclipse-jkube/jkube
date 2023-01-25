@@ -1,0 +1,41 @@
+/*
+ * Copyright (c) 2019 Red Hat, Inc.
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at:
+ *
+ *     https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version '1.10.1'
+    id 'org.eclipse.jkube.openshift' version '1.10.1'
+    id 'org.springframework.boot' version '2.5.2'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation project(':compile-time-enricher')
+}
+
+kubernetes {
+    offline = false
+    useProjectClassPath = true
+    enricher {
+        includes = ['istio-enricher', 'compile-time-enricher']
+        excludes = ['**']
+        config {
+            'istio-enricher' {
+                name = "${project.name}"
+            }
+        }
+    }
+}
+

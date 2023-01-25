@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.build.service.docker.helper;
 /**
  * Represents a generic task to be executed on a object.
  */
+@FunctionalInterface
 public interface Task<T> {
 
     void execute(T object) throws Exception;

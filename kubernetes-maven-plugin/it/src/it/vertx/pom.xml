@@ -24,7 +24,7 @@
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Jkube Maven :: Sample :: Vertx Web</name>
+  <name>JKube Maven :: Sample :: Vertx Web</name>
   <description>Minimal Example with Vertx Web</description>
 
   <properties>
@@ -69,11 +69,11 @@
     <plugins>
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>@jkube.version@</version>
         <executions>
           <execution>
-            <id>fmp</id>
+            <id>jkube</id>
             <goals>
               <goal>resource</goal>
               <goal>build</goal>

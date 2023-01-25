@@ -1,0 +1,45 @@
+[[jkube-namespace]]
+==== jkube-namespace
+
+This enricher adds a `Namespace`/`Project` resource to the Kubernetes Resources list in case the namespace
+configuration (`jkube.enricher.jkube-namespace.namespace`) is provided.
+
+In addition, this enricher sets the namespace (`.metadata.namespace` ) of the JKube generated and processed Kubernetes
+resources in case they don't already have one configured (see the `force` configuration).
+
+The following configuration parameters can be used to influence the behaviour of this enricher:
+
+[[enricher-jkube-namespace]]
+.Default namespace enricher
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *namespace*
+| Namespace as string which we want to create. A new `Namespace` object will be created and added to the list of Kubernetes resources generated during the enrichment phase.
+| `jkube.enricher.jkube-namespace.namespace`
+
+| *type*
+| Whether we want to generate a `Namespace` or an OpenShift specific `Project` resource. One of: _Namespace_, _Project_.
+
+  Defaults to `Namespace`.
+| `jkube.enricher.jkube-namespace.type`
+
+| *force*
+| If the `.metadata.namespace` field must be forced even if the resource has already one configured.
+
+  Defaults to false.
+| `jkube.enricher.jkube-namespace.force`
+|===
+
+This enricher also configures generated Namespace in `.metadata.namespace` field for Kubernetes resources as per provided {plugin-configuration-type} configuration too. Here is an example:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_namespace_configuration.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_namespace_configuration.adoc[]
+endif::[]
+
+

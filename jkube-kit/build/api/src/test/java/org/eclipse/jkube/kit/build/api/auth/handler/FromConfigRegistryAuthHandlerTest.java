@@ -13,87 +13,88 @@
  */
 package org.eclipse.jkube.kit.build.api.auth.handler;
 
-import java.io.IOException;
 import java.util.Base64;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuth;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
-import mockit.Mocked;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertEquals;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * @author roland
  * @since 23.10.18
  */
-public class FromConfigRegistryAuthHandlerTest {
+class FromConfigRegistryAuthHandlerTest {
 
-    @Mocked
-    private KitLogger log;
+  private KitLogger log;
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+  @BeforeEach
+  void setUp() {
+    log = new KitLogger.SilentLogger();
+  }
 
-    @Test
-    public void testFromPluginConfiguration() throws IOException {
-        FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(setupAuthConfigFactoryWithConfigData(), log);
+  @Test
+  void fromPluginConfiguration() {
+    FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(setupAuthConfigFactoryWithConfigData(), log);
 
-        AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s);
-        verifyAuthConfig(config, "roland", "secret", "roland@jolokia.org");
+    AuthConfig config = handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s);
+    verifyAuthConfig(config, "roland", "secret", "roland@jolokia.org");
+  }
+
+  protected RegistryAuthConfig setupAuthConfigFactoryWithConfigData() {
+    return RegistryAuthConfig.builder()
+        .skipExtendedAuthentication(false)
+        .putDefaultConfig(RegistryAuth.USERNAME, "roland")
+        .putDefaultConfig(RegistryAuth.PASSWORD, "secret")
+        .putDefaultConfig(RegistryAuth.EMAIL, "roland@jolokia.org")
+        .build();
+  }
+
+  private RegistryAuthConfig setupAuthConfigFactoryWithConfigDataForKind(RegistryAuthConfig.Kind kind) {
+    return RegistryAuthConfig.builder()
+        .skipExtendedAuthentication(false)
+        .addKindConfig(kind, RegistryAuth.USERNAME, "roland")
+        .addKindConfig(kind, RegistryAuth.PASSWORD, "secret")
+        .addKindConfig(kind, RegistryAuth.EMAIL, "roland@jolokia.org")
+        .build();
+  }
+
+  @Test
+  void fromPluginConfigurationPull() {
+    FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(
+        setupAuthConfigFactoryWithConfigDataForKind(RegistryAuthConfig.Kind.PULL), log);
+
+    AuthConfig config = handler.create(RegistryAuthConfig.Kind.PULL, null, null, s -> s);
+    verifyAuthConfig(config, "roland", "secret", "roland@jolokia.org");
+  }
+
+  @Test
+  void fromPluginConfigurationFailed() {
+    FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(
+        RegistryAuthConfig.builder().putDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
+
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s))
+        .withMessageContaining("password");
+  }
+
+  private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
+    JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())),
+        JsonObject.class);
+    assertThat(params)
+        .returns(username, j -> j.get("username").getAsString())
+        .returns(password, j -> j.get("password").getAsString());
+    if (email != null) {
+      assertThat(params.get("email").getAsString()).isEqualTo(email);
     }
-
-    protected RegistryAuthConfig setupAuthConfigFactoryWithConfigData() {
-        return new RegistryAuthConfig.Builder()
-                .skipExtendedAuthentication(false)
-                .addDefaultConfig(RegistryAuth.USERNAME, "roland")
-                .addDefaultConfig(RegistryAuth.PASSWORD, "secret")
-                .addDefaultConfig(RegistryAuth.EMAIL, "roland@jolokia.org")
-                .build();
-    }
-
-    private RegistryAuthConfig setupAuthConfigFactoryWithConfigDataForKind(RegistryAuthConfig.Kind kind) {
-        return new RegistryAuthConfig.Builder()
-                .skipExtendedAuthentication(false)
-                .addKindConfig(kind, RegistryAuth.USERNAME, "roland")
-                .addKindConfig(kind, RegistryAuth.PASSWORD, "secret")
-                .addKindConfig(kind, RegistryAuth.EMAIL, "roland@jolokia.org")
-                .build();
-    }
-
-    @Test
-    public void testFromPluginConfigurationPull() throws IOException {
-        FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(setupAuthConfigFactoryWithConfigDataForKind(RegistryAuthConfig.Kind.PULL), log);
-
-        AuthConfig config = handler.create(RegistryAuthConfig.Kind.PULL, null, null, s -> s);
-        verifyAuthConfig(config, "roland", "secret", "roland@jolokia.org");
-    }
-
-
-    @Test
-    public void testFromPluginConfigurationFailed() throws IOException {
-        FromConfigRegistryAuthHandler handler = new FromConfigRegistryAuthHandler(
-            new RegistryAuthConfig.Builder().addDefaultConfig(RegistryAuth.USERNAME, "admin").build(), log);
-
-        expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(containsString("password"));
-        handler.create(RegistryAuthConfig.Kind.PUSH, null, null, s -> s);
-    }
-
-    private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
-        JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue().getBytes())), JsonObject.class);
-        assertEquals(username,params.get("username").getAsString());
-        assertEquals(password,params.get("password").getAsString());
-        if (email != null) {
-            assertEquals(email, params.get("email").getAsString());
-        }
-    }
+  }
 
 }

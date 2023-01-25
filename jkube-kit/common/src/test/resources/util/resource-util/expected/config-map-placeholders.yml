@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cm
+data:
+  field: value
+immutable: "${immutable}"
+not-cm-field-1: test
+not-cm-field-2: "{{ .Values.value }}"
+not-cm-field-bool: true
+not-cm-field-double: 1.337

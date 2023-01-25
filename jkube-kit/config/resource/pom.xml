@@ -20,14 +20,13 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.11-SNAPSHOT</version>
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
   <artifactId>jkube-kit-config-resource</artifactId>
-  <version>0.1-SNAPSHOT</version>
 
-  <name>Jkube Kit :: Config :: Resource</name>
+  <name>JKube Kit :: Config :: Resource</name>
 
   <dependencies>
 
@@ -35,47 +34,36 @@
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-common</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-kit-build-service-docker</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
     </dependency>
 
     <dependency>
-      <groupId>org.apache.maven.plugin-tools</groupId>
-      <artifactId>maven-plugin-annotations</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
     </dependency>
-
     <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-yaml</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
     </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <scope>test</scope>
     </dependency>
-    
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>mockwebserver</artifactId>
+    </dependency>
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>openshift-server-mock</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>org.jmockit</groupId>
-      <artifactId>jmockit</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
     </dependency>
   </dependencies>
 </project>

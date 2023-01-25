@@ -1,8 +1,8 @@
 ## Kubernetes Maven Plugin
 
-[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/k8s-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22k8s-maven-plugin%22)
+[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/kubernetes-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22kubernetes-maven-plugin%22)
 
-![Sample Demo](k8s-maven-plugin-demo.gif)
+[![Sample Demo](kmp.png)](https://asciinema.org/a/335724)
 
 ### Introduction
 This Maven plugin is a one-stop-shop for building and deploying Java applications for Docker, Kubernetes. It brings your Java applications on to Kubernetes. It provides a tight integration into maven and benefits from the build configuration already provided. It focuses on three tasks:
@@ -16,18 +16,18 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
 ```
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>${jkube.kubernetes.version}</version>
       </plugin>
 ```
 
 | Goal                                          | Description                           |
 | --------------------------------------------- | ------------------------------------- |
-| [`k8s:resource`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:resource) | Create Kubernetes resource descriptors |
-| [`k8s:build`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:build) | Build Docker images |
-| [`k8s:push`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:push) | Push Docker images to a registry  |
-| [`k8s:deploy`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:deploy) | Deploy Kubernetes resource objects to a cluster  |
-| [`k8s:watch`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:watch) | Watch for doing rebuilds and restarts |
+| [`k8s:resource`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:resource) | Create Kubernetes resource descriptors |
+| [`k8s:build`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:build) | Build Docker images |
+| [`k8s:push`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:push) | Push Docker images to a registry  |
+| [`k8s:deploy`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:deploy) | Deploy Kubernetes resource objects to a cluster  |
+| [`k8s:watch`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:watch) | Watch for doing rebuilds and restarts |
 
 ### Features
 
@@ -41,29 +41,3 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
   * **Generators** analyze the Maven build and generated automatic Docker image configurations for certain systems (spring-boot, plain java, karaf ...)
   * **Enrichers** extend the Kubernetes resource descriptors by extra information like SCM labels and can add default objects like Services.
   * Generators and Enrichers can be individually configured and combined into *profiles*
-
-### Kubernetes Compatibility
-
-:heavy_check_mark: : Supported, all available features can be used
-
-:x: : Not supported at all
-
-:large_blue_circle: : Supported, but not all features can be used
-
-##### Kubernetes
-
-|     KMP      | Kubernetes 1.12.0 | Kubernetes 1.11.0 | Kubernetes 1.10.0 | Kubernetes 1.9.0 | Kubernetes 1.8.0 | Kubernetes 1.7.0 | Kubernetes 1.6.0 | Kubernetes 1.5.1 | Kubernetes 1.4.0 |
-|--------------|-------------------|-------------------|-------------------|------------------|------------------|------------------|------------------|------------------|------------------|
-| KMP 4.0.0    |        :heavy_check_mark:          |        :heavy_check_mark:          |       :heavy_check_mark:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 4.0.0-M2 |        :large_blue_circle:          |        :large_blue_circle:          |       :large_blue_circle:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 4.0.0-M1 |        :large_blue_circle:          |        :large_blue_circle:          |       :large_blue_circle:           |       :heavy_check_mark:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :x:         |        :x:         |
-| KMP 3.5.42   |        :large_blue_circle:          |        :large_blue_circle:          |       :large_blue_circle:           |       :large_blue_circle:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |
-| KMP 3.5.41   |        :x:          |        :x:          |       :x:           |       :large_blue_circle:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |
-| KMP 3.5.40   |        :x:          |        :x:          |       :x:           |       :large_blue_circle:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |
-| KMP 3.5.39   |        :x:          |        :x:          |       :x:           |       :x:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |
-| KMP 3.5.38   |        :x:          |        :x:          |       :x:           |       :x:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |
-| KMP 3.5.37   |        :x:          |        :x:          |       :x:           |       :x:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |
-| KMP 3.5.35   |        :x:          |        :x:          |       :x:           |       :x:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |
-| KMP 3.5.34   |        :x:          |        :x:          |       :x:           |       :x:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |
-| KMP 3.5.33   |        :x:          |        :x:          |       :x:           |       :x:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |
-| KMP 3.5.32   |        :x:          |        :x:          |       :x:           |       :x:          |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |        :heavy_check_mark:         |

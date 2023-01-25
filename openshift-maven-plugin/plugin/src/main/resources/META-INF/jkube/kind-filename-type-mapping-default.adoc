@@ -58,6 +58,9 @@
 |Namespace
 |`ns`, `namespace`
 
+|NetworkPolicy
+|`np`, `networkpolicy`
+
 |OAuthClient
 |`oauthclient`
 
@@ -68,7 +71,7 @@
 |`pv`, `persistentvolume`
 
 |PersistentVolumeClaim
-|`pvc`, `persistemtvolumeclaim`
+|`pvc`, `persistentvolumeclaim`
 
 |Project
 |`project`

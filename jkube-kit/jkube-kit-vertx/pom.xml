@@ -20,62 +20,45 @@
     <parent>
         <artifactId>jkube-kit-parent</artifactId>
         <groupId>org.eclipse.jkube</groupId>
-        <version>0.1-SNAPSHOT</version>
+        <version>1.11-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jkube-kit-vertx</artifactId>
-    <groupId>org.eclipse.jkube</groupId>
-    <version>0.1-SNAPSHOT</version>
+    <name>JKube Kit :: Vert.x</name>
 
     <dependencies>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-api</artifactId>
+            <artifactId>jkube-kit-enricher-specific</artifactId>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-specific</artifactId>
+            <artifactId>jkube-kit-generator-java-exec</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-common</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-java-exec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-utils</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-yaml</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest-all</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jmockit</groupId>
-            <artifactId>jmockit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-infinispan</artifactId>
-            <version>3.4.2</version>
-            <scope>test</scope>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
         </dependency>
     </dependencies>
 </project>

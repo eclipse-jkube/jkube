@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.build.service.docker.access.hc;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -68,8 +69,7 @@ public class ApacheHttpClientDelegate {
 
     public static class StatusCodeResponseHandler implements ResponseHandler<Integer> {
         @Override
-        public Integer handleResponse(HttpResponse response)
-            throws IOException {
+        public Integer handleResponse(HttpResponse response) {
             return response.getStatusLine().getStatusCode();
         }
 
@@ -134,31 +134,35 @@ public class ApacheHttpClientDelegate {
 
     // =========================================================================================
 
-    private HttpUriRequest addDefaultHeaders(HttpUriRequest req) {
+    private HttpUriRequest addDefaultHeaders(HttpUriRequest req, Object body) {
         req.addHeader(HttpHeaders.ACCEPT, "*/*");
-        req.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        if (body instanceof File) {
+            req.addHeader(HttpHeaders.CONTENT_TYPE, URLConnection.guessContentTypeFromName(((File)body).getName()));
+        }
+        if (body != null && !req.containsHeader(HttpHeaders.CONTENT_TYPE)) {
+            req.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+        }
         return req;
     }
 
-
     private HttpUriRequest newDelete(String url) {
-        return addDefaultHeaders(new HttpDelete(url));
+        return addDefaultHeaders(new HttpDelete(url), null);
     }
 
     private HttpUriRequest newGet(String url) {
-        return addDefaultHeaders(new HttpGet(url));
+        return addDefaultHeaders(new HttpGet(url), null);
     }
 
     private HttpUriRequest newPut(String url, Object body) {
         HttpPut put = new HttpPut(url);
         setEntityIfGiven(put, body);
-        return addDefaultHeaders(put);
+        return addDefaultHeaders(put, body);
     }
 
     private HttpUriRequest newPost(String url, Object body) {
         HttpPost post = new HttpPost(url);
         setEntityIfGiven(post, body);
-        return addDefaultHeaders(post);
+        return addDefaultHeaders(post, body);
     }
 
 
@@ -174,8 +178,8 @@ public class ApacheHttpClientDelegate {
 
     private static class StatusCodeCheckerResponseHandler<T> implements ResponseHandler<T> {
 
-        private int[] statusCodes;
-        private ResponseHandler<T> delegate;
+        private final int[] statusCodes;
+        private final ResponseHandler<T> delegate;
 
         StatusCodeCheckerResponseHandler(ResponseHandler<T> delegate, int... statusCodes) {
             this.statusCodes = statusCodes;

@@ -1,0 +1,22 @@
+[[jkube-image]]
+==== jkube-image
+
+This enricher merges in container image related fields into specified controller (e.g `Deployment`, `ReplicaSet`, `ReplicationController` etc.) Pod specification.
+
+- The full image name is set as `image`.
+- An image alias is set as `name`. If alias isn't provided, then opinionated name using image user and project name is used.
+- The pull policy `imagePullPolicy` is set according to the given configuration. If no
+   configuration is set, the default is `IfNotPresent` for release versions, and `Always` for snapshot versions.
+- Environment variables as configured via {plugin-configuration-type} configuration.
+
+Any already configured container in the pod spec is updated if the property is not set.
+
+.Configuration options
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+| *pullPolicy*
+| What pull policy to use when fetching images
+| `jkube.enricher.jkube-image.pullPolicy`
+|===

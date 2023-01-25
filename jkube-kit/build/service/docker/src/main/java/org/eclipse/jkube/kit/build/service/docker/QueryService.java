@@ -29,7 +29,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 public class QueryService {
 
     // Access to docker daemon & logger
-    private DockerAccess docker;
+    private final DockerAccess docker;
 
     /**
      * Constructor which gets its dependencies as args)

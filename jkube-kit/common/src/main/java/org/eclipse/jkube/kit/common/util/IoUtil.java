@@ -14,20 +14,25 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.http.HttpClient;
+import io.fabric8.kubernetes.client.http.HttpResponse;
+import io.fabric8.kubernetes.client.http.StandardHttpHeaders;
+import io.fabric8.kubernetes.client.utils.HttpClientUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+
+import static org.apache.commons.io.IOUtils.EOF;
 
 /**
  *
@@ -36,6 +41,10 @@ import okhttp3.Response;
  * @since 14/10/16
  */
 public class IoUtil {
+
+    private static final Random RANDOM = new Random();
+
+    private IoUtil() { }
 
     /**
      * Download with showing the progress a given URL and store it in a file
@@ -46,40 +55,32 @@ public class IoUtil {
      */
     public static void download(KitLogger log, URL downloadUrl, File target) throws IOException {
         log.progressStart();
-        try {
-            OkHttpClient client =
-                    new OkHttpClient.Builder()
-                            .readTimeout(30, TimeUnit.MINUTES).build();
-            Request request = new Request.Builder()
-                    .url(downloadUrl)
-                    .build();
-            Response response = client.newCall(request).execute();
-
-            try (OutputStream out = new FileOutputStream(target);
-                 InputStream im = response.body().byteStream()) {
-
-                long length = response.body().contentLength();
-                InputStream in = response.body().byteStream();
-                byte[] buffer = new byte[8192];
-
+        try (HttpClient client = HttpClientUtils.createHttpClient(Config.empty())
+            .newBuilder().readTimeout(30, TimeUnit.MINUTES).build()
+        ) {
+            final HttpResponse<InputStream> response = client.sendAsync(
+                client.newHttpRequestBuilder().url(downloadUrl).build(), InputStream.class)
+                .get();
+            final int length = Integer.parseInt(response.headers(StandardHttpHeaders.CONTENT_LENGTH)
+                .stream().findAny().orElse("-1"));
+            try (OutputStream out = Files.newOutputStream(target.toPath()); InputStream is = response.body()) {
+                final byte[] buffer = new byte[8192];
                 long readBytes = 0;
-                while (true) {
-                    int len = in.read(buffer);
+                int len;
+                while (EOF != (len = is.read(buffer))) {
                     readBytes += len;
                     log.progressUpdate(target.getName(), "Downloading", getProgressBar(readBytes, length));
-                    if (len <= 0) {
-                        out.flush();
-                        break;
-                    }
                     out.write(buffer, 0, len);
                 }
             }
-        } catch (IOException e) {
+        }  catch(InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Download interrupted", ex);
+        } catch (IOException | ExecutionException e) {
             throw new IOException("Failed to download URL " + downloadUrl + " to  " + target + ": " + e, e);
         } finally {
             log.progressFinished();
         }
-
     }
 
     /**
@@ -102,10 +103,10 @@ public class IoUtil {
      * @return random port as integer
      */
     public static int getFreeRandomPort(int min, int max, int attempts) {
-        Random random = new Random();
         for (int i=0; i < attempts; i++) {
-            int port = min + random.nextInt(max - min + 1);
-            try (Socket socket = new Socket("localhost", port)) {
+            int port = min + RANDOM.nextInt(max - min + 1);
+            try (Socket ignored = new Socket("localhost", port)) { // NOSONAR
+                // Port is open for communication, meaning it's used up, try again
             } catch (ConnectException e) {
                 return port;
             } catch (IOException e) {
@@ -131,13 +132,13 @@ public class IoUtil {
 
     // ========================================================================================
 
-    private static int PROGRESS_LENGTH = 50;
+    private static final int PROGRESS_LENGTH = 50;
 
     private static String getProgressBar(long bytesRead, long length) {
-        StringBuffer ret = new StringBuffer("[");
+        StringBuilder ret = new StringBuilder("[");
         if (length > - 1) {
-            int bucketSize = (int) (length / PROGRESS_LENGTH + 0.5);
-            int index = (int) (bytesRead / bucketSize + 0.5);
+            int bucketSize = (int) ((double)length / PROGRESS_LENGTH + 0.5D);
+            int index = (int) ((double)bytesRead / bucketSize + 0.5D);
             for (int i = 0; i < PROGRESS_LENGTH; i++) {
                 ret.append(i < index ? "=" : (i == index ? ">" : " "));
             }
@@ -146,7 +147,7 @@ public class IoUtil {
                     ((float) length / (1024 * 1024))));
         } else {
             int bucketSize = 200 * 1024; // 200k
-            int index = (int) (bytesRead / bucketSize + 0.5) % PROGRESS_LENGTH;
+            int index = (int) ((double)bytesRead / bucketSize + 0.5D) % PROGRESS_LENGTH;
             for (int i = 0; i < PROGRESS_LENGTH; i++) {
                 ret.append(i == index ? "*" : " ");
             }

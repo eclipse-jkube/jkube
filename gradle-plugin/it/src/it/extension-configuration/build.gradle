@@ -1,0 +1,114 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+kubernetes {
+    skip = false
+    useColor = true
+    offline = true
+    buildStrategy = 'jib'
+    resourceTargetDirectory = file('build/META-INF/jkube')
+    resourceSourceDirectory = file('src/main/jkube')
+    resourceEnvironment = 'dev'
+    useProjectClassPath = false
+    workDirectory = file("${project.getBuildDir()}/jkube")
+    skipResourceValidation = false
+    failOnValidationError = false
+    profile = 'default'
+    namespace = 'default'
+    mergeWithDekorate = false
+    interpolateTemplateParameters = false
+    resourceFileType = 'yaml'
+    recreate = false
+    skipApply = true
+    createNewResources = false
+    rollingUpgrades = false
+    failOnNoKubernetesJson = false
+    servicesOnly = false
+    ignoreServices = false
+    deletePodsOnReplicationControllerUpdate = false
+    jsonLogDir = file("${project.getBuildDir()}/jkube/applyJson")
+    serviceUrlWaitTimeSeconds = 10
+    skipPush = true
+    skipTag = true
+    skipBuild = true
+    skipResource = true
+    pushRegistry = 'quay.io'
+    pushRetries = 5
+    kubernetesTemplate = file('build/META-INF/jkube/kubernetes')
+    watchMode = 'copy'
+    watchInterval = 1000
+    watchKeepRunning = true
+    watchPostExec = 'ls -lt'
+    watchAutoCreateCustomNetworks = true
+    watchKeepContainer = true
+    watchRemoveVolumes = true
+    watchContainerNamePattern = '%g-%l'
+    watchFollow = true
+    watchShowLogs = 'true'
+    access {
+        namespace = 'default'
+    }
+    enricher {
+        excludes = ['jkube-expose']
+    }
+    generator {
+        includes = ['openliberty', 'spring-boot']
+        excludes = ['webapp']
+    }
+    watcher {
+        includes = ['spring-boot']
+        config {
+            'spring-boot' {
+                serviceUrlWaitTimeSeconds = 10
+            }
+        }
+    }
+    resources {
+        controllerName = 'test'
+        configMap {
+            name = 'configMap-name'
+            entries = [
+                    [name: 'test', value: 'value']
+            ]
+        }
+    }
+    images {
+        image2 { name = "${'registry'}/${project.name}:${project.version}" }
+        image1 {
+            name = 'registry/image:tag'
+            build {
+                contextDir = file('src/main/context-dir')
+                from = 'busybox'
+            }
+        }
+    }
+    mappings {
+        mapping {
+            kind = 'Var'
+            filenameTypes = 'foo, bar'
+        }
+    }
+    helm {
+        chart = 'This is a test'
+        type = 'KuBernetEs'
+        icon = 'This is the icon'
+        sources = [
+                'https://different.source/yaml.yml'
+        ]
+        maintainers = [{
+            name = 'John'
+            email = 'john.doe@example.com'
+        }]
+    }
+}

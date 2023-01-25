@@ -17,10 +17,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.webapp.handler.JettyAppSeverHandler;
 import org.eclipse.jkube.generator.webapp.handler.TomcatAppSeverHandler;
 import org.eclipse.jkube.generator.webapp.handler.WildFlyAppSeverHandler;
-import org.apache.maven.project.MavenProject;
 
 /**
  * @author kameshs
@@ -31,14 +31,14 @@ class AppServerDetector {
     private final AppServerHandler defaultHandler;
     private final HashMap<String, AppServerHandler> serverHandlerMap;
 
-    AppServerDetector(MavenProject project) {
+    AppServerDetector(GeneratorContext generatorContext) {
         // Add new handlers to this list for new appservers
-        serverHandlers =
-            Arrays.asList(
-                new JettyAppSeverHandler(project),
-                new WildFlyAppSeverHandler(project),
-                defaultHandler = new TomcatAppSeverHandler(project)
-                         );
+        defaultHandler = new TomcatAppSeverHandler(generatorContext);
+        serverHandlers = Arrays.asList(
+            new JettyAppSeverHandler(generatorContext),
+            new WildFlyAppSeverHandler(generatorContext),
+            defaultHandler
+        );
         serverHandlerMap = new HashMap<>();
         for (AppServerHandler handler : serverHandlers) {
             serverHandlerMap.put(handler.getName(), handler);

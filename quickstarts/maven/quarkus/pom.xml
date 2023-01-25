@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+  <artifactId>quarkus</artifactId>
+  <version>1.10.1</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: Quarkus</name>
+  <description>
+    Quarkus application with a single JAX-RS endpoint.
+    Demonstrates how to package the project using JVM mode or Native image mode.
+    Demonstrates how to build a Quarkus project container with Eclipse JKube's S2I, Docker and JIB build strategies.
+  </description>
+
+  <properties>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
+    <jkube.version>${project.version}</jkube.version>
+    <version.quarkus>2.8.1.Final</version.quarkus>
+    <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-bom</artifactId>
+        <version>${version.quarkus}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-arc</artifactId>
+      <version>${version.quarkus}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy</artifactId>
+      <version>${version.quarkus}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>io.smallrye</groupId>
+          <artifactId>smallrye-config</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-jackson</artifactId>
+      <version>${version.quarkus}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <version>${version.quarkus}</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>build</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
+        <version>${jkube.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>openshift-maven-plugin</artifactId>
+        <version>${jkube.version}</version>
+      </plugin>
+    </plugins>
+  </build>
+  <profiles>
+    <profile>
+      <id>native-docker</id>
+      <activation>
+        <property>
+          <name>native-docker</name>
+        </property>
+      </activation>
+      <properties>
+        <quarkus.package.type>native</quarkus.package.type>
+        <quarkus.native.remote-container-build>true</quarkus.native.remote-container-build>
+        <quarkus.native.enable-http-url-handler>true</quarkus.native.enable-http-url-handler>
+      </properties>
+    </profile>
+    <profile>
+      <id>native-jib</id>
+      <activation>
+        <property>
+          <name>native-jib</name>
+        </property>
+      </activation>
+      <properties>
+        <jkube.build.strategy>jib</jkube.build.strategy>
+        <quarkus.package.type>native</quarkus.package.type>
+        <quarkus.native.remote-container-build>true</quarkus.native.remote-container-build>
+        <quarkus.native.enable-http-url-handler>true</quarkus.native.enable-http-url-handler>
+      </properties>
+    </profile>
+  </profiles>
+
+</project>

@@ -1,0 +1,14 @@
+[[generator-micronaut]]
+=== Micronaut Generator
+
+The Micronaut generator (named `micronaut`) detects a Micronaut project by analyzing the plugin
+
+ifeval::["{plugin-type}" == "maven"]
+dependencies searching for `io.micronaut.build:micronaut-maven-plugin`.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+dependencies searching for `io.micronaut.application:io.micronaut.application.gradle.plugin`.
+endif::[]
+
+This generator is based on the <<generator-java-exec, Java Application>> Generator and inherits all
+of its configuration values.

@@ -1,8 +1,8 @@
-## Openshift Maven Plugin
+## OpenShift Maven Plugin
 
-[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/oc-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22oc-maven-plugin%22)
+[![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/openshift-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22openshift-maven-plugin%22)
 
-![Sample Demo](oc-maven-plugin-demo.gif)
+[![Sample Demo](omp.png)](https://asciinema.org/a/335743)
 
 ### Introduction
 This Maven plugin is a one-stop-shop for building and deploying Java applications for OpenShift. It brings your Java applications on to OpenShift. It provides a tight integration into maven and benefits from the build configuration already provided. It focuses on three tasks:
@@ -11,23 +11,23 @@ This Maven plugin is a one-stop-shop for building and deploying Java application
 + Deploy application on OpenShift
 
 ### Usage
-To enable Openshift maven plugin on your project just add this to the plugins sections of your pom.xml:
+To enable OpenShift maven plugin on your project just add this to the plugins sections of your pom.xml:
 
 ```
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>oc-maven-plugin</artifactId>
+        <artifactId>openshift-maven-plugin</artifactId>
         <version>${jkube.openshift.version}</version>
       </plugin>
 ```
 
 | Goal                                          | Description                           |
 | --------------------------------------------- | ------------------------------------- |
-| [`oc:resource`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:resource) | Create OpenShift resource descriptors |
-| [`oc:build`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:build) | Build Docker images |
-| [`oc:push`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:push) | Push Docker images to a registry  |
-| [`oc:deploy`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:deploy) | Deploy OpenShift resource objects to a cluster  |
-| [`oc:watch`](https://fabric8io.github.io/fabric8-maven-plugin/#fabric8:watch) | Watch for doing rebuilds and restarts |
+| [`oc:resource`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:resource) | Create OpenShift resource descriptors |
+| [`oc:build`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:build) | Build Docker images |
+| [`oc:push`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:push) | Push Docker images to a registry  |
+| [`oc:deploy`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:deploy) | Deploy OpenShift resource objects to a cluster  |
+| [`oc:watch`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:watch) | Watch for doing rebuilds and restarts |
 
 ### Features
 

@@ -24,21 +24,25 @@ import io.fabric8.kubernetes.api.model.ServiceFluent;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.maven.enricher.handler.HandlerHub;
-import org.eclipse.jkube.maven.enricher.handler.ServiceHandler;
+import org.eclipse.jkube.kit.enricher.api.ServiceExposer;
+
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
-import org.apache.maven.shared.utils.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -57,7 +61,6 @@ import java.util.regex.Pattern;
  * An enricher for creating default services when not present.
  *
  * @author roland
- * @since 25/05/16
  */
 public class DefaultServiceEnricher extends BaseEnricher {
 
@@ -74,55 +77,57 @@ public class DefaultServiceEnricher extends BaseEnricher {
      *  Key -> TargetPort
      *  Value -> Port
      */
-    private static final Map<Integer, Integer> PORT_NORMALIZATION_MAPPING = new HashMap<Integer, Integer>() {{
-                                                                                    put(8080, 80);
-                                                                                    put(8081, 80);
-                                                                                    put(8181, 80);
-                                                                                    put(8180, 80);
-                                                                                    put(8443, 443);
-                                                                                    put(443, 443);
-                                                                                }};
-
-    // Available configuration keys
-    private enum Config implements Configs.Key {
-        // Default name to use instead of a calculated one
-        name,
-
-        // Whether allow headless services.
-        headless {{ d = "false"; }},
-
-        // Whether expose the service as ingress. Needs an 'exposeController'
-        // running
-        expose {{ d = "false"; }},
-
-        // Type of the service (LoadBalancer, NodePort, ClusterIP, ...)
-        type,
-
-        // Service port to use (only for the first exposed pod port)
-        port,
-
-        // Whether to expose multiple ports or only the first one
-        multiPort {{ d = "false"; }},
-
-        // protocol to use
-        protocol {{ d = "tcp"; }},
-
-        //  Whether to normalize services port numbers according to PORT_NORMALISATION_MAPPING
-        normalizePort {{ d = "false"; }};
-
-        public String def() { return d; } protected String d;
+    private static final Map<Integer, Integer> PORT_NORMALIZATION_MAPPING = new HashMap<>();
+    static {
+      PORT_NORMALIZATION_MAPPING.put(8080, 80);
+      PORT_NORMALIZATION_MAPPING.put(8081, 80);
+      PORT_NORMALIZATION_MAPPING.put(8181, 80);
+      PORT_NORMALIZATION_MAPPING.put(8180, 80);
+      PORT_NORMALIZATION_MAPPING.put(8443, 443);
+      PORT_NORMALIZATION_MAPPING.put(443, 443);
     }
 
-    public DefaultServiceEnricher(MavenEnricherContext buildContext) {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        // Default name to use instead of a calculated one
+        NAME("name", null),
+
+        // Whether allow headless services.
+        HEADLESS("headless", Boolean.FALSE.toString()),
+
+        // Forces a service to be exposed regardless of being a web port or not (See ServiceExposer#canExposeService)
+        EXPOSE("expose", Boolean.FALSE.toString()),
+
+        // Type of the service (LoadBalancer, NodePort, ClusterIP, ...)
+        TYPE("type", null),
+
+        // Service port to use (only for the first exposed pod port)
+        PORT("port", null),
+
+        // Whether to expose multiple ports or only the first one
+        MULTI_PORT("multiPort", Boolean.FALSE.toString()),
+
+        // protocol to use
+        PROTOCOL("protocol", "tcp"),
+
+        //  Whether to normalize services port numbers according to PORT_NORMALISATION_MAPPING
+        NORMALIZE_PORT("normalizePort", Boolean.FALSE.toString());
+
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
+    }
+
+    public DefaultServiceEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-service");
     }
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
 
-        ResourceConfig xmlConfig = getConfiguration().getResource().orElse(null);
-
-        if (xmlConfig != null && xmlConfig.getServices() != null) {
+        final ResourceConfig xmlConfig = getConfiguration().getResource();
+        if (Optional.ofNullable(xmlConfig).map(ResourceConfig::getServices).map(c -> !c.isEmpty()).orElse(false)) {
             // Add Services configured via XML
             addServices(builder, xmlConfig.getServices());
 
@@ -135,15 +140,13 @@ public class DefaultServiceEnricher extends BaseEnricher {
                 addDefaultService(builder, defaultService);
             }
 
-            if (Configs.asBoolean(getConfig(Config.normalizePort))) {
+            if (Configs.asBoolean(getConfig(Config.NORMALIZE_PORT))) {
                 normalizeServicePorts(builder);
             }
         }
 
 
     }
-
-    // =======================================================================================================
 
     private void normalizeServicePorts(KubernetesListBuilder builder) {
         builder.accept(new TypedVisitor<ServicePortBuilder>() {
@@ -159,9 +162,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
     }
 
     private void addServices(KubernetesListBuilder builder, List<ServiceConfig> services) {
-        HandlerHub handlerHub = new HandlerHub(getContext().getGav(), getContext().getConfiguration().getProperties());
-        ServiceHandler serviceHandler = handlerHub.getServiceHandler();
-        builder.addToServiceItems(toArray(serviceHandler.getServices(services)));
+        builder.addToServiceItems(toArray(getContext().getHandlerHub().getServiceHandler().getServices(services)));
     }
 
     // convert list to array, never returns null.
@@ -170,7 +171,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
             return new Service[0];
         }
         if (services instanceof ArrayList) {
-            return ((ArrayList<Service>) services).toArray(new Service[services.size()]);
+            return services.toArray(new Service[0]);
         } else {
             Service[] ret = new Service[services.size()];
             for (int i = 0; i < services.size(); i++) {
@@ -198,7 +199,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         if (appName != null) {
             return appName;
         } else {
-            return getConfig(Config.name, MavenUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+            return getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
         }
     }
 
@@ -212,7 +213,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         String serviceName = getServiceName();
 
         // Create service only for all images which are supposed to live in a single pod
-        List<ServicePort> ports = extractPorts(getImages().get());
+        List<ServicePort> ports = extractPorts(getImages());
 
         ServiceBuilder builder = new ServiceBuilder()
             .withNewMetadata()
@@ -222,15 +223,13 @@ public class DefaultServiceEnricher extends BaseEnricher {
         ServiceFluent.SpecNested<ServiceBuilder> specBuilder = builder.withNewSpec();
         if (!ports.isEmpty()) {
             specBuilder.withPorts(ports);
-        } else if (Configs.asBoolean(getConfig(Config.headless))) {
+        } else if (Configs.asBoolean(getConfig(Config.HEADLESS))) {
             specBuilder.withClusterIP("None");
         } else {
             // No ports, no headless --> no service
             return null;
         }
-        if (hasConfig(Config.type)) {
-            specBuilder.withType(getConfig(Config.type));
-        }
+        specBuilder.withType(getConfig(Config.TYPE));
         specBuilder.endSpec();
 
         return builder.build();
@@ -241,10 +240,18 @@ public class DefaultServiceEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<ServiceBuilder>() {
             @Override
             public void visit(ServiceBuilder element) {
-                hasService.set(true);
+                if (hasControllerMatchedService(element)) {
+                    hasService.set(true);
+                }
             }
         });
         return hasService.get();
+    }
+
+    private boolean hasControllerMatchedService(ServiceBuilder serviceBuilder) {
+        String defaultName = JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId());
+        String svcName = KubernetesHelper.getName(serviceBuilder.buildMetadata());
+        return defaultName.equals(svcName);
     }
 
     private void mergeInDefaultServiceParameters(KubernetesListBuilder builder, final Service defaultService) {
@@ -257,7 +264,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
                 ObjectMeta serviceMetadata = ensureServiceMetadata(service, defaultService);
                 String serviceName = ensureServiceName(serviceMetadata, service, defaultServiceName);
 
-                if (defaultService != null && defaultServiceName.equals(serviceName)) {
+                if (defaultService != null && defaultServiceName != null && defaultServiceName.equals(serviceName)) {
                     addMissingServiceParts(service, defaultService);
                 }
             }
@@ -270,7 +277,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         }
         ServiceSpec spec = defaultService.getSpec();
         List<ServicePort> ports = spec.getPorts();
-        if (ports.size() > 0) {
+        if (!ports.isEmpty()) {
             log.info("Adding a default service '%s' with ports [%s]",
                      defaultService.getMetadata().getName(), formatPortsAsList(ports));
         } else {
@@ -284,8 +291,8 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     private Map<String, String> extractLabels() {
         Map<String, String> labels = new HashMap<>();
-        if (Configs.asBoolean(getConfig(Config.expose))) {
-            labels.put("expose", "true");
+        if (Configs.asBoolean(getConfig(Config.EXPOSE))) {
+            labels.put(ServiceExposer.EXPOSE_LABEL, "true");
         }
         return labels;
     }
@@ -296,7 +303,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     private List<ServicePort> extractPorts(List<ImageConfiguration> images) {
         List<ServicePort> ret = new ArrayList<>();
-        boolean isMultiPort = Boolean.parseBoolean(getConfig(Config.multiPort));
+        boolean isMultiPort = Boolean.parseBoolean(getConfig(Config.MULTI_PORT));
 
         List<ServicePort> configuredPorts = extractPortsFromConfig();
 
@@ -357,9 +364,9 @@ public class DefaultServiceEnricher extends BaseEnricher {
     // Config can override ports
     private List<ServicePort> extractPortsFromConfig() {
         List<ServicePort> ret = new LinkedList<>();
-        String ports = getConfig(Config.port);
+        String ports = getConfig(Config.PORT);
         if (ports != null) {
-            for (String port : StringUtils.split(ports, ",")) {
+            for (String port : ports.split(",")) {
                 ret.add(parsePortMapping(port));
             }
         }
@@ -456,7 +463,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
 
     private String getProtocol(String imageProtocol) {
-        String protocol = imageProtocol != null ? imageProtocol : getConfig(Config.protocol);
+        String protocol = imageProtocol != null ? imageProtocol : getConfig(Config.PROTOCOL);
         if ("tcp".equalsIgnoreCase(protocol) || "udp".equalsIgnoreCase(protocol)) {
             return protocol.toUpperCase();
         } else {
@@ -473,7 +480,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
             String servicePort= port.getPort() != null ? Integer.toString(port.getPort()) : targetPort;
             p.add(targetPort.equals(servicePort) ? targetPort : servicePort + ":" + targetPort);
         }
-        return StringUtils.join(p.iterator(), ",");
+        return String.join(",", p);
     }
 
     private String getPortValue(IntOrString port) {
@@ -537,24 +544,26 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     // Merge services of same name with the default service
     private void addMissingServiceParts(ServiceBuilder service, Service defaultService) {
-
+        final ServiceSpec originalSpec = service.buildSpec();
         // If service has no spec -> take over the complete spec from default service
-        if (!service.hasSpec()) {
+        if (originalSpec == null) {
             service.withNewSpecLike(defaultService.getSpec()).endSpec();
             return;
         }
-
-        // If service has no ports -> take over ports from default service
-        List<ServicePort> ports = service.buildSpec().getPorts();
+        final List<ServicePort> ports = service.buildSpec().getPorts();
         if (ports == null || ports.isEmpty()) {
             service.editSpec().withPorts(defaultService.getSpec().getPorts()).endSpec();
-            return;
+        } else {
+            service.editSpec()
+                .withPorts(addMissingDefaultPorts(ports, defaultService))
+                .endSpec();
         }
-
-        // Complete missing parts:
-        service.editSpec()
-               .withPorts(addMissingDefaultPorts(ports, defaultService))
-               .endSpec();
+        if (originalSpec.getType() == null) {
+            service.editSpec().withType(defaultService.getSpec().getType()).endSpec();
+        }
+        if (originalSpec.getClusterIP() == null) {
+            service.editSpec().withClusterIP(defaultService.getSpec().getClusterIP()).endSpec();
+        }
     }
 
     private String ensureServiceName(ObjectMeta serviceMetadata, ServiceBuilder service, String defaultServiceName) {
@@ -611,5 +620,24 @@ public class DefaultServiceEnricher extends BaseEnricher {
             return "TCP";
         }
         return protocol;
+    }
+
+    public static Integer getPortToExpose(ServiceBuilder serviceBuilder) {
+        ServiceSpec spec = serviceBuilder.buildSpec();
+        if (spec != null) {
+            final List<ServicePort> ports = spec.getPorts();
+            if (ports != null && !ports.isEmpty()) {
+                for (ServicePort port : ports) {
+                    if (Objects.equals(port.getName(), "http") || Objects.equals(port.getProtocol(), "http") ) {
+                        return port.getPort();
+                    }
+                }
+                ServicePort servicePort = ports.iterator().next();
+                if (servicePort.getPort() != null) {
+                    return servicePort.getPort();
+                }
+            }
+        }
+        return null;
     }
 }

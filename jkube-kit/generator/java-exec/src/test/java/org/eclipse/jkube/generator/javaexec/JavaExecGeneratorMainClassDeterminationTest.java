@@ -14,260 +14,160 @@
 package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.jar.Attributes;
+import java.util.Map;
 
-import com.fasterxml.jackson.databind.util.ClassUtil;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import mockit.Invocation;
-import mockit.Mock;
-import mockit.MockUp;
-import mockit.Mocked;
-import org.apache.maven.model.Build;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.FileUtil;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 /**
  * Checking how the JavaExecGenerator checks the need to set a main class as environment variable JAVA_MAIN_CLASS
  * in various situations
  *
- * @author: Oliver Weise
- * @since: 2016-11-30
+ * @author Oliver Weise
  */
-public class JavaExecGeneratorMainClassDeterminationTest {
-
-    @Mocked
-    KitLogger log;
-
-    // Only to mock unwanted fatjar directory functionality
-    public static class MockJavaExecGenerator extends MockUp<JavaExecGenerator> {
-
-        @Mock
-        protected void addAssembly(AssemblyConfiguration.Builder builder) throws MojoExecutionException {
-
-        }
-
+class JavaExecGeneratorMainClassDeterminationTest {
+    private KitLogger log;
+    private JavaProject project;
+    private FatJarDetector fatJarDetector;
+    private FatJarDetector.Result fatJarDetectorResult;
+    private ProcessorConfig processorConfig;
+    @BeforeEach
+    public void setUp() {
+        log = mock(KitLogger.class);
+        project = mock(JavaProject.class);
+        fatJarDetector = mock(FatJarDetector.class);
+        fatJarDetectorResult = mock(FatJarDetector.Result.class);
+        processorConfig = new ProcessorConfig();
+        when(project.getVersion()).thenReturn("1.33.7-SNAPSHOT");
+        when(project.getOutputDirectory()).thenReturn(new File("/the/output/directory"));
     }
 
-    public static class MockFatJarDetector extends MockUp<FatJarDetector> {
-
-        private final boolean findClass;
-
-        public MockFatJarDetector(boolean findClass) {
-            this.findClass = findClass;
-        }
-
-        @Mock
-        FatJarDetector.Result scan(Invocation invocation) {
-
-            if (!findClass) {
-                return null;
-            }
-
-            FatJarDetector detector = invocation.getInvokedInstance();
-            return detector.new Result(
-                    new File("/the/archive/file"),
-                    "the.fatjar.main.ClassName",
-                    new Attributes()
-            );
-        }
-
-    }
-
-    public static class MockBuild extends MockUp<Build> {
-
-        @Mock
-        public String getDirectory() {
-            return "/the/directory";
-        }
-
-        @Mock
-        public String getOutputDirectory() {
-            return "/the/output/directory";
-        }
-
-    }
-
-    public static class MockMavenProject extends MockUp<MavenProject> {
-
-        @Mock
-        public Build getBuild() {
-
-            return new Build();
-        }
-
-    }
-
-    public static class MockClassUtils extends MockUp<ClassUtil> {
-
-        @Mock
-        public static List<String> findMainClasses(File rootDir) throws IOException {
-            return Collections.singletonList("the.detected.MainClass");
-        }
-
-    }
-
-    public static class MockProcessorConfig extends MockUp<ProcessorConfig> {
-
-        private final String mainClassName;
-
-        public MockProcessorConfig(String s) {
-            this.mainClassName = s;
-        }
-
-        @Mock
-        public String getConfig(String name, String key) {
-            if ("java-exec".equals(name)) {
-                if (JavaExecGenerator.Config.mainClass.toString().equals(key)) {
-                    return this.mainClassName;
-                }
-                if ("name".equals(key)) {
-                    return "TheImageName";
-                }
-                if ("webPort".equals(key)) {
-                    return "8080";
-                }
-                if ("jolokiaPort".equals(key)) {
-                    return "1234";
-                }
-                if ("prometheusPort".equals(key)) {
-                    return "2345";
-                }
-                if ("targetDir".equals(key)) {
-                    return "/the/target/dir";
-                }
-            }
-
-            return null;
-
-        }
-    }
 
     /**
      * The main class is determined via config in a non-fat-jar deployment
-     * @throws MojoExecutionException
+     *
      */
     @Test
-    public void testMainClassDeterminationFromConfig() throws MojoExecutionException {
-
-        new MockBuild();
-        new MockProcessorConfig("the.main.ClassName");
-        new MockMavenProject();
-
-        final GeneratorContext generatorContext = new GeneratorContext.Builder()
-                .project(new MavenProject())
-                .config(new ProcessorConfig())
-                .strategy(OpenShiftBuildStrategy.docker)
+    void testMainClassDeterminationFromConfig() {
+        // Given
+        final Map<String, Object> configurations = new HashMap<>();
+        configurations.put("mainClass", "the.main.ClassName");
+        configurations.put("name", "TheImageName");
+        processorConfig.getConfig().put("java-exec", configurations);
+        final GeneratorContext generatorContext = GeneratorContext.builder()
+                .project(project)
+                .config(processorConfig)
+                .strategy(JKubeBuildStrategy.docker)
                 .logger(log)
                 .build();
 
         JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
 
-        final List<ImageConfiguration> images = new ArrayList<ImageConfiguration>();
+        List<ImageConfiguration> customized = generator.customize(new ArrayList<>(), false);
 
-        List<ImageConfiguration> customized = generator.customize(images, false);
-
-        assertEquals("1 images returned", (long) 1, (long) customized.size());
-
-        ImageConfiguration imageConfig = customized.get(0);
-
-        assertEquals("Image name", "TheImageName", imageConfig.getName());
-        assertEquals("Main Class set as environment variable",
-                "the.main.ClassName",
-                imageConfig.getBuildConfiguration().getEnv().get(JavaExecGenerator.JAVA_MAIN_CLASS_ENV_VAR));
-
-
+        assertThat(customized).singleElement()
+                        .hasFieldOrPropertyWithValue("name", "TheImageName")
+                        .extracting(ImageConfiguration::getBuildConfiguration)
+                        .extracting(BuildConfiguration::getEnv)
+                        .asInstanceOf(InstanceOfAssertFactories.MAP)
+                        .as("Main Class set as environment variable")
+                        .containsEntry("JAVA_MAIN_CLASS", "the.main.ClassName");
     }
 
     /**
      * The main class is determined via main class detection in a non-fat-jar deployment
-     * @throws MojoExecutionException
+     *
      */
     @Test
-    @Ignore
-    public void testMainClassDeterminationFromDetectionOnNonFatJar() throws MojoExecutionException {
-
-        new MockBuild();
-        new MockProcessorConfig(null);
-        new MockMavenProject();
-        new MockFatJarDetector(false);
-        new MockClassUtils();
-
-        final GeneratorContext generatorContext = new GeneratorContext.Builder()
-                .project(new MavenProject())
-                .config(new ProcessorConfig())
-                .strategy(OpenShiftBuildStrategy.docker)
+    void testMainClassDeterminationFromDetectionOnNonFatJar() {
+        try (MockedConstruction<MainClassDetector> mainClassDetectorMockedConstruction = mockConstruction(MainClassDetector.class,
+            (mock, ctx) -> when(mock.getMainClass()).thenReturn("the.detected.MainClass"))) {
+            File baseDir = new File("test-dir");
+            processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheNonFatJarImageName"));
+            when(project.getBaseDirectory()).thenReturn(baseDir);
+            when(fatJarDetector.scan()).thenReturn(null);
+            final GeneratorContext generatorContext = GeneratorContext.builder()
+                .project(project)
+                .config(processorConfig)
+                .strategy(JKubeBuildStrategy.docker)
                 .logger(log)
                 .build();
 
-        JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
+            JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
 
-        final List<ImageConfiguration> images = new ArrayList<ImageConfiguration>();
+            List<ImageConfiguration> customized = generator.customize(new ArrayList<>(), false);
 
-        List<ImageConfiguration> customized = generator.customize(images, false);
-
-        assertEquals("1 images returned", (long) 1, (long) customized.size());
-
-        ImageConfiguration imageConfig = customized.get(0);
-
-        assertEquals("Image name", "TheImageName", imageConfig.getName());
-        assertEquals("Main Class set as environment variable",
-                "the.detected.MainClass",
-                imageConfig.getBuildConfiguration().getEnv().get(JavaExecGenerator.JAVA_MAIN_CLASS_ENV_VAR));
-
-
+            assertThat(mainClassDetectorMockedConstruction.constructed()).hasSize(1);
+            assertThat(customized).singleElement()
+                .hasFieldOrPropertyWithValue("name", "TheNonFatJarImageName")
+                .extracting(ImageConfiguration::getBuildConfiguration)
+                .extracting(BuildConfiguration::getEnv)
+                .asInstanceOf(InstanceOfAssertFactories.MAP)
+                .as("Main Class set as environment variable")
+                .containsEntry("JAVA_MAIN_CLASS", "the.detected.MainClass");
+        }
     }
 
     /**
      * The main class is determined as the Main-Class of a fat jar
-     * @throws MojoExecutionException
+     *
      */
     @Test
-    public void testMainClassDeterminationFromFatJar() throws MojoExecutionException {
+    void testMainClassDeterminationFromFatJar() {
+        try (MockedConstruction<FatJarDetector> fatJarDetector = mockConstruction(FatJarDetector.class,
+                 (mock, ctx) -> {
+                     File fatJarArchive = new File("fat.jar");
+                     when(fatJarDetectorResult.getArchiveFile()).thenReturn(fatJarArchive);
+                     when(mock.scan()).thenReturn(fatJarDetectorResult);
+                 });
+             MockedStatic<FileUtil> fileUtilMockedStatic = mockStatic(FileUtil.class)) {
+            File baseDir = mock(File.class);
+            processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheFatJarImageName"));
+            when(project.getBaseDirectory()).thenReturn(baseDir);
+            when(project.getBuildPackageDirectory()).thenReturn(baseDir);
+            fileUtilMockedStatic.when(() -> FileUtil.getRelativePath(any(File.class), any(File.class))).thenReturn(baseDir);
+            final GeneratorContext generatorContext = GeneratorContext.builder()
+                    .project(project)
+                    .config(processorConfig)
+                    .strategy(JKubeBuildStrategy.docker)
+                    .logger(log)
+                    .build();
 
-        new MockBuild();
-        new MockProcessorConfig(null);
-        new MockMavenProject();
-        new MockFatJarDetector(true);
-        new MockJavaExecGenerator();
+            JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
 
-        final GeneratorContext generatorContext = new GeneratorContext.Builder()
-                .project(new MavenProject())
-                .config(new ProcessorConfig())
-                .strategy(OpenShiftBuildStrategy.docker)
-                .logger(log)
-                .build();
+            List<ImageConfiguration> customized = generator.customize(new ArrayList<>(), false);
 
-
-        JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
-
-        final List<ImageConfiguration> images = new ArrayList<ImageConfiguration>();
-
-        List<ImageConfiguration> customized = generator.customize(images, false);
-
-        assertEquals("1 images returned", (long) 1, (long) customized.size());
-
-        ImageConfiguration imageConfig = customized.get(0);
-
-        assertEquals("Image name", "TheImageName", imageConfig.getName());
-        assertNull("Main Class is NOT set as environment variable#",
-                imageConfig.getBuildConfiguration().getEnv().get(JavaExecGenerator.JAVA_MAIN_CLASS_ENV_VAR));
-
-
+            assertThat(fatJarDetector.constructed()).hasSize(1);
+            assertThat(customized).singleElement()
+                    .hasFieldOrPropertyWithValue("name", "TheFatJarImageName")
+                    .extracting(ImageConfiguration::getBuildConfiguration)
+                    .extracting(BuildConfiguration::getEnv)
+                    .asInstanceOf(InstanceOfAssertFactories.MAP)
+                    .as("Main Class is NOT set as environment variable#")
+                    .doesNotContainEntry("JAVA_MAIN_CLASS", null);
+        }
     }
-
 
 }

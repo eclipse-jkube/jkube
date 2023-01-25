@@ -13,76 +13,65 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.visitor.MetadataVisitor;
-import org.eclipse.jkube.maven.enricher.api.visitor.SelectorVisitor;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.visitor.MetadataVisitor;
+
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 
 public class DefaultMetadataEnricher extends BaseEnricher {
 
-    // List of visitors used to create with labels
-    private MetadataVisitor<?>[] metaDataVisitors = null;
-    private SelectorVisitor<?>[] selectorVisitorCreators = null;
-
-    // context used by enrichers
-    private final ProcessorConfig defaultEnricherConfig;
-
     private final ResourceConfig resourceConfig;
 
-    public DefaultMetadataEnricher(MavenEnricherContext buildContext) {
+    public DefaultMetadataEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-metadata");
-
-        this.defaultEnricherConfig = buildContext.getConfiguration().getProcessorConfig().orElse(ProcessorConfig.EMPTY);
-        this.resourceConfig = buildContext.getConfiguration().getResource().orElse(null);
+        this.resourceConfig = buildContext.getConfiguration().getResource();
     }
 
-    private void init() {
-
-        this.metaDataVisitors = new MetadataVisitor[] {
-                new MetadataVisitor.DeploymentBuilderVisitor(resourceConfig),
-                new MetadataVisitor.DeploymentConfigBuilderVisitor(resourceConfig),
-                new MetadataVisitor.ReplicaSet(resourceConfig),
-                new MetadataVisitor.ReplicationControllerBuilderVisitor(resourceConfig),
-                new MetadataVisitor.ServiceBuilderVisitor(resourceConfig),
-                new MetadataVisitor.PodTemplateSpecBuilderVisitor(resourceConfig),
-                new MetadataVisitor.DaemonSetBuilderVisitor(resourceConfig),
-                new MetadataVisitor.StatefulSetBuilderVisitor(resourceConfig),
-                new MetadataVisitor.JobBuilderVisitor(resourceConfig),
-                new MetadataVisitor.ImageStreamBuilderVisitor(resourceConfig),
-                new MetadataVisitor.BuildConfigBuilderVisitor(resourceConfig),
-                new MetadataVisitor.BuildBuilderVisitor(resourceConfig),
-                new MetadataVisitor.IngressBuilderVisitor(resourceConfig)
+    private MetadataVisitor<?>[]  visitors() {
+        return new MetadataVisitor[] {
+            MetadataVisitor.deployment(resourceConfig),
+            MetadataVisitor.extensionsDeployment(resourceConfig),
+            MetadataVisitor.deploymentConfig(resourceConfig),
+            MetadataVisitor.replicaSet(resourceConfig),
+            MetadataVisitor.replicationController(resourceConfig),
+            MetadataVisitor.service(resourceConfig),
+            MetadataVisitor.podTemplateSpec(resourceConfig),
+            MetadataVisitor.daemonSet(resourceConfig),
+            MetadataVisitor.statefulSet(resourceConfig),
+            MetadataVisitor.job(resourceConfig),
+            MetadataVisitor.imageStream(resourceConfig),
+            MetadataVisitor.buildConfig(resourceConfig),
+            MetadataVisitor.build(resourceConfig),
+            MetadataVisitor.extensionsIngress(resourceConfig),
+            MetadataVisitor.ingressV1beta1(resourceConfig),
+            MetadataVisitor.ingressV1(resourceConfig),
+            MetadataVisitor.serviceAccount(resourceConfig),
+            MetadataVisitor.route(resourceConfig),
+            // Apply last: Other MetadataVisitor might initiate the metadata field for the item
+            MetadataVisitor.metadata(resourceConfig)
         };
     }
 
     @Override
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
-        init();
-        // Enrich labels
-        enrichLabels(defaultEnricherConfig, builder);
+        enrichLabelsAndAnnotations(builder);
     }
 
     /**
      * Enrich the given list with labels.
      *
-     * @param builder the build to create with labels
+     * @param builder the build to create with labels and annotations
      */
-    private void enrichLabels(ProcessorConfig config, KubernetesListBuilder builder) {
-        visit(config, builder, metaDataVisitors);
+    private void enrichLabelsAndAnnotations(KubernetesListBuilder builder) {
+        visit(builder, visitors());
     }
 
-    private void visit(ProcessorConfig config, KubernetesListBuilder builder, MetadataVisitor<?>[] visitors) {
-        MetadataVisitor.setProcessorConfig(config);
-        try {
-            for (MetadataVisitor<?> visitor : visitors) {
-                builder.accept(visitor);
-            }
-        } finally {
-            MetadataVisitor.clearProcessorConfig();
+    private void visit(KubernetesListBuilder builder, MetadataVisitor<?>[] visitors) {
+        for (MetadataVisitor<?> visitor : visitors) {
+            builder.accept(visitor);
         }
     }
 

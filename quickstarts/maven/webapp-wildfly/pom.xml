@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>jkube-maven-sample-webapp-wildfly</artifactId>
+  <version>1.10.1</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: Webapp :: Wildfly</name>
+  <packaging>war</packaging>
+
+  <description>
+    Java Web Application with a static index.html resource.
+    Demonstrates how to create a container image with an embedded WildFly server using Eclipse JKube.
+    WildFly is used instead of Apache Tomcat because there is a WildFly specific plugin configuration.
+    Eclipse JKube detects this plugin and chooses a WildFly specific base container image.
+  </description>
+
+  <properties>
+    <jkube.version>${project.version}</jkube.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <wildfly.plugin.version>2.0.1.Final</wildfly.plugin.version>
+    <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
+  </properties>
+
+  <build>
+    <finalName>jkube-maven-sample-webapp-wildfly</finalName>
+    <plugins>
+      <plugin>
+        <artifactId>maven-war-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <failOnMissingWebXml>false</failOnMissingWebXml>
+        </configuration>
+      </plugin>
+      <!-- this will cause the generator to trigger -->
+      <plugin>
+        <groupId>org.wildfly.plugins</groupId>
+        <artifactId>wildfly-maven-plugin</artifactId>
+        <version>${wildfly.plugin.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
+        <version>${jkube.version}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>openshift-maven-plugin</artifactId>
+        <version>${jkube.version}</version>
+        <configuration>
+            <verbose>true</verbose>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

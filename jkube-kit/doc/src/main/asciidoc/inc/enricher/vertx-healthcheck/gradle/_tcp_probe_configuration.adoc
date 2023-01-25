@@ -1,0 +1,20 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+  enricher {
+    config {
+      'jkube-healthcheck-vertx' {
+         liveness {
+           type = 'tcp'
+           port = '8081'
+         }
+         readiness {
+           // Use HTTP Get probe
+           path = '/ping'
+           port = '8080'
+         }
+      }
+    }
+  }
+}
+----

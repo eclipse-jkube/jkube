@@ -23,7 +23,7 @@ import org.eclipse.jkube.kit.build.api.model.VolumeCreateConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogCallback;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogGetHandle;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpec;
-import org.eclipse.jkube.kit.config.image.build.ArchiveCompression;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 
 import java.io.File;
@@ -197,9 +197,10 @@ public interface DockerAccess {
      * @param image the image to pull.
      * @param authConfig authentication configuration used when pulling an image
      * @param registry an optional registry from where to pull the image. Can be null.
+     * @param options additional query arguments to add when creating the image. Can be null.
      * @throws DockerAccessException if the image couldn't be pulled.
      */
-    void pullImage(String image, AuthConfig authConfig, String registry) throws DockerAccessException;
+    void pullImage(String image, AuthConfig authConfig, String registry, CreateImageOptions options) throws DockerAccessException;
 
     /**
      * Push an image to a registry. An registry can be specified which is used as target

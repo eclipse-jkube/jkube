@@ -1,0 +1,28 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+blank_issues_enabled: true
+contact_links:
+  - name: Eclipse JKube Community Chat (suitable for short, simple casual discussions)
+    url: https://gitter.im/eclipse/jkube
+    about: Please ask and answer questions here.
+  - name: Eclipse JKube Mailing List
+    url: https://accounts.eclipse.org/mailing-list/jkube-dev
+    about: Eclipse JKube Developer Discussions
+  - name: Eclipse JKube GitHub Discussions
+    url: https://github.com/eclipse/jkube/discussions
+    about: Eclipse JKube GitHub Discussions
+  - name: Stack Overflow
+    url: https://stackoverflow.com/questions/tagged/jkube
+    about: Questions related to StackOverflow can be tagged with jkube tag

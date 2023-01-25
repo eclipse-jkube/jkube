@@ -1,0 +1,48 @@
+{
+  "contextDir": "context",
+  "dockerFile": "Dockerfile.jvm",
+  "dockerArchive": "docker-archive.tar",
+  "filter": "@",
+  "from": "jkube-images/image:1337",
+  "fromExt": {
+    "name": "jkube-images/image:ext"
+  },
+  "maintainer": "A-Team",
+  "ports": ["8080"],
+  "shell": {
+    "shell": "java -version"
+  },
+  "imagePullPolicy": "Always",
+  "runCmds": ["ls -la", "sleep 1", "echo done"],
+  "cleanup": "none",
+  "nocache": true,
+  "optimise": false,
+  "volumes": ["volume 1"],
+  "tags": ["latest", "1337"],
+  "env":{
+    "JAVA_OPTS": "-Xmx1337m"
+  },
+  "labels":{
+    "label-1": "label"
+  },
+  "args":{
+    "CODE_VERSION": "latest"
+  },
+  "entryPoint": {
+    "exec": ["java -version"]
+  },
+  "workdir": "/tmp",
+  "cmd": {
+    "exec": ["sh", "-c"]
+  },
+  "user": "root",
+  "healthCheck": {},
+  "assembly": {
+    "name": "the-assembly"
+  },
+  "skip": false,
+  "compression": "gzip",
+  "buildOptions": {
+    "NetworkMode": "bridge"
+  }
+}

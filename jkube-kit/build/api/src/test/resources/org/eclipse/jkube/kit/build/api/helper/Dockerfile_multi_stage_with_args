@@ -1,0 +1,7 @@
+ARG VERSION:latest
+FROM fabric8/s2i-java:$VERSION AS BUILD
+ARG FULL_IMAGE=busybox:latest
+FROM $FULL_IMAGE AS DEPLOYABLE
+ARG REPO_1:docker.io/library
+ARG IMAGE-1:openjdk
+FROM $REPO_1/${IMAGE-1}:$VERSION

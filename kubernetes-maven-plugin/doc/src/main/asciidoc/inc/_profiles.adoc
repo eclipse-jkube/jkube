@@ -4,7 +4,8 @@
 
 Profiles can be used to combine a set of enrichers and generators and to give this combination a referable name.
 
-Profiles are defined in YAML. The following example shows a simple profiles which uses only the <<generator-spring-boot, Spring Boot generator>> and some enrichers adding for adding default resources:
+Profiles are defined in YAML. The following example shows a simple profiles which uses only the
+<<generator-spring-boot, Spring Boot generator>> and some enrichers adding for adding default resources:
 
 .Profile Definition
 [source, yaml]
@@ -27,7 +28,7 @@ Profiles are defined in YAML. The following example shows a simple profiles whic
         type: NodePort
   order: 10 # <7>
 - name: another-profile
-  ....
+# ....
 ----
 <1> Profile's name
 <2> <<generators, Generators>> to use
@@ -45,22 +46,23 @@ Each `profiles.yml` has a list of profiles which are defined with these elements
 | Element | Description
 
 | *name*
-| Profile name. This plugin comes with a set of <<profile-predefined,predefined profiles>>. Those profiles can be extended by defining a custom profile with the same name of the profile to extend.
+| Profile name. This plugin comes with a set of <<profiles-predefined, predefined profiles>>. Those profiles can be
+  extended by defining a custom profile with the same name of the profile to extend.
 
 | *generator*
-| List of generator definitions. See <<generator-enricher-definition, below>> for the format of this definitions.
+| List of generator definitions. See <<generator-enricher-definition, below>> for the format of these definitions.
 
 | *enricher*
-| List of enrichers definitions. See <<generator-enricher-definition, below>> for the format of this definitions.
+| List of enrichers definitions. See <<generator-enricher-definition, below>> for the format of these definitions.
 
 | *order*
 | The order of the profile which is used when profiles of the same name are merged.
 |===
 
 [[generator-enricher-definition]]
-## Generator and Enricher definitions
+== Generator and Enricher definitions
 
-The definition of generators and enrichers in the profile follow the same format:
+The definition of generators and enrichers in the profile follows the same format:
 
 .Generator and Enericher definition
 [cols="1,6"]
@@ -74,11 +76,11 @@ The definition of generators and enrichers in the profile follow the same format
 | List of generators or enrichers. These have precedences over _includes_ and will exclude a processor even when referenced in an _includes_ sections
 
 | *config*
-| Configuration for genertors or enrichers. This is a map where the keys are the name of the processor to configure and the value is again a map with configuration keys and values specific to the processor. See the documentation of the respective generator or enricher for the available configuration keys.
+| Configuration for generators or enrichers. This is a map where the keys are the name of the processor to configure and the value is again a map with configuration keys and values specific to the processor. See the documentation of the respective generator or enricher for the available configuration keys.
 |===
 
 [[profiles-lookup-order]]
-## Lookup order
+== Lookup order
 
 Profiles can be defined externally either directly as a build resource in `src/main/jkube/profiles.yml` or provided as part of a plugin's dependency where it is supposed to be included as `META-INF/jkube/profiles.yml`. Multiple profiles can be include in these `profiles.yml` descriptors as a list:
 
@@ -125,22 +127,23 @@ Profile with the same order number are merged according to the lookup order desc
 The configuration for enrichers and generators are merged, too, where higher order profiles override configuration values with the same key of lower order profile configuration.
 
 [[profiles-using]]
-## Using Profiles
+== Using Profiles
 
-Profiles can be selected by defining them in the plugin configuration, by giving a system property or by using <<profile-resource-fragments,special directories>> in the directory holding the resource fragments.
+Profiles can be selected by defining them in the plugin configuration, by giving a system property or by using
+<<profiles-resource-fragments,special directories>> in the directory holding the resource fragments.
 
 .Profile used in plugin configuration
 
 Here is an example how the profile can be used in a plugin configuration:
 
-[source, xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
   <configuration>
     <profile>my-spring-boot-apps</profile> <!--1-->
-    .....
+    <!-- ... -->
   </configuration>
 </plugin>
 ----
@@ -150,9 +153,9 @@ Here is an example how the profile can be used in a plugin configuration:
 
 Alternatively a profile can be also specified on the command line when calling Maven:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn -Djkube.profile=my-spring-boot-apps k8s:build k8s:deploy
+mvn -Djkube.profile=my-spring-boot-apps {goal-prefix}:build {goal-prefix}:deploy
 ----
 
 If a configuration for enrichers and generators are provided as part of the plugin's `<configuration>` then this takes precedence over any profile specified.
@@ -164,9 +167,9 @@ Profiles are also very useful when used together with resource fragments in `src
 
 For example, consider the following directory layout:
 
-[source]
+[source, subs="+attributes"]
 ----
-src/main/k8s:
+src/main/{goal-prefix}:
   app-rc.yml
   app-svc.yml
   raw/ -->
@@ -177,7 +180,7 @@ src/main/k8s:
 Here, the resource descriptors `app-rc.yml` and `app-svc.yml` are enhanced with the enrichers defined in the main configuration. The files two files `couchbase-rc.yml` and `couchbase-svc.yml` in the sub directory `raw/` instead are enriched with the profile **raw**. This is a predefined profile which includes no enricher at all, so the couchbase resource objects are not enriched and taken over literally. This is an easy way how you can fine tune enrichment for different object set.
 
 [[profiles-predefined]]
-## Predefined Profiles
+== Predefined Profiles
 
 This plugin comes with a list of the following predefined profiles:
 
@@ -227,7 +230,6 @@ A profile can also extend another profile to avoid repetition e.g of generators 
       - jkube-controller-from-configuration
       - jkube-openshift-deploymentconfig
       - jkube-openshift-project
-      - jkube-openshift-service-expose
       - jkube-openshift-route
 
 ----

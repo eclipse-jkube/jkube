@@ -142,8 +142,16 @@ public class ImageName {
         return builder.toString();
     }
 
-    private boolean isRegistry(String part) {
-        return part.contains(".") || part.contains(":");
+    private boolean containsPeriodOrColon(String part) {
+        return containsPeriod(part) || containsColon(part);
+    }
+
+    private boolean containsPeriod(String part) {
+        return part.contains(".");
+    }
+
+    private boolean containsColon(String part) {
+        return part.contains(":");
     }
 
     /**
@@ -229,7 +237,6 @@ public class ImageName {
      * Check whether the given name validates against the Docker rules for names
      *
      * @param image image name to validate
-     * d@throws IllegalArgumentException if the name doesnt validate
      */
     public static void validate(String image) {
         // Validation will be triggered during construction
@@ -257,11 +264,11 @@ public class ImageName {
                         checks[i], value, checkPattern.pattern()));
             }
         }
-        if (errors.size() > 0) {
+        if (!errors.isEmpty()) {
             StringBuilder buf = new StringBuilder();
-            buf.append(String.format("Given Docker name '%s' is invalid:\n", getFullName()));
+            buf.append(String.format("Given Docker name '%s' is invalid:%n", getFullName()));
             for (String error : errors) {
-                buf.append(String.format("   * %s\n",error));
+                buf.append(String.format("   * %s%n",error));
             }
             buf.append("See http://bit.ly/docker_image_fmt for more details");
             throw new IllegalArgumentException(buf.toString());
@@ -275,14 +282,11 @@ public class ImageName {
             user = null;
             repository = parts[0];
         } else if (parts.length >= 2) {
-            if (isRegistry(parts[0])) {
-                registry = parts[0];
+            if (containsPeriodOrColon(parts[0])) {
                 if (parts.length > 2) {
-                    user = parts[1];
-                    repository = joinTail(parts);
+                    assignRegistryUserAndRepository(parts);
                 } else {
-                    user = null;
-                    repository = parts[1];
+                    checkWhetherFirstElementIsUserOrRegistryAndAssign(parts);
                 }
             } else {
                 registry = null;
@@ -290,6 +294,30 @@ public class ImageName {
                 repository = rest;
             }
         }
+    }
+
+    private void checkWhetherFirstElementIsUserOrRegistryAndAssign(String[] parts) {
+        if (containsColon(parts[0])) {
+            assignRegistryAndRepository(parts);
+        } else {
+            assignUserAndRepository(parts);
+        }
+    }
+
+    private void assignRegistryUserAndRepository(String[] parts) {
+        registry = parts[0];
+        user = parts[1];
+        repository = joinTail(parts);
+    }
+
+    private void assignUserAndRepository(String[] parts) {
+        user = parts[0];
+        repository = String.join("/", parts);
+    }
+
+    private void assignRegistryAndRepository(String[] parts) {
+        registry = parts[0];
+        repository = parts[1];
     }
 
     // ================================================================================================
@@ -300,24 +328,24 @@ public class ImageName {
 
     // ---------------------------------------------------------------------
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L18
-    private final String nameComponentRegexp = "[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?";
+    private static final String nameComponentRegexp = "[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?";
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L25
-    private final String domainComponentRegexp = "(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])";
+    private static final String domainComponentRegexp = "(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])";
 
     // ==========================================================
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L18
-    private final Pattern NAME_COMP_REGEXP = Pattern.compile(nameComponentRegexp);
+    private static final Pattern NAME_COMP_REGEXP = Pattern.compile(nameComponentRegexp);
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L53
-    private final Pattern IMAGE_NAME_REGEXP = Pattern.compile(nameComponentRegexp + "(?:(?:/" + nameComponentRegexp + ")+)?");
+    private static final Pattern IMAGE_NAME_REGEXP = Pattern.compile(nameComponentRegexp + "(?:(?:/" + nameComponentRegexp + ")+)?");
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L31
-    private final Pattern DOMAIN_REGEXP = Pattern.compile("^" + domainComponentRegexp + "(?:\\." + domainComponentRegexp + ")*(?::[0-9]+)?$");
+    private static final Pattern DOMAIN_REGEXP = Pattern.compile("^" + domainComponentRegexp + "(?:\\." + domainComponentRegexp + ")*(?::[0-9]+)?$");
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L37
-    private final Pattern TAG_REGEXP = Pattern.compile("^[\\w][\\w.-]{0,127}$");
+    private static final Pattern TAG_REGEXP = Pattern.compile("^[\\w][\\w.-]{0,127}$");
 
-    private final Pattern DIGEST_REGEXP = Pattern.compile("^sha256:[a-z0-9]{32,}$");
+    private static final Pattern DIGEST_REGEXP = Pattern.compile("^sha256:[a-z0-9]{32,}$");
 }

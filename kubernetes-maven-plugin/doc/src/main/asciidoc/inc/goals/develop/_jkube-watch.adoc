@@ -1,39 +1,24 @@
 
-[[k8s:watch]]
-== *k8s:watch*
+[[jkube:watch]]
+== *{goal-prefix}:watch*
 
 This goal is used to monitor the project workspace for changes and automatically trigger a redeploy of the application
-running on Kubernetes.
+running on Kubernetes. There are two kinds of watchers present at the moment:
 
-In order to use k8s:watch for spring-boot, you need to make sure that `devtools` is included in the repacked
-archive, as shown in the following listing:
-----
-		<plugin>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-maven-plugin</artifactId>
-			<configuration>
-				<excludeDevtools>false</excludeDevtools>
-			</configuration>
-		</plugin>
-----
-
-Then you need to set a `spring.devtools.remote.secret` in application.properties, as shown in the following example:
-
-----
-spring.devtools.remote.secret=mysecret
-----
+- Docker Image Watcher(watches docker images)
+- Spring Boot Watcher(based on Spring Boot Devtools)
 
 Before entering the watch mode, this goal must generate the docker image and the Kubernetes resources
 (optionally including some development libraries/configuration),
 and deploy the app on Kubernetes. Lifecycle bindings should be configured as follows to allow
 the generation of such resources.
 
-.Lifecycle bindings for k8s:watch
-[source, xml, indent=0]
+.Lifecycle bindings for {goal-prefix}:watch
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
 
   <!-- ... -->
 
@@ -51,9 +36,9 @@ the generation of such resources.
 For any application having `resource` and `build` goals bound to the lifecycle, the following
 command can be used to run the watch task.
 
-[source, bash]
+[source, bash, subs="+attributes"]
 ----
-mvn k8s:watch
+mvn {goal-prefix}:watch
 ----
 
 This plugin supports different watcher providers, enabled automatically if the project satisfies certain conditions.
@@ -69,23 +54,45 @@ This watcher is enabled by default for all Spring Boot projects. It performs the
 * tails the log of the latest running pod for your application
 * watches the local development build of your Spring Boot based application and then triggers a reload of the application when there are changes
 
+You need to make sure that `devtools` is included in the repacked archive, as shown in the following listing:
+
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-maven-plugin</artifactId>
+  <configuration>
+    <excludeDevtools>false</excludeDevtools>
+  </configuration>
+</plugin>
+----
+
+Then you need to set a `spring.devtools.remote.secret` in application.properties, as shown in the following example:
+
+----
+spring.devtools.remote.secret=mysecret
+----
+
+WARNING: Spring devtools automatically ignores projects named `spring-boot`, `spring-boot-devtools`,
+         `spring-boot-autoconfigure`, `spring-boot-actuator`, `and spring-boot-starter`
+
 You can try it on any spring boot application via:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:watch
+mvn {goal-prefix}:watch
 ----
 
 Once the goal starts up the spring boot RemoteSpringApplication it will watch for local development changes.
 
 e.g. if you edit the java code of your app and then build it via something like this:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
 mvn package
 ----
 
-You should see your app reload on the fly in the shell running the <<k8s:watch>> goal!
+You should see your app reload on the fly in the shell running the <<jkube:watch>> goal!
 
 There is also support for LiveReload as well.
 
@@ -94,11 +101,19 @@ There is also support for LiveReload as well.
 === Docker Image
 
 This is a generic watcher that can be used in Kubernetes mode only. Once activated, it listens for changes in the project workspace
- in order to trigger a redeploy of the application.
+ in order to trigger a redeploy of the application. This enables rebuilding of images and restarting of containers in case of updates.
+
+There are five watch modes, which can be specified in multiple ways:
+
+- `build`: Automatically rebuild one or more Docker images when one of the files selected by an assembly changes. This works for all files included in assembly.
+- `run`: Automatically restart your application when their associated images change.
+- `copy`:  Copy changed files into the running container. This is the fast way to update a container, however the target container must support hot deploy, too so that it makes sense. Most application servers like Tomcat supports this.
+- `both`: Enables both `build` and `run`. **This is the default**.
+- `none`:  Image is completely ignored for watching.
 
 The watcher can be activated e.g. by running this command in another shell:
 
-[source, sh]
+[source, sh, subs="+attributes"]
 ----
 mvn package
 ----
@@ -106,4 +121,86 @@ mvn package
 The watcher will detect that the binary artifact has changed and will first rebuild the docker image,
 then start a redeploy of the Kubernetes pod.
 
-It uses the watch feature of the https://dmp.jkube.io/#docker:watch[docker-maven-plugin] under the hood.
+It uses the watch feature of the https://dmp.fabric8.io/#docker:watch[docker-maven-plugin] under the hood.
+[[Supported-Properties-Watch]]
+=== Supported Properties for Watch goal
+
+.Options available with watch goal
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *kubernetesManifest*
+| The generated kubernetes YAML file.
+
+  Defaults to `${basedir}/target/classes/META-INF/jkube/kubernetes.yml`.
+| `jkube.kubernetesManifest`
+
+| *watchMode*
+a|
+How to watch for image changes.
+
+* `copy`: Copy watched artifacts into container
+* `build`: Build only images
+* `run`: Run images
+* `both`: Build and run images
+* `none`: Neither build nor run
+
+Defaults to `both`.
+
+| `jkube.watch.mode`
+
+| *watchInterval*
+| Interval in milliseconds (how often to check for changes).
+
+  Defaults to `5000`.
+| `jkube.watch.interval`
+
+| *keepRunning*
+| If set to true all containers will be kept running after {goal-prefix}:watch has been stopped.
+
+  Defaults to `false`.
+| `jkube.watch.keepRunning`
+
+| *watchPostGoal*
+| A maven goal which should be called if a rebuild or a restart has been performed.
+
+  This goal must have the format `<pluginGroupId>:<pluginArtifactId>:<goal>` and the plugin must be
+  configured in the pom.xml.
+
+  For example a post-goal `com.example:group:delete-pods` will trigger the `delete-pods`
+  goal of this hypothetic example.
+| `jkube.watch.postGoal`
+
+| *watchPostExec*
+| A command which is executed within the container after files are copied into this container
+  when watchMode is copy. Note that this container must be running.
+
+| `jkube.watch.postExec`
+
+| *keepContainer*
+| If this is set to `false` (and `keepRunning` is disabled) then all containers will be removed after
+  they have been stopped.
+
+  Defaults to `false`.
+| `jkube.watch.keepContainer`
+
+| *removeVolumes*
+| If set to `true` remove any volumes associated with the container as well.
+
+  This option will be ignored if either `keepContainer` or `keepRunning` is `true`.
+
+  Defaults to `false`.
+| `jkube.watch.removeVolumes`
+
+| *watchShowLogs*
+| If set to `true`, logs will be shown for watched container.
+| `jkube.watch.showLogs`
+
+| *watchFollow*
+| If `watchShowLogs` is set to `false`, and there is a run image configuration, logs are followed
+  if set to `true`.
+
+  Defaults to `false`.
+| `jkube.watch.follow`
+|===

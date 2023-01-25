@@ -16,74 +16,48 @@
 -->
 <!--
 Use
-
 mvn clean install -Dinvoker.test=<directory of single test>
-
 for running a single test.
+
+Use
+mvn -Dinvoker.mavenExecutable=mvnDebug clean verify -Dinvoker.test=configmap
+for running a single test with mvnDebug.
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.eclipse.jkube</groupId>
-    <artifactId>k8s-maven-plugin-build</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <artifactId>kubernetes-maven-plugin-parent</artifactId>
+    <version>1.11-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
-  <artifactId>kubernetes-maven-it</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <artifactId>kubernetes-maven-plugin-it</artifactId>
   <packaging>jar</packaging>
 
-  <name>Kubernetes Maven :: Integration Tests</name>
+  <name>Kubernetes Maven Plugin :: Integration Tests</name>
   <description>Integration tests for this maven plugin</description>
 
   <properties>
     <jkube.version>${project.version}</jkube.version>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
   </properties>
 
   <dependencies>
     <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.eclipse.jkube</groupId>
+      <artifactId>jkube-kit-common-it</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.consol.citrus</groupId>
-      <artifactId>citrus-core</artifactId>
+      <artifactId>citrus-validation-json</artifactId>
       <scope>test</scope>
-      <exclusions>
-        <exclusion>
-          <groupId>org.codehaus.groovy</groupId>
-          <artifactId>groovy</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.codehaus.groovy</groupId>
-          <artifactId>groovy-xml</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.codehaus.groovy</groupId>
-          <artifactId>groovy-json</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.codehaus.groovy</groupId>
-          <artifactId>groovy-jsr223</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-api</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.fasterxml.jackson</groupId>
-          <artifactId>jackson-core</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
-
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-yaml</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-
   </dependencies>
 
   <build>

@@ -1,0 +1,17 @@
+[[zero-config-scenario]]
+== Zero Configuration
+
+It's very common, especially when dealing with the inner development loop, that you
+don't need to provide any configuration for your Gradle project.
+You can get started simply by adding the plugin to your build.gradle file:
+
+.Example for setting up the {plugin} in build.gradle
+[source,groovy,subs="attributes+"]
+----
+plugins {
+  id 'org.eclipse.jkube.{pluginExtension}' version '{version}'
+}
+----
+
+In this case, {plugin} analyzes your project and configures the container image and the
+cluster configuration manifests using a set of opinionated defaults.

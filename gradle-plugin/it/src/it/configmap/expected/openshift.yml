@@ -1,0 +1,133 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.io/git-commit: "@ignore@"
+      prometheus.io/scrape: "true"
+      jkube.io/git-branch: "@ignore@"
+      prometheus.io/port: "9779"
+    labels:
+      provider: jkube
+      app: configmap
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: configmap
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: configmap
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    labels:
+      app: configmap
+      provider: jkube
+      version: 0.0.1-SNAPSHOT
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: jkube-annotation-directory
+  data:
+    first.properties: name = first
+    second.properties: name = second
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    labels:
+      app: configmap
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: jkube-annotation-file
+  data:
+    application.properties: |-
+      environment = test
+      foo = bar
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    labels:
+      app: configmap
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: jkube-gradle-sample-config-map
+  data:
+    A: B
+    test-configmap.properties: |
+      server.port = 8080
+      spring.application.name = configmap
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      provider: jkube
+      app: configmap
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: configmap
+  spec:
+    replicas: 1
+    selector:
+      app: configmap
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+    template:
+      metadata:
+        annotations:
+          jkube.io/git-commit: "@ignore@"
+          jkube.io/git-branch: "@ignore@"
+        labels:
+          provider: jkube
+          app: configmap
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          image: configmap:latest
+          imagePullPolicy: IfNotPresent
+          name: spring-boot
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 9779
+            name: prometheus
+            protocol: TCP
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          securityContext:
+            privileged: false
+    triggers:
+    - type: ConfigChange

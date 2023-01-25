@@ -1,0 +1,136 @@
+@startuml
+left to right direction
+!define background #EFEFEF
+!define packageBackground #fcf1e3
+!define packageColor #ef8604
+!define packageBorder packageColor
+!define componentBackground packageColor
+!define componentColor #FFFFFF
+!define componentBorder #A35A02
+!define noteBackground #05A3F0
+!define noteColor #FFFFFF
+!define noteBorder #006EA3
+!define arrowColor componentBorder
+!define mavenArrow #FF0000
+skinparam Padding 8
+skinparam Shadowing false
+skinparam backgroundColor background
+skinparam Arrow {
+  Color arrowColor
+}
+skinparam package {
+  FontColor packageColor
+  BackgroundColor packageBackground
+  BorderColor packageBorder
+}
+skinparam component {
+  FontColor componentColor
+  BackgroundColor componentBackground
+  BorderColor componentBorder
+}
+skinparam note {
+    FontColor noteColor
+    BackgroundColor noteBackground
+    BorderColor noteBorder
+}
+
+[MAVEN]
+
+package jkube.kit {
+    package kit.common {
+        [common]
+        [common-maven] --> [common]
+        [common-maven] -[mavenArrow]-> [MAVEN]
+    }
+    package kit.config {
+        [config-image] --> [common]
+        [config-resource] --> [common]
+        [config-service] --> [config-resource]
+        [config-service] --> [build-service-docker]
+    }
+    package kit.build {
+        [build-api] --> [config-image]
+        package kit.build.service {
+            [docker] --> [build-api]
+            [jib] --> [build-api]
+        }
+    }
+    package kit.enricher {
+        [enricher-api] --> [config-resource]
+        [enricher-api] --> [config-service]
+        [enricher-generic] --> [enricher-api]
+        [enricher-specific] --> [enricher-api]
+    }
+    package kit.generator {
+        [generator-api] --> [config-service]
+        note on link
+            Should depend on build-api
+        end note
+        [generator-java-exec] --> [generator-api]
+        [generator-karaf] --> [generator-api]
+        [generator-webapp] --> [generator-api]
+    }
+    package kit.resource {
+        package kit.resource.helm {
+            [resource-helm] --> [enricher-api]
+            note top of [resource-helm]: Makes more sense as part of enricher package
+        }
+    }
+    package kit.watcher {
+        [watcher-api] --> [config-service]
+        [watcher-standard] --> [watcher-api]
+    }
+    [profile] --> [config-resource]
+    ' Open Liberty
+    [openliberty] --> [enricher-specific]
+    [openliberty] --> [generator-java-exec]
+    ' Quarkus
+    [quarkus] --> [enricher-specific]
+    [quarkus] --> [generator-java-exec]
+    ' Spring Boot
+    [spring-boot] --> [enricher-specific]
+    [spring-boot] --> [generator-java-exec]
+    [spring-boot] --> [watcher-api]
+    ' Thorntail-V2
+    [thorntail] --> [enricher-specific]
+    [thorntail] --> [generator-java-exec]
+    ' VertX
+    [vertx] --> [enricher-specific]
+    [vertx] --> [generator-java-exec]
+    ' Wildfly
+    [wildfly] --> [enricher-specific]
+    [wildfly] --> [generator-java-exec]
+
+}
+
+package maven.plugins {
+    [docker-maven-plugin]
+    note top of [docker-maven-plugin]: TBD
+    [kubernetes-maven-plugin] --> [config-service]
+    [kubernetes-maven-plugin] -[mavenArrow]-> [common-maven]
+    [kubernetes-maven-plugin] --> [enricher-generic]
+    [kubernetes-maven-plugin] --> [enricher-specific]
+    [kubernetes-maven-plugin] --> [resource-helm]
+    [kubernetes-maven-plugin] --> [generator-java-exec]
+    [kubernetes-maven-plugin] --> [generator-karaf]
+    [kubernetes-maven-plugin] --> [generator-webapp]
+    [kubernetes-maven-plugin] --> [openliberty]
+    [kubernetes-maven-plugin] --> [quarkus]
+    [kubernetes-maven-plugin] --> [spring-boot]
+    [kubernetes-maven-plugin] --> [thorntail]
+    [kubernetes-maven-plugin] --> [vertx]
+    [kubernetes-maven-plugin] --> [wildfly]
+    [kubernetes-maven-plugin] --> [profile]
+    [kubernetes-maven-plugin] --> [watcher-standard]
+    [openshift-maven-plugin] --> [kubernetes-maven-plugin]
+}
+
+package gradle.plugins {
+    note "To be implemented" as GP1
+}
+
+maven.plugins --> jkube.kit
+gradle.plugins --> jkube.kit
+
+
+@enduml

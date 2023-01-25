@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.common;
 
 /**
  * @author roland
- * @since 30.05.17
  */
 public interface KitLogger {
 
@@ -103,6 +102,7 @@ public interface KitLogger {
      */
     default void progressFinished() {}
 
+    @SuppressWarnings("java:S106")
     class StdoutLogger implements KitLogger {
         @Override
         public void debug(String format, Object... params) {
@@ -131,10 +131,38 @@ public interface KitLogger {
 
     }
 
+    class SilentLogger implements KitLogger {
+
+        @Override
+        public void debug(String format, Object... params) {
+            // NOOP
+        }
+
+        @Override
+        public void info(String format, Object... params) {
+            // NOOP
+        }
+
+        @Override
+        public void warn(String format, Object... params) {
+            // NOOP
+        }
+
+        @Override
+        public void error(String format, Object... params) {
+            // NOOP
+        }
+
+        @Override
+        public boolean isDebugEnabled() {
+            return false;
+        }
+    }
+
     enum LogVerboseCategory {
         BUILD("build"), API("api");
 
-        private String category;
+        private final String category;
 
         LogVerboseCategory(String category) {
             this.category = category;
@@ -143,5 +171,5 @@ public interface KitLogger {
         public String getValue() {
             return category;
         }
-    };
+    }
 }

@@ -1,0 +1,45 @@
+plugins {
+    id 'org.springframework.boot' version '2.4.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.eclipse.jkube.kubernetes' version '1.10.1'
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.quickstarts.gradle'
+version = '1.5.1'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+kubernetes {
+    buildStrategy = 'jib'
+    images {
+        image {
+            name = 'jkube/spring-boot-jib-with-assembly'
+            build {
+                from = 'fabric8/java-centos-openjdk11-jdk:1.8.1'
+                assembly {
+                    layers = [{
+                        id = 'copy-test-file'
+                        files = [{
+                            source = file("${project.getRootDir()}/static/testFile.txt")
+                            outputDirectory = 'static'
+                        }]
+                    }]
+                    targetDir = '/deployments'
+                }
+                cmd {
+                    exec = ["java", "-jar", "/deployments/${project.name}-${project.version}.jar"]
+                }
+                ports = ['8080']
+            }
+        }
+    }
+}

@@ -30,9 +30,9 @@
   </parent>
 
   <scm>
-    <connection>scm:git:git://github.com/fabric8io/k8s-maven-plugin.git</connection>
-    <developerConnection>scm:git:git://github.com/fabric8io/k8s-maven-plugin.git</developerConnection>
-    <url>git://github.com/fabric8io/k8s-maven-plugin.git</url>
+    <connection>scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git</connection>
+    <developerConnection>scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git</developerConnection>
+    <url>git://github.com/jkubeio/kubernetes-maven-plugin.git</url>
   </scm>
 
   <dependencies>
@@ -52,7 +52,7 @@
 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>@jkube.version@</version>
       </plugin>
 

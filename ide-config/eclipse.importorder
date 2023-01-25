@@ -1,0 +1,7 @@
+#Organize Import Order
+#Wed Jan 15 09:35:21 CET 2020
+0=java
+1=javax
+2=org.eclipse.jkube
+3=
+100=\#

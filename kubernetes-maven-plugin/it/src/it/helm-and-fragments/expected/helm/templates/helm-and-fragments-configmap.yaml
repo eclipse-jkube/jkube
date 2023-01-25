@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  annotations:
+    jkube.helm.sh/provided-value: {{ .Values.i_should_be_quoted | upper | quote }}
+    jkube.helm.sh/provided-value-scalar: {{ .Values.i_should_be_quoted | upper | quote }}
+  labels:
+    app: helm-and-fragments
+    provider: jkube
+    version: "@ignore@"
+    group: org.eclipse.jkube
+  name: helm-and-fragments
+data:
+  value_from_config: {{ .Values.a_value_with_a_default | default "The default" }}
+  chart_name: {{ .Chart.Name }}

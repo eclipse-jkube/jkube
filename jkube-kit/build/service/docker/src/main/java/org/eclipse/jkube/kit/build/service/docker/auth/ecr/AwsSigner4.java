@@ -18,8 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -41,7 +39,7 @@ import org.apache.http.client.utils.URLEncodedUtils;
 class AwsSigner4 {
 
     // a-f must be lower case
-    final private static char[] HEXITS = "0123456789abcdef".toCharArray();
+    private static final char[] HEXITS = "0123456789abcdef".toCharArray();
 
     private final String service;
     private final String region;
@@ -138,12 +136,7 @@ class AwsSigner4 {
             return "";
         }
         List<NameValuePair> params = URLEncodedUtils.parse(query, StandardCharsets.UTF_8);
-        Collections.sort(params, new Comparator<NameValuePair>() {
-            @Override
-            public int compare(NameValuePair l, NameValuePair r) {
-                return l.getName().compareToIgnoreCase(r.getName());
-            }
-        });
+        params.sort((l, r) -> l.getName().compareToIgnoreCase(r.getName()));
         return URLEncodedUtils.format(params, StandardCharsets.UTF_8);
     }
 

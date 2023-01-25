@@ -103,7 +103,7 @@ public class EcrExtendedAuth {
         JsonObject authorizationData = authorizationDatas.get(0).getAsJsonObject();
         String authorizationToken = authorizationData.get("authorizationToken").getAsString();
 
-        return new AuthConfig(authorizationToken, "none");
+        return AuthConfig.fromCredentialsEncoded(authorizationToken, "none");
     }
 
     private JsonObject getAuthorizationToken(AuthConfig localCredentials) throws IOException {
@@ -134,7 +134,7 @@ public class EcrExtendedAuth {
     }
 
     HttpPost createSignedRequest(AuthConfig localCredentials, Date time) {
-        String host = "ecr." + region + ".amazonaws.com";
+        String host = "api.ecr." + region + ".amazonaws.com";
 
         logger.debug("Get ECR AuthorizationToken from %s", host);
 

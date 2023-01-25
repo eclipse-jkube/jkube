@@ -1,0 +1,5 @@
+micronaut:
+  application:
+    name: port-config-test-YAML
+  server:
+    port: 1337

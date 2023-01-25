@@ -1,0 +1,115 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      app.openshift.io/vcs-ref: "@ignore@"
+      jkube.io/git-url: "@ignore@"
+      app.openshift.io/vcs-uri: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: "project-label"
+      provider: "jkube"
+      version: "0.1.0"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: project-label
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: "project-label"
+      provider: "jkube"
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      app.openshift.io/vcs-ref: "@ignore@"
+      jkube.io/git-url: "@ignore@"
+      app.openshift.io/vcs-uri: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: "project-label"
+      provider: "jkube"
+      version: "0.1.0"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: project-label
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      app: "project-label"
+      provider: "jkube"
+      group: org.eclipse.jkube.integration.tests.gradle
+    strategy:
+      rollingParams:
+        timeoutSeconds: 3600
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          app.openshift.io/vcs-ref: "@ignore@"
+          jkube.io/git-url: "@ignore@"
+          app.openshift.io/vcs-uri: "@ignore@"
+          jkube.io/git-commit: "@ignore@"
+          jkube.io/git-branch: "@ignore@"
+        labels:
+          app: "project-label"
+          provider: "jkube"
+          version: "0.1.0"
+          group: org.eclipse.jkube.integration.tests.gradle
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          image: repository/project-label:latest
+          imagePullPolicy: IfNotPresent
+          name: repository-project-label
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          securityContext:
+            privileged: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - repository-project-label
+        from:
+          kind: ImageStreamTag
+          name: project-label:latest
+      type: ImageChange
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      app.openshift.io/vcs-ref: "@ignore@"
+      jkube.io/git-url: "@ignore@"
+      app.openshift.io/vcs-uri: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: "project-label"
+      provider: "jkube"
+      version: "0.1.0"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: project-label
+  spec:
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: project-label

@@ -13,85 +13,62 @@
  */
 package org.eclipse.jkube.generator.api;
 
-import java.util.Map;
-
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.project.MavenProject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.s2i;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.docker;
-import static org.eclipse.jkube.kit.config.resource.RuntimeMode.openshift;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.s2i;
+import static org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy.docker;
+import static org.eclipse.jkube.kit.config.resource.RuntimeMode.OPENSHIFT;
 
-/**
- * @author roland
- * @since 12/08/16
- */
-public class FromSelectorTest {
+class FromSelectorTest {
 
-    @Mocked
-    MavenProject project;
 
-    @Mocked
-    Plugin plugin;
+  @Test
+  void simple() {
+    final TestCase[] testCases = new TestCase[]{
+        new TestCase(OPENSHIFT, s2i, "s2i-prop", "istag-prop"),
+        new TestCase(OPENSHIFT, docker, "docker-prop", "istag-prop"),
+        new TestCase(null, s2i,  "docker-prop", "istag-prop"),
+        new TestCase(null, docker,  "docker-prop", "istag-prop"),
+        new TestCase(OPENSHIFT, null,  "docker-prop", "istag-prop"),
+        new TestCase(OPENSHIFT, null,  "docker-prop", "istag-prop"),
+        new TestCase(null, null,  "docker-prop", "istag-prop"),
+        new TestCase(null, null,  "docker-prop", "istag-prop"),
+    };
+    for (TestCase tc : testCases) {
+      GeneratorContext ctx = GeneratorContext.builder()
+          .config(new ProcessorConfig())
+          .runtimeMode(tc.runtimeMode)
+          .strategy(tc.strategy)
+          .build();
 
-    @Mocked
-    KitLogger logger;
-
-    @Test
-    public void simple() {
-        final Object[] data = new Object[] {
-                openshift, s2i, "1.2.3.redhat-00009", "redhat-s2i-prop", "redhat-istag-prop",
-                openshift, docker, "1.2.3.redhat-00009", "redhat-docker-prop", "redhat-istag-prop",
-                openshift, s2i, "1.2.3.fuse-00009", "redhat-s2i-prop", "redhat-istag-prop",
-                openshift, docker, "1.2.3.fuse-00009", "redhat-docker-prop", "redhat-istag-prop",
-                openshift, s2i, "1.2.3.foo-00009", "s2i-prop", "istag-prop",
-                openshift, docker, "1.2.3.foo-00009", "docker-prop", "istag-prop",
-                openshift, s2i, "1.2.3", "s2i-prop", "istag-prop",
-                openshift, docker, "1.2.3", "docker-prop", "istag-prop",
-                null, s2i, "1.2.3.redhat-00009", "redhat-docker-prop", "redhat-istag-prop",
-                null, docker, "1.2.3.redhat-00009", "redhat-docker-prop", "redhat-istag-prop",
-                null, s2i, "1.2.3.fuse-00009", "redhat-docker-prop", "redhat-istag-prop",
-                null, docker, "1.2.3.fuse-00009", "redhat-docker-prop", "redhat-istag-prop",
-                null, s2i, "1.2.3.foo-00009", "docker-prop", "istag-prop",
-                null, docker, "1.2.3.foo-00009", "docker-prop", "istag-prop",
-                null, s2i, "1.2.3", "docker-prop", "istag-prop",
-                null, docker, "1.2.3", "docker-prop", "istag-prop",
-                openshift, null, "1.2.3.redhat-00009", "redhat-docker-prop", "redhat-istag-prop",
-                openshift, null, "1.2.3.fuse-00009", "redhat-docker-prop", "redhat-istag-prop",
-                openshift, null, "1.2.3.foo-00009", "docker-prop", "istag-prop",
-                openshift, null, "1.2.3", "docker-prop", "istag-prop"
-        };
-
-        for (int i = 0; i < data.length; i += 5) {
-            GeneratorContext ctx = new GeneratorContext.Builder()
-                    .project(project)
-                    .config(new ProcessorConfig())
-                    .logger(logger)
-                    .runtimeMode((RuntimeMode) data[i])
-                    .strategy((OpenShiftBuildStrategy) data[i + 1])
-                    .build();
-
-            final String version = (String) data[i + 2];
-            new Expectations() {{
-                plugin.getVersion(); result = version;
-            }};
-
-            FromSelector selector = new FromSelector.Default(ctx, "test");
-            assertEquals(data[i + 3], selector.getFrom());
-            Map<String, String> fromExt = selector.getImageStreamTagFromExt();
-            assertEquals(fromExt.size(),3);
-            assertEquals(fromExt.get(OpenShiftBuildStrategy.SourceStrategy.kind.key()), "ImageStreamTag");
-            assertEquals(fromExt.get(OpenShiftBuildStrategy.SourceStrategy.namespace.key()), "openshift");
-            assertEquals(fromExt.get(OpenShiftBuildStrategy.SourceStrategy.name.key()), data[i + 4]);
-        }
+      FromSelector selector = new FromSelector.Default(ctx, "test");
+      assertThat(selector)
+          .hasFieldOrPropertyWithValue("from", tc.expectedFrom)
+          .extracting(FromSelector::getImageStreamTagFromExt)
+          .asInstanceOf(InstanceOfAssertFactories.MAP)
+          .hasSize(3)
+          .containsEntry(JKubeBuildStrategy.SourceStrategy.kind.key(), "ImageStreamTag")
+          .containsEntry(JKubeBuildStrategy.SourceStrategy.namespace.key(), "openshift")
+          .containsEntry(JKubeBuildStrategy.SourceStrategy.name.key(), tc.expectedName);
     }
+  }
 
+  private static final class TestCase {
+    private final RuntimeMode runtimeMode;
+    private final JKubeBuildStrategy strategy;
+    private final String expectedFrom;
+    private final String expectedName;
+
+    public TestCase(RuntimeMode runtimeMode, JKubeBuildStrategy strategy, String expectedFrom, String expectedName) {
+      this.runtimeMode = runtimeMode;
+      this.strategy = strategy;
+      this.expectedFrom = expectedFrom;
+      this.expectedName = expectedName;
+    }
+  }
 }

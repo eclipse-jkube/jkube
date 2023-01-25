@@ -1,0 +1,28 @@
+
+[[jkube-dependency]]
+==== jkube-dependency
+
+This enricher is used for embedding {cluster} configuration manifests (YAML) to single package. It looks for the following files in compile scope dependencies and adds {cluster} resources inside to final generated {cluster} manifests:
+
+- `META-INF/jkube/kubernetes.yml`
+- `META-INF/jkube/k8s-template.yml`
+- `META-INF/jkube/openshift.yml` (in case of OpenShift)
+
+.Configuration options
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+| *includeTransitive*
+| Whether to look for kubernetes manifest files in transitive dependencies.
+
+  Defaults to `true`.
+| `jkube.enricher.jkube-dependency.includeTransitive`
+
+| *includePlugin*
+| Whether to look on the current plugin classpath too.
+
+  Defaults to `true`.
+| `jkube.enricher.jkube-dependency.includePlugin`
+
+|===

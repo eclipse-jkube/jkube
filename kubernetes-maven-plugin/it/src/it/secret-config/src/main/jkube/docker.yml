@@ -18,5 +18,5 @@ metadata:
   name: mydockerkey
   namespace: default
   annotations:
-    maven.jkube.io/dockerServerId: docker.io
+    jkube.eclipse.org/dockerServerId: docker.io
 type: kubernetes.io/dockercfg

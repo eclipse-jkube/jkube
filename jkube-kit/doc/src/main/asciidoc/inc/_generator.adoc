@@ -1,0 +1,81 @@
+
+[[generators]]
+= Generators
+
+include::generator/_overview.adoc[]
+
+[[generators-default]]
+== Default Generators
+
+All default generators examine the build information for certain aspects and generate a Docker build configuration on the fly. They can be configured to a certain degree, where the configuration is generator specific.
+
+.Default Generators
+[cols="1,1,4"]
+|===
+| Generator | Name | Description
+
+| <<generator-java-exec,Java Applications>>
+| `java-exec`
+| Generic generator for flat classpath and fat-jar Java applications
+
+| <<generator-spring-boot,Spring Boot>>
+| `spring-boot`
+| Spring Boot specific generator
+
+| <<generator-thorntail-v2,Thorntail v2>>
+| `thorntail-v2`
+| Generator for Thorntail v2 apps
+
+| <<generator-vertx,Vert.x>>
+| `vertx`
+| Generator for Vert.x applications
+
+| <<generator-webapp,Web applications>>
+| `webapps`
+| Generator for WAR based applications supporting Tomcat, Jetty and Wildfly base images
+
+| <<generator-quarkus,Quarkus>>
+| `Quarkus`
+| Generator for Quarkus based applications
+
+| <<generator-openliberty,Open Liberty>>
+| `openliberty`
+| Generator for Open Liberty applications
+
+| <<generator-micronaut,Micronaut>>
+| `micronaut`
+| Generator for Micronaut based applications
+
+// TODO: At the moment only generators listed above have been tested and documented with gradle plugins. Adding the
+// rest of generators only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
+ifeval::["{plugin-type}" == "maven"]
+
+| <<generator-karaf,Karaf>>
+| `karaf`
+| Generator for Karaf based apps
+
+| <<generator-wildfly-jar,WildFly Bootable JAR>>
+| `wildfly-jar`
+| Generator for WildFly Bootable JAR applications
+
+endif::[]
+|===
+
+include::generator/_options_common.adoc[]
+
+include::generator/_java_exec.adoc[]
+include::generator/_spring_boot.adoc[]
+include::generator/_thorntail_v2.adoc[]
+include::generator/_vertx.adoc[]
+include::generator/_webapp.adoc[]
+include::generator/_quarkus.adoc[]
+include::generator/_openliberty.adoc[]
+include::generator/_micronaut.adoc[]
+
+include::generator/_api.adoc[]
+ifeval::["{plugin-type}" == "maven"]
+include::generator/_karaf.adoc[]
+include::generator/_wildfly_jar.adoc[]
+
+endif::[]
+

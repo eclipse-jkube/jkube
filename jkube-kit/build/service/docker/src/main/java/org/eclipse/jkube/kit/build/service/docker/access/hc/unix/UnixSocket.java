@@ -31,7 +31,8 @@ import jnr.unixsocket.UnixSocketChannel;
 final class UnixSocket extends Socket {
 
     private final Object connectLock = new Object();
-    private volatile boolean inputShutdown, outputShutdown;
+    private volatile boolean inputShutdown;
+    private volatile boolean outputShutdown;
 
     private final UnixSocketChannel channel;
 
@@ -158,17 +159,17 @@ final class UnixSocket extends Socket {
     }
 
     @Override
-    public void setSoTimeout(int timeout) {
-        channel.setSoTimeout(timeout);
+    public synchronized void setSoTimeout(int timeout) throws SocketException {
+        channel.socket().setSoTimeout(timeout);
     }
 
     @Override
-    public int getSoTimeout() throws SocketException {
-        return channel.getSoTimeout();
+    public synchronized int getSoTimeout() throws SocketException {
+        return channel.socket().getSoTimeout();
     }
 
     @Override
-    public void setSendBufferSize(int size) throws SocketException {
+    public synchronized void setSendBufferSize(int size) throws SocketException {
         if (size <= 0) {
             throw new IllegalArgumentException("Send buffer size must be positive: " + size);
         }
@@ -213,12 +214,12 @@ final class UnixSocket extends Socket {
 
     @Override
     public void setKeepAlive(boolean on) throws SocketException {
-        channel.setKeepAlive(on);
+        channel.socket().setKeepAlive(on);
     }
 
     @Override
     public boolean getKeepAlive() throws SocketException {
-        return channel.getKeepAlive();
+        return channel.socket().getKeepAlive();
     }
 
     @Override
@@ -235,7 +236,7 @@ final class UnixSocket extends Socket {
     }
 
     @Override
-    public int getTrafficClass() throws SocketException {
+    public int getTrafficClass() {
         throw new UnsupportedOperationException("Getting the traffic class is not supported");
     }
 
@@ -249,12 +250,12 @@ final class UnixSocket extends Socket {
     }
 
     @Override
-    public boolean getReuseAddress() throws SocketException {
+    public boolean getReuseAddress() {
         throw new UnsupportedOperationException("Getting the SO_REUSEADDR option is not supported");
     }
 
     @Override
-    public void close() throws IOException {
+    public synchronized void close() throws IOException {
         channel.close();
         inputShutdown = true;
         outputShutdown = true;

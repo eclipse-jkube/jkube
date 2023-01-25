@@ -1,0 +1,14 @@
+= Examples
+
+Let's have a look at some code. The following examples will demonstrate all available configurations variants:
+
+include::_groovy.adoc[]
+
+include::_fragments.adoc[]
+
+include::_zero-config.adoc[]
+
+
+ifeval::["{task-prefix}" == "oc"]
+include::_openshift.adoc[]
+endif::[]

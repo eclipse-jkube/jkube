@@ -1,0 +1,23 @@
+[[build-configuration]]
+=== Build Configuration
+
+include::_overview.adoc[]
+
+include::_configuration.adoc[]
+
+[[build-assembly]]
+=== Assembly
+
+include::_assembly.adoc[]
+
+[[build-buildargs]]
+=== Build Args
+
+include::_buildargs.adoc[]
+
+ifeval::["{plugin-type}" == "maven"]
+[[build-healthcheck]]
+=== Healthcheck
+
+include::_healthcheck.adoc[]
+endif::[]

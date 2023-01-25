@@ -1,0 +1,116 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        jkube.io/iconUrl: "@ignore@"
+        jkube.io/git-url: "@ignore@"
+        jkube.io/git-commit: "@ignore@"
+        jkube.io/git-branch: "@ignore@"
+      labels:
+        app: volume-permission
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.devops.apps
+      name: jkube-docker-registry
+    spec:
+      ports:
+        - port: 80
+          protocol: TCP
+          targetPort: 5000
+      selector:
+        app: jkube-docker-registry
+        provider: jkube
+        group: org.eclipse.jkube.devops.apps
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      annotations:
+        volume.beta.kubernetes.io/storage-class: cheese
+      labels:
+        app: volume-permission
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: jkube-docker-registry-storage
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: 5Gi
+  - apiVersion: extensions/v1beta1
+    kind: Deployment
+    metadata:
+      annotations:
+        jkube.io/iconUrl: https://cdn.rawgit.com/jkubeio/jkube-devops/master/jkube-docker-registry/src/main/jkube/icon.png
+      labels:
+        app: volume-permission
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.devops.apps
+      name: jkube-docker-registry
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        matchLabels:
+          provider: jkube
+          app: volume-permission
+          group: org.eclipse.jkube.devops.apps
+      template:
+        metadata:
+          labels:
+            app: volume-permission
+            provider: jkube
+            version: "@ignore@"
+            group: org.eclipse.jkube.devops.apps
+          name: volume-permission
+        spec:
+          containers:
+            - env:
+                - name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: HOSTNAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+              image: registry:2
+              imagePullPolicy: IfNotPresent
+              name: jkube-docker-registry
+              ports:
+                - containerPort: 5000
+                  name: http
+              resources:
+                limits:
+                  cpu: "0"
+                  memory: "0"
+                requests:
+                  cpu: "0"
+                  memory: "0"
+              securityContext:
+                privileged: false
+              volumeMounts:
+                - mountPath: /var/lib/registry
+                  name: jkube-docker-registry-storage
+                  readOnly: false
+          initContainers:
+            - command:
+                - chmod
+                - "777"
+                - /var/lib/registry
+              image: busybox
+              imagePullPolicy: IfNotPresent
+              name: jkube-volume-permission
+              volumeMounts:
+                - mountPath: /var/lib/registry
+                  name: jkube-docker-registry-storage
+          volumes:
+            - name: jkube-docker-registry-storage
+              persistentVolumeClaim:
+                claimName: jkube-docker-registry-storage

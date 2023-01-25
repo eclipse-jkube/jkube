@@ -1,0 +1,10 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+rootProject.name = 'eclipse-jkube-sample-custom-enricher-gradle-parent'
+include 'app', 'compile-time-enricher'

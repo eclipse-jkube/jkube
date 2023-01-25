@@ -1,0 +1,19 @@
+As XML you can define:
+
+[source, xml]
+.pom.xml
+----
+<configuration>
+  <resources>
+    <configMap>
+      <name>myconfigmap</name>
+      <entries>
+        <entry>
+          <name>A</name>
+          <value>B</value>
+        </entry>
+       </entries>
+    </configMap>
+  </resources>
+</configuration>
+----

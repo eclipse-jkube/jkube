@@ -107,11 +107,12 @@ public final class UrlBuilder {
             .build();
     }
 
-    public String pullImage(ImageName name, String registry) {
-        return u("images/create")
-                .p("fromImage", name.getNameWithoutTag(registry))
-                .p("tag", name.getDigest() != null ? name.getDigest() : name.getTag())
-                .build();
+    public String pullImage(CreateImageOptions options) {
+        final Builder urlBuilder = u("images/create");
+        if (options != null) {
+            urlBuilder.p(options.getOptions());
+        }
+        return urlBuilder.build();
     }
 
     public String pushImage(ImageName name, String registry) {
@@ -213,7 +214,7 @@ public final class UrlBuilder {
     }
 
     private String[] encodeArgs(String[] args) {
-        String ret[] = new String[args.length];
+        String[] ret = new String[args.length];
         int i=0;
         for (String arg : args) {
             ret[i++] = encode(arg);

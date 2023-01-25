@@ -30,8 +30,8 @@ public enum AutoPullMode {
     OFF(false, "off", "false"),
     ALWAYS(true, "always");
 
-    private Set<String> values = new HashSet<>();
-    private boolean doPullIfNotPresent;
+    private final Set<String> values = new HashSet<>();
+    private final boolean doPullIfNotPresent;
 
     AutoPullMode(boolean doPullIfNotPresent, String... vals) {
         this.doPullIfNotPresent = doPullIfNotPresent;
@@ -46,7 +46,7 @@ public enum AutoPullMode {
         return (this == ONCE || this == ALWAYS);
     }
 
-    static public AutoPullMode fromString(String val) {
+        public static AutoPullMode fromString(String val) {
         String valNorm = val.toLowerCase();
         for (AutoPullMode mode : values()) {
             if (mode.values.contains(valNorm)) {

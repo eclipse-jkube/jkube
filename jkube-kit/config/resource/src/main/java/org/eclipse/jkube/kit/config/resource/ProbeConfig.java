@@ -13,111 +13,55 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
-import org.apache.maven.plugins.annotations.Parameter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.Map;
 
 /**
  * @author roland
- * @since 22/03/16
  */
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
 public class ProbeConfig {
 
-    // Initial delay in seconds before the probe is started.
-    @Parameter
-    Integer initialDelaySeconds;
+    /**
+     * Initial delay in seconds before the probe is started.
+     */
+    private Integer initialDelaySeconds;
+    /**
+     * Timeout in seconds how long the probe might take.
+     */
+    private Integer timeoutSeconds;
+    /**
+     * How often in seconds to perform the probe. Defaults to 10 seconds. Minimum value is 1.
+     */
+    private Integer periodSeconds;
+    /**
+     * Command to execute for probing.
+     */
+    private String exec;
+    /**
+     * Probe this URL.
+     */
+    private String getUrl;
 
-    // Timeout in seconds how long the probe might take
-    @Parameter
-    Integer timeoutSeconds;
+    /**
+     * Custom headers to set in the request.
+     */
+    private Map<String, String> httpHeaders;
+    /**
+     * TCP port to probe.
+     */
+    private String tcpPort;
+    private Integer failureThreshold;
+    private Integer successThreshold;
 
-    // Command to execute for probing
-    @Parameter
-    String exec;
-
-    // Probe this URL
-    @Parameter
-    String getUrl;
-
-    // TCP port to probe
-    @Parameter
-    String tcpPort;
-
-    @Parameter
-    Integer failureThreshold;
-
-    @Parameter
-    Integer successThreshold;
-
-    public Integer getInitialDelaySeconds() {
-        return initialDelaySeconds;
-    }
-
-    public Integer getTimeoutSeconds() {
-        return timeoutSeconds;
-    }
-
-    public String getExec() {
-        return exec;
-    }
-
-    public String getGetUrl() {
-        return getUrl;
-    }
-
-    public String getTcpPort() {
-        return tcpPort;
-    }
-
-    public Integer getFailureThreshold() {
-        return failureThreshold;
-    }
-
-    public Integer getSuccessThreshold() {
-        return successThreshold;
-    }
-
-    // =============================================================
-
-    public static class Builder {
-        private ProbeConfig config = new ProbeConfig();
-
-        public Builder initialDelaySeconds(Integer initialDelaySeconds) {
-            config.initialDelaySeconds = initialDelaySeconds;
-            return this;
-        }
-
-        public Builder timeoutSeconds(Integer timeoutSeconds) {
-            config.timeoutSeconds = timeoutSeconds;
-            return this;
-        }
-
-        public Builder exec(String exec) {
-            config.exec = exec;
-            return this;
-        }
-
-        public Builder tcpPort(String tcpPort) {
-            config.tcpPort = tcpPort;
-            return this;
-        }
-
-        public Builder getUrl(String getUrl) {
-            config.getUrl = getUrl;
-            return this;
-        }
-
-        public Builder failureThreshold(Integer failureThreshold) {
-            config.failureThreshold = failureThreshold;
-            return this;
-        }
-
-        public Builder successThreshold(Integer successThreshold) {
-            config.successThreshold = successThreshold;
-            return this;
-        }
-
-        public ProbeConfig build() {
-            return config;
-        }
-    }
 }
 

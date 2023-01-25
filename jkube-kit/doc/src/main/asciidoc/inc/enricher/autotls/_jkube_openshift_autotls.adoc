@@ -1,0 +1,91 @@
+
+[[jkube-openshift-autotls]]
+==== jkube-openshift-autotls
+
+Enricher which adds appropriate annotations and volumes to enable OpenShift's automatic
+https://docs.openshift.com/container-platform/4.10/security/certificates/service-serving-certificate.html[Service Serving Certificate Secrets].
+This enricher adds an init container to convert the service serving certificates from PEM (the format that OpenShift generates them in) to
+a JKS-format Java keystore ready for consumption in Java services.
+
+This enricher is disabled by default. In order to use it, you must configure the {plugin} to use this enricher:
+
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_jkube_enable_openshift_autotls.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_jkube_enable_openshift_autotls.adoc[]
+endif::[]
+
+
+The auto-TLS enricher supports the following configuration options:
+
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *tlsSecretName*
+| The name of the secret to be used to store the generated service serving certs.
+ifeval::["{plugin-type}" == "gradle"]
+Defaults to `<name>-tls`.
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+Defaults to `<project.artifactId>-tls`.
+endif::[]
+| `jkube.enricher.jkube-openshift-autotls.tlsSecretName`
+
+| *tlsSecretVolumeMountPoint*
+| Where the service serving secret should be mounted to in the pod.
+
+  Defaults to `/var/run/secrets/jkube.io/tls-pem`.
+| `jkube.enricher.jkube-openshift-autotls.tlsSecretName`
+
+| *tlsSecretVolumeName*
+| The name of the secret volume.
+
+  Defaults to `tls-pem`.
+| `jkube.enricher.jkube-openshift-autotls.tlsSecretVolumeName`
+
+| *jksVolumeMountPoint*
+| Where the generated keystore volume should be mounted to in the pod.
+
+  Defaults to `/var/run/secrets/jkube.io/tls-jks`.
+| `jkube.enricher.jkube-openshift-autotls.the`
+
+| *jksVolumeName*
+| The name of the keystore volume.
+
+  Defaults to `tls-jks`.
+| `jkube.enricher.jkube-openshift-autotls.jksVolumeName`
+
+| *pemToJKSInitContainerImage*
+| The name of the image used as an init container to convert PEM certificate/key to Java keystore.
+
+  Defaults to `jimmidyson/pemtokeystore:v0.1.0`.
+| `jkube.enricher.jkube-openshift-autotls.pemToJKSInitContainerImage`
+
+| *pemToJKSInitContainerName*
+| the name of the init container to convert PEM certificate/key to Java keystore.
+
+  Defaults to `tls-jks-converter`.
+| `jkube.enricher.jkube-openshift-autotls.pemToJKSInitContainerName`
+
+| *keystoreFileName*
+| The name of the generated keystore file.
+
+  Defaults to `keystore.jks`.
+| `jkube.enricher.jkube-openshift-autotls.keystoreFileName`
+
+| *keystorePassword*
+| The password to use for the generated keystore.
+
+  Defaults to `changeit`.
+| `jkube.enricher.jkube-openshift-autotls.keystorePassword`
+
+| *keystoreCertAlias*
+| The alias in the keystore used for the imported service serving certificate.
+
+  Defaults to `server`.
+| `jkube.enricher.jkube-openshift-autotls.keystoreCertAlias`
+|===

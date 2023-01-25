@@ -1,0 +1,5 @@
+FROM alpine
+EXPOSE 8082
+COPY /jkube-generated-layer-original/opt/deployments /opt/deployments/
+COPY /jkube-generated-layer-final-artifact/opt/deployments /opt/deployments/
+ENTRYPOINT java -jar /opt/deployments/xml-image-multilayer-0.1-SNAPSHOT.jar

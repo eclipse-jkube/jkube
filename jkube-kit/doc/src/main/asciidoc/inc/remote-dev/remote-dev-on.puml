@@ -1,0 +1,46 @@
+@startuml remote-dev
+' tag::uml[]
+
+footer Regular app deployment
+
+left to right direction
+
+' Kubernetes
+!define KubernetesPuml https://raw.githubusercontent.com/dcasati/kubernetes-PlantUML/master/dist
+!includeurl KubernetesPuml/kubernetes_Common.puml
+!includeurl KubernetesPuml/kubernetes_Context.puml
+!includeurl KubernetesPuml/kubernetes_Simplified.puml
+
+!includeurl KubernetesPuml/OSS/KubernetesIng.puml
+!includeurl KubernetesPuml/OSS/KubernetesPod.puml
+!includeurl KubernetesPuml/OSS/KubernetesSvc.puml
+
+actor "User" as userAlias
+Cluster_Boundary(cluster, "Kubernetes Cluster") {
+  Namespace_Boundary(ns, "Application Namespace") {
+    KubernetesIng(ingA, "Ingress A", "")
+    KubernetesSvc(svcA, "Service A", "")
+    KubernetesSvc(svcB, "Service B", "")
+    KubernetesSvc(svcC, "Service C", "")
+    KubernetesPod(podA, "Pod A", "")
+    KubernetesPod(podB, "Pod B", "")
+    KubernetesPod(podC, "Pod C", "")
+    KubernetesPod(podD, "Pod D", "")
+    KubernetesPod(podE, "Pod E", "")
+  }
+}
+
+Rel(userAlias, ingA, " ")
+Rel(ingA, svcA, " ")
+Rel(svcA, podA, " ")
+Rel(podA, svcB, " ")
+Rel(podA, svcC, " ")
+
+Rel(svcB, podB, " ")
+Rel(svcC, podC, " ")
+
+Rel(podD, svcA, " ")
+Rel(podE, svcC, " ")
+
+' end::uml[]
+@enduml

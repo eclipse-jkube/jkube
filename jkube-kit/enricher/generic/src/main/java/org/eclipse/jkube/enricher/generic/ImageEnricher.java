@@ -38,21 +38,23 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetSpecFluent;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigFluent;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecFluent;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import static org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil.extractContainerName;
-
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.extractContainerName;
 
 /**
  * Merge in image configuration like the image name into ReplicaSet and ReplicationController's
@@ -68,20 +70,20 @@ import static org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil.e
  * Any already configured container in the pod spec is updated if the property is not set.
  *
  * @author roland
- * @since 25/05/16
  */
 public class ImageEnricher extends BaseEnricher {
 
-    public ImageEnricher(MavenEnricherContext buildContext) {
+    public ImageEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-image");
     }
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
         // What pull policy to use when fetching images
-        pullPolicy;
+        PULL_POLICY("pullPolicy");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
     }
 
     @Override
@@ -91,7 +93,7 @@ public class ImageEnricher extends BaseEnricher {
             return;
         }
 
-        // Ensure that all contoller have template specs
+        // Ensure that all controller have template specs
         ensureTemplateSpecs(builder);
 
         // Update containers in template specs
@@ -114,10 +116,10 @@ public class ImageEnricher extends BaseEnricher {
             @Override
             public void visit(ReplicationControllerBuilder item) {
                 ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder> spec =
-                    item.getSpec() == null ? item.withNewSpec() : item.editSpec();
+                    item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
                 ReplicationControllerSpecFluent.TemplateNested<ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder>>
                     template =
-                    spec.getTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
+                    spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
         });
@@ -128,9 +130,9 @@ public class ImageEnricher extends BaseEnricher {
             @Override
             public void visit(ReplicaSetBuilder item) {
                 ReplicaSetFluent.SpecNested<ReplicaSetBuilder> spec =
-                    item.getSpec() == null ? item.withNewSpec() : item.editSpec();
+                    item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
                 ReplicaSetSpecFluent.TemplateNested<ReplicaSetFluent.SpecNested<ReplicaSetBuilder>> template =
-                    spec.getTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
+                    spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
         });
@@ -141,9 +143,9 @@ public class ImageEnricher extends BaseEnricher {
             @Override
             public void visit(DeploymentBuilder item) {
                 DeploymentFluent.SpecNested<DeploymentBuilder> spec =
-                    item.getSpec() == null ? item.withNewSpec() : item.editSpec();
+                    item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
                 DeploymentSpecFluent.TemplateNested<DeploymentFluent.SpecNested<DeploymentBuilder>> template =
-                    spec.getTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
+                    spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
         });
@@ -154,9 +156,9 @@ public class ImageEnricher extends BaseEnricher {
             @Override
             public void visit(DaemonSetBuilder item) {
                 DaemonSetFluent.SpecNested<DaemonSetBuilder> spec =
-                        item.getSpec() == null ? item.withNewSpec() : item.editSpec();
+                        item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
                 DaemonSetSpecFluent.TemplateNested<DaemonSetFluent.SpecNested<DaemonSetBuilder>> template =
-                        spec.getTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
+                        spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
         });
@@ -167,9 +169,9 @@ public class ImageEnricher extends BaseEnricher {
             @Override
             public void visit(StatefulSetBuilder item) {
                 StatefulSetFluent.SpecNested<StatefulSetBuilder> spec =
-                        item.getSpec() == null ? item.withNewSpec() : item.editSpec();
+                        item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
                 StatefulSetSpecFluent.TemplateNested<StatefulSetFluent.SpecNested<StatefulSetBuilder>> template =
-                        spec.getTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
+                        spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
         });
@@ -180,9 +182,9 @@ public class ImageEnricher extends BaseEnricher {
             @Override
             public void visit(DeploymentConfigBuilder item) {
                 DeploymentConfigFluent.SpecNested<DeploymentConfigBuilder> spec =
-                        item.getSpec() == null ? item.withNewSpec() : item.editSpec();
+                        item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
                 DeploymentConfigSpecFluent.TemplateNested<DeploymentConfigFluent.SpecNested<DeploymentConfigBuilder>> template =
-                        spec.getTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
+                        spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
         });
@@ -196,11 +198,11 @@ public class ImageEnricher extends BaseEnricher {
             @Override
             public void visit(PodTemplateSpecBuilder templateBuilder) {
                 PodTemplateSpecFluent.SpecNested<PodTemplateSpecBuilder> podSpec =
-                    templateBuilder.getSpec() == null ? templateBuilder.withNewSpec() : templateBuilder.editSpec();
+                    templateBuilder.buildSpec() == null ? templateBuilder.withNewSpec() : templateBuilder.editSpec();
 
-                List<Container> containers = podSpec.getContainers();
+                List<Container> containers = podSpec.buildContainers();
                 if (containers == null) {
-                    containers = new ArrayList<Container>();
+                    containers = new ArrayList<>();
                 }
                 mergeImageConfigurationWithContainerSpec(containers);
                 podSpec.withContainers(containers).endSpec();
@@ -211,17 +213,15 @@ public class ImageEnricher extends BaseEnricher {
     // Add missing information to the given containers as found
     // configured
     private void mergeImageConfigurationWithContainerSpec(List<Container> containers) {
-        getImages().ifPresent(images -> {
-            int idx = 0;
-            for (ImageConfiguration image : images) {
-                Container container = getContainer(idx, containers);
-                mergeImagePullPolicy(image, container);
-                mergeImage(image, container);
-                mergeContainerName(image, container);
-                mergeEnvVariables(container);
-                idx++;
-            }
-        });
+        int idx = 0;
+        for (ImageConfiguration image : getImages()) {
+            Container container = getContainer(idx, containers);
+            mergeImagePullPolicy(image, container);
+            mergeImage(image, container);
+            mergeContainerName(image, container);
+            mergeEnvVariables(container);
+            idx++;
+        }
     }
 
     private Container getContainer(int idx, List<Container> containers) {
@@ -246,12 +246,10 @@ public class ImageEnricher extends BaseEnricher {
 
     private void mergeImage(ImageConfiguration imageConfiguration, Container container) {
         if (StringUtils.isBlank(container.getImage())) {
-            String prefix = "";
             if (StringUtils.isNotBlank(imageConfiguration.getRegistry())) {
                 log.verbose("Using registry %s for the image", imageConfiguration.getRegistry());
-                prefix = imageConfiguration.getRegistry() + "/";
             }
-            String imageFullName = prefix + imageConfiguration.getName();
+            final String imageFullName = containerImageName(imageConfiguration);
             log.verbose("Setting image %s", imageFullName);
             container.setImage(imageFullName);
         }
@@ -259,7 +257,7 @@ public class ImageEnricher extends BaseEnricher {
 
     private void mergeImagePullPolicy(ImageConfiguration imageConfiguration, Container container) {
         if (StringUtils.isBlank(container.getImagePullPolicy())) {
-            String policy = getConfig(Config.pullPolicy);
+            String policy = getConfig(Config.PULL_POLICY);
             if (policy == null) {
                 policy = "IfNotPresent";
                 String imageName = imageConfiguration.getName();
@@ -272,7 +270,7 @@ public class ImageEnricher extends BaseEnricher {
     }
 
     private void mergeEnvVariables(Container container) {
-        getConfiguration().getResource().flatMap(ResourceConfig::getEnv).ifPresent(resourceEnv -> {
+        Optional.ofNullable(getConfiguration().getResource()).map(ResourceConfig::getEnv).ifPresent(resourceEnv -> {
             List<EnvVar> containerEnvVars = container.getEnv();
             if (containerEnvVars == null) {
                 containerEnvVars = new LinkedList<>();
@@ -285,28 +283,26 @@ public class ImageEnricher extends BaseEnricher {
                         .withName(resourceEnvEntry.getKey())
                         .withValue(resourceEnvEntry.getValue())
                         .build();
-                if (!hasEnvWithName(containerEnvVars, newEnvVar.getName())) {
+
+                EnvVar oldEnvVar = containerEnvVars.stream()
+                  .filter(e -> e.getName().equals(newEnvVar.getName()))
+                  .findFirst().orElse(null);
+                if (oldEnvVar == null) {
                     containerEnvVars.add(newEnvVar);
-                } else {
+                } else if (!newEnvVar.getValue().equals(oldEnvVar.getValue())) {
                     log.warn(
-                        "Environment variable %s will not be overridden: trying to set the value %s, but its actual value is %s",
-                        newEnvVar.getName(), newEnvVar.getValue(), getEnvValue(containerEnvVars, newEnvVar.getName()));
+                      "Environment variable %s will not be overridden: trying to set the value %s, but its actual value is %s",
+                      newEnvVar.getName(), newEnvVar.getValue(), oldEnvVar.getValue());
                 }
             }
         });
     }
 
-    private String getEnvValue(List<EnvVar> envVars, String name) {
-        for (EnvVar var : envVars) {
-            if (var.getName().equals(name)) {
-                return var.getValue();
-            }
+    static String containerImageName(ImageConfiguration imageConfiguration) {
+        String prefix = "";
+        if (StringUtils.isNotBlank(imageConfiguration.getRegistry())) {
+            prefix = imageConfiguration.getRegistry() + "/";
         }
-        return "(not found)";
+        return prefix + imageConfiguration.getName();
     }
-
-    private boolean hasEnvWithName(List<EnvVar> envVars, String name) {
-        return envVars.stream().anyMatch(e -> e.getName().equals(name));
-    }
-
 }

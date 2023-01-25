@@ -1,24 +1,24 @@
 
-[[k8s:deploy]]
-== *k8s:deploy*
+[[jkube:deploy]]
+== *{goal-prefix}:deploy*
 
 This is the main goal for building your docker image, generating the kubernetes resources and deploying them into the cluster (insofar your pom.xml is set up correct; keep reading :)).
 
-[source,sh,subs="attributes"]
+[source, sh, subs="+attributes"]
 ----
-mvn k8s:deploy
+mvn {goal-prefix}:deploy
 ----
 
-This goal is designed to run <<k8s:build>> and <<k8s:resource>> before the deploy **iff* you have the goals bound in your pom.xml:
+This goal is designed to run <<jkube:build>> and <<jkube:resource>> before the deploy *if* you have the goals bound in your pom.xml:
 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
   <version>{version}</version>
 
-  <!-- Connect k8s:resource, k8s:build and k8s:helm to lifecycle phases -->
+  <!-- Connect {goal-prefix}:resource, {goal-prefix}:build and {goal-prefix}:helm to lifecycle phases -->
   <executions>
     <execution>
        <id>jkube</id>
@@ -35,8 +35,8 @@ This goal is designed to run <<k8s:build>> and <<k8s:resource>> before the deplo
 
 Effectively this builds your project then invokes these goals:
 
-* <<k8s:build>>
-* <<k8s:apply>>
+* <<jkube:build>>
+* <<jkube:apply>>
 
 By default the behaviour of resource goal is it generates `route.yml` for a service if you have not done any configuration changes. Sometimes there may be case when you want to generate route.yml but do not want to create route resource on OpenShift Cluster. This can be achieved by the following configuration.
 
@@ -46,7 +46,7 @@ By default the behaviour of resource goal is it generates `route.yml` for a serv
 ----
 <plugin>
     <groupId>org.eclipse.jkube</groupId>
-    <artifactId>k8s-maven-plugin</artifactId>
+    <artifactId>{plugin}</artifactId>
     <version>{version}</version>
     <configuration>
         <enricher>

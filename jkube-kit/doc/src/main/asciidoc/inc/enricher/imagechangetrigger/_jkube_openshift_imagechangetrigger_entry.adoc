@@ -1,0 +1,2 @@
+| <<jkube-openshift-imageChangeTrigger>>
+| Enriches that adds ImageChange trigger to DeploymentConfig.

@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Config
+clusters:
+  - cluster:
+      server: https://127.0.0.1:8443
+    name: cluster-one
+contexts:
+  - context:
+      cluster: cluster-one
+      user: user
+    name: context-one
+current-context: missing-context
+preferences: {}
+users:
+  - name: other
+    user: {}
+  - name: user
+    user:
+      token: the-token

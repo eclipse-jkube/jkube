@@ -6,27 +6,12 @@ This plugin is available from Maven central and can be connected to
 pre- and post-integration phase as seen below. The configuration and
 available goals are described below.
 
-By default, Maven will only search for plugins in the `org.apache.maven.plugins` and `org.codehaus.mojo` packages. In order to resolve the provider for the Jkube plugin goals, you need to edit `~/.m2/settings.xml` and add the `org.eclipse.jkube` namespace so the `<pluginGroups>` configuration.
 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
----- 
-<settings>
-      ...
-
-      <pluginGroups>
-        <pluginGroup>org.eclipse.jkube</pluginGroup>
-      </pluginGroups>
-
-      ...
-</settings>
 ----
-
-
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
----- 
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
   <version>{version}</version>
 
   <configuration>
@@ -43,7 +28,7 @@ By default, Maven will only search for plugins in the `org.apache.maven.plugins`
      </images>
   </configuration>
 
-  <!-- Connect k8s:resource, k8s:build and k8s:helm to lifecycle phases -->
+  <!-- Connect {goal-prefix}:resource, {goal-prefix}:build and {goal-prefix}:helm to lifecycle phases -->
   <executions>
     <execution>
        <id>jkube</id>

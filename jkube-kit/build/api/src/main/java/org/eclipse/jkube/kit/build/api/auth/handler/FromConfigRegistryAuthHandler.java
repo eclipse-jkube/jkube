@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.build.api.auth.handler;
 
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
  * @author roland
- * @since 21.10.18
  */
 public class FromConfigRegistryAuthHandler implements RegistryAuthHandler {
     private final RegistryAuthConfig registryAuthConfig;
@@ -39,7 +38,7 @@ public class FromConfigRegistryAuthHandler implements RegistryAuthHandler {
     }
 
     @Override
-    public AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, Function<String, String> decryptor) {
+    public AuthConfig create(RegistryAuthConfig.Kind kind, String user, String registry, UnaryOperator<String> decryptor) {
         // Get configuration from global plugin config
 
         if (registryAuthConfig.getUsername(kind) != null) {

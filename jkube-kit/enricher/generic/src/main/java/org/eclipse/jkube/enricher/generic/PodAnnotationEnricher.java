@@ -17,14 +17,11 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import io.fabric8.openshift.api.model.DeploymentConfig;
-import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.eclipse.jkube.kit.common.util.MapUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
+import org.eclipse.jkube.kit.enricher.handler.ControllerHandler;
 
 import java.util.List;
 
@@ -33,45 +30,24 @@ import java.util.List;
  * container Pod spec.
  */
 public class PodAnnotationEnricher extends BaseEnricher {
-    public PodAnnotationEnricher(MavenEnricherContext buildContext) {
+    public PodAnnotationEnricher(EnricherContext buildContext) {
         super(buildContext, "jkube-pod-annotations");
     }
 
     @Override
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
         super.enrich(platformMode, builder);
-
-        List<HasMetadata> items = builder.getItems();
+        final List<HasMetadata> items = builder.buildItems();
         for (HasMetadata item : items) {
-            if (platformMode == PlatformMode.kubernetes && item instanceof Deployment) {
-                Deployment deployment = (Deployment) item;
-                ObjectMeta metadata = deployment.getMetadata();
-                DeploymentSpec spec = deployment.getSpec();
-                if (metadata != null && spec != null) {
-                    PodTemplateSpec template = spec.getTemplate();
-                    if (template != null) {
-                        ObjectMeta templateMetadata = template.getMetadata();
-                        if (templateMetadata == null) {
-                            templateMetadata = new ObjectMeta();
-                            template.setMetadata(templateMetadata);
-                        }
-                        templateMetadata.setAnnotations(MapUtil.mergeMaps(templateMetadata.getAnnotations(), metadata.getAnnotations()));
+            final ControllerHandler<HasMetadata> controllerHandler = getContext().getHandlerHub().getHandlerFor(item);
+            if (controllerHandler != null) {
+                final PodTemplateSpec template = controllerHandler.getPodTemplate(item);
+                if (template != null) {
+                    if (template.getMetadata() == null) {
+                        template.setMetadata(new ObjectMeta());
                     }
-                }
-            } else if (platformMode == PlatformMode.openshift && item instanceof DeploymentConfig) {
-                DeploymentConfig deploymentConfig = (DeploymentConfig)item;
-                ObjectMeta metadata = deploymentConfig.getMetadata();
-                DeploymentConfigSpec spec = deploymentConfig.getSpec();
-                if (metadata != null && spec != null) {
-                    PodTemplateSpec templateSpec = spec.getTemplate();
-                    if(templateSpec != null) {
-                        ObjectMeta templateMetadata = templateSpec.getMetadata();
-                        if(templateMetadata == null) {
-                            templateMetadata = new ObjectMeta();
-                            templateSpec.setMetadata(templateMetadata);
-                        }
-                        templateMetadata.setAnnotations(MapUtil.mergeMaps(templateMetadata.getAnnotations(), metadata.getAnnotations()));
-                    }
+                    final ObjectMeta templateMetadata = template.getMetadata();
+                    templateMetadata.setAnnotations(MapUtil.mergeMaps(templateMetadata.getAnnotations(), item.getMetadata().getAnnotations()));
                 }
             }
         }

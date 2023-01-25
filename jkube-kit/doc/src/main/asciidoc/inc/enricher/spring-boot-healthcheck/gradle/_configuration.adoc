@@ -1,0 +1,15 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+  enricher {
+    config {
+      'jkube-healthcheck-spring-boot' {
+         timeoutSeconds = '5'
+         readinessProbeInitialDelaySeconds = '30'
+         failureThreshold = '3'
+         successThreshold = '1'
+      }
+    }
+  }
+}
+----

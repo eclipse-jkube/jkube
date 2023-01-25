@@ -1,0 +1,100 @@
+
+[[jkube-service-discovery]]
+==== jkube-service-discovery
+
+This enricher can be used to add service annotations to facilitate automated discovery of
+the service by 3scale for Camel RestDSL projects. Other project types may follow at a later time.
+The enricher extracts the needed information from the camel-context.xml, and the restConfiguration element in particular.
+
+-----
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring       http://camel.apache.org/schema/spring/camel-spring.xsd">
+     <camelContext xmlns="http://camel.apache.org/schema/spring">
+        <restConfiguration component="servlet" scheme="https"
+              contextPath="myapi" apiContextPath="myapi/openapi.json"/>
+...
+-----
+The enricher looks for the `scheme`, `contextPath` and `apiContextPath` attributes, and it will add the following
+label and annotations:
+
+LABEL
+    discovery.3scale.net/discoverable. The value of the label can be set to "true" or "false", and was added to take part in the selector definition executed by 3scale to find all services that need discovery. Also it can act as a switch as well, to temporary turn off 3scale discovery integration by setting it to "false".
+
+ANNOTATIONS
+    discovery.3scale.net/discovery-version: the version of the 3scale discovery process.
+    discovery.3scale.net/scheme: this can be "http" or "https"
+    discovery.3scale.net/path: (optional) the contextPath of the service if it's not at the root.
+    discovery.3scale.net/description-path: (optional) the path to the service description document (OpenAPI/Swagger). The path can either be relative or an external full URL.
+
+The following configuration parameters can be used to override the behavior of this enricher:
+
+[[enricher-jkube-service-discovery]]
+.JKube service discovery enricher
+[cols="1,6,1"]
+|===
+| Element | Description | Default
+
+| *springDir*
+| Path to the spring configuration directory where the `camel-context.xml` file lives.
+| `/src/main/resources/spring` which is used to recognize a Camel RestDSL project.
+
+| *scheme*
+| The `scheme` part of the URL where the service is hosted.
+| `http`
+
+| *path*
+| The `path` part of the URL where the service is hosted.
+| `/`
+
+| *descriptionPath*
+| The path to a location where the service description document is hosted. This path can be either a relative path if the document is self-hosted, or a full URL if the document is hosted externally.
+|
+
+| *discoveryVersion*
+| The version of the 3scale discovery implementation.
+| `v1`
+
+| *discoverable*
+| Sets the discoverable label to either true or false. If it's set to "false" 3scale will not try to discover this service.
+| `true`
+
+|===
+
+You specify the properties like for any enricher within the enrichers configuration like in
+
+.Example
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+-----
+<configuration>
+  ..
+  <enricher>
+    <config>
+      <jkube-service-discovery>
+        <scheme>https</scheme>
+        <path>/api</path>
+        <descriptionPath>/api/openapi.json</descriptionPath>
+      </jkube-service-discovery>
+    </config>
+  </enricher>
+</configuration>
+-----
+
+Alternatively you can us a `src/main/jkube/service.yml` fragment to override the values. For example
+-----
+kind: Service
+metadata:
+  labels:
+    discovery.3scale.net/discoverable : "true"
+  annotations:
+    discovery.3scale.net/discovery-version : "v1"
+    discovery.3scale.net/scheme : "https"
+    discovery.3scale.net/path : "/api"
+    discovery.3scale.net/description-path : "/api/openapi.json"
+  name: my-service
+spec:
+  type: LoadBalancer
+-----

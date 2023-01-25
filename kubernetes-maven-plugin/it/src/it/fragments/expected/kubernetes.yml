@@ -1,0 +1,63 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      annotations:
+        maven: Noted
+      labels:
+        app: fragments
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube
+      name: ribbon
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      labels:
+        app: fragments
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube
+      name: config-map
+    data:
+      application.properties: |-
+        key = some value
+        replaced = 42
+  - apiVersion: apiextensions.k8s.io/v1
+    kind: CustomResourceDefinition
+    metadata:
+      labels:
+        app: fragments
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube
+      name: custom.resource.example.com
+  - apiVersion: custom.resource.example.com/v1
+    kind: Example
+    metadata:
+      labels:
+        app: custom-resources
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube
+      name: custom-resource
+      namespace: code
+    spec:
+      field: Replaced by Maven!

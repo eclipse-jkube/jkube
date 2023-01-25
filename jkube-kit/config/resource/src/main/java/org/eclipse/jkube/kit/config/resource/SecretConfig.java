@@ -14,17 +14,12 @@
 package org.eclipse.jkube.kit.config.resource;
 
 
-import org.apache.maven.plugins.annotations.Parameter;
-
 public class SecretConfig {
 
-    @Parameter
     private String name;
 
-    @Parameter
     private String dockerServerId;
 
-    @Parameter
     private String namespace;
 
     public String getName() {

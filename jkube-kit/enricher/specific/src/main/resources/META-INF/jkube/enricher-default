@@ -1,4 +1,4 @@
-# Jkube specific enrichers
+# JKube specific enrichers
 # ==========================
 
 # The order of the enrichers is defined in the active profile
@@ -8,12 +8,11 @@
 # ----------------------------------------------------------------
 
 # Healthcheck Enrichers
-org.eclipse.jkube.maven.enricher.specific.WildFlySwarmHealthCheckEnricher
-org.eclipse.jkube.maven.enricher.specific.KarafHealthCheckEnricher
-org.eclipse.jkube.maven.enricher.specific.WebAppHealthCheckEnricher
-org.eclipse.jkube.maven.enricher.specific.DockerHealthCheckEnricher,510
+org.eclipse.jkube.kit.enricher.specific.KarafHealthCheckEnricher
+org.eclipse.jkube.kit.enricher.specific.WebAppHealthCheckEnricher
+org.eclipse.jkube.kit.enricher.specific.DockerHealthCheckEnricher,510
 
 # Other enrichers
-org.eclipse.jkube.maven.enricher.specific.PrometheusEnricher
-
+org.eclipse.jkube.kit.enricher.specific.PrometheusEnricher
+org.eclipse.jkube.kit.enricher.specific.ServiceDiscoveryEnricher
 

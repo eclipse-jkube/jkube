@@ -1,0 +1,13 @@
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+  enricher {
+    config {
+      'jkube-revision-history' {
+         limit = 8
+      }
+    }
+  }
+}
+----
+

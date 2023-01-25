@@ -1,0 +1,19 @@
+*Building container Image of your application*
+
+In case of OpenShift, https://docs.openshift.com/container-platform/4.9/openshift_images/using_images/using-s21-images.html[Source to Image (S2I)] builds are performed by default. ImageStream is updated after the image creation.
+
+Run this command which would build your application's container image and push it to OpenShift's internal container registry:
+
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]
+----
+$ ./mvnw {goal-prefix}:build
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]
+----
+$ ./gradlew {task-prefix}Build
+----
+endif::[]

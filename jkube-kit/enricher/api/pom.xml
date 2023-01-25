@@ -20,66 +20,49 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.11-SNAPSHOT</version>
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 
-  <artifactId>jkube-maven-enricher-api</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <artifactId>jkube-kit-enricher-api</artifactId>
 
-  <name>Jkube Maven :: Enricher :: API</name>
+  <name>JKube Kit :: Enricher :: API</name>
 
   <dependencies>
-    <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-core</artifactId>
-    </dependency>
 
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>jkube-kit-config-image</artifactId>
+      <artifactId>jkube-kit-build-api</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-config-resource</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
+      <groupId>org.eclipse.jkube</groupId>
+      <artifactId>jkube-kit-config-image</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>org.jmockit</groupId>
-      <artifactId>jmockit</artifactId>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>kubernetes-client</artifactId>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
     </dependency>
-
     <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>openshift-client</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
     </dependency>
   </dependencies>
 </project>

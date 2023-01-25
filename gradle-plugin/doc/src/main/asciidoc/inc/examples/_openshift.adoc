@@ -1,0 +1,29 @@
+[[openshift-scenarios]]
+== OpenShift Scenarios
+
+{plugin} by default does a https://docs.openshift.com/container-platform/4.8/openshift_images/using_images/using-s21-images.html#images-s2i-build-process-overview_using-s21-images[S2I] Binary build where image is built within a pod inside OpenShift cluster. See <<build-openshift, OpenShift Build>> for more details. You can specify which kind of binary build you want to choose using `buildStrategy` plugin configuration option:
+
+.Example for S2I build using Docker build strategy:
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+   buildStrategy = 'docker'
+}
+----
+
+[[openshift-scenario-buildconfig-requests-limits]]
+=== Setting Requests/Limits for OpenShift Build
+
+You can configure CPU/Memory used by OpenShift build process during `${task-prefix}Build` providing `openshiftBuildConfig` field in `resources`. See <<setting-quota-openshift-build,Setting Quotas for OpenShift Build>> section for more details.
+
+[[openshift-configure-buildoutput]]
+=== Configuring Build Output
+By default {plugin} generates an `ImageStreamTag` as build output which is pushed to internal OpenShift registry. You can set `buildOutputKind` field in plugin configuration to override this behavior. If you want to push to some other image registry instead. You can set build output to `DockerImage` like this which will push your image to specified registry.
+
+.Example for S2I build using DockerImage build output:
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+    buildOutputKind = 'DockerImage'
+}
+----

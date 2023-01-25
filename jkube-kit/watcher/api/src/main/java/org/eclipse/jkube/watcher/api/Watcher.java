@@ -13,13 +13,14 @@
  */
 package org.eclipse.jkube.watcher.api;
 
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
+
+import org.eclipse.jkube.kit.common.Named;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Named;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
 
 public interface Watcher extends Named {
@@ -30,14 +31,18 @@ public interface Watcher extends Named {
      * @return true if the watcher is applicable
      * @param configs all image configurations
      */
-    boolean isApplicable(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode);
+    boolean isApplicable(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode);
 
 
     /**
      * Watch the resources and kick a rebuild when they change.
      *
      * @param configs all image configurations
+     * @param namespace namespace in which resources are deployed
+     * @param resources list of resources applied
+     * @param mode {@link PlatformMode}
+     * @throws Exception in case of any failure
      */
-    void watch(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) throws Exception;
+    void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) throws Exception;
 
 }

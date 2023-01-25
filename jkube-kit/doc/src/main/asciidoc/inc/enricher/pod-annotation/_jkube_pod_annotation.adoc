@@ -1,0 +1,5 @@
+[[jkube-pod-annotation]]
+==== jkube-pod-annotation
+
+This enricher copies the annotations from a Controller (Deployment/ReplicaSet/StatefulSet) metadata to the annotations of
+container Pod template spec's metadata.

@@ -1,0 +1,22 @@
+{
+  "ingressRules": [{
+    "host": "example.com",
+    "paths": [
+      {
+        "pathType": "ImplementationSpecific",
+        "path": "/path",
+        "serviceName": "service-name",
+        "servicePort": 8080,
+        "resource": {
+          "apiGroup": "group.k8s.io",
+          "kind": "ResourceKind",
+          "name": "resource-name"
+        }
+      }
+    ]
+  }],
+  "ingressTlsConfigs": [{
+    "hosts": ["tls.example.com"],
+    "secretName": "shhhh"
+  }]
+}

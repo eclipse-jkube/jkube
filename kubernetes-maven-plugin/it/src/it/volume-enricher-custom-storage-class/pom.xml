@@ -18,7 +18,7 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>volume-enricher-storage-class-835</artifactId>
+  <artifactId>volume-enricher-custom-storage-class</artifactId>
   <groupId>org.eclipse.jkube</groupId>
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
@@ -27,16 +27,20 @@
   <build>
 
     <plugins>
-      
+
      <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>@jkube.version@</version>
           <configuration>
             <enricher>
              <config>
                <jkube-volume-permission>
                  <defaultStorageClass>cheese</defaultStorageClass>
+                 <cpuRequest>250m</cpuRequest>
+                 <memoryRequest>64Mi</memoryRequest>
+                 <cpuLimit>500m</cpuLimit>
+                 <memoryLimit>128Mi</memoryLimit>
                </jkube-volume-permission>
              </config>
             </enricher>

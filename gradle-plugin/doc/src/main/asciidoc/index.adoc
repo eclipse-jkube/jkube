@@ -1,0 +1,50 @@
+= org.eclipse.jkube/{plugin}
+:plugin: kubernetes-gradle-plugin
+:task-prefix: k8s
+:cluster: Kubernetes
+:revnumber: {version}
+:revdate: {localdate}
+:toc: macro
+:toclevels: 3
+:toc-title: {plugin}
+:doctype: book
+:icons: font
+:plugindir: ../../../../../kubernetes
+:kitdoc-path: {docdir}/../../../../../jkube-kit/doc/src/main/asciidoc
+:plugin-type: gradle
+:plugin-configuration-type: Groovy DSL
+
+ifndef::ebook-format[:leveloffset: 1]
+
+(C) 2021 The original authors.
+
+ifdef::basebackend-html[toc::[]]
+
+:numbered:
+
+include::inc/_introduction.adoc[]
+
+include::{kitdoc-path}/inc/getting-started/_index.adoc[]
+
+include::inc/examples/_index.adoc[]
+
+include::inc/tasks/_index.adoc[]
+
+include::inc/_groovy-configuration.adoc[]
+
+include::{kitdoc-path}/inc/_generator.adoc[]
+
+include::{kitdoc-path}/inc/_enricher.adoc[]
+
+include::inc/_registry.adoc[]
+
+include::inc/_authentication.adoc[]
+
+// TODO - Add when support is complete
+// include::inc/_profiles.adoc[]
+
+include::{kitdoc-path}/inc/plugins/_jkube_plugins.adoc[]
+
+include::inc/_kind-filename-type-mapping.adoc[]
+
+

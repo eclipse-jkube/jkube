@@ -13,25 +13,26 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Template;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Dependency;
-import org.eclipse.jkube.maven.enricher.api.model.KindAndName;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,35 +49,29 @@ import java.util.function.Function;
  * Enricher for embedding dependency descriptors to single package.
  *
  * @author jimmidyson
- * @since 14/07/16
  */
 public class DependencyEnricher extends BaseEnricher {
-    private static String DEPENDENCY_KUBERNETES_YAML = "META-INF/jkube/kubernetes.yml";
-    private static String DEPENDENCY_KUBERNETES_TEMPLATE_YAML = "META-INF/jkube/k8s-template.yml";
-    private static String DEPENDENCY_OPENSHIFT_YAML = "META-INF/jkube/openshift.yml";
+    private static final String DEPENDENCY_KUBERNETES_YAML = "META-INF/jkube/kubernetes.yml";
+    private static final String DEPENDENCY_KUBERNETES_TEMPLATE_YAML = "META-INF/jkube/k8s-template.yml";
+    private static final String DEPENDENCY_OPENSHIFT_YAML = "META-INF/jkube/openshift.yml";
 
-    private Set<URL> kubernetesDependencyArtifacts = new HashSet<>();
-    private Set<URL> kubernetesTemplateDependencyArtifacts = new HashSet<>();
-    private Set<URL> openshiftDependencyArtifacts = new HashSet<>();
+    private final Set<URI> kubernetesDependencyArtifacts = new HashSet<>();
+    private final Set<URI> kubernetesTemplateDependencyArtifacts = new HashSet<>();
+    private final Set<URI> openshiftDependencyArtifacts = new HashSet<>();
 
-    // Available configuration keys
-    private enum Config implements Configs.Key {
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
 
-        includeTransitive {{
-            d = "true";
-        }},
-        includePlugin {{
-            d = "true";
-        }};
+        INCLUDE_TRANSITIVE("includeTransitive", "true"),
+        INCLUDE_PLUGIN("includePlugin", "true");
 
-        protected String d;
-
-        public String def() {
-            return d;
-        }
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
-    public DependencyEnricher(MavenEnricherContext buildContext) {
+    public DependencyEnricher(JKubeEnricherContext buildContext) throws URISyntaxException {
         super(buildContext, "jkube-dependency");
 
         addArtifactsWithYaml(kubernetesDependencyArtifacts, DEPENDENCY_KUBERNETES_YAML);
@@ -85,16 +80,16 @@ public class DependencyEnricher extends BaseEnricher {
 
     }
 
-    private void addArtifactsWithYaml(Set<URL> artifactSet, String dependencyYaml) {
+    private void addArtifactsWithYaml(Set<URI> artifactSet, String dependencyYaml) throws URISyntaxException {
         final List<Dependency> artifacts = getContext().getDependencies(isIncludeTransitive());
 
         for (Dependency artifact : artifacts) {
             if ("compile".equals(artifact.getScope()) && "jar".equals(artifact.getType())) {
-                File file = artifact.getLocation();
+                File file = artifact.getFile();
                 try {
-                    URL url = new URL("jar:" + file.toURI().toURL() + "!/" + dependencyYaml);
-                    artifactSet.add(url);
-                } catch (MalformedURLException e) {
+                    URI uri = new URI("jar:" + file.toURI() + "!/" + dependencyYaml);
+                    artifactSet.add(uri);
+                } catch (URISyntaxException e) {
                     getLog().debug("Failed to create URL for %s: %s", file, e);
                 }
             }
@@ -110,7 +105,8 @@ public class DependencyEnricher extends BaseEnricher {
             if (resources != null) {
                 while (resources.hasMoreElements()) {
                     URL url = resources.nextElement();
-                    artifactSet.add(url);
+                    URI uri = url.toURI();
+                    artifactSet.add(uri);
                 }
             }
         }
@@ -125,17 +121,19 @@ public class DependencyEnricher extends BaseEnricher {
             case openshift:
                 enrichOpenShift(builder);
                 break;
+            default:
+                break;
         }
     }
 
     private void enrichKubernetes(final KubernetesListBuilder builder) {
         final List<HasMetadata> kubernetesItems = new ArrayList<>();
         processArtifactSetResources(this.kubernetesDependencyArtifacts, items -> {
-            kubernetesItems.addAll(Arrays.asList(items.toArray(new HasMetadata[items.size()])));
+            kubernetesItems.addAll(Arrays.asList(items.toArray(new HasMetadata[0])));
             return null;
         });
         processArtifactSetResources(this.kubernetesTemplateDependencyArtifacts, items -> {
-            List<HasMetadata> templates = Arrays.asList(items.toArray(new HasMetadata[items.size()]));
+            List<HasMetadata> templates = Arrays.asList(items.toArray(new HasMetadata[0]));
 
             // lets remove all the plain resources (without any ${PARAM} expressions) which match objects
             // in the Templates found from the k8s-templates.yml files which still contain ${PARAM} expressions
@@ -182,8 +180,8 @@ public class DependencyEnricher extends BaseEnricher {
         int nItems = 0;
 
         // Populate map with existing items in the builder
-        for(int index = 0; index < builder.getItems().size(); index++, nItems++) {
-            HasMetadata aItem = builder.getItems().get(index);
+        for(int index = 0; index < builder.buildItems().size(); index++, nItems++) {
+            HasMetadata aItem = builder.buildItems().get(index);
             KindAndName aKey = new KindAndName(aItem);
             aIndexMap.put(aKey, index);
         }
@@ -192,7 +190,7 @@ public class DependencyEnricher extends BaseEnricher {
             KindAndName aKey = new KindAndName(item);
 
             if(aIndexMap.containsKey(aKey)) { // Merge the override fragments, and remove duplicate
-                HasMetadata duplicateItem = builder.getItems().get(aIndexMap.get(aKey));
+                HasMetadata duplicateItem = builder.buildItems().get(aIndexMap.get(aKey));
                 item = KubernetesResourceUtil.mergeResources(item, duplicateItem, log, false);
                 builder.setToItems(aIndexMap.get(aKey), item);
             }
@@ -203,40 +201,34 @@ public class DependencyEnricher extends BaseEnricher {
         }
     }
 
-    private void processArtifactSetResources(Set<URL> artifactSet, Function<List<HasMetadata>, Void> function) {
-        for (URL url : artifactSet) {
+    private void processArtifactSetResources(Set<URI> artifactSet, Function<List<HasMetadata>, Void> function) {
+        for (URI uri : artifactSet) {
             try {
-                InputStream is = url.openStream();
-                if (is != null) {
-                    log.debug("Processing Kubernetes YAML in at: %s", url);
-
-                    KubernetesList resources = new ObjectMapper(new YAMLFactory()).readValue(is, KubernetesList.class);
-                    List<HasMetadata> items = resources.getItems();
-                    if (items.size() == 0 && Objects.equals("Template", resources.getKind())) {
-                        is = url.openStream();
-                        Template template = new ObjectMapper(new YAMLFactory()).readValue(is, Template.class);
-                        if (template != null) {
-                            items.add(template);
-                        }
+                log.debug("Processing Kubernetes YAML in at: %s", uri);
+                KubernetesList resources = Serialization.yamlMapper().readValue(uri.toURL(), KubernetesList.class);
+                List<HasMetadata> items = resources.getItems();
+                if (items.isEmpty() && Objects.equals("Template", resources.getKind())) {
+                    Template template = Serialization.yamlMapper().readValue(uri.toURL(), Template.class);
+                    if (template != null) {
+                        items.add(template);
                     }
-                    for (HasMetadata item : items) {
-                        KubernetesResourceUtil.setSourceUrlAnnotationIfNotSet(item, url.toString());
-                        log.debug("  found %s  %s", KubernetesHelper.getKind(item), KubernetesHelper.getName(item));
-                    }
-                    function.apply(items);
                 }
+                for (HasMetadata item : items) {
+                    log.debug("  found %s  %s", KubernetesHelper.getKind(item), KubernetesHelper.getName(item));
+                }
+                function.apply(items);
             } catch (IOException e) {
-                getLog().debug("Skipping %s: %s", url, e);
+                getLog().debug("Skipping %s: %s", uri, e);
             }
         }
     }
 
     protected boolean isIncludePlugin() {
-        return Configs.asBoolean(getConfig(Config.includePlugin));
+        return Configs.asBoolean(getConfig(Config.INCLUDE_PLUGIN));
     }
 
     protected boolean isIncludeTransitive() {
-        return Configs.asBoolean(getConfig(Config.includeTransitive));
+        return Configs.asBoolean(getConfig(Config.INCLUDE_TRANSITIVE));
     }
 
 

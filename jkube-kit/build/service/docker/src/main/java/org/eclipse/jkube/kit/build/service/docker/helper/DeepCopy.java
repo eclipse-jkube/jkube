@@ -21,6 +21,8 @@ import java.io.ObjectOutputStream;
 
 public class DeepCopy {
 
+    private DeepCopy() { }
+
     /**
      * Returns a copy of the object, or null if the object cannot
      * be serialized.
@@ -51,5 +53,5 @@ public class DeepCopy {
         } catch (IOException | ClassNotFoundException e) {
             throw new IllegalStateException("Cannot copy " + orig, e);
         }
-    };
+    }
 }

@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -21,105 +20,134 @@ import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import io.fabric8.kubernetes.api.model.apps.DeploymentStrategy;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
-import io.fabric8.openshift.api.model.DeploymentConfigFluent;
+import io.fabric8.openshift.api.model.DeploymentConfigSpec;
+import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
+import io.fabric8.openshift.api.model.DeploymentStrategy;
+import io.fabric8.openshift.api.model.DeploymentStrategyBuilder;
+import org.eclipse.jkube.enricher.generic.DefaultControllerEnricher;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.EnricherConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
 
 
 public class DeploymentConfigEnricher extends BaseEnricher {
-    static final String ENRICHER_NAME = "jkube-openshift-deploymentconfig";
-    private Boolean enableAutomaticTrigger;
-    private Long openshiftDeployTimeoutSeconds;
 
-    public DeploymentConfigEnricher(MavenEnricherContext context) {
+    private static final String ENRICHER_NAME = "jkube-openshift-deploymentconfig";
+
+    public DeploymentConfigEnricher(JKubeEnricherContext context) {
         super(context, ENRICHER_NAME);
-        this.enableAutomaticTrigger = getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true);;
-        this.openshiftDeployTimeoutSeconds =  getOpenshiftDeployTimeoutInSeconds(3600L);
     }
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-
-        if(platformMode == PlatformMode.openshift) {
-
+        if (isApplicable(platformMode)) {
             for(HasMetadata item : builder.buildItems()) {
-                if(item instanceof Deployment && !useDeploymentforOpenShift()) {
-                    DeploymentConfig deploymentConfig = convert(item);
+                if(item instanceof Deployment) {
+                    DeploymentConfig deploymentConfig = convertFromAppsV1Deployment(item);
                     removeItemFromKubernetesBuilder(builder, item);
-                    builder.addToDeploymentConfigItems(deploymentConfig);
+                    builder.addToItems(deploymentConfig);
+                    log.info("Converting Deployment to DeploymentConfig");
+                } else if (item instanceof io.fabric8.kubernetes.api.model.extensions.Deployment) {
+                    DeploymentConfig deploymentConfig = convertFromExtensionsV1Beta1Deployment(item);
+                    removeItemFromKubernetesBuilder(builder, item);
+                    builder.addToItems(deploymentConfig);
+                    log.info("Converting Deployment to DeploymentConfig");
                 }
             }
         }
     }
 
-    private DeploymentConfig convert(HasMetadata item) {
+    private boolean isApplicable(PlatformMode platformMode) {
+        return platformMode == PlatformMode.openshift
+            && !useDeploymentForOpenShift()
+            && isNotHandledByDefaultControllerEnricher();
+    }
+
+    private boolean isNotHandledByDefaultControllerEnricher() {
+        final String type = new EnricherConfig(DefaultControllerEnricher.ENRICHER_NAME, getContext())
+            .get(DefaultControllerEnricher.Config.TYPE, "DeploymentConfig");
+        return type.equalsIgnoreCase("DeploymentConfig");
+    }
+
+    private DeploymentConfig convertFromAppsV1Deployment(HasMetadata item) {
         Deployment resource = (Deployment) item;
         DeploymentConfigBuilder builder = new DeploymentConfigBuilder();
         builder.withMetadata(resource.getMetadata());
         DeploymentSpec spec = resource.getSpec();
         if (spec != null) {
-            DeploymentConfigFluent.SpecNested<DeploymentConfigBuilder> specBuilder = builder.withNewSpec();
-            Integer replicas = spec.getReplicas();
-            if (replicas != null) {
-                specBuilder.withReplicas(replicas);
-            }
-            Integer revisionHistoryLimit = spec.getRevisionHistoryLimit();
-            if (revisionHistoryLimit != null) {
-                specBuilder.withRevisionHistoryLimit(revisionHistoryLimit);
-            }
-
-            LabelSelector selector = spec.getSelector();
-            if (selector  != null) {
-                Map<String, String> matchLabels = selector.getMatchLabels();
-                if (matchLabels != null && !matchLabels.isEmpty()) {
-                    specBuilder.withSelector(matchLabels);
-                }
-            }
-            PodTemplateSpec template = spec.getTemplate();
-            if (template != null) {
-                specBuilder.withTemplate(template);
-                PodSpec podSpec = template.getSpec();
-                Objects.requireNonNull(podSpec, "No PodSpec for PodTemplate:" + template);
-                List<Container> containers = podSpec.getContainers();
-                Objects.requireNonNull(podSpec, "No containers for PodTemplate.spec: " + template);
-            }
-            DeploymentStrategy strategy = spec.getStrategy();
-            String strategyType = null;
-            if (strategy != null) {
-                strategyType = strategy.getType();
-            }
-            if (openshiftDeployTimeoutSeconds != null && openshiftDeployTimeoutSeconds > 0) {
-                if (StringUtils.isBlank(strategyType) || "Rolling".equals(strategyType)) {
-                    specBuilder.withNewStrategy().withType("Rolling").
-                            withNewRollingParams().withTimeoutSeconds(openshiftDeployTimeoutSeconds).endRollingParams().endStrategy();
-                } else if ("Recreate".equals(strategyType)) {
-                    specBuilder.withNewStrategy().withType("Recreate").
-                            withNewRecreateParams().withTimeoutSeconds(openshiftDeployTimeoutSeconds).endRecreateParams().endStrategy();
-                } else {
-                    specBuilder.withNewStrategy().withType(strategyType).endStrategy();
-                }
-            } else if (StringUtils.isNotBlank(strategyType)) {
-                // TODO is there any values we can copy across?
-                specBuilder.withNewStrategy().withType(strategyType).endStrategy();
-            }
-
-            if(enableAutomaticTrigger) {
-                specBuilder.addNewTrigger().withType("ConfigChange").endTrigger();
-            }
-
-            specBuilder.endSpec();
+            builder.withSpec(getDeploymentConfigSpec(spec.getReplicas(), spec.getRevisionHistoryLimit(), spec.getSelector(), spec.getTemplate(), spec.getStrategy() != null ? spec.getStrategy().getType() : null));
         }
         return builder.build();
+    }
+
+    private DeploymentConfig convertFromExtensionsV1Beta1Deployment(HasMetadata item) {
+        io.fabric8.kubernetes.api.model.extensions.Deployment resource = (io.fabric8.kubernetes.api.model.extensions.Deployment) item;
+        DeploymentConfigBuilder builder = new DeploymentConfigBuilder();
+        builder.withMetadata(resource.getMetadata());
+        io.fabric8.kubernetes.api.model.extensions.DeploymentSpec spec = resource.getSpec();
+        if (spec != null) {
+            builder.withSpec(getDeploymentConfigSpec(spec.getReplicas(), spec.getRevisionHistoryLimit(), spec.getSelector(), spec.getTemplate(), spec.getStrategy() != null ? spec.getStrategy().getType() : null));
+        }
+        return builder.build();
+    }
+
+    private DeploymentConfigSpec getDeploymentConfigSpec(Integer replicas, Integer revisionHistoryLimit, LabelSelector selector, PodTemplateSpec podTemplateSpec, String strategyType) {
+        DeploymentConfigSpecBuilder specBuilder = new DeploymentConfigSpecBuilder();
+        if (replicas != null) {
+            specBuilder.withReplicas(replicas);
+        }
+        if (revisionHistoryLimit != null) {
+            specBuilder.withRevisionHistoryLimit(revisionHistoryLimit);
+        }
+
+        if (selector  != null) {
+            Map<String, String> matchLabels = selector.getMatchLabels();
+            if (matchLabels != null && !matchLabels.isEmpty()) {
+                specBuilder.withSelector(matchLabels);
+            }
+        }
+        if (podTemplateSpec != null) {
+            specBuilder.withTemplate(podTemplateSpec);
+            PodSpec podSpec = podTemplateSpec.getSpec();
+            Objects.requireNonNull(podSpec, "No PodSpec for PodTemplate:" + podTemplateSpec);
+            Objects.requireNonNull(podSpec, "No containers for PodTemplate.spec: " + podTemplateSpec);
+        }
+        DeploymentStrategy deploymentStrategy = getDeploymentStrategy(strategyType);
+        if (deploymentStrategy != null) {
+            specBuilder.withStrategy(deploymentStrategy);
+        }
+
+        if(getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true)) {
+            specBuilder.addNewTrigger().withType("ConfigChange").endTrigger();
+        }
+
+        return specBuilder.build();
+    }
+
+    private DeploymentStrategy getDeploymentStrategy(String strategyType) {
+        final long openshiftDeployTimeoutSeconds = getOpenshiftDeployTimeoutInSeconds(3600L);
+        if (openshiftDeployTimeoutSeconds > 0) {
+            if (StringUtils.isBlank(strategyType) || "Rolling".equals(strategyType)) {
+                return new DeploymentStrategyBuilder().withType("Rolling").
+                        withNewRollingParams().withTimeoutSeconds(openshiftDeployTimeoutSeconds).endRollingParams().build();
+            } else if ("Recreate".equals(strategyType)) {
+                return new DeploymentStrategyBuilder().withType("Recreate").
+                        withNewRecreateParams().withTimeoutSeconds(openshiftDeployTimeoutSeconds).endRecreateParams().build();
+            } else {
+                return new DeploymentStrategyBuilder().withType(strategyType).build();
+            }
+        } else if (StringUtils.isNotBlank(strategyType)) {
+            return new DeploymentStrategyBuilder().withType(strategyType).build();
+        }
+        return null;
     }
 }

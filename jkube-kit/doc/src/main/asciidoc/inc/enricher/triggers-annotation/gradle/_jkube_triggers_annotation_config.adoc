@@ -1,0 +1,12 @@
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+    enricher {
+        config {
+            'jkube-triggers-annotation' {
+                containers = 'container-name-1,c2'
+            }
+        }
+    }
+}
+----

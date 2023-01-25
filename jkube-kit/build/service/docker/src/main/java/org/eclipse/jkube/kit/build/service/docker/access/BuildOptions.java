@@ -14,17 +14,18 @@
 package org.eclipse.jkube.kit.build.service.docker.access;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jkube.kit.common.JsonFactory;
 
 /**
+ * https://docs.docker.com/engine/api/v1.41/#operation/ImageBuild
  * @author roland
- * @since 03/01/17
  */
 public class BuildOptions {
 
-    private Map<String, String> options;
+    private final Map<String, String> options;
 
     public BuildOptions() {
         this(new HashMap<>());
@@ -55,6 +56,15 @@ public class BuildOptions {
 
     public BuildOptions noCache(boolean noCache) {
         options.put("nocache", noCache ? "1" : "0");
+        return this;
+    }
+
+    public BuildOptions cacheFrom(List<String> cacheFrom) {
+        if (cacheFrom == null || cacheFrom.isEmpty()) {
+            options.remove("cachefrom");
+        } else {
+            options.put("cachefrom", JsonFactory.newJsonArray(cacheFrom).toString());
+        }
         return this;
     }
 

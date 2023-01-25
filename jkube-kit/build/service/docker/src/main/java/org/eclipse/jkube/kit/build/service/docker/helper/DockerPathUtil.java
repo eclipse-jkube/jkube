@@ -27,6 +27,8 @@ import java.io.IOException;
  */
 public class DockerPathUtil {
 
+    private DockerPathUtil() { }
+
     /**
      * Resolves the supplied resource (a path or directory on the filesystem) relative the supplied {@code
      * baseDir}.  The returned {@code File} is guaranteed to be {@link File#isAbsolute() absolute}.  The returned file
@@ -40,7 +42,6 @@ public class DockerPathUtil {
      * @param pathToResolve represents a filesystem resource, which may be an absolute path
      * @param baseDir the absolute path used to resolve non-absolute path resources; <em>must</em> be absolute
      * @return an absolute {@code File} reference to {@code pathToResolve}; <em>not</em> guaranteed to exist
-     * @throws IllegalArgumentException if the supplied {@code baseDir} does not represent an absolute path
      */
     public static File resolveAbsolutely(String pathToResolve, String baseDir) {
         // TODO: handle the case where pathToResolve specifies a non-existent path, for example, a base directory equal to "/" and a relative path of "../../foo".

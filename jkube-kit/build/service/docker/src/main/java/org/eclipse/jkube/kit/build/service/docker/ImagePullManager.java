@@ -19,6 +19,8 @@ import org.eclipse.jkube.kit.build.service.docker.helper.AutoPullMode;
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 
+import java.util.Properties;
+
 /**
  * Simple interface for a ImagePullCache manager, to load and persist the cache.
  */
@@ -30,7 +32,7 @@ public class ImagePullManager {
     // image pull policy
     private final ImagePullPolicy imagePullPolicy;
 
-    private CacheStore cacheStore;
+    private final CacheStore cacheStore;
 
     public ImagePullManager(CacheStore cacheStore, String imagePullPolicy, String autoPull) {
         this.cacheStore = cacheStore;
@@ -68,6 +70,9 @@ public class ImagePullManager {
         save(load().add(image));
     }
 
+    public static ImagePullManager createImagePullManager(String imagePullPolicy, String autoPull, Properties properties) {
+      return new ImagePullManager(new PropertyCacheStore(properties), imagePullPolicy, autoPull);
+    }
 
     public interface CacheStore {
         String get(String key);
@@ -98,13 +103,9 @@ public class ImagePullManager {
      * @author roland
      * @since 20/07/16
      */
-    class ImagePullCache {
+    public static class ImagePullCache {
 
-        private JsonObject cache;
-
-        public ImagePullCache() {
-            this(null);
-        }
+      private final JsonObject cache;
 
         public ImagePullCache(String json) {
             cache = json != null ? JsonFactory.newJsonObject(json) : new JsonObject();
@@ -123,5 +124,23 @@ public class ImagePullManager {
         public String toString() {
             return cache.toString();
         }
+    }
+
+    public static class PropertyCacheStore implements CacheStore {
+      private final Properties properties;
+
+      public PropertyCacheStore(Properties properties) {
+        this.properties = properties;
+      }
+
+      @Override
+      public String get(String key) {
+        return properties.getProperty(key);
+      }
+
+      @Override
+      public void put(String key, String value) {
+        properties.setProperty(key, value);
+      }
     }
 }

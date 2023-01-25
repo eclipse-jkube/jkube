@@ -18,7 +18,7 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>volume-enricher-storage-class-835</artifactId>
+  <artifactId>volume-enricher-custom-storage-class</artifactId>
   <groupId>org.eclipse.jkube</groupId>
   <version>0.1-SNAPSHOT</version>
   <packaging>jar</packaging>
@@ -27,10 +27,10 @@
   <build>
 
     <plugins>
-      
+
      <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>oc-maven-plugin</artifactId>
+        <artifactId>openshift-maven-plugin</artifactId>
         <version>@jkube.version@</version>
           <configuration>
             <enricher>

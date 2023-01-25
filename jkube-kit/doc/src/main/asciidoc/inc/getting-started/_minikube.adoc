@@ -1,0 +1,122 @@
+[[minikube-gettingstarted]]
+== Minikube
+
+This is an example of how you can use the JKube zero configuration to build and deploy your Java application with Minikube. This is using a Quarkus project, but it could be changed to any supported Java framework.
+
+[[minikube-gettingstarted-prerequisites]]
+*Prerequisites*
+
+You will need the following for the scenario:
+
+* `minikube` installed and running on your computer
+* `minikube` ingress addon enabled
++
+[source,sh,subs="attributes+"]
+----
+$ minikube addons enable ingress
+----
+* Use the docker daemon installed in minikube
++
+[source,sh,subs="attributes+"]
+----
+$ eval $(minikube -p minikube docker-env)
+----
+
+
+[[minikube-gettingstarted-zero-configuration]]
+*Zero configuration*
+
+1. Start by generating a new Gradle Quarkus project from https://code.quarkus.io. Make sure {plugin-type} is selected. Download the generated project and extract the content.
+
+2.
+include::_add_plugin.adoc[]
+3.
+Run the command:
+ifeval::["{plugin-type}" == "maven"]
+[source,sh,subs="attributes+"]
+----
+$ ./mvnw package k8s:build k8s:resource k8s:apply
+----
+The goal <<jkube:push>> is not required as we are using the Minikube internal container image registry.
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,sh,subs="attributes+"]
+----
+$ ./gradlew quarkusBuild k8sBuild k8sResource k8sApply
+----
+
+The task <<jkubePush>> is not required as we are using the Minikube internal container image registry.
+endif::[]
+
+At this point, the Quarkus app has been built, containerized, configured for kubernetes and deployed to the minikube cluster. But there is no external endpoint to access to it:
+
+[source,sh,subs="attributes+"]
+----
+$ kubectl get svc
+NAME         TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+kubernetes   ClusterIP   10.96.0.1      <none>        443/TCP    14h
+quarkus      ClusterIP   10.101.31.90   <none>        8080/TCP   13h
+
+$ kubectl get ingress
+No resources found in default namespace.
+----
+
+[[minikube-gettingstarted-external-url]]
+*External URL*
+
+To make this service available publicly, change the settings in project properties.
+
+1. Retrieve the minikube ip address
++
+[source,sh,subs="attributes+"]
+----
+$ minikube ip
+192.168.99.102
+----
+
+2. Add the following in the properties. For the domain, we are using `nip.io` service that dynamically maps custom hostname and IP address and avoid editing the `/etc/hosts` file.
++
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
+----
+# Enable Creating External Urls
+jkube.createExternalUrls=true
+# Configure host domain suffix for Ingress
+jkube.domain=192.168.99.102.nip.io
+----
+
+3. Re-generate and apply the kubernetes resource
+
+
+ifeval::["{plugin-type}" == "maven"]
++
+[source,sh,subs="attributes+"]
+----
+$ ./mvnw k8s:resource k8s:apply
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
++
+[source,sh,subs="attributes+"]
+----
+$ ./gradlew k8sResource k8sApply
+----
+endif::[]
+
+4. Make sure the ingress resource has been created
++
+[source,sh,subs="attributes+"]
+----
+$ kubectl get ingress
+NAME      CLASS    HOSTS                           ADDRESS          PORTS   AGE
+quarkus   <none>   quarkus.192.168.99.102.nip.io   192.168.99.102   80      30m
+----
+
+5. Give it a try:
++
+[source,sh,subs="attributes+"]
+----
+$ curl http://quarkus.192.168.99.102.nip.io/hello
+Hello RESTEasy
+----

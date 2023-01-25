@@ -13,102 +13,153 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.jayway.jsonpath.matchers.JsonPathMatchers;
-import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.maven.project.MavenProject;
-import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
 import java.util.TreeMap;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author kamesh
- * @since 08/05/17
  */
-public class DefaultControllerEnricherTest {
+class DefaultControllerEnricherTest {
 
-    @Mocked
-    private MavenEnricherContext context;
+    private Map<String, Map<String, Object>> config;
+    private EnricherContext context;
+    private Properties properties;
 
-    @Mocked
-    ImageConfiguration imageConfiguration;
-
-    @Mocked
-    MavenProject project;
-
-    @Test
-    public void checkReplicaCount() throws Exception {
-        enrichAndAssert(1, 3);
+    @BeforeEach
+    void setUp() throws Exception {
+        config = new HashMap<>();
+        properties = new Properties();
+        context = JKubeEnricherContext.builder()
+            .processorConfig(new ProcessorConfig(null, null, config))
+            .log(new KitLogger.SilentLogger())
+            .image(ImageConfiguration.builder()
+                .name("helloworld")
+                .build(BuildConfiguration.builder()
+                    .port("8080")
+                    .build()).build())
+            .project(JavaProject.builder()
+                .properties(properties)
+                .groupId("group")
+                .artifactId("artifact-id")
+                .build())
+            .build();
     }
 
     @Test
-    public void checkDefaultReplicaCount() throws Exception {
-        enrichAndAssert(1, 1);
+    void checkReplicaCount() {
+        givenReplicaCountInEnricherConfig(String.valueOf(3));
+
+        // When
+        KubernetesListBuilder builder = enrich();
+
+        // Then
+        assertReplicas(builder, 3);
+        assertImagePullPolicy(builder, "IfNotPresent");
     }
 
-    protected void enrichAndAssert(int sizeOfObjects, int replicaCount) throws com.fasterxml.jackson.core.JsonProcessingException {
-        // Setup a sample docker build configuration
-        final BuildConfiguration buildConfig =
-                new BuildConfiguration.Builder()
-                        .ports(Arrays.asList("8080"))
-                        .build();
+    @Test
+    void checkDefaultReplicaCount() {
+        givenReplicaCountInEnricherConfig(String.valueOf(1));
 
-        final TreeMap controllerConfig = new TreeMap();
-        controllerConfig.put("replicaCount", String.valueOf(replicaCount));
+        // When
+        KubernetesListBuilder builder = enrich();
 
-        setupExpectations(buildConfig, controllerConfig);
-        // Enrich
+        // Then
+        assertReplicas(builder, 1);
+        assertImagePullPolicy(builder, "IfNotPresent");
+    }
+
+    @Test
+    void create_withImagePullPolicyConfigured_shouldUseConfiguredImagePullPolicy() {
+      // Given
+      properties.put("jkube.enricher.jkube-controller.pullPolicy", "Never");
+
+      // When
+      KubernetesListBuilder builder = enrich();
+
+      // Then
+      assertReplicas(builder, 1);
+      assertImagePullPolicy(builder, "Never");
+    }
+
+    @Test
+    void create_withImagePullPolicyProperty_shouldUseConfiguredImagePullPolicy() {
+      // Given
+      properties.put("jkube.imagePullPolicy", "Never");
+
+      // When
+      KubernetesListBuilder builder = enrich();
+
+      // Then
+      assertReplicas(builder, 1);
+      assertImagePullPolicy(builder, "Never");
+    }
+
+    @Test
+    void create_withReplicasConfigured_shouldUseConfiguredReplicas() {
+      // Given
+      properties.put("jkube.enricher.jkube-controller.replicaCount", "5");
+
+      // When
+      KubernetesListBuilder builder = enrich();
+
+      // Then
+      assertReplicas(builder, 5);
+      assertImagePullPolicy(builder, "IfNotPresent");
+    }
+
+    private KubernetesListBuilder enrich() {
         DefaultControllerEnricher controllerEnricher = new DefaultControllerEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
         controllerEnricher.create(PlatformMode.kubernetes, builder);
-
-        // Validate that the generated resource contains
-        KubernetesList list = builder.build();
-        assertEquals(sizeOfObjects, list.getItems().size());
-
-        String json = ResourceUtil.toJson(list.getItems().get(0));
-        assertThat(json, JsonPathMatchers.isJson());
-        assertThat(json, JsonPathMatchers.hasJsonPath("$.spec.replicas", Matchers.equalTo(replicaCount)));
+        return builder;
     }
 
-    protected void setupExpectations(final BuildConfiguration buildConfig, final TreeMap controllerConfig) {
-
-        new Expectations() {{
-
-            context.getGav();
-            result = new GroupArtifactVersion("", "jkube-controller-test", "0");
-
-            Configuration config =
-                new Configuration.Builder()
-                    .processorConfig(new ProcessorConfig(null, null,
-                                                         Collections.singletonMap("jkube-controller", controllerConfig)))
-                    .images(Arrays.asList(imageConfiguration))
-                    .build();
-            context.getConfiguration();
-            result = config;
-
-            imageConfiguration.getBuildConfiguration();
-            result = buildConfig;
-
-            imageConfiguration.getName();
-            result = "helloworld";
-
-        }};
+    private void assertReplicas(KubernetesListBuilder kubernetesListBuilder, int expectedReplicas) {
+        assertThat(kubernetesListBuilder.buildItems())
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
+            .hasFieldOrPropertyWithValue("metadata.name", "artifact-id")
+            .hasFieldOrPropertyWithValue("spec.replicas", expectedReplicas);
     }
+
+    private void assertImagePullPolicy(KubernetesListBuilder kubernetesListBuilder, String expectedImagePullPolicy) {
+        assertThat(kubernetesListBuilder.buildItems())
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
+            .extracting(Deployment::getSpec)
+            .extracting(DeploymentSpec::getTemplate)
+            .extracting(PodTemplateSpec::getSpec)
+            .extracting(PodSpec::getContainers)
+            .asList()
+            .first(InstanceOfAssertFactories.type(Container.class))
+            .hasFieldOrPropertyWithValue("imagePullPolicy", expectedImagePullPolicy);
+    }
+
+    private void givenReplicaCountInEnricherConfig(String value) {
+        final Map<String, Object> controllerConfig = new TreeMap<>();
+        controllerConfig.put("replicaCount", value);
+        config.put("jkube-controller", controllerConfig);
+    }
+
 }

@@ -1,8 +1,0 @@
-[[oc:push]]
-== *oc:push*
-
-WARNING: Section needs review and rearrangements
-
-include::../../push/_overview.adoc[]
-
-include::../../push/_configuration.adoc[]

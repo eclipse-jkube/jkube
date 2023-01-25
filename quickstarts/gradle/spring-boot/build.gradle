@@ -1,0 +1,47 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version '1.10.1'
+    id 'org.eclipse.jkube.openshift' version '1.10.1'
+    id 'org.springframework.boot' version '2.5.2'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.quickstarts.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+}
+
+kubernetes {
+    offline = false
+    access {
+        namespace = 'default'
+    }
+    enricher {
+        excludes = ['jkube-expose']
+    }
+    generator {
+        includes = ['spring-boot']
+        config {
+            'spring-boot' {
+                color = 'always'
+            }
+        }
+    }
+    resources {
+        controllerName = 'test'
+        configMap {
+            name = 'config-map-name'
+            entries = [
+                    [name: 'test', value: 'value']
+            ]
+        }
+    }
+}

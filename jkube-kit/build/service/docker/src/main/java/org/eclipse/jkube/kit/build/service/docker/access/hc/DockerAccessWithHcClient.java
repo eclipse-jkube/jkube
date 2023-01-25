@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.service.docker.access.hc;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -41,11 +41,11 @@ import org.eclipse.jkube.kit.build.api.model.VolumeCreateConfig;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.ContainerCreateConfig;
+import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.UrlBuilder;
 import org.eclipse.jkube.kit.build.service.docker.access.chunked.BuildJsonResponseHandler;
-import org.eclipse.jkube.kit.build.service.docker.access.chunked.EntityStreamReaderUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.chunked.PullOrPushResponseJsonHandler;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.http.HttpClientBuilder;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.unix.UnixSocketClientBuilder;
@@ -61,11 +61,10 @@ import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
-import org.eclipse.jkube.kit.config.image.build.ArchiveCompression;
+import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
-import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -124,7 +123,7 @@ public class DockerAccessWithHcClient implements DockerAccess {
                                     String certPath,
                                     int maxConnections,
                                     KitLogger log) throws IOException {
-        URI uri = URI.create(baseUrl);
+        URI uri = URI.create(Objects.requireNonNull(baseUrl, "Docker daemon baseUrl is required"));
         if (uri.getScheme() == null) {
             throw new IllegalArgumentException("The docker access url '" + baseUrl + "' must contain a schema tcp://, unix:// or npipe://");
         }
@@ -173,27 +172,24 @@ public class DockerAccessWithHcClient implements DockerAccess {
         }
     }
 
-    private ResponseHandler<Object> createExecResponseHandler(LogOutputSpec outputSpec) throws FileNotFoundException {
+    private ResponseHandler<Object> createExecResponseHandler(LogOutputSpec outputSpec) {
         final LogCallback callback = new DefaultLogCallback(outputSpec);
-        return new ResponseHandler<Object>() {
-            @Override
-            public Object handleResponse(HttpResponse response) throws IOException {
-                try (InputStream stream = response.getEntity().getContent()) {
-                    LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream));
-                    String line;
-                    try {
-                        callback.open();
-                        while ( (line = reader.readLine()) != null) {
-                            callback.log(1, new Timestamp(), line);
-                        }
-                    } catch (LogCallback.DoneException e) {
-                        // Ok, we stop here ...
-                    } finally {
-                        callback.close();
+        return response -> {
+            try (InputStream stream = response.getEntity().getContent();
+                 LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream))) {
+                String line;
+                try {
+                    callback.open();
+                    while ( (line = reader.readLine()) != null) {
+                        callback.log(1, new Timestamp(), line);
                     }
+                } catch (LogCallback.DoneException e) {
+                    // Ok, we stop here ...
+                } finally {
+                    callback.close();
                 }
-                return null;
             }
+            return null;
         };
     }
 
@@ -418,11 +414,9 @@ public class DockerAccessWithHcClient implements DockerAccess {
     }
 
     @Override
-    public void pullImage(String image, AuthConfig authConfig, String registry)
+    public void pullImage(String image, AuthConfig authConfig, String registry, CreateImageOptions options)
             throws DockerAccessException {
-        ImageName name = new ImageName(image);
-        String pullUrl = urlBuilder.pullImage(name, registry);
-
+        String pullUrl = urlBuilder.pullImage(options);
         try {
             delegate.post(pullUrl, null, createAuthHeader(authConfig),
                     createPullOrPushResponseHandler(), HTTP_OK);
@@ -436,7 +430,7 @@ public class DockerAccessWithHcClient implements DockerAccess {
             throws DockerAccessException {
         ImageName name = new ImageName(image);
         String pushUrl = urlBuilder.pushImage(name, registry);
-        String temporaryImage = tagTemporaryImage(name, registry);
+        TemporaryImageHandler temporaryImageHandler = tagTemporaryImage(name, registry);
         DockerAccessException dae = null;
         try {
             doPushImage(pushUrl, createAuthHeader(authConfig), createPullOrPushResponseHandler(), HTTP_OK, retries);
@@ -444,15 +438,7 @@ public class DockerAccessWithHcClient implements DockerAccess {
             dae = new DockerAccessException(e, "Unable to push '%s'%s", image, (registry != null) ? " to registry '" + registry + "'" : "");
             throw dae;
         } finally {
-            if (temporaryImage != null) {
-                if (!removeImage(temporaryImage, true)) {
-                    if (dae == null) {
-                        throw new DockerAccessException("Image %s could be pushed, but the temporary tag could not be removed", temporaryImage);
-                    } else {
-                        throw new DockerAccessException(dae.getCause(), dae.getMessage() + " and also temporary tag [%s] could not be removed, too.", temporaryImage);
-                    }
-                }
-            }
+            temporaryImageHandler.handle(dae);
         }
     }
 
@@ -468,16 +454,13 @@ public class DockerAccessWithHcClient implements DockerAccess {
 
     }
 
-    private ResponseHandler<Object> getImageResponseHandler(final String filename, final ArchiveCompression compression) throws FileNotFoundException {
-        return new ResponseHandler<Object>() {
-            @Override
-            public Object handleResponse(HttpResponse response) throws IOException {
-                try (InputStream stream = response.getEntity().getContent();
-                     OutputStream out = compression.wrapOutputStream(new FileOutputStream(filename))) {
-                    IOUtils.copy(stream, out, 65536);
-                }
-                return null;
+    private ResponseHandler<Object> getImageResponseHandler(final String filename, final ArchiveCompression compression) {
+        return response -> {
+            try (InputStream stream = response.getEntity().getContent();
+                 OutputStream out = compression.wrapOutputStream(new FileOutputStream(filename))) {
+                IOUtils.copy(stream, out, 65536);
             }
+            return null;
         };
     }
 
@@ -640,7 +623,7 @@ public class DockerAccessWithHcClient implements DockerAccess {
         if (authConfig == null) {
             authConfig = AuthConfig.EMPTY_AUTH_CONFIG;
         }
-        return Collections.singletonMap("X-Registry-Auth", authConfig.toHeaderValue());
+        return Collections.singletonMap("X-Registry-Auth", authConfig.toHeaderValue(log));
     }
 
     private boolean isRetryableErrorCode(int errorCode) {
@@ -665,19 +648,26 @@ public class DockerAccessWithHcClient implements DockerAccess {
         }
     }
 
-    private String tagTemporaryImage(ImageName name, String registry) throws DockerAccessException {
+    private TemporaryImageHandler tagTemporaryImage(ImageName name, String registry) throws DockerAccessException {
         String targetImage = name.getFullName(registry);
-        if (!name.hasRegistry() && registry != null) {
-            if (hasImage(targetImage)) {
-                throw new DockerAccessException(
-                        String.format("Cannot temporarily tag %s with %s because target image already exists. " +
-                                        "Please remove this and retry.",
-                                name.getFullName(), targetImage));
-            }
-            tag(name.getFullName(), targetImage, false);
-            return targetImage;
+        if (name.hasRegistry() || registry == null) {
+            return () ->
+                log.info("Temporary image tag skipped. Target image '%s' already has registry set or no registry is available",
+                    targetImage);
         }
-        return null;
+
+        String fullName = name.getFullName();
+        boolean alreadyHasImage = hasImage(targetImage);
+
+        if (alreadyHasImage) {
+            log.warn("Target image '%s' already exists. Tagging of '%s' will replace existing image",
+                targetImage, fullName);
+        }
+
+        tag(fullName, targetImage, false);
+        return alreadyHasImage ?
+            () -> log.info("Tagged image '%s' won't be removed after tagging as it already existed", targetImage) :
+            new RemovingTemporaryImageHandler(targetImage);
     }
 
     // ===========================================================================================================
@@ -708,25 +698,6 @@ public class DockerAccessWithHcClient implements DockerAccess {
         return url != null && url.toLowerCase().startsWith("https");
     }
 
-    // Preparation for performing requests
-    private static class HcChunkedResponseHandlerWrapper implements ResponseHandler<Object> {
-
-        private EntityStreamReaderUtil.JsonEntityResponseHandler handler;
-
-        HcChunkedResponseHandlerWrapper(EntityStreamReaderUtil.JsonEntityResponseHandler handler) {
-            this.handler = handler;
-        }
-
-        @Override
-        public Object handleResponse(HttpResponse response) throws IOException {
-            try (InputStream stream = response.getEntity().getContent()) {
-                // Parse text as json
-                EntityStreamReaderUtil.processJsonStream(handler, stream);
-            }
-            return null;
-        }
-    }
-
     public String fetchApiVersionFromServer(String baseUrl, ApacheHttpClientDelegate delegate) throws IOException {
         HttpGet get = new HttpGet(baseUrl + (baseUrl.endsWith("/") ? "" : "/") + "version");
         get.addHeader(HttpHeaders.ACCEPT, "*/*");
@@ -734,6 +705,40 @@ public class DockerAccessWithHcClient implements DockerAccess {
         try (CloseableHttpResponse response = delegate.getHttpClient().execute(get)) {
 
             return response.getFirstHeader("Api-Version") != null ? response.getFirstHeader("Api-Version").getValue() : API_VERSION;
+        }
+    }
+
+    @FunctionalInterface
+    private interface TemporaryImageHandler {
+        void handle() throws DockerAccessException;
+
+        default void handle(DockerAccessException interruptingError) throws DockerAccessException {
+            handle();
+
+            if (interruptingError == null) {
+                return;
+            }
+            throw interruptingError;
+        }
+    }
+
+    private final class RemovingTemporaryImageHandler implements TemporaryImageHandler {
+        private final String targetImage;
+
+        private RemovingTemporaryImageHandler(String targetImage) {
+            this.targetImage = targetImage;
+        }
+
+        @Override
+        public void handle() throws DockerAccessException {
+            boolean imageRemoved = removeImage(targetImage, true);
+            if (imageRemoved) {
+                return;
+            }
+            throw new DockerAccessException(
+                "Image %s could be pushed, but the temporary tag could not be removed",
+                targetImage
+            );
         }
     }
 }

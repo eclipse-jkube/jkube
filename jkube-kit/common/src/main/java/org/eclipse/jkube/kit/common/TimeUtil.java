@@ -24,6 +24,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
  * @since 24.10.18
  */
 public class TimeUtil {
+    private TimeUtil() { }
 
     /**
      * Calculate the duration between now and the given time
@@ -66,4 +67,5 @@ public class TimeUtil {
 
         return res.toString();
     }
+
 }

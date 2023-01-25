@@ -1,0 +1,15 @@
+
+[[introduction]]
+= Introduction
+
+The *{plugin}* brings your Gradle Java applications on to
+ifeval::["{task-prefix}" == "k8s"]
+http://kubernetes.io/[Kubernetes].
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+https://www.openshift.com/[OpenShift].
+endif::[]
+This plugin focuses on two tasks:
+
+* Building Container images.
+* Creating {cluster} resource descriptors.

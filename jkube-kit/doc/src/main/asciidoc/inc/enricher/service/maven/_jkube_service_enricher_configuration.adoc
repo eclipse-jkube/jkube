@@ -1,0 +1,16 @@
+.Example
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+-----
+<configuration>
+  <!-- ... -->
+  <enricher>
+    <config>
+      <jkube-service>
+        <name>my-service</name>
+        <type>NodePort</type>
+        <multiPort>true</multiPort>
+      </jkube-service>
+    </config>
+  </enricher>
+</configuration>
+-----

@@ -18,8 +18,8 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,9 +31,14 @@ import java.util.Set;
 
 public class FileDataSecretEnricher extends BaseEnricher {
 
+    /**
+     * @deprecated Use <code>jkube.eclipse.org/secret/</code> instead
+     */
+    @Deprecated
     protected static final String PREFIX_ANNOTATION = "maven.jkube.io/secret/";
+    protected static final String FILEDATASECRET_PREFIX_ANNOTATION = INTERNAL_ANNOTATION_PREFIX + "/secret/";
 
-    public FileDataSecretEnricher(MavenEnricherContext buildContext) {
+    public FileDataSecretEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-secret-file");
     }
 
@@ -49,8 +54,10 @@ public class FileDataSecretEnricher extends BaseEnricher {
             public void visit(SecretBuilder element) {
                 final Map<String, String> annotations = element.buildMetadata().getAnnotations();
                 try {
-                    final Map<String, String> secretAnnotations = createSecretFromAnnotations(annotations);
-                    element.addToData(secretAnnotations);
+                    if (annotations != null && !annotations.isEmpty()) {
+                        final Map<String, String> secretAnnotations = createSecretFromAnnotations(annotations);
+                        element.addToData(secretAnnotations);
+                    }
                 } catch (IOException e) {
                     throw new IllegalArgumentException(e);
                 }
@@ -66,7 +73,8 @@ public class FileDataSecretEnricher extends BaseEnricher {
             Map.Entry<String, String> entry = it.next();
             final String key = entry.getKey();
 
-            if(key.startsWith(PREFIX_ANNOTATION)) {
+            String secretFileLocationKey = getOutput(key);
+            if(secretFileLocationKey != null) {
                 byte[] bytes = readContent(entry.getValue());
                 secretFileLocations.put(getOutput(key), Base64Util.encodeToString(bytes));
                 it.remove();
@@ -81,6 +89,11 @@ public class FileDataSecretEnricher extends BaseEnricher {
     }
 
     private String getOutput(String key) {
-        return key.substring(PREFIX_ANNOTATION.length());
+        if (key.startsWith(PREFIX_ANNOTATION)) {
+            return key.substring(PREFIX_ANNOTATION.length());
+        } else if (key.startsWith(FILEDATASECRET_PREFIX_ANNOTATION)) {
+            return key.substring(FILEDATASECRET_PREFIX_ANNOTATION.length());
+        }
+        return null;
     }
 }

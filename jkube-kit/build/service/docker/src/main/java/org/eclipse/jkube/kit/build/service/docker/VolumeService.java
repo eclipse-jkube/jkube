@@ -18,8 +18,6 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.config.VolumeConfiguration;
 
-import java.lang.String;
-
 /**
  *  Service Class for helping control Volumes
  *

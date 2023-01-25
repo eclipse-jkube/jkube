@@ -23,9 +23,9 @@ import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.SecretConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.util.SecretConstants;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -34,7 +34,7 @@ import java.util.Map;
 
 public abstract class SecretEnricher extends BaseEnricher {
 
-    public SecretEnricher(MavenEnricherContext buildContext, String name) {
+    public SecretEnricher(JKubeEnricherContext buildContext, String name) {
         super(buildContext, name);
     }
 
@@ -53,17 +53,19 @@ public abstract class SecretEnricher extends BaseEnricher {
             @Override
             public void visit(SecretBuilder secretBuilder) {
                 Map<String, String> annotation = secretBuilder.buildMetadata().getAnnotations();
-                if (!annotation.containsKey(getAnnotationKey())) {
-                    return;
+                if (annotation != null) {
+                    String dockerId = getDockerIdFromAnnotation(annotation);
+                    if (dockerId == null) {
+                        return;
+                    }
+                    Map<String, String> data = generateData(dockerId);
+                    if (data == null) {
+                        return;
+                    }
+                    // remove the annotation key
+                    annotation.remove(getAnnotationKey());
+                    secretBuilder.addToData(data);
                 }
-                String dockerId = annotation.get(getAnnotationKey());
-                Map<String, String> data = generateData(dockerId);
-                if (data == null) {
-                    return;
-                }
-                // remove the annotation key
-                annotation.remove(getAnnotationKey());
-                secretBuilder.addToData(data);
             }
         });
 
@@ -100,7 +102,7 @@ public abstract class SecretEnricher extends BaseEnricher {
 
             // docker-registry
             if (secretConfig.getDockerServerId() != null) {
-                MavenEnricherContext mavenContext = ((MavenEnricherContext)getContext());
+                JKubeEnricherContext mavenContext = ((JKubeEnricherContext)getContext());
                 String dockerSecret = (mavenContext).getDockerJsonConfigString(mavenContext.getSettings(), secretConfig.getDockerServerId());
                 if (StringUtils.isBlank(dockerSecret)) {
                     log.warn("Docker secret with id "
@@ -126,14 +128,25 @@ public abstract class SecretEnricher extends BaseEnricher {
     }
 
     private List<SecretConfig> getSecretsFromXmlConfig() {
-        ResourceConfig resourceConfig = getConfiguration().getResource().orElse(null);
+        ResourceConfig resourceConfig = getConfiguration().getResource();
         if(resourceConfig != null && resourceConfig.getSecrets() != null) {
             return resourceConfig.getSecrets();
         }
         return null;
     }
 
+    private String getDockerIdFromAnnotation(Map<String, String> annotation) {
+        if (annotation.containsKey(getDeprecatedAnnotationKey())) {
+            return annotation.get(getDeprecatedAnnotationKey());
+        } else if (annotation.containsKey(getAnnotationKey())) {
+            return annotation.get(getAnnotationKey());
+        }
+        return null;
+    }
+
     protected abstract String getAnnotationKey();
+
+    protected abstract String getDeprecatedAnnotationKey();
 
     protected abstract Map<String, String> generateData(String key);
 }

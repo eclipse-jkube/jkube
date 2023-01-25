@@ -19,7 +19,7 @@ import java.util.List;
 public class ConfigMap {
 
     private String name;
-    private List<ConfigMapEntry> entries = new ArrayList<>();
+    private final List<ConfigMapEntry> entries = new ArrayList<>();
 
     public void addEntry(ConfigMapEntry configMapEntry) {
         this.entries.add(configMapEntry);
@@ -31,7 +31,7 @@ public class ConfigMap {
 
     /**
      * Set the name of ConfigMap.
-     * @param name
+     * @param name the ConfigMap name
      */
     public void setName(String name) {
         this.name = name;

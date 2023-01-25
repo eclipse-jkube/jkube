@@ -13,62 +13,131 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * @author roland
- * @since 01/04/16
  */
-public class PluginServiceFactoryTest {
 
-    private class TestContext {}
-    private PluginServiceFactory<TestContext> pluginServiceFactory;
+@SuppressWarnings("unused")
+class PluginServiceFactoryTest {
 
-    @Before
-    public void setup() {
-        pluginServiceFactory = new PluginServiceFactory<>(new TestContext());
+  private PluginServiceFactory<TestContext> pluginServiceFactory;
+
+  @BeforeEach
+  public void setup() {
+    pluginServiceFactory = new PluginServiceFactory<>(new TestContext());
+  }
+
+  @Test
+  void createServiceObjects_withOrdersAndExclusions_shouldReturnInCorrectOrder() {
+    // Given
+    final String[] descriptorPaths = new String[] { "service/test-services-default", "service/test-services" };
+    // When
+    final List<TestService> result = pluginServiceFactory.createServiceObjects(descriptorPaths);
+    // Then
+    assertThat(result)
+        .isInstanceOf(ArrayList.class)
+        .hasSize(4)
+        .extracting("name")
+        .containsExactly("three", "two", "five", "one");
+  }
+
+  @Test
+  void createServiceObjects_withNonExistentClass_shouldThrowException() {
+    // When
+    final IllegalStateException result = assertThrows(IllegalStateException.class, () ->
+        pluginServiceFactory.createServiceObjects("service/error-services"));
+    // Then
+    assertThat(result)
+        .hasMessageMatching(".*bla\\.blub\\.NotExist.*")
+        .hasCauseExactlyInstanceOf(ClassNotFoundException.class);
+  }
+
+  @Test
+  void createServiceObjects_withBadConstructorClass_shouldThrowException() {
+    // When
+    final IllegalStateException result = assertThrows(IllegalStateException.class, () ->
+        pluginServiceFactory.createServiceObjects("service/error-constructor-services"));
+    // Then
+    assertThat(result)
+        .hasMessageMatching("Cannot load service .*\\.PluginServiceFactoryTest\\$BadConstructor.*");
+  }
+
+  @Test
+  void createServiceObjects_withBadGenericClass_shouldThrowException() {
+    //Given
+    final List<String> services = pluginServiceFactory.createServiceObjects("service/test-services");
+    // When
+    final ClassCastException result = assertThrows(ClassCastException.class, () -> {
+      final String ignored = services.get(0);
+    });
+    // Then
+    assertThat(result)
+        .hasMessageContaining("PluginServiceFactoryTest$Test")
+        .hasMessageContaining("cannot be cast")
+        .hasMessageContaining("String");
+  }
+
+  private static class TestContext {
+  }
+
+  interface TestService {
+    String getName();
+  }
+
+  public static class Test1 implements TestService {
+    public Test1(TestContext ctx) {
     }
 
-    @Test
-    public void testOrder() {
-        List<TestService> services =
-                pluginServiceFactory.createServiceObjects("service/test-services-default", "service/test-services");
-        String[] orderExpected = new String[] { "three", "two", "five", "one"};
-        assertEquals(services.size(), 4);
-        Iterator<TestService> it = services.iterator();
-        for (String val : orderExpected) {
-            assertEquals(it.next().getName(),val);
-        }
+    public String getName() {
+      return "one";
+    }
+  }
+
+  public static class Test2 implements TestService {
+    public Test2(TestContext ctx) {
     }
 
-    @Test
-    public void errorHandling() {
-        try {
-            pluginServiceFactory.createServiceObjects("service/error-services");
-            fail();
-        } catch (IllegalStateException exp) {
-            assertTrue(exp.getMessage().matches(".*bla\\.blub\\.NotExist.*"));
-        }
+    public String getName() {
+      return "two";
+    }
+  }
+
+  public static class Test3 implements TestService {
+    public Test3(TestContext ctx) {
     }
 
-    @Test(expected = ClassCastException.class)
-    public void classCastException() {
-        List<String> services = pluginServiceFactory.createServiceObjects("service/test-services");
-        String bla = services.get(0);
+    public String getName() {
+      return "three";
+    }
+  }
+
+  public static class Test4 implements TestService {
+    public Test4(TestContext ctx) {
     }
 
-    interface TestService { String getName(); }
-    public static class Test1 implements TestService { public Test1(TestContext ctx) { } public String getName() { return "one"; } }
-    public static class Test2 implements TestService { public Test2(TestContext ctx) { } public String getName() { return "two"; } }
-    public static class Test3 implements TestService { public Test3(TestContext ctx) { } public String getName() { return "three"; } }
-    public static class Test4 implements TestService { public Test4(TestContext ctx) { } public String getName() { return "four"; } }
-    public static class Test5 implements TestService { public Test5(TestContext ctx) { } public String getName() { return "five"; } }
+    public String getName() {
+      return "four";
+    }
+  }
+
+  public static class Test5 implements TestService {
+    public Test5(TestContext ctx) {
+    }
+
+    public String getName() {
+      return "five";
+    }
+  }
+
+  public static class BadConstructor {
+  }
 }

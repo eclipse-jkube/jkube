@@ -309,7 +309,7 @@ public enum VolumeType {
                     .withNewScaleIO()
                     .withFsType(fsType)
                     .withGateway(gateway)
-                    .withNewReadOnly(readOnly)
+                    .withReadOnly(readOnly)
                     .withNewSecretRef().withName(secretRef).endSecretRef()
                     .withVolumeName(volumeName)
                     .withStoragePool(storagePool)

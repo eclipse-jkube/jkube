@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>fragments</artifactId>
+  <groupId>org.eclipse.jkube</groupId>
+  <version>0.1-SNAPSHOT</version>
+
+  <properties>
+    <serviceaccount.maven-annotation>Noted</serviceaccount.maven-annotation>
+    <config-map.replaced-value>42</config-map.replaced-value>
+    <custom-resource.field-value>Replaced by Maven!</custom-resource.field-value>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
+        <version>@jkube.version@</version>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

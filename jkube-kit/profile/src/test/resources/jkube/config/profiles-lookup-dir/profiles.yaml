@@ -39,3 +39,6 @@
       - jkube-image
       - jkube-project
       - jkube-debug
+      - jkube-ingress
+- name: invalid-parent
+  extends: i-dont-exist

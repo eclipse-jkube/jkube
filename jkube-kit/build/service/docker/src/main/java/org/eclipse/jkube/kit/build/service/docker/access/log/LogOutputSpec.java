@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
 import org.fusesource.jansi.Ansi;
 
@@ -29,25 +32,31 @@ import static org.fusesource.jansi.Ansi.Color.RED;
 import static org.fusesource.jansi.Ansi.Color.YELLOW;
 import static org.fusesource.jansi.Ansi.ansi;
 
+@Getter
+@EqualsAndHashCode
 public class LogOutputSpec {
 
     public static final LogOutputSpec DEFAULT = new LogOutputSpec("", YELLOW, false , null, null, true, true);
-    private final static String DEFAULT_TIMESTAMP_PATTERN = "HH:mm:ss.SSS";
+    private static final String DEFAULT_TIMESTAMP_PATTERN = "HH:mm:ss.SSS";
     private final boolean useColor;
     private final boolean logStdout;
     private final boolean fgBright;
-    private String prefix;
-    private Ansi.Color color;
-    private DateTimeFormatter timeFormatter;
-    private String file;
+    private final String prefix;
+    private final Ansi.Color color;
+    private final DateTimeFormatter timeFormatter;
+    private final String file;
 
     // Palette used for prefixing the log output
-    private final static Ansi.Color COLOR_PALETTE[] = {
+    private static final Ansi.Color[] COLOR_PALETTE = {
             YELLOW,CYAN,MAGENTA,GREEN,RED,BLUE
     };
     private static int globalColorIdx = 0;
 
-    private LogOutputSpec(String prefix, Ansi.Color color, boolean fgBright, DateTimeFormatter timeFormatter, String file, boolean useColor, boolean logStdout) {
+    @Builder(toBuilder = true)
+    private LogOutputSpec(
+        String prefix, Ansi.Color color, boolean fgBright, DateTimeFormatter timeFormatter, String file,
+        boolean useColor, boolean logStdout) {
+
         this.prefix = prefix;
         this.color = color;
         this.fgBright = fgBright;
@@ -61,16 +70,8 @@ public class LogOutputSpec {
         return useColor && (getFile() == null || isLogStdout());
     }
 
-    public boolean isLogStdout() {
-        return logStdout;
-    }
-
     public String getPrompt(boolean withColor,Timestamp timestamp) {
         return formatTimestamp(timestamp,withColor) + formatPrefix(prefix, withColor);
-    }
-
-    public String getFile(){
-        return file;
     }
 
     private String formatTimestamp(Timestamp timestamp,boolean withColor) {
@@ -100,25 +101,12 @@ public class LogOutputSpec {
         }
     }
 
-    public static class Builder {
-        private String prefix;
-        private Ansi.Color color;
-        private DateTimeFormatter timeFormatter;
-        private String file;
-        private boolean useColor;
-        private boolean logStdout;
-        private boolean fgBright;
-
-        public Builder prefix(String prefix) {
-            this.prefix = prefix;
-            return this;
+    public static class LogOutputSpecBuilder {
+        public LogOutputSpecBuilder colorString(String color) {
+            return colorString(color, false);
         }
 
-        public Builder color(String color) {
-            return color(color, false);
-        }
-
-        public Builder color(String color, boolean fgBright) {
+        public LogOutputSpecBuilder colorString(String color, boolean fgBright) {
             if (color == null) {
                 this.color = COLOR_PALETTE[globalColorIdx++ % COLOR_PALETTE.length];
             } else {
@@ -134,12 +122,7 @@ public class LogOutputSpec {
             return this;
         }
 
-        public Builder file(String file){
-            this.file = file;
-            return this;
-        }
-
-        public Builder timeFormatter(String formatOrConstant) {
+        public LogOutputSpecBuilder timeFormatterString(String formatOrConstant) {
             if (formatOrConstant == null || formatOrConstant.equalsIgnoreCase("NONE")
                     || formatOrConstant.equalsIgnoreCase("FALSE")) {
                 timeFormatter = null;
@@ -167,20 +150,6 @@ public class LogOutputSpec {
                 }
             }
             return this;
-        }
-
-        public Builder useColor(boolean useColor) {
-            this.useColor = useColor;
-            return this;
-        }
-
-        public Builder logStdout(boolean logStdout) {
-            this.logStdout = logStdout;
-            return this;
-        }
-
-        public LogOutputSpec build() {
-            return new LogOutputSpec(prefix, color, fgBright, timeFormatter, file, useColor, logStdout);
         }
     }
 }

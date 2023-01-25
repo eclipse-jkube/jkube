@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.function.Function;
 
 import static org.eclipse.jkube.kit.common.util.EnvUtil.extractFromPropertiesAsList;
 import static org.eclipse.jkube.kit.common.util.EnvUtil.extractFromPropertiesAsMap;
@@ -126,7 +127,7 @@ public class ValueProvider {
         return doubleValueExtractor.getFromPreferredSource(prefix, key, fromConfig);
     }
 
-    public <T> T getObject(ConfigKey key, T fromConfig, final com.google.common.base.Function<String, T> converter) {
+    public <T> T getObject(ConfigKey key, T fromConfig, final Function<String, T> converter) {
         ValueExtractor<T> arbitraryExtractor = new ValueExtractor<T>() {
             @Override
             protected T withPrefix(String prefix, ConfigKey key, Properties properties) {
@@ -249,7 +250,7 @@ public class ValueProvider {
         @Override
         protected Boolean withPrefix(String prefix, ConfigKey key, Properties properties) {
             String prop = properties.getProperty(key.asPropertyKey(prefix));
-            return prop == null ? null : Boolean.valueOf(prop);
+            return prop == null ? null : Boolean.parseBoolean(prop);
         }
     }
 

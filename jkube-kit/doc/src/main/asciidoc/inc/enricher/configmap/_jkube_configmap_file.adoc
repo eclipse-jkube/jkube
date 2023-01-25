@@ -1,0 +1,87 @@
+
+[[jkube-configmap-file]]
+==== jkube-configmap-file
+
+This enricher adds ConfigMap defined as `resources` in plugin configuration and/or resolves file content from an annotation.
+
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_entries_name_value_configuration.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_entries_name_value_configuration.adoc[]
+endif::[]
+
+This creates a ConfigMap data with key `A` and value `B`.
+
+You can also use `file` tag to refer to the content of a file.
+
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_entries_file_configuration.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_entries_file_configuration.adoc[]
+endif::[]
+
+This creates a ConfigMap with key `test-application.properties` and value the content of the `src/test/resources/test-application.properties` file.
+If you set `name` tag then this is used as key instead of the filename.
+
+[[configmap-groovy-configuration]]
+===== ConfigMap Groovy Configuration
+Here are the supported options while providing `configMap` in Groovy configuration
+
+.Groovy configmap configuration `configMap`
+[cols="1,5"]
+|===
+| Element | Description
+
+| <<configmap-entry-groovy-configuration, `entries`>>
+| data for ConfigMap
+
+| `name`
+| Name of the ConfigMap
+|===
+
+[[configmap-entry-groovy-configuration]]
+===== ConfigMap Entry Groovy Configuration
+`entries` is a list of `entry` configuration objects. Here are the supported options while providing `entry` in Groovy configuration
+
+.Groovy configmap entry configuration `entry`
+[cols="1,5"]
+|===
+| Element | Description
+
+| `value`
+| Entry value
+
+| `file`
+| path to a file or directory. If it's a single file then file contents would be read as value. If it's a directory then each file's content is stored as value with file name as key.
+
+| `name`
+| Entry name
+|===
+
+If you are defining a custom `ConfigMap` file, you can use an annotation to define a file name as key and its content as the value:
+
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_configmap_annotation_file_configuration.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_configmap_annotation_file_configuration.adoc[]
+endif::[]
+
+This creates a `ConfigMap` data with key `application.properties` (part defined after `cm`) and value the content of `src/test/resources/test-application.properties` file. 
+
+You can specify a directory instead of a file:
+
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_configmap_annotation_directory_configuration.adoc[]
+endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_configmap_annotation_directory_configuration.adoc[]
+endif::[]
+
+This creates a `ConfigMap` named `application.properties` (part defined after `cm`) and for each file under the directory `test-dir` one entry with file name as key and its content as the value; subdirectories are ignored.

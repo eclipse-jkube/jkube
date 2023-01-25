@@ -16,46 +16,97 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import org.eclipse.jkube.kit.common.ResourceFileType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.gson.JsonObject;
-import org.eclipse.jkube.kit.common.ResourceFileType;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.HasMetadataComparator;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.openshift.api.model.Template;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utility for resource file handling
  *
  * @author roland
- * @since 07/02/17
  */
 public class ResourceUtil {
 
-    public static boolean jsonEquals(JsonObject first, JsonObject second) {
-        final ObjectMapper mapper = new ObjectMapper();
-
-        try {
-            final JsonNode tree1 = mapper.readTree(first.toString());
-            final JsonNode tree2 = mapper.readTree(second.toString());
-            return tree1.equals(tree2);
-        } catch (IOException e) {
-            return false;
+    static {
+        Serialization.UNMATCHED_FIELD_TYPE_MODULE.setRestrictToTemplates(false);
+        Serialization.UNMATCHED_FIELD_TYPE_MODULE.setLogWarnings(false);
+        for (ObjectMapper mapper : new ObjectMapper[]{Serialization.jsonMapper(), Serialization.yamlMapper()}) {
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
         }
+        ((YAMLFactory)Serialization.yamlMapper().getFactory())
+            .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true)
+            .configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, true);
     }
 
-    public static <T> T load(File file, Class<T> clazz) throws IOException {
-        ResourceFileType type = ResourceFileType.fromFile(file);
-        return load(file, clazz, type);
+    private ResourceUtil() {}
+
+    /**
+     * Parse the provided file and return a List of HasMetadata resources.
+     *
+     * <p> If the provided resource is KubernetesList, the individual list items will be returned.
+     *
+     * <p> If the provided resource is a Template, the individual objects will be returned with the placeholders
+     * replaced.
+     *
+     * <p> n.b. the returned list will be sorted using the HasMetadataComparator.
+     *
+     * @param manifest the File to parse.
+     * @return a List of HasMetadata resources.
+     * @throws IOException if there's a problem while performing IO operations on the provided File.
+     */
+    public static List<HasMetadata> deserializeKubernetesListOrTemplate(File manifest) throws IOException {
+        if (!manifest.isFile() || !manifest.exists()) {
+            return Collections.emptyList();
+        }
+        final List<HasMetadata> kubernetesResources = new ArrayList<>();
+        try (InputStream fis = Files.newInputStream(manifest.toPath())) {
+            kubernetesResources.addAll(split(Serialization.unmarshal(fis, Collections.emptyMap())));
+        }
+        kubernetesResources.sort(new HasMetadataComparator());
+        return kubernetesResources;
     }
 
-    public static <T> T load(File file, Class<T> clazz, ResourceFileType resourceFileType) throws IOException {
-        return getObjectMapper(resourceFileType).readValue(file, clazz);
+    private static List<HasMetadata> split(Object resource) throws IOException {
+        if (resource instanceof Collection) {
+            final List<HasMetadata> collectionItems = new ArrayList<>();
+            for (Object item : ((Collection<?>)resource)) {
+                collectionItems.addAll(split(item));
+            }
+            return collectionItems;
+        } else if (resource instanceof KubernetesList) {
+            return ((KubernetesList) resource).getItems();
+        } else if (resource instanceof Template) {
+            return Optional.ofNullable(
+                    OpenshiftHelper.processTemplatesLocally((Template) resource, false))
+                .map(KubernetesList::getItems)
+                .orElse(Collections.emptyList());
+        } else if (resource instanceof HasMetadata) {
+            return Collections.singletonList((HasMetadata) resource);
+        }
+        return Collections.emptyList();
     }
 
-    public static <T> T load(InputStream in, Class<T> clazz, ResourceFileType resourceFileType) throws IOException {
-        return getObjectMapper(resourceFileType).readValue(in, clazz);
+    public static <T extends KubernetesResource> T load(File file, Class<T> clazz) throws IOException {
+        return Serialization.unmarshal(Files.newInputStream(file.toPath()), clazz);
     }
 
     public static File save(File file, Object data) throws IOException {
@@ -63,15 +114,11 @@ public class ResourceUtil {
     }
 
     public static File save(File file, Object data, ResourceFileType type) throws IOException {
-        File output = type.addExtensionIfMissing(file);
-        ensureDir(file);
+        boolean hasExtension = FilenameUtils.indexOfExtension(file.getAbsolutePath()) != -1;
+        File output = hasExtension ? file : type.addExtensionIfMissing(file);
+        FileUtil.createDirectory(file.getParentFile());
         getObjectMapper(type).writeValue(output, data);
         return output;
-    }
-
-
-    public static String toYaml(Object resource) throws JsonProcessingException {
-        return serializeAsString(resource, ResourceFileType.yaml);
     }
 
     public static String toJson(Object resource) throws JsonProcessingException {
@@ -89,21 +136,18 @@ public class ResourceUtil {
                 .disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     }
 
-    private static void ensureDir(File file) throws IOException {
-        File parentDir = file.getParentFile();
-        if (!parentDir.exists()) {
-            if (!parentDir.mkdirs()) {
-                throw new IOException("Cannot create directory " + parentDir);
+    public static List<File> getFinalResourceDirs(File resourceDir, String environmentAsCommaSeparateStr) {
+        List<File> resourceDirs = new ArrayList<>();
+
+        if (resourceDir != null && StringUtils.isNotBlank(environmentAsCommaSeparateStr)) {
+            String[] environments = environmentAsCommaSeparateStr.split(",");
+            for (String environment : environments) {
+                resourceDirs.add(new File(resourceDir, environment.trim()));
             }
+        } else if (StringUtils.isBlank(environmentAsCommaSeparateStr)) {
+            resourceDirs.add(resourceDir);
         }
-    }
-
-    public static File getFinalResourceDir(File resourceDir, String environment) {
-        if (resourceDir != null && StringUtils.isNotEmpty(environment)) {
-            return new File(resourceDir, environment);
-        }
-
-        return resourceDir;
+        return resourceDirs;
     }
 
 

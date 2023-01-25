@@ -13,11 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.validation.constraints.NotNull;
 import java.beans.BeanInfo;
 import java.beans.IntrospectionException;
 import java.beans.Introspector;
@@ -27,17 +22,24 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.validation.constraints.NotNull;
+
+import io.fabric8.kubernetes.api.model.ObjectMeta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper methods to compare the user configuration on entities
  */
 public class UserConfigurationCompare {
-    private static final transient Logger LOG = LoggerFactory.getLogger(UserConfigurationCompare.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UserConfigurationCompare.class);
 
     protected static final Set<String> ignoredProperties = new HashSet<>(Collections.singletonList("status"));
+
+    private UserConfigurationCompare() { }
 
     /**
      * This method detects if the user has changed the configuration of an entity.
@@ -54,12 +56,10 @@ public class UserConfigurationCompare {
             return true;
         } else if (entity1 == null || entity2 == null) {
             return false;
-        } else if (entity1 instanceof Map) {
-            return configEqualMap((Map) entity1, castTo(Map.class, entity2));
-        } else if (entity2 instanceof Map) {
-            return configEqualMap((Map) entity1, castTo(Map.class, entity2));
-        } else if (entity2 instanceof ObjectMeta) {
-            return configEqualObjectMeta((ObjectMeta) entity1, castTo(ObjectMeta.class, entity2));
+        } else if ((entity1 instanceof Map) || (entity2 instanceof Map)) {
+            return configEqualMap(castTo(Map.class, entity1), castTo(Map.class, entity2));
+        } else if ((entity1 instanceof ObjectMeta) || (entity2 instanceof ObjectMeta)) {
+            return configEqualObjectMeta(castTo(ObjectMeta.class, entity1), castTo(ObjectMeta.class, entity2));
         } else if (entity1 instanceof Collection && entity2 instanceof Collection) {
             return collectionsEqual((Collection) entity1, (Collection) entity2);
         } else {
@@ -123,7 +123,7 @@ public class UserConfigurationCompare {
      * @return returns boolean value indicating equality or not.
      */
     protected static boolean configEqualKubernetesDTO(@NotNull Object entity1, @NotNull Object entity2, @NotNull Class<?> clazz) {
-        // lets iterate through the objects making sure we've not
+        // let's iterate through the objects making sure we've not
         BeanInfo beanInfo = null;
         try {
             beanInfo = Introspector.getBeanInfo(clazz);
@@ -175,12 +175,15 @@ public class UserConfigurationCompare {
                 configEqualMap(entity1.getAnnotations(), entity2.getAnnotations());
     }
 
-    protected static <T> T castTo(Class<T> clazz, Object entity) {
+    private static <T> T castTo(Class<T> clazz, Object entity) {
         if (clazz.isInstance(entity)) {
             return clazz.cast(entity);
         } else {
             if (entity != null) {
-                LOG.warn("Invalid class " + entity.getClass().getName() + " when expecting " + clazz.getName() + " for instance: " + entity);
+                LOG.warn("Invalid class {} when expecting {} for instance: {}",
+                        entity.getClass().getName(),
+                        clazz.getName(),
+                        entity);
             }
             return null;
         }
@@ -208,23 +211,6 @@ public class UserConfigurationCompare {
         }
         return true;
     }
-
-    protected static boolean configEqualList(List v1, List v2) {
-        int size1 = size(v1);
-        int size2 = size(v2);
-        if (size1 != size2) {
-            return false;
-        }
-        int idx = 0;
-        for (Object value : v1) {
-            Object value2 = v2.get(idx++);
-            if (!configEqual(value, value2)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     protected static int size(Map map) {
         return (map == null) ? 0 : map.size();

@@ -21,82 +21,73 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.google.common.io.Closeables;
-import io.fabric8.kubernetes.api.model.DoneableService;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.Resource;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
+import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.IoUtil;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
-import org.eclipse.jkube.maven.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.watcher.api.BaseWatcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
+
+import com.google.common.io.Closeables;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.LabelSelector;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.project.MavenProject;
 
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootPluginConfiguration;
 
 public class SpringBootWatcher extends BaseWatcher {
 
-
     private final PortForwardService portForwardService;
-
-    // Available configuration keys
-    private enum Config implements Configs.Key {
-
-        // The time to wait for the service to be exposed (by the expose controller)
-        serviceUrlWaitTimeSeconds {{ d = "5"; }};
-
-        public String def() { return d; } protected String d;
-    }
 
     public SpringBootWatcher(WatcherContext watcherContext) {
         super(watcherContext, "spring-boot");
-        portForwardService = new PortForwardService(watcherContext.getKubernetesClient(), watcherContext.getLogger());
+        portForwardService = new PortForwardService(watcherContext.getLogger());
     }
 
     @Override
-    public boolean isApplicable(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) {
-        return MavenUtil.hasPluginOfAnyGroupId(getContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+    public boolean isApplicable(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) {
+        return JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID) ||
+         JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID);
     }
 
     @Override
-    public void watch(List<ImageConfiguration> configs, Set<HasMetadata> resources, PlatformMode mode) throws Exception {
-        KubernetesClient kubernetes = getContext().getKubernetesClient();
+    public void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) throws Exception {
+        final NamespacedKubernetesClient kubernetes;
+        if (namespace != null) {
+            kubernetes = getContext().getJKubeServiceHub().getClient().adapt(NamespacedKubernetesClient.class).inNamespace(namespace);
+        } else {
+            kubernetes = getContext().getJKubeServiceHub().getClient().adapt(NamespacedKubernetesClient.class);
+        }
 
-        PodLogService.PodLogServiceContext logContext = new PodLogService.PodLogServiceContext.Builder()
+        PodLogService.PodLogServiceContext logContext = PodLogService.PodLogServiceContext.builder()
                 .log(log)
                 .newPodLog(getContext().getNewPodLogger())
                 .oldPodLog(getContext().getOldPodLogger())
                 .build();
 
-        new PodLogService(logContext).tailAppPodsLogs(kubernetes, getContext().getClusterConfiguration().getNamespace(), resources, false, null, true, null, false);
+        new PodLogService(logContext).tailAppPodsLogs(
+            kubernetes,
+            namespace,
+            resources, false, null, true, null, false);
 
-        String url = getServiceExposeUrl(kubernetes, resources);
-        if (url == null) {
-            url = getPortForwardUrl(resources);
-        }
-
+        String url = getPortForwardUrl(kubernetes, resources);
         if (url != null) {
             runRemoteSpringApplication(url);
         } else {
@@ -104,69 +95,29 @@ public class SpringBootWatcher extends BaseWatcher {
         }
     }
 
-    private String getPortForwardUrl(final Set<HasMetadata> resources) throws Exception {
-        LabelSelector selector = KubernetesResourceUtil.getPodLabelSelector(resources);
+    String getPortForwardUrl(NamespacedKubernetesClient kubernetes, final Collection<HasMetadata> resources) {
+        LabelSelector selector = KubernetesHelper.extractPodLabelSelector(resources);
         if (selector == null) {
             log.warn("Unable to determine a selector for application pods");
             return null;
         }
 
-        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(MavenUtil.getCompileClassLoader(getContext().getProject()));
-        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getContext().getProject()));
+        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
+            JKubeProjectUtil.getClassLoader(getContext().getBuildContext().getProject()));
+        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(
+            SpringBootUtil.getSpringBootVersion(getContext().getBuildContext().getProject()));
 
-        int port = IoUtil.getFreeRandomPort();
+        int localHostPort = IoUtil.getFreeRandomPort();
         int containerPort = propertyHelper.getServerPort(properties);
-        portForwardService.forwardPortAsync(getContext().getLogger(), selector, containerPort, port);
+        portForwardService.forwardPortAsync(kubernetes, selector, containerPort, localHostPort);
 
-        return createForwardUrl(propertyHelper, properties, port);
+        return createForwardUrl(propertyHelper, properties, localHostPort);
     }
 
     private String createForwardUrl(SpringBootConfigurationHelper propertyHelper, Properties properties, int localPort) {
         String scheme = StringUtils.isNotBlank(properties.getProperty(propertyHelper.getServerKeystorePropertyKey())) ? "https://" : "http://";
         String contextPath = properties.getProperty(propertyHelper.getServerContextPathPropertyKey(), "");
         return scheme + "localhost:" + localPort + contextPath;
-    }
-
-    private String getServiceExposeUrl(KubernetesClient kubernetes, Set<HasMetadata> resources) throws InterruptedException {
-        long serviceUrlWaitTimeSeconds = Configs.asInt(getConfig(Config.serviceUrlWaitTimeSeconds));
-        for (HasMetadata entity : resources) {
-            if (entity instanceof Service) {
-                Service service = (Service) entity;
-                String name = KubernetesHelper.getName(service);
-                Resource<Service, DoneableService> serviceResource = kubernetes.services().inNamespace(getContext().getClusterConfiguration().getNamespace()).withName(name);
-                String url = null;
-                // lets wait a little while until there is a service URL in case the exposecontroller is running slow
-                for (int i = 0; i < serviceUrlWaitTimeSeconds; i++) {
-                    if (i > 0) {
-                        Thread.sleep(1000);
-                    }
-                    Service s = serviceResource.get();
-                    if (s != null) {
-                        url = KubernetesHelper.getOrCreateAnnotations(s).get(JkubeAnnotations.SERVICE_EXPOSE_URL);
-                        if (StringUtils.isNotBlank(url)) {
-                            break;
-                        }
-                    }
-                    if (!isExposeService(service)) {
-                        break;
-                    }
-                }
-
-                // lets not wait for other services
-                serviceUrlWaitTimeSeconds = 1;
-                if (StringUtils.isNotBlank(url) && url.startsWith("http")) {
-                    return url;
-                }
-            }
-        }
-
-        log.info("No exposed service found for connecting the dev tools");
-        return null;
-    }
-
-    private boolean isExposeService(Service service) {
-        String expose = KubernetesHelper.getLabels(service).get("expose");
-        return expose != null && expose.toLowerCase().equals("true");
     }
 
     private void runRemoteSpringApplication(String url) {
@@ -177,10 +128,9 @@ public class SpringBootWatcher extends BaseWatcher {
         ClassLoader classLoader = getClass().getClassLoader();
         if (classLoader instanceof URLClassLoader) {
             URLClassLoader pluginClassLoader = (URLClassLoader) classLoader;
-            try(
-                    URLClassLoader projectClassLoader =
-                            ClassUtil.createProjectClassLoader(getContext().getProject().getCompileClasspathElements(), log)) {
-
+            try(URLClassLoader projectClassLoader = ClassUtil.createProjectClassLoader(
+                        getContext().getBuildContext().getProject().getCompileClassPathElements(), log)
+            ) {
                 URLClassLoader[] classLoaders = {projectClassLoader, pluginClassLoader};
 
                 StringBuilder buffer = new StringBuilder("java -cp ");
@@ -203,7 +153,7 @@ public class SpringBootWatcher extends BaseWatcher {
 
                 // Add dev tools to the classpath (the main class is not read from BOOT-INF/lib)
                 try {
-                    File devtools = getSpringBootDevToolsJar(getContext().getProject());
+                    File devtools = getSpringBootDevToolsJar(getContext().getBuildContext().getProject());
                     buffer.append(File.pathSeparator);
                     buffer.append(devtools.getCanonicalPath());
                 } catch (Exception e) {
@@ -238,11 +188,11 @@ public class SpringBootWatcher extends BaseWatcher {
                     if (status != 0) {
                         log.warn("Process returned status: %s", status);
                     }
-                } catch (Exception e) {
+                }  catch(InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                }catch (Exception e) {
                     throw new RuntimeException("Failed to run RemoteSpringApplication: " + e, e);
                 }
-            } catch (DependencyResolutionRequiredException e) {
-                log.warn("Instructed to use project classpath, but cannot. Continuing build if we can: ", e);
             } catch (IOException e) {
                 log.warn("Instructed to use project classpath, but cannot. Continuing build if we can: ", e);
             }
@@ -251,7 +201,7 @@ public class SpringBootWatcher extends BaseWatcher {
         }
     }
 
-    protected Thread startOutputProcessor(final KitLogger logger, final InputStream inputStream, final boolean error, final AtomicBoolean outputEnabled) throws IOException {
+    protected Thread startOutputProcessor(final KitLogger logger, final InputStream inputStream, final boolean error, final AtomicBoolean outputEnabled) {
         Thread printer = new Thread() {
             @Override
             public void run() {
@@ -281,19 +231,20 @@ public class SpringBootWatcher extends BaseWatcher {
         return printer;
     }
 
-    private File getSpringBootDevToolsJar(MavenProject project) throws IOException {
+    private File getSpringBootDevToolsJar(JavaProject project) {
         String version = SpringBootUtil.getSpringBootDevToolsVersion(project).orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
-        return getContext().getFabric8ServiceHub().getArtifactResolverService().resolveArtifact(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
+        return JKubeProjectUtil.resolveArtifact(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
     }
 
-    private String validateSpringBootDevtoolsSettings() throws IllegalStateException {
-        String configuration = MavenUtil.getPlugin(getContext().getProject(), null, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID).getConfiguration().toString();
-        if(!configuration.contains("<excludeDevtools>false</excludeDevtools>")) {
+    private String validateSpringBootDevtoolsSettings() {
+        final Map<String, Object> configuration = getSpringBootPluginConfiguration(getContext().getBuildContext().getProject());
+        if(configuration != null && (!configuration.containsKey("excludeDevtools") || !configuration.get("excludeDevtools").equals("false"))) {
             log.warn("devtools need to be included in repacked archive, please set <excludeDevtools> to false in plugin configuration");
             throw new IllegalStateException("devtools needs to be included in fat jar");
         }
 
-        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(MavenUtil.getCompileClassLoader(getContext().getProject()));
+        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
+            JKubeProjectUtil.getClassLoader(getContext().getBuildContext().getProject()));
         String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET, System.getProperty(DEV_TOOLS_REMOTE_SECRET));
         if (StringUtils.isBlank(remoteSecret)) {
             log.warn("There is no `%s` property defined in your src/main/resources/application.properties. Please add one!", DEV_TOOLS_REMOTE_SECRET);

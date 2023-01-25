@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>eclipse-jkube-sample-custom-enricher-parent</artifactId>
+  <groupId>org.eclipse.jkube.quickstarts.kit</groupId>
+  <version>1.10.1</version>
+  <packaging>pom</packaging>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.5.4</version>
+  </parent>
+
+  <name>Eclipse JKube :: Quickstarts :: Kit :: Custom Istio Enricher Parent</name>
+  <description>Eclipse JKube Kit example to build and use a Custom Enricher in a SpringBoot Application. It will demonstrate how you can extend Eclipse JKube Kit's Enricher API to make your own enricher and use it to enrich or generate manifests as per your requirements.</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <jkube.version>${project.version}</jkube.version>
+    <istio-client.version>5.12.2</istio-client.version>
+  </properties>
+
+  <modules>
+    <module>istio-enricher</module>
+    <module>app</module>
+  </modules>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-parent</artifactId>
+        <version>${jkube.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>istio-client</artifactId>
+        <version>${istio-client.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>

@@ -27,7 +27,6 @@ items:
       jkube.io/issue-system: "GitHub"
       jkube.io/issue-tracker-url: "https://github.com/reactiverse/vertx-maven-plugin/issues/"
     labels:
-      expose: "true"
       provider: jkube
       app: jkube-maven-sample-zero-config
       version: "@ignore@"
@@ -78,7 +77,7 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          image: "@matches('jkube/jkube-maven-sample-zero-config:.*$')@"
+          image: jkube-maven-sample-zero-config:latest
           imagePullPolicy: IfNotPresent
           name: spring-boot
           ports:

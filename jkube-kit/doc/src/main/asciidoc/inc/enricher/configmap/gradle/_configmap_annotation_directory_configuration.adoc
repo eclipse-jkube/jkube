@@ -1,0 +1,7 @@
+[source, yaml]
+----
+metadata:
+  name: ${name}
+  annotations:
+    jkube.eclipse.org/cm/application.properties: src/test/resources/test-dir
+----

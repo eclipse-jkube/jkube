@@ -26,9 +26,9 @@ public class HealthCheckChecker implements WaitChecker {
 
     private boolean first = true;
 
-    private DockerAccess docker;
-    private String containerId;
-    private KitLogger log;
+    private final DockerAccess docker;
+    private final String containerId;
+    private final KitLogger log;
     private final String imageConfigDesc;
 
     public HealthCheckChecker(DockerAccess docker, String containerId, String imageConfigDesc, KitLogger log) {

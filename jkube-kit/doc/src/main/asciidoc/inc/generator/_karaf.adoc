@@ -1,0 +1,42 @@
+[[generator-karaf]]
+=== Karaf
+
+This generator named `karaf` kicks in when the build uses a `karaf-maven-plugin`. By default the following base images are used:
+
+[[generator-karaf-from]]
+.Karaf Base Images
+[cols="1,4,4,4"]
+|===
+| | Docker Build | S2I Build | ImageStream
+
+| *Community*
+| `quay.io/jkube/jkube-karaf`
+| `quay.io/jkube/jkube-karaf`
+| `jkube-karaf`
+
+|===
+
+When a `fromMode` of `istag` is used to specify an `ImageStreamTag` and when no `from` is given, then as default the
+`ImageStreamTag` `jkube-karaf` in the namespace `openshift` is chosen.
+
+In addition to the  <<generator-options-common, common generator options>> this generator can be configured with the following options:
+
+.Karaf configuration options
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *baseDir*
+| Directory within the generated image where to put the detected artifacts into. Change this only if the base image is
+  changed, too.
+
+  Defaults to `/deployments`.
+| `jkube.generator.karaf.baseDir`
+
+| *webPort*
+| Port to expose as service, which is supposed to be the port of a web application. Set this to 0 if you don't want to
+expose a port.
+
+  Defaults to `8080`.
+| `jkube.generator.karaf.webPort`
+|===

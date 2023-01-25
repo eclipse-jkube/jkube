@@ -1,0 +1,62 @@
+[[dockerfile-scenario]]
+== Dockerfile
+
+You can build a container image and deploy to Kubernetes with {plugin} by just providing a <<external-dockerfile, Dockerfile>>.
+{plugin} builds a container image based on your Dockerfile and generates
+opinionated Kubernetes manifests by inspecting it.
+
+[[simple-dockerfile-mode-scenario]]
+*Placing Dockerfile in project root directory*
+
+ifeval::["{plugin-type}" == "maven"]
+You can place the Dockerfile in the project root directory along with `pom.xml`.
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+You can place the Dockerfile in the project root directory along with `build.gradle`.
+endif::[]
+
+
+{plugin} detects it and automatically builds an image based on this Dockerfile.
+There is no need to provide any sort of configuration apart from Dockerfile and project root directory as docker context directory.
+The Image is created with an opinionated name from group, artifact and version.
+The name can be overridden by using the `jkube.image.name` property.
+Read <<simple-dockerfile-build, Simple Dockerfile>> section for more details.
+
+[[docker-file-provided-mode-scenario]]
+*Placing Dockerfile in some other directory*
+
+You can choose to place your Dockerfile at some other location.
+By default, the plugin assumes it to be `src/main/docker`, but you'll need to configure docker context directory in plugin configuration.
+When not specified, context directory is assumed to be Dockerfile's parent directory.
+You can take a look at https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/docker-file-provided-docker-file[Docker File Provided Quickstarts] for more details.
+
+[[docker-file-mode-include-exclude]]
+*Controlling what gets copied to image*
+
+When using Dockerfile mode, every file and directory present in the Docker build context directory
+gets copied to the created Docker image.
+In case you want to ignore some files, or you want to include only a specific set of files,
+the {plugin} provides the following options to achieve this:
+
+- <<ex-build-dockerinclude, `.jkube-dockerinclude`>> : Include only a specific set of files specified in this file
+- <<ex-build-dockerexclude, `.jkube-dockerexclude`>> : Exclude a certain set of files from being copied into container image
+- <<ex-build-dockerexclude, `.jkube-dockerignore`>>  : Same as `.jkube-dockerexclude`, ignore certain files from being copied into container image
+
+[[docker-file-mode-property-placeholders]]
+*Using Property placeholders in Dockerfiles*
+
+You can reference properties in your Dockerfiles using standard maven property placeholders `${*}`. For example, if you have a property in your `gradle.properties` like this:
+
+.gradle.properties
+----
+fromImage = fabric8/s2i-java
+----
+
+.Dockerfile
+[source,dockerfile]
+----
+FROM ${fromImage}:latest-java11
+----
+
+You can override placeholders using the filter field in image build configuration, see <<build-filtering, Build Filtering>> for more details.

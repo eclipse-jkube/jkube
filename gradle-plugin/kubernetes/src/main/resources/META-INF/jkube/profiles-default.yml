@@ -1,0 +1,156 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+# Default profiles delivered with kubernetes-gradle-plugin
+
+# tag::default[]
+# Default profile which is always activated
+- name: default
+  enricher:
+    # The order given in "includes" is the order in which enrichers are called
+    includes:
+      - jkube-metadata
+      - jkube-controller
+      - jkube-controller-from-configuration
+      - jkube-service
+      - jkube-namespace
+      - jkube-image
+      - jkube-portname
+      - jkube-project-label
+      - jkube-dependency
+      - jkube-pod-annotations
+      - jkube-git
+      - jkube-maven-scm
+      - jkube-serviceaccount
+      - jkube-maven-issue-mgmt
+      # TODO: Documents and verify enrichers below
+      - jkube-debug
+      - jkube-volume-permission
+      - jkube-configmap-file
+      - jkube-secret-file
+
+      # Route exposure
+      - jkube-openshift-route
+      - jkube-openshift-project
+
+      # Ingress
+      - jkube-ingress
+
+      # -----------------------------------------
+      # TODO: Document and verify enrichers below
+      # Health checks
+      - jkube-healthcheck-quarkus
+      - jkube-healthcheck-spring-boot
+      - jkube-healthcheck-thorntail-v2
+      - jkube-healthcheck-wildfly-jar
+      - jkube-healthcheck-karaf
+      - jkube-healthcheck-vertx
+      - jkube-healthcheck-docker
+      - jkube-healthcheck-webapp
+      - jkube-healthcheck-micronaut
+      - jkube-healthcheck-openliberty
+      - jkube-healthcheck-smallrye
+      - jkube-prometheus
+      - jkube-service-discovery
+
+      # Value merge enrichers
+      - jkube-container-env-java-options
+
+      # Dependencies shouldn't be enriched anymore, therefore it's last in the list
+      - jkube-dependency
+      - jkube-revision-history
+      - jkube-docker-registry-secret
+      - jkube-triggers-annotation
+      - jkube-openshift-imageChangeTrigger
+
+      - jkube-name
+      # ReplicaCountEnricher overrides .spec.replicas field of any resource (even dependencies)
+      - jkube-replicas
+      # ImagePullPolicyEnricher overrides .spec.containers[0].imagePullPolicy for controllers
+      - jkube-imagepullpolicy
+
+  generator:
+    # The order given in "includes" is the order in which generators are called
+    includes:
+      - quarkus
+      - spring-boot
+      - thorntail-v2
+      - wildfly-jar
+      - openliberty
+      - karaf
+      - vertx
+      - micronaut
+      - java-exec
+      - webapp
+  watcher:
+    includes:
+      - spring-boot
+      - docker-image
+# end::default[]
+# No enrichment at all
+- name: raw
+  enricher:
+    includes: []
+# No defaults added, useful for explicit configuration
+- name: explicit
+  enricher:
+    excludes:
+      - jkube-image
+      - jkube-controller
+      - jkube-service
+# Only deployment & service
+- name: minimal
+  generator:
+    # The order given in "includes" is the order in which generators are called
+    includes:
+      - spring-boot
+      - thorntail-v2
+      - wildfly-jar
+      - karaf
+      - vertx
+      - java-exec
+      - webapp
+  enricher:
+    includes:
+      - jkube-name
+      - jkube-controller
+      - jkube-service
+      - jkube-image
+      - jkube-project-label
+      - jkube-debug
+      - jkube-namespace
+      - jkube-metadata
+      - jkube-controller-from-configuration
+      - jkube-openshift-deploymentconfig
+      - jkube-openshift-project
+      - jkube-openshift-route
+  # Only dependencies, no build, use other resources raw
+- name: aggregate
+  generator:
+    includes: []
+  enricher:
+    includes:
+      - jkube-dependency
+# Use only the Spring Boot generator
+- name: spring-boot
+  generator:
+    includes:
+      - spring-boot
+# does not expose services by default
+- name: internal-microservice
+  extends: default
+  generator:
+    excludes: []
+  enricher:
+    excludes: []

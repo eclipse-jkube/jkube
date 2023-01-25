@@ -48,7 +48,8 @@ public enum BuildRecreateMode {
 
     // ==============================================================
 
-    private boolean isBuildConfig, isImageStream;
+    private final boolean isBuildConfig;
+    private final boolean isImageStream;
 
     public static BuildRecreateMode fromParameter(String param) {
         if (StringUtils.isBlank(param)) {

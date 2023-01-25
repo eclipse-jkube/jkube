@@ -13,74 +13,102 @@
  */
 package org.eclipse.jkube.springboot.generator;
 
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.maven.model.Build;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-/**
- * @author roland
- * @since 28/11/16
- */
-public class SpringBootGeneratorTest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Mocked
-    private GeneratorContext context;
+class SpringBootGeneratorTest {
 
-    @Mocked
-    private MavenProject project;
+  private GeneratorContext context;
 
-    @Mocked
-    private Build build;
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
+    context = GeneratorContext.builder()
+      .logger(new KitLogger.SilentLogger())
+      .project(JavaProject.builder()
+        .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
+        .version("1.0.0")
+        .build())
+      .build();
+  }
 
-    @Test
-    public void notApplicable() throws IOException {
-        SpringBootGenerator generator = new SpringBootGenerator(createGeneratorContext());
-        assertFalse(generator.isApplicable((List<ImageConfiguration>) Collections.EMPTY_LIST));
-    }
+  @Test
+  void isApplicable_withNoImageConfigurations_shouldReturnFalse() {
+    // When
+    final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
+    // Then
+    assertThat(result).isFalse();
+  }
 
-    @Test
-    public void javaOptions() throws IOException, MojoExecutionException {
-        SpringBootGenerator generator = new SpringBootGenerator(createGeneratorContext());
-        List<String> extraOpts = generator.getExtraJavaOptions();
-        assertNotNull(extraOpts);
-        assertEquals(0, extraOpts.size());
+  @Test
+  void isApplicable_withNoImageConfigurationsAndMavenPlugin_shouldReturnTrue() {
+    // Given
+    withPlugin(Plugin.builder()
+        .groupId("org.springframework.boot")
+        .artifactId("spring-boot-maven-plugin")
+        .build());
+    // When
+    final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
+    // Then
+    assertThat(result).isTrue();
+  }
 
-        List<ImageConfiguration> configs = generator.customize(new ArrayList<>(), true);
-        assertEquals(1, configs.size());
-        Map<String, String> env = configs.get(0).getBuildConfiguration().getEnv();
-        assertNull(env.get("JAVA_OPTIONS"));
-    }
+  @Test
+  void isApplicable_withNoImageConfigurationsAndGradlePlugin_shouldReturnTrue() {
+    // Given
+    withPlugin(Plugin.builder()
+        .groupId("org.springframework.boot")
+        .artifactId("org.springframework.boot.gradle.plugin")
+        .build());
+    // When
+    final boolean result = new SpringBootGenerator(context).isApplicable(Collections.emptyList());
+    // Then
+    assertThat(result).isTrue();
+  }
 
-    private GeneratorContext createGeneratorContext() throws IOException {
-        new Expectations() {{
-            context.getProject(); result = project;
-            project.getBuild(); result = build;
-            String tempDir = Files.createTempDirectory("springboot-test-project").toFile().getAbsolutePath();
+  @Test
+  void getExtraJavaOptions_withDefaults_shouldBeEmpty() {
+    // When
+    final List<String> result = new SpringBootGenerator(context).getExtraJavaOptions();
+    // Then
+    assertThat(result).isNotNull().isEmpty();
+  }
 
-            // TODO: Prepare more relastic test setup
-            build.getDirectory(); result = tempDir;
-            build.getOutputDirectory(); result = tempDir;
-            project.getPlugin(anyString); result = null; minTimes = 0;
-            project.getBuildPlugins(); result = null;
-            project.getVersion(); result = "1.0.0"; minTimes = 0;
-        }};
-        return context;
-    }
+  @Test
+  void customize_withEmptyList_shouldReturnAddedImage() {
+    // When
+    final List<ImageConfiguration> configs = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
+    // Then
+    assertThat(configs)
+        .singleElement()
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .hasFieldOrPropertyWithValue("ports", Arrays.asList("8080", "8778", "9779"))
+        .extracting(BuildConfiguration::getEnv)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .hasSize(1)
+        .containsEntry("JAVA_APP_DIR", "/deployments");
+  }
+
+  private void withPlugin(Plugin plugin) {
+    context = context.toBuilder()
+      .project(JavaProject.builder().plugin(plugin).build())
+      .build();
+  }
 }

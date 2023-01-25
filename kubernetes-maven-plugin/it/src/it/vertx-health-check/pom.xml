@@ -25,7 +25,7 @@
     <version>0.1-SNAPSHOT</version>
 
 
-    <name>Jkube Maven :: Sample :: Vert.x</name>
+    <name>JKube Maven :: Sample :: Vert.x</name>
     <description>Minimal Example with Eclipse Vert.x</description>
 
     <properties>
@@ -76,7 +76,7 @@
 
             <plugin>
                 <groupId>org.eclipse.jkube</groupId>
-                <artifactId>k8s-maven-plugin</artifactId>
+                <artifactId>kubernetes-maven-plugin</artifactId>
                 <version>@jkube.version@</version>
                 <configuration>
                     <enricher>

@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+      <groupId>org.eclipse.jkube</groupId>
+      <artifactId>gradle-plugin</artifactId>
+        <version>1.11-SNAPSHOT</version>
+      <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <!--
+        GAV has to be compliant with plugin id
+        https://docs.gradle.org/current/userguide/plugins.html#sec:plugin_markers
+        ${plugin.id}:${plugin.id}.gradle.plugin:${version}
+    -->
+    <groupId>org.eclipse.jkube.kubernetes</groupId>
+    <artifactId>org.eclipse.jkube.kubernetes.gradle.plugin</artifactId>
+    <name>Gradle Plugin :: Kubernetes</name>
+    <description>Kubernetes Gradle Plugin</description>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-config-service</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-common-maven</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-enricher-generic</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-enricher-specific</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-resource-service</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-resource-helm</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-generator-java-exec</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-generator-karaf</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-generator-webapp</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-thorntail</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-spring-boot</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-quarkus</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-micronaut</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-openliberty</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-vertx</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-wildfly-jar</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-smallrye</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-profiles</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-watcher-standard</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-remote-dev</artifactId>
+        </dependency>
+
+        <!-- provided -->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-base-services</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-core-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-logging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-plugins</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-model-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <!-- test -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+        </dependency>
+        <!--
+            Using org.gradle.testfixtures.ProjectBuilder (gradle-tooling-api) is not possible
+            All gradle dependencies are required and gradle-all is no longer valid
+            It's unrealistic to add a dependency for each of the gradle subprojects
+         -->
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-base-services-groovy</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-messaging</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-native</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-platform-jvm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.gradle</groupId>
+            <artifactId>gradle-process-services</artifactId>
+        </dependency>
+    </dependencies>
+
+    <!-- TODO: Remove once JMockit is no longer in the project -->
+    <profiles>
+        <profile>
+            <id>jacoco</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <version>${version.jacoco}</version>
+                        <executions>
+                            <execution>
+                                <id>default-prepare-agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>default-report</id>
+                                <goals>
+                                    <goal>report</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>instrument</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>restore</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>${version.maven-surefire-plugin}</version>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <!-- JaCoCo runtime must know where to dump coverage: -->
+                                <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
+                            </systemPropertyVariables>
+                            <environmentVariables>
+                                <LC_ALL>en_EN.UTF-8</LC_ALL>
+                            </environmentVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    <!-- ///////////////////////////////////////////////////// -->
+</project>

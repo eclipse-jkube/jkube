@@ -13,9 +13,9 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access.log;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.LogConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.LogConfiguration;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.FormatParameterReplacer;
 
 import java.util.HashMap;
@@ -28,9 +28,13 @@ import java.util.Map;
  */
 public class LogOutputSpecFactory {
     private static final String DEFAULT_PREFIX_FORMAT = "%a> ";
-    private boolean useColor;
-    private boolean logStdout;
-    private String logDate;
+    private final boolean useColor;
+    private final boolean logStdout;
+    private final String logDate;
+
+    public LogOutputSpecFactory(boolean useColor, boolean logStdout) {
+        this(useColor, logStdout, null);
+    }
 
     public LogOutputSpecFactory(boolean useColor, boolean logStdout, String logDate) {
         this.useColor = useColor;
@@ -41,7 +45,7 @@ public class LogOutputSpecFactory {
     // ================================================================================================
 
     public LogOutputSpec createSpec(String containerId, ImageConfiguration imageConfiguration) {
-        LogOutputSpec.Builder builder = new LogOutputSpec.Builder();
+        LogOutputSpec.LogOutputSpecBuilder builder = LogOutputSpec.builder();
         LogConfiguration logConfig = extractLogConfiguration(imageConfiguration);
 
         addLogFormat(builder, logConfig);
@@ -49,12 +53,12 @@ public class LogOutputSpecFactory {
         builder.file(logConfig.getFileLocation())
                 .useColor(useColor)
                 .logStdout(logStdout)
-                .color(logConfig.getColor());
+                .colorString(logConfig.getColor());
 
         return builder.build();
     }
 
-    private void addPrefix(LogOutputSpec.Builder builder, String logPrefix, ImageConfiguration imageConfig, String containerId) {
+    private void addPrefix(LogOutputSpec.LogOutputSpecBuilder builder, String logPrefix, ImageConfiguration imageConfig, String containerId) {
         String prefixFormat = logPrefix;
         if (prefixFormat == null) {
             prefixFormat = DEFAULT_PREFIX_FORMAT;
@@ -81,13 +85,13 @@ public class LogOutputSpecFactory {
         return ret;
     }
 
-    private void addLogFormat(LogOutputSpec.Builder builder, LogConfiguration logConfig) {
+    private void addLogFormat(LogOutputSpec.LogOutputSpecBuilder builder, LogConfiguration logConfig) {
         String logFormat = logConfig.getDate() != null ? logConfig.getDate() : logDate;
         if (logFormat != null && logFormat.equalsIgnoreCase("true")) {
             logFormat = "DEFAULT";
         }
         if (logFormat != null) {
-            builder.timeFormatter(logFormat);
+            builder.timeFormatterString(logFormat);
         }
     }
 
@@ -95,7 +99,7 @@ public class LogOutputSpecFactory {
         RunImageConfiguration runConfig = imageConfiguration.getRunConfiguration();
         LogConfiguration logConfig = null;
         if (runConfig != null) {
-            logConfig = runConfig.getLogConfiguration();
+            logConfig = runConfig.getLog();
         }
         if (logConfig == null) {
             logConfig = LogConfiguration.DEFAULT;

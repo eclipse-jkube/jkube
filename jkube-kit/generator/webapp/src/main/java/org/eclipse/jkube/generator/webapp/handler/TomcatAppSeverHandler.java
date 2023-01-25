@@ -13,52 +13,68 @@
  */
 package org.eclipse.jkube.generator.webapp.handler;
 
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.stream.Stream;
 
-import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 /**
- * Detector for tomat app servers.
+ * Detector for tomcat app servers.
  *
  * @author kameshs
  */
 public class TomcatAppSeverHandler extends AbstractAppServerHandler {
 
-    public TomcatAppSeverHandler(MavenProject project) {
-        super("tomcat", project);
-    }
+  private static final String TOMCAT_GROUPID = "org.apache.tomcat.maven";
 
-    @Override
-    public boolean isApplicable() {
-        return hasOneOf("**/META-INF/context.xml") ||
-                MavenUtil.hasPlugin(project, "org.apache.tomcat.maven", "tomcat6-maven-plugin") ||
-                MavenUtil.hasPlugin(project, "org.apache.tomcat.maven", "tomcat7-maven-plugin");
-    }
+  public TomcatAppSeverHandler(GeneratorContext context) {
+    super("tomcat", context);
+  }
 
-    @Override
-    public String getFrom() {
-        return imageLookup.getImageName("tomcat.upstream.docker");
+  @Override
+  public boolean isApplicable() {
+    try {
+      return hasOneOf("glob:**/META-INF/context.xml") || hasTomcatMavenPlugin();
+    } catch (IOException exception) {
+      throw new IllegalStateException("Unable to scan output directory: ", exception);
     }
+  }
 
-    @Override
-    public List<String> exposedPorts() {
-        return Arrays.asList("8080", "8778");
-    }
+  private boolean hasTomcatMavenPlugin() {
+    return Stream.of("tomcat6-maven-plugin", "tomcat7-maven-plugin", "tomcat8-maven-plugin")
+        .anyMatch(artifactId -> JKubeProjectUtil.hasPlugin(getProject(), TOMCAT_GROUPID, artifactId));
+  }
 
-    @Override
-    public String getDeploymentDir() {
-        return "/deployments";
-    }
+  @Override
+  public String getFrom() {
+    return imageLookup.getImageName("tomcat.upstream.docker");
+  }
 
-    @Override
-    public String getCommand() {
-        return "/opt/tomcat/bin/deploy-and-run.sh";
-    }
+  @Override
+  public String getDeploymentDir() {
+    return "/deployments";
+  }
 
-    @Override
-    public String getUser() {
-        return "jboss:jboss:jboss";
-    }
+  @Override
+  public String getCommand() {
+    return "/usr/local/s2i/run";
+  }
+
+  @Override
+  public boolean supportsS2iBuild() {
+    return true;
+  }
+
+  @Override
+  public Map<String, String> getEnv() {
+    // Setting Tomcat webapps dir to `webapps-javaee` by default for
+    // retrocompatibility.
+    // If the project is already JakartaEE compliant, user should override
+    // `jkube.generator.webapp.env` to `TOMCAT_WEBAPPS_DIR=webapps` for a faster
+    // startup.
+    return Collections.singletonMap("TOMCAT_WEBAPPS_DIR", "webapps-javaee");
+  }
 }

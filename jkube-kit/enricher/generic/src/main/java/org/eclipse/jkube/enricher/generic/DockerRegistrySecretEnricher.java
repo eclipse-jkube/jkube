@@ -15,25 +15,35 @@ package org.eclipse.jkube.enricher.generic;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
-import org.eclipse.jkube.maven.enricher.api.model.Configuration;
-import org.eclipse.jkube.maven.enricher.api.util.SecretConstants;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
 public class DockerRegistrySecretEnricher extends SecretEnricher {
-    final private static String ANNOTATION_KEY = "maven.jkube.io/dockerServerId";
-    final private static String ENRICHER_NAME = "jkube-docker-registry-secret";
+    /**
+     * @deprecated Use <code>jkube.eclipse.org/dockerServerId</code> instead.
+     */
+    @Deprecated
+    private static final String ANNOTATION_KEY = "maven.jkube.io/dockerServerId";
+    private static final String DOCKER_SERVER_ID_ANNOTATION_KEY = INTERNAL_ANNOTATION_PREFIX + "/dockerServerId";
+    private static final String ENRICHER_NAME = "jkube-docker-registry-secret";
 
 
-    public DockerRegistrySecretEnricher(MavenEnricherContext buildContext) {
+    public DockerRegistrySecretEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
     }
 
     @Override
     protected String getAnnotationKey() {
+        return DOCKER_SERVER_ID_ANNOTATION_KEY;
+    }
+
+    @Override
+    protected String getDeprecatedAnnotationKey() {
         return ANNOTATION_KEY;
     }
 

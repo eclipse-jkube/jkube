@@ -30,7 +30,7 @@
     <version>1.5.3.RELEASE</version>
   </parent>
 
-  <name>Jkube Maven :: Sample :: Stateful Set</name>
+  <name>JKube Maven :: Sample :: Stateful Set</name>
   <description>Minimal Example with StatefulSet</description>
 
   <dependencies>
@@ -58,7 +58,7 @@
 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
         <version>@jkube.version@</version>
 
         <configuration>

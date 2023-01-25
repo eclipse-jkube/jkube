@@ -17,20 +17,19 @@ import java.util.Base64;
 
 import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.common.JsonFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author roland
  * @since 30.07.14
  */
-public class RegistryAuthTest {
+class RegistryAuthTest {
 
     @Test
-    public void simpleConstructor() {
-        RegistryAuth config = new RegistryAuth.Builder()
+    void simpleConstructor() {
+        RegistryAuth config = RegistryAuth.builder()
             .username("roland")
             .password("#>secrets??")
             .email("roland@jolokia.org")
@@ -39,29 +38,26 @@ public class RegistryAuthTest {
     }
 
     @Test
-    public void dockerLoginConstructor() {
-        RegistryAuth config =
-            new RegistryAuth.Builder()
-                .withCredentialsEncoded(Base64.getEncoder().encodeToString("roland:#>secrets??".getBytes()))
-                .email("roland@jolokia.org")
-                .build();
+    void dockerLoginConstructor() {
+        RegistryAuth config = RegistryAuth.fromCredentialsEncoded(
+            Base64.getEncoder().encodeToString("roland:#>secrets??".getBytes()),
+            "roland@jolokia.org");
         check(config);
     }
 
     private void check(RegistryAuth config) {
         // Since Base64.decodeBase64 handles URL-safe encoding, must explicitly check
         // the correct characters are used
-        assertEquals(
-                "eyJ1c2VybmFtZSI6InJvbGFuZCIsInBhc3N3b3JkIjoiIz5zZWNyZXRzPz8iLCJlbWFpbCI6InJvbGFuZEBqb2xva2lhLm9yZyJ9",
-                config.toHeaderValue()
-        );
+        assertThat(config.toHeaderValue())
+            .isEqualTo("eyJ1c2VybmFtZSI6InJvbGFuZCIsInBhc3N3b3JkIjoiIz5zZWNyZXRzPz8iLCJlbWFpbCI6InJvbGFuZEBqb2xva2lhLm9yZyJ9");
 
         String header = new String(Base64.getDecoder().decode(config.toHeaderValue()));
 
         JsonObject data = JsonFactory.newJsonObject(header);
-        assertEquals("roland",data.get("username").getAsString());
-        assertEquals("#>secrets??",data.get("password").getAsString());
-        assertEquals("roland@jolokia.org",data.get("email").getAsString());
-        assertFalse(data.has("auth"));
+        assertThat(data)
+            .returns("roland", d -> d.get("username").getAsString())
+            .returns("#>secrets??", d -> d.get("password").getAsString())
+            .returns("roland@jolokia.org", d -> d.get("email").getAsString())
+            .returns(false, d -> d.has("auth"));
     }
 }

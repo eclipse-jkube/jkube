@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project>
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>project</artifactId>
+  <groupId>org.eclipse.jkube</groupId>
+  <version>0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.3.3.RELEASE</version>
+  </parent>
+
+  <properties>
+    <target>targets</target>
+  </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+  </dependencies>
+  <build>
+    <directory>${project.basedir}/${target}</directory>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>openshift-maven-plugin</artifactId>
+        <version>@jkube.version@</version>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>default</id>
+      <properties>
+        <target>default</target>
+      </properties>
+    </profile>
+    <profile>
+      <id>create-project</id>
+      <properties>
+        <jkube.enricher.jkube-namespace.namespace>project-to-create-name</jkube.enricher.jkube-namespace.namespace>
+        <target>create-project</target>
+      </properties>
+    </profile>
+    <profile>
+      <id>set-namespace</id>
+      <properties>
+        <jkube.namespace>namespace-to-operate</jkube.namespace>
+        <target>set-namespace</target>
+      </properties>
+    </profile>
+    <profile>
+      <id>create-project-and-set-namespace</id>
+      <properties>
+        <jkube.enricher.jkube-namespace.namespace>project-to-create-and-operate</jkube.enricher.jkube-namespace.namespace>
+        <jkube.namespace>project-to-create-and-operate</jkube.namespace>
+        <target>create-project-and-set-namespace</target>
+      </properties>
+    </profile>
+    <profile>
+      <id>create-project-and-set-different-namespace</id>
+      <properties>
+        <jkube.enricher.jkube-namespace.namespace>project-to-create-name</jkube.enricher.jkube-namespace.namespace>
+        <jkube.namespace>namespace-to-operate</jkube.namespace>
+        <target>create-project-and-set-different-namespace</target>
+      </properties>
+    </profile>
+  </profiles>
+
+</project>

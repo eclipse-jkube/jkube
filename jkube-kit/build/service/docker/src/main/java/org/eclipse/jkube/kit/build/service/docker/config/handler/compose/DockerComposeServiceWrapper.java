@@ -13,12 +13,12 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.config.handler.compose;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.LogConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
-import org.eclipse.jkube.kit.build.service.docker.config.RestartPolicy;
-import org.eclipse.jkube.kit.build.service.docker.config.RunVolumeConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.UlimitConfig;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.LogConfiguration;
+import org.eclipse.jkube.kit.config.image.NetworkConfig;
+import org.eclipse.jkube.kit.config.image.RestartPolicy;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
+import org.eclipse.jkube.kit.config.image.UlimitConfig;
 import org.eclipse.jkube.kit.build.service.docker.helper.VolumeBindingUtil;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 
@@ -162,8 +162,8 @@ class DockerComposeServiceWrapper {
 
     public List<String> getLinks() {
         List<String> ret = new ArrayList<>();
-        ret.addAll(this.<String>asList("links"));
-        ret.addAll(this.<String>asList("external_links"));
+        ret.addAll(this.asList("links"));
+        ret.addAll(this.asList("external_links"));
         return ret;
     }
 
@@ -176,8 +176,8 @@ class DockerComposeServiceWrapper {
             throwIllegalArgumentException("'logging' has to be a map and not " + logConfig.getClass());
         }
         Map<String, Object> config = (Map<String, Object>) logConfig;
-        return new LogConfiguration.Builder()
-            .logDriverName((String) config.get("driver"))
+        return LogConfiguration.builder()
+            .driverName((String) config.get("driver"))
             .logDriverOpts((Map<String, String>) config.get("options"))
             .build();
     }
@@ -185,7 +185,7 @@ class DockerComposeServiceWrapper {
     NetworkConfig getNetworkConfig() {
         String net = asString("network_mode");
         if (net != null) {
-            return new NetworkConfig(net);
+            return NetworkConfig.fromLegacyNetSpec(net);
         }
         Object networks = asObject("networks");
         if (networks == null) {
@@ -196,14 +196,14 @@ class DockerComposeServiceWrapper {
             if (toJoin.size() > 1) {
                 throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
             }
-            return new NetworkConfig(NetworkConfig.Mode.custom, toJoin.get(0));
+            return NetworkConfig.builder().mode(NetworkConfig.Mode.custom).name(toJoin.get(0)).build();
         } else if (networks instanceof Map) {
             Map<String,Object> toJoin = (Map<String, Object>) networks;
             if (toJoin.size() > 1) {
                 throwIllegalArgumentException("'networks:' Only one custom network to join is supported currently");
             }
             String custom = toJoin.keySet().iterator().next();
-            NetworkConfig ret = new NetworkConfig(NetworkConfig.Mode.custom, custom);
+            NetworkConfig ret = NetworkConfig.builder().mode(NetworkConfig.Mode.custom).name(custom).build();
             Object aliases = toJoin.get(custom);
             if (aliases != null) {
                 if (aliases instanceof List) {
@@ -263,15 +263,15 @@ class DockerComposeServiceWrapper {
         }
         Map<String, Object> ulimitMap = (Map<String, Object>) ulimits;
         List<UlimitConfig> ret = new ArrayList<>();
-        for (String ulimit : ulimitMap.keySet()) {
-            Object val = ulimitMap.get(ulimit);
+        for (Map.Entry<String, Object> ulimitMapEntry : ulimitMap.entrySet()) {
+            Object val = ulimitMapEntry.getValue();
             if (val instanceof Map) {
                 Map<String, Integer> valMap = (Map<String, Integer>) val;
                 Integer soft = valMap.get("soft");
                 Integer hard = valMap.get("hard");
-                ret.add(new UlimitConfig(ulimit, hard, soft));
+                ret.add(new UlimitConfig(ulimitMapEntry.getKey(), hard, soft));
             } else if (val instanceof Integer) {
-                ret.add(new UlimitConfig(ulimit, (Integer) val, null));
+                ret.add(new UlimitConfig(ulimitMapEntry.getKey(), (Integer) val, null));
             } else {
                 throwIllegalArgumentException("'ulimits:' invalid limit value " + val + " (class : " + val.getClass() + ")");
             }
@@ -280,23 +280,23 @@ class DockerComposeServiceWrapper {
     }
 
     RunVolumeConfiguration getVolumeConfig() {
-        RunVolumeConfiguration.Builder builder = new RunVolumeConfiguration.Builder();
+        RunVolumeConfiguration.RunVolumeConfigurationBuilder builder = RunVolumeConfiguration.builder();
         List<String> volumes = asList("volumes");
         boolean added = false;
-        if (volumes.size() > 0) {
+        if (!volumes.isEmpty()) {
             builder.bind(volumes);
             added = true;
         }
         List<String> volumesFrom = asList("volumes_from");
-        if (volumesFrom.size() > 0) {
+        if (!volumesFrom.isEmpty()) {
             builder.from(volumesFrom);
             added = true;
         }
 
         if (added) {
-            RunVolumeConfiguration configuration = builder.build();
-            VolumeBindingUtil.resolveRelativeVolumeBindings(baseDir, configuration);
-            return configuration;
+            final RunVolumeConfiguration runVolumeConfiguration = builder.build();
+            VolumeBindingUtil.resolveRelativeVolumeBindings(baseDir, runVolumeConfiguration);
+            return runVolumeConfiguration;
         }
 
         return null;
@@ -328,7 +328,7 @@ class DockerComposeServiceWrapper {
             return null;
         }
 
-        RestartPolicy.Builder builder = new RestartPolicy.Builder();
+        RestartPolicy.RestartPolicyBuilder builder = RestartPolicy.builder();
         if (restart.contains(":")) {
             String[] parts = restart.split(":", 2);
             builder.name(parts[0]).retry(Integer.valueOf(parts[1]));
@@ -384,7 +384,7 @@ class DockerComposeServiceWrapper {
     }
 
     private String asString(String key) {
-        return String.class.cast(configuration.get(key));
+        return (String) configuration.get(key);
     }
 
     private Long asLong(String key) {
@@ -398,7 +398,7 @@ class DockerComposeServiceWrapper {
     private Boolean asBoolean(String key) {
         Boolean value = null;
         if (configuration.containsKey(key)) {
-            value = Boolean.valueOf(configuration.get(key).toString());
+            value = Boolean.parseBoolean(configuration.get(key).toString());
         }
         return value;
     }
@@ -410,7 +410,7 @@ class DockerComposeServiceWrapper {
                 value = Arrays.asList(value);
             }
 
-            return List.class.cast(value);
+            return (List) value;
         }
 
         return Collections.emptyList();
@@ -420,9 +420,9 @@ class DockerComposeServiceWrapper {
         if (configuration.containsKey(key)) {
             Object value = configuration.get(key);
             if (value instanceof List) {
-                value = convertToMap(List.class.cast(value));
+                value = convertToMap((List) value);
             }
-            return Map.class.cast(value);
+            return (Map) value;
         }
 
         return Collections.emptyMap();
@@ -438,9 +438,9 @@ class DockerComposeServiceWrapper {
 
     private Arguments asArguments(Object command, String label) {
         if (command instanceof String) {
-            return new Arguments((String) command);
+            return Arguments.builder().shell((String) command).build();
         } else if (command instanceof List) {
-            return new Arguments((List<String>) command);
+            return Arguments.builder().exec((List<String>) command).build();
         } else {
             throwIllegalArgumentException(String.format("'%s' must be either String or List but not %s", label, command.getClass()));
             return null;

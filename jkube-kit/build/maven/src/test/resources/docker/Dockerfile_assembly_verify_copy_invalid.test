@@ -1,2 +1,0 @@
-FROM image
-COPY nonassembly/* ./

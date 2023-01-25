@@ -1,0 +1,82 @@
+plugins {
+    id 'java'
+    id 'io.quarkus'
+    id 'org.eclipse.jkube.openshift' version '1.10.1'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-resteasy-jackson'
+    implementation 'io.quarkus:quarkus-arc'
+    implementation 'io.quarkus:quarkus-resteasy'
+}
+
+group 'org.eclipse.jkube.quickstarts.gradle'
+version '1.0.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-parameters'
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}
+
+openshift {
+    useColor = true
+    openshiftPullSecret = "12819530-ocp42-exposed-env-pull-secret-pull-secret"
+    images {
+        image {
+            name = "%a"
+            build {
+                from = "registry.redhat.io/openjdk/openjdk-11-rhel8:1.2-3.1587486933"
+                tags = ["latest", "${project.version}"]
+                env {
+                    JAVA_APP_JAR = "quarkus-run.jar"
+                    JAVA_OPTIONS = "-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+                }
+                assembly {
+                    mode = "dir"
+                    targetDir = "/deployments"
+                    layers = [{
+                        id = "customized-quarkus"
+                        files = [{
+                            source = file("build/quarkus-app/quarkus-run.jar")
+                            outputDirectory = "."
+                        }]
+                        fileSets = [{
+                            directory = file("build/quarkus-app/lib")
+                            outputDirectory = "lib"
+                        }, {
+                            directory = file("build/quarkus-app/app")
+                            outputDirectory = "app"
+                        }, {
+                            directory = file("build/quarkus-app/quarkus")
+                            outputDirectory = "quarkus"
+                        }]
+                    }]
+                }
+                ports = ["8080"]
+                user = "185"
+            }
+        }
+    }
+    enricher {
+        config {
+            jkube-service {
+                type = "NodePort"
+            }
+        }
+    }
+}

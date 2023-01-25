@@ -1,0 +1,40 @@
+[[quarkus-gettingstarted-scenario]]
+== Quarkus
+
+You can easily get started with using {plugin} on a https://code.quarkus.io/[Quarkus] project without providing any explicit configuration. {plugin} would generate an opinionated container image and manifests by inspecting your project configuration.
+
+*Zero Configuration*
+
+include::_generic_gettingstarted_scenario.adoc[]
+
+*Quarkus Native Mode*
+
+While containerizing a Quarkus application under native mode, {plugin} would automatically detect that it's a native executable artifact and would select a lighter base image while containerizing application. There is no additional configuration needed by {plugin} for Native Builds.
+
+*How to add {cluster} liveness and readiness probes?*
+
+{plugin} automatically adds {cluster} liveness and readiness probes in generated {cluster} manifests in presence of https://quarkus.io/guides/smallrye-health[SmallRye Health] dependency.
+
+To add SmallRye to your project, add the following dependency:
+
+ifeval::["{plugin-type}" == "maven"]
+[source,xml,subs="attributes+"]
+----
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-smallrye-health</artifactId>
+</dependency>
+----
+
+Once you run {goal-prefix}:resource goal again, you should be able to see liveness and readiness probes added in generated manifests.
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,gradle,subs="attributes+"]
+----
+dependencies {
+    implementation 'io.quarkus:quarkus-smallrye-health'
+}
+----
+Once you run {task-prefix}Resource task again, you should be able to see liveness and readiness probes added in generated manifests.
+endif::[]

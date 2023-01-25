@@ -18,19 +18,19 @@ import org.eclipse.jkube.kit.build.api.model.Container;
 import org.eclipse.jkube.kit.build.api.model.ContainerDetails;
 import org.eclipse.jkube.kit.build.api.model.Network;
 import org.eclipse.jkube.kit.build.api.model.NetworkCreateConfig;
-import org.eclipse.jkube.kit.build.maven.GavLabel;
+import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.access.ContainerCreateConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.ContainerHostConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.ContainerNetworkingConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.build.service.docker.access.ExecException;
-import org.eclipse.jkube.kit.build.service.docker.access.PortMapping;
+import org.eclipse.jkube.kit.build.api.model.PortMapping;
 import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
-import org.eclipse.jkube.kit.build.service.docker.config.NetworkConfig;
-import org.eclipse.jkube.kit.build.service.docker.config.RestartPolicy;
-import org.eclipse.jkube.kit.build.service.docker.config.RunImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.config.RunVolumeConfiguration;
+import org.eclipse.jkube.kit.config.image.NetworkConfig;
+import org.eclipse.jkube.kit.config.image.RestartPolicy;
+import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
+import org.eclipse.jkube.kit.config.image.RunVolumeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.config.VolumeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.build.service.docker.helper.StartOrderResolver;
@@ -38,6 +38,7 @@ import org.eclipse.jkube.kit.build.service.docker.wait.WaitTimeoutException;
 import org.eclipse.jkube.kit.build.service.docker.wait.WaitUtil;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.Arguments;
 
 import java.io.File;
@@ -66,15 +67,15 @@ import static org.eclipse.jkube.kit.build.service.docker.helper.VolumeBindingUti
 public class RunService {
 
     // logger delegated from top
-    private KitLogger log;
+    private final KitLogger log;
 
     // Action to be used when doing a shutdown
-    final private ContainerTracker tracker;
+    private final ContainerTracker tracker;
 
     // DAO for accessing the docker daemon
-    private DockerAccess docker;
+    private final DockerAccess docker;
 
-    private QueryService queryService;
+    private final QueryService queryService;
 
     private final LogOutputSpecFactory logConfig;
 
@@ -158,7 +159,7 @@ public class RunService {
      * Stop a container immediately by id.
      * @param containerId the container to stop
      * @param imageConfig image configuration for this container
-     * @param keepContainer whether to keep container or to remove them after stoppings
+     * @param keepContainer whether to keep container or to remove them after stopping
      * @param removeVolumes whether to remove volumes after stopping
      * @throws DockerAccessException docker access exception
      * @throws ExecException exec exception
@@ -240,7 +241,7 @@ public class RunService {
      * @param images list of images for which the order should be created
      * @return list of images in the right startup order
      */
-    public List<StartOrderResolver.Resolvable> getImagesConfigsInOrder(QueryService queryService, List<ImageConfiguration> images) {
+    public List<ImageConfiguration> getImagesConfigsInOrder(QueryService queryService, List<ImageConfiguration> images) {
         return StartOrderResolver.resolve(queryService, convertToResolvables(images));
     }
 
@@ -279,8 +280,8 @@ public class RunService {
         });
     }
 
-    private List<StartOrderResolver.Resolvable> convertToResolvables(List<ImageConfiguration> images) {
-        List<StartOrderResolver.Resolvable> ret = new ArrayList<>();
+    private List<ImageConfiguration> convertToResolvables(List<ImageConfiguration> images) {
+        List<ImageConfiguration> ret = new ArrayList<>();
         for (ImageConfiguration config : images) {
             if (config.getRunConfiguration().skip()) {
                 log.info("%s: Skipped running", config.getDescription());
@@ -333,7 +334,7 @@ public class RunService {
             ret.putAll(labels);
         }
         if (runIdLabel != null) {
-            ret.put(runIdLabel.getKey(), runIdLabel.getValue());
+            ret.put(GavLabel.KEY, runIdLabel.getValue());
         }
         return ret;
     }
@@ -360,7 +361,7 @@ public class RunService {
                 .memory(runConfig.getMemory())
                 .memorySwap(runConfig.getMemorySwap())
                 .restartPolicy(restartPolicy.getName(), restartPolicy.getRetry())
-                .logConfig(runConfig.getLogConfiguration())
+                .logConfig(runConfig.getLog())
                 .tmpfs(runConfig.getTmpfs())
                 .ulimits(runConfig.getUlimits())
                 .cpuShares(runConfig.getCpuShares())
@@ -407,7 +408,7 @@ public class RunService {
                 throw new DockerAccessException("No container found for image/alias '%s', unable to link", link[0]);
             }
         }
-        return ret.size() != 0 ? ret : null;
+        return !ret.isEmpty() ? ret : null;
     }
 
     // visible for testing
@@ -563,7 +564,7 @@ public class RunService {
      * @return List of volumes created
      * @throws DockerAccessException docker access exception
      */
-    public List<String> createVolumesAsPerVolumeBinds(ServiceHub hub, List<String> binds, List<VolumeConfiguration> volumes)
+    public List<String> createVolumesAsPerVolumeBinds(DockerServiceHub hub, List<String> binds, List<VolumeConfiguration> volumes)
             throws DockerAccessException {
 
         Map<String, Integer> indexMap = new HashMap<>();

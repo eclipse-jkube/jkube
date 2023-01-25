@@ -30,7 +30,7 @@
     <version>1.5.3.RELEASE</version>
   </parent>
 
-  <name>Jkube Maven :: Sample :: Stateful Set</name>
+  <name>JKube Maven :: Sample :: Stateful Set</name>
   <description>Minimal Example with StatefulSet</description>
 
   <dependencies>
@@ -58,7 +58,7 @@
 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>oc-maven-plugin</artifactId>
+        <artifactId>openshift-maven-plugin</artifactId>
         <version>@jkube.version@</version>
 
         <configuration>

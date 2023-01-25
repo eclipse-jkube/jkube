@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<order>
+
+    <customer id="E0004">
+        <name>Erie Zoo</name>
+        <city>Erie</city>
+        <country>US</country>
+    </customer>
+
+    <date>1955-11-12</date>
+
+    <orderlines>
+        <orderline>
+            <article id="E0500">
+                <description>Dromedary (Arabian Camel)</description>
+            </article>
+            <quantity>13</quantity>
+        </orderline>
+        <orderline>
+            <article id="E0005">
+                <description>Camel</description>
+            </article>
+            <quantity>37</quantity>
+        </orderline>
+    </orderlines>
+</order>

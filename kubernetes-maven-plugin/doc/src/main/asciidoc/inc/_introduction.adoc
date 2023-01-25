@@ -2,7 +2,13 @@
 [[introduction]]
 = Introduction
 
-The *kubernetes-maven-plugin* (k8-m-p) brings your Java applications on to http://kubernetes.io/[Kubernetes].
+The *{plugin}* brings your Java applications on to
+ifeval::["{goal-prefix}" == "k8s"]
+http://kubernetes.io/[Kubernetes].
+endif::[]
+ifeval::["{goal-prefix}" == "oc"]
+https://www.openshift.com/[OpenShift].
+endif::[]
 It provides a tight integration into http://maven.apache.org[Maven] and benefits from the build configuration already provided.
 This plugin focus on two tasks: _Building Docker images_ and _creating Kubernetes resource descriptors_.
 It can be configured very flexibly and supports multiple configuration models for creating: A _Zero-Config_ setup allows for a quick ramp-up with some opinionated defaults.
@@ -12,22 +18,23 @@ For the full power, in order to tune all facets of the creation, external _resou
 [[building-images]]
 == Building Images
 
-The <<k8s:build>> goal is for creating Docker images containing the actual application. These then can be deployed later on Kubernetes or OpenShift.
+The <<jkube:build>> goal is for creating Docker images containing the actual application. These then can be deployed later on Kubernetes or OpenShift.
 It is easy to include build artifacts and their dependencies into these images.
-This plugin uses the assembly descriptor format from the http://maven.apache.org/plugins/maven-assembly-plugin/[maven-assembly-plugin] to specify the content which will be added to the image.
-That images can then be pushed to public or private Docker registries with <<k8s:push>>.
+This plugin uses the assembly descriptor format similar to the one used in
+http://maven.apache.org/plugins/maven-assembly-plugin/[maven-assembly-plugin] to specify the content which will be added
+to the image.
+That images can then be pushed to public or private Docker registries with <<jkube:push>>.
 
 Depending on the operational mode, for building the actual image either a Docker daemon is used directly or an https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/builds_and_image_streams.html#docker-build[OpenShift Docker Build] is performed.
 
-A special <<k8s:watch>> goal allows for reacting to code changes to automatically recreate images or copy new artifacts into running containers.
+A special <<jkube:watch>> goal allows for reacting to code changes to automatically recreate images or copy new artifacts into running containers.
 
-These image related features are inherited from the https://github.com/jkubeio/docker-maven-plugin[jkubeio/docker-maven-plugin] which is part of this plugin.
 
 [[resource-descriptors]]
-== Kubernetes Resources
+== {cluster} Resources
 
-Kubernetes resource descriptors can be created or generated from <<k8s:resource>>.
-These files are packaged within the Maven artifacts and can be deployed to a running orchestration platform with <<k8s:apply>>.
+{cluster} resource descriptors can be created or generated from <<jkube:resource>>.
+These files are packaged within the Maven artifacts and can be deployed to a running orchestration platform with <<jkube:apply>>.
 
 Typically you only specify a small part of the real resource descriptors which will be enriched by this plugin with various extra information taken from the `pom.xml`.
 This drastically reduces boilerplate code for common scenarios.
@@ -39,7 +46,7 @@ As mentioned already there are three levels of configuration:
 * *Zero-Config* mode makes some very opinionated decisions based on what is present in the pom.xml like what base image to use or which ports to expose.
 This is great for starting up things and for keeping quickstart applications small and tidy.
 
-* *XML plugin configuration* mode is similar to what https://jkubeio.github.io/docker-maven-plugin/#example[docker-maven-plugin] provides.
+* *XML plugin configuration* mode is similar to what https://dmp.fabric8.io/#example[docker-maven-plugin] provides.
 This allows for type-safe configuration with IDE support, but only a subset of possible resource descriptor features is provided.
 
 * *Kubernetes &amp; OpenShift resource fragments* are user provided YAML files that can be _enriched_ by the plugin. This allows expert users to use a plain configuration file with all their capabilities, but also to add project specific build information and avoid boilerplate code.
@@ -52,16 +59,34 @@ The following table gives an overview of the different models
 | Model | Docker Images | Resource Descriptors
 
 | *Zero-Config*
-| <<generators, Generators>> are used to create Docker image configurations. Generators can detect certain aspects of the build (e.g. whether Spring Boot is used) and then choose some default like the base image, which ports to expose and the startup command. They can be configured, but offer only a few options.
-| Default <<enrichers, Enrichers>> will create a default _Service_ and _Deployment_ (_DeploymentConfig_ for OpenShift) when no other resource objects are provided. Depending on the image they can detect which port to expose in the service. As with Generators, Enrichers support a limited set of configuration options.
+| <<generators, Generators>> are used to create Docker image configurations. Generators can detect certain aspects of
+  the build (e.g. whether Spring Boot is used) and then choose some opinionated defaults like the base image, which
+  ports to expose and the startup command. They can be configured, but offer only a few options.
+| Default <<enrichers, Enrichers>> will create a default _Service_ and _Deployment_ (_DeploymentConfig_ for OpenShift)
+  when no other resource objects are provided. Depending on the image they can detect which port to expose in the
+  service. As with Generators, Enrichers support a limited set of configuration options.
 
 | *XML configuration*
-| jkube-m-p inherits the XML based configuration for building images from the https://jkubeio.github.io/docker-maven-plugin/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the content of the Docker image.
-| A subset of possible resource objects can be configured with a dedicated XML syntax. With a decent IDE you get autocompletion on most object and inline documentation for the available configuration elements. The provided configuration can be still enhanced by Enhancers which is useful for adding e.g. labels and annotations containing build or other information.
+| {plugin} inherits the XML based configuration for building images from the
+  https://dmp.fabric8.io/#docker:build[docker-maven-plugin] and provides the same functionality. It supports an
+  http://maven.apache.org/components/plugins/maven-assembly-plugin/assembly.html[assembly descriptor] for specifying the
+  content of the Docker image.
+| A subset of possible resource objects can be configured with a dedicated XML syntax. With a decent IDE you get
+  autocompletion on most objects and inline documentation for the available configuration elements. The provided
+  configuration can be still enhanced by Enhancers which is useful for adding e.g. labels and annotations containing
+  build or other information.
 
 | *Resource Fragments* and *Dockerfiles*
-| Similarly to the docker-maven-plugin, jkube-m-p supports <<external-dockerfile,external Dockerfiles>> too, which are referenced from the plugin configuration.
-| Resource descriptors can be provided as external YAML files which specify a skeleton. This skeleton is then filled by Enrichers which add labels and more. Maven properties within these files are resolved to thier values. With this model you can use every Kubernetes / OpenShift resource object with all their flexibility, but still get the benefit of adding build information.
+| Similarly to the docker-maven-plugin, {plugin} supports <<external-dockerfile,external Dockerfiles>> too, which are
+  referenced from the plugin configuration.
+| Resource descriptors can be provided as external YAML files which will build a base skeleton for the applicable resource.
+
+  The "skeleton" is then post-processed by <<enrichers, Enrichers>> which will complete the skeleton by adding the fields
+  each enricher is responsible of (labels, annotations, port information, etc.). Maven properties within these files
+  are resolved to their values.
+
+  With this model you can use every Kubernetes / OpenShift resource objects with all their flexibility, but still get the benefit
+  of adding build information.
 |===
 
 
@@ -72,7 +97,9 @@ Let's have a look at some code. The following examples will demonstrate all thre
 [[zero-config]]
 === Zero-Config
 
-This minimal but full working example `pom.xml` shows how a simple spring boot application can be dockerized and prepared for Kubernetes. The full example can be found in directory https://github.com/jkubeio/kubernetes-maven-plugin/tree/master/samples/zero-config[samples/zero-config].
+This minimal but full working example `pom.xml` shows how a simple spring boot application can be dockerized and
+prepared for Kubernetes. The full example can be found in directory
+https://github.com/eclipse/jkube/tree/master/quickstarts/maven/zero-config[quickstarts/maven/zero-config].
 
 .Example
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
@@ -106,7 +133,7 @@ This minimal but full working example `pom.xml` shows how a simple spring boot a
       </plugin>
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>k8s-maven-plugin</artifactId> <!--4-->
+        <artifactId>{plugin}</artifactId> <!--4-->
         <version>{version}</version>
       </plugin>
     </plugins>
@@ -116,42 +143,47 @@ This minimal but full working example `pom.xml` shows how a simple spring boot a
 <1> This minimalistic spring boot application uses the spring-boot parent POM for setting up dependencies and plugins
 <2> The Spring Boot web starter dependency enables a simple embedded Tomcat for serving Spring MVC apps
 <3> The `spring-boot-maven-plugin` is responsible for repackaging the application into a fat jar, including all dependencies and the embedded Tomcat
-<4> The `kubernetes-maven-plugin` enables the automatic generation of a Docker image and Kubernetes / OpenShift descriptors including this Spring application.
+<4> The `{plugin}` enables the automatic generation of a Docker image and Kubernetes / OpenShift descriptors including this Spring application.
 
 This setup make some opinionated decisions for you:
 
-* As base image https://github.com/jkubeio-images/java/tree/master/images/jboss/openjdk8/jdk[jkube.java-jboss-openjdk8-jdk] is chosen which enables https://www.jolokia.org[Jolokia] and https://github.com/prometheus/jmx_exporter[jmx_exporter]. It also comes with a sophisticated https://github.com/jkubeio-images/run-java-sh[startup script].
-* It will create a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] and a http://kubernetes.io/docs/user-guide/services/[Service] as resource objects
+* As base image https://quay.io/repository/jkube/jkube-java-binary-s2i[jkube/jkube-java-binary-s2i]
+  is chosen which enables https://www.jolokia.org[Jolokia] and https://github.com/prometheus/jmx_exporter[jmx_exporter].
+  It also comes with a sophisticated https://github.com/jboss-openshift/cct_module/tree/master/jboss/container/java/run/bash[startup script].
+* It will create a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] and a
+  http://kubernetes.io/docs/user-guide/services/[Service] as resource objects
 * It exports port 8080 as the application service port (and 8778 and 9779 for Jolokia and jmx_exporter access, respectively)
 
-These choices can be influenced by configuration options as decribed in <<generator-spring-boot,Spring Boot Generator>>.
+These choices can be influenced by configuration options as described in <<generator-spring-boot,Spring Boot Generator>>.
 
 To start the Docker image build, you simply run
 
-[source,bash]
+[source, bash, subs="+attributes"]
 ----
-mvn package k8s:build
+mvn package {goal-prefix}:build
 ----
 
-This will create the Docker image against a running Docker daemon (which must be accessible either via Unix Socket or with the URL set in `DOCKER_HOST`). Alternatively, when connected to an OpenShift cluster (or using the `openshift` <<build-mode,mode>> explicitly), then a Docker build will be performed on OpenShift which at the end creates an https://docs.openshift.com/enterprise/3.1/architecture/core_concepts/builds_and_image_streams.html[ImageStream].
+This will create the Docker image against a running Docker daemon (which must be accessible either via Unix Socket or
+with the URL set in `DOCKER_HOST`). Alternatively, when connected to an OpenShift cluster then a https://docs.openshift.com/enterprise/3.0/using_images/s2i_images/index.html[S2I] build will be performed on OpenShift which at the end creates an
+https://docs.openshift.com/enterprise/3.1/architecture/core_concepts/builds_and_image_streams.html[ImageStream].
 
 To deploy the resources to the cluster call
 
-[source,bash]
+[source, bash, subs="+attributes"]
 ----
-mvn k8s:resource k8s:deploy
+mvn {goal-prefix}:resource {goal-prefix}:deploy
 ----
 
-By default a _Service_ and a _Deployment_ object pointing to the created Docker image is created. When running in OpenShift mode, a _Service_ and _DeploymentConfig_ which refers the _ImageStream_ created with `k8s:build` will be installed.
+By default a _Service_ and a _Deployment_ object pointing to the created Docker image is created. When running in OpenShift mode, a _Service_ and _DeploymentConfig_ which refers the _ImageStream_ created with `{goal-prefix}:build` will be installed.
 
-Of course you can bind all those jkube.goals to execution phases as well, so that they are called along with standard lifecycle goals like `install`. For example, to bind the building of the Kubernetes resource files and the Docker images, add the following goals to the execution of the f-m-p:
+Of course you can bind all those jkube-goals to execution phases as well, so that they are called along with standard lifecycle goals like `install`. For example, to bind the building of the Kubernetes resource files and the Docker images, add the following goals to the execution of the {plugin}:
 
 .Example for lifecycle bindings
-[source, xml, indent=0]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
 
   <!-- ... -->
 
@@ -166,14 +198,14 @@ Of course you can bind all those jkube.goals to execution phases as well, so tha
 </plugin>
 ----
 
-If you'd also like to automatically deploy to Kubernetes each time you do a `mvn install` you can add the `deploy` goal:
+If you'd also like to automatically deploy to Kubernetes each time you do a `mvn install` you can add the `apply` goal:
 
 .Example for lifecycle bindings with automatic deploys for mvn install
-[source, xml, indent=0]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
 
   <!-- ... -->
 
@@ -182,7 +214,7 @@ If you'd also like to automatically deploy to Kubernetes each time you do a `mvn
       <goals>
         <goal>resource</goal>
         <goal>build</goal>
-        <goal>deploy</goal>
+        <goal>apply</goal>
       </goals>
     </execution>
   </executions>
@@ -194,17 +226,21 @@ If you'd also like to automatically deploy to Kubernetes each time you do a `mvn
 WARNING: XML based configuration is only partially implemented and is not recommended for use right now.
 
 Although the Zero-config mode and its generators can be tweaked with options up to a certain degree, many cases require more flexibility. For such instances, an XML-based plugin configuration can be used, in a way similar to the
-https://jkubeio.github.io/docker-maven-plugin/#configuration[XML configuration] used by `docker-maven-plugin`.
+https://dmp.fabric8.io/#configuration[XML configuration] used by `docker-maven-plugin`.
 
 The plugin configuration can be roughly divided into the following sections:
 
 * Global configuration options are responsible for tuning the behaviour of plugin goals
-* `<images>` defines which Docker <<image-configuration,images>> are used and configured. This section is similar to the https://jkubeio.github.io/docker-maven-plugin/#image-configuration[image configuration] of the `docker-maven-plugin`, except that `<run>` and `<external>` sub-elements are ignored)
-* `<resource>` defines the resource descriptors for deploying on an OpenShift or Kuberneres cluster.
+* `<images>` defines which Docker <<image-configuration,images>> are used and configured. This section is similar to the
+   https://dmp.fabric8.io//#image-configuration[image configuration] of the `docker-maven-plugin`, except that `<run>`
+   and `<external>` sub-elements are ignored)
+* `<resources>` defines the resource descriptors for deploying on an OpenShift or Kubernetes cluster.
 * `<generator>` configures <<generators,generators>> which are responsible for creating images. Generators are used as an alternative to a dedicated `<images>` section.
 * `<enricher>` configures various aspects of <<enrichers,enrichers>> for creating or enhancing resource descriptors.
 
-A working example can be found in the  https://github.com/jkubeio/kubernetes-maven-plugin/tree/master/samples/xml-config[samples/xml-config] directory. An extract of the plugin configuration is shown below:
+A working example can be found in the
+https://github.com/eclipse/jkube/tree/master/quickstarts/maven/xml-config[quickstarts/maven/xml-config] directory.
+An extract of the plugin configuration is shown below:
 
 .Example for an XML configuration
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
@@ -217,10 +253,13 @@ A working example can be found in the  https://github.com/jkubeio/kubernetes-mav
       <!-- "alias" is used to correlate to the containers in the pod spec -->
       <alias>camel-app</alias>
       <build>
-        <from>jkube.java</from>
+        <from>fabric8/java-centos-openjdk8-jre</from>
         <assembly>
-          <basedir>/deployments</basedir>
-          <descriptorRef>artifact-with-dependencies</descriptorRef>
+          <layers>
+            <layer>
+              <baseDirectory>/deployments</baseDirectory>
+            </layer>
+          </layers>
         </assembly>
         <env>
           <JAVA_LIB_DIR>/deployments</JAVA_LIB_DIR>
@@ -237,63 +276,90 @@ A working example can be found in the  https://github.com/jkubeio/kubernetes-mav
       </all>
     </labels>
 
-    <deployment> <!--4-->
-      <name>${project.artifactId}</name>
-      <replicas>1</replicas>
+    <replicas>2</replicas> <!--4-->
+    <controllerName>${project.artifactId}</controllerName> <!--5-->
 
-      <containers> <!--5-->
-        <container>
-          <alias>camel-app</alias> <!--6-->
-          <ports>
-            <port>8778</port>
-          </ports>
-          <mounts>
-            <scratch>/var/scratch</scratch>
-          </mounts>
-        </container>
-      </containers>
-
-      <volumes> <!--7-->
-        <volume>
-          <name>scratch</name>
-          <type>emptyDir</type>
-        </volume>
-      </volumes>
-    </deployment>
-
-    <services> <!--8-->
+    <services> <!--6-->
       <service>
         <name>camel-service</name>
         <headless>true</headless>
       </service>
     </services>
 
-    <serviceAccounts>
+    <serviceAccounts> <!--7-->
       <serviceAccount>
         <name>build-robot</name>
       </serviceAccount>
     </serviceAccounts>
+
+    <annotations> <!--8-->
+      <all>
+        <version>${project.version}</version>
+        <artifactId>${project.artifactId}</artifactId>
+      </all>
+      <deployment> <!--9-->
+        <my>deployment</my>
+      </deployment>
+    </annotations>
+
+    <configMap> <!--10-->
+      <name>test</name>
+      <entries>
+        <entry> <!--11-->
+          <name>key1</name>
+          <value>value1</value>
+        </entry>
+        <entry> <!--12-->
+          <name>key3</name>
+          <file>${project.basedir}/src/main/resources/META-INF/resources/index.html</file>
+        </entry>
+      </entries>
+    </configMap>
+
+    <liveness> <!--13-->
+      <getUrl>http://:8080/q/health</getUrl>
+      <initialDelaySeconds>3</initialDelaySeconds>
+      <timeoutSeconds>3</timeoutSeconds>
+    </liveness>
+    <startup> <!--14-->
+      <failureThreshold>30</failureThreshold>
+      <periodSeconds>10</periodSeconds>
+      <getUrl>http://:8080/actuator/health</getUrl>
+    </startup>
+    <remotes> <!--15-->
+       <remote>https://gist.githubusercontent.com/lordofthejars/ac2823cec7831697d09444bbaa76cd50/raw/e4b43f1b6494766dfc635b5959af7730c1a58a93/deployment.yaml</remote>
+    </remotes>
   </resources>
 </configuration>
 ----
-<1> Standard docker-maven-plugin configuration for building one single Docker image
+<1> Standard XML configuration for building one single Docker image
 <2> Kubernetes / OpenShift resources to create
 <3> Labels which should be applied globally to all resource objects
-<4> Definition of a http://kubernetes.io/docs/user-guide/deployments/[Deployment] to create
-<5> Containers to include in the deployment
-<6> An _alias_ is used to correlate a container's image with the image definition in the `<images>` section where each image carry an alias. Can be omitted if only a single image is used
-<7> http://kubernetes.io/docs/user-guide/volumes/[Volume] definitions used in a Deployment's _ReplicaSet_
-<8> One or more http://kubernetes.io/docs/user-guide/services/[Service] definitions.
+<4> Number of replicas desired
+<5> Name of controller created by plugin
+<6> One or more http://kubernetes.io/docs/user-guide/services/[Service] definitions.
+<7> ServiceAccount(s) to create
+<8> Annotations which should be applied either to all or to specific resources
+<9> Annotations applied to Deployment resources only
+<10> ConfigMap to be created
+<11> ConfigMap data entry as a string key value pair
+<12> ConfigMap data entry with value as file path, file's contents are loaded into ConfigMap as key value
+<13> Liveness Probe to be added in PodTemplateSpec of Controller resource
+<14> Startup Probe to be added in PodTemplateSpec of Controller resource
+<15> Remote files used as resource fragments.
 
-The XML resource configuration is based on plain Kubernetes resource objects. When targeting OpenShift, Kubernetes resource descriptors will be automatically converted to their OpenShift counterparts, e.g. a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] will be converted to an OpenShift https://docs.openshift.org/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[DeploymentConfig].
+The XML resource configuration is based on plain Kubernetes resource objects. When targeting OpenShift, Kubernetes resource descriptors will be automatically converted to their OpenShift counterparts, e.g. a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] will be converted to an OpenShift https://docs.openshift.com/container-platform/4.1/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are[DeploymentConfig].
 
 === Resource Fragments
 
-The third configuration option is to use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jkube` directory. Each resource get its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
+The third configuration option is to use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jkube` directory. Each resource gets its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
 
 Note: In order to support simultaneously both OpenShift and Kubernetes, there is currently no way to specify OpenShift-only features this way, though this might change in future releases.
 
-Let's have a look at an example from https://github.com/rhuss/kubernetes-maven-plugin/tree/master/samples/external-resources[samples/external-resources]. This is a plain Spring Boot application, whose images are auto generated like in the <<zero-config, Zero-Config>> case. The resource fragments are in `src/main/jkube`.
+Let's have a look at an example from
+https://github.com/eclipse/jkube/tree/master/quickstarts/maven/external-resources[quickstarts/maven/external-resources].
+This is a plain Spring Boot application, whose images are auto generated like in the <<zero-config, Zero-Config>> case.
+The resource fragments are in `src/main/jkube`.
 
 .Example fragment "deployment.yml"
 [source,yaml,indent=0,subs="verbatim,quotes,attributes"]
@@ -313,7 +379,7 @@ Let's have a look at an example from https://github.com/rhuss/kubernetes-maven-p
               - name: config
                 mountPath: /app/config
             env:
-              - name: KUBERNETES_NAMESPACE
+              - name: MY_POD_NAMESPACE
                 valueFrom:
                   fieldRef:
                     apiVersion: v1
@@ -321,13 +387,13 @@ Let's have a look at an example from https://github.com/rhuss/kubernetes-maven-p
         serviceAccount: ribbon
 ----
 
-As you can see, there is no `metadata` section as would be expected for Kubernetes resources because it will be automatically added by the `kubernetes-maven-plugin`. The object's `Kind`, if not given, is automatically derived from the
-filename. In this case, the `kubernetes-maven-plugin` will create a `Deployment` because the file is called `deployment.yml`. Similar mappings between file names and resource type exist for each supported resource kind, the
+As you can see, there is no `metadata` section as would be expected for Kubernetes resources because it will be automatically added by the `{plugin}`. The object's `Kind`, if not given, is automatically derived from the
+filename. In this case, the `{plugin}` will create a `Deployment` because the file is called `deployment.yml`. Similar mappings between file names and resource type exist for each supported resource kind, the
 complete list of which (along with associated abbreviations) can be found in the <<appendix-kind-mapping, Appendix>>.
 
 
 
-NOTE: Now that sidecar containers are supported in this plugin(if `jkube.sidecar` is enabled), be careful whenever you're supplying container name in the resource fragment. If container specified in resource fragment doesn't have a name or it's name is equal to default fmp generated application's container name; it would not be treated as sidecar and it would be merged into main container. However, You can override plugin's default name for main container via `jkube.generator.alias` property.
+NOTE: Now that sidecar containers are supported in this plugin(if `jkube.sidecar` is enabled), be careful whenever you're supplying container name in the resource fragment. If container specified in resource fragment doesn't have a name or it's name is equal to default jkube generated application's container name; it would not be treated as sidecar and it would be merged into main container. However, You can override plugin's default name for main container via `jkube.generator.alias` property.
 
 '''
 
@@ -338,10 +404,10 @@ No image is also referenced in this example because the plugin also fills in the
 
 
 
-NOTE: For building images there is also an alternative mode using external Dockerfiles, in addition to the XML based configuration. Refer to <<build-overview, k8s:build>> for details.
+NOTE: For building images there is also an alternative mode using external Dockerfiles, in addition to the XML based configuration. Refer to <<build-overview, {goal-prefix}:build>> for details.
 
 '''
 
 Enrichment of resource fragments can be fine-tuned by using profile sub-directories. For more details see <<profiles, Profiles>>.
 
-Now that we have seen some examples for the various ways how this plugin can be used, the following sections will describe the plugin goals and extension points in detail.
+Now that we have seen some examples of the various ways how this plugin can be used, the following sections will describe the plugin goals and extension points in detail.

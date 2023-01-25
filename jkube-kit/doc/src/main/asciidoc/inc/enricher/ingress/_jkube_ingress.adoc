@@ -1,0 +1,25 @@
+[[jkube-ingress]]
+==== jkube-ingress
+
+Enricher responsible for creation of Ingress either using opinionated defaults or as per provided {plugin-configuration-type} configuration.
+This enricher gets activated when `jkube.createExternalUrls` is set to `true`.
+JKube generates Ingress only for Services which have either `expose=true` or `exposeUrl=true` labels set.
+
+For more information, check out <<ingress-generation, Ingress Generation>> section.
+
+[[enricher-jkube-ingress]]
+.Ingress enricher
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *host*
+| Host is the fully qualified domain name of a network host.
+| `jkube.enricher.jkube-ingress.host`
+
+| *targetApiVersion*
+| Whether to generate `extensions/v1beta1` Ingress or `networking.k8s.io/v1` Ingress.
+
+  Defaults to `networking.k8s.io/v1`.
+| `jkube.enricher.jkube-ingress.targetApiVersion`
+|===

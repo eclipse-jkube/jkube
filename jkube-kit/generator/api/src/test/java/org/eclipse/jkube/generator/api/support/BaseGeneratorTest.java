@@ -13,353 +13,466 @@
  */
 package org.eclipse.jkube.generator.api.support;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
-import org.junit.Test;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.name;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.kind;
-import static org.eclipse.jkube.kit.config.image.build.OpenShiftBuildStrategy.SourceStrategy.namespace;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.AssertionsForClassTypes.entry;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * @author roland
- * @since 10/01/17
  */
-public class BaseGeneratorTest {
 
-    @Mocked
-    private GeneratorContext ctx;
+class BaseGeneratorTest {
+  private GeneratorContext ctx;
+  private JavaProject project;
 
-    @Mocked
-    private MavenProject project;
+  private Properties properties;
+  private ProcessorConfig config;
 
-    @Mocked
-    private ProcessorConfig config;
+  @BeforeEach
+  void setUp() {
+    ctx = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
+    project = mock(JavaProject.class);
+    properties = new Properties();
+    config = new ProcessorConfig();
 
+    when(project.getProperties()).thenReturn(properties);
+    when(ctx.getProject()).thenReturn(project);
+    when(ctx.getConfig()).thenReturn(config);
+  }
 
+  @AfterEach
+  void tearDown() {
+    config = null;
+    properties = null;
+  }
+
+  @Test
+  @DisplayName("get from as configured with properties and configuration, should return configured")
+  void fromAsConfiguredWithPropertiesAndConfigurationShouldReturnConfigured() {
+    // Given
+    properties.put("jkube.generator.from", "fromInProperties");
+    config.getConfig().put("test-generator", Collections.singletonMap("from", "fromInConfig"));
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getFromAsConfigured();
+    // Then
+    assertThat(result).isEqualTo("fromInConfig");
+  }
+
+  @Test
+  @DisplayName("get from as configured with properties, should return value in properties")
+  void fromAsConfiguredWithPropertiesShouldReturnValueInProperties() {
+    // Given
+    properties.put("jkube.generator.from", "fromInProperties");
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getFromAsConfigured();
+    // Then
+    assertThat(result).isEqualTo("fromInProperties");
+  }
+
+  @Test
+  @DisplayName("get image name with properties and configuration, should return configured")
+  void getImageNameWithPropertiesAndConfigurationShouldReturnConfigured() {
+    // Given
+    properties.put("jkube.generator.name", "nameInProperties");
+    config.getConfig().put("test-generator", Collections.singletonMap("name", "nameInConfig"));
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
+    // Then
+    assertThat(result).isEqualTo("nameInConfig");
+  }
+
+  @Test
+  @DisplayName("get image name with properties, should return value in properties")
+  void getImageNameWithPropertiesShouldReturnValueInProperties() {
+    // Given
+    properties.put("jkube.generator.name", "nameInProperties");
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
+    // Then
+    assertThat(result).isEqualTo("nameInProperties");
+  }
+
+  @Test
+  @DisplayName("get image name in kubernetes, should return defaults without registry")
+  void getImageNameShouldReturnDefault() {
+    // Given
+    inKubernetes();
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
+    // Then
+    assertThat(result).isEqualTo("%g/%a:%l");
+  }
+
+  @Test
+  @DisplayName("get image name in openshift, should return defaults without registry")
+  void getImageNameOpenShiftShouldReturnDefaultWithoutRegistry() {
+    // Given
+    inOpenShift();
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getImageName();
+    // Then
+    assertThat(result).isEqualTo("%a:%l");
+  }
+
+  @Test
+  @DisplayName("get registry with properties and configuration, should return configured")
+  void getRegistryWithPropertiesAndConfigurationShouldReturnConfigured() {
+    // Given
+    inKubernetes();
+    properties.put("jkube.generator.registry", "registryInProperties");
+    config.getConfig().put("test-generator", Collections.singletonMap("registry", "registryInConfiguration"));
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getRegistry();
+    // Then
+    assertThat(result).isEqualTo("registryInConfiguration");
+  }
+
+  @Test
+  @DisplayName("get registry with properties, should return value in properties")
+  void getRegistryWithPropertiesShouldReturnValueInProperties() {
+    // Given
+    inKubernetes();
+    properties.put("jkube.generator.registry", "registryInProperties");
+    config.getConfig().put("test-generator", Collections.singletonMap("registry", "registryInConfiguration"));
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getRegistry();
+    // Then
+    assertThat(result).isEqualTo("registryInConfiguration");
+  }
+
+  @Test
+  @DisplayName("get registry in openshift, should return null")
+  void getRegistryInOpenshiftShouldReturnNull() {
+    // Given
+    inOpenShift();
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getRegistry();
+    // Then
+    assertThat(result).isNull();
+  }
+
+  private TestBaseGenerator createGenerator(FromSelector fromSelector) {
+    return fromSelector != null ? new TestBaseGenerator(ctx, "test-generator", fromSelector)
+        : new TestBaseGenerator(ctx, "test-generator");
+  }
+
+  @Nested
+  @DisplayName("add from")
+  class AddFrom {
     @Test
-    public void fromAsConfigured() {
-        final Properties projectProps = new Properties();
-        projectProps.put("jkube.generator.from","propFrom");
-
-        setupContextKubernetes(projectProps,"configFrom", null);
-        BaseGenerator generator = createGenerator(null);
-        assertEquals("configFrom",generator.getFromAsConfigured());
-
-        setupContextKubernetes(projectProps,null, null);
-        generator = createGenerator(null);
-        assertEquals("propFrom",generator.getFromAsConfigured());
-    }
-
-    public TestBaseGenerator createGenerator(FromSelector fromSelector) {
-        return fromSelector != null ?
-                new TestBaseGenerator(ctx, "test-generator", fromSelector) :
-                new TestBaseGenerator(ctx, "test-generator");
-    }
-
-    @Test
-    public void defaultAddFrom() {
-        Properties props = new Properties();
-        for (boolean isOpenShift : new Boolean[]{false, true}) {
-            for (boolean isRedHat : new Boolean[]{false, true}) {
-                for (TestFromSelector selector : new TestFromSelector[]{null, new TestFromSelector(ctx, isRedHat)}) {
-                    for (String from : new String[]{null, "openshift/testfrom"}) {
-                        setupContext(props, isOpenShift, from, null);
-
-                        BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
-                        BaseGenerator generator = createGenerator(selector);
-                        generator.addFrom(builder);
-                        BuildConfiguration config = builder.build();
-                        if (isRedHat && isOpenShift && selector != null) {
-                            if (from != null) {
-                                assertEquals("testfrom:latest", config.getFrom());
-                                assertFromExt(config.getFromExt(), "testfrom:latest", "openshift");
-                            } else {
-                                assertEquals("selectorIstagFromRedhat", config.getFrom());
-                                assertFromExt(config.getFromExt(), selector.getIstagFrom(), "openshift");
-                            }
-                        } else {
-                            if (from != null) {
-                                assertEquals(config.getFrom(), from);
-                                assertNull(config.getFromExt());
-                            } else {
-                                System.out.println(isRedHat + " " + isOpenShift);
-                                assertNull(config.getFromExt());
-                                assertEquals(config.getFrom(),
-                                        selector != null ?
-                                                (isOpenShift ?
-                                                        selector.getS2iBuildFrom() :
-                                                        selector.getDockerBuildFrom())
-                                                : null);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    public void assertFromExt(Map<String, String> fromExt, String fromName, String namespaceName) {
-        assertEquals(3, fromExt.keySet().size());
-        assertEquals(fromName, fromExt.get(name.key()));
-        assertEquals("ImageStreamTag", fromExt.get(kind.key()));
-        assertEquals(namespaceName, fromExt.get(namespace.key()));
-    }
-
-    @Test
-    public void addFromIstagModeWithSelector() {
-        Properties props = new Properties();
-        props.put("jkube.generator.fromMode","istag");
-
-        for (String from : new String[] { null, "test_namespace/test_image:2.0"}) {
-            setupContext(props, false, from, null);
-
-            BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
-            BaseGenerator generator = createGenerator(new TestFromSelector(ctx, false));
-            generator.addFrom(builder);
-            BuildConfiguration config = builder.build();
-            assertEquals(from == null ? "selectorIstagFromUpstream" : "test_image:2.0", config.getFrom());
-            Map<String, String> fromExt = config.getFromExt();
-            if (from != null) {
-                assertFromExt(fromExt,"test_image:2.0", "test_namespace");
-            } else {
-                assertFromExt(fromExt, "selectorIstagFromUpstream", "openshift");
-            }
-        }
-    }
-
-    @Test
-    public void addFromIstagModeWithoutSelector() {
-        Properties props = new Properties();
-        props.put("jkube.generator.fromMode","istag");
-        for (String from : new String[] { null, "test_namespace/test_image:2.0"}) {
-            setupContext(props, false, from, null);
-
-            BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
-            BaseGenerator generator = createGenerator(null);
-            generator.addFrom(builder);
-            BuildConfiguration config = builder.build();
-            assertEquals(from == null ? null : "test_image:2.0", config.getFrom());
-            Map<String, String> fromExt = config.getFromExt();
-            if (from == null) {
-                assertNull(fromExt);
-            } else {
-                assertFromExt(fromExt, "test_image:2.0", "test_namespace");
-            }
-        }
-    }
-
-    @Test
-    public void addFromIstagWithNameWithoutTag() {
-        Properties props = new Properties();
-        setupContext(props, false, "test_namespace/test_image", "istag");
-        BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
-        BaseGenerator generator = createGenerator(null);
-        generator.addFrom(builder);
-        BuildConfiguration config = builder.build();
-        assertEquals("test_image:latest",config.getFrom());
-    }
-
-
-    @Test
-    public void addFromInvalidMode() {
-        try {
-            Properties props = new Properties();
-            setupContextKubernetes(props, null, "blub");
-
-            BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
-            BaseGenerator generator = createGenerator(null);
-            generator.addFrom(builder);
-            fail();
-        } catch (IllegalArgumentException exp) {
-            assertTrue(exp.getMessage().contains("fromMode"));
-            assertTrue(exp.getMessage().contains("test-generator"));
-        }
-    }
-
-    @Test
-    public void shouldAddDefaultImage(@Mocked final ImageConfiguration ic1, @Mocked final ImageConfiguration ic2,
-                                      @Mocked final BuildConfiguration bc) {
-        new Expectations() {{
-            ic1.getBuildConfiguration(); result = bc; minTimes = 0;
-            ic2.getBuildConfiguration(); result = null; minTimes = 0;
-        }};
-        BaseGenerator generator = createGenerator(null);
-        assertTrue(generator.shouldAddImageConfiguration(Collections.<ImageConfiguration>emptyList()));
-        assertFalse(generator.shouldAddImageConfiguration(Arrays.asList(ic1, ic2)));
-        assertTrue(generator.shouldAddImageConfiguration(Arrays.asList(ic2)));
-        assertFalse(generator.shouldAddImageConfiguration(Arrays.asList(ic1)));
+    @DisplayName("with defaults, should add null")
+    void addFromWithDefaultsShouldAddNull() {
+      // Given
+      final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+      // When
+      new TestBaseGenerator(ctx, "test-generator").addFrom(builder);
+      // Then
+      assertThat(builder.build())
+              .hasFieldOrPropertyWithValue("from", null)
+              .hasFieldOrPropertyWithValue("fromExt", null);
     }
 
     @Test
-    public void addLatestTagIfSnapshot() {
-        new Expectations() {{
-            ctx.getProject(); result = project;
-            project.getVersion(); result = "1.2-SNAPSHOT";
-        }};
-        BuildConfiguration.Builder builder = new BuildConfiguration.Builder();
-        BaseGenerator generator = createGenerator(null);
-        generator.addLatestTagIfSnapshot(builder);;
-        BuildConfiguration config = builder.build();
-        List<String> tags = config.getTags();
-        assertEquals(1, tags.size());
-        assertTrue(tags.get(0).endsWith("latest"));
+    @DisplayName("in docker with configured image and selector, should return configured")
+    void addFromInDockerWithConfiguredImageAndSelectorShouldReturnConfigured() {
+      // Given
+      config.getConfig().put("test-generator", Collections.singletonMap("from", "my/image"));
+      final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+      // When
+      new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
+      // Then
+      assertThat(builder.build())
+              .hasFieldOrPropertyWithValue("from", "my/image");
     }
 
     @Test
-    public void getImageName() {
-        setupNameContext(null, "config_test_name");
-        BaseGenerator generator = createGenerator(null);
-        assertEquals("config_test_name", generator.getImageName());
+    @DisplayName("in docker with selector, should return selector image")
+    void addFromInDockerWithSelectorShouldReturnSelectorImage() {
+      // Given
+      final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+      // When
+      new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
 
-        setupNameContext("prop_test_name", null);
-        generator = createGenerator(null);
-        assertEquals("prop_test_name", generator.getImageName());
-
-        setupNameContext("prop_test_name", "config_test_name");
-        generator = createGenerator(null);
-        assertEquals("config_test_name", generator.getImageName());
-
-        setupNameContext(null, null);
-        generator = createGenerator(null);
-        assertEquals("%g/%a:%l", generator.getImageName());
-
+      // Then
+      assertThat(builder.build())
+              .hasFieldOrPropertyWithValue("from", "selectorDockerFromUpstream");
     }
 
     @Test
-    public void getRegistry() {
-        Properties props = new Properties();
-        props.put("jkube.generator.registry", "jkube.io");
-        setupContextKubernetes(props, null, null);
-
-        BaseGenerator generator = createGenerator(null);
-        assertEquals("jkube.io", generator.getRegistry());
+    @DisplayName("in is-tag mode with defaults, should add null")
+    void addFromInIsTagModeWithDefaultsShouldAddNull() {
+      // Given
+      properties.put("jkube.generator.fromMode", "istag");
+      final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+      // When
+      new TestBaseGenerator(ctx, "test-generator").addFrom(builder);
+      // Then
+      assertThat(builder.build())
+              .hasFieldOrPropertyWithValue("from", null)
+              .hasFieldOrPropertyWithValue("fromExt", null);
     }
 
     @Test
-    public void getRegistryInOpenshift() {
-        Properties props = new Properties();
-        props.put("jkube.generator.registry", "jkube.io");
-        props.put(RuntimeMode.FABRIC8_EFFECTIVE_PLATFORM_MODE, "openshift");
-        setupContextOpenShift(props, null, null);
-
-        BaseGenerator generator = createGenerator(null);
-        assertNull(generator.getRegistry());
+    @DisplayName("in-is tag mode with configured image and selector, should return configured")
+    void addFromInIsTagModeWithConfiguredImageAndSelectorShouldReturnConfigured() {
+      // Given
+      properties.put("jkube.generator.fromMode", "istag");
+      config.getConfig().put("test-generator", Collections.singletonMap("from", "my/image"));
+      final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+      // When
+      new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
+      // Then
+      assertThat(builder.build())
+              .hasFieldOrPropertyWithValue("from", "image:latest")
+              .extracting(BuildConfiguration::getFromExt, InstanceOfAssertFactories.MAP)
+              .contains(
+                      entry("kind", "ImageStreamTag"),
+                      entry("name", "image:latest"),
+                      entry("namespace", "my")
+              );
     }
 
-    private void setupNameContext(String propertyName, final String configName) {
-        final Properties props = new Properties();
-        if (propertyName != null) {
-            props.put("jkube.generator.name", propertyName);
-        }
-        new Expectations() {{
-            ctx.getProject(); result = project;
-            project.getProperties(); result = props;
-            ctx.getConfig(); result = config;
-            config.getConfig("test-generator", "name"); result = configName; minTimes = 0;
-        }};
+    @Test
+    @DisplayName("in is-tag mode with configured image with tag and selector, should return configured")
+    void addFromInIsTagModeWithConfiguredImageWithTagAndSelectorShouldReturnConfigured() {
+      // Given
+      properties.put("jkube.generator.fromMode", "istag");
+      config.getConfig().put("test-generator", Collections.singletonMap("from", "my/image:tag"));
+      final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+      // When
+      new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
+      // Then
+      assertThat(builder.build())
+              .hasFieldOrPropertyWithValue("from", "image:tag")
+              .extracting(BuildConfiguration::getFromExt, InstanceOfAssertFactories.MAP)
+              .contains(
+                      entry("kind", "ImageStreamTag"),
+                      entry("name", "image:tag"),
+                      entry("namespace", "my")
+              );
     }
 
-    public void setupContext(Properties props, boolean isOpenShift, String from, String fromMode) {
-        if (isOpenShift) {
-            setupContextOpenShift(props, from, fromMode);
-        } else {
-            setupContextKubernetes(props, from, fromMode);
-        }
+    @Test
+    @DisplayName("in is-tag mode with selector, should return selector image")
+    void addFromInIsTagModeWithSelectorShouldReturnSelectorImage() {
+      // Given
+      properties.put("jkube.generator.fromMode", "istag");
+      final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+      // When
+      new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx)).addFrom(builder);
+      // Then
+      assertThat(builder.build())
+              .hasFieldOrPropertyWithValue("from", "selectorIstagFromUpstream")
+              .extracting(BuildConfiguration::getFromExt, InstanceOfAssertFactories.MAP)
+              .contains(
+                      entry("kind", "ImageStreamTag"),
+                      entry("name", "selectorIstagFromUpstream"),
+                      entry("namespace", "openshift"));
     }
 
-    public void setupContextKubernetes(final Properties projectProps, final String configFrom, final String configFromMode) {
-        new Expectations() {{
-            ctx.getProject(); result = project;
-            project.getProperties(); result = projectProps;
-            ctx.getConfig(); result = config;
-            config.getConfig("test-generator", "from"); result = configFrom; minTimes = 0;
-            config.getConfig("test-generator", "fromMode"); result = configFromMode; minTimes = 0;
-            ctx.getRuntimeMode();result = RuntimeMode.kubernetes;minTimes = 0;
-            ctx.getStrategy(); result = null; minTimes = 0;
-        }};
+    @Test
+    @DisplayName("with invalid mode, should throw exception")
+    void addFromWithInvalidModeShouldThrowException() {
+      // Given
+      properties.put("jkube.generator.fromMode", "invalid");
+      final BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+      final TestBaseGenerator testBaseGenerator = new TestBaseGenerator(ctx, "test-generator", new TestFromSelector(ctx));
+      // When
+      assertThatThrownBy(()-> testBaseGenerator.addFrom(builder)).
+              isInstanceOf(IllegalArgumentException.class).
+              hasMessageContaining("Invalid 'fromMode' in generator configuration for 'test-generator'");
+    }
+  }
+
+  @Test
+  @DisplayName("should add default image")
+  void shouldAddDefaultImage() {
+    ImageConfiguration ic1 = mock(ImageConfiguration.class);
+    ImageConfiguration ic2 = mock(ImageConfiguration.class);
+    BuildConfiguration bc = mock(BuildConfiguration.class);
+    when(ic1.getBuildConfiguration()).thenReturn(bc);
+    when(ic2.getBuildConfiguration()).thenReturn(null);
+    BaseGenerator generator = createGenerator(null);
+    assertThat(generator)
+        .returns(true, g -> g.shouldAddGeneratedImageConfiguration(Collections.emptyList()))
+        .returns(false, g -> g.shouldAddGeneratedImageConfiguration(Arrays.asList(ic1, ic2)))
+        .returns(true, g -> g.shouldAddGeneratedImageConfiguration(Collections.singletonList(ic2)))
+        .returns(false, g -> g.shouldAddGeneratedImageConfiguration(Collections.singletonList(ic1)));
+  }
+
+  @Test
+  @DisplayName("should not add default image in case of simple dockerfile")
+  void shouldNotAddDefaultImageInCaseOfSimpleDockerfile(@TempDir Path folder) throws IOException {
+    // Given
+    File projectBaseDir = Files.createDirectory(folder.resolve("test-project-dir")).toFile();
+    File dockerFile = new File(projectBaseDir, "Dockerfile");
+    boolean isTestDockerfileCreated = dockerFile.createNewFile();
+    when(ctx.getProject()).thenReturn(project);
+    when(project.getBaseDirectory()).thenReturn(projectBaseDir);
+    // When
+    BaseGenerator generator = createGenerator(null);
+
+    // Then
+    assertThat(isTestDockerfileCreated).isTrue();
+    assertThat(generator.shouldAddGeneratedImageConfiguration(Collections.emptyList())).isFalse();
+  }
+
+  @Test
+  @DisplayName("should add generated image configuration when add enabled via config, should return true")
+  void shouldAddGeneratedImageConfiguration_whenAddEnabledViaConfig_shouldReturnTrue() {
+    // Given
+    when(ctx.getProject()).thenReturn(project);
+    properties.put("jkube.generator.test-generator.add", "true");
+    BaseGenerator generator = createGenerator(null);
+
+    // When
+    boolean result = generator.shouldAddGeneratedImageConfiguration(createNewImageConfigurationList());
+
+    // Then
+    assertThat(result).isTrue();
+  }
+
+
+  @Test
+  @DisplayName("should add generated image configuration when enabled via property, should return true")
+  void shouldAddGeneratedImageConfiguration_whenAddEnabledViaProperty_shouldReturnTrue() {
+    // Given
+    when(ctx.getProject()).thenReturn(project);
+    properties.put("jkube.generator.add", "true");
+    BaseGenerator generator = createGenerator(null);
+
+    // When
+    boolean result = generator.shouldAddGeneratedImageConfiguration(createNewImageConfigurationList());
+
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  @DisplayName("add latest tag if project's version is SNAPSHOT")
+  void addLatestTagIfSnapshot() {
+    when(ctx.getProject()).thenReturn(project);
+    when(project.getVersion()).thenReturn("1.2-SNAPSHOT");
+    BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+    BaseGenerator generator = createGenerator(null);
+    generator.addLatestTagIfSnapshot(builder);
+    BuildConfiguration config = builder.build();
+    List<String> tags = config.getTags();
+    assertThat(tags)
+        .singleElement()
+        .asString()
+        .endsWith("latest");
+  }
+
+  @Test
+  @DisplayName("add tags from config")
+  void addTagsFromConfig() {
+    when(ctx.getProject()).thenReturn(project);
+    BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+    properties.put("jkube.generator.test-generator.tags", " tag-1, tag-2 , other-tag");
+    BaseGenerator generator = createGenerator(null);
+    generator.addTagsFromConfig(builder);
+    BuildConfiguration config = builder.build();
+    assertThat(config.getTags())
+        .hasSize(3)
+        .containsExactlyInAnyOrder("tag-1", "tag-2", "other-tag");
+  }
+
+  @Test
+  @DisplayName("add tags from property")
+  void addTagsFromProperty() {
+    when(ctx.getProject()).thenReturn(project);
+    BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+    properties.put("jkube.generator.tags", " tag-1, tag-2 , other-tag");
+    BaseGenerator generator = createGenerator(null);
+    generator.addTagsFromConfig(builder);
+    BuildConfiguration config = builder.build();
+    assertThat(config.getTags())
+        .hasSize(3)
+        .containsExactlyInAnyOrder("tag-1", "tag-2", "other-tag");
+  }
+
+  private void inKubernetes() {
+    when(ctx.getRuntimeMode()).thenReturn(RuntimeMode.KUBERNETES);
+  }
+
+  private void inOpenShift() {
+    when(ctx.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
+  }
+
+  private static class TestBaseGenerator extends BaseGenerator {
+    public TestBaseGenerator(GeneratorContext context, String name) {
+      super(context, name);
     }
 
-    public void setupContextOpenShift(final Properties projectProps, final String configFrom, final String configFromMode) {
-        new Expectations() {{
-            ctx.getProject(); result = project;
-            project.getProperties(); result = projectProps;
-            ctx.getConfig(); result = config;
-            config.getConfig("test-generator", "from"); result = configFrom; minTimes = 0;
-            config.getConfig("test-generator", "fromMode"); result = configFromMode; minTimes = 0;
-            ctx.getRuntimeMode();result = RuntimeMode.openshift;minTimes = 0;
-            ctx.getStrategy(); result = OpenShiftBuildStrategy.s2i; minTimes = 0;
-        }};
+    public TestBaseGenerator(GeneratorContext context, String name, FromSelector fromSelector) {
+      super(context, name, fromSelector);
     }
 
-    private class TestBaseGenerator extends BaseGenerator {
-        public TestBaseGenerator(GeneratorContext context, String name) {
-            super(context, name);
-        }
-
-        public TestBaseGenerator(GeneratorContext context, String name, FromSelector fromSelector) {
-            super(context, name, fromSelector);
-        }
-
-        @Override
-        public boolean isApplicable(List<ImageConfiguration> configs) {
-            return true;
-        }
-
-        @Override
-        public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) throws MojoExecutionException {
-            return existingConfigs;
-        }
+    @Override
+    public boolean isApplicable(List<ImageConfiguration> configs) {
+      return true;
     }
 
-    private class TestFromSelector extends FromSelector {
-
-        private boolean isRedHat;
-
-        public TestFromSelector(GeneratorContext context, boolean isRedHat) {
-            super(context);
-            this.isRedHat = isRedHat;
-        }
-
-        @Override
-        public boolean isRedHat() {
-            return isRedHat;
-        }
-
-        @Override
-        protected String getDockerBuildFrom() {
-            return !isRedHat ? "selectorDockerFromUpstream" : "selectorDockerFromRedhat";
-        }
-
-        @Override
-        protected String getS2iBuildFrom() {
-            return !isRedHat ? "selectorS2iFromUpstream" : "selectorS2iFromRedhat";
-        }
-
-        @Override
-        protected String getIstagFrom() {
-            return !isRedHat ? "selectorIstagFromUpstream" : "selectorIstagFromRedhat";
-        }
+    @Override
+    public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) {
+      return existingConfigs;
     }
+  }
+
+  private static class TestFromSelector extends FromSelector {
+
+    public TestFromSelector(GeneratorContext context) {
+      super(context);
+    }
+
+    @Override
+    protected String getDockerBuildFrom() {
+      return "selectorDockerFromUpstream";
+    }
+
+    @Override
+    protected String getS2iBuildFrom() {
+      return "selectorS2iFromUpstream";
+    }
+
+    @Override
+    protected String getIstagFrom() {
+      return "selectorIstagFromUpstream";
+    }
+  }
+
+  private List<ImageConfiguration> createNewImageConfigurationList() {
+    return Collections.singletonList(ImageConfiguration.builder()
+        .name("test:latest")
+        .build(BuildConfiguration.builder().from("foo:latest").build())
+        .build());
+  }
 }

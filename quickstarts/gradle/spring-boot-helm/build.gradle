@@ -1,0 +1,66 @@
+plugins {
+    id 'org.springframework.boot' version '2.5.6'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.eclipse.jkube.kubernetes' version '1.10.1'
+    id 'org.eclipse.jkube.openshift' version '1.10.1'
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.quickstart.gradle.spring.boot.helm'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+kubernetes {
+    resources {
+        labels {
+            all {
+                testProject = 'spring-boot-with-yaml-label-for-all'
+            }
+        }
+    }
+    generator {
+        config {
+            'spring-boot' {
+                color = 'always'
+            }
+        }
+    }
+    helm {
+        maintainers = [{
+            name = 'John'
+            email = 'john.doe@example.com'
+        }]
+    }
+}
+
+openshift {
+    resources {
+        labels {
+            all {
+                testProject = 'spring-boot-with-yaml-label-for-all'
+            }
+        }
+    }
+    generator {
+        config {
+            'spring-boot' {
+                color = 'always'
+            }
+        }
+    }
+    helm {
+        maintainers = [{
+            name = 'John'
+            email = 'john.doe@example.com'
+        }]
+    }
+}

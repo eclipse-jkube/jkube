@@ -13,11 +13,13 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.generator.api.support.AbstractPortsExtractor;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+
+import java.util.Map;
 
 public class VertxPortsExtractor extends AbstractPortsExtractor {
 
@@ -32,17 +34,21 @@ public class VertxPortsExtractor extends AbstractPortsExtractor {
     }
 
     @Override
-    public String getConfigPathFromProject(MavenProject project) {
-        Plugin plugin = project.getPlugin(Constants.VERTX_MAVEN_PLUGIN_GROUP + ":" + Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
-        if (plugin == null) {
-            return null;
-        }
+    public String getConfigPathFromProject(JavaProject project) {
+        Plugin plugin = JKubeProjectUtil.getPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
 
-        Xpp3Dom configuration = (Xpp3Dom) plugin.getConfiguration();
-        if (configuration == null) {
-            return null;
+        if (plugin != null) {
+            Map<String, Object> pluginConfiguration = plugin.getConfiguration();
+            /*
+             * During deserialization into JKubeProjectPlugin null configuration gets converted to null string hence
+             * this check.
+             */
+            if (pluginConfiguration == null) {
+                return null;
+            }
+            Map<String, Object> config = (Map<String, Object>)pluginConfiguration.get("config");
+            return config != null ? config.get("vertxConfig").toString() : null;
         }
-        Xpp3Dom config = configuration.getChild("config");
-        return config != null ? config.getValue() : null;
+        return null;
     }
 }

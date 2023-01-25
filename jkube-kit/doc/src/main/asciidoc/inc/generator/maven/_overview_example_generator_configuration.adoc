@@ -1,0 +1,24 @@
+.Example for a generator configuration
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  ....
+  <configuration>
+    ....
+    <generator> <!--1-->
+      <includes> <!--2-->
+        <include>spring-boot</include>
+      </includes>
+      <config> <!--3-->
+        <spring-boot> <!--4-->
+          <alias>ping</alias>
+        </spring-boot>
+      </config>
+    </generator>
+  </configuration>
+</plugin>
+----
+<1> Start of generators' configuration.
+<2> Generators can be included and excluded. Includes have precedence, and the generators are called in the given order.
+<3> Configuration for individual generators.
+<4> The config is a map of supported config values. Each section is embedded in a tag named after the generator.

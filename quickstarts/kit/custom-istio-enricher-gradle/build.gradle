@@ -1,0 +1,10 @@
+allprojects {
+    project.group = 'org.eclipse.jkube.quickstarts.kit.enricher.istio'
+    project.version = '0.0.1-SNAPSHOT'
+
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        mavenLocal()
+    }
+}

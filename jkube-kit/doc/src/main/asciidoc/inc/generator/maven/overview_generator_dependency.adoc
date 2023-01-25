@@ -1,0 +1,14 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <artifactId>{plugin}</artifactId>
+  ....
+  <dependencies>
+    <dependency>
+      <groupId>io.acme</groupId>
+      <artifactId>mygenerator</artifactId>
+      <version>1.0</version>
+    </dependency>
+  </dependencies>
+</plugin>
+----

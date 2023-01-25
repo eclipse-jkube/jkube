@@ -1,0 +1,25 @@
+[[generator-quarkus]]
+=== Quarkus
+
+ifeval::["{plugin-type}" == "maven"]
+The `Quarkus` generator tries to detect quarkus based projects looking at project `pom.xml`:
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+The `Quarkus` generator detects Quarkus based projects looking at project `build.gradle`:
+endif::[]
+
+The base images chosen are:
+[[generator-quarkus-from]]
+.Webapp Base Images
+[cols="1,4,4"]
+|===
+| | Docker Build | S2I Build
+
+| *Native*
+| `registry.access.redhat.com/ubi8/ubi-minimal:8.6`
+| `quay.io/quarkus/ubi-quarkus-native-binary-s2i`
+
+| *Normal Build*
+| `quay.io/jkube/jkube-java`
+| `quay.io/jkube/jkube-java`
+|===

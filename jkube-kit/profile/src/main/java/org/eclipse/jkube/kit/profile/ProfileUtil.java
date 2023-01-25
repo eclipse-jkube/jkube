@@ -14,8 +14,7 @@
 package org.eclipse.jkube.kit.profile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.apache.commons.lang3.StringUtils;
@@ -23,10 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,38 +43,40 @@ public class ProfileUtil {
     private static final Logger log = LoggerFactory.getLogger(ProfileUtil.class);
 
     // Allowed profile names
-    public static final String[] PROFILE_FILENAMES = {"profiles%s.yml", "profiles%s.yaml", "profiles%s"};
-
-    // Mapper for handling YAML formats
-    private static final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+    private static final String[] PROFILE_FILENAMES = {"profiles%s.yml", "profiles%s.yaml", "profiles%s"};
 
     // Default profile which will be always there
     public static final String DEFAULT_PROFILE = "default";
+
+    public static Profile findProfile(String profileArg, List<File> resourceDirs) throws IOException {
+        return findProfile(profileArg, resourceDirs == null ? new File[0] : resourceDirs.toArray(new File[0]));
+    }
 
     /**
      * Find a profile. Profiles are looked up at various locations:
      *
      * <ul>
-     *     <li>A given directory with the name profiles.yml (and variations, {@link #findProfile(String, File)}</li>
+     *     <li>A given directory with the name profiles.yml (and variations, {@link #findProfile(String, File[])}</li>
      * </ul>
      * @param profileArg the profile's name
-     * @param resourceDir a directory to check for profiles.
+     * @param resourceDirs directories to check for profiles.
      * @return the profile found or the default profile if none of this name is given
-     * @throws IOException
+     * @throws IOException if there's a problem while performing IO operations.
      */
-    public static Profile findProfile(String profileArg, File resourceDir) throws IOException {
+    public static Profile findProfile(String profileArg, File... resourceDirs) throws IOException {
         try {
-            String profile = profileArg == null ? DEFAULT_PROFILE : profileArg;
-            Profile profileFound = lookup(profile, resourceDir);
-            if (profileFound != null) {
-                if(profileFound.getParentProfile() != null) {
-                    profileFound = inheritFromParentProfile(profileFound, resourceDir);
-                    log.info(profileFound + " inheriting resources from " + profileFound.getParentProfile());
+            final String profile = profileArg == null ? DEFAULT_PROFILE : profileArg;
+            for (File resourceDir : resourceDirs) {
+                Profile profileFound = lookup(profile, resourceDir);
+                if (profileFound != null) {
+                    if (profileFound.getParentProfile() != null) {
+                        profileFound = inheritFromParentProfile(profileFound, resourceDir);
+                        log.info("{} inheriting resources from {}", profileFound, profileFound.getParentProfile());
+                    }
+                    return profileFound;
                 }
-                return profileFound;
-            } else {
-                throw new IllegalArgumentException("No profile '" + profile + "' defined");
             }
+            throw new IllegalArgumentException("No profile '" + profile + "' defined");
         } catch (IOException e) {
             throw new IOException("Error while looking up profile " + profileArg + ": " + e.getMessage(),e);
         }
@@ -98,17 +99,17 @@ public class ProfileUtil {
      *
      * @param configExtractor how to extract the config from a profile when found
      * @param profile the profile name (can be null, then no profile is used)
-     * @param resourceDir resource directory where to lookup the profile (in addition to a classpath lookup)
+     * @param resourceDirs resource directory where to lookup the profile (in addition to a classpath lookup)
      * @return the merged configuration which can be empty if no profile is given
      * @param config the provided configuration
      * @throws IOException
      */
     public static ProcessorConfig blendProfileWithConfiguration(ProcessorConfigurationExtractor configExtractor,
                                                                 String profile,
-                                                                File resourceDir,
+                                                                List<File> resourceDirs,
                                                                 ProcessorConfig config) throws IOException {
         // Get specified profile or the default profile
-        ProcessorConfig profileConfig = extractProcesssorConfiguration(configExtractor, profile, resourceDir);
+        ProcessorConfig profileConfig = extractProcesssorConfiguration(configExtractor, profile, resourceDirs);
 
         return ProcessorConfig.mergeProcessorConfigs(config, profileConfig);
     }
@@ -129,7 +130,7 @@ public class ProfileUtil {
 
         File profileFile = findProfileYaml(directory);
         if (profileFile != null) {
-            List<Profile> fileProfiles = fromYaml(new FileInputStream(profileFile));
+            List<Profile> fileProfiles = fromYaml(Files.newInputStream(profileFile.toPath()));
             for (Profile profile : fileProfiles) {
                 if (profile.getName().equals(name)) {
                     profiles.add(profile);
@@ -138,14 +139,14 @@ public class ProfileUtil {
             }
         }
         // "larger" orders are "earlier" in the list
-        Collections.sort(profiles, Collections.<Profile>reverseOrder());
+        profiles.sort(Collections.reverseOrder());
         return mergeProfiles(profiles);
     }
 
     private static ProcessorConfig extractProcesssorConfiguration(ProcessorConfigurationExtractor extractor,
                                                                  String profile,
-                                                                 File resourceDir) throws IOException {
-        Profile profileFound = findProfile(profile, resourceDir);
+                                                                 List<File> resourceDirs) throws IOException {
+        Profile profileFound = findProfile(profile, resourceDirs);
         return extractor.extract(profileFound);
     }
 
@@ -230,7 +231,7 @@ public class ProfileUtil {
      */
     public static List<Profile> fromYaml(InputStream is) throws IOException {
         TypeReference<List<Profile>> typeRef = new TypeReference<List<Profile>>() {};
-        return mapper.readValue(is, typeRef);
+        return Serialization.yamlMapper().readValue(is, typeRef);
     }
 
     // ================================================================================
@@ -243,16 +244,16 @@ public class ProfileUtil {
     /**
      * Get the generator configuration
      */
-    public final static ProcessorConfigurationExtractor GENERATOR_CONFIG = profile -> profile.getGeneratorConfig();
+    public static final ProcessorConfigurationExtractor GENERATOR_CONFIG = Profile::getGeneratorConfig;
 
     /**
      * Get the enricher configuration
      */
-    public final static ProcessorConfigurationExtractor ENRICHER_CONFIG = profile -> profile.getEnricherConfig();
+    public static final ProcessorConfigurationExtractor ENRICHER_CONFIG = Profile::getEnricherConfig;
 
     /**
      * Get the watcher configuration
      */
-    public final static ProcessorConfigurationExtractor WATCHER_CONFIG = profile -> profile.getWatcherConfig();
+    public static final ProcessorConfigurationExtractor WATCHER_CONFIG = Profile::getWatcherConfig;
 
 }

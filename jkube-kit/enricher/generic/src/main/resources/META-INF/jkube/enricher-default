@@ -47,9 +47,6 @@ org.eclipse.jkube.enricher.generic.VolumePermissionEnricher
 # Add an enricher for enabling debug information
 org.eclipse.jkube.enricher.generic.DebugEnricher
 
-# Add an enricher for removing build related annotations
-org.eclipse.jkube.enricher.generic.RemoveBuildAnnotationsEnricher
-
 # Add an enricher for adding Maven SCM metadata based on pom.xml scm details
 org.eclipse.jkube.enricher.generic.MavenScmEnricher
 
@@ -72,7 +69,7 @@ org.eclipse.jkube.enricher.generic.TriggersAnnotationEnricher
 org.eclipse.jkube.enricher.generic.ConfigMapEnricher
 
 # Provide cluster generated CERTs to a pod
-# (see https://docs.okd.io/latest/dev_guide/secrets.html#service-serving-certificate-secrets)
+# (see https://docs.openshift.com/dedicated/3/dev_guide/secrets.html#service-serving-certificate-secrets)
 org.eclipse.jkube.enricher.generic.openshift.AutoTLSEnricher
 
 # Add a service account
@@ -87,9 +84,6 @@ org.eclipse.jkube.enricher.generic.openshift.DeploymentConfigEnricher
 # Add a Project from Namespace when on OpenShift
 org.eclipse.jkube.enricher.generic.openshift.ProjectEnricher
 
-# Add an "expose" label to every service (TODO: Combine this with a Route/Ingress enricher)
-org.eclipse.jkube.enricher.generic.openshift.ExposeEnricher
-
 # Enhance a given controller with the configuration information presented in the plugin configuration.
 org.eclipse.jkube.enricher.generic.ControllerViaPluginConfigurationEnricher
 
@@ -101,3 +95,11 @@ org.eclipse.jkube.enricher.generic.openshift.ImageChangeTriggerEnricher
 
 # Add an ingress on demand when on Kubernetes
 org.eclipse.jkube.enricher.generic.IngressEnricher
+
+# Merge JAVA_OPTIONS environment variables from Image Build Configurations and enriched Containers
+org.eclipse.jkube.enricher.generic.ContainerEnvJavaOptionsMergeEnricher
+
+org.eclipse.jkube.enricher.generic.ReplicaCountEnricher
+
+# Set ImagePullPolicy on a Controller's container
+org.eclipse.jkube.enricher.generic.ImagePullPolicyEnricher

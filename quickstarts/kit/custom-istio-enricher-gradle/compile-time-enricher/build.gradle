@@ -1,0 +1,19 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+dependencies {
+    implementation 'org.eclipse.jkube:jkube-kit-enricher-api:1.10.1'
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = project.group
+            artifactId = 'compile-time-enricher'
+            version = project.version
+            from components.java
+        }
+    }
+}

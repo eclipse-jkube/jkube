@@ -1,0 +1,21 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+  enricher {
+    config {
+      'jkube-healthcheck-vertx' {
+          // Generic configuration, applied to both liveness and readiness
+          path = '/both'
+          readiness = [
+              // Specific configuration for the liveness probe
+              'port-name': 'ping'
+          ]
+          liveness = [
+              // Specific configuration for the readiness probe
+              'port-name': 'ready'
+          ]
+      }
+    }
+  }
+}
+----

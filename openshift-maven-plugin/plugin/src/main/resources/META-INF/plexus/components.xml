@@ -107,16 +107,20 @@
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory</role>
-      <implementation>org.eclipse.jkube.kit.build.service.docker.ServiceHubFactory</implementation>
+      <role>org.codehaus.plexus.archiver.Archiver</role>
+      <role-hint>track</role-hint>
+      <implementation>org.eclipse.jkube.kit.build.core.assembly.MappingTrackArchiver</implementation>
+      <instantiation-strategy>singleton</instantiation-strategy>
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager</role>
-      <implementation>org.eclipse.jkube.kit.build.maven.assembly.DockerAssemblyManager</implementation>
+      <role>org.eclipse.jkube.kit.build.api.assembly.AssemblyManager</role>
+      <implementation>org.eclipse.jkube.kit.build.api.assembly.AssemblyManager</implementation>
+      <instantiation-strategy>per-lookup</instantiation-strategy>
       <requirements>
         <requirement>
           <role>org.codehaus.plexus.archiver.Archiver</role>
+          <role-hint>track</role-hint>
           <field-name>trackArchiver</field-name>
         </requirement>
         <requirement>

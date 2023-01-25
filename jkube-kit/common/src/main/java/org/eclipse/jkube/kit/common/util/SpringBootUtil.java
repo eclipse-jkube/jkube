@@ -13,23 +13,24 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
-import org.apache.maven.project.MavenProject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
+
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 
 /**
  * Utility methods to access spring-boot resources.
  */
 public class SpringBootUtil {
 
-    private static final transient Logger LOG = LoggerFactory.getLogger(SpringBootUtil.class);
+    private SpringBootUtil() {}
 
     /**
      * Returns the spring boot configuration (supports `application.properties` and `application.yml`)
@@ -55,7 +56,7 @@ public class SpringBootUtil {
         URL propertiesResource = compileClassLoader.findResource("application.properties");
 
         Properties props = getPropertiesFromApplicationYamlResource(springActiveProfile, ymlResource);
-        props.putAll(getPropertiesResource(propertiesResource));
+        props.putAll(getPropertiesFromResource(propertiesResource));
         return props;
     }
 
@@ -64,50 +65,43 @@ public class SpringBootUtil {
     }
 
     /**
-     * Returns the given properties resource on the project classpath if found or an empty properties object if not
-     *
-     * @param resource resource url
-     * @return properties
-     */
-    protected static Properties getPropertiesResource(URL resource) {
-        Properties answer = new Properties();
-        if (resource != null) {
-            try(InputStream stream = resource.openStream()) {
-                answer.load(stream);
-            } catch (IOException e) {
-                throw new IllegalStateException("Error while reading resource from URL " + resource, e);
-            }
-        }
-        return answer;
-    }
-
-    /**
      * Determine the spring-boot devtools version for the current project
      *
      * @param mavenProject Maven project
      * @return devtools version or null
      */
-    public static Optional<String> getSpringBootDevToolsVersion(MavenProject mavenProject) {
+    public static Optional<String> getSpringBootDevToolsVersion(JavaProject mavenProject) {
         return getSpringBootVersion(mavenProject);
     }
 
     /**
      * Determine the spring-boot major version for the current project
      *
-     * @param mavenProject maven project
+     * @param mavenProject  project
      * @return spring boot version or null
      */
-    public static Optional<String> getSpringBootVersion(MavenProject mavenProject) {
-        return Optional.ofNullable(MavenUtil.getDependencyVersion(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID));
+    public static Optional<String> getSpringBootVersion(JavaProject mavenProject) {
+        return Optional.ofNullable(JKubeProjectUtil.getAnyDependencyVersionWithGroupId(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID));
     }
 
-    public static String getSpringBootActiveProfile(MavenProject mavenProject) {
-        if (mavenProject != null && mavenProject.getProperties() != null) {
-            if (mavenProject.getProperties().get("spring.profiles.active") != null) {
-                return mavenProject.getProperties().get("spring.profiles.active").toString();
-            }
+    public static String getSpringBootActiveProfile(JavaProject project) {
+        if (project != null && project.getProperties() != null
+              && project.getProperties().get("spring.profiles.active") != null) {
+            return project.getProperties().get("spring.profiles.active").toString();
         }
         return null;
+    }
+
+    public static Map<String, Object> getSpringBootPluginConfiguration(JavaProject javaProject) {
+        Plugin mavenPlugin = JKubeProjectUtil.getPlugin(javaProject, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        if (mavenPlugin != null) {
+            return mavenPlugin.getConfiguration();
+        }
+        Plugin gradlePlugin = JKubeProjectUtil.getPlugin(javaProject, SpringBootConfigurationHelper.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID);
+        if (gradlePlugin != null) {
+            return gradlePlugin.getConfiguration();
+        }
+        return Collections.emptyMap();
     }
 }
 

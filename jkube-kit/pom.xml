@@ -18,42 +18,63 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>jkube-kit-build</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>1.11-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>1.11-SNAPSHOT</version>
     <relativePath>parent/pom.xml</relativePath>
   </parent>
 
-  <name>Jkube Kit</name>
+  <name>JKube Kit</name>
 
   <modules>
       <module>parent</module>
-      <module>common</module>
       <module>doc</module>
-      <module>build/api</module>
-      <module>build/maven</module>
-      <module>build/service/docker</module>
+      <module>api</module>
+      <module>common</module>
+      <module>common-maven</module>
       <module>config/image</module>
       <module>config/resource</module>
+      <module>config/service</module>
+      <module>build/api</module>
+      <module>build/service/docker</module>
+      <module>build/service/jib</module>
       <module>generator/api</module>
       <module>generator/java-exec</module>
-      <module>generator/wildfly-swarm</module>
       <module>generator/karaf</module>
       <module>generator/webapp</module>
       <module>enricher/api</module>
       <module>enricher/generic</module>
       <module>enricher/specific</module>
+      <module>profile</module>
+      <module>resource/service</module>
+      <module>resource/helm</module>
       <module>watcher/api</module>
       <module>watcher/standard</module>
-      <module>profile</module>
+      <module>remote-dev</module>
       <module>jkube-kit-spring-boot</module>
       <module>jkube-kit-thorntail-v2</module>
       <module>jkube-kit-vertx</module>
       <module>jkube-kit-quarkus</module>
+      <module>jkube-kit-micronaut</module>
+      <module>jkube-kit-microprofile</module>
+      <module>jkube-kit-openliberty</module>
+      <module>jkube-kit-wildfly-jar</module>
+      <module>jkube-kit-smallrye</module>
   </modules>
 
+  <profiles>
+    <profile>
+      <id>java-11</id>
+      <activation>
+        <jdk>[11,)</jdk>
+      </activation>
+      <modules>
+        <module>common-it</module>
+      </modules>
+    </profile>
+  </profiles>
 </project>

@@ -1,0 +1,22 @@
+ifeval::["{plugin-type}" == "maven"]
+Open the `pom.xml` file and add the plugin in the `<plugins>` section.
+[source,xml,subs="attributes+"]
+----
+<plugin>
+    <groupId>org.eclipse.jkube</groupId>
+    <artifactId>{plugin}</artifactId>
+    <version>{version}</version>
+</plugin>
+----
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Open the `build.gradle` file and add the plugin in the `plugins` section.
+[source,groovy,subs="attributes+"]
+----
+plugins {
+   id 'java'
+   id 'io.quarkus'
+   id 'org.eclipse.jkube.{pluginExtension}' version '{version}'
+}
+----
+endif::[]

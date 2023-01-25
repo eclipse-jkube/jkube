@@ -25,7 +25,6 @@ items:
       jkube.io/git-branch: "@ignore@"
       prometheus.io/port: "9779"
     labels:
-      expose: "true"
       provider: jkube
       app: jkube-maven-sample-zero-config
       version: "@ignore@"
@@ -76,7 +75,7 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          image: "@matches('jkube/jkube-maven-sample-zero-config:.*$')@"
+          image: jkube-maven-sample-zero-config:latest
           imagePullPolicy: IfNotPresent
           name: spring-boot
           ports:

@@ -13,23 +13,17 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.maven.execution.MavenSession;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.utils.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
@@ -39,8 +33,11 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -54,27 +51,28 @@ public class EnvUtil {
 
     public static final String MAVEN_PROPERTY_REGEXP = "\\s*\\$\\{\\s*([^}]+)\\s*}\\s*$";
 
-    // Standard HTTPS port (IANA registered). The other 2375 with plain HTTP is used only in older
-    // docker installations.
-    public static final String DOCKER_HTTPS_PORT = "2376";
+    // Standard HTTP port (IANA registered). It is used only in older docker installations.
+    public static final String DOCKER_HTTP_PORT = "2375";
 
     public static final String PROPERTY_COMBINE_POLICY_SUFFIX = "_combine";
+    private static final String COMMA = ",";
+    private static final String WHITESPACE = " ";
+    private static final String COMMA_WHITESPACE = COMMA + WHITESPACE;
 
     private EnvUtil() {
     }
 
-    // Convert docker host URL to an http URL
+    // Convert docker host URL to an HTTP(s) URL
     public static String convertTcpToHttpUrl(String connect) {
-        String protocol = connect.contains(":" + DOCKER_HTTPS_PORT) ? "https:" : "http:";
+        String protocol = connect.contains(":" + DOCKER_HTTP_PORT) ? "http:" : "https:";
         return connect.replaceFirst("^tcp:", protocol);
     }
 
     /**
      * Compare to version strings and return the larger version strings. This is used in calculating
      * the minimal required API version for this plugin. Version strings must be comparable as floating numbers.
-     * The versions must be given in the format in a semantic version foramt (e.g. "1.23"
-     * <p>
-     * If either version is <code>null</code>, the other version is returned (which can be null as well)
+     * The versions must be given in the format in a semantic version format (e.g. "1.23"
+     * <p> If either version is <code>null</code>, the other version is returned (which can be null as well)
      *
      * @param versionA first version number
      * @param versionB second version number
@@ -83,10 +81,17 @@ public class EnvUtil {
     public static String extractLargerVersion(String versionA, String versionB) {
         if (versionB == null || versionA == null) {
             return versionA == null ? versionB : versionA;
-        } else {
-            String partsA[] = versionA.split("\\.");
-            String partsB[] = versionB.split("\\.");
-            for (int i = 0; i < (partsA.length < partsB.length ? partsA.length : partsB.length); i++) {
+        }
+
+        boolean isVersionAValid = isValid(versionA);
+        boolean isVersionBValid = isValid(versionB);
+
+        if (!isVersionAValid && !isVersionBValid) {
+            return null;
+        } else if (isVersionAValid && isVersionBValid) {
+            String[] partsA = versionA.split("\\.");
+            String[] partsB = versionB.split("\\.");
+            for (int i = 0; i < (Math.min(partsA.length, partsB.length)); i++) {
                 int pA = Integer.parseInt(partsA[i]);
                 int pB = Integer.parseInt(partsB[i]);
                 if (pA > pB) {
@@ -97,6 +102,20 @@ public class EnvUtil {
             }
             return partsA.length > partsB.length ? versionA : versionB;
         }
+        return isVersionAValid ? versionA : versionB;
+    }
+
+    private static boolean isValid(String version) {
+        if (StringUtils.isNotBlank(version) && version.contains(".")) {
+            try {
+                version = version.replace(".", "");
+                Integer.parseInt(version);
+                return true;
+            } catch (NumberFormatException exception) {
+                return false;
+            }
+        }
+        return false;
     }
 
     /**
@@ -111,15 +130,12 @@ public class EnvUtil {
         return largerVersion != null && largerVersion.equals(versionA);
     }
 
-    private static final Function<String, String[]> SPLIT_ON_LAST_COLON = new Function<String, String[]>() {
-        @Override
-        public String[] apply(String element) {
-            int colon = element.lastIndexOf(':');
-            if (colon < 0) {
-                return new String[]{element, element};
-            } else {
-                return new String[]{element.substring(0, colon), element.substring(colon + 1)};
-            }
+    private static final Function<String, String[]> SPLIT_ON_LAST_COLON = element -> {
+        int colon = element.lastIndexOf(':');
+        if (colon < 0) {
+            return new String[]{element, element};
+        } else {
+            return new String[]{element.substring(0, colon), element.substring(colon + 1)};
         }
     };
 
@@ -133,34 +149,16 @@ public class EnvUtil {
      */
     public static List<String[]> splitOnLastColon(List<String> listToSplit) {
         if (listToSplit != null) {
-            return Lists.transform(listToSplit, SPLIT_ON_LAST_COLON);
+            return listToSplit.stream().map(SPLIT_ON_LAST_COLON).collect(Collectors.toList());
         }
         return Collections.emptyList();
     }
 
-    private static final Function<String, Iterable<String>> COMMA_SPLITTER = new Function<String, Iterable<String>>() {
-        private Splitter COMMA_SPLIT = Splitter.on(",").trimResults().omitEmptyStrings();
-
-        @Override
-        public Iterable<String> apply(String input) {
-            return COMMA_SPLIT.split(input);
-        }
-    };
-
-    private static final Predicate<String> NOT_EMPTY = new Predicate<String>() {
-        @Override
-        public boolean apply(@Nullable String s) {
-            return s != null && !s.isEmpty();
-        }
-    };
-
-    private static final Function<String, String> TRIM = new Function<String, String>() {
-        @Nullable
-        @Override
-        public String apply(@Nullable String s) {
-            return s != null ? s.trim() : s;
-        }
-    };
+    private static final Function<String, List<String>> COMMA_SPLITTER =
+            input -> Arrays.stream(input.split(COMMA))
+                    .filter(StringUtils::isNotBlank)
+                    .map(StringUtils::trim)
+                    .collect(Collectors.toList());
 
     /**
      * Remove empty members of a list.
@@ -173,9 +171,7 @@ public class EnvUtil {
         if (input == null) {
             return Collections.emptyList();
         }
-        Iterable<String> trimmedInputs = Iterables.transform(input, TRIM);
-        Iterable<String> nonEmptyInputs = Iterables.filter(trimmedInputs, NOT_EMPTY);
-        return Lists.newArrayList(nonEmptyInputs);
+        return input.stream().filter(StringUtils::isNotBlank).map(StringUtils::trim).collect(Collectors.toList());
     }
 
     /**
@@ -189,8 +185,9 @@ public class EnvUtil {
         if (input == null) {
             return Collections.emptyList();
         }
-        Iterable<String> nonEmptyInputs = Iterables.filter(input, Predicates.notNull());
-        return Lists.newArrayList(Iterables.concat(Iterables.transform(nonEmptyInputs, COMMA_SPLITTER)));
+        return StreamSupport.stream(input.spliterator(), false)
+                .filter(StringUtils::isNotBlank).map(COMMA_SPLITTER).flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     public static String[] splitOnSpaceWithEscape(String toSplit) {
@@ -224,24 +221,10 @@ public class EnvUtil {
     }
 
     /**
-     * Return all properties in Maven project, merged with all System properties (-D flags sent to Maven).
-     * <p>
-     * System properties always takes precedence.
-     *
-     * @param project Project to extract Properties from
-     * @return Properties merged
-     */
-    public static Properties getPropertiesWithSystemOverrides(MavenProject project) {
-        Properties properties = new Properties(project.getProperties());
-        properties.putAll(System.getProperties());
-        return properties;
-    }
-
-    /**
      * Extract part of given properties as a map. The given prefix is used to find the properties,
      * the rest of the property name is used as key for the map.
-     * <p>
-     * NOTE: If key is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored! This is reserved for combine policy tweaking.
+     *
+     * <p> NOTE: If key is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored! This is reserved for combine policy tweaking.
      *
      * @param prefix     prefix which specifies the part which should be extracted as map
      * @param properties properties to extract from
@@ -269,8 +252,8 @@ public class EnvUtil {
      * Extract from given properties a list of string values. The prefix is used to determine the subset of the
      * given properties from which the list should be extracted, the rest is used as a numeric index. If the rest
      * is not numeric, the order is not determined (all those props are appended to the end of the list)
-     * <p>
-     * NOTE: If suffix/index is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored!
+     *
+     * <p> NOTE: If suffix/index is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored!
      * This is reserved for combine policy tweaking.
      *
      * @param prefix     for selecting the properties from which the list should be extracted
@@ -302,13 +285,13 @@ public class EnvUtil {
         }
         List<String> ret = new ArrayList<>(orderedMap.values());
         ret.addAll(rest);
-        return ret.size() > 0 ? ret : null;
+        return !ret.isEmpty() ? ret : null;
     }
 
     /**
      * Extract from a Maven property which is in the form ${name} the name.
      *
-     * @param propName property name to extrat
+     * @param propName property name to extract
      * @return the pure name or null if this is not a property name
      */
     public static String extractMavenPropertyName(String propName) {
@@ -340,8 +323,8 @@ public class EnvUtil {
 
     /**
      * Calculate the duration between now and the given time
-     * <p>
-     * Taken mostly from http://stackoverflow.com/a/5062810/207604 . Kudos to @dblevins
+     *
+     * <p> Taken mostly from http://stackoverflow.com/a/5062810/207604 . Kudos to @dblevins
      *
      * @param start starting time (in milliseconds)
      * @return time in seconds
@@ -359,18 +342,18 @@ public class EnvUtil {
                 duration -= current.toMillis(temp);
                 res.append(temp).append(" ").append(current.name().toLowerCase());
                 if (temp < 2) res.deleteCharAt(res.length() - 1);
-                res.append(", ");
+                res.append(COMMA_WHITESPACE);
             }
             if (current == SECONDS) {
                 break;
             }
             current = TimeUnit.values()[current.ordinal() - 1];
         }
-        if (res.lastIndexOf(", ") < 0) {
+        if (res.lastIndexOf(COMMA_WHITESPACE) < 0) {
             return duration + " " + MILLISECONDS.name().toLowerCase();
         }
         res.deleteCharAt(res.length() - 2);
-        int i = res.lastIndexOf(", ");
+        int i = res.lastIndexOf(COMMA_WHITESPACE);
         if (i > 0) {
             res.deleteCharAt(i);
             res.insert(i, " and");
@@ -386,7 +369,7 @@ public class EnvUtil {
     }
 
     /**
-     * Return the first non null registry given. Use the env var DOCKER_REGISTRY as final fallback
+     * Return the first non-null registry given. Use the env var DOCKER_REGISTRY as final fallback
      *
      * @param checkFirst list of registries to check
      * @return registry found or null if none.
@@ -426,28 +409,30 @@ public class EnvUtil {
         return new File(new File(projectBaseDir, directory), path);
     }
 
-    // create a timestamp file holding time in epoch seconds
+    /**
+     * Create a timestamp file holding time in epoch seconds.
+     *
+     * @param tsFile the File to store the timestamp in.
+     * @param buildDate the Date of the timestamp.
+     * @throws IOException if the timestamp cannot be created.
+     */
     public static void storeTimestamp(File tsFile, Date buildDate) throws IOException {
-        try {
-            if (tsFile.exists()) {
-                tsFile.delete();
-            }
-            File dir = tsFile.getParentFile();
-            if (!dir.exists()) {
-                if (!dir.mkdirs()) {
-                    throw new IOException("Cannot create directory " + dir);
-                }
-            }
-            FileUtils.fileWrite(tsFile, StandardCharsets.US_ASCII.name(), Long.toString(buildDate.getTime()));
-        } catch (IOException e) {
-            throw new IOException("Cannot create " + tsFile + " for storing time " + buildDate.getTime(), e);
+      try {
+        Files.deleteIfExists(tsFile.toPath());
+        final File dir = tsFile.getParentFile();
+        if (!dir.exists() && !dir.mkdirs()) {
+          throw new IOException("Cannot create directory " + dir);
         }
+        Files.write(tsFile.toPath(), Long.toString(buildDate.getTime()).getBytes(StandardCharsets.US_ASCII));
+      } catch (IOException e) {
+        throw new IOException("Cannot create " + tsFile + " for storing time " + buildDate.getTime(), e);
+      }
     }
 
     public static Date loadTimestamp(File tsFile) throws IOException {
         try {
             if (tsFile.exists()) {
-                String ts = FileUtils.fileRead(tsFile);
+                final String ts = new String(Files.readAllBytes(tsFile.toPath()), StandardCharsets.US_ASCII);
                 return new Date(Long.parseLong(ts));
             } else {
                 return null;
@@ -459,13 +444,6 @@ public class EnvUtil {
 
     public static boolean isWindows() {
         return System.getProperty("os.name").toLowerCase().contains("windows");
-    }
-
-    public static boolean isMaven350OrLater(MavenSession mavenSession) {
-        // Maven enforcer and help:evaluate goals both use mavenSession.getSystemProperties(),
-        // and it turns out that System.getProperty("maven.version") does not return the value.
-        String mavenVersion = mavenSession.getSystemProperties().getProperty("maven.version", "3");
-        return greaterOrEqualsVersion(mavenVersion, "3.5.0");
     }
 
     public static String getEnvVarOrSystemProperty(String varName, String defaultValue) {

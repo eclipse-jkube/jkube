@@ -14,19 +14,18 @@
 package org.eclipse.jkube.kit.build.service.docker;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
-import org.apache.maven.settings.Settings;
 
 /**
  * Allows to interact with registries, eg. to push/pull images.
@@ -34,45 +33,45 @@ import org.apache.maven.settings.Settings;
 public class RegistryService {
 
     private final DockerAccess docker;
+    private final QueryService queryService;
     private final KitLogger log;
 
-    RegistryService(DockerAccess docker, KitLogger log) {
+    RegistryService(DockerAccess docker, QueryService queryService, KitLogger log) {
         this.docker = docker;
+        this.queryService = queryService;
         this.log = log;
     }
 
     /**
      * Push a set of images to a registry
      *
-     * @param imageConfigs images to push (but only if they have a build configuration)
+     * @param imageConfig image to push (but only if they have a build configuration)
      * @param retries how often to retry
      * @param registryConfig a global registry configuration
      * @param skipTag flag to skip pushing tagged images
-     * @throws Exception exception
+     * @throws IOException exception
      */
-    public void pushImages(Collection<ImageConfiguration> imageConfigs,
-                           int retries, RegistryConfig registryConfig, boolean skipTag) throws Exception {
-        for (ImageConfiguration imageConfig : imageConfigs) {
-            BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
-            String name = imageConfig.getName();
-            if (buildConfig != null) {
-                String configuredRegistry = EnvUtil.firstRegistryOf(
-                    new ImageName(imageConfig.getName()).getRegistry(),
-                    imageConfig.getRegistry(),
-                    registryConfig.getRegistry());
+    public void pushImage(ImageConfiguration imageConfig,
+                          int retries, RegistryConfig registryConfig, boolean skipTag) throws IOException {
+        BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
+        String name = imageConfig.getName();
+        if (buildConfig != null) {
+            String configuredRegistry = EnvUtil.firstRegistryOf(
+                new ImageName(imageConfig.getName()).getRegistry(),
+                imageConfig.getRegistry(),
+                registryConfig.getRegistry());
 
 
-                AuthConfig authConfig = createAuthConfig(true, new ImageName(name).getUser(), configuredRegistry, registryConfig);
+            AuthConfig authConfig = createAuthConfig(true, new ImageName(name).getUser(), configuredRegistry, registryConfig);
 
-                long start = System.currentTimeMillis();
-                docker.pushImage(name, authConfig, configuredRegistry, retries);
-                log.info("Pushed %s in %s", name, EnvUtil.formatDurationTill(start));
+            long start = System.currentTimeMillis();
+            docker.pushImage(name, authConfig, configuredRegistry, retries);
+            log.info("Pushed %s in %s", name, EnvUtil.formatDurationTill(start));
 
-                if (!skipTag) {
-                    for (String tag : imageConfig.getBuildConfiguration().getTags()) {
-                        if (tag != null) {
-                            docker.pushImage(new ImageName(name, tag).getFullName(), authConfig, configuredRegistry, retries);
-                        }
+            if (!skipTag) {
+                for (String tag : imageConfig.getBuildConfiguration().getTags()) {
+                    if (tag != null) {
+                        docker.pushImage(new ImageName(name, tag).getFullName(), authConfig, configuredRegistry, retries);
                     }
                 }
             }
@@ -87,11 +86,11 @@ public class RegistryService {
      * @param image image
      * @param pullManager image pull manager
      * @param registryConfig registry configuration
-     * @param hasImage boolean variable indicating it has image or not
-     * @throws Exception exception
+     * @param buildConfiguration build configuration
+     * @throws IOException exception
      */
-    public void pullImageWithPolicy(String image, ImagePullManager pullManager, RegistryConfig registryConfig, boolean hasImage)
-        throws Exception {
+    public void pullImageWithPolicy(String image, ImagePullManager pullManager,RegistryConfig registryConfig,
+        BuildConfiguration buildConfiguration) throws IOException {
 
         // Already pulled, so we don't need to take care
         if (pullManager.hasAlreadyPulled(image)) {
@@ -99,18 +98,21 @@ public class RegistryService {
         }
 
         // Check if a pull is required
-        if (!imageRequiresPull(hasImage, pullManager.getImagePullPolicy(), image)) {
+        if (!imageRequiresPull(queryService.hasImage(image), pullManager.getImagePullPolicy(), image)) {
             return;
         }
 
-        ImageName imageName = new ImageName(image);
-        long time = System.currentTimeMillis();
-        String actualRegistry = EnvUtil.firstRegistryOf(
-            imageName.getRegistry(),
-            registryConfig.getRegistry());
+        final ImageName imageName = new ImageName(image);
+        final long pullStartTime = System.currentTimeMillis();
+        final String actualRegistry = EnvUtil.firstRegistryOf(imageName.getRegistry(), registryConfig.getRegistry());
+        final CreateImageOptions createImageOptions = new CreateImageOptions(buildConfiguration.getCreateImageOptions())
+            .fromImage(imageName.getNameWithoutTag(actualRegistry))
+            .tag(imageName.getDigest() != null ? imageName.getDigest() : imageName.getTag());
+
         docker.pullImage(imageName.getFullName(),
-                         createAuthConfig(false, null, actualRegistry, registryConfig), actualRegistry);
-        log.info("Pulled %s in %s", imageName.getFullName(), EnvUtil.formatDurationTill(time));
+            createAuthConfig(false, null, actualRegistry, registryConfig),
+            actualRegistry, createImageOptions);
+        log.info("Pulled %s in %s", imageName.getFullName(), EnvUtil.formatDurationTill(pullStartTime));
         pullManager.pulled(image);
 
         if (actualRegistry != null && !imageName.hasRegistry()) {
@@ -148,92 +150,11 @@ public class RegistryService {
     }
 
     private AuthConfig createAuthConfig(boolean isPush, String user, String registry, RegistryConfig config)
-            throws Exception {
+            throws IOException {
 
-        return config.getAuthConfigFactory().createAuthConfig(
+        return new AuthConfigFactory(log).createAuthConfig(
             isPush, config.isSkipExtendedAuth(), config.getAuthConfig(),
-            config.getSettings(), user, registry);
-    }
-
-    // ===========================================
-
-
-    public static class RegistryConfig implements Serializable {
-
-        private String registry;
-
-        private Settings settings;
-
-        private AuthConfigFactory authConfigFactory;
-
-        private boolean skipExtendedAuth;
-
-        private Map authConfig;
-
-        public RegistryConfig() {
-        }
-
-        public String getRegistry() {
-            return registry;
-        }
-
-        public Settings getSettings() {
-            return settings;
-        }
-
-        public AuthConfigFactory getAuthConfigFactory() {
-            return authConfigFactory;
-        }
-
-        public boolean isSkipExtendedAuth() {
-            return skipExtendedAuth;
-        }
-
-        public Map getAuthConfig() {
-            return authConfig;
-        }
-
-        public static class Builder {
-
-            private RegistryConfig context = new RegistryConfig();
-
-            public Builder() {
-                this.context = new RegistryConfig();
-            }
-
-            public Builder(RegistryConfig context) {
-                this.context = context;
-            }
-
-            public Builder registry(String registry) {
-                context.registry = registry;
-                return this;
-            }
-
-            public Builder settings(Settings settings) {
-                context.settings = settings;
-                return this;
-            }
-
-            public Builder authConfigFactory(AuthConfigFactory authConfigFactory) {
-                context.authConfigFactory = authConfigFactory;
-                return this;
-            }
-
-            public Builder skipExtendedAuth(boolean skipExtendedAuth) {
-                context.skipExtendedAuth = skipExtendedAuth;
-                return this;
-            }
-
-            public Builder authConfig(Map authConfig) {
-                context.authConfig = authConfig;
-                return this;
-            }
-
-            public RegistryConfig build() {
-                return context;
-            }
-        }
+            config.getSettings(), user, registry, config.getPasswordDecryptionMethod());
     }
 
 }

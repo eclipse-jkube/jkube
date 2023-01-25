@@ -24,7 +24,7 @@
   <version>3.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>Jkube Maven :: Sample :: Docker Health Check</name>
+  <name>JKube Maven :: Sample :: Docker Health Check</name>
   <description>Example using Docker Health Checks (minimum docker version: 1.24) </description>
 
   <build>
@@ -32,7 +32,7 @@
 
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>oc-maven-plugin</artifactId>
+        <artifactId>openshift-maven-plugin</artifactId>
         <version>@jkube.version@</version>
 
         <configuration>

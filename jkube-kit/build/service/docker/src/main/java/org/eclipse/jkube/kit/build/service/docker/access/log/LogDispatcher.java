@@ -24,9 +24,9 @@ import java.util.Map;
  */
 public class LogDispatcher {
 
-    private Map<String,LogGetHandle> logHandles;
+    private final Map<String,LogGetHandle> logHandles;
 
-    private DockerAccess dockerAccess;
+    private final DockerAccess dockerAccess;
 
     public LogDispatcher(DockerAccess dockerAccess) {
         this.dockerAccess = dockerAccess;
@@ -43,8 +43,8 @@ public class LogDispatcher {
     }
 
     public synchronized void untrackAllContainerLogs() {
-        for (String key : logHandles.keySet()) {
-            LogGetHandle handle = logHandles.get(key);
+        for (Map.Entry<String,LogGetHandle> logHandlesEntry : logHandles.entrySet()) {
+            LogGetHandle handle = logHandlesEntry.getValue();
             handle.finish();
         }
         logHandles.clear();

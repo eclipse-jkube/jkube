@@ -13,159 +13,143 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.eclipse.jkube.kit.config.image.build.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.support.BaseGenerator;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.assembly.model.Assembly;
-import org.apache.maven.plugins.assembly.model.FileSet;
-
-import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
-import static org.eclipse.jkube.kit.config.image.build.util.BuildLabelUtil.addSchemaLabels;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.quarkus.QuarkusMode;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 
-public class QuarkusGenerator extends BaseGenerator {
+import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.findSingleFileThatEndsWith;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.hasQuarkusPlugin;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
-    public QuarkusGenerator(GeneratorContext context) {
-        super(context, "quarkus");
+public class QuarkusGenerator extends JavaExecGenerator {
+
+  public static final String QUARKUS = "quarkus";
+
+  public QuarkusGenerator(GeneratorContext context) {
+    super(context, QUARKUS);
+  }
+
+  @AllArgsConstructor
+  public enum Config implements Configs.Config {
+
+    /**
+     * Whether to add native image or plain java image
+     * @deprecated no longer necessary, inferred from Quarkus properties
+     */
+    @Deprecated
+    NATIVE_IMAGE("nativeImage", "false");
+
+    @Getter
+    protected String key;
+    @Getter
+    protected String defaultValue;
+  }
+
+  @Override
+  public boolean isApplicable(List<ImageConfiguration> configs) {
+    return shouldAddGeneratedImageConfiguration(configs) && hasQuarkusPlugin(getProject());
+  }
+
+  @Override
+  protected String getDefaultWebPort() {
+    return extractPort(getProject(), getQuarkusConfiguration(getProject()), super.getDefaultWebPort());
+  }
+
+  @Override
+  protected String getDefaultJolokiaPort() {
+    if (isNativeImage()) {
+      return "0";
     }
+    return super.getDefaultJolokiaPort();
+  }
 
-    public enum Config implements Configs.Key {
-        // Webport to expose. Set to 0 if no port should be exposed
-        webPort {{
-            d = "8080";
-        }},
-
-        // Whether to add native image or plain java image
-        nativeImage {{
-            d = "false";
-        }};
-
-        public String def() {
-            return d;
-        }
-
-        protected String d;
+  @Override
+  protected String getDefaultPrometheusPort() {
+    if (isNativeImage()) {
+      return "0";
     }
+    return super.getDefaultPrometheusPort();
+  }
 
-    @Override
-    public boolean isApplicable(List<ImageConfiguration> configs) {
-        return shouldAddImageConfiguration(configs)
-               && MavenUtil.hasPlugin(getProject(), "io.quarkus", "quarkus-maven-plugin");
+  @Override
+  protected String getFromAsConfigured() {
+    if (isNativeImage()) {
+      return Optional.ofNullable(super.getFromAsConfigured()).orElse(getNativeFrom());
     }
+    return super.getFromAsConfigured();
+  }
 
-    @Override
-    public List<ImageConfiguration> customize(List<ImageConfiguration> existingConfigs, boolean prePackagePhase) throws MojoExecutionException {
-        ImageConfiguration.Builder imageBuilder = new ImageConfiguration.Builder()
-            .name(getImageName())
-            .registry(getRegistry())
-            .alias(getAlias())
-            .buildConfig(createBuildConfig(prePackagePhase));
-
-        existingConfigs.add(imageBuilder.build());
-        return existingConfigs;
+  @Override
+  protected AssemblyConfiguration createAssembly() {
+    if (isNativeImage()) {
+      return QuarkusMode.NATIVE.getAssembly().createAssemblyConfiguration(this);
     }
+    return QuarkusMode.from(getProject()).getAssembly().createAssemblyConfiguration(this);
+  }
 
-    private BuildConfiguration createBuildConfig(boolean prePackagePhase) throws MojoExecutionException {
-        BuildConfiguration.Builder buildBuilder =
-            new BuildConfiguration.Builder()
-                // TODO: Check application.properties for a port
-                .ports(Collections.singletonList(getConfig(Config.webPort)));
-        addSchemaLabels(buildBuilder, getContext().getProject(), log);
-
-        boolean isNative = Boolean.parseBoolean(getConfig(Config.nativeImage, "false"));
-
-        Optional<String> fromConfigured = Optional.ofNullable(getFromAsConfigured());
-        if (isNative) {
-            buildBuilder.from(fromConfigured.orElse("registry.fedoraproject.org/fedora-minimal"))
-                        .entryPoint(new Arguments.Builder()
-                                        .withParam("./" + findSingleFileThatEndsWith("-runner"))
-                                        .withParam("-Dquarkus.http.host=0.0.0.0")
-                                        .build())
-                        .workdir("/");
-
-            if (!prePackagePhase) {
-                buildBuilder.assembly(
-                    createAssemblyConfiguration(
-                        "/", this::getNativeFileToInclude));
-            }
-        } else {
-            buildBuilder.from(fromConfigured.orElse("openjdk:11"))
-                        .entryPoint(new Arguments.Builder()
-                                        .withParam("java")
-                                        .withParam("-Dquarkus.http.host=0.0.0.0")
-                                        .withParam("-jar")
-                                        .withParam(findSingleFileThatEndsWith("-runner.jar"))
-                                        .build())
-                        .workdir("/opt");
-
-            if (!prePackagePhase) {
-                buildBuilder.assembly(
-                    createAssemblyConfiguration("/opt", this::getJvmFilesToInclude));
-            }
-        }
-        addLatestTagIfSnapshot(buildBuilder);
-        return buildBuilder.build();
+  @Override
+  protected String getBuildWorkdir() {
+    if (isNativeImage()) {
+      return "/";
     }
+    return getConfig(JavaExecGenerator.Config.TARGET_DIR);
+  }
 
-    interface FileSetCreator {
-        FileSet createFileSet() throws MojoExecutionException;
+  @Override
+  protected Arguments getBuildEntryPoint() {
+    if (isNativeImage()) {
+      final Arguments.ArgumentsBuilder ab = Arguments.builder();
+      ab.execArgument("./" + findSingleFileThatEndsWith(getProject(), runnerSuffix(getQuarkusConfiguration(getProject()))));
+      getExtraJavaOptions().forEach(ab::execArgument);
+      return ab.build();
     }
+    return null;
+  }
 
-    private AssemblyConfiguration createAssemblyConfiguration(String targetDir, FileSetCreator fsCreator) throws MojoExecutionException {
-        AssemblyConfiguration.Builder builder =
-            new AssemblyConfiguration.Builder().targetDir(targetDir);
-        Assembly assembly = new Assembly();
-        FileSet fileSet = fsCreator.createFileSet();
-        fileSet.setOutputDirectory(".");
-        assembly.addFileSet(fileSet);
-        builder.assemblyDef(assembly);
-        return builder.build();
+  @Override
+  protected Map<String, String> getEnv(boolean prePackagePhase) {
+    final Map<String, String> env = new HashMap<>();
+    env.put(JAVA_OPTIONS, StringUtils.join(getJavaOptions(), " "));
+    return env;
+  }
 
+  private static List<String> getJavaOptions() {
+    return Collections.singletonList("-Dquarkus.http.host=0.0.0.0");
+  }
+
+  private boolean isNativeImage() {
+    return Boolean.parseBoolean(getConfig(Config.NATIVE_IMAGE)) || QuarkusMode.from(getProject()) == QuarkusMode.NATIVE;
+  }
+
+  private String getNativeFrom() {
+    if (getContext().getRuntimeMode() != RuntimeMode.OPENSHIFT) {
+      return "registry.access.redhat.com/ubi8/ubi-minimal:8.6";
     }
+    return "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0";
+  }
 
-    private FileSet getJvmFilesToInclude() throws MojoExecutionException {
-        FileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner.jar");
-        fileSet.addInclude("lib/**");
-        fileSet.setFileMode("0640");
-        return fileSet;
-    }
-
-    private FileSet getNativeFileToInclude() throws MojoExecutionException {
-        FileSet fileSet = getFileSetWithFileFromBuildThatEndsWith("-runner");
-        fileSet.setFileMode("0755");
-        return fileSet;
-    }
-
-    private FileSet getFileSetWithFileFromBuildThatEndsWith(String suffix) throws MojoExecutionException {
-        FileSet fileSet = new FileSet();
-        fileSet.setDirectory(
-            FileUtil.getRelativePath(getProject().getBasedir(), getBuildDir()).getPath());
-        fileSet.addInclude(findSingleFileThatEndsWith(suffix));
-        return fileSet;
-    }
-
-    private String findSingleFileThatEndsWith(String suffix) throws MojoExecutionException {
-        File buildDir = getBuildDir();
-        String[] file = buildDir.list((dir, name) -> name.endsWith(suffix));
-        if (file == null || file.length != 1) {
-            throw new MojoExecutionException("Can't find single file with suffix '" + suffix + "' in " + buildDir + " (zero or more than one files found ending with '" + suffix + "')");
-        }
-        return file[0];
-    }
-
-    private File getBuildDir() {
-        return new File(getProject().getBuild().getDirectory());
-    }
+  @Override
+  protected boolean isFatJar() {
+    return QuarkusMode.from(getProject()).isFatJar();
+  }
 
 }

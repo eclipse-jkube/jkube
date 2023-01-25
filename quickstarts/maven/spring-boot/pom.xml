@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.5.3</version>
+  </parent>
+
+  <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+  <artifactId>spring-boot</artifactId>
+  <version>1.10.1</version>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot Web</name>
+  <packaging>jar</packaging>
+
+  <description>
+    Spring Boot Web application with a single @RestController.
+    Shows how to deploy Spring Boot applications to Kubernetes (-Pkubernetes) and OpenShift (-Popenshift) using Eclipse JKube.
+  </description>
+
+  <properties>
+    <jkube.version>${project.version}</jkube.version>
+  </properties>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
+
+  <dependencies>
+
+    <!-- Boot generator  -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jolokia</groupId>
+      <artifactId>jolokia-core</artifactId>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+
+
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>kubernetes</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>${jkube.version}</version>
+
+            <configuration>
+
+              <resources>
+                <labels>
+                  <all>
+                    <testProject>spring-boot-sample</testProject>
+                  </all>
+                </labels>
+              </resources>
+
+              <generator>
+                <includes>
+                  <include>spring-boot</include>
+                </includes>
+                <config>
+                  <spring-boot>
+                    <color>always</color>
+                  </spring-boot>
+                </config>
+              </generator>
+              <enricher>
+                <excludes>
+                  <exclude>jkube-expose</exclude>
+                </excludes>
+                <config>
+                  <jkube-service>
+                    <type>NodePort</type>
+                  </jkube-service>
+                </config>
+              </enricher>
+            </configuration>
+
+            <executions>
+              <execution>
+                <goals>
+                  <goal>resource</goal>
+                  <goal>build</goal>
+                  <goal>helm</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>openshift</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>openshift-maven-plugin</artifactId>
+            <version>${jkube.version}</version>
+
+            <configuration>
+              <resources>
+                <labels>
+                  <all>
+                    <testProject>spring-boot-sample</testProject>
+                  </all>
+                </labels>
+              </resources>
+
+              <generator>
+                <includes>
+                  <include>spring-boot</include>
+                </includes>
+                <config>
+                  <spring-boot>
+                    <color>always</color>
+                  </spring-boot>
+                </config>
+              </generator>
+              <enricher>
+                <excludes>
+                  <exclude>jkube-expose</exclude>
+                </excludes>
+                <config>
+                  <jkube-service>
+                    <type>NodePort</type>
+                  </jkube-service>
+                </config>
+              </enricher>
+            </configuration>
+
+            <executions>
+              <execution>
+                <goals>
+                  <goal>resource</goal>
+                  <goal>build</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>kubernetes-with-ingress</id>
+      <properties>
+         <jkube.createExternalUrls>true</jkube.createExternalUrls>
+         <jkube.domain>org.eclipse.jkube.quickstart</jkube.domain>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>${jkube.version}</version>
+
+            <configuration>
+              <enricher>
+                <config>
+                  <jkube-service>
+                    <type>LoadBalancer</type>
+                  </jkube-service>
+                </config>
+              </enricher>
+              <resources>
+                <ingress>
+                  <ingressTlsConfigs>
+                    <ingressTlsConfig>
+                      <hosts>
+                        https-example.foo.com
+                      </hosts>
+                      <secretName>testsecret-tls</secretName>
+                    </ingressTlsConfig>
+                  </ingressTlsConfigs>
+                  <ingressRules>
+                    <ingressRule>
+                      <host>hello.example.systems</host>
+                      <paths>
+                        <path>
+                          <pathType>ImplementationSpecific</pathType>
+                          <path>/</path>
+                          <serviceName>${project.artifactId}</serviceName>
+                          <servicePort>8080</servicePort>
+                        </path>
+                      </paths>
+                    </ingressRule>
+                  </ingressRules>
+                </ingress>
+              </resources>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

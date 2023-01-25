@@ -1,0 +1,17 @@
+{
+  "name": "assembly",
+  "targetDir": "target",
+  "exportTargetDir": false,
+  "excludeFinalOutputArtifact": true,
+  "permissions": "exec",
+  "mode": "zip",
+  "user": "root",
+  "tarLongFileMode": "posix",
+  "inline": {
+    "id": "deprecated-single"
+  },
+  "layers": [
+    {"id": "multi-layer-support"},
+    {"id": "not-the-last-layer"}
+  ]
+}

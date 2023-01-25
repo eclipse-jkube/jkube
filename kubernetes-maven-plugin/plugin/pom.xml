@@ -20,8 +20,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
       <groupId>org.eclipse.jkube</groupId>
-      <artifactId>k8s-maven-plugin-build</artifactId>
-      <version>0.1-SNAPSHOT</version>
+      <artifactId>kubernetes-maven-plugin-parent</artifactId>
+      <version>1.11-SNAPSHOT</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -29,80 +29,57 @@
         <maven>3.0.3</maven>
     </prerequisites>
 
-    <groupId>org.eclipse.jkube</groupId>
-    <artifactId>k8s-maven-plugin</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <artifactId>kubernetes-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <name>Kubernetes Maven Plugin :: Plugin</name>
     <description>Kubernetes Maven Plugin</description>
 
-    <properties>
-        <jkube.kit.version>0.1-SNAPSHOT</jkube.kit.version>
-        <maven-plugin-api.version>3.5.4</maven-plugin-api.version>
-        <maven-plugin-annotation.version>3.5.2</maven-plugin-annotation.version>
-        <maven-plugin-plugin.version>3.5</maven-plugin-plugin.version>
-        <plexus-component-metadata.version>1.7.1</plexus-component-metadata.version>
-        <maven-resources-plugin.version>3.0.2</maven-resources-plugin.version>
-    </properties>
-
     <dependencies>
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-config-resource</artifactId>
-            <version>${jkube.kit.version}</version>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-config-service</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-common-maven</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-enricher-generic</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-enricher-specific</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-resource-service</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-resource-helm</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-generator-java-exec</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-generator-karaf</artifactId>
+        <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-build-service-docker</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-api</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-api</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-java-exec</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-karaf</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-webapp</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-generator-wildfly-swarm</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-generic</artifactId>
-            <version>${jkube.kit.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-enricher-specific</artifactId>
+            <artifactId>jkube-kit-generator-webapp</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
@@ -126,56 +103,67 @@
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-micronaut</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-openliberty</artifactId>
+            <version>${jkube.kit.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-vertx</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-build-maven</artifactId>
+            <artifactId>jkube-kit-wildfly-jar</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-maven-profiles</artifactId>
+            <artifactId>jkube-kit-smallrye</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-watcher-api</artifactId>
-            <version>${jkube.kit.version}</version>
+            <artifactId>jkube-kit-profiles</artifactId>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-watcher-standard</artifactId>
-            <version>${jkube.kit.version}</version>
+            <artifactId>jkube-kit-watcher-standard</artifactId>
         </dependency>
 
-        <!--Maven dependencies-->
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-plugin-api</artifactId>
-            <version>${maven-plugin-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-core</artifactId>
-            <version>${maven-plugin-api.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven.plugin-tools</groupId>
-            <artifactId>maven-plugin-annotations</artifactId>
-            <version>${maven-plugin-annotation.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-archiver</artifactId>
-            <version>3.5</version>
-        </dependency>
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-remote-dev</artifactId>
+      </dependency>
 
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -184,29 +172,22 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
                 <configuration>
+                    <goalPrefix>k8s</goalPrefix>
                     <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
+                    <mojoDependencies>
+                        <dependency>${project.groupId}:${project.artifactId}</dependency>
+                    </mojoDependencies>
                 </configuration>
-                <version>${maven-plugin-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>mojo-descriptor</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>descriptor</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>help-goal</id>
-                        <goals>
-                            <goal>helpmojo</goal>
-                        </goals>
-                    </execution>
-                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
             </plugin>
 
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resources-plugin.version}</version>
+                <version>${version.maven-resources-plugin}</version>
                 <executions>
                     <execution>
                         <id>copy-plexus-resources</id>
@@ -246,7 +227,7 @@
             <plugin>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-component-metadata</artifactId>
-                <version>${plexus-component-metadata.version}</version>
+                <version>${version.plexus-component-metadata}</version>
                 <configuration>
                     <staticMetadataDirectory>${basedir}/target/filtered-resources/META-INF/plexus</staticMetadataDirectory>
                 </configuration>

@@ -27,7 +27,7 @@ public class Timestamp implements Comparable<Timestamp> {
     private LocalDateTime date;
     private int rest;
 
-    private static Pattern TS_PATTERN = Pattern.compile("^(.*?)(?:\\.(\\d{3})(\\d*))?(Z|[+\\-][\\d:]+)?$",Pattern.CASE_INSENSITIVE);
+    private static final Pattern TS_PATTERN = Pattern.compile("^(.*?)(?:\\.(\\d{3})(\\d*))?(Z|[+\\-][\\d:]+)?$",Pattern.CASE_INSENSITIVE);
 
     /**
      * Create a timestamp for *now*

@@ -14,26 +14,26 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import java.io.IOException;
-import java.text.ParseException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test exchange of local stored credentials for temporary ecr credentials
@@ -41,69 +41,69 @@ import static org.junit.Assert.assertTrue;
  * @author chas
  * @since 2016-12-21
  */
-public class EcrExtendedAuthTest {
-
-    @Mocked
+class EcrExtendedAuthTest {
     private KitLogger logger;
 
+    @BeforeEach
+    void setUp(){
+        logger = new KitLogger.SilentLogger();
+    }
     @Test
-    public void testIsNotAws() {
-        assertFalse(new EcrExtendedAuth(logger, "jolokia").isAwsRegistry());
+    void testIsNotAws() {
+        assertThat(new EcrExtendedAuth(logger, "jolokia").isAwsRegistry()).isFalse();
     }
 
     @Test
-    public void testIsAws() {
-        assertTrue(new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com").isAwsRegistry());
+    void testIsAws() {
+        assertThat(new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com").isAwsRegistry()).isTrue();
     }
 
     @Test
-    public void testHeaders() throws ParseException {
+    void testHeaders() {
         EcrExtendedAuth eea = new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com");
-        AuthConfig localCredentials =
-            new AuthConfig.Builder()
+        AuthConfig localCredentials = AuthConfig.builder()
                 .username("username")
                 .password("password")
                 .build();
-        Date signingTime = AwsSigner4Request.TIME_FORMAT.parse("20161217T211058Z");
+        Date signingTime = Date.from(
+            ZonedDateTime.of(2016, 12, 17, 21, 10, 58, 0, ZoneId.of("GMT"))
+                .toInstant());
         HttpPost request = eea.createSignedRequest(localCredentials, signingTime);
-        assertEquals("ecr.eu-west-1.amazonaws.com", request.getFirstHeader("host").getValue());
-        assertEquals("20161217T211058Z", request.getFirstHeader("X-Amz-Date").getValue());
-        assertEquals("AWS4-HMAC-SHA256 Credential=username/20161217/eu-west-1/ecr/aws4_request, SignedHeaders=content-type;host;x-amz-target, Signature=1bab0f5c269debe913e532011d5d192b190bb4c55d3de1bc1506eefb93e058e1", request.getFirstHeader("Authorization").getValue());
+        assertThat(request)
+                .returns("api.ecr.eu-west-1.amazonaws.com", r -> r.getFirstHeader("host").getValue())
+                .returns("20161217T211058Z", r -> r.getFirstHeader("X-Amz-Date").getValue())
+                .returns("AWS4-HMAC-SHA256 Credential=username/20161217/eu-west-1/ecr/aws4_request, SignedHeaders=content-type;host;x-amz-target, Signature=2ae11d499499cc951900aac0fbec96009382ba4f735bd14baa375c3e51d50aa9", r -> r.getFirstHeader("Authorization").getValue());
     }
 
     @Test
-    public void testClientClosedAndCredentialsDecoded(@Mocked final CloseableHttpClient closeableHttpClient,
-            @Mocked final CloseableHttpResponse closeableHttpResponse,
-            @Mocked final StatusLine statusLine)
-        throws IOException, MojoExecutionException {
-
+    void testClientClosedAndCredentialsDecoded()
+        throws IOException, IllegalStateException {
+        final CloseableHttpClient closeableHttpClient = mock(CloseableHttpClient.class);
+        final CloseableHttpResponse closeableHttpResponse = mock(CloseableHttpResponse.class);
+        final StatusLine statusLine = mock(StatusLine.class);
         final HttpEntity entity = new StringEntity("{\"authorizationData\": [{"
                                                    + "\"authorizationToken\": \"QVdTOnBhc3N3b3Jk\","
                                                    + "\"expiresAt\": 1448878779.809,"
                                                    + "\"proxyEndpoint\": \"https://012345678910.dkr.ecr.eu-west-1.amazonaws.com\"}]}");
-
-        new Expectations() {{
-            statusLine.getStatusCode(); result = 200;
-            closeableHttpResponse.getEntity(); result = entity;
-        }};
+        when(closeableHttpClient.execute(any())).thenReturn(closeableHttpResponse);
+        when(closeableHttpResponse.getStatusLine()).thenReturn(statusLine);
+        when(statusLine.getStatusCode()).thenReturn(200);
+        when(closeableHttpResponse.getEntity()).thenReturn(entity);
         EcrExtendedAuth eea = new EcrExtendedAuth(logger, "123456789012.dkr.ecr.eu-west-1.amazonaws.com") {
             CloseableHttpClient createClient() {
                 return closeableHttpClient;
             }
         };
 
-        AuthConfig localCredentials =
-            new AuthConfig.Builder()
+        AuthConfig localCredentials = AuthConfig.builder()
                 .username("username")
                 .password("password")
                 .build();
         AuthConfig awsCredentials = eea.extendedAuth(localCredentials);
-        assertEquals("AWS", awsCredentials.getUsername());
-        assertEquals("password", awsCredentials.getPassword());
-
-        new Verifications() {{
-             closeableHttpClient.close();
-         }};
+        assertThat(awsCredentials)
+                .hasFieldOrPropertyWithValue("username", "AWS")
+                .hasFieldOrPropertyWithValue("password", "password");
+        verify(closeableHttpClient).close();
     }
 
 }

@@ -19,11 +19,14 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -32,19 +35,23 @@ import java.util.Map;
 import java.util.Objects;
 
 public class ImageChangeTriggerEnricher extends BaseEnricher {
-    static final String ENRICHER_NAME = "jkube-openshift-imageChangeTrigger";
-    private Boolean enableAutomaticTrigger;
-    private Boolean enableImageChangeTrigger;
-    private Boolean trimImageInContainerSpecFlag;
+    private static final String ENRICHER_NAME = "jkube-openshift-imageChangeTrigger";
+    private final Boolean enableAutomaticTrigger;
+    private final Boolean enableImageChangeTrigger;
+    private final Boolean trimImageInContainerSpecFlag;
 
 
-    private enum Config implements Configs.Key {
-        containers {{ d = ""; }};
+    @AllArgsConstructor
+    private enum Config implements Configs.Config {
+        CONTAINERS("containers", "");
 
-        public String def() { return d; } protected String d;
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
     }
 
-    public ImageChangeTriggerEnricher(MavenEnricherContext context) {
+    public ImageChangeTriggerEnricher(JKubeEnricherContext context) {
         super(context, ENRICHER_NAME);
         this.enableAutomaticTrigger = getValueFromConfig(OPENSHIFT_ENABLE_AUTOMATIC_TRIGGER, true);
         this.enableImageChangeTrigger = getValueFromConfig(IMAGE_CHANGE_TRIGGERS, true);
@@ -89,7 +96,6 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
                                     .withNewFrom()
                                     .withKind("ImageStreamTag")
                                     .withName(image.getSimpleName() + ":" + tag)
-                                    .withNamespace(image.getUser())
                                     .endFrom()
                                     .withContainerNames(containerName)
                                     .endImageChangeParams()
@@ -106,20 +112,21 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
     }
 
     private Boolean isImageChangeTriggerNeeded(String containerName) {
-        String containersFromConfig = Configs.asString(getConfig(Config.containers));
+        String containersFromConfig = Configs.asString(getConfig(Config.CONTAINERS));
         Boolean enrichAll = getValueFromConfig(ENRICH_ALL_WITH_IMAGE_TRIGGERS, false);
+        JKubeBuildStrategy buildStrategy = getContext().getConfiguration().getJKubeBuildStrategy();
 
-        if(enrichAll) {
+        if (Boolean.TRUE.equals(enrichAll)) {
             return true;
         }
 
-        if(!(getProcessingInstructionViaKey(FABRIC8_GENERATED_CONTAINERS).contains(containerName)  ||
-                getProcessingInstructionViaKey(NEED_IMAGECHANGE_TRIGGERS).contains(containerName) ||
-                Arrays.asList(containersFromConfig.split(",")).contains(containerName))) {
+        if (buildStrategy != null && buildStrategy.equals(JKubeBuildStrategy.jib)) {
             return false;
         }
 
-        return true;
+        return getProcessingInstructionViaKey(FABRIC8_GENERATED_CONTAINERS).contains(containerName) ||
+            getProcessingInstructionViaKey(NEED_IMAGECHANGE_TRIGGERS).contains(containerName) ||
+            Arrays.asList(containersFromConfig.split(",")).contains(containerName);
     }
 
     private List<Container> trimImagesInContainers(PodTemplateSpec template) {

@@ -13,124 +13,102 @@
  */
 package org.eclipse.jkube.kit.config.access;
 
-import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
-import io.fabric8.kubernetes.api.model.RootPaths;
-import io.fabric8.kubernetes.client.Client;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.openshift.client.OpenShiftClient;
-import io.fabric8.openshift.client.server.mock.OpenShiftMockServer;
+import java.net.UnknownHostException;
+import java.util.function.Consumer;
+
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import mockit.Mocked;
-import org.junit.Ignore;
-import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientException;
+import io.fabric8.openshift.client.OpenShiftClient;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class ClusterAccessTest {
+class ClusterAccessTest {
 
-    @Mocked
-    private KitLogger logger;
+  private KitLogger logger;
+  private MockedConstruction<DefaultKubernetesClient> kubernetesClientMockedConstruction;
+  private Consumer<OpenShiftClient> onInstantiate;
 
-    private RuntimeMode mode;
+  @BeforeEach
+  void setUp() {
+    logger = spy(new KitLogger.SilentLogger());
+    onInstantiate = oc -> {
+    };
+    kubernetesClientMockedConstruction = mockConstruction(DefaultKubernetesClient.class, (mock, ctx) -> {
+      final OpenShiftClient oc = mock(OpenShiftClient.class);
+      when(mock.adapt(OpenShiftClient.class)).thenReturn(oc);
+      onInstantiate.accept(oc);
+    });
+  }
 
-    private List<String> paths = new ArrayList<String>() ;
+  @AfterEach
+  void tearDown() {
+    kubernetesClientMockedConstruction.close();
+  }
 
-    OpenShiftMockServer mockServer = new OpenShiftMockServer(false);
-    OpenShiftClient client = mockServer.createOpenShiftClient();
+  @Test
+  void isOpenShiftOpenShiftClusterShouldReturnTrue() {
+    // Given
+    onInstantiate = oc -> when(oc.isSupported()).thenReturn(true);
+    // When
+    final boolean result = new ClusterAccess(logger, null).isOpenShift();
+    // Then
+    assertThat(result).isTrue();
+  }
 
-    @Test
-    public void openshiftRuntimeModeTest() throws Exception {
+  @Test
+  void isOpenShiftKubernetesClusterShouldReturnFalse() {
+    // Given
+    onInstantiate = oc -> when(oc.isSupported()).thenReturn(false);
+    // When
+    final boolean result = new ClusterAccess(logger, null).isOpenShift();
+    // Then
+    assertThat(result).isFalse();
+  }
 
-        paths.add("/oapi");
-        paths.add("/oapi/v1");
+  @Test
+  void isOpenShiftThrowsExceptionShouldReturnFalse() {
+    // Given
+    onInstantiate = oc -> when(oc.isSupported())
+        .thenThrow(new KubernetesClientException("ERROR", new UnknownHostException()));
+    // When
+    final boolean result = new ClusterAccess(logger, null).isOpenShift();
+    // Then
+    assertThat(result).isFalse();
+    verify(logger, times(1))
+        .warn(startsWith("Cannot access cluster for detecting mode"), eq("Unknown host "), isNull());
+  }
 
-        RootPaths rootpaths = new RootPaths();
+  @Test
+  void createDefaultClientInKubernetesShouldReturnKubernetesClient() {
+    // When
+    final KubernetesClient result = new ClusterAccess(logger, null).createDefaultClient();
+    // Then
+    assertThat(result).isNotNull().isNotInstanceOf(OpenShiftClient.class);
+  }
 
-        rootpaths.setPaths(paths);
-
-        mockServer.expect().get().withPath("/" ).andReturn(200, rootpaths).always();
-        mockServer.expect().withPath("/apis").andReturn(200, new APIGroupListBuilder()
-                .addNewGroup()
-                .withApiVersion("v1")
-                .withName("autoscaling.k8s.io")
-                .endGroup()
-                .addNewGroup()
-                .withApiVersion("v1")
-                .withName("security.openshift.io")
-                .endGroup()
-                .build()).always();
-
-        ClusterAccess clusterAccess = new ClusterAccess(null, client);
-
-        mode = clusterAccess.resolveRuntimeMode(RuntimeMode.openshift, logger);
-        assertEquals(RuntimeMode.openshift, mode);
-
-        mode = clusterAccess.resolveRuntimeMode(RuntimeMode.DEFAULT, logger);
-        assertEquals(RuntimeMode.openshift, mode);
-
-        mode = clusterAccess.resolveRuntimeMode(null, logger);
-        assertEquals(RuntimeMode.openshift, mode);
-    }
-
-    @Test
-    public void kubernetesRuntimeModeTest() throws Exception {
-
-        RootPaths rootpaths = new RootPaths();
-
-        rootpaths.setPaths(paths);
-
-        mockServer.expect().get().withPath("/" ).andReturn(200, rootpaths).always();
-
-        ClusterAccess clusterAccess = new ClusterAccess(null, client);
-
-        mode = clusterAccess.resolveRuntimeMode(RuntimeMode.kubernetes, logger);
-        assertEquals(RuntimeMode.kubernetes, mode);
-
-        mode = clusterAccess.resolveRuntimeMode(RuntimeMode.DEFAULT, logger);
-        assertEquals(RuntimeMode.kubernetes, mode);
-
-        mode = clusterAccess.resolveRuntimeMode(null, logger);
-        assertEquals(RuntimeMode.kubernetes, mode);
-    }
-
-    @Test
-    @Ignore("Ignored as long as the kubernetes client not update with the fix https://github.com/fabric8io/kubernetes-client/pull/1209")
-    public void createClientTestOpenshift() throws Exception {
-
-        paths.add("/oapi");
-        paths.add("/oapi/v1");
-
-        RootPaths rootpaths = new RootPaths();
-
-        rootpaths.setPaths(paths);
-
-        mockServer.expect().get().withPath("/" ).andReturn(200, rootpaths).always();
-
-        ClusterAccess clusterAccess = new ClusterAccess(null, client);
-
-        Client outputClient = clusterAccess.createDefaultClient(logger);
-        assertTrue(outputClient instanceof OpenShiftClient);
-
-    }
-
-    @Test
-    @Ignore("Ignored as long as the kubernetes client not update with the fix https://github.com/fabric8io/kubernetes-client/pull/1209")
-    public void createClientTestKubernetes() throws Exception {
-
-        RootPaths rootpaths = new RootPaths();
-
-        rootpaths.setPaths(paths);
-
-        mockServer.expect().get().withPath("/" ).andReturn(200, rootpaths).always();
-
-        ClusterAccess clusterAccess = new ClusterAccess(null, client);
-
-        Client outputClient = clusterAccess.createDefaultClient(logger);
-        assertTrue(outputClient instanceof KubernetesClient);  }
-
+  @Test
+  void createDefaultClientInOpenShiftShouldReturnOpenShiftClient() {
+    // Given
+    onInstantiate = oc -> when(oc.isSupported()).thenReturn(true);
+    // When
+    final KubernetesClient result = new ClusterAccess(logger, null).createDefaultClient();
+    // Then
+    assertThat(result).isNotNull().isInstanceOf(OpenShiftClient.class);
+  }
 }

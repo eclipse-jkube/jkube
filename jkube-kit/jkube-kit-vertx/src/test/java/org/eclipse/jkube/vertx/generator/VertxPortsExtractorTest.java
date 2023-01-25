@@ -13,60 +13,55 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
-import mockit.Expectations;
-import mockit.Mocked;
-import org.apache.maven.model.Plugin;
-import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.xml.Xpp3Dom;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.common.util.FileUtil.getAbsolutePath;
-import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
 
-public class VertxPortsExtractorTest {
+class VertxPortsExtractorTest {
+  private PrefixedLogger log;
 
-    @Mocked
-    MavenProject project;
+  @BeforeEach
+  public void setUp() {
+    log = mock(PrefixedLogger.class,RETURNS_DEEP_STUBS);
+  }
 
-    @Mocked
-    PrefixedLogger log;
+  @Test
+  void extract_vertxConfigPathFromProject_shouldReturnConfiguredPort() {
+    Map<String, Object> vertxConfig = new HashMap<>();
+    vertxConfig.put("vertxConfig", getAbsolutePath(VertxPortsExtractorTest.class.getResource("/config.json")));
 
-    @Mocked
-    Plugin plugin;
+    Map<String, Object> configuration = new HashMap<>();
+    configuration.put("config", vertxConfig);
 
-    @Mocked
-    Xpp3Dom configuration;
+    JavaProject project = JavaProject.builder()
+        .plugins(Collections.singletonList(Plugin.builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP)
+            .artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion")
+            .executions(Collections.singletonList("testexec")).configuration(configuration).build()))
+        .build();
 
-    @Mocked
-    Xpp3Dom vertxConfig;
+    Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
+    assertThat(result).containsEntry("http.port", 80);
+  }
 
-    @Test
-    public void testVertxConfigPathFromProject() throws Exception {
-        new Expectations() {{
-            project.getPlugin(Constants.VERTX_MAVEN_PLUGIN_GROUP + ":" + Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
-            result = plugin;
-            plugin.getConfiguration();
-            result = configuration;
-            configuration.getChild("config");
-            result = vertxConfig;
-            vertxConfig.getValue();
-            result = getAbsolutePath(VertxPortsExtractorTest.class.getResource("/config.json"));
-        }};
-
-        Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
-        assertEquals((Integer) 80, result.get("http.port"));
-    }
-
-    @Test
-    public void testNoVertxConfiguration() throws Exception {
-        new Expectations() {{
-            project.getPlugin(Constants.VERTX_MAVEN_PLUGIN_GROUP + ":" + Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
-            plugin.getConfiguration(); result = null;
-        }};
-        Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
-        assertEquals(0,result.size());
-    }
+  @Test
+  void extract_withNoVertxConfiguration_shouldBeEmpty() {
+    JavaProject project = JavaProject.builder()
+        .plugins(Collections.singletonList(Plugin.builder().groupId(Constants.VERTX_MAVEN_PLUGIN_GROUP)
+            .artifactId(Constants.VERTX_MAVEN_PLUGIN_ARTIFACT).version("testversion").configuration(Collections.emptyMap())
+            .build()))
+        .build();
+    Map<String, Integer> result = new VertxPortsExtractor(log).extract(project);
+    assertThat(result).isEmpty();
+  }
 }

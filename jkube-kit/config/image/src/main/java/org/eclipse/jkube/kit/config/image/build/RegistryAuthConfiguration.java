@@ -13,10 +13,15 @@
  */
 package org.eclipse.jkube.kit.config.image.build;
 
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.io.Serializable;
 import java.util.Map;
 import java.util.TreeMap;
 
+@NoArgsConstructor
+@Setter
 public class RegistryAuthConfiguration implements Serializable {
 
     private Map<String, String> push;
@@ -41,7 +46,7 @@ public class RegistryAuthConfiguration implements Serializable {
             authMap.put("pull", pull);
         }
 
-        String content[] = new String[] {
+        String[] content = new String[] {
             "username", username,
             "password", password,
             "authToken", authToken,

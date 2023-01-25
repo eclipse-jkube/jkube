@@ -19,32 +19,111 @@
 
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube</artifactId>
-  <version>0.1-SNAPSHOT</version>
+  <version>1.11-SNAPSHOT</version>
   <packaging>pom</packaging>
-  <description>Jkube</description>
-  <name>Jkube</name>
+  <description>Eclipse JKube</description>
+  <name>Eclipse JKube</name>
+
+  <url>https://projects.eclipse.org/projects/ecd.jkube</url>
+
+  <licenses>
+    <license>
+      <url>https://www.eclipse.org/legal/epl-2.0/</url>
+      <comments>A business-friendly OSS license</comments>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>geeks</id>
+      <name>Eclipse JKube Development Team</name>
+      <email>jkube-dev@eclipse.org</email>
+      <organization>Eclipse Foundation</organization>
+      <organizationUrl>https://projects.eclipse.org/projects/ecd.jkube</organizationUrl>
+    </developer>
+  </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/eclipse/jkube.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/eclipse/jkube.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>git://github.com/eclipse/jkube.git</url>
+  </scm>
+
+  <repositories>
+    <repository>
+      <id>maven-central</id>
+      <url>https://repo1.maven.org/maven2/</url>
+    </repository>
+    <repository>
+      <id>repo.gradle.org</id>
+      <url>https://repo.gradle.org/gradle/libs-releases-local/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>ext.repo.gradle.org</id>
+      <url>https://repo.gradle.org/gradle/ext-releases-local/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <distributionManagement>
+    <repository>
+      <id>ossrh</id>
+      <name>Nexus Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 
   <properties>
-    <version.jackson>2.10.0</version.jackson>
+    <jdk.version>1.8</jdk.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <version.asciidoctor-maven-plugin>2.2.1</version.asciidoctor-maven-plugin>
+    <version.asciidoctorj>2.2.0</version.asciidoctorj>
+    <version.assertj-core>3.23.1</version.assertj-core>
+    <version.citrus>3.3.0</version.citrus>
+    <version.commons-io>2.8.0</version.commons-io>
+    <version.gradle>6.1.1</version.gradle>
+    <version.groovy>2.4.21</version.groovy>
+    <version.guava>31.1-jre</version.guava>
+    <version.jackson>2.14.0</version.jackson>
+    <version.jacoco>0.8.8</version.jacoco>
+    <version.jmockit>1.49</version.jmockit>
+    <version.json-smart>2.4.8</version.json-smart> <!-- Transitive dependency  required by citrus -->
+    <version.junit5>5.9.1</version.junit5>
+    <version.kubernetes-client>6.1.1</version.kubernetes-client>
+    <version.license-maven-plugin>3.0</version.license-maven-plugin>
+    <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
+    <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
+    <version.maven-enforcer-plugin>3.1.0</version.maven-enforcer-plugin>
+    <version.maven-failsafe-plugin>3.0.0-M7</version.maven-failsafe-plugin>
+    <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
+    <version.maven-invoker-plugin>3.3.0</version.maven-invoker-plugin>
+    <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
+    <version.maven-javadoc-plugin>3.4.1</version.maven-javadoc-plugin>
+    <version.maven-plugin-plugin>3.7.0</version.maven-plugin-plugin>
+    <version.maven-release-plugin>3.0.0-M7</version.maven-release-plugin>
+    <version.maven-resources-plugin>3.3.0</version.maven-resources-plugin>
+    <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
+    <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
+    <version.mockito>4.6.1</version.mockito>
+    <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
+    <version.slf4j-api>1.7.36</version.slf4j-api>
+    <version.sshd>2.9.1</version.sshd>
+    <project.build.outputTimestamp>2022-11-16T14:00:01Z</project.build.outputTimestamp>
+    <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
 
   <modules>
     <module>jkube-kit</module>
     <module>kubernetes-maven-plugin</module>
     <module>openshift-maven-plugin</module>
+    <module>gradle-plugin</module>
   </modules>
-
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
-        <artifactId>jackson-bom</artifactId>
-        <version>${version.jackson}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
 
   <build>
     <pluginManagement>
@@ -52,7 +131,7 @@
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>3.0</version>
+          <version>${version.license-maven-plugin}</version>
           <configuration>
             <aggregate>true</aggregate>
             <header>header.txt</header>
@@ -66,16 +145,413 @@
               <exclude>**/*-services</exclude>
               <exclude>**/*-default</exclude>
               <exclude>**/*.adoc</exclude>
+              <exclude>**/expected-pom.xml</exclude>
               <exclude>**/enricher</exclude>
+              <exclude>**/test/resources/**/*</exclude>
+              <exclude>**/it/src/it/*/expected/**/*</exclude>
               <exclude>.lgtm</exclude>
               <exclude>**/.gitkeep</exclude>
               <exclude>Jenkinsfile</exclude>
+              <exclude>.mvn/**/*</exclude>
               <exclude>mvnw</exclude>
+              <exclude>mvnw.cmd</exclude>
+              <exclude>**/gradle/wrapper/**/*</exclude>
+              <exclude>**/gradlew.bat</exclude>
             </excludes>
           </configuration>
         </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${version.maven-jar-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${version.maven-javadoc-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>${version.maven-release-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-plugin-plugin</artifactId>
+          <version>${version.maven-plugin-plugin}</version>
+          <executions>
+            <execution>
+              <id>mojo-descriptor</id>
+              <phase>process-classes</phase>
+              <goals>
+                <goal>descriptor</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>help-goal</id>
+              <goals>
+                <goal>helpmojo</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok-maven-plugin</artifactId>
+          <version>${version.lombok-maven-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.asciidoctor</groupId>
+          <artifactId>asciidoctor-maven-plugin</artifactId>
+          <version>${version.asciidoctor-maven-plugin}</version>
+          <configuration>
+            <sourceDirectory>src/main/asciidoc</sourceDirectory>
+            <outputDirectory>${asciidoctor.outputHtmlDirectory}</outputDirectory>
+            <refreshOn>.*</refreshOn>
+            <attributes>
+                <icons>font</icons>
+                <pagenums/>
+                <version>${project.version}</version>
+                <idprefix/>
+                <idseparator>-</idseparator>
+                <allow-uri-read>true</allow-uri-read>
+                <toc>left</toc>
+                <linkcss>false</linkcss>
+            </attributes>
+            <sourceHighlighter>coderay</sourceHighlighter>
+            <backend>html5</backend>
+          </configuration>
+          <dependencies>
+            <dependency>
+              <groupId>org.asciidoctor</groupId>
+              <artifactId>asciidoctorj</artifactId>
+              <version>${version.asciidoctorj}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${version.jacoco}</version>
+          <executions>
+            <execution>
+              <id>default-prepare-agent</id>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>default-report</id>
+              <goals>
+                <goal>report</goal>
+              </goals>
+            </execution>
+            <!-- TODO: Remove once JMockit is no longer in the project -->
+            <execution>
+              <id>instrument</id>
+              <phase>process-classes</phase>
+              <goals>
+                <goal>instrument</goal>
+              </goals>
+            </execution>
+            <execution>
+              <id>restore</id>
+              <phase>test</phase>
+              <goals>
+                <goal>restore-instrumented-classes</goal>
+              </goals>
+            </execution>
+            <!-- ///////////////////////////////////////////////////// -->
+          </executions>
+        </plugin>
       </plugins>
     </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>${version.maven-enforcer-plugin}</version>
+        <executions>
+          <execution>
+            <id>dependency-convergence</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <dependencyConvergence/>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
-</project>
 
+
+  <profiles>
+    <profile>
+      <id>javadoc</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-maven-plugin</artifactId>
+            <version>${version.lombok-maven-plugin}</version>
+            <executions>
+              <execution>
+                <id>delombok</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>delombok</goal>
+                </goals>
+                <configuration>
+                  <addOutputDirectory>false</addOutputDirectory>
+                  <sourceDirectory>src/main/java</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <sourcepath>
+                ${project.basedir}/target/generated-sources/delombok:
+                ${project.basedir}/target/generated-sources/annotations
+              </sourcepath>
+            </configuration>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+     <!-- "release" profiles used for deploying with jkube -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${version.maven-gpg-plugin}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <passphrase>${gpg.passphrase}</passphrase>
+                  <useAgent>true</useAgent>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <version>${version.maven-enforcer-plugin}</version>
+            <executions>
+              <execution>
+                <id>enforce-no-snapshots</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <requireReleaseDeps>
+                      <message>No Snapshots Allowed!</message>
+                    </requireReleaseDeps>
+                  </rules>
+                  <fail>true</fail>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok-maven-plugin</artifactId>
+            <version>${version.lombok-maven-plugin}</version>
+            <executions>
+              <execution>
+                <id>prepare-javadoc-sources</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>delombok</goal>
+                </goals>
+                <configuration>
+                  <addOutputDirectory>false</addOutputDirectory>
+                  <sourceDirectory>src/main/java</sourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <configuration>
+              <sourcepath>
+                ${project.basedir}/target/generated-sources/delombok:
+                ${project.basedir}/target/generated-sources/annotations
+              </sourcepath>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>${version.maven-source-plugin}</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- "milestone" profiles used for deploying manually -->
+    <profile>
+      <id>milestone</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${version.maven-gpg-plugin}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <useAgent>true</useAgent>
+              <keyname>rhuss@redhat.com</keyname>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Enable JaCoCo test coverage -->
+    <profile>
+      <id>jacoco</id>
+
+      <dependencies>
+        <!-- JaCoCo runtime must be in classpath for offline mode -->
+        <dependency>
+          <groupId>org.jacoco</groupId>
+          <artifactId>org.jacoco.agent</artifactId>
+          <version>${version.jacoco}</version>
+          <classifier>runtime</classifier>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <systemPropertyVariables>
+                <!-- JaCoCo runtime must know where to dump coverage: -->
+                <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
+              </systemPropertyVariables>
+              <environmentVariables>
+                <LC_ALL>en_EN.UTF-8</LC_ALL>
+              </environmentVariables>
+            </configuration>
+          </plugin>
+
+        </plugins>
+      </build>
+    </profile>
+
+
+    <!-- "doc-html" for creating the asciidocs -->
+     <profile>
+      <id>doc-html</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctor-maven-plugin</artifactId>
+            <configuration>
+              <backend>html</backend>
+              <sourceHighlighter>coderay</sourceHighlighter>
+              <attributes>
+                <toc>left</toc>
+              </attributes>
+            </configuration>
+          </plugin>
+        </plugins>
+        <defaultGoal>generate-resources asciidoctor:process-asciidoc</defaultGoal>
+      </build>
+    </profile>
+
+    <profile>
+      <id>sonar</id>
+      <properties>
+        <sonar.projectKey>jkubeio_jkube</sonar.projectKey>
+        <sonar.moduleKey>${project.artifactId}</sonar.moduleKey>
+        <sonar.organization>jkubeio</sonar.organization>
+        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
+        <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
+        <sonar.coverage.exclusions>**/quickstarts/**/*</sonar.coverage.exclusions>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonarsource.scanner.maven</groupId>
+            <artifactId>sonar-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>sonar</id>
+                <phase>install</phase>
+                <goals>
+                  <goal>sonar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>

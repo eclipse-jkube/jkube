@@ -1,0 +1,32 @@
+You can either set this property in `pom.xml` file:
+
+[source,xml,subs="attributes+"]
+.pom.xml
+----
+<properties>
+  <jkube.debug.enabled>true</jkube.debug.enabled>
+</properties>
+----
+
+Or provide {plugin-configuration-type} configuration for enricher
+
+[source,xml,subs="attributes+"]
+.pom.xml
+----
+<plugin>
+    <groupId>org.eclipse.jkube</groupId>
+    <artifactId>{plugin}</artifactId>
+
+    <!-- ... -->
+
+    <configuration>
+      <enricher>
+        <config>
+          <jkube-debug>
+            <enabled>true</enabled>
+          </jkube-debug>
+        </config>
+      </enricher>
+    </configuration>
+</plugin>
+----

@@ -1,0 +1,88 @@
+plugins {
+    id 'org.springframework.boot' version '2.6.6'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.it.gradle.probes.groovy.dsl'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+}
+
+kubernetes {
+    offline = true
+    if (probeConfigMode.contains("liveness-readiness")) {
+        resources {
+            liveness {
+                initialDelaySeconds = 0
+                timeoutSeconds = 10
+                periodSeconds = 30
+                failureThreshold = 1
+                successThreshold = 1
+                getUrl = "http://:8080/health/live"
+                httpHeaders = [Accept: "application/json", "User-agent": "MyUserAgent"]
+            }
+            readiness {
+                initialDelaySeconds = 0
+                timeoutSeconds = 10
+                periodSeconds = 30
+                failureThreshold = 1
+                successThreshold = 1
+                getUrl = "http://:8080/health/ready"
+                httpHeaders = [Accept: "application/json", "User-agent": "MyUserAgent"]
+            }
+        }
+    }
+    if (probeConfigMode.equals("startup")) {
+        resources {
+            startup {
+                periodSeconds = 30
+                failureThreshold = 1
+                getUrl = "http://:8080/liveness/startup"
+            }
+        }
+    }
+}
+
+openshift {
+    offline = true
+    if (probeConfigMode.equals("liveness-readiness")) {
+        resources {
+            liveness {
+                initialDelaySeconds = 0
+                timeoutSeconds = 10
+                periodSeconds = 30
+                failureThreshold = 1
+                successThreshold = 1
+                getUrl = "http://:8080/health/live"
+                httpHeaders = [Accept: "application/json", "User-agent": "MyUserAgent"]
+            }
+            readiness {
+                initialDelaySeconds = 0
+                timeoutSeconds = 10
+                periodSeconds = 30
+                failureThreshold = 1
+                successThreshold = 1
+                getUrl = "http://:8080/health/ready"
+                httpHeaders = [Accept: "application/json", "User-agent": "MyUserAgent"]
+            }
+        }
+    }
+    if (probeConfigMode.equals("startup")) {
+        resources {
+            startup {
+                periodSeconds = 30
+                failureThreshold = 1
+                getUrl = "http://:8080/liveness/startup"
+            }
+        }
+    }
+}

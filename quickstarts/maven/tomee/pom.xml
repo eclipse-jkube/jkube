@@ -1,0 +1,180 @@
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.eclipse.jkube.quickstarts.maven</groupId>
+	<artifactId>tomee</artifactId>
+	<version>1.10.1</version>
+	<name>Eclipse JKube :: Quickstarts :: Maven :: Tomee</name>
+	<packaging>war</packaging>
+
+	<description>
+		Tomee deployment template for JKube
+	</description>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+		<jkube.version>${project.version}</jkube.version>
+		<tomee.version>8.0.13</tomee.version>
+		<tomee.port>8080</tomee.port>
+		<failOnMissingWebXml>false</failOnMissingWebXml>
+		<k8sgroupId>com-example-container</k8sgroupId>
+		<jkube.enricher.jkube-project-label.app>${k8sgroupId}-${project.artifactId}</jkube.enricher.jkube-project-label.app>
+		<jkube.image.name>${docker.registry}/${project.groupId}.${project.artifactId}:latest</jkube.image.name>
+		<docker.registry>docker.io</docker.registry>
+		<proj.hostname>container.example.com</proj.hostname>
+		<timestamp>${maven.build.timestamp}</timestamp>
+		<maven.build.timestamp.format>yyyy-MM-dd_HH-mm</maven.build.timestamp.format>
+		<work.version>${project.version}</work.version>
+	</properties>
+	<profiles>
+		<profile>
+			<id>develop</id>
+			<properties>
+				<work.version>${project.version}-${timestamp}</work.version>
+			</properties>
+		</profile>
+	</profiles>
+	<build>
+		<finalName>tomee</finalName>
+		<plugins>
+			<plugin>
+				<version>${maven-compiler-plugin.version}</version>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.target}</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<failOnMissingWebXml>false</failOnMissingWebXml>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.tomee.maven</groupId>
+				<artifactId>tomee-maven-plugin</artifactId>
+				<version>${tomee.version}</version>
+				<executions>
+					<execution>
+						<id>executable-jar</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<context>ROOT</context>
+					<tomeeClassifier>microprofile</tomeeClassifier>
+					<tomeeHttpPort>${tomee.port}</tomeeHttpPort>
+					<simpleLog>true</simpleLog>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.eclipse.jkube</groupId>
+				<artifactId>kubernetes-maven-plugin</artifactId>
+				<version>${jkube.version}</version>
+				<executions>
+					<execution>
+						<id>k8s-build</id>
+						<phase>package</phase>
+						<goals>
+							<goal>build</goal>
+							<goal>resource</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>k8s-install</id>
+						<phase>install</phase>
+						<goals>
+							<goal>push</goal>
+							<goal>apply</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<resources>
+						<labels>
+							<all>
+								<property>
+									<name>version</name>
+									<value>${work.version}</value>
+								</property>
+							</all>
+						</labels>
+						<annotations>
+							<ingress>
+								<property>
+									<name>ingress.kubernetes.io/rewrite-target</name>
+									<value>/</value>
+								</property>
+								<property>
+									<name>cert-manager.io/cluster-issuer</name>
+									<value>letsencrypt-prod</value>
+								</property>
+							</ingress>
+						</annotations>
+					</resources>
+					<images>
+						<image>
+							<name>${jkube.image.name}</name>
+							<build>
+								<from>adoptopenjdk:11-jre-hotspot</from>
+								<assembly>
+									<inline>
+										<files>
+											<file>
+												<source>target/${project.artifactId}-exec.jar</source>
+												<outputDirectory>.</outputDirectory>
+											</file>
+										</files>
+									</inline>
+								</assembly>
+								<ports>
+									<port>${tomee.port}</port>
+								</ports>
+								<cmd>java -jar maven/${project.artifactId}-exec.jar</cmd>
+							</build>
+							<run>
+								<ports>
+									<port>${tomee.port}:${tomee.port}</port>
+								</ports>
+							</run>
+						</image>
+					</images>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>org.apache.tomee</groupId>
+			<artifactId>javaee-api</artifactId>
+			<version>8.0-6</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+</project>

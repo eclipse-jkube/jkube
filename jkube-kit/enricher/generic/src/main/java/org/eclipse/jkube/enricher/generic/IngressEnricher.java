@@ -14,108 +14,116 @@
 package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.api.model.ServiceSpec;
-import io.fabric8.kubernetes.api.model.extensions.Ingress;
-import io.fabric8.kubernetes.api.model.extensions.IngressBackendBuilder;
-import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
-import io.fabric8.kubernetes.api.model.extensions.IngressSpecBuilder;
-import org.eclipse.jkube.kit.config.resource.JkubeAnnotations;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.enricher.generic.ingress.ExtensionsV1beta1IngressConverter;
+import org.eclipse.jkube.enricher.generic.ingress.NetworkingV1IngressGenerator;
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.config.resource.IngressConfig;
+import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
+import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.maven.enricher.api.BaseEnricher;
-import org.eclipse.jkube.maven.enricher.api.MavenEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.ServiceExposer;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Enricher which generates an Ingress for each exposed Service
+ * Enricher which generates an Ingress for every applicable service whenever the <code>jkube.createExternalUrls</code>
+ * property is set to true.
  */
+public class IngressEnricher extends BaseEnricher implements ServiceExposer {
 
-public class IngressEnricher extends BaseEnricher {
+    @AllArgsConstructor
+    public enum Config implements Configs.Config {
+        HOST("host", null),
+        TARGET_API_VERSION("targetApiVersion", "networking.k8s.io/v1");
 
-    public IngressEnricher(MavenEnricherContext buildContext) {
+        @Getter
+        protected String key;
+        @Getter
+        protected String defaultValue;
+    }
+
+    public IngressEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-ingress");
     }
 
     @Override
     public void create(PlatformMode platformMode, final KubernetesListBuilder listBuilder) {
+        if (!getCreateExternalUrls()) {
+            return;
+        }
         if (platformMode == PlatformMode.kubernetes) {
-            final List<Ingress> ingresses = new ArrayList<>();
             listBuilder.accept(new TypedVisitor<ServiceBuilder>() {
                 @Override
                 public void visit(ServiceBuilder serviceBuilder) {
-                    addIngress(listBuilder, serviceBuilder);
+                    if (!canExposeService(serviceBuilder)) {
+                        getLog().debug("Service %s cannot be exposed",
+                          serviceBuilder.editOrNewMetadata().getName());
+                        return;
+                    }
+                    if (hasIngressForService(listBuilder, serviceBuilder)) {
+                        getLog().debug("Service %s already has an Ingress",
+                          serviceBuilder.editOrNewMetadata().getName());
+                        return;
+                    }
+                    HasMetadata generatedIngress = generateIngressWithConfiguredApiVersion(serviceBuilder);
+                    if (generatedIngress != null) {
+                        listBuilder.addToItems(generatedIngress);
+                    }
                 }
             });
-
+            logHintIfNoDomainOrHostProvided();
         }
     }
 
-    private void addIngress(KubernetesListBuilder listBuilder, ServiceBuilder serviceBuilder) {
-        ObjectMeta metadata = serviceBuilder.getMetadata();
-        if (metadata != null && isExposedService(serviceBuilder)) {
-            String name = metadata.getName();
-            if (!hasIngress(listBuilder, name)) {
-                Integer servicePort = getServicePort(serviceBuilder);
-                if (servicePort != null) {
-                    ResourceConfig resourceConfig = getConfiguration().getResource().orElse(null);
+    private HasMetadata generateIngressWithConfiguredApiVersion(ServiceBuilder serviceBuilder) {
+        ResourceConfig resourceConfig = getConfiguration().getResource();
+        io.fabric8.kubernetes.api.model.networking.v1.Ingress ingress = NetworkingV1IngressGenerator.generate(
+          serviceBuilder, getRouteDomain(), getConfig(Config.HOST), getIngressRuleXMLConfig(resourceConfig), getIngressTlsXMLConfig(resourceConfig));
+        HasMetadata generatedIngress = ingress;
 
-                    IngressBuilder ingressBuilder = new IngressBuilder().
-                            withMetadata(serviceBuilder.getMetadata()).
-                            withNewSpec().
-
-                            endSpec();
-                    IngressSpecBuilder specBuilder = new IngressSpecBuilder().withBackend(new IngressBackendBuilder().
-                            withNewServiceName(name).
-                            withNewServicePort(getServicePort(serviceBuilder)).
-                            build());
-
-                    if (resourceConfig != null) {
-                        specBuilder.addAllToRules(resourceConfig.getIngressRules());
-                    }
-                }
-            }
+        String targetIngressApiVersion = getConfig(Config.TARGET_API_VERSION);
+        if (targetIngressApiVersion.equalsIgnoreCase("extensions/v1beta1")) {
+            generatedIngress = ExtensionsV1beta1IngressConverter.convert(ingress);
         }
+        return generatedIngress;
     }
 
-    private Integer getServicePort(ServiceBuilder serviceBuilder) {
-        ServiceSpec spec = serviceBuilder.getSpec();
-        if (spec != null) {
-            List<ServicePort> ports = spec.getPorts();
-            if (ports != null && ports.size() > 0) {
-                for (ServicePort port : ports) {
-                    if (port.getName().equals("http") || port.getProtocol().equals("http")) {
-                        return port.getPort();
-                    }
-                }
-                ServicePort servicePort = ports.get(0);
-                if (servicePort != null) {
-                    return servicePort.getPort();
-                }
-            }
-        }
-        return null;
-    }
 
     /**
-     * Returns true if we already have a route created for the given name
+     * Returns true if we already have an ingress created for the given name
      */
-    private boolean hasIngress(final KubernetesListBuilder listBuilder, final String name) {
+    private static boolean hasIngressForService(final KubernetesListBuilder listBuilder, final ServiceBuilder service) {
+        final String serviceName = service.editOrNewMetadata().getName();
         final AtomicBoolean answer = new AtomicBoolean(false);
-        listBuilder.accept(new TypedVisitor<IngressBuilder>() {
+        listBuilder.accept(new TypedVisitor<io.fabric8.kubernetes.api.model.extensions.IngressBuilder>() {
 
             @Override
-            public void visit(IngressBuilder builder) {
-                ObjectMeta metadata = builder.getMetadata();
-                if (metadata != null && name.equals(metadata.getName())) {
+            public void visit(io.fabric8.kubernetes.api.model.extensions.IngressBuilder builder) {
+                ObjectMeta metadata = builder.buildMetadata();
+                if (metadata != null && Objects.equals(serviceName, metadata.getName())) {
+                    answer.set(true);
+                }
+            }
+        });
+        listBuilder.accept(new TypedVisitor<io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder>() {
+            @Override
+            public void visit(io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder builder) {
+                ObjectMeta metadata = builder.buildMetadata();
+                if (metadata != null && Objects.equals(serviceName, metadata.getName())) {
                     answer.set(true);
                 }
             }
@@ -123,23 +131,51 @@ public class IngressEnricher extends BaseEnricher {
         return answer.get();
     }
 
-    private boolean isExposedService(ServiceBuilder serviceBuilder) {
-        Service service = serviceBuilder.build();
-        return isExposedService(service);
+
+    protected String getRouteDomain() {
+        if (getConfiguration().getResource() != null && StringUtils.isNotEmpty(getConfiguration().getResource().getRouteDomain())) {
+            return getConfiguration().getResource().getRouteDomain();
+        }
+        String routeDomainFromProperties = getValueFromConfig(JKUBE_DOMAIN, "");
+        if (StringUtils.isNotEmpty(routeDomainFromProperties)) {
+            return routeDomainFromProperties;
+        }
+        return null;
     }
 
-    private boolean isExposedService(Service service) {
-        ObjectMeta metadata = service.getMetadata();
-        if (metadata != null) {
-            Map<String, String> labels = metadata.getLabels();
-            if (labels != null) {
-                if ("true".equals(labels.get("expose")) || "true".equals(labels.get(JkubeAnnotations.SERVICE_EXPOSE_URL.value()))) {
-                    return true;
-                }
-            }
-        } else {
-            log.info("No Metadata for service! " + service);
+    void logHintIfNoDomainOrHostProvided() {
+        ResourceConfig resourceConfig = getContext().getConfiguration().getResource();
+        if (resourceConfig != null && resourceConfig.getIngress() != null) {
+            logHintIfNoDomainOrHostForResourceConfig(resourceConfig);
+        } else if (StringUtils.isBlank(getRouteDomain()) && StringUtils.isBlank(getConfig(Config.HOST))) {
+            logJKubeDomainHint();
         }
-        return false;
+    }
+
+    private void logHintIfNoDomainOrHostForResourceConfig(ResourceConfig resourceConfig) {
+        List<IngressRuleConfig> ingressRuleConfigs = getIngressRuleXMLConfig(resourceConfig);
+        if (!ingressRuleConfigs.isEmpty()) {
+            Optional<String> configuredHost = ingressRuleConfigs.stream()
+                .map(IngressRuleConfig::getHost)
+                .filter(StringUtils::isNotBlank)
+                .findAny();
+            if (!configuredHost.isPresent()) {
+                logJKubeDomainHint();
+            }
+        }
+    }
+
+    private void logJKubeDomainHint() {
+        getContext().getLog().info("[[B]]HINT:[[B]] No host configured for Ingress. You might want to use `jkube.domain` to add desired host suffix");
+    }
+
+    static List<IngressRuleConfig> getIngressRuleXMLConfig(ResourceConfig resourceConfig) {
+        return Optional.ofNullable(resourceConfig).map(ResourceConfig::getIngress).map(IngressConfig::getIngressRules)
+            .orElse(Collections.emptyList());
+    }
+
+    static List<IngressTlsConfig> getIngressTlsXMLConfig(ResourceConfig resourceConfig) {
+        return Optional.ofNullable(resourceConfig).map(ResourceConfig::getIngress).map(IngressConfig::getIngressTlsConfigs)
+            .orElse(Collections.emptyList());
     }
 }

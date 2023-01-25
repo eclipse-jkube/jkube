@@ -1,0 +1,147 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+kubernetes {
+    offline = true
+    images {
+        image {
+            name = 'repository/metadata:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java-11'
+                ports = ['8080']
+            }
+        }
+    }
+    resources {
+        labels {
+            all {
+                keyinall = 'valueinall'
+            }
+            pod {
+                keyinpodtemplate = 'valueinpodtemplate'
+            }
+            replicaSet {
+                keyinreplicaset = 'valueinreplicaset'
+            }
+            service {
+                keyinservice = 'valueinservice'
+            }
+            ingress {
+                keyiningress = 'valueiningress'
+            }
+            deployment {
+                keyindeployment = 'valueindeployment'
+            }
+            serviceAccount {
+                keyinserviceaccount = 'valueinserviceaccount'
+            }
+        }
+        annotations {
+            all {
+                keyinall = 'valueinall'
+            }
+            pod {
+                keyinpodtemplate = 'valueinpodtemplate'
+            }
+            replicaSet {
+                keyinreplicaset = 'valueinreplicaset'
+            }
+            service {
+                keyinservice = 'valueinservice'
+            }
+            ingress {
+                keyiningress = 'valueiningress'
+            }
+            deployment {
+                keyindeployment = 'valueindeployment'
+            }
+            serviceAccount {
+                keyinserviceaccount = 'valueinserviceaccount'
+            }
+        }
+        serviceAccounts = [{
+            name = "test-serviceaccount"
+        }]
+    }
+}
+
+openshift {
+    offline = true
+    images {
+        image {
+            name = 'repository/metadata:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java-11'
+                ports = ['8080']
+            }
+        }
+    }
+    resources {
+        labels {
+            all {
+                keyinall = 'valueinall'
+            }
+            pod {
+                keyinpodtemplate = 'valueinpodtemplate'
+            }
+            replicaSet {
+                keyinreplicaset = 'valueinreplicaset'
+            }
+            service {
+                keyinservice = 'valueinservice'
+            }
+            ingress {
+                keyiningress = 'valueiningress'
+            }
+            deployment {
+                keyindeployment = 'valueindeployment'
+            }
+            serviceAccount {
+                keyinserviceaccount = 'valueinserviceaccount'
+            }
+            route {
+                keyinroute = 'valueinroute'
+            }
+        }
+        annotations {
+            all {
+                keyinall = 'valueinall'
+            }
+            pod {
+                keyinpodtemplate = 'valueinpodtemplate'
+            }
+            replicaSet {
+                keyinreplicaset = 'valueinreplicaset'
+            }
+            service {
+                keyinservice = 'valueinservice'
+            }
+            ingress {
+                keyiningress = 'valueiningress'
+            }
+            deployment {
+                keyindeployment = 'valueindeployment'
+            }
+            serviceAccount {
+                keyinserviceaccount = 'valueinserviceaccount'
+            }
+            route {
+                keyinroute = 'valueinroute'
+            }
+        }
+        serviceAccounts = [{
+            name = "test-serviceaccount"
+        }]
+    }
+}

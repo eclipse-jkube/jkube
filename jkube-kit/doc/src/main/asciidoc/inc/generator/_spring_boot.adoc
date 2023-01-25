@@ -1,0 +1,47 @@
+[[generator-spring-boot]]
+=== Spring Boot
+
+ifeval::["{plugin-type}" == "maven"]
+This generator is called `spring-boot` and gets activated when it finds a `spring-boot-maven-plugin` in the pom.xml.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+This generator is called `spring-boot` and gets activated when it finds a plugin with id `org.springframework.boot` in the `build.gradle`.
+endif::[]
+
+This generator is based on the <<generator-java-exec, Java Application>> Generator and inherits all of its configuration values. The generated container port is read from the `server.port` property `application.properties`, defaulting to `8080` if it is not found. It also uses the same default images as the <<generator-java-exec-from, java-exec Generator>>.
+
+Beside the  <<generator-options-common, common generator options>> and the <<generator-java-exec-options, java-exec options>> the following additional configuration is recognized:
+
+.Spring-Boot configuration options
+[cols="1,6,1"]
+|===
+| Element | Description | Property
+
+| *color*
+| If set, force the use of color in the Spring Boot console output.
+| `jkube.generator.spring-boot.color`
+|===
+
+The generator adds Kubernetes liveness and readiness probes pointing to either the management or server port as read from the `application.properties`.
+If the `management.port` (for Spring Boot 1) or `management.server.port` (for Spring Boot 2) and `management.ssl.key-store` (for Spring Boot 1) or `management.server.ssl.key-store` (for Spring Boot 2) properties are set in `application.properties` otherwise or `server.ssl.key-store` property is set in `application.properties` then the probes are automatically set to use `https`.
+
+ifeval::["{plugin-type}" == "maven"]
+The generator works differently when called together with `{goal-prefix}:watch`.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+The generator works differently when called together with `{task-prefix}Watch`.
+endif::[]
+In that case it enables support for http://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-devtools.html[Spring Boot Developer Tools] which allows for hot reloading of the Spring Boot app.
+In particular, the following steps are performed:
+
+* If a secret token is not provided within the Spring Boot application configuration `application.properties` or `application.yml` with the key `spring.devtools.remote.secret` then a custom secret token is created and added to `application.properties`
+* Add `spring-boot-devtools.jar` as `BOOT-INF/lib/spring-devtools.jar` to the spring-boot fat jar.
+
+ifeval::["{plugin-type}" == "maven"]
+Since during `{goal-prefix}:watch` the application itself within the `target/` directory is modified for allowing easy reloading you must ensure that you do a `mvn clean` before building an artifact which should be put into production.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Since during `{task-prefix}Watch` the application itself within the `build/` directory is modified for allowing easy reloading you must ensure that you do a `gradle clean` before building an artifact which should be put into production.
+endif::[]
+
+Since the released version are typically generated with a CI system which does a clean build anyway this should be only a theoretical problem.

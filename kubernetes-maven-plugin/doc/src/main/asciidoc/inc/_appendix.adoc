@@ -16,11 +16,11 @@ By default if no environment variable nor system property is set, scan for a fil
 
 * By embedding in MOJO configuration the mapping:
 
-[source, xml]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <groupId>org.eclipse.jkube</groupId>
-  <artifactId>k8s-maven-plugin</artifactId>
+  <artifactId>{plugin}</artifactId>
   <configuration>
     <mappings>
       <mapping>

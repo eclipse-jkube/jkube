@@ -13,14 +13,6 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
-import org.eclipse.jkube.kit.common.JsonFactory;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.config.image.build.Arguments;
-import org.apache.commons.text.StrSubstitutor;
-
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -29,6 +21,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
+import org.eclipse.jkube.kit.common.JsonFactory;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.config.image.build.Arguments;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import org.apache.commons.text.StringSubstitutor;
 
 
 public class ContainerCreateConfig {
@@ -72,7 +72,7 @@ public class ContainerCreateConfig {
         return this;
     }
 
-    public ContainerCreateConfig environment(String envPropsFile, Map<String, String> env, Map mavenProps) throws IllegalArgumentException {
+    public ContainerCreateConfig environment(String envPropsFile, Map<String, String> env, Properties mavenProps) {
 
         Properties envProps = new Properties();
         if (env != null && env.size() > 0) {
@@ -85,9 +85,9 @@ public class ContainerCreateConfig {
                      * This case is to handle the Maven interpolation issue which used
                      * to occur when using ${..} only without any suffix.
                      */
-                    value = value.substring(1, value.length());
+                    value = value.substring(1);
                 }
-                envProps.put(entry.getKey(), StrSubstitutor.replace(value, mavenProps));
+                envProps.put(entry.getKey(), StringSubstitutor.replace(value, mavenProps));
             }
         }
         if (envPropsFile != null) {
@@ -109,7 +109,7 @@ public class ContainerCreateConfig {
     }
 
     public ContainerCreateConfig exposedPorts(Set<String> portSpecs) {
-        if (portSpecs != null && portSpecs.size() > 0) {
+        if (portSpecs != null && !portSpecs.isEmpty()) {
             JsonObject exposedPorts = new JsonObject();
             for (String portSpec : portSpecs) {
                 exposedPorts.add(portSpec, new JsonObject());
@@ -181,7 +181,7 @@ public class ContainerCreateConfig {
 
     private void addEnvironment(Properties envProps) {
         JsonArray containerEnv = new JsonArray();
-        Enumeration keys = envProps.keys();
+        Enumeration<Object> keys = envProps.keys();
         while (keys.hasMoreElements()) {
             String key = (String) keys.nextElement();
             String value = envProps.getProperty(key);
@@ -195,8 +195,7 @@ public class ContainerCreateConfig {
 
     private void addPropertiesFromFile(String envPropsFile, Properties envProps) {
         // External properties override internally specified properties
-        try {
-            FileReader reader = new FileReader(envPropsFile);
+        try (FileReader reader = new FileReader(envPropsFile)) {
             envProps.load(reader);
         } catch (FileNotFoundException e) {
             throw new IllegalArgumentException(String.format("Cannot find environment property file '%s'", envPropsFile));

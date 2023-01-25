@@ -13,75 +13,140 @@
  */
 package org.eclipse.jkube.kit.common;
 
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Test;
-
 import java.util.Properties;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-public class ConfigsTest {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-    public static final String KEY_1 = "key1";
-    public static final String KEY_2 = "key2";
-    public static final String KEY_3 = "key3";
+class ConfigsTest {
 
-    String value="value";
+  public enum ConfigWithDefaults implements Configs.Config {
+    ONE, TWO;
+  }
 
-    //@Mocked can't mock properties anymore in recent jmocckit
-    Properties properties = new Properties();
+  @AllArgsConstructor
+  public enum ConfigWithImplementations implements Configs.Config {
+    ONE("one", "this is the default value one"),
+    TWO("two", "default for two");
 
-    @Test
-    public void getIntValueTest(){
-        int result = Configs.asInt("85");
-        assertEquals(85,result);
+    @Getter
+    protected String key;
+    @Getter
+    protected String defaultValue;
+  }
 
-        result = Configs.asInt(null);
-        assertEquals(0,result);
+  @Test
+  void asIntValueWithValidStringShouldReturnParsed() {
+    // When
+    final int result = Configs.asInt("2");
+    // Then
+    assertThat(result).isEqualTo(2);
+  }
 
-        try{
-            result = Configs.asInt("parse");
-        }
-        catch (Exception e){
-            assertEquals("For input string: \"parse\"",e.getMessage());
-        }
+  @Test
+  void asIntValueWithInvalidStringShouldThrowException() {
+    assertThrows(NumberFormatException.class, () -> Configs.asInt("2.15"));
+  }
+
+  @Test
+  void asIntValueWithNullShouldReturnZero() {
+    // When
+    final int result = Configs.asInt(null);
+    // Then
+    assertThat(result).isZero();
+  }
+
+  @Test
+  void asIntegerValueWithValidStringShouldReturnParsed() {
+    // When
+    final Integer result = Configs.asInteger("2");
+    // Then
+    assertThat(result).isEqualTo(2);
+  }
+
+  @Test
+  void asIntegerValueWithInvalidStringShouldThrowException() {
+    assertThrows(NumberFormatException.class, () -> Configs.asInteger("2.15"));
+  }
+
+  @Test
+  void asIntegerValueWithNullShouldReturnNull() {
+    // When
+    final Integer result = Configs.asInteger(null);
+    // Then
+    assertThat(result).isNull();
+  }
+
+  @Test
+  void getStringValueTest() {
+    String test = RandomStringUtils.randomAlphabetic(10);
+    assertThat(Configs.asString(test)).isEqualTo(test);
+  }
+
+  @DisplayName("System Properties tests")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("propertyTestData")
+  void propertyTest(String testDesc, String systemKey, String systemValue, String fallbackKey, String fallbackValue, String expected) {
+    // Given
+    try {
+      System.setProperty(systemKey, systemValue);
+      // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
+      final Properties fallback = new Properties();
+      fallback.put(fallbackKey, fallbackValue);
+      // When
+      final String result = Configs.getFromSystemPropertyWithPropertiesAsFallback(fallback, "key");
+      // Then
+      assertThat(result).isEqualTo(expected);
+    } finally {
+      System.clearProperty(systemKey);
     }
+  }
 
-    @Test
-    public void getBooleanValueTest(){
-        boolean result = Configs.asBoolean("85");
-        assertEquals(false,result);
+  public static Stream<Arguments> propertyTestData() {
+    return Stream.of(
+            Arguments.arguments("System Property with Properties as Fallback has Key in System should return system value", "key", "systemValue", "key", "fallbackValue", "systemValue"),
+            Arguments.arguments("System Property with Properties as Fallback has not key in System should return fallback value", "not-the-key", "systemValue", "key", "fallbackValue", "fallbackValue"),
+            Arguments.arguments("System Property with Properties as Fallback has not key should return null", "not-the-key", "systemValue", "not-the-key-either", "fallbackValue", null)
+    );
+  }
 
-        result = Configs.asBoolean(null);
-        assertEquals(false,result);
+  @DisplayName("Config interface tests without implementation")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("configInterfaceWithDefaultsTestData")
+  void configInterfaceWithDefaultsTest(String testDesc, ConfigWithDefaults config, String key, String defaultValue) {
+    assertThat(config.getKey()).isEqualTo(key);
+    assertThat(config.getDefaultValue()).isEqualTo(defaultValue);
+  }
 
-        result = Configs.asBoolean("false");
-        assertEquals(false,result);
+  public static Stream<Arguments> configInterfaceWithDefaultsTestData() {
+    return Stream.of(
+            Arguments.arguments("ONE's key must be ONE and default value must be null", ConfigWithDefaults.ONE, "ONE", null),
+            Arguments.arguments("TWO's key must be TWO and default value must be null", ConfigWithDefaults.TWO, "TWO", null)
+    );
+  }
 
-        result = Configs.asBoolean("true");
-        assertEquals(true,result);
+  @DisplayName("Config interface tests with implementation")
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("configInterfaceWithImplementationsTestData")
+  void configInterfaceWithImplementationsTest(String testDesc, ConfigWithImplementations config, String key, String defaultValue) {
+    assertThat(config.getKey()).isEqualTo(key);
+    assertThat(config.getDefaultValue()).isEqualTo(defaultValue);
+  }
 
-        result = Configs.asBoolean("0");
-        assertEquals(false,result);
-
-        result = Configs.asBoolean("1");
-        assertEquals(false,result);
-
-    }
-
-    @Test
-    public void getStringValueTest(){
-        String test = RandomStringUtils.randomAlphabetic(10);
-        assertEquals(test,Configs.asString(test));
-    }
-
-    @Test
-    public void getPropertyValueTest(){
-        properties.setProperty(KEY_1, value);
-        System.setProperty(KEY_2, value);
-
-        assertEquals("value",Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_1));
-        assertEquals("value",Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_2));
-        assertEquals(null,Configs.getSystemPropertyWithMavenPropertyAsFallback(properties, KEY_3));
-    }
+  public static Stream<Arguments> configInterfaceWithImplementationsTestData() {
+    return Stream.of(
+            Arguments.arguments("ONE's key must be one and default value must be \"this is the default value one\"", ConfigWithImplementations.ONE, "one", "this is the default value one"),
+            Arguments.arguments("TWO's key must be two and default value must be \"default for two\"", ConfigWithImplementations.TWO, "two", "default for two")
+    );
+  }
 }

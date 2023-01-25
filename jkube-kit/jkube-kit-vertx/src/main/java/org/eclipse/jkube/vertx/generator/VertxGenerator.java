@@ -13,16 +13,17 @@
  */
 package org.eclipse.jkube.vertx.generator;
 
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
-import org.eclipse.jkube.kit.build.service.docker.ImageConfiguration;
-import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 /**
  * Vert.x Generator.
@@ -48,28 +49,29 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   @Override
-  public boolean isApplicable(List<ImageConfiguration> configs) throws MojoExecutionException {
-    return shouldAddImageConfiguration(configs)
-        && (MavenUtil.hasPlugin(getProject(), Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT)
-        || MavenUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, null));
+  public boolean isApplicable(List<ImageConfiguration> configs) {
+    return shouldAddGeneratedImageConfiguration(configs)
+        && (JKubeProjectUtil.hasPlugin(getProject(), Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT)
+        || JKubeProjectUtil.hasPlugin(getProject(), Constants.VERTX_GRADLE_PLUGIN_GROUP, Constants.VERTX_GRADLE_PLUGIN_ARTIFACT)
+        || JKubeProjectUtil.hasDependencyWithGroupId(getProject(), Constants.VERTX_GROUPID));
   }
 
   @Override
   protected List<String> getExtraJavaOptions() {
     List<String> opts = super.getExtraJavaOptions();
-    opts.add("-Dvertx.cacheDirBase=/tmp");
+    opts.add("-Dvertx.cacheDirBase=/tmp/vertx-cache");
 
     if (! contains("-Dvertx.disableDnsResolver=", opts)) {
       opts.add("-Dvertx.disableDnsResolver=true");
     }
 
-    if (MavenUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, Constants.VERTX_DROPWIZARD)) {
+    if (JKubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, Constants.VERTX_DROPWIZARD)) {
       opts.add("-Dvertx.metrics.options.enabled=true");
       opts.add("-Dvertx.metrics.options.jmxEnabled=true");
       opts.add("-Dvertx.metrics.options.jmxDomain=vertx");
     }
 
-    if (! contains("-Djava.net.preferIPv4Stack", opts)  && MavenUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, Constants.VERTX_INFINIPAN)) {
+    if (! contains("-Djava.net.preferIPv4Stack", opts)  && JKubeProjectUtil.hasDependency(getProject(), Constants.VERTX_GROUPID, Constants.VERTX_INFINIPAN)) {
       opts.add("-Djava.net.preferIPv4Stack=true");
     }
 
@@ -77,25 +79,29 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   @Override
-  protected Map<String, String> getEnv(boolean prePackagePhase) throws MojoExecutionException {
-    Map<String, String> map = super.getEnv(prePackagePhase);
+  protected Map<String, String> getEnv(boolean prePackagePhase) {
+    try {
+      Map<String, String> map = super.getEnv(prePackagePhase);
 
-    String args = map.get("JAVA_ARGS");
-    if (args == null) {
-      args = "";
-    }
-
-    if (MavenUtil.hasResource(getProject(), Constants.CLUSTER_MANAGER_SPI)) {
-      if (! args.isEmpty()) {
-        args += " ";
+      String args = map.get("JAVA_ARGS");
+      if (args == null) {
+        args = "";
       }
-      args += "-cluster";
-    }
 
-    if (! args.isEmpty()) {
-      map.put("JAVA_ARGS", args);
+      if (JKubeProjectUtil.hasResource(getProject(), Constants.CLUSTER_MANAGER_SPI)) {
+        if (!args.isEmpty()) {
+          args += " ";
+        }
+        args += "-cluster";
+      }
+
+      if (!args.isEmpty()) {
+        map.put("JAVA_ARGS", args);
+      }
+      return map;
+    } catch (IOException ioException) {
+      throw new IllegalStateException("Error in finding resource", ioException);
     }
-    return map;
   }
 
   private boolean contains(String prefix, List<String> opts) {
@@ -103,24 +109,24 @@ public class VertxGenerator extends JavaExecGenerator {
   }
 
   @Override
-  protected boolean isFatJar() throws MojoExecutionException {
+  protected boolean isFatJar() {
     return !hasMainClass() && isUsingFatJarPlugin() || super.isFatJar();
   }
 
   private boolean isUsingFatJarPlugin() {
-    MavenProject project = getProject();
-    return MavenUtil.hasPlugin(project, Constants.SHADE_PLUGIN_GROUP, Constants.SHADE_PLUGIN_ARTIFACT) ||
-           MavenUtil.hasPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
+    JavaProject project = getProject();
+    return JKubeProjectUtil.hasPlugin(project, Constants.SHADE_PLUGIN_GROUP, Constants.SHADE_PLUGIN_ARTIFACT) ||
+           JKubeProjectUtil.hasPlugin(project, Constants.VERTX_MAVEN_PLUGIN_GROUP, Constants.VERTX_MAVEN_PLUGIN_ARTIFACT);
   }
 
   @Override
-  protected List<String> extractPorts() {
-    Map<String, Integer> extractedPorts = new VertxPortsExtractor(log).extract(getProject());
-    List<String> ports = new ArrayList<>();
-    for (Integer p : extractedPorts.values()) {
-      ports.add(String.valueOf(p));
+  protected BuildConfiguration.BuildConfigurationBuilder initImageBuildConfiguration(boolean prePackagePhase) {
+    final BuildConfiguration.BuildConfigurationBuilder buildConfig = super.initImageBuildConfiguration(prePackagePhase);
+    final Map<String, Integer> extractedPorts = new VertxPortsExtractor(log).extract(getProject());
+    if (!extractedPorts.isEmpty()) {
+      buildConfig.ports(extractedPorts.values().stream().map(String::valueOf).collect(Collectors.toList()));
     }
-    // If there are no specific vertx ports found, we reuse the ports from the JavaExecGenerator
-    return ports.size() > 0 ? ports : super.extractPorts();
+    return buildConfig;
   }
+
 }

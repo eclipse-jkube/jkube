@@ -1,5 +1,12 @@
 .idea
-target
+.gradle
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+!jkube-kit/build/
 *.iml
 *.ipr
 *.iws
@@ -12,3 +19,4 @@ velocity.log
 /.metadata/
 /.recommenders/
 .factorypath
+bin/
