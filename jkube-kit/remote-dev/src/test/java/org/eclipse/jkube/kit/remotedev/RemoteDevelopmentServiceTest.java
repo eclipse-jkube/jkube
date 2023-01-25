@@ -23,6 +23,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.net.ServerSocket;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
@@ -106,4 +109,20 @@ class RemoteDevelopmentServiceTest {
       .debug("Creating or replacing Kubernetes services for exposed ports from local environment");
   }
 
+  @Test
+  @DisplayName("start fails if LocalPort for remote service is in use")
+  void startFailsIfLocalPortInUse() {
+    final int localPort = IoUtil.getFreeRandomPort();
+    RemoteService remoteService = RemoteService.builder()
+      .hostname("remote-host").localPort(localPort).port(1234).build();
+    remoteDevelopmentService = new RemoteDevelopmentService(
+      logger, kubernetesClient, RemoteDevelopmentConfig.builder().remoteService(remoteService).build());
+    assertThatThrownBy(() -> {
+      try (ServerSocket localPortInUse = new ServerSocket(localPort)) {
+        // When
+        remoteDevelopmentService.start();
+      }
+    })
+      .hasMessageContaining("Local port '" + localPort + "' is already in use (remote-host)");
+  }
 }
