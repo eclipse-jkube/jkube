@@ -18,17 +18,13 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.IoUtil;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -39,6 +35,7 @@ class RemoteDevelopmentServiceTest {
   @SuppressWarnings("unused")
   private KubernetesClient kubernetesClient;
   private KitLogger logger;
+  private RemoteDevelopmentService remoteDevelopmentService;
 
   @BeforeEach
   void setUp() {
@@ -48,7 +45,9 @@ class RemoteDevelopmentServiceTest {
 
   @AfterEach
   void tearDown() {
-    reset(logger);
+    if (remoteDevelopmentService != null) {
+      remoteDevelopmentService.stop();
+    }
   }
 
   @Test
@@ -64,11 +63,11 @@ class RemoteDevelopmentServiceTest {
   @DisplayName("service can be stopped multiple times before it is started")
   void canBeStoppedMultipleTimesBeforeStart() {
     // Given
-    final RemoteDevelopmentService remoteDev = new RemoteDevelopmentService(
+    remoteDevelopmentService = new RemoteDevelopmentService(
       logger, kubernetesClient,  RemoteDevelopmentConfig.builder().build());
-    remoteDev.stop();
+    remoteDevelopmentService.stop();
     // When
-    remoteDev.stop();
+    remoteDevelopmentService.stop();
     // Then
     verify(logger, times(2)).info("Remote development service stopped");
   }
@@ -76,15 +75,15 @@ class RemoteDevelopmentServiceTest {
   @Test
   @DisplayName("start initiates PortForwarder and KubernetesSshServiceForwarder")
   void startInitiatesChildProcesses() {
+    // Given
+    remoteDevelopmentService = new RemoteDevelopmentService(
+      logger, kubernetesClient, RemoteDevelopmentConfig.builder().build());
     // When
-    startDevelopmentServiceWithConfig(RemoteDevelopmentConfig.builder().build());
-
+    remoteDevelopmentService.start();
     // Then
-    verify(logger, times(1))
-      .debug("Creating or replacing Kubernetes services for exposed ports from local environment");
-    verify(logger, times(1))
+    verify(logger, timeout(1000L).times(1))
       .debug("Starting Kubernetes SSH service forwarder...");
-    verify(logger, times(1))
+    verify(logger, timeout(1000L).times(1))
       .debug("Starting port forwarder...");
   }
 
@@ -93,27 +92,18 @@ class RemoteDevelopmentServiceTest {
   void startInitsIfLocalPortAvailable() {
     RemoteService remoteService = RemoteService.builder()
         .hostname("remote-host").localPort(IoUtil.getFreeRandomPort()).port(1234).build();
-    RemoteDevelopmentConfig config = RemoteDevelopmentConfig.builder().remoteService(remoteService).build();
+    remoteDevelopmentService = new RemoteDevelopmentService(
+      logger, kubernetesClient, RemoteDevelopmentConfig.builder().remoteService(remoteService).build());
 
     // When
-    startDevelopmentServiceWithConfig(config);
+    remoteDevelopmentService.start();
 
     // Then
-    verify(logger, times(1))
-      .debug("Local port '%s' for remote service '%s:%s' is available", 
+    verify(logger, timeout(1000L).times(1))
+      .debug("Local port '%s' for remote service '%s:%s' is available",
         remoteService.getLocalPort(),remoteService.getHostname(),remoteService.getPort());
-    verify(logger, times(1))
+    verify(logger,  timeout(1000L).times(1))
       .debug("Creating or replacing Kubernetes services for exposed ports from local environment");
-  }
-
-  private void startDevelopmentServiceWithConfig(RemoteDevelopmentConfig remoteDevelopmentConfig) {
-    CompletableFuture<Void> future = null;
-    try {
-      future = new RemoteDevelopmentService(logger, kubernetesClient, remoteDevelopmentConfig)
-        .start();
-    } finally {
-      Optional.ofNullable(future).ifPresent(f -> f.cancel(true));
-    }
   }
 
 }
