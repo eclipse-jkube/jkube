@@ -32,10 +32,10 @@ class AnsiLoggerFallbackTest {
 
   @BeforeEach
   void setUp() {
-    while(AnsiConsole.isInstalled()) {
-      AnsiConsole.systemUninstall();
-    }
     mockedLogger = mockConstructionWithAnswer(KitLogger.StdoutLogger.class, CALLS_REAL_METHODS);
+    if (!AnsiConsole.isInstalled()) {
+      AnsiConsole.systemInstall();
+    }
   }
 
   @AfterEach
@@ -49,8 +49,29 @@ class AnsiLoggerFallbackTest {
   @Test
   void infoUsesFallbackWhenAnsiIsUninstalled() {
     // Given
+    while(AnsiConsole.isInstalled()) {
+      AnsiConsole.systemUninstall();
+    }
     final AnsiLoggerTest.TestLog testLog = new AnsiLoggerTest.TestLog(true);
     final AnsiLogger logger = new AnsiLogger(testLog, true, null, false);
+    // When
+    logger.info("Greetings professor Falken");
+    // Then
+    assertThat(testLog.getMessage()).isNull();
+    verify(mockedLogger.constructed().iterator().next(), times(1))
+      .info("Greetings professor Falken");
+  }
+
+  @Test
+  void infoUsesFallbackInCaseOfAnsiException() {
+    // Given
+    final AnsiLoggerTest.TestLog testLog = new AnsiLoggerTest.TestLog(true) {
+      @Override
+      public void info(CharSequence content) {
+        throw new RuntimeException("Ansi is dead");
+      }
+    };
+    final AnsiLogger logger = new AnsiLogger(testLog, true, null, false) {};
     // When
     logger.info("Greetings professor Falken");
     // Then

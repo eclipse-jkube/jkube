@@ -218,7 +218,7 @@ class AnsiLoggerTest {
     }
 
 
-    static final class TestLog extends DefaultLog {
+    static class TestLog extends DefaultLog {
 
         private final boolean debugEnabled;
         private String message;
