@@ -41,7 +41,7 @@
     <version.commons-text>1.10.0</version.commons-text>
     <version.gson>2.10.1</version.gson>
     <version.httpcore>4.4.15</version.httpcore>
-    <version.httpclient>4.5.13</version.httpclient>
+    <version.httpclient>4.5.14</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
     <version.jansi>2.4.0</version.jansi>
     <version.javassist>3.29.2-GA</version.javassist>
