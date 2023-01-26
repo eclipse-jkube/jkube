@@ -23,8 +23,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -73,7 +73,10 @@ class ClusterAccessTest {
     // Then
     assertThat(result).isFalse();
     verify(logger, times(1))
-        .warn(startsWith("Cannot access cluster for detecting mode"), eq(""), contains("unknown.example.com"));
+        .warn(startsWith("Cannot access cluster for detecting mode"),
+          anyString(), // TODO change when bumping to latest Kubernetes Client
+//          eq(""),
+          contains("unknown.example.com"));
   }
 
   @Test
