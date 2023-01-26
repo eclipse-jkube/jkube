@@ -24,7 +24,7 @@ class LogMatchCallback implements LogCallback {
     private final KitLogger logger;
     private final LogWaitCheckerCallback callback;
     private final Pattern pattern;
-    private StringBuilder logBuffer;
+    private final StringBuilder logBuffer;
 
     LogMatchCallback(final KitLogger logger, final LogWaitCheckerCallback callback, final String patternString) {
         this.logger = logger;
