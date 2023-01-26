@@ -187,7 +187,7 @@ class OpenshiftBuildServiceIntegrationTest {
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i-suffix2\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
+            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i-suffix2\",\"namespace\":\"ns1\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
     assertThat(containsRequest("imagestreams")).isTrue();
   }
@@ -271,7 +271,7 @@ class OpenshiftBuildServiceIntegrationTest {
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
+            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i\",\"namespace\":\"ns1\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
   }
 
@@ -290,7 +290,7 @@ class OpenshiftBuildServiceIntegrationTest {
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-docker\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"},\"noCache\":false},\"type\":\"Docker\"}}}");
+            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-docker\",\"namespace\":\"ns1\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"},\"noCache\":false},\"type\":\"Docker\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
   }
 
@@ -311,7 +311,7 @@ class OpenshiftBuildServiceIntegrationTest {
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"component1-component2-name-docker\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"component1-component2-name:tag\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"},\"noCache\":false},\"type\":\"Docker\"}}}");
+            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"component1-component2-name-docker\",\"namespace\":\"ns1\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"component1-component2-name:tag\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"},\"noCache\":false},\"type\":\"Docker\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
   }
 
@@ -330,7 +330,7 @@ class OpenshiftBuildServiceIntegrationTest {
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"},\"noCache\":false},\"type\":\"Docker\"}}}");
+            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp\",\"namespace\":\"ns1\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"},\"noCache\":false},\"type\":\"Docker\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
   }
 
@@ -362,7 +362,7 @@ class OpenshiftBuildServiceIntegrationTest {
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-docker\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"dockerStrategy\":{\"from\":{\"kind\":\"ImageStreamTag\",\"name\":\"app:1.2-1\",\"namespace\":\"my-project\"},\"noCache\":true},\"type\":\"Docker\"}}}");
+            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-docker\",\"namespace\":\"ns1\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"dockerStrategy\":{\"from\":{\"kind\":\"ImageStreamTag\",\"name\":\"app:1.2-1\",\"namespace\":\"my-project\"},\"noCache\":true},\"type\":\"Docker\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
   }
 
@@ -441,7 +441,7 @@ class OpenshiftBuildServiceIntegrationTest {
     assertThat(mockServer.getRequestCount()).isGreaterThan(7);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i-suffix2\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
+            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i-suffix2\",\"namespace\":\"ns1\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"DockerImage\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
     assertThat(containsRequest("imagestreams")).isFalse();
   }
@@ -457,7 +457,7 @@ class OpenshiftBuildServiceIntegrationTest {
     assertThat(mockServer.getRequestCount()).isGreaterThan(7);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i-suffix2\"},\"spec\":{\"output\":{\"pushSecret\":{\"name\":\"pushsecret-fabric8\"},\"to\":{\"kind\":\"DockerImage\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
+            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i-suffix2\",\"namespace\":\"ns1\"},\"spec\":{\"output\":{\"pushSecret\":{\"name\":\"pushsecret-fabric8\"},\"to\":{\"kind\":\"DockerImage\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
     assertThat(containsRequest("imagestreams")).isFalse();
   }
