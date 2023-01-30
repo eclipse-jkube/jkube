@@ -38,7 +38,6 @@ class PortForwardServicePortOrderTest {
   private NamespacedKubernetesClient kubernetesClient;
   private KubernetesMockServer mockServer;
 
-  @SuppressWarnings("EmptyTryBlock")
   @DisplayName("portForward")
   @ParameterizedTest(name = "with containerPort {0} and localPort {1} should perform HTTP request to {0}")
   @MethodSource("ports")
@@ -55,9 +54,9 @@ class PortForwardServicePortOrderTest {
          final Socket ignored = new Socket(InetAddress.getLocalHost(), localPort)
     ) {
       // The socket connection triggers the KubernetesClient request to the k8s portforward endpoint
+      // Then
+      assertThat(request).succeedsWithin(10, TimeUnit.SECONDS);
     }
-    // Then
-    assertThat(request).succeedsWithin(10, TimeUnit.SECONDS);
   }
 
   static Stream<Arguments> ports() {
