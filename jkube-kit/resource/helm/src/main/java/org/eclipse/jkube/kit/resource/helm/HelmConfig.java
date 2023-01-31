@@ -68,6 +68,7 @@ public class HelmConfig {
   private String sourceDir;
   private String outputDir;
   private String tarballOutputDir;
+  private String tarFileClassifier;
   private List<GeneratedChartListener> generatedChartListeners;
   private HelmRepository stableRepository;
   private HelmRepository snapshotRepository;

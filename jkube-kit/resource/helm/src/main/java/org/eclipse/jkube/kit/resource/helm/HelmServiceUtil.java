@@ -41,6 +41,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getProperty;
 
 public class HelmServiceUtil {
@@ -54,6 +55,7 @@ public class HelmServiceUtil {
   private static final String PROPERTY_SOURCE_DIR = "jkube.helm.sourceDir";
   private static final String PROPERTY_OUTPUT_DIR = "jkube.helm.outputDir";
   private static final String PROPERTY_TARBALL_OUTPUT_DIR = "jkube.helm.tarballOutputDir";
+  private static final String PROPERTY_TARBALL_CLASSIFIER = "jkube.helm.tarFileClassifier";
   private static final String PROPERTY_HOME = "jkube.helm.home";
   protected static final String PROPERTY_UPLOAD_REPO_NAME = "jkube.helm.%s.name";
   protected static final String PROPERTY_UPLOAD_REPO_URL = "jkube.helm.%s.url";
@@ -99,8 +101,9 @@ public class HelmServiceUtil {
         String.format("%s/META-INF/jkube/", project.getOutputDirectory())));
     original.setOutputDir(resolveFromPropertyOrDefault(PROPERTY_OUTPUT_DIR, project, original::getOutputDir,
         String.format("%s/jkube/helm/%s", project.getBuildDirectory(), original.getChart())));
+    original.setTarFileClassifier(resolveFromPropertyOrDefault(PROPERTY_TARBALL_CLASSIFIER, project, original::getTarFileClassifier, EMPTY));
     original.setTarballOutputDir(resolveFromPropertyOrDefault(PROPERTY_TARBALL_OUTPUT_DIR, project, original::getTarballOutputDir,
-        project.getBuildDirectory().getAbsolutePath()));
+        String.format("%s/%s", original.getOutputDir(), defaultHelmType.getOutputDir())));
     return original.toBuilder();
   }
 
