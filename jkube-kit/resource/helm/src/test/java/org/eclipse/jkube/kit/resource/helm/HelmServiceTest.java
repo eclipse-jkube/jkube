@@ -148,7 +148,7 @@ class HelmServiceTest {
       assertThat(helmUploaderMockedConstruction.constructed()).hasSize(1);
       HelmUploader constructedHelmUploader = helmUploaderMockedConstruction.constructed().get(0);
       verify(constructedHelmUploader).uploadSingle(argumentCaptor.capture(), eq(helmRepository));
-      String fileName = "chartName-1337-helm.tar.gz";
+      String fileName = "chartName-1337.tar.gz";
       assertThat(argumentCaptor.getValue())
           .hasName(fileName);
     }
