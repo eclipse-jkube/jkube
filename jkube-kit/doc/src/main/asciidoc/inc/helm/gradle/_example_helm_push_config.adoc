@@ -1,0 +1,20 @@
+.Example Helm configuration
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+  helm {
+    chart = 'Jenkins'
+    keywords = ['ci', 'cd', 'server']
+    stableRepository {
+      name = 'stable-repo-id'
+      url = 'https://stable-repo-url'
+      type = 'ARTIFACTORY'
+    }
+    snapshotRepository {
+      name = 'snapshot-repo-id'
+      url = 'https://snapshot-repo-url'
+      type = 'ARTIFACTORY'
+    }
+  }
+}
+----

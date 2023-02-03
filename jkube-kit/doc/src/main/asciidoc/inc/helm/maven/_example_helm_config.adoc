@@ -1,0 +1,19 @@
+.Example Helm configuration
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <helm>
+      <chart>Jenkins</chart>
+      <keywords>ci,cd,server</keywords>
+      <dependencies>
+        <dependency>
+          <name>ingress-nginx</name>
+          <version>1.26.0</version>
+          <repository>https://kubernetes.github.io/ingress-nginx</repository>
+        </dependency>
+      </dependencies>
+    </helm>
+  </configuration>
+</plugin>
+----

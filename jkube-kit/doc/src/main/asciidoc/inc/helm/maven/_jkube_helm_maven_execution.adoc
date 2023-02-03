@@ -1,0 +1,25 @@
+To add the `helm` goal to your project so that it is automatically executed just add the `helm` goal to the `executions`
+section of the `{plugin}` section of your `pom.xml`.
+
+.Add helm goal
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+
+  <!-- ... -->
+
+  <executions>
+    <execution>
+      <goals>
+        <goal>resource</goal>
+        <goal>helm</goal>
+        <goal>build</goal>
+        <goal>deploy</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+----
+

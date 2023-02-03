@@ -1,0 +1,70 @@
+[[helm-multi-module]]
+=== Multi-module projects
+
+In multi-module Maven projects, some configuration default values differ from what you may expect.
+
+Given a project with a parent module and at least a child module, if you run the helm goal within the child
+module, values for `home` and `sources` will get the submodule's artifactId appended.
+
+This behavior is normal, since the helm goal is executed in the scope of the submodule. The Maven
+variables from which JKube extracts these defaults (`${project.url}` and `${project.scm.url}`)
+already contain the appended submodule's artifactId.
+
+In order to prevent this, there are several alternatives:
+
+.Manual configuration
+Provide the configuration manually for these values:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <helm>
+      <home>https://valid-home-with-no-appended-values.example.com</home>
+      <sources>
+          <source>https://github.com/valid-repo/with-no-appended-values</source>
+      </sources>
+    </helm>
+  </configuration>
+</plugin>
+----
+
+.Manual configuration using properties in child module
+Following the previous approach, if you don't want to hardcode the values, or if you
+already defined them in the parent module you can proceed with the following configuration
+in the *child* module:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<properties>
+    <!-- ... -->
+    <helm.home>${project.parent.url}</helm.home>
+    <helm.source>${project.parent.scm.url}</helm.source>
+</properties>
+<!-- ... -->
+<plugin>
+  <configuration>
+    <helm>
+      <home>${helm.home}</home>
+      <sources>
+          <source>${helm.source}</source>
+      </sources>
+    </helm>
+  </configuration>
+</plugin>
+----
+
+.Configure inheritance in parent project for the affected elements
+Configure inheritance of the `project` and  `scm` elements in the *parent* module:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+         child.project.url.inherit.append.path="false"
+         >
+<!-- ... -->
+    <url>https://jkube.example.com</url>
+    <scm child.scm.url.inherit.append.path="false">
+        <url>https://github.com/eclipse/jkube</url>
+    </scm>
+<!-- ... -->
+</project>
+----

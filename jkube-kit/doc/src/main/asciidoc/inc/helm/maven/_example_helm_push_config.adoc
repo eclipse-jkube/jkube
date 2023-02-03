@@ -1,0 +1,22 @@
+.Example Helm configuration
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <helm>
+      <chart>Jenkins</chart>
+      <keywords>ci,cd,server</keywords>
+      <stableRepository>
+        <name>stable-repo-id</name>
+        <url>https://stable-repo-url</url>
+        <type>ARTIFACTORY</type>
+      </stableRepository>
+      <snapshotRepository>
+        <name>snapshot-repo-id</name>
+        <url>https://snapshot-repo-url</url>
+        <type>ARTIFACTORY</type>
+      </snapshotRepository>
+    </helm>
+  </configuration>
+</plugin>
+----
