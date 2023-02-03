@@ -1,0 +1,15 @@
+.Example Helm configuration
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+kubernetes {
+  helm {
+    chart = 'Jenkins'
+    keywords = ['ci', 'cd', 'server']
+    dependencies = [{
+      name = 'ingress-nginx'
+      version = '1.26.0'
+      repository = 'https://kubernetes.github.io/ingress-nginx'
+    }]
+  }
+}
+----

@@ -1,0 +1,237 @@
+
+
+ifeval::["{plugin-type}" == "maven"]
+This goal is for creating
+https://helm.sh/docs/topics/charts[Helm charts]
+for your Maven project so that you can install, update or delete your app in Kubernetes
+using https://github.com/helm/helm[Helm].
+For creating a Helm chart you simply call `{goal-prefix}:helm` goal on the command line:
+include::maven/_resource_helm.adoc[]
+The `{goal-prefix}:resource` goal is required to create the resource descriptors which are included in the Helm chart.
+If you have already built the resource then you can omit this goal.
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+This task is for creating
+https://helm.sh/docs/topics/charts[Helm charts]
+for your Gradle project so that you can install, update or delete your app in Kubernetes
+using https://github.com/helm/helm[Helm].
+For creating a Helm chart you simply call `{task-prefix}Helm` task on the command line:
+include::gradle/_resource_helm.adoc[]
+The `{task-prefix}Resource` goal is required to create the resource descriptors which are included in the Helm chart.
+If you have already built the resource then you can omit this task.
+
+
+endif::[]
+
+The configuration is defined in a `helm` section within the plugin's configuration:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_example_helm_config.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_example_helm_config.adoc[]
+endif::[]
+
+This configuration section knows the following sub-elements in order to configure your Helm chart.
+
+.Helm configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *chart*
+| The Chart name
+ifeval::["{plugin-type}" == "maven"]
+, which is `${project.artifactId}` if not provided.
+endif::[]
+| `jkube.helm.chart`
+
+| *version*
+| The Chart SemVer version
+ifeval::["{plugin-type}" == "maven"]
+, which is `${project.version}` if not provided.
+endif::[]
+| `jkube.helm.version`
+
+| *description*
+| The Chart single-sentence description
+ifeval::["{plugin-type}" == "maven"]
+, which is `${project.description}` if not provided.
+endif::[]
+| `jkube.helm.description`
+
+| *home*
+| The Chart URL for this project's home page
+ifeval::["{plugin-type}" == "maven"]
+, which is `${project.url}` if not provided.
+endif::[]
+| `jkube.helm.home`
+
+| *sources*
+| The Chart list of URLs to source code for this project
+ifeval::["{plugin-type}" == "maven"]
+, defaults to the list of `${project.scm.url}` if not provided.
+endif::[]
+|
+
+| *<<helm-maintainers, maintainers>>*
+| The Chart list of maintainers (name+email)
+ifeval::["{plugin-type}" == "maven"]
+, defaults to the list of
+`${project.developers.name}:${project.developers.name}` if not provided.
+endif::[]
+|
+
+| *icon*
+| The Chart URL to an SVG or PNG image to be used as an icon , default is extracted from the kubernetes manifest
+(`kubernetes.yml`) `jkube.eclipse.org/iconUrl` annotation if not provided.
+| `jkube.helm.icon`
+
+| *keywords*
+| Comma separated list of keywords to add to the chart.
+|
+
+| *engine*
+| The template engine to use.
+|
+
+| *additionalFiles*
+| The list of additional files to be included in the Chart archive. Any file named `README` or `LICENSE` will *always*
+be included by default.
+|
+
+| *type* / *types*
+| Platform for which to generate the chart. By default this is `kubernetes`, but can be also `openshift` for using
+OpenShift specific resources in the chart. You can also add both values as a comma separated list.
+
+  _Please note that there is no OpenShift support yet for charts, so this is experimental._
+| `jkube.helm.type`
+
+| *sourceDir*
+|
+ifeval::["{plugin-type}" == "maven"]
+Where to find the resource descriptors generated with `{goal-prefix}:resource`.
+By default this is `${basedir}/target/classes/META-INF/jkube., which is also the output directory used by `{goal-prefix}:resource`.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Where to find the resource descriptors generated with `{task-prefix}Resource`.
+By default this is `${basedir}/build/classes/java/main/classes/META-INF/jkube`, which is also the output directory used by `{task-prefix}Resource`.
+endif::[]
+| `jkube.helm.sourceDir`
+
+| *outputDir*
+|
+ifeval::["{plugin-type}" == "maven"]
+Where to create the Helm chart, which is `${basedir}/target/jkube/helm/${chartName}/kubernetes` by default for Kubernetes
+and `${basedir}/target/jkube/helm/${chartName}/openshift` for OpenShift.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Where to create the Helm chart, which is `${basedir}/build/jkube/helm/${chartName}/kubernetes` by default for Kubernetes
+and `${basedir}/build/jkube/helms/${chartName}/openshift` for OpenShift.
+endif::[]
+| `jkube.helm.outputDir`
+
+| *tarballOutputDir*
+| Where to create the the Helm chart archive, which is same as `outputDir` if not provided.
+| `jkube.helm.tarballOutputDir`
+
+| *tarFileClassifier*
+| A string at the end of Helm archive filename as a classifier.
+
+Defaults to empty string.
+| `jkube.helm.tarFileClassifier`
+
+| *chartExtension*
+| The Helm chart file extension (`tgz`, `tar.bz`, `tar.bzip2`, `tar.bz2`), default value is `tar.gz` if not provided.
+| `jkube.helm.chartExtension`
+
+| *<<helm-dependencies, dependencies>>*
+| The list of dependencies for this chart.
+|
+
+| *<<helm-parameters, parameters>>*
+| The list of parameters to interpolate the Chart templates from the provided Fragments.
+
+  These parameters can represent variables, in this case the values are used to generate
+  the `values.yaml` file. The fragment placeholders will be replaced with a `.Values` variable.
+
+  The parameters can also represent a Golang expression
+|
+
+|===
+
+[[helm-maintainers]]
+.Helm Configuration - Maintainer
+[cols="1,5"]
+|===
+| Element | Description
+
+| *name*
+| The maintainer user name or organization.
+
+| *email*
+| The maintainer's contact email address.
+
+| *url*
+| The maintainer URL address.
+
+|===
+
+[[helm-dependencies]]
+.Helm Configuration - Dependency
+[cols="1,5"]
+|===
+| Element | Description
+
+| *name*
+| The name of the chart dependency.
+
+| *version*
+| Semantic version or version range for the dependency.
+
+| *repository*
+| URL pointing to a chart repository.
+
+|===
+
+[[helm-parameters]]
+.Helm Configuration - Parameters
+[cols="1,5"]
+|===
+| Element | Description
+
+| *name*
+| The name of the interpolatable parameter. Will be used to replace placeholders
+(`$\{name}`) in the provided YAML fragments. And to generate the `values.yaml` file.
+
+| *required*
+| Set to true if this is a required value (when used to generate values).
+
+| *value*
+| In case we are generating a `.Values` variable, the default value.
+
+  In case the placeholder has to be replaced by an expression, the Golang expression
+  e.g. `{{ .Chart.Name | upper }}`.
+
+|===
+
+In a next step you can install this via the https://github.com/helm/helm/releases[helm command line tool] as follows:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_helm_install.adoc[]
+
+In addition, this goal will also create a tar-archive below `${basedir}/target` which contains the chart with its template.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_helm_install.adoc[]
+
+In addition, this task will also create a tar-archive below `outputDir` which contains the chart with its template.
+endif::[]
+
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_jkube_helm_maven_execution.adoc[]
+include::_jkube_helm_multimodule.adoc[]
+endif::[]
+

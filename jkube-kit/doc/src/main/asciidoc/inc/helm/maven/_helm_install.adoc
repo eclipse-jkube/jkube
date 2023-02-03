@@ -1,0 +1,8 @@
+[source, sh, subs="+attributes"]
+----
+helm install nameForChartInRepository target/jkube/helm/${chartName}/kubernetes
+----
+or
+----
+helm install target/jkube/helm/${chartName}/kubernetes --generate-name
+----

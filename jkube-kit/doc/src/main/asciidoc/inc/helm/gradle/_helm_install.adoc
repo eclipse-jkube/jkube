@@ -1,0 +1,10 @@
+[source, sh, subs="+attributes"]
+----
+helm install nameForChartInRepository build/jkube/helm/${chartName}/{cluster}
+----
+or
+
+[source, sh, subs="+attributes"]
+----
+helm install build/jkube/helm/${chartName}/{cluster} --generate-name
+----

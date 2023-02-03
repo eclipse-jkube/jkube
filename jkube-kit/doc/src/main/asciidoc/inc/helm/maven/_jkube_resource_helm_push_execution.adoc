@@ -1,0 +1,22 @@
+.Add helm goal
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+
+  <!-- ... -->
+
+  <executions>
+    <execution>
+      <goals>
+        <goal>resource</goal>
+        <goal>helm</goal>
+        <goal>build</goal>
+        <goal>deploy</goal>
+        <goal>helm-push</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>
+----
