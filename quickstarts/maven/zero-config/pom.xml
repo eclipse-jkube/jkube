@@ -14,6 +14,18 @@
       Red Hat, Inc. - initial API and implementation
 
 -->
+<repositories>
+  <repository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+  </repository>
+</repositories>
+<pluginRepositories>
+  <pluginRepository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+  </pluginRepository>
+</pluginRepositories>
 <project>
 
   <modelVersion>4.0.0</modelVersion>
@@ -74,9 +86,9 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.eclipse.jkube</groupId>
+            <groupId>com.github.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${jkube.version}</version>
+            <version>master-SNAPSHOT</version>
           </plugin>
         </plugins>
       </build>
@@ -86,9 +98,9 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>org.eclipse.jkube</groupId>
+            <groupId>com.github.eclipse.jkube</groupId>
             <artifactId>openshift-maven-plugin</artifactId>
-            <version>${jkube.version}</version>
+            <version>master-SNAPSHOT</version>
           </plugin>
         </plugins>
       </build>
