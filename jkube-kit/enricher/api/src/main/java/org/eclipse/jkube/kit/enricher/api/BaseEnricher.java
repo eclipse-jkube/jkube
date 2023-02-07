@@ -37,6 +37,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
+import static org.eclipse.jkube.kit.config.resource.ResourceConfig.resolveControllerConfig;
+
 /**
  * @author roland
  */
@@ -159,8 +161,12 @@ public class BaseEnricher implements Enricher {
 
     protected ControllerResourceConfig getControllerResourceConfig() {
         ResourceConfig resourceConfig = getConfiguration().getResource();
-        if (resourceConfig != null && resourceConfig.getController() != null) {
-            return resourceConfig.getController();
+        if (resourceConfig != null) {
+            if (resourceConfig.isAnyControllerLegacyConfigFieldSet()) {
+                log.debug("Controller configuration fields in resource are deprecated." +
+                    "Please use nested field controller for specifying controller configuration");
+            }
+            return resolveControllerConfig(resourceConfig);
         }
         return ControllerResourceConfig.builder().build();
     }

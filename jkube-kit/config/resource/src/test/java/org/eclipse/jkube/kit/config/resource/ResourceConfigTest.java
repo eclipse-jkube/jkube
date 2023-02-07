@@ -19,13 +19,14 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.eclipse.jkube.kit.config.resource.ResourceConfig.resolveControllerConfig;
 
 class ResourceConfigTest {
   @Test
-  void getController_whenInvoked_shouldMergeLegacyOptionsWithController() {
+  void resolveControllerConfig_whenInvoked_shouldMergeLegacyOptionsWithController() {
     // Given
     ProbeConfig probeConfig = ProbeConfig.builder().build();
     ResourceConfig resourceConfig = ResourceConfig.builder()
@@ -41,7 +42,7 @@ class ResourceConfigTest {
         .build();
 
     // When
-    ControllerResourceConfig controllerResourceConfig = resourceConfig.getController();
+    ControllerResourceConfig controllerResourceConfig = resolveControllerConfig(resourceConfig);
 
     // Then
     assertThat(controllerResourceConfig)
@@ -57,7 +58,7 @@ class ResourceConfigTest {
   }
 
   @Test
-  void getControllers_whenInvoked_shouldMergeSingleControllerConfig() {
+  void resolveControllerConfig_whenInvoked_shouldMergeSingleControllerConfig() {
     // Given
     ResourceConfig resourceConfig = ResourceConfig.builder()
         .controller(ControllerResourceConfig.builder()
@@ -69,15 +70,31 @@ class ResourceConfigTest {
         .build();
 
     // When
-    List<ControllerResourceConfig> controllerConfigList = resourceConfig.getControllers();
+    ControllerResourceConfig controllerConfigList = resolveControllerConfig(resourceConfig);
 
     // Then
     assertThat(controllerConfigList)
-        .singleElement()
         .hasFieldOrPropertyWithValue("controllerName", "test-controller")
         .hasFieldOrPropertyWithValue("imagePullPolicy", "Always")
         .hasFieldOrPropertyWithValue("replicas", 2)
         .hasFieldOrPropertyWithValue("containerPrivileged", false);
+  }
+
+  @Test
+  void resolveControllerConfig_whenInvokedWithBothResourceAndControllerConfig_shouldThrowException() {
+    // Given
+    ResourceConfig resourceConfig = ResourceConfig.builder()
+        .controller(ControllerResourceConfig.builder()
+            .controllerName("test-controller")
+            .build())
+        .controllerName("test-controller")
+        .build();
+
+    // When + Then
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> resolveControllerConfig(resourceConfig))
+        .withMessage("Can't use both controller and resource level controller configuration fields." +
+            "Please migrate to controller configuration");
   }
 
   @Test

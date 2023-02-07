@@ -21,7 +21,6 @@ import lombok.NoArgsConstructor;
 import lombok.Singular;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -114,66 +113,69 @@ public class ResourceConfig {
   @Deprecated
   private String restartPolicy;
   private ControllerResourceConfig controller;
-  private List<ControllerResourceConfig> controllers;
 
   public static ResourceConfigBuilder toBuilder(ResourceConfig original) {
     return Optional.ofNullable(original).orElse(new ResourceConfig()).toBuilder();
   }
 
-  public ControllerResourceConfig getController() {
+  public static ControllerResourceConfig resolveControllerConfig(ResourceConfig config) {
+    ControllerResourceConfig controller = config.getController();
+    if (config.getController() != null && config.isAnyControllerLegacyConfigFieldSet()) {
+      throw new IllegalArgumentException("Can't use both controller and resource level controller configuration fields." +
+          "Please migrate to controller configuration");
+    }
     if (controller == null) {
-      controller = createNewControllerConfig();
+      controller = createNewControllerConfigWithLegacyMerged(config);
     }
     return controller;
   }
 
-  public List<ControllerResourceConfig> getControllers() {
-    if (controllers == null || controllers.isEmpty()) {
-      controllers = new ArrayList<>();
-      controllers.add(createNewControllerConfig());
-    }
-    return controllers;
-  }
-
-  private ControllerResourceConfig createNewControllerConfig() {
-    if (controller == null) {
-      controller = createNewControllerConfigFromLegacy();
-    }
-    return controller;
-  }
-
-  private ControllerResourceConfig createNewControllerConfigFromLegacy() {
+  private static ControllerResourceConfig createNewControllerConfigWithLegacyMerged(ResourceConfig config) {
     ControllerResourceConfig.ControllerResourceConfigBuilder builder = ControllerResourceConfig.builder();
-    if (env != null && !env.isEmpty()) {
-      builder.env(env);
+    if (config.env != null && !config.env.isEmpty()) {
+      builder.env(config.env);
     }
-    if (volumes != null) {
-      builder.volumes(volumes);
+    if (config.volumes != null) {
+      builder.volumes(config.volumes);
     }
-    if (StringUtils.isNotBlank(controllerName)) {
-      builder.controllerName(controllerName);
+    if (StringUtils.isNotBlank(config.controllerName)) {
+      builder.controllerName(config.controllerName);
     }
-    if (liveness != null) {
-      builder.liveness(liveness);
+    if (config.liveness != null) {
+      builder.liveness(config.liveness);
     }
-    if (readiness != null) {
-      builder.readiness(readiness);
+    if (config.readiness != null) {
+      builder.readiness(config.readiness);
     }
-    if (startup != null) {
-      builder.startup(startup);
+    if (config.startup != null) {
+      builder.startup(config.startup);
     }
-    if (imagePullPolicy != null) {
-      builder.imagePullPolicy(imagePullPolicy);
+    if (config.imagePullPolicy != null) {
+      builder.imagePullPolicy(config.imagePullPolicy);
     }
-    if (replicas != null) {
-      builder.replicas(replicas);
+    if (config.replicas != null) {
+      builder.replicas(config.replicas);
     }
-    if (StringUtils.isNotBlank(restartPolicy)) {
-      builder.restartPolicy(restartPolicy);
+    if (StringUtils.isNotBlank(config.restartPolicy)) {
+      builder.restartPolicy(config.restartPolicy);
     }
-    builder.containerPrivileged(containerPrivileged);
+    builder.containerPrivileged(config.containerPrivileged);
     return builder.build();
   }
+
+  public boolean isAnyControllerLegacyConfigFieldSet() {
+    return (env != null && !env.isEmpty()) ||
+        (volumes != null && !volumes.isEmpty()) ||
+        (controllerName != null) ||
+        (liveness != null) ||
+        (readiness != null) ||
+        (startup != null) ||
+        (imagePullPolicy != null) ||
+        (replicas != null) ||
+        (restartPolicy != null) ||
+        (containerPrivileged);
+  }
+
 
   // TODO: SCC
 
