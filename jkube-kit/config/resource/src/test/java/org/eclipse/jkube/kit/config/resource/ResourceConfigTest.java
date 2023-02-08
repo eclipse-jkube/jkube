@@ -22,8 +22,8 @@ import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.eclipse.jkube.kit.config.resource.ResourceConfig.resolveControllerConfig;
 
+@SuppressWarnings("deprecation")
 class ResourceConfigTest {
   @Test
   void resolveControllerConfig_whenInvoked_shouldMergeLegacyOptionsWithController() {
@@ -42,7 +42,7 @@ class ResourceConfigTest {
         .build();
 
     // When
-    ControllerResourceConfig controllerResourceConfig = resolveControllerConfig(resourceConfig);
+    ControllerResourceConfig controllerResourceConfig = resourceConfig.getController();
 
     // Then
     assertThat(controllerResourceConfig)
@@ -70,7 +70,7 @@ class ResourceConfigTest {
         .build();
 
     // When
-    ControllerResourceConfig controllerConfigList = resolveControllerConfig(resourceConfig);
+    ControllerResourceConfig controllerConfigList = resourceConfig.getController();
 
     // Then
     assertThat(controllerConfigList)
@@ -92,9 +92,8 @@ class ResourceConfigTest {
 
     // When + Then
     assertThatIllegalArgumentException()
-        .isThrownBy(() -> resolveControllerConfig(resourceConfig))
-        .withMessage("Can't use both controller and resource level controller configuration fields." +
-            "Please migrate to controller configuration");
+        .isThrownBy(resourceConfig::getController)
+        .withMessage("Can't use both controller and resource level controller configuration fields. Please migrate to controller configuration");
   }
 
   @Test

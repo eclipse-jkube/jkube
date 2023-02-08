@@ -101,12 +101,11 @@ public class DefaultControllerEnricher extends BaseEnricher {
   public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
     final String name = getConfig(Config.NAME,
         JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-    ControllerResourceConfig providedControllerResourceConfig = getControllerResourceConfig();
-    final ControllerResourceConfig controllerResourceConfig = providedControllerResourceConfig.toBuilder()
-        .controllerName(getControllerName(providedControllerResourceConfig, name))
-        .imagePullPolicy(getImagePullPolicy(providedControllerResourceConfig, Config.PULL_POLICY))
-        .replicas(getReplicaCount(builder, providedControllerResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
-        .restartPolicy(providedControllerResourceConfig.getRestartPolicy())
+    final ControllerResourceConfig controllerResourceConfig = getControllerResourceConfig().toBuilder()
+        .controllerName(getControllerName(name))
+        .imagePullPolicy(getImagePullPolicy(Config.PULL_POLICY))
+        .replicas(getReplicaCount(builder, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+        .restartPolicy(getControllerResourceConfig().getRestartPolicy())
         .build();
 
     final List<ImageConfiguration> images = getImages();

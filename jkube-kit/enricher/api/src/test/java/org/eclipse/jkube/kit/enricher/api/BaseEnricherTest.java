@@ -19,6 +19,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -35,15 +36,13 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.getNamespace;
-import static org.eclipse.jkube.kit.enricher.api.BaseEnricher.getReplicaCount;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class BaseEnricherTest {
   private BaseEnricher baseEnricher;
-  private ControllerResourceConfig controllerResourceConfig;
   private JKubeEnricherContext context;
   private KitLogger logger;
   private Properties properties;
@@ -65,13 +64,16 @@ class BaseEnricherTest {
   @BeforeEach
   void setup() {
     logger = new KitLogger.SilentLogger();
-    controllerResourceConfig = mock(ControllerResourceConfig.class, RETURNS_DEEP_STUBS);
-    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     properties = new Properties();
-    when(context.getConfiguration().getImages()).thenReturn(Collections.emptyList());
-    when(context.getLog()).thenReturn(logger);
-    when(context.getProperties()).thenReturn(properties);
-    baseEnricher = createNewBaseEnricher();
+    context = spy(JKubeEnricherContext.builder()
+      .log(logger)
+      .project(JavaProject.builder()
+        .properties(properties)
+        .build())
+      .images(Collections.emptyList())
+      .resources(new ResourceConfig())
+      .build());
+    baseEnricher = new BaseEnricher(context, "base-enricher");
   }
 
   @Test
@@ -115,8 +117,7 @@ class BaseEnricherTest {
   void getImages_whenImageInConfiguration_thenReturnImage() {
     // Given
     ImageConfiguration ic = ImageConfiguration.builder().name("foo/bar:latest").build();
-    when(context.getConfiguration().getImages()).thenReturn(Collections.singletonList(ic));
-    baseEnricher = createNewBaseEnricher();
+    baseEnricher = new BaseEnricher(context.toBuilder().image(ic).build(), "test-enricher");
     // When
     List<ImageConfiguration> imageConfigurationList = baseEnricher.getImages();
     // then
@@ -132,8 +133,7 @@ class BaseEnricherTest {
   void hasImageConfiguration_whenImageInConfiguration_thenReturnTrue() {
     // Given
     ImageConfiguration ic = ImageConfiguration.builder().name("foo/bar:latest").build();
-    when(context.getConfiguration().getImages()).thenReturn(Collections.singletonList(ic));
-    baseEnricher = createNewBaseEnricher();
+    baseEnricher = new BaseEnricher(context.toBuilder().image(ic).build(), "test-enricher");
     // When
     boolean result = baseEnricher.hasImageConfiguration();
     // then
@@ -203,7 +203,6 @@ class BaseEnricherTest {
   @Test
   void isOpenShiftMode_ifNoPropertyPresent_thenReturnTrue() {
     // Given + When
-    when(context.getProperties()).thenReturn(null);
     boolean result = baseEnricher.isOpenShiftMode();
     // Then
     assertThat(result).isFalse();
@@ -212,7 +211,8 @@ class BaseEnricherTest {
   @Test
   void getProcessingInstructionViaKey_whenInstructionPresent_thenShouldReturnList() {
     // Given
-    when(context.getProcessingInstructions()).thenReturn(Collections.singletonMap("pi1", "instruction1,instruction2"));
+    baseEnricher = new BaseEnricher(context.toBuilder()
+      .processingInstructions(Collections.singletonMap("pi1", "instruction1,instruction2")).build(), "test-enricher");
     // When
     List<String> result = baseEnricher.getProcessingInstructionViaKey("pi1");
     // Then
@@ -238,7 +238,7 @@ class BaseEnricherTest {
   @Test
   void getOpenshiftDeployTimeoutInSeconds_whenTimeoutProvidedInProperty_thenReturnTimeout() {
     // Given
-    when(context.getProperty("jkube.openshift.deployTimeoutSeconds")).thenReturn("3");
+    properties.put("jkube.openshift.deployTimeoutSeconds", "3");
     // When
     long deployTimeout = baseEnricher.getOpenshiftDeployTimeoutInSeconds(10L);
     // Then
@@ -248,9 +248,11 @@ class BaseEnricherTest {
   @Test
   void getControllerName_whenNameProvidedInConfig_thenReturnControllerName() {
     // Given
-    when(controllerResourceConfig.getControllerName()).thenReturn("name-from-config");
+    baseEnricher = new BaseEnricher(context.toBuilder()
+      .resources(ResourceConfig.builder().controller(ControllerResourceConfig.builder()
+        .controllerName("name-from-config").build()).build()).build(), "test-enricher");
     // When
-    String controllerName = baseEnricher.getControllerName(controllerResourceConfig, "default-name");
+    String controllerName = baseEnricher.getControllerName("default-name");
     // Then
     assertThat(controllerName).isEqualTo("name-from-config");
   }
@@ -258,7 +260,7 @@ class BaseEnricherTest {
   @Test
   void getControllerName_whenNullConfig_thenReturnDefaultName() {
     // Given + When
-    String controllerName = baseEnricher.getControllerName(controllerResourceConfig, "default-name");
+    String controllerName = baseEnricher.getControllerName("default-name");
     // Then
     assertThat(controllerName).isEqualTo("default-name");
   }
@@ -266,7 +268,7 @@ class BaseEnricherTest {
   @Test
   void getCreateExternalUrls_whenPropertyProvided_thenReturnValueFromProperty() {
     // Given
-    when(context.getProperty("jkube.createExternalUrls")).thenReturn("true");
+    properties.put("jkube.createExternalUrls", "true");
     // When
     boolean createExternalUrls = baseEnricher.getCreateExternalUrls();
     // Then
@@ -276,9 +278,8 @@ class BaseEnricherTest {
   @Test
   void getCreateExternalUrls_whenConfigProvided_thenReturnValueFromProperty() {
     // Given
-    when(context.getConfiguration().getResource()).thenReturn(ResourceConfig.builder()
-            .createExternalUrls(true)
-        .build());
+    baseEnricher = new BaseEnricher(context.toBuilder()
+      .resources(ResourceConfig.builder().createExternalUrls(true).build()).build(), "test-enricher");
     // When
     boolean createExternalUrls = baseEnricher.getCreateExternalUrls();
     // Then
@@ -287,8 +288,6 @@ class BaseEnricherTest {
 
   @Test
   void getCreateExternalUrls_whenNothingProvided_thenReturnFalse() {
-    // Given
-    when(context.getConfiguration().getResource()).thenReturn(ResourceConfig.builder().build());
     // When
     boolean createExternalUrls = baseEnricher.getCreateExternalUrls();
     // Then
@@ -302,7 +301,7 @@ class BaseEnricherTest {
     klb.addToItems(new DeploymentBuilder().withNewSpec().withReplicas(5).endSpec().build());
 
     // When
-    int replicaCount = getReplicaCount(klb, controllerResourceConfig, 1);
+    int replicaCount = baseEnricher.getReplicaCount(klb, 1);
 
     // Then
     assertThat(replicaCount).isEqualTo(5);
@@ -315,7 +314,7 @@ class BaseEnricherTest {
     klb.addToItems(new DeploymentConfigBuilder().withNewSpec().withReplicas(5).endSpec().build());
 
     // When
-    int replicaCount = getReplicaCount(klb, controllerResourceConfig, 1);
+    int replicaCount = baseEnricher.getReplicaCount(klb, 1);
 
     // Then
     assertThat(replicaCount).isEqualTo(5);
@@ -325,9 +324,12 @@ class BaseEnricherTest {
   void getReplicaCount_whenReplicaProvidedInControllerConfig_thenReturnControllerConfigReplica() {
     // Given
     KubernetesListBuilder klb = new KubernetesListBuilder();
-    when(controllerResourceConfig.getReplicas()).thenReturn(5);
+    baseEnricher = new BaseEnricher(context.toBuilder()
+      .resources(ResourceConfig.builder()
+        .controller(ControllerResourceConfig.builder()
+          .replicas(5).build()).build()).build(), "test-enricher");
     // When
-    int replicaCount = getReplicaCount(klb, controllerResourceConfig, 1);
+    int replicaCount = baseEnricher.getReplicaCount(klb, 1);
     // Then
     assertThat(replicaCount).isEqualTo(5);
   }
@@ -336,19 +338,8 @@ class BaseEnricherTest {
   void getReplicaCount_whenNullReplicaProvidedInControllerConfig_thenReturnDefaultReplica() {
     // Given
     KubernetesListBuilder klb = new KubernetesListBuilder();
-    when(controllerResourceConfig.getReplicas()).thenReturn(null);
     // When
-    int replicaCount = getReplicaCount(klb, controllerResourceConfig, 1);
-    // Then
-    assertThat(replicaCount).isEqualTo(1);
-  }
-
-  @Test
-  void getReplicaCount_whenNullControllerConfig_thenReturnDefaultReplica() {
-    // Given
-    KubernetesListBuilder klb = new KubernetesListBuilder();
-    // When
-    int replicaCount = getReplicaCount(klb, null, 1);
+    int replicaCount = baseEnricher.getReplicaCount(klb, 1);
     // Then
     assertThat(replicaCount).isEqualTo(1);
   }
@@ -376,7 +367,7 @@ class BaseEnricherTest {
   @Test
   void getValueFromConfig_whenBooleanPropertyProvided_thenReturnPropertyValue() {
     // Given
-    when(context.getProperty("test.property")).thenReturn("true");
+    properties.put("test.property", "true");
     // When
     boolean result = baseEnricher.getValueFromConfig("test.property", false);
     // Then
@@ -386,7 +377,7 @@ class BaseEnricherTest {
   @Test
   void useDeploymentForOpenShift_whenSwitchDeploymentEnabled_thenReturnTrue() {
     // Given
-    when(context.getProperty("jkube.build.switchToDeployment")).thenReturn("true");
+    properties.put("jkube.build.switchToDeployment", "true");
     // When
     boolean result = baseEnricher.useDeploymentForOpenShift();
     // Then
@@ -404,7 +395,7 @@ class BaseEnricherTest {
   @Test
   void getImagePullPolicy_whenNoConfigPresent_shouldReturnDefaultImagePullPolicy() {
     // Given + When
-    String value = baseEnricher.getImagePullPolicy(null, null);
+    String value = baseEnricher.getImagePullPolicy(null);
 
     // Then
     assertThat(value).isEqualTo("IfNotPresent");
@@ -413,10 +404,13 @@ class BaseEnricherTest {
   @Test
   void getImagePullPolicy_whenPullPolicySpecifiedInControllerResourceConfig_shouldReturnPullPolicy() {
     // Given
-    when(controllerResourceConfig.getImagePullPolicy()).thenReturn("Never");
+    baseEnricher = new BaseEnricher(context.toBuilder()
+      .resources(ResourceConfig.builder()
+        .controller(ControllerResourceConfig.builder()
+          .imagePullPolicy("Never").build()).build()).build(), "test-enricher");
 
     // When
-    String value = baseEnricher.getImagePullPolicy(controllerResourceConfig, null);
+    String value = baseEnricher.getImagePullPolicy(null);
 
     // Then
     assertThat(value).isEqualTo("Never");
@@ -425,10 +419,10 @@ class BaseEnricherTest {
   @Test
   void getImagePullPolicy_whenPullPolicySpecifiedViaProperty_shouldReturnPullPolicy() {
     // Given
-    when(context.getProperty("jkube.imagePullPolicy")).thenReturn("Always");
+    properties.put("jkube.imagePullPolicy", "Always");
 
     // When
-    String value = baseEnricher.getImagePullPolicy(controllerResourceConfig, null);
+    String value = baseEnricher.getImagePullPolicy(null);
 
     // Then
     assertThat(value).isEqualTo("Always");
@@ -436,31 +430,10 @@ class BaseEnricherTest {
 
   @Test
   void getControllerResourceConfig_whenNullResourceProvided_thenReturnsEmptyControllerResourceConfig() {
-    // Given
-    when(context.getConfiguration().getResource()).thenReturn(null);
-
     // When
     ControllerResourceConfig config = baseEnricher.getControllerResourceConfig();
 
     // Then
     assertThat(config).isNotNull();
-  }
-
-  @Test
-  void getControllerResourceConfig_whenValidControllerResourceProvided_thenReturnsControllerResourceConfig() {
-    // Given
-    when(context.getConfiguration().getResource()).thenReturn(ResourceConfig.builder()
-            .controller(controllerResourceConfig)
-        .build());
-
-    // When
-    ControllerResourceConfig config = baseEnricher.getControllerResourceConfig();
-
-    // Then
-    assertThat(config).isEqualTo(controllerResourceConfig);
-  }
-
-  private BaseEnricher createNewBaseEnricher() {
-    return new BaseEnricher(context, "base-enricher");
   }
 }

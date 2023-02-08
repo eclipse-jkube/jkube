@@ -37,8 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 
-import static org.eclipse.jkube.kit.config.resource.ResourceConfig.resolveControllerConfig;
-
 /**
  * @author roland
  */
@@ -151,12 +149,12 @@ public class BaseEnricher implements Enricher {
     /**
      * This method overrides the controller name value by the value provided in XML config.
      *
-     * @param controllerResourceConfig Controller Resource config from plugin configuration
      * @param defaultValue default value
      * @return string as controller name
      */
-    protected String getControllerName(ControllerResourceConfig controllerResourceConfig, String defaultValue) {
-        return Optional.ofNullable(controllerResourceConfig).map(ControllerResourceConfig::getControllerName).orElse(defaultValue);
+    protected String getControllerName(String defaultValue) {
+        return StringUtils.isNotBlank(getControllerResourceConfig().getControllerName()) ?
+          getControllerResourceConfig().getControllerName() : defaultValue;
     }
 
     protected ControllerResourceConfig getControllerResourceConfig() {
@@ -164,9 +162,9 @@ public class BaseEnricher implements Enricher {
         if (resourceConfig != null) {
             if (resourceConfig.isAnyControllerLegacyConfigFieldSet()) {
                 log.debug("Controller configuration fields in resource are deprecated." +
-                    "Please use nested field controller for specifying controller configuration");
+                    " Please use nested field controller for specifying controller configuration");
             }
-            return resolveControllerConfig(resourceConfig);
+            return resourceConfig.getController();
         }
         return ControllerResourceConfig.builder().build();
     }
@@ -175,17 +173,16 @@ public class BaseEnricher implements Enricher {
      * This method overrides the ImagePullPolicy value by the value provided in
      * XML config.
      *
-     * @param controllerResourceConfig controller resource config from plugin configuration
      * @param enricherConfig Enricher specific configuration for ImagePullPolicy
      * @return string as image pull policy
      */
-    protected String getImagePullPolicy(ControllerResourceConfig controllerResourceConfig, Configs.Config enricherConfig) {
+    protected String getImagePullPolicy(Configs.Config enricherConfig) {
         String imagePullPolicyFromProperty = getValueFromConfig(JKUBE_ENFORCED_IMAGE_PULL_POLICY, null);
         if (StringUtils.isNotBlank(imagePullPolicyFromProperty)) {
             return imagePullPolicyFromProperty;
         }
-        if (controllerResourceConfig != null && StringUtils.isNotBlank(controllerResourceConfig.getImagePullPolicy())) {
-            return controllerResourceConfig.getImagePullPolicy();
+        if (StringUtils.isNotBlank(getControllerResourceConfig().getImagePullPolicy())) {
+            return getControllerResourceConfig().getImagePullPolicy();
         }
         final String imagePullPolicyFromEnricherConfig = enricherConfig != null ? getConfig(enricherConfig) : null;
         if (StringUtils.isNotBlank(imagePullPolicyFromEnricherConfig)) {
@@ -211,25 +208,22 @@ public class BaseEnricher implements Enricher {
      * topmost priority.
      *
      * @param builder kubernetes list builder containing objects
-     * @param controllerResourceConfig xml resource config from plugin configuration
      * @param defaultValue default value
      * @return resolved replica count
      */
-    protected static int getReplicaCount(KubernetesListBuilder builder, ControllerResourceConfig controllerResourceConfig, int defaultValue) {
-        if (controllerResourceConfig != null) {
-            final List<HasMetadata> items = Optional.ofNullable(builder)
-                .map(KubernetesListBuilder::buildItems).orElse(Collections.emptyList());
-            for (HasMetadata item : items) {
-                if (item instanceof Deployment && ((Deployment)item).getSpec().getReplicas() != null) {
-                    return ((Deployment)item).getSpec().getReplicas();
-                }
-                if (item instanceof DeploymentConfig && ((DeploymentConfig)item).getSpec().getReplicas() != null) {
-                    return ((DeploymentConfig)item).getSpec().getReplicas();
-                }
+    protected int getReplicaCount(KubernetesListBuilder builder, int defaultValue) {
+        final List<HasMetadata> items = Optional.ofNullable(builder)
+            .map(KubernetesListBuilder::buildItems).orElse(Collections.emptyList());
+        for (HasMetadata item : items) {
+            if (item instanceof Deployment && ((Deployment)item).getSpec().getReplicas() != null) {
+                return ((Deployment)item).getSpec().getReplicas();
             }
-            return controllerResourceConfig.getReplicas() != null ? controllerResourceConfig.getReplicas() : defaultValue;
+            if (item instanceof DeploymentConfig && ((DeploymentConfig)item).getSpec().getReplicas() != null) {
+                return ((DeploymentConfig)item).getSpec().getReplicas();
+            }
         }
-        return defaultValue;
+        return getControllerResourceConfig().getReplicas() != null ?
+          getControllerResourceConfig().getReplicas() : defaultValue;
     }
 
     public static String getNamespace(ResourceConfig resourceConfig, String defaultValue) {
