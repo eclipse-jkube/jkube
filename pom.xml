@@ -82,7 +82,7 @@
   <properties>
     <jdk.version>1.8</jdk.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <version.asciidoctor-maven-plugin>2.2.1</version.asciidoctor-maven-plugin>
+    <version.asciidoctor-maven-plugin>2.2.2</version.asciidoctor-maven-plugin>
     <version.asciidoctorj>2.2.0</version.asciidoctorj>
     <version.assertj-core>3.23.1</version.assertj-core>
     <version.citrus>3.3.0</version.citrus>
