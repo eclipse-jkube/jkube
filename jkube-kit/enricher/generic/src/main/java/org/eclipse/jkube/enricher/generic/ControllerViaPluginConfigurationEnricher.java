@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
@@ -75,12 +74,11 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
         final String name = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-        ControllerResourceConfig providedControllerResourceConfig = getControllerResourceConfig();
         final ControllerResourceConfig controllerResourceConfig = ControllerResourceConfig.builder()
                 .controllerName(name)
-                .imagePullPolicy(getImagePullPolicy(providedControllerResourceConfig, Config.PULL_POLICY))
-                .replicas(getReplicaCount(builder, providedControllerResourceConfig, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
-                .initContainers(Optional.ofNullable(providedControllerResourceConfig.getInitContainers()).orElse(Collections.emptyList()))
+                .imagePullPolicy(getImagePullPolicy(Config.PULL_POLICY))
+                .replicas(getReplicaCount(builder, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+                .initContainers(Optional.ofNullable(getControllerResourceConfig().getInitContainers()).orElse(Collections.emptyList()))
                 .build();
 
         final List<ImageConfiguration> images = getImages();

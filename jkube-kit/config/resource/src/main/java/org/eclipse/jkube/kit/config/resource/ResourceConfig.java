@@ -114,52 +114,48 @@ public class ResourceConfig {
   private String restartPolicy;
   private ControllerResourceConfig controller;
 
+  public final ControllerResourceConfig getController() {
+    if (controller != null && isAnyControllerLegacyConfigFieldSet()) {
+      throw new IllegalArgumentException("Can't use both controller and resource level controller configuration fields." +
+        " Please migrate to controller configuration");
+    }
+    return controller == null ? controllerResourceConfigFromLegacyFields() : controller;
+  }
+
   public static ResourceConfigBuilder toBuilder(ResourceConfig original) {
     return Optional.ofNullable(original).orElse(new ResourceConfig()).toBuilder();
   }
 
-  public static ControllerResourceConfig resolveControllerConfig(ResourceConfig config) {
-    ControllerResourceConfig controller = config.getController();
-    if (config.getController() != null && config.isAnyControllerLegacyConfigFieldSet()) {
-      throw new IllegalArgumentException("Can't use both controller and resource level controller configuration fields." +
-          "Please migrate to controller configuration");
-    }
-    if (controller == null) {
-      controller = createNewControllerConfigWithLegacyMerged(config);
-    }
-    return controller;
-  }
-
-  private static ControllerResourceConfig createNewControllerConfigWithLegacyMerged(ResourceConfig config) {
+  private ControllerResourceConfig controllerResourceConfigFromLegacyFields() {
     ControllerResourceConfig.ControllerResourceConfigBuilder builder = ControllerResourceConfig.builder();
-    if (config.env != null && !config.env.isEmpty()) {
-      builder.env(config.env);
+    if (env != null && !env.isEmpty()) {
+      builder.env(env);
     }
-    if (config.volumes != null) {
-      builder.volumes(config.volumes);
+    if (volumes != null) {
+      builder.volumes(volumes);
     }
-    if (StringUtils.isNotBlank(config.controllerName)) {
-      builder.controllerName(config.controllerName);
+    if (StringUtils.isNotBlank(controllerName)) {
+      builder.controllerName(controllerName);
     }
-    if (config.liveness != null) {
-      builder.liveness(config.liveness);
+    if (liveness != null) {
+      builder.liveness(liveness);
     }
-    if (config.readiness != null) {
-      builder.readiness(config.readiness);
+    if (readiness != null) {
+      builder.readiness(readiness);
     }
-    if (config.startup != null) {
-      builder.startup(config.startup);
+    if (startup != null) {
+      builder.startup(startup);
     }
-    if (config.imagePullPolicy != null) {
-      builder.imagePullPolicy(config.imagePullPolicy);
+    if (imagePullPolicy != null) {
+      builder.imagePullPolicy(imagePullPolicy);
     }
-    if (config.replicas != null) {
-      builder.replicas(config.replicas);
+    if (replicas != null) {
+      builder.replicas(replicas);
     }
-    if (StringUtils.isNotBlank(config.restartPolicy)) {
-      builder.restartPolicy(config.restartPolicy);
+    if (StringUtils.isNotBlank(restartPolicy)) {
+      builder.restartPolicy(restartPolicy);
     }
-    builder.containerPrivileged(config.containerPrivileged);
+    builder.containerPrivileged(containerPrivileged);
     return builder.build();
   }
 
@@ -175,9 +171,6 @@ public class ResourceConfig {
         (restartPolicy != null) ||
         (containerPrivileged);
   }
-
-
-  // TODO: SCC
 
     // ===============================
     // TODO:
