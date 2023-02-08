@@ -93,9 +93,9 @@ jobs:
     - restore_cache:
         key: maven-sonar-pr-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
     - run: |
-        if [ -n "${CIRCLE_PR_NUMBER}" ]; then
+        if [ -n "${CIRCLE_PULL_REQUEST}" ]; then
           MAVEN_OPTS="-Xmx3000m" ./mvnw -B -Pjacoco,sonar clean install \
-             -Dsonar.pullrequest.key=${CIRCLE_PR_NUMBER} \
+             -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} \
              -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
              -Dsonar.pullrequest.base=master
         else
@@ -112,7 +112,7 @@ jobs:
     steps:
     - checkout
     - run: |
-        if [ -n "${CIRCLE_PR_NUMBER}" ]; then
+        if [ -n "${CIRCLE_PULL_REQUEST}" ]; then
           ./scripts/generateDoc.sh
         else
           echo "No Doc preview run as this is not a pull request"
