@@ -59,7 +59,7 @@
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
     <version.plexus-classworlds>2.6.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
-    <version.plexus-utils>3.0.24</version.plexus-utils>
+    <version.plexus-utils>3.5.0</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
