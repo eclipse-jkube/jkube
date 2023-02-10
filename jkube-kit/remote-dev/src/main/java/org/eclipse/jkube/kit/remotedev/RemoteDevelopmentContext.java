@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.remotedev;
 
+import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -26,8 +27,10 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -46,6 +49,8 @@ public class RemoteDevelopmentContext {
   @Getter
   private final String sshRsaPublicKey;
   private final Properties properties;
+  @Getter
+  private final Map<LocalService, Service> managedServices;
 
   public RemoteDevelopmentContext(
     KitLogger kitLogger, KubernetesClient kubernetesClient, RemoteDevelopmentConfig remoteDevelopmentConfig) {
@@ -58,6 +63,7 @@ public class RemoteDevelopmentContext {
     clientKeys = initClientKeys();
     sshRsaPublicKey = initSShRsaPublicKey(clientKeys);
     properties = new Properties();
+    managedServices = new ConcurrentHashMap<>();
     try {
       properties.load(RemoteDevelopmentContext.class.getResourceAsStream(REMOTE_DEV_PROPERTIES_FILE));
     } catch(IOException ex) {

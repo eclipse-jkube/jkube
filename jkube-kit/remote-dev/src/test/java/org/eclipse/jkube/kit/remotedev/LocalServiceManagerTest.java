@@ -123,16 +123,20 @@ class LocalServiceManagerTest {
   @Test
   void tearDownServices_deletesNewService() {
     // Given
-    kubernetesClient.services().resource(new ServiceBuilder()
+    final Service service = new ServiceBuilder()
       .withNewMetadata().withName("service").endMetadata()
       .withNewSpec()
       .addNewPort().withPort(31337).endPort()
-      .endSpec().build()).create();
+      .endSpec().build();
+    kubernetesClient.services().resource(service).create();
+    final LocalService localService = LocalService.builder().serviceName("service").port(1337).build();
     final RemoteDevelopmentConfig config = RemoteDevelopmentConfig.builder()
-      .localService(LocalService.builder().serviceName("service").port(1337).build())
+      .localService(localService)
       .build();
+    final RemoteDevelopmentContext context = new RemoteDevelopmentContext(logger, kubernetesClient, config);
+    context.getManagedServices().put(localService, service);
     // When
-    new LocalServiceManager(new RemoteDevelopmentContext(logger, kubernetesClient, config)).tearDownServices();
+    new LocalServiceManager(context).tearDownServices();
     // Then
     assertThat(kubernetesClient.services().withName("service")
       .waitUntilCondition(Objects::isNull, 1, TimeUnit.SECONDS))
@@ -142,7 +146,7 @@ class LocalServiceManagerTest {
   @Test
   void tearDownServices_restoresOldService() {
     // Given
-    kubernetesClient.services().resource(new ServiceBuilder()
+    final Service service = new ServiceBuilder()
       .withNewMetadata().withName("service")
       .addToAnnotations("jkube/previous-service", Serialization.asJson(new ServiceBuilder()
         .withNewMetadata().withName("service").endMetadata()
@@ -151,12 +155,16 @@ class LocalServiceManagerTest {
       .endMetadata()
       .withNewSpec()
       .addNewPort().withPort(1337).endPort()
-      .endSpec().build()).create();
+      .endSpec().build();
+    kubernetesClient.services().resource(service).create();
+    final LocalService localService = LocalService.builder().serviceName("service").port(1337).build();
     final RemoteDevelopmentConfig config = RemoteDevelopmentConfig.builder()
-      .localService(LocalService.builder().serviceName("service").port(1337).build())
+      .localService(localService)
       .build();
+    final RemoteDevelopmentContext context = new RemoteDevelopmentContext(logger, kubernetesClient, config);
+    context.getManagedServices().put(localService, service);
     // When
-    new LocalServiceManager(new RemoteDevelopmentContext(logger, kubernetesClient, config)).tearDownServices();
+    new LocalServiceManager(context).tearDownServices();
     // Then
     assertThat(kubernetesClient.services().withName("service").get())
       .extracting("spec.selector")

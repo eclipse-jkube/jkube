@@ -13,6 +13,10 @@
  */
 package org.eclipse.jkube.kit.remotedev;
 
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.ServiceSpec;
 import org.apache.sshd.client.SshClient;
 import org.apache.sshd.client.auth.pubkey.UserAuthPublicKeyFactory;
 import org.apache.sshd.client.config.hosts.HostConfigEntryResolver;
@@ -35,6 +39,8 @@ import java.security.PublicKey;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -56,6 +62,7 @@ class PortForwarder implements Callable<Void> {
     logger.debug("Starting port forwarder...");
     while (true) {
       waitForUser();
+      waitForServices();
       final SshClient sshClient = startSshClient();
       try (ClientSession session = createSession(sshClient)) {
         session.auth().verify(10, TimeUnit.SECONDS);
@@ -112,6 +119,13 @@ class PortForwarder implements Callable<Void> {
     }
   }
 
+  private void waitForServices() throws InterruptedException {
+    logger.debug("Waiting for remote services to be created");
+    while (!context.getManagedServices().keySet().containsAll(context.getRemoteDevelopmentConfig().getLocalServices())) {
+      TimeUnit.SECONDS.sleep(1);
+    }
+  }
+
   private void forwardRemotePorts(ClientSession session) throws IOException {
     for (RemoteService remoteService : context.getRemoteDevelopmentConfig().getRemoteServices()) {
       session.startLocalPortForwarding(
@@ -122,13 +136,18 @@ class PortForwarder implements Callable<Void> {
   }
 
   private void forwardLocalPorts(ClientSession session) throws IOException {
-    for (LocalService localService : context.getRemoteDevelopmentConfig().getLocalServices()) {
+    for (Map.Entry<LocalService, Service> managedService : context.getManagedServices().entrySet()) {
+      final int localPort = managedService.getKey().getPort();
+      final int remotePort = Optional.ofNullable(managedService.getValue().getSpec())
+        .map(ServiceSpec::getPorts).map(p -> p.iterator().next())
+        .map(ServicePort::getTargetPort).map(IntOrString::getIntVal)
+        .orElse(localPort);
       session.startRemotePortForwarding(
-        new SshdSocketAddress("", localService.getPort()),
-        new SshdSocketAddress("localhost", localService.getPort()) // Extremely important for quarkus:dev
+        new SshdSocketAddress("", remotePort),
+        new SshdSocketAddress("localhost", managedService.getKey().getPort()) // Extremely important for quarkus:dev
       );
       logger.info("Local port '%s' is now available as a Kubernetes Service at %s:%s",
-        localService.getPort(), localService.getServiceName(), localService.getPort());
+        localPort, managedService.getKey().getServiceName(), remotePort);
     }
   }
 

@@ -34,6 +34,9 @@ public class LocalService {
 
   private String serviceName;
   private String type;
+  /**
+   * Local port where the service is exposed
+   */
   private int port;
 
   public Service toKubernetesService() {
