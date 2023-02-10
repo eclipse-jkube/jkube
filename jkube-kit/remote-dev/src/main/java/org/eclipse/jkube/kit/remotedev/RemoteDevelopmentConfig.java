@@ -30,6 +30,7 @@ import java.util.List;
 @EqualsAndHashCode
 public class RemoteDevelopmentConfig {
 
+  private int socksPort;
   @Singular
   private List<RemoteService> remoteServices;
 
