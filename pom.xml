@@ -99,7 +99,7 @@
     <version.license-maven-plugin>3.0</version.license-maven-plugin>
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.8.1</version.maven-compiler-plugin>
-    <version.maven-enforcer-plugin>3.1.0</version.maven-enforcer-plugin>
+    <version.maven-enforcer-plugin>3.2.1</version.maven-enforcer-plugin>
     <version.maven-failsafe-plugin>3.0.0-M8</version.maven-failsafe-plugin>
     <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
     <version.maven-invoker-plugin>3.3.0</version.maven-invoker-plugin>
