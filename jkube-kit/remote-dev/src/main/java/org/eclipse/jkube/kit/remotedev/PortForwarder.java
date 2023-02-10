@@ -47,6 +47,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 class PortForwarder implements Callable<Void> {
 
+  private static final String LOCALHOST = "localhost";
+
   private final RemoteDevelopmentContext context;
   private final KitLogger logger;
   private final AtomicBoolean stop;
@@ -68,6 +70,7 @@ class PortForwarder implements Callable<Void> {
         session.auth().verify(10, TimeUnit.SECONDS);
         forwardRemotePorts(session);
         forwardLocalPorts(session);
+        socksProxy(session);
         session.waitFor(
           Arrays.asList(ClientSession.ClientSessionEvent.CLOSED, ClientSession.ClientSessionEvent.TIMEOUT),
           Duration.ofHours(1));
@@ -107,7 +110,7 @@ class PortForwarder implements Callable<Void> {
 
   private ClientSession createSession(SshClient sshClient) throws IOException {
     return sshClient
-      .connect(context.getUser(), "localhost", context.getSshPort())
+      .connect(context.getUser(), LOCALHOST, context.getSshPort())
       .verify(10, TimeUnit.SECONDS)
       .getSession();
   }
@@ -144,10 +147,20 @@ class PortForwarder implements Callable<Void> {
         .orElse(localPort);
       session.startRemotePortForwarding(
         new SshdSocketAddress("", remotePort),
-        new SshdSocketAddress("localhost", managedService.getKey().getPort()) // Extremely important for quarkus:dev
+        new SshdSocketAddress(LOCALHOST, managedService.getKey().getPort()) // Extremely important for quarkus:dev
       );
       logger.info("Local port '%s' is now available as a Kubernetes Service at %s:%s",
         localPort, managedService.getKey().getServiceName(), remotePort);
+    }
+  }
+
+  private void socksProxy(ClientSession session) throws IOException {
+    final int socksPort = context.getRemoteDevelopmentConfig().getSocksPort();
+    if (socksPort > 0 && socksPort <= 65535) {
+      session.startDynamicPortForwarding(new SshdSocketAddress(LOCALHOST, socksPort));
+      logger.info("SOCKS 5 proxy is now available at 'localhost:%s'", socksPort);
+    } else {
+      logger.debug("SOCKS 5 proxy is disabled");
     }
   }
 

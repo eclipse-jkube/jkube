@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -55,9 +56,11 @@ public class TestHttpStaticServer implements Closeable {
       final int port = getFreeRandomPort();
       final HttpServer ret = HttpServer.create(new InetSocketAddress(port), 0);
       ret.createContext("/", exchange -> {
-        final File file = new File(staticDirectory, exchange.getRequestURI().getPath()).getCanonicalFile();
-        if (file.isFile()) {
-
+        final String path = exchange.getRequestURI().getPath();
+        final File file = new File(staticDirectory, path).getCanonicalFile();
+        if (path.equals("/health")) {
+          reply(exchange, 200, "READY");
+        } else if (file.isFile()) {
           try (
             OutputStream outputStream = exchange.getResponseBody();
             FileInputStream fis = new FileInputStream(file)
@@ -68,17 +71,20 @@ public class TestHttpStaticServer implements Closeable {
             IOUtils.copy(fis, outputStream);
           }
         } else {
-          String response = "404 (Not Found)\n";
-          exchange.sendResponseHeaders(404 , response.length());
-          try (OutputStream os = exchange.getResponseBody()) {
-            os.write(response.getBytes());
-          }
+          reply(exchange, 404, "404 (Not Found)\n");
         }
       });
       log.info("Starting server");
       ret.start();
       return ret;
     };
+  }
+
+  private static void reply(HttpExchange exchange, int code, String body) throws IOException {
+    exchange.sendResponseHeaders(code , body.length());
+    try (OutputStream os = exchange.getResponseBody()) {
+      os.write(body.getBytes());
+    }
   }
 
   public int getPort() {
