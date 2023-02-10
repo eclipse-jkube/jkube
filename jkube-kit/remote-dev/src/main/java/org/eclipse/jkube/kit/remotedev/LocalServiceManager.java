@@ -20,7 +20,6 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.util.Collections;
-import java.util.List;
 
 
 class LocalServiceManager {
@@ -29,17 +28,17 @@ class LocalServiceManager {
 
   private final KitLogger logger;
   private final KubernetesClient kubernetesClient;
-  private final List<LocalService> localServices;
+  private final RemoteDevelopmentContext context;
 
   public LocalServiceManager(RemoteDevelopmentContext context) {
+    this.context = context;
     logger = context.getLogger();
     kubernetesClient = context.getKubernetesClient();
-    localServices = context.getRemoteDevelopmentConfig().getLocalServices();
   }
 
   public void createOrReplaceServices() {
     logger.debug("Creating or replacing Kubernetes services for exposed ports from local environment");
-    for (LocalService localService : localServices) {
+    for (LocalService localService : context.getRemoteDevelopmentConfig().getLocalServices()) {
       final Service existingService = kubernetesClient.services().withName(localService.getServiceName()).get();
       final Service newService;
       if (existingService == null) {
@@ -49,7 +48,7 @@ class LocalServiceManager {
         if (existingService.getMetadata().getAnnotations().get(PREVIOUS_SERVICE_ANNOTATION) != null) {
           previousServiceAnnotation = existingService.getMetadata().getAnnotations().get(PREVIOUS_SERVICE_ANNOTATION);
         } else {
-          final Service cleanExistingService = new ServiceBuilder(existingService)
+          final Service sanitizedExistingService = new ServiceBuilder(existingService)
             .withStatus(null)
             .editSpec()
             .withClusterIP(null)
@@ -57,28 +56,35 @@ class LocalServiceManager {
             .withExternalIPs(Collections.emptyList())
             .endSpec()
             .build();
-          previousServiceAnnotation = Serialization.asJson(cleanExistingService);
+          previousServiceAnnotation = Serialization.asJson(sanitizedExistingService);
         }
-        newService = new ServiceBuilder(localService.toKubernetesService())
+        final ServiceBuilder newServiceBuilder = new ServiceBuilder(localService.toKubernetesService())
           .editOrNewMetadata()
           .addToAnnotations(PREVIOUS_SERVICE_ANNOTATION, previousServiceAnnotation)
-          .endMetadata()
-          .build();
+          .endMetadata();
+        // Prefer existing service ports
+        if (existingService.getSpec().getPorts() != null && existingService.getSpec().getPorts().size() == 1) {
+          newServiceBuilder.editOrNewSpec()
+            .withPorts(existingService.getSpec().getPorts())
+            .endSpec();
+        }
+        newService = newServiceBuilder.build();
       }
       kubernetesClient.services().resource(newService).createOrReplace();
+      context.getManagedServices().put(localService, newService);
     }
   }
 
   public void tearDownServices() {
     logger.debug("Tearing down Kubernetes services for exposed ports from local environment");
-    for (LocalService localService : localServices) {
-      final Service service = kubernetesClient.services().withName(localService.getServiceName()).get();
+    for (Service managedService : context.getManagedServices().values()) {
+      final Service service = kubernetesClient.services().resource(managedService).fromServer().get();
       if (service != null && service.getMetadata().getAnnotations().get(PREVIOUS_SERVICE_ANNOTATION) != null) {
         final Service previousService = Serialization.unmarshal(
           service.getMetadata().getAnnotations().get(PREVIOUS_SERVICE_ANNOTATION), Service.class);
         kubernetesClient.services().resource(previousService).createOrReplace();
       } else if (service != null) {
-        kubernetesClient.services().withName(localService.getServiceName()).delete();
+        kubernetesClient.services().resource(service).delete();
       }
     }
   }
