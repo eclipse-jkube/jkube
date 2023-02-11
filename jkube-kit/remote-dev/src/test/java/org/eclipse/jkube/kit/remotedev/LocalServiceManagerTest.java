@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.remotedev;
 
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
@@ -69,7 +70,7 @@ class LocalServiceManagerTest {
   void createOrReplaceServices_withExistingService_replacesService() {
     // Given
     kubernetesClient.services().resource(new ServiceBuilder()
-      .withNewMetadata().withName("service").endMetadata()
+      .withNewMetadata().withName("service").addToAnnotations("k8s", "io").endMetadata()
       .withNewSpec()
       .addNewPort().withPort(31337).endPort()
       .endSpec().build()).create();
@@ -83,7 +84,8 @@ class LocalServiceManagerTest {
       .hasFieldOrPropertyWithValue("metadata.name", "service")
       .extracting(s -> s.getMetadata().getAnnotations().get("jkube/previous-service"))
       .extracting(Serialization::unmarshal)
-      .isInstanceOf(Service.class)
+      .asInstanceOf(InstanceOfAssertFactories.type(Service.class))
+      .satisfies(s -> assertThat(s.getMetadata().getAnnotations()).containsEntry("k8s", "io"))
       .extracting("spec.ports").asList()
       .extracting("port")
       .containsExactly(31337);
@@ -118,6 +120,27 @@ class LocalServiceManagerTest {
       .extracting("spec.ports").asList()
       .extracting("port")
       .containsExactly(42);
+  }
+
+  @Test
+  void createOrReplaceServices_withExistingService_reusesPort() {
+    // Given
+    kubernetesClient.services().resource(new ServiceBuilder()
+      .withNewMetadata().withName("service").endMetadata()
+      .withNewSpec()
+      .addNewPort().withPort(31337).withNewTargetPort().withValue(42).endTargetPort().endPort()
+      .endSpec().build()).create();
+    final RemoteDevelopmentConfig config = RemoteDevelopmentConfig.builder()
+      .localService(LocalService.builder().serviceName("service").port(1337).build())
+      .build();
+    // When
+    new LocalServiceManager(new RemoteDevelopmentContext(logger, kubernetesClient, config)).createOrReplaceServices();
+    // Then
+    assertThat(kubernetesClient.services().withName("service").get())
+      .hasFieldOrPropertyWithValue("metadata.name", "service")
+      .extracting("spec.ports").asList()
+      .extracting("targetPort")
+      .containsExactly(new IntOrString(42));
   }
 
   @Test
