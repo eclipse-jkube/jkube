@@ -635,7 +635,7 @@ public class AuthConfigFactory {
         DEFAULT("jkube.docker.",null);
 
         private final String sysPropPrefix;
-        private String configMapKey;
+        private final String configMapKey;
 
         LookupMode(String sysPropPrefix,String configMapKey) {
             this.sysPropPrefix = sysPropPrefix;
