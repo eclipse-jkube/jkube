@@ -13,6 +13,9 @@
  */
 package org.eclipse.jkube.kit.remotedev;
 
+import io.fabric8.kubernetes.api.model.IntOrString;
+import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.io.IOUtils;
 import org.apache.sshd.common.kex.KexProposalOption;
@@ -145,7 +148,16 @@ class PortForwarderTest implements Supplier<RemoteDevelopmentContext> {
       context = new RemoteDevelopmentContext(
         spy(new KitLogger.SilentLogger()), mock(KubernetesClient.class), RemoteDevelopmentConfig.builder()
         .socksPort(IoUtil.getFreeRandomPort())
+        .remoteService(RemoteService.builder()
+          .hostname("localhost")
+          .port(IoUtil.getFreeRandomPort())
+          .localPort(IoUtil.getFreeRandomPort()).build())
+        .localService(LocalService.builder()
+          .serviceName("test-service")
+          .port(IoUtil.getFreeRandomPort()).build())
         .build());
+      context.getManagedServices()
+        .put(context.getRemoteDevelopmentConfig().getLocalServices().iterator().next(), new Service());
       portForwarder = new PortForwarder(context);
     }
 
@@ -169,6 +181,61 @@ class PortForwarderTest implements Supplier<RemoteDevelopmentContext> {
       }
     }
 
+    @Test
+    void waitsForManagedServices() {
+      // Given
+      context.getManagedServices().clear();
+      context.setUser(AUTHORIZED_USER);
+      // When
+      executorService.submit(portForwarder);
+      // Then
+      verify(context.getLogger(), timeout(10000).times(1))
+        .debug("Waiting for remote services to be created");
+    }
+
+    @Test
+    void forwardsLocalPorts() {
+      // Given
+      final LocalService localService = context.getRemoteDevelopmentConfig().getLocalServices().get(0);
+      context.setUser(AUTHORIZED_USER);
+      // When
+      executorService.submit(portForwarder);
+      // Then
+      verify(context.getLogger(), timeout(10000).times(1))
+        .info("Local port '%s' is now available as a Kubernetes Service at %s:%s",
+          localService.getPort(), "test-service", localService.getPort());
+    }
+
+    @Test
+    void forwardsLocalPortsInferringRemotePort() {
+      // Given
+      final LocalService localService = context.getRemoteDevelopmentConfig().getLocalServices().get(0);
+      context.getManagedServices().put(localService, new ServiceBuilder()
+          .withNewSpec()
+          .addNewPort().withTargetPort(new IntOrString(1337)).endPort()
+        .endSpec().build());
+      context.setUser(AUTHORIZED_USER);
+      // When
+      executorService.submit(portForwarder);
+      // Then
+      verify(context.getLogger(), timeout(10000).times(1))
+        .info("Local port '%s' is now available as a Kubernetes Service at %s:%s",
+          localService.getPort(), "test-service", 1337);
+    }
+
+    @Test
+    void forwardsRemotePorts() {
+      // Given
+      final int remotePort = context.getRemoteDevelopmentConfig().getRemoteServices().iterator().next().getPort();
+      final int localPort = context.getRemoteDevelopmentConfig().getRemoteServices().iterator().next().getLocalPort();
+      context.setUser(AUTHORIZED_USER);
+      // When
+      executorService.submit(portForwarder);
+      // Then
+      verify(context.getLogger(), timeout(10000).times(1))
+        .info("Kubernetes Service %s:%s is now available at local port %s",
+          "localhost", remotePort, localPort);
+    }
   }
 
 }
