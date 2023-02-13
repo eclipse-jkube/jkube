@@ -33,6 +33,8 @@ Usage:
 * Fix #2003: check local port available on start remote-dev
 * Fix #2004: AnsiOutputStream exceptions don't prevent logging or program execution 
 * Fix #2008: resources validated after their generation by `k8s:resource`
+* Fix #2052: Remote Dev discovers remote ports for local services exposed in the cluster
+* Fix #2052: Remote Dev includes a SOCKS 5 proxy
 
 ### 1.10.1 (2022-11-16)
 * Fix #1915: Maven 3.6.3 is still supported
