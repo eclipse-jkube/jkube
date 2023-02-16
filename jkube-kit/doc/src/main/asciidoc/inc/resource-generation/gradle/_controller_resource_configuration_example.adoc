@@ -3,11 +3,11 @@
 ----
 {pluginExtension} {
     resources {
-        env { //<1>
-            organization = 'Eclipse Foundation'
-            projectname = 'jkube'
-        }
         controller {
+            env { //<1>
+                organization = 'Eclipse Foundation'
+                projectname = 'jkube'
+            }
             controllerName = 'my-deploymentname' //<2>
             containerPrivileged = 'true' //<3>
             imagePullPolicy = 'Always' //<4>
