@@ -20,6 +20,8 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.12-SNAPSHOT
+
 ### 1.11.0
 * Fix #1316: Add support for adding InitContainers via plugin configuration
 * Fix #1439: Add hint to use `jkube.domain` if `createExternalUrls` is used without domain
