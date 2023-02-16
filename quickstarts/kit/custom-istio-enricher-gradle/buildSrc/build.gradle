@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.eclipse.jkube:jkube-kit-enricher-api:1.10.1'
+    implementation 'org.eclipse.jkube:jkube-kit-enricher-api:1.11.0'
     implementation 'io.fabric8:istio-client:5.12.2'
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'

@@ -1,6 +1,6 @@
 # Changes
 
-This document main purpose is to list changes which might affect backwards compatibility. It will not list all releases as Eclipse JKube is build in a continous delivery fashion.
+This document main purpose is to list changes which might affect backwards compatibility. It will not list all releases as Eclipse JKube is build in a continuous delivery fashion.
 
 We use semantic versioning in some slight variation until our feature set has stabilized and the missing pieces has been filled in:
 
@@ -20,9 +20,9 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.11-SNAPSHOT
+### 1.11.0
 * Fix #1316: Add support for adding InitContainers via plugin configuration
-* Fix #1439: Add hint to use jkube.domain if createExternalUrls is used without domain
+* Fix #1439: Add hint to use `jkube.domain` if `createExternalUrls` is used without domain
 * Fix #1459: Route Generation should support `8443` as default web port
 * Fix #1546: Migrate to JUnit5 testing framework
 * Fix #1829: Add trailing newline for labels/annotations for multiline values to avoid setting block chomping indicator
