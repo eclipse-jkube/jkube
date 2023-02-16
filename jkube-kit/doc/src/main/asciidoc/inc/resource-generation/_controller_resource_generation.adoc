@@ -39,53 +39,6 @@ endif::[]
 | <<generated-controller-resource-configuration, `controller`>>
 | Configuration element for changing various aspects of generated Controller.
 
-| `env`
-| _Deprecated: Use same field inside <<generated-controller-resource-configuration, `controller`>>_
-
-Environment variables which will be added to containers in Pod template spec.
-
-| <<volume-resource-configuration, `volumes`>>
-| _Deprecated: Use same field inside <<generated-controller-resource-configuration, `controller`>>_
-
-Configuration element for adding volume mounts to containers in Pod template spec
-
-| `controllerName`
-| _Deprecated: Use same field inside <<generated-controller-resource-configuration, `controller`>>_
-
-Name of the controller resource(i.e. `Deployment`, `ReplicaSet`, `StatefulSet` etc) generated
-
-| <<probe-resources-configuration, `liveness`>>
-| _Deprecated: Use same field inside <<generated-controller-resource-configuration, `controller`>>_
-
-Configuration element for adding a liveness probe
-
-| <<probe-resources-configuration, `readiness`>>
-| _Deprecated: Use same field inside <<generated-controller-resource-configuration, `controller`>>_
-
-Configuration element for adding readiness probe
-
-| `containerPrivileged`
-| _Deprecated: Use same field inside <<generated-controller-resource-configuration, `controller`>>_
-
-Run container in privileged mode. Sets `privileged: true` in generated Controller's PodTemplateSpec
-
-| `imagePullPolicy`
-| _Deprecated: Use same field inside <<generated-controller-resource-configuration, `controller`>>_
-
-How images should be pulled (maps to ImagePullPolicy).
-
-| `replicas`
-| _Deprecated: Use same field inside <<generated-controller-resource-configuration, `controller`>>_
-
-Number of replicas to create
-
-| `restartPolicy`
-| _Deprecated: Use same field inside <<generated-controller-resource-configuration, `controller`>>_
-
-Pod's restart policy.
-
-For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster} assumes it to be `Always`)
-
 | `serviceAccount`
 | ServiceAccount name which will be used by pods created by controller resources(e.g. `Deployment`, `ReplicaSet` etc)
 |===
