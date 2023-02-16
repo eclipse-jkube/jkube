@@ -20,12 +20,12 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>1.11.0</version>
+    <version>1.12-SNAPSHOT</version>
     <relativePath>../parent/pom.xml</relativePath>
   </parent>
 
   <artifactId>jkube-kit-doc</artifactId>
-  <version>1.11.0</version>
+  <version>1.12-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>JKube Kit :: Documentation</name>
