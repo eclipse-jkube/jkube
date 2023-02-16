@@ -22,7 +22,7 @@ Usage:
 ```
 ### 1.12-SNAPSHOT
 
-### 1.11.0
+### 1.11.0 (2023-02-16)
 * Fix #1316: Add support for adding InitContainers via plugin configuration
 * Fix #1439: Add hint to use `jkube.domain` if `createExternalUrls` is used without domain
 * Fix #1459: Route Generation should support `8443` as default web port
