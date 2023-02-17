@@ -1,0 +1,30 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: second-service
+  labels:
+    app: second
+    provider: second-provider
+    version: 1.0.0
+    group: org.eclipse.jkube.second
+spec:
+  selector:
+    app: second
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 9376

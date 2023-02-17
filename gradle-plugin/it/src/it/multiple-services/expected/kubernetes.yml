@@ -1,0 +1,124 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: first
+      provider: first-provider
+      version: 1.0.0
+      group: org.eclipse.jkube.first
+    name: first-service
+  spec:
+    ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 9376
+    selector:
+      app: first
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: multiple-services
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: multiple-services
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: multiple-services
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: second
+      provider: second-provider
+      version: 1.0.0
+      group: org.eclipse.jkube.second
+    name: second-service
+  spec:
+    ports:
+    - port: 80
+      protocol: TCP
+      targetPort: 9376
+    selector:
+      app: second
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.io/git-url: "@ignore@"
+      jkube.io/git-commit: "@ignore@"
+      jkube.io/git-branch: "@ignore@"
+    labels:
+      app: multiple-services
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: multiple-services
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: multiple-services
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+    template:
+      metadata:
+        annotations:
+          jkube.io/git-url: "@ignore@"
+          jkube.io/git-commit: "@ignore@"
+          jkube.io/git-branch: "@ignore@"
+        labels:
+          app: multiple-services
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+        name: multiple-services
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: repository/multiple-services:latest
+          imagePullPolicy: IfNotPresent
+          name: repository-multiple-services
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          securityContext:
+            privileged: false
