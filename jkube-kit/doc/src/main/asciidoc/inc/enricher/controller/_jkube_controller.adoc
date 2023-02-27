@@ -38,7 +38,7 @@ Image pull policy to use for the container. One of: _IfNotPresent_, _Always_.
 
 | *type*
 | Type of Controller to create. One of: _ReplicationController_, _ReplicaSet_, _Deployment_, _DeploymentConfig_,
-  _StatefulSet_, _DaemonSet_, _Job_.
+  _StatefulSet_, _DaemonSet_, _Job_, _CronJob_.
 
   Defaults to `Deployment`.
 | `jkube.enricher.jkube-controller.type`
@@ -48,6 +48,10 @@ Image pull policy to use for the container. One of: _IfNotPresent_, _Always_.
 
   Defaults to `1`.
 | `jkube.enricher.jkube-controller.replicaCount`
+
+| *schedule*
+| Schedule for _CronJob_ written in https://en.wikipedia.org/wiki/Cron[Cron] syntax.
+| `jkube.enricher.jkube-controller.schedule`
 
 |
 | Image pull policy to use for the container. One of: _IfNotPresent_, _Always_.

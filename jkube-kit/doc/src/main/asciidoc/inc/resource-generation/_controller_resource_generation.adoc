@@ -11,6 +11,7 @@ In JKube terminology, a Controller resource is a Kubernetes resource which manag
 * https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/[StatefulSet]
 * https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
 * https://kubernetes.io/docs/concepts/workloads/controllers/job/[Job]
+* https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/[CronJob]
 ifeval::["{task-prefix}" == "oc"]
 * https://docs.openshift.com/container-platform/4.7/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are[DeploymentConfig]
 endif::[]
@@ -93,6 +94,8 @@ For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster
 
 | <<container-resources-configuration, `containerResources`>>
 | Configure Controller's compute resource requirements
+| `schedule`
+| Schedule for _CronJob_ written in https://en.wikipedia.org/wiki/Cron[Cron] syntax.
 |===
 
 
