@@ -3,7 +3,7 @@
 ==== jkube-replicas
 
 This enricher overrides the number of replicas for *every* controller
-(_DaemonSet_, _Deployment_, _DeploymentConfig_, _Job_, _ReplicationController_, _ReplicaSet_, _StatefulSet_)
+(_DaemonSet_, _Deployment_, _DeploymentConfig_, _Job_, _CronJob_, _ReplicationController_, _ReplicaSet_, _StatefulSet_)
 generated or processed by JKube (including those from <<jkube-dependency, dependencies>>).
 
 In order to use this enricher you need to configure the `jkube.replicas` property:
