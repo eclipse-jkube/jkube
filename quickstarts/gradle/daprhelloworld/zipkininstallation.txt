@@ -1,0 +1,14 @@
+-- create name space usernamespace
+-- kubectl create namespace usernamespace
+-- for installing zipkin use below command
+-- kubectl -n usernamespace create -f zipkin.yaml
+kubectl create -f zipkin.yaml
+-- kubectl -n usernamespace create -f appconfig.yaml
+kubectl create -f appconfig.yaml
+--for zipkin uninstallation
+-- kubectl -n usernamespace delete -f zipkin.yaml
+   kubectl delete -f zipkin.yaml
+-- kubectl -n usernamespace delete -f appconfig.yaml
+   kubectl delete -f appconfig.yaml
+-- delete namespace
+--kubectl delete namespace usernamespace
