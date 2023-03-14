@@ -78,7 +78,7 @@ class LocalServiceManager {
   public void tearDownServices() {
     logger.debug("Tearing down Kubernetes services for exposed ports from local environment");
     for (Service managedService : context.getManagedServices().values()) {
-      final Service service = kubernetesClient.services().resource(managedService).fromServer().get();
+      final Service service = kubernetesClient.services().resource(managedService).get();
       if (service != null && service.getMetadata().getAnnotations().get(PREVIOUS_SERVICE_ANNOTATION) != null) {
         final Service previousService = Serialization.unmarshal(
           service.getMetadata().getAnnotations().get(PREVIOUS_SERVICE_ANNOTATION), Service.class);

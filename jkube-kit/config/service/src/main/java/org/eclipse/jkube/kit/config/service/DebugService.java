@@ -165,13 +165,13 @@ public class DebugService {
 
     private boolean isDebugAlreadyEnabled(ReplicationController entity, boolean debugSuspend) {
       return firstContainerHasEnvVars(
-          kubernetesClient.resource(entity).fromServer().get().getSpec().getTemplate().getSpec().getContainers(),
+          kubernetesClient.resource(entity).get().getSpec().getTemplate().getSpec().getContainers(),
           initDebugEnvVarsMap(debugSuspend));
     }
 
     private boolean isDebugAlreadyEnabled(DeploymentConfig entity, boolean debugSuspend) {
         return firstContainerHasEnvVars(
-            kubernetesClient.resource(entity).fromServer().get().getSpec().getTemplate().getSpec().getContainers(),
+            kubernetesClient.resource(entity).get().getSpec().getTemplate().getSpec().getContainers(),
             initDebugEnvVarsMap(debugSuspend));
     }
 

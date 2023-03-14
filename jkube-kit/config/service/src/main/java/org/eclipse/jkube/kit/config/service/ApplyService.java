@@ -143,7 +143,7 @@ public class ApplyService {
 
     public boolean isAlreadyApplied(HasMetadata resource) {
         return kubernetesClient.resource(resource)
-            .inNamespace(applicableNamespace(resource, namespace, fallbackNamespace)).fromServer().get() != null;
+            .inNamespace(applicableNamespace(resource, namespace, fallbackNamespace)).get() != null;
     }
 
     /**
@@ -1079,7 +1079,6 @@ public class ApplyService {
                     log.info("rollingUpgradePreserveScale " + rollingUpgradePreserveScale + " new replicas is " + (newSpec != null ? newSpec.getReplicas() : "<null>"));
                     kubernetesClient.replicationControllers()
                         .inNamespace(currentNamespace).withName(id)
-                        .rolling()
                         .patch(PatchContext.of(PatchType.SERVER_SIDE_APPLY), replicationController);
                 } else if (isRecreateMode()) {
                     log.info("Deleting ReplicationController: " + id);

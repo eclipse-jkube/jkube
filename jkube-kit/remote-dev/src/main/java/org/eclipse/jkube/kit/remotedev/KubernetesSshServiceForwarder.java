@@ -53,7 +53,7 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
     logger.debug("Starting Kubernetes SSH service forwarder...");
     final InetAddress allInterfaces = InetAddress.getByName("0.0.0.0");
     while (!stop.get()) {
-      if (sshService == null || kubernetesClient.pods().resource(sshService).fromServer().get() == null) {
+      if (sshService == null || kubernetesClient.pods().resource(sshService).get() == null) {
         context.reset();
         sshService = deploySshServerPod();
       }
@@ -127,7 +127,7 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
   }
 
   private boolean shouldRestart(Pod sshService, LocalPortForward localPortForward) {
-    if (kubernetesClient.pods().resource(sshService).fromServer().get() == null) {
+    if (kubernetesClient.pods().resource(sshService).get() == null) {
       logger.warn("JKube remote development Pod is gone, recreating");
       return true;
     }
