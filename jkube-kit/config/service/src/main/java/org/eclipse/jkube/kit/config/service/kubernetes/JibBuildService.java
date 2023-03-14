@@ -20,15 +20,18 @@ import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.api.helper.BuildUtil;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -41,6 +44,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePullRegistryFrom;
 import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePushRegistryFrom;
@@ -131,7 +135,21 @@ public class JibBuildService extends AbstractImageBuildService {
             imageConfiguration.setName(imageName.getFullName(registry));
             imageConfiguration.setRegistry(registry);
         }
+        prependRegistryForFromImage(imageConfiguration, registry);
         return imageConfiguration;
+    }
+
+    private static ImageConfiguration prependRegistryForFromImage(ImageConfiguration imageConfig, String registry) {
+        BuildConfiguration buildConfiguration = imageConfig.getBuildConfiguration();
+        String fromImage = BuildUtil.extractBaseFromConfiguration(buildConfiguration);
+        ImageName fromImageName = Optional.ofNullable(fromImage).map(ImageName::new).orElse(null);
+        String imageRegistry = fromImageName != null ? fromImageName.getRegistry() : null;
+        final String actualRegistry = EnvUtil.firstRegistryOf(imageRegistry, registry, imageConfig.getRegistry());
+
+        if (actualRegistry != null && fromImageName != null && !fromImageName.hasRegistry()) {
+            buildConfiguration.setFrom(actualRegistry + "/" + buildConfiguration.getFrom());
+        }
+        return imageConfig;
     }
 
     static File getAssemblyTarArchive(ImageConfiguration imageConfig, JKubeConfiguration configuration, KitLogger log) throws IOException {

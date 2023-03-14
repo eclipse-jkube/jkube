@@ -48,6 +48,7 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Setter
 @EqualsAndHashCode(doNotUseGetters = true)
 public class BuildConfiguration implements Serializable {
 

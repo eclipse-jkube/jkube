@@ -171,6 +171,8 @@ class JibBuildServiceTest {
         // Then
         assertThat(imageConfiguration).isNotNull()
             .hasFieldOrPropertyWithValue("name", "quay.io/test/testimage:0.0.1");
+        assertThat(imageConfiguration.getBuildConfiguration()).isNotNull()
+            .hasFieldOrPropertyWithValue("from", "quay.io/busybox");
     }
 
     @Test
