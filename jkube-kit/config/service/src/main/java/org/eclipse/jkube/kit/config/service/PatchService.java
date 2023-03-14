@@ -105,7 +105,7 @@ public class PatchService {
                 new PodBuilder(client.pods()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .fromServer().get());
+                      .get());
 
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
@@ -132,7 +132,7 @@ public class PatchService {
                 new ReplicationControllerBuilder(client.replicationControllers()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .fromServer().get());
+                      .get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -158,7 +158,7 @@ public class PatchService {
                 new ServiceBuilder(client.services()
                       .inNamespace(namespace)
                       .withName(newObj.getMetadata().getName())
-                      .fromServer().get());
+                      .get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -183,7 +183,7 @@ public class PatchService {
                 new SecretBuilder(client.secrets()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .fromServer().get());
+                      .get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -211,7 +211,7 @@ public class PatchService {
                 new PersistentVolumeClaimBuilder(client.persistentVolumeClaims()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .fromServer().get());
+                      .get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -236,7 +236,7 @@ public class PatchService {
             CustomResourceDefinitionBuilder entity =
                     new CustomResourceDefinitionBuilder(client.apiextensions().v1().customResourceDefinitions()
                             .withName(oldObj.getMetadata().getName())
-                            .fromServer().get());
+                            .get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -257,7 +257,7 @@ public class PatchService {
                 return oldObj;
             }
 
-            JobBuilder entity = new JobBuilder(client.batch().v1().jobs().withName(oldObj.getMetadata().getName()).fromServer().get());
+            JobBuilder entity = new JobBuilder(client.batch().v1().jobs().withName(oldObj.getMetadata().getName()).get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -291,7 +291,7 @@ public class PatchService {
             BuildConfigBuilder entity =
                 new BuildConfigBuilder(openShiftClient.buildConfigs()
                       .inNamespace(namespace)
-                      .withName(oldObj.getMetadata().getName()).fromServer().get());
+                      .withName(oldObj.getMetadata().getName()).get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -320,7 +320,7 @@ public class PatchService {
                 new ImageStreamBuilder(openShiftClient.imageStreams()
                       .inNamespace(namespace)
                       .withName(oldObj.getMetadata().getName())
-                      .fromServer().get());
+                      .get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());
@@ -349,7 +349,7 @@ public class PatchService {
             RouteBuilder entity = new RouteBuilder(openShiftClient.routes()
                     .inNamespace(namespace)
                     .withName(oldObj.getMetadata().getName())
-                    .fromServer().get());
+                    .get());
 
             if (!UserConfigurationCompare.configEqual(newObj.getMetadata(), oldObj.getMetadata())) {
                 entity.withMetadata(newObj.getMetadata());

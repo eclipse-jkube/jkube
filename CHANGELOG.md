@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.12-SNAPSHOT
 * Fix #1273: Deprecate `jkube.io` annotation prefix in favor of `jkube.eclipse.org` for JKubeAnnotations
+* Fix #2079: Bump kubernetes-client to 6.5.0
 
 ### 1.11.0 (2023-02-16)
 * Fix #1316: Add support for adding InitContainers via plugin configuration
