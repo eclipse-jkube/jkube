@@ -7,10 +7,10 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: first
       provider: first-provider
@@ -31,10 +31,10 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: multiple-services
       provider: jkube
@@ -56,10 +56,10 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: second
       provider: second-provider
@@ -80,10 +80,10 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: multiple-services
       provider: jkube
@@ -105,10 +105,10 @@ items:
       metadata:
         annotations:
           app.openshift.io/vcs-ref: "@ignore@"
-          jkube.io/git-url: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
           app.openshift.io/vcs-uri: "@ignore@"
-          jkube.io/git-commit: "@ignore@"
-          jkube.io/git-branch: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
         labels:
           app: multiple-services
           provider: jkube
@@ -146,10 +146,10 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: first
       provider: first-provider
@@ -167,10 +167,10 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: multiple-services
       provider: jkube
@@ -188,10 +188,10 @@ items:
   metadata:
     annotations:
       app.openshift.io/vcs-ref: "@ignore@"
-      jkube.io/git-url: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
       app.openshift.io/vcs-uri: "@ignore@"
-      jkube.io/git-commit: "@ignore@"
-      jkube.io/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
     labels:
       app: second
       provider: second-provider
