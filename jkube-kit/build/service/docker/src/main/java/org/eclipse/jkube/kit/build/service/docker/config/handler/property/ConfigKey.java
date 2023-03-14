@@ -155,11 +155,11 @@ public enum ConfigKey {
     // Convert to camel case
     private String toVarName(String s) {
         String[] parts = s.split("_");
-        StringBuilder var = new StringBuilder(parts[0].toLowerCase());
+        StringBuilder stringBuilder = new StringBuilder(parts[0].toLowerCase());
         for (int i = 1; i < parts.length; i++) {
-            var.append(parts[i].substring(0, 1).toUpperCase()).append(parts[i].substring(1).toLowerCase());
+            stringBuilder.append(parts[i].substring(0, 1).toUpperCase()).append(parts[i].substring(1).toLowerCase());
         }
-        return var.toString();
+        return stringBuilder.toString();
     }
 
     public String asPropertyKey(String prefix) {
