@@ -86,12 +86,13 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
   }
 
   private Pod deploySshServerPod() {
-    final String name = "jkube-remote-dev-" + UUID.randomUUID();
+    final String name = "jkube-remote-dev-" + context.getSessionID();
     final PodBuilder pod = new PodBuilder()
       .withNewMetadata()
       .withName(name)
       .addToLabels("app", REMOTE_DEVELOPMENT_APP)
       .addToLabels("group", REMOTE_DEVELOPMENT_GROUP)
+      .addToLabels("jkube-id", context.getSessionID().toString())
       .endMetadata()
       .withNewSpec()
       .addNewContainer()

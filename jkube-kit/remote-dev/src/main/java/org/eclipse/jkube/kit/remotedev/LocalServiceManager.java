@@ -42,7 +42,7 @@ class LocalServiceManager {
       final Service existingService = kubernetesClient.services().withName(localService.getServiceName()).get();
       final Service newService;
       if (existingService == null) {
-        newService = localService.toKubernetesService();
+        newService = localService.toKubernetesService(context.getSessionID());
       } else {
         final String previousServiceAnnotation;
         if (existingService.getMetadata().getAnnotations().get(PREVIOUS_SERVICE_ANNOTATION) != null) {
@@ -58,7 +58,7 @@ class LocalServiceManager {
             .build();
           previousServiceAnnotation = Serialization.asJson(sanitizedExistingService);
         }
-        final ServiceBuilder newServiceBuilder = new ServiceBuilder(localService.toKubernetesService())
+        final ServiceBuilder newServiceBuilder = new ServiceBuilder(localService.toKubernetesService(context.getSessionID()))
           .editOrNewMetadata()
           .addToAnnotations(PREVIOUS_SERVICE_ANNOTATION, previousServiceAnnotation)
           .endMetadata();
