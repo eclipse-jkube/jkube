@@ -91,6 +91,8 @@ This configuration field is focused only on changing various elements of Control
 
 For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster} assumes it to be `Always`)
 
+| <<resource-requests-limits-configuration, `resourceRequestsLimits`>>
+| Configure Controller's compute resource requirements
 |===
 
 
@@ -119,4 +121,19 @@ For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster
 
 | `env`
 | Environment variables that will be added to this InitContainer in Pod template spec.
+|===
+
+[[resource-requests-limits-configuration]]
+==== Resource Requests/Limits {plugin-configuration-type} configuration
+
+.resourceRequestsLimits fields for specifying compute resource requirements
+[cols="1,5"]
+|===
+| Element | Description
+
+| `requests`
+| The minimum amount of compute resources required. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[Kubernetes Resource Management Documentation] for more info.
+
+| `limits`
+| The maximum amount of compute resources allowed. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[Kubernetes Resource Management Documentation] for more info.
 |===
