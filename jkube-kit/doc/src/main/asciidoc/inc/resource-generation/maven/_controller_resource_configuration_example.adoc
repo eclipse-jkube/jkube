@@ -33,6 +33,16 @@
                 </mounts>
               </volume>
             </volumes>
+           <resourceRequestsLimits>
+              <requests> <!--9-->
+                 <memory>32Mi</memory>
+                 <cpu>300m</cpu>
+              </requests>
+              <limits> <!--10-->
+                 <memory>64Mi</memory>
+                 <cpu>500m</cpu>
+              </limits>
+           </resourceRequestsLimits>
         </controller>
     </resources>
 </configuration>
@@ -46,3 +56,5 @@
 <6> Define an HTTP liveness request, see https://kubernetes.io/docs/concepts/containers/images/#updating-images[Kubernetes Liveness/Readiness probes] for more details.
 <7> Define an HTTP startup request, see https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/[Kubernetes Startup probes] for more details.
 <8> Mounting an EmptyDir Volume to your application pods
+<9> Requests describe the minimum amount of compute resources required. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[Kubernetes Resource Management Documentation] for more info.
+<10> Limits describe the maximum amount of compute resources allowed. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[Kubernetes Resource Management Documentation] for more info.
