@@ -103,7 +103,7 @@ public class ResourceConfig {
   private List<String> customResourceDefinitions;
   @Singular
   private List<ServiceAccountConfig> serviceAccounts;
-  private OpenshiftBuildConfig openshiftBuildConfig;
+  private RequestsLimitsConfig openshiftBuildConfig;
   private Boolean createExternalUrls;
   private IngressConfig ingress;
   private String routeDomain;

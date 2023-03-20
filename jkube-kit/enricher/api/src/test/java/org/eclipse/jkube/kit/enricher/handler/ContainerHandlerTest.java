@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
+import io.fabric8.kubernetes.api.model.Quantity;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -22,6 +24,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.InitContainerConfig;
+import org.eclipse.jkube.kit.config.resource.RequestsLimitsConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +33,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -397,6 +402,19 @@ class ContainerHandlerTest {
     class VolumeMount {
 
       @Test
+      void withoutVolumesInControllerConfig_thenShouldBeEmpty() {
+        // Given
+        ContainerHandler handler = createContainerHandler(project);
+        images.add(imageConfiguration);
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().build();
+        // When
+        List<io.fabric8.kubernetes.api.model.VolumeMount> volumeMounts = handler.getContainers(config1, images).get(0)
+            .getVolumeMounts();
+        // Then
+        assertThat(volumeMounts).isEmpty();
+      }
+
+      @Test
       @DisplayName("without mount path and with name, should be empty")
       void withoutMountPathAndWithName_shouldBeEmpty() {
         ContainerHandler handler = createContainerHandler(project);
@@ -577,11 +595,57 @@ class ContainerHandlerTest {
         assertThat(hostPortCount).isEqualTo(4);
     }
 
+    @Test
+    void getContainer_whenNoConfigurationProperties_then() {
+      // Given
+      images.add(imageConfiguration);
+      ContainerHandler handler = createNewContainerHandler(null, probeHandler);
+
+      // When
+      List<Container> result = handler.getContainers(config, images);
+
+      // Then
+      assertThat(result)
+          .singleElement(InstanceOfAssertFactories.type(Container.class))
+          .hasFieldOrPropertyWithValue("image", "docker.io/test:latest");
+    }
+
+    @Test
+    void getContainer_whenResourceRequestsLimitsProvided_thenShouldAddRequestsLimitsToContainer() {
+      // Given
+      Map<String, String> requests = new HashMap<>();
+      Map<String, String> limits = new HashMap<>();
+      limits.put("cpu", "500m");
+      limits.put("memory", "128Mi");
+      requests.put("cpu", "250m");
+      requests.put("memory", "64Mi");
+      config = config.toBuilder()
+          .resourceRequestsLimits(RequestsLimitsConfig.builder()
+              .requests(requests)
+              .limits(limits)
+              .build())
+          .build();
+      images.clear();
+      images.add(imageConfiguration);
+      ContainerHandler handler = createContainerHandler(project);
+
+      // When
+      List<Container> result = handler.getContainers(config, images);
+
+      // Then
+      assertThat(result)
+          .singleElement(InstanceOfAssertFactories.type(Container.class))
+          .hasFieldOrPropertyWithValue("resources.requests.memory", new Quantity("64Mi"))
+          .hasFieldOrPropertyWithValue("resources.requests.cpu", new Quantity("250m"))
+          .hasFieldOrPropertyWithValue("resources.limits.memory", new Quantity("128Mi"))
+          .hasFieldOrPropertyWithValue("resources.limits.cpu", new Quantity("500m"));
+    }
 
     private ContainerHandler createContainerHandler(JavaProject testProject) {
-      return new ContainerHandler(
-          testProject.getProperties(),
-          new GroupArtifactVersion("g", "a", "v"),
-          probeHandler);
+      return createNewContainerHandler(testProject.getProperties(), probeHandler);
+    }
+
+    private ContainerHandler createNewContainerHandler(Properties properties, ProbeHandler probeHandler) {
+      return new ContainerHandler(properties, new GroupArtifactVersion("g", "a", "v"), probeHandler);
     }
 }

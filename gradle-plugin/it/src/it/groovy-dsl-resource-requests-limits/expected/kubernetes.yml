@@ -1,0 +1,60 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+    labels:
+      app: groovy-dsl-resource-requests-limits
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: groovy-dsl-resource-requests-limits
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: groovy-dsl-resource-requests-limits
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+    template:
+      metadata:
+        annotations:
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
+        labels:
+          app: groovy-dsl-resource-requests-limits
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+        name: groovy-dsl-resource-requests-limits
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: groovy-dsl-resource-requests-limits:latest
+          imagePullPolicy: IfNotPresent
+          name: orgeclipsejkubeintegrationtestsgradle-groovy-dsl-resource-requests-limits
+          securityContext:
+            privileged: false
+          resources:
+            limits:
+              memory: 256Mi
+              cpu: 500m
+            requests:
+              memory: 128Mi
+              cpu: 250m
