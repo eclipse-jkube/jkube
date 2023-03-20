@@ -22,6 +22,8 @@ import io.fabric8.kubernetes.api.model.ContainerPortBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
+import io.fabric8.kubernetes.api.model.ResourceRequirements;
+import io.fabric8.kubernetes.api.model.ResourceRequirementsBuilder;
 import io.fabric8.kubernetes.api.model.SecurityContext;
 import io.fabric8.kubernetes.api.model.SecurityContextBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
@@ -34,6 +36,7 @@ import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
+import org.eclipse.jkube.kit.config.resource.RequestsLimitsConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +45,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.getQuantityFromString;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isContainerImage;
 
 /**
@@ -79,6 +83,7 @@ public class ContainerHandler {
                     .withLivenessProbe(livenessProbe)
                     .withReadinessProbe(readinessProbe)
                     .withStartupProbe(startupProbe)
+                    .withResources(createResourcesFromConfig(config))
                     .build();
                 ret.add(container);
             }
@@ -193,5 +198,20 @@ public class ContainerHandler {
             portBuilder.withHostIP(portSpec.get("hostIP").getAsString());
         }
         return portBuilder.build();
+    }
+
+    private ResourceRequirements createResourcesFromConfig(ControllerResourceConfig config) {
+        if (config != null && config.getResourceRequestsLimits() != null) {
+            RequestsLimitsConfig requestsLimitsConfig = config.getResourceRequestsLimits();
+            ResourceRequirementsBuilder resourceRequirementsBuilder = new ResourceRequirementsBuilder();
+            if (requestsLimitsConfig.getRequests() != null && !requestsLimitsConfig.getRequests().isEmpty()) {
+                resourceRequirementsBuilder.withRequests(getQuantityFromString(requestsLimitsConfig.getRequests()));
+            }
+            if (requestsLimitsConfig.getLimits() != null && !requestsLimitsConfig.getLimits().isEmpty()) {
+                resourceRequirementsBuilder.withLimits(getQuantityFromString(requestsLimitsConfig.getLimits()));
+            }
+            return resourceRequirementsBuilder.build();
+        }
+        return null;
     }
 }

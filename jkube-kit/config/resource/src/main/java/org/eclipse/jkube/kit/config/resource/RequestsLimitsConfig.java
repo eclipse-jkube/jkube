@@ -27,11 +27,10 @@ import lombok.Singular;
 @NoArgsConstructor
 @Getter
 @EqualsAndHashCode
-public class OpenshiftBuildConfig {
+public class RequestsLimitsConfig {
 
   @Singular
   private Map<String, String> limits;
   @Singular
   private Map<String, String> requests;
-
 }

@@ -42,4 +42,5 @@ public class ControllerResourceConfig {
   private String imagePullPolicy;
   private Integer replicas;
   private String restartPolicy;
+  private RequestsLimitsConfig resourceRequestsLimits;
 }

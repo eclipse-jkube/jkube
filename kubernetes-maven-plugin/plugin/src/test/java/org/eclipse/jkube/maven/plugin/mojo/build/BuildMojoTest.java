@@ -14,7 +14,7 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.apache.maven.project.MavenProject;
-import org.eclipse.jkube.kit.config.resource.OpenshiftBuildConfig;
+import org.eclipse.jkube.kit.config.resource.RequestsLimitsConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +41,7 @@ class BuildMojoTest {
         BuildMojo buildMojo = new BuildMojo();
         buildMojo.project = mavenProject;
         buildMojo.resources = ResourceConfig.builder()
-                .openshiftBuildConfig(OpenshiftBuildConfig.builder()
+                .openshiftBuildConfig(RequestsLimitsConfig.builder()
                         .limit("cpu", "200m")
                         .request("memory", "1Gi")
                         .build())
