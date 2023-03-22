@@ -135,6 +135,27 @@ class MavenConfigurationExtractorTest {
                 .containsEntry("a", expected);
     }
 
+    @Test
+    void should_parse_list_with_inner_elements() {
+
+        // Given
+        final Plugin fakePlugin = createFakePlugin("<a>" +
+                "<b><c>c1</c><c>c2</c></b>" +
+                "<b/>" +
+                "</a>");
+
+        // When
+        final Map<String, Object> config = MavenConfigurationExtractor.extract((Xpp3Dom) fakePlugin.getConfiguration());
+
+        // Then
+        final Map<String, Object> expectedC = new HashMap<>();
+        expectedC.put("c", Arrays.asList("c1", "c2"));
+        final Map<String, Object> expected = new HashMap<>();
+        expected.put("b", expectedC);
+
+        assertThat(config).containsEntry("a", expected);
+    }
+
     private Plugin createFakePlugin(String config) {
         Plugin plugin = new Plugin();
         plugin.setArtifactId("jkube-maven-plugin");
