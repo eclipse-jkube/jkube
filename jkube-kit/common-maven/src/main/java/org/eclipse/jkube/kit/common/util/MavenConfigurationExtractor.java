@@ -68,7 +68,7 @@ public class MavenConfigurationExtractor {
         final Object insertedValue = conf.get(currentElement.getName());
         if (insertedValue instanceof List) {
             ((List) insertedValue).add(currentElement.getValue());
-        } else {
+        } else if (insertedValue instanceof String) {
             final List<String> list = new ArrayList<>();
             list.add((String) insertedValue);
             list.add(currentElement.getValue());
