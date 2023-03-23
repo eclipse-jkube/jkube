@@ -33,6 +33,30 @@ include::gradle/_example_helm_push_config.adoc[]
 endif::[]
 
 
+ifeval::["{plugin-type}" == "maven"]
+You can provide helm repository authentication credentials either via properties or using environment variables. It's also possible to specify credentials in maven settings as well. You just
+need to add a server entry for your repo like this:
+
+.Helm Repository Authentication credentials in settings.xml
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <servers>
+    <server>
+      <id>snapshot-repo-id</id>
+      <username>admin</username>
+      <password>secret</password>
+    </server>
+  </servers>
+
+</settings>
+----
+endif::[]
+
+
 This configuration section knows the following sub-elements in order to configure your Helm chart.
 
 .Helm configuration
