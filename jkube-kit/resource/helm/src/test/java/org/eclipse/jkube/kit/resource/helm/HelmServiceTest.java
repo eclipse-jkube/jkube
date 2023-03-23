@@ -81,6 +81,30 @@ class HelmServiceTest {
   }
 
   @Test
+  void prepareHelmTarballOutputDir_withTarballDirAlreadySetInHelmConfig_thenReturnAlreadySetDir() {
+    // Given
+    helmConfig.tarballOutputDir("target/jkube/helm/test-project/dir-set-via-helmconfig");
+
+    // When
+    File result = HelmService.prepareHelmTarballOutputDir(helmConfig.build(), HelmType.KUBERNETES);
+
+    // Then
+    assertThat(result.getPath()).isEqualTo("target/jkube/helm/test-project/dir-set-via-helmconfig");
+  }
+
+  @Test
+  void prepareHelmTarballOutputDir_withNoTarballDirProvided_thenDeduceFromOutDirAndType() {
+    // Given
+    helmConfig.outputDir("target/jkube/helm/test-project");
+
+    // When
+    File result = HelmService.prepareHelmTarballOutputDir(helmConfig.build(), HelmType.KUBERNETES);
+
+    // Then
+    assertThat(result.getPath()).isEqualTo("target/jkube/helm/test-project/" + HelmType.KUBERNETES.getOutputDir());
+  }
+
+  @Test
   void createChartYaml() throws Exception {
     try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
       File outputDir = Files.createTempDirectory("chart-output").toFile();

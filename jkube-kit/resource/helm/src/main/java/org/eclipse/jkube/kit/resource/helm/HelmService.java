@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
@@ -85,8 +84,7 @@ public class HelmService {
 
       final File sourceDir = prepareSourceDir(helmConfig, helmType);
       final File outputDir = prepareOutputDir(helmConfig, helmType);
-      final File tarballOutputDir = new File(Objects.requireNonNull(helmConfig.getTarballOutputDir(),
-          "Tarball output directory is required"));
+      final File tarballOutputDir = prepareHelmTarballOutputDir(helmConfig, helmType);
       final File templatesDir = new File(outputDir, "templates");
       FileUtils.forceMkdir(templatesDir);
 
@@ -152,8 +150,7 @@ public class HelmService {
       logger.info("Uploading Helm Chart \"%s\" to %s", helmConfig.getChart(), helmRepository.getName());
       logger.debug("OutputDir: %s", helmConfig.getOutputDir());
 
-      final File tarballOutputDir =
-          new File(Objects.requireNonNull(helmConfig.getTarballOutputDir(), "Tarball output directory is required"));
+      final File tarballOutputDir = prepareHelmTarballOutputDir(helmConfig, helmType);
       final File tarballFile = new File(tarballOutputDir, String.format("%s-%s%s.%s",
           helmConfig.getChart(), helmConfig.getVersion(), resolveHelmClassifier(helmConfig), helmConfig.getChartExtension()));
 
@@ -186,6 +183,13 @@ public class HelmService {
     }
     FileUtils.forceMkdir(outputDir);
     return outputDir;
+  }
+
+  static File prepareHelmTarballOutputDir(HelmConfig helmConfig, HelmConfig.HelmType type) {
+    if (StringUtils.isNotBlank(helmConfig.getTarballOutputDir())) {
+      return new File(helmConfig.getTarballOutputDir());
+    }
+    return new File(helmConfig.getOutputDir(), type.getOutputDir());
   }
 
   public static boolean isYaml(File file) {
@@ -326,7 +330,7 @@ public class HelmService {
   }
 
   private static String resolveHelmClassifier(HelmConfig helmConfig) {
-    if (StringUtils.isEmpty(helmConfig.getTarFileClassifier())) {
+    if (StringUtils.isBlank(helmConfig.getTarFileClassifier())) {
       return EMPTY;
     }
     return "-" + helmConfig.getTarFileClassifier();
