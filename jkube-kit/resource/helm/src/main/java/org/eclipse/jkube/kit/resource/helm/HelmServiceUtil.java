@@ -102,8 +102,7 @@ public class HelmServiceUtil {
     original.setOutputDir(resolveFromPropertyOrDefault(PROPERTY_OUTPUT_DIR, project, original::getOutputDir,
         String.format("%s/jkube/helm/%s", project.getBuildDirectory(), original.getChart())));
     original.setTarFileClassifier(resolveFromPropertyOrDefault(PROPERTY_TARBALL_CLASSIFIER, project, original::getTarFileClassifier, EMPTY));
-    original.setTarballOutputDir(resolveFromPropertyOrDefault(PROPERTY_TARBALL_OUTPUT_DIR, project, original::getTarballOutputDir,
-        String.format("%s/%s", original.getOutputDir(), defaultHelmType.getOutputDir())));
+    original.setTarballOutputDir(resolveFromPropertyOrDefault(PROPERTY_TARBALL_OUTPUT_DIR, project, original::getTarballOutputDir, null));
     return original.toBuilder();
   }
 

@@ -124,7 +124,7 @@ class HelmMojoTest {
           .satisfies(h -> assertThat(h.getAdditionalFiles()).isEmpty())
           .satisfies(h -> assertThat(h.getParameterTemplates()).isEmpty())
           .satisfies(h -> assertThat(h.getTypes()).contains(HelmConfig.HelmType.KUBERNETES))
-          .satisfies(h -> assertThat(h.getTarballOutputDir()).endsWith("/target/jkube/helm/artifact-id/kubernetes"));
+          .satisfies(h -> assertThat(h.getTarballOutputDir()).isNull());
 
       assertThat(helmServiceMockedConstruction.constructed()).hasSize(1);
       verify(helmServiceMockedConstruction.constructed().get(0), times(1)).generateHelmCharts(helmMojo.helm);
