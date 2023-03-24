@@ -118,13 +118,14 @@ class HelmMojoTest {
             .resolve("classes").resolve("META-INF").resolve("jkube") + File.separator)
           .hasFieldOrPropertyWithValue("outputDir", projectDir.resolve("target")
             .resolve("jkube").resolve("helm").resolve("artifact-id").toString())
+          .hasFieldOrPropertyWithValue("tarballOutputDir", projectDir.resolve("target")
+            .resolve("jkube").resolve("helm").resolve("artifact-id").toString())
           .satisfies(h -> assertThat(h.getSources()).contains("https://scm.url"))
           .satisfies(h -> assertThat(h.getMaintainers()).contains(
               new Maintainer("John", "john@example.com")))
           .satisfies(h -> assertThat(h.getAdditionalFiles()).isEmpty())
           .satisfies(h -> assertThat(h.getParameterTemplates()).isEmpty())
-          .satisfies(h -> assertThat(h.getTypes()).contains(HelmConfig.HelmType.KUBERNETES))
-          .satisfies(h -> assertThat(h.getTarballOutputDir()).isNull());
+          .satisfies(h -> assertThat(h.getTypes()).contains(HelmConfig.HelmType.KUBERNETES));
 
       assertThat(helmServiceMockedConstruction.constructed()).hasSize(1);
       verify(helmServiceMockedConstruction.constructed().get(0), times(1)).generateHelmCharts(helmMojo.helm);
