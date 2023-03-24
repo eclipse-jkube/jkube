@@ -56,6 +56,7 @@ class HelmServiceIT {
     helmConfig = new HelmConfig();
     helmConfig.setSourceDir(new File(HelmServiceIT.class.getResource("/it/sources").toURI()).getAbsolutePath());
     helmConfig.setOutputDir(helmOutputDir.getAbsolutePath());
+    helmConfig.setTarballOutputDir(helmOutputDir.getAbsolutePath());
     helmConfig.setChartExtension("tar");
   }
 

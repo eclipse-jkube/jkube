@@ -95,7 +95,7 @@ class HelmServiceUtilTest {
       .hasFieldOrProperty("icon");
     assertThat(result.getSourceDir()).endsWith("target/classes/META-INF/jkube/");
     assertThat(result.getOutputDir()).endsWith("target/jkube/helm/artifact-id");
-    assertThat(result.getTarballOutputDir()).isNull();
+    assertThat(result.getTarballOutputDir()).endsWith("target/jkube/helm/artifact-id");
   }
 
   @Test
