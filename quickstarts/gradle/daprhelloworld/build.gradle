@@ -3,7 +3,8 @@ plugins {
 	id 'org.springframework.boot' version '2.7.8'
 	id 'io.spring.dependency-management' version '1.0.15.RELEASE'
 	id "io.freefair.lombok" version "6.6.1"
-	id 'org.eclipse.jkube.kubernetes' version '1.9.1'
+	id 'org.eclipse.jkube.kubernetes' version '1.11.0'
+	id 'org.eclipse.jkube.openshift' version '1.11.0'
 }
 
 group = 'com.example'
@@ -17,7 +18,6 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'io.dapr:dapr-sdk-springboot:1.7.1'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
@@ -26,17 +26,30 @@ tasks.named('test') {
 
 kubernetes {	 
     resources {
-    annotations {
-            pod = [
-                    'dapr.io/enabled' : true,
-                    'dapr.io/app-id' : "daprhelloworld",
-                    'dapr.io/app-port' : "8085",
-// if you want to trace application then please uncomment below and please also create appconfig.yaml and zipkin.yaml by following zipkininstallation.txt					
-//                    'dapr.io/config' : "appconfig"               
-            ]
-    }
-//    	namespace = 'default'    	
-//    	replicas = "2"
+        annotations {
+                pod = [
+                        'dapr.io/enabled' : true,
+                        'dapr.io/app-id' : "daprhelloworld",
+                        'dapr.io/app-port' : "8085",
+    // if you want to trace application then please uncomment below and please also create appconfig.yaml and zipkin.yaml by following zipkininstallation.sh
+    //                    'dapr.io/config' : "appconfig"               
+                ]
+        }
     	imagePullPolicy = "Always"
-	}
+    }
+}
+
+openshift {	 
+    resources {
+        annotations {
+                pod = [
+                        'dapr.io/enabled' : true,
+                        'dapr.io/app-id' : "daprhelloworld",
+                        'dapr.io/app-port' : "8085",
+    // if you want to trace application then please uncomment below and please also create appconfig.yaml and zipkin.yaml by following zipkininstallation.sh
+    //                    'dapr.io/config' : "appconfig"               
+                ]
+        }
+    	imagePullPolicy = "Always"
+    }
 }
