@@ -17,17 +17,20 @@ Kubernetes with the help of Kubernetes jkube Gradle Plugin.
 ## How to Build?
 In order to build,you will need to install dapr in kubernetes
 
---Install dapr in kubernetes
+- Install dapr in kubernetes
 
-dapr init -k
+```shell script
+$ dapr init -k
+```
+- verify installation
+```shell script
+$ dapr status -k
+```
+- if required update installation
 
---verify installation
-
-dapr status -k
-
---if required update installation
-
-dapr upgrade -k --runtime-version=x.x.x
+```shell script
+$ dapr upgrade -k --runtime-version=x.x.x
+```
 
 ## Deploying to Kubernetes
 Kubernetes Gradle Plugin is already added to the project plugins section.
@@ -36,17 +39,24 @@ a Kubernetes cluster:
 
 in order dapr application to work in kubernetes cluster it needs following annotation in deployment.yaml file under spec, template metadata section 
 
+```yaml
 annotations:
-
-          dapr.io/enabled: "true"
+  dapr.io/enabled: "true"
+  dapr.io/app-id: "daprhelloworld"
+  dapr.io/app-port: "8085"
+  dapr.io/config: "appconfig"
+```
           
-          dapr.io/app-id: "daprhelloworld"
-          
-          dapr.io/app-port: "8085"
+In order to deploy application, you need to run Kubernetes Gradle Plugin build, resource and apply goals:
 
-          dapr.io/config: "appconfig"
-          
-If you are working with slow internet connection then rediness and livebess probe may timeout uncomment timeout and delay related annotation from above
+```shell script
+# Kubernetes
+$ gradle clean build k8sBuild k8sResource k8sApply
+# OpenShift
+$ gradle clean build ocBuild ocResource ocApply
+```
 
-If you need time obervability in your application you can use zipkin and dapr appconfig, installation instruction for zipkin with appconfig is given in zipkininstallation.txt
+If you are working with slow internet connection then readiness and liveness probe may timeout uncomment timeout and delay related annotation from above
+
+If you need time observability in your application you can use zipkin and dapr appconfig, installation instruction for zipkin with appconfig is given in zipkininstallation.sh
 
