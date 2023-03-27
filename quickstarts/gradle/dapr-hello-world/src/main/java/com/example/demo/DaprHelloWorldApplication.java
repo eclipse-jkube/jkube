@@ -17,8 +17,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DaprhelloworldApplication {
+public class DaprHelloWorldApplication {
 	public static void main(String[] args) {
-		SpringApplication.run(DaprhelloworldApplication.class, args);
+		SpringApplication.run(DaprHelloWorldApplication.class, args);
 	}
 }
