@@ -1,0 +1,82 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    mavenLocal()
+  }
+  dependencies {
+    classpath 'io.fabric8:kubernetes-client'
+  }
+}
+
+plugins {
+  id 'java'
+  id 'org.springframework.boot' version '2.7.8'
+  id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+  id 'org.eclipse.jkube.kubernetes' version '1.11.0'
+  id 'org.eclipse.jkube.openshift' version '1.11.0'
+}
+
+group = 'org.eclipse.jkube.quickstart.gradle.dapr'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+  mavenCentral()
+}
+
+dependencies {
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'io.dapr:dapr-sdk-springboot:1.7.1'
+}
+
+tasks.named('test') {
+  useJUnitPlatform()
+}
+
+tasks.register('zipkinInstall') {
+  doLast {
+    new io.fabric8.kubernetes.client.KubernetesClientBuilder().build().withCloseable { kc ->
+      kc.load(new FileInputStream(new File('./zipkin.yaml'))).withGracePeriod(0).delete()
+      kc.load(new FileInputStream(new File('./appconfig.yaml'))).withGracePeriod(0).delete()
+      kc.load(new FileInputStream(new File('./zipkin.yaml'))).create()
+      kc.load(new FileInputStream(new File('./appconfig.yaml'))).create()
+    }
+  }
+}
+
+tasks.register('zipkinUninstall') {
+  doLast {
+    new io.fabric8.kubernetes.client.KubernetesClientBuilder().build().withCloseable { kc ->
+      kc.load(new FileInputStream(new File('./zipkin.yaml'))).withGracePeriod(0).delete()
+      kc.load(new FileInputStream(new File('./appconfig.yaml'))).withGracePeriod(0).delete()
+    }
+  }
+}
+
+kubernetes {
+  resources {
+    annotations {
+      pod = [
+          'dapr.io/enabled' : true,
+          'dapr.io/app-id'  : "dapr-hello-world",
+          'dapr.io/app-port': "8085",
+          // if you want to trace application then run gradle zipkinInstall
+          'dapr.io/config' : "appconfig"
+      ]
+    }
+  }
+}
+
+openshift {
+  resources {
+    annotations {
+      pod = [
+          'dapr.io/enabled' : true,
+          'dapr.io/app-id'  : "dapr-hello-world",
+          'dapr.io/app-port': "8085",
+          // if you want to trace application then run gradle zipkinInstall
+          'dapr.io/config' : "appconfig"
+      ]
+    }
+  }
+}
