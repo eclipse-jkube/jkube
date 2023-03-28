@@ -14,6 +14,13 @@ repositories {
 
 kubernetes {
     offline = true
+    enricher {
+        config {
+            'jkube-controller' {
+                schedule = '*/2 * * * *'
+            }
+        }
+    }
     images {
         image {
             name = 'repository/controller:latest'
@@ -26,6 +33,13 @@ kubernetes {
 
 openshift {
     offline = true
+    enricher {
+        config {
+            'jkube-controller' {
+                schedule = '*/2 * * * *'
+            }
+        }
+    }
     images {
         image {
             name = 'repository/controller:latest'

@@ -30,7 +30,7 @@ class KubernetesConfiguredControllerIT {
   private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @ParameterizedTest(name = "k8sResource with {0} configured controller should have {0} in generated resource list")
-  @ValueSource(strings = { "DaemonSet", "Deployment", "Job", "ReplicaSet", "ReplicationController", "StatefulSet" })
+  @ValueSource(strings = { "DaemonSet", "Deployment", "Job", "ReplicaSet", "ReplicationController", "StatefulSet", "CronJob" })
   void k8sResourceTask_whenRunWithConfiguredControllerType_generatesK8sManifestWithExpectedController(String controllerType) throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("controller")
@@ -45,4 +45,5 @@ class KubernetesConfiguredControllerIT {
         .contains("Adding revision history limit to 2")
         .contains("validating");
   }
+
 }
