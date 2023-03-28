@@ -76,9 +76,9 @@ class KubernetesSshServiceForwarderTest {
     executorService.submit(kubernetesSshServiceForwarder);
     // Then
     final Pod result = kubernetesClient.pods()
-      .withLabel("app", "jkube-remote-dev")
-      .withLabel("group", "jkube-kit")
-      .withLabel("jkube-id", context.getSessionID().toString())
+      .withLabel("app.kubernetes.io/name", "jkube-remote-dev")
+      .withLabel("app.kubernetes.io/part-of", "jkube-kit")
+      .withLabel("app.kubernetes.io/instance", context.getSessionID().toString())
       .waitUntilCondition(Objects::nonNull, 10, TimeUnit.SECONDS);
 
     assertThat(result)
@@ -95,9 +95,9 @@ class KubernetesSshServiceForwarderTest {
     executorService.submit(kubernetesSshServiceForwarder);
     // Then
     final Pod result = kubernetesClient.pods()
-      .withLabel("app", "jkube-remote-dev")
-      .withLabel("group", "jkube-kit")
-      .withLabel("jkube-id", context.getSessionID().toString())
+      .withLabel("app.kubernetes.io/name", "jkube-remote-dev")
+      .withLabel("app.kubernetes.io/part-of", "jkube-kit")
+      .withLabel("app.kubernetes.io/instance", context.getSessionID().toString())
       .waitUntilCondition(Objects::nonNull, 10, TimeUnit.SECONDS);
 
     assertThat(result)
@@ -182,8 +182,8 @@ class KubernetesSshServiceForwarderTest {
 
   static String getRemoteDevPodName(KubernetesClient kubernetesClient) {
     return kubernetesClient.pods()
-      .withLabel("app", "jkube-remote-dev")
-      .withLabel("group", "jkube-kit")
+      .withLabel("app.kubernetes.io/name", "jkube-remote-dev")
+      .withLabel("app.kubernetes.io/part-of", "jkube-kit")
       .waitUntilCondition(Objects::nonNull, 10, TimeUnit.SECONDS)
       .getMetadata().getName();
   }

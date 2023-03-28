@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +29,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.eclipse.jkube.kit.common.util.AsyncUtil.await;
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.LABEL_INSTANCE;
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.LABEL_NAME;
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.LABEL_PART_OF;
 import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_APP;
 import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_GROUP;
 
@@ -90,9 +92,9 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
     final PodBuilder pod = new PodBuilder()
       .withNewMetadata()
       .withName(name)
-      .addToLabels("app", REMOTE_DEVELOPMENT_APP)
-      .addToLabels("group", REMOTE_DEVELOPMENT_GROUP)
-      .addToLabels("jkube-id", context.getSessionID().toString())
+      .addToLabels(LABEL_INSTANCE, context.getSessionID().toString())
+      .addToLabels(LABEL_NAME, REMOTE_DEVELOPMENT_APP)
+      .addToLabels(LABEL_PART_OF, REMOTE_DEVELOPMENT_GROUP)
       .endMetadata()
       .withNewSpec()
       .addNewContainer()

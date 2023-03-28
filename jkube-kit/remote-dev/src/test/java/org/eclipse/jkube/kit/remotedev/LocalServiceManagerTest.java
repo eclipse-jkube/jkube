@@ -82,9 +82,9 @@ class LocalServiceManagerTest {
       .extracting(Service::getSpec)
       .extracting(ServiceSpec::getSelector)
       .asInstanceOf(InstanceOfAssertFactories.MAP)
-      .containsEntry("app", "jkube-remote-dev")
-      .containsEntry("group", "jkube-kit")
-      .containsEntry("jkube-id", context.getSessionID().toString());
+      .containsEntry("app.kubernetes.io/name", "jkube-remote-dev")
+      .containsEntry("app.kubernetes.io/part-of", "jkube-kit")
+      .containsEntry("app.kubernetes.io/instance", context.getSessionID().toString());
   }
 
   @Test

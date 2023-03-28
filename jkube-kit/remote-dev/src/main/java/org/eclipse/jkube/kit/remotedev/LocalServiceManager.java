@@ -21,6 +21,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.util.Collections;
 
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.LABEL_INSTANCE;
+
 
 class LocalServiceManager {
 
@@ -71,7 +73,7 @@ class LocalServiceManager {
       }
       final Service newService = newServiceBuilder
         .editSpec()
-        .addToSelector("jkube-id", context.getSessionID().toString())
+        .addToSelector(LABEL_INSTANCE, context.getSessionID().toString())
         .endSpec()
         .build();
       kubernetesClient.services().resource(newService).createOrReplace();

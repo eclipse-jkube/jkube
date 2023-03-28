@@ -22,6 +22,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.LABEL_NAME;
+import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.LABEL_PART_OF;
 import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_APP;
 import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_GROUP;
 
@@ -46,8 +48,8 @@ public class LocalService {
       .endMetadata()
       .withNewSpec()
       .withType(type)
-      .addToSelector("app", REMOTE_DEVELOPMENT_APP)
-      .addToSelector("group", REMOTE_DEVELOPMENT_GROUP)
+      .addToSelector(LABEL_NAME, REMOTE_DEVELOPMENT_APP)
+      .addToSelector(LABEL_PART_OF, REMOTE_DEVELOPMENT_GROUP)
       .addNewPort()
       .withProtocol("TCP")
       .withPort(port)
