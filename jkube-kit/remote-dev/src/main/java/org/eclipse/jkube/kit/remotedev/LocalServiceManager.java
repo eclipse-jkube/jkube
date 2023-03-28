@@ -40,9 +40,9 @@ class LocalServiceManager {
     logger.debug("Creating or replacing Kubernetes services for exposed ports from local environment");
     for (LocalService localService : context.getRemoteDevelopmentConfig().getLocalServices()) {
       final Service existingService = kubernetesClient.services().withName(localService.getServiceName()).get();
-      final Service newService;
+      final ServiceBuilder newServiceBuilder;
       if (existingService == null) {
-        newService = localService.toKubernetesService(context.getSessionID());
+        newServiceBuilder = new ServiceBuilder(localService.toKubernetesService());
       } else {
         final String previousServiceAnnotation;
         if (existingService.getMetadata().getAnnotations().get(PREVIOUS_SERVICE_ANNOTATION) != null) {
@@ -58,7 +58,7 @@ class LocalServiceManager {
             .build();
           previousServiceAnnotation = Serialization.asJson(sanitizedExistingService);
         }
-        final ServiceBuilder newServiceBuilder = new ServiceBuilder(localService.toKubernetesService(context.getSessionID()))
+        newServiceBuilder = new ServiceBuilder(localService.toKubernetesService())
           .editOrNewMetadata()
           .addToAnnotations(PREVIOUS_SERVICE_ANNOTATION, previousServiceAnnotation)
           .endMetadata();
@@ -68,8 +68,12 @@ class LocalServiceManager {
             .withPorts(existingService.getSpec().getPorts())
             .endSpec();
         }
-        newService = newServiceBuilder.build();
       }
+      final Service newService = newServiceBuilder
+        .editSpec()
+        .addToSelector("jkube-id", context.getSessionID().toString())
+        .endSpec()
+        .build();
       kubernetesClient.services().resource(newService).createOrReplace();
       context.getManagedServices().put(localService, newService);
     }

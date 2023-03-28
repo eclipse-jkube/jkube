@@ -52,9 +52,8 @@ public class RemoteDevelopmentContext {
   private final Properties properties;
   @Getter
   private final Map<LocalService, Service> managedServices;
-
   @Getter
-  private final UUID sessionID = UUID.randomUUID();
+  private final UUID sessionID;
 
   public RemoteDevelopmentContext(
     KitLogger kitLogger, KubernetesClient kubernetesClient, RemoteDevelopmentConfig remoteDevelopmentConfig) {
@@ -68,6 +67,7 @@ public class RemoteDevelopmentContext {
     sshRsaPublicKey = initSShRsaPublicKey(clientKeys);
     properties = new Properties();
     managedServices = new ConcurrentHashMap<>();
+    sessionID = UUID.randomUUID();
     try {
       properties.load(RemoteDevelopmentContext.class.getResourceAsStream(REMOTE_DEV_PROPERTIES_FILE));
     } catch(IOException ex) {
