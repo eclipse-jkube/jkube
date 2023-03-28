@@ -78,6 +78,7 @@ class KubernetesSshServiceForwarderTest {
     final Pod result = kubernetesClient.pods()
       .withLabel("app", "jkube-remote-dev")
       .withLabel("group", "jkube-kit")
+      .withLabel("jkube-id", context.getSessionID().toString())
       .waitUntilCondition(Objects::nonNull, 10, TimeUnit.SECONDS);
 
     assertThat(result)
@@ -96,6 +97,7 @@ class KubernetesSshServiceForwarderTest {
     final Pod result = kubernetesClient.pods()
       .withLabel("app", "jkube-remote-dev")
       .withLabel("group", "jkube-kit")
+      .withLabel("jkube-id", context.getSessionID().toString())
       .waitUntilCondition(Objects::nonNull, 10, TimeUnit.SECONDS);
 
     assertThat(result)

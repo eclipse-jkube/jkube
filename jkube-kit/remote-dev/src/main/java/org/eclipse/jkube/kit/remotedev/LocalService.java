@@ -22,8 +22,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_APP;
 import static org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService.REMOTE_DEVELOPMENT_GROUP;
 
@@ -41,7 +39,7 @@ public class LocalService {
    */
   private int port;
 
-  public Service toKubernetesService(UUID sessionID) {
+  public Service toKubernetesService() {
     return new ServiceBuilder()
       .withNewMetadata()
       .withName(serviceName)
@@ -50,7 +48,6 @@ public class LocalService {
       .withType(type)
       .addToSelector("app", REMOTE_DEVELOPMENT_APP)
       .addToSelector("group", REMOTE_DEVELOPMENT_GROUP)
-      .addToSelector("jkube-id", sessionID.toString())
       .addNewPort()
       .withProtocol("TCP")
       .withPort(port)

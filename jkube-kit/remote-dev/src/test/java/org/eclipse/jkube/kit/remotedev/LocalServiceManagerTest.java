@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -64,6 +65,26 @@ class LocalServiceManagerTest {
       .extracting(ObjectMeta::getAnnotations)
       .asInstanceOf(InstanceOfAssertFactories.MAP)
       .isNullOrEmpty();
+  }
+
+  @Test
+  void createOrReplaceServices_usesJKubeSelectors() {
+    // Given
+    final RemoteDevelopmentConfig config = RemoteDevelopmentConfig.builder()
+      .localService(LocalService.builder().serviceName("service").port(1337).build())
+      .build();
+    final RemoteDevelopmentContext context = new RemoteDevelopmentContext(logger, kubernetesClient, config);
+    // When
+    new LocalServiceManager(context).createOrReplaceServices();
+    // Then
+    assertThat(kubernetesClient.services().withName("service").get())
+      .hasFieldOrPropertyWithValue("metadata.name", "service")
+      .extracting(Service::getSpec)
+      .extracting(ServiceSpec::getSelector)
+      .asInstanceOf(InstanceOfAssertFactories.MAP)
+      .containsEntry("app", "jkube-remote-dev")
+      .containsEntry("group", "jkube-kit")
+      .containsEntry("jkube-id", context.getSessionID().toString());
   }
 
   @Test

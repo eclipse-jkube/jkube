@@ -24,6 +24,7 @@ Usage:
 * Fix #1179: Move storageClass related functionality out of VolumePermissionEnricher to PersistentVolumeClaimStorageClassEnricher
 * Fix #1273: Deprecate `jkube.io` annotation prefix in favor of `jkube.eclipse.org` for JKubeAnnotations
 * Fix #2079: Bump kubernetes-client to 6.5.0
+* Fix #2086: Allow concurrent remote-dev sessions (service selector includes session id)
 * Fix #2093: ClassCastException when extracting plugins from pom
 
 ### 1.11.0 (2023-02-16)
