@@ -504,7 +504,7 @@
 
       <dependency>
         <groupId>org.bouncycastle</groupId>
-        <artifactId>bcpkix-jdk15on</artifactId>
+        <artifactId>bcpkix-jdk18on</artifactId>
         <version>${version.bouncycastle.bcpkix}</version>
       </dependency>
 
@@ -734,6 +734,10 @@
             <artifactId>bcprov-jdk15on</artifactId>
           </exclusion>
           <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
           </exclusion>
@@ -766,11 +770,15 @@
         <exclusions>
           <exclusion>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcpkix-jdk15on</artifactId>
+            <artifactId>bcprov-jdk15on</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
+            <artifactId>bcpkix-jdk18on</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.slf4j</groupId>
