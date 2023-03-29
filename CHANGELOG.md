@@ -25,6 +25,7 @@ Usage:
 * Fix #1273: Deprecate `jkube.io` annotation prefix in favor of `jkube.eclipse.org` for JKubeAnnotations
 * Fix #2086: Allow concurrent remote-dev sessions (service selector includes session id)
 * Fix #2093: ClassCastException when extracting plugins from pom
+* Fix #2108: Bump BouncyCastle to 1.72
 * Fix #2104: Bump kubernetes-client to 6.5.1 (#2079)
 * Fix #2101: Resolve dynamic transitive properties when creating Dockerfile
 
