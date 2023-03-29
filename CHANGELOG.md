@@ -26,7 +26,7 @@ Usage:
 * Fix #2086: Allow concurrent remote-dev sessions (service selector includes session id)
 * Fix #2093: ClassCastException when extracting plugins from pom
 * Fix #2104: Bump kubernetes-client to 6.5.1 (#2079)
-* Fix #2101: Resolve transitive properties
+* Fix #2101: Resolve dynamic transitive properties when creating Dockerfile
 
 ### 1.11.0 (2023-02-16)
 * Fix #1316: Add support for adding InitContainers via plugin configuration
