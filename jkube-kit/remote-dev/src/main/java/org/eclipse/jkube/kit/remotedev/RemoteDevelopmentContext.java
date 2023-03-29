@@ -30,6 +30,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -51,6 +52,8 @@ public class RemoteDevelopmentContext {
   private final Properties properties;
   @Getter
   private final Map<LocalService, Service> managedServices;
+  @Getter
+  private final UUID sessionID;
 
   public RemoteDevelopmentContext(
     KitLogger kitLogger, KubernetesClient kubernetesClient, RemoteDevelopmentConfig remoteDevelopmentConfig) {
@@ -64,6 +67,7 @@ public class RemoteDevelopmentContext {
     sshRsaPublicKey = initSShRsaPublicKey(clientKeys);
     properties = new Properties();
     managedServices = new ConcurrentHashMap<>();
+    sessionID = UUID.randomUUID();
     try {
       properties.load(RemoteDevelopmentContext.class.getResourceAsStream(REMOTE_DEV_PROPERTIES_FILE));
     } catch(IOException ex) {

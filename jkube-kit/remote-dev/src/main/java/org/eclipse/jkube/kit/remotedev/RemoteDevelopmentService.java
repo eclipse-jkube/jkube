@@ -23,6 +23,9 @@ import static org.eclipse.jkube.kit.common.util.AsyncUtil.async;
 
 public class RemoteDevelopmentService {
 
+  static final String LABEL_INSTANCE = "app.kubernetes.io/instance";
+  static final String LABEL_NAME = "app.kubernetes.io/name";
+  static final String LABEL_PART_OF = "app.kubernetes.io/part-of";
   static final String REMOTE_DEVELOPMENT_APP = "jkube-remote-dev";
   static final String REMOTE_DEVELOPMENT_GROUP = "jkube-kit";
   private final RemoteDevelopmentContext context;
