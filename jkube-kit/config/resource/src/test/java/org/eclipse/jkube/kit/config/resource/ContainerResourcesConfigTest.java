@@ -20,15 +20,15 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class RequestsLimitsConfigTest {
+class ContainerResourcesConfigTest {
   @Test
   void rawDeserialization() throws IOException {
     // Given
     final ObjectMapper mapper = new ObjectMapper();
     // When
-    final RequestsLimitsConfig result = mapper.readValue(
-        getClass().getResourceAsStream("/requests-limits-config.json"),
-        RequestsLimitsConfig.class);
+    final ContainerResourcesConfig result = mapper.readValue(
+        getClass().getResourceAsStream("/container-resources-config.json"),
+        ContainerResourcesConfig.class);
     // Then
     assertRequestsLimitsConfig(result);
   }
@@ -36,32 +36,32 @@ class RequestsLimitsConfigTest {
   @Test
   void builder() {
     // Given
-    RequestsLimitsConfig.RequestsLimitsConfigBuilder requestsLimitsConfigBuilder = RequestsLimitsConfig.builder()
+    ContainerResourcesConfig.ContainerResourcesConfigBuilder containerResourcesBuilder = ContainerResourcesConfig.builder()
         .request("cpu", "250m")
         .request("memory", "64Mi")
         .limit("cpu", "500m")
         .limit("memory", "128Mi");
 
     // When
-    RequestsLimitsConfig requestsLimitsConfig = requestsLimitsConfigBuilder.build();
+    ContainerResourcesConfig containerResources = containerResourcesBuilder.build();
 
     // Then
-    assertRequestsLimitsConfig(requestsLimitsConfig);
+    assertRequestsLimitsConfig(containerResources);
   }
 
   @Test
   void equalsAndHashCodeShouldMatch() {
     // Given
-    RequestsLimitsConfig  rlc1 = RequestsLimitsConfig.builder().request("cpu", "500m").build();
-    RequestsLimitsConfig rlc2 = RequestsLimitsConfig.builder().request("cpu", "500m").build();
+    ContainerResourcesConfig crc1 = ContainerResourcesConfig.builder().request("cpu", "500m").build();
+    ContainerResourcesConfig crc2 = ContainerResourcesConfig.builder().request("cpu", "500m").build();
     // When + Then
-    assertThat(rlc1)
-        .isEqualTo(rlc2)
-        .hasSameHashCodeAs(rlc2);
+    assertThat(crc1)
+        .isEqualTo(crc2)
+        .hasSameHashCodeAs(crc2);
   }
 
-  private void assertRequestsLimitsConfig(RequestsLimitsConfig requestsLimitsConfig) {
-    assertThat(requestsLimitsConfig)
+  private void assertRequestsLimitsConfig(ContainerResourcesConfig containerResources) {
+    assertThat(containerResources)
         .hasFieldOrPropertyWithValue("requests.cpu", "250m")
         .hasFieldOrPropertyWithValue("requests.memory", "64Mi")
         .hasFieldOrPropertyWithValue("limits.memory", "128Mi")

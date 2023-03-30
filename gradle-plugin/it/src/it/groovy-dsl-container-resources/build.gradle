@@ -17,7 +17,7 @@ kubernetes {
     offline = true
     images {
         image {
-            name = 'groovy-dsl-resource-requests-limits:latest'
+            name = 'groovy-dsl-container-resources:latest'
             build {
                 from = 'quay.io/jkube/jkube-java-11'
             }
@@ -25,7 +25,7 @@ kubernetes {
     }
     resources {
         controller {
-            resourceRequestsLimits {
+            containerResources {
                 requests {
                     cpu = '250m'
                     memory = '128Mi'
@@ -43,7 +43,7 @@ openshift {
     offline = true
     images {
         image {
-            name = 'groovy-dsl-resource-requests-limits:latest'
+            name = 'groovy-dsl-container-resources:latest'
             build {
                 from = 'quay.io/jkube/jkube-java-11'
             }
@@ -51,7 +51,7 @@ openshift {
     }
     resources {
         controller {
-            resourceRequestsLimits {
+            containerResources {
                 requests {
                     cpu = '250m'
                     memory = '128Mi'

@@ -33,7 +33,7 @@
                 </mounts>
               </volume>
             </volumes>
-           <resourceRequestsLimits>
+           <containerResources>
               <requests> <!--9-->
                  <memory>32Mi</memory>
                  <cpu>300m</cpu>
@@ -42,7 +42,7 @@
                  <memory>64Mi</memory>
                  <cpu>500m</cpu>
               </limits>
-           </resourceRequestsLimits>
+           </containerResources>
         </controller>
     </resources>
 </configuration>

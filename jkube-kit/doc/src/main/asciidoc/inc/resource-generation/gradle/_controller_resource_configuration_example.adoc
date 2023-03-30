@@ -29,7 +29,7 @@
                 medium = 'Memory'
                 mounts = ['/var/scratch']
             }]
-            resourceRequestsLimits {
+            containerResources {
                 requests { //<9>
                     cpu = '250m'
                     memory = '32Mi'

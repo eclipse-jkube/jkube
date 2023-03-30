@@ -27,7 +27,7 @@ import lombok.Singular;
 @NoArgsConstructor
 @Getter
 @EqualsAndHashCode
-public class RequestsLimitsConfig {
+public class ContainerResourcesConfig {
 
   @Singular
   private Map<String, String> limits;

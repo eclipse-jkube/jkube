@@ -10,17 +10,17 @@ items:
       jkube.eclipse.org/git-url: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
     labels:
-      app: groovy-dsl-resource-requests-limits
+      app: groovy-dsl-container-resources
       provider: jkube
       version: "@ignore@"
       group: org.eclipse.jkube.integration.tests.gradle
-    name: groovy-dsl-resource-requests-limits
+    name: groovy-dsl-container-resources
   spec:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
       matchLabels:
-        app: groovy-dsl-resource-requests-limits
+        app: groovy-dsl-container-resources
         provider: jkube
         group: org.eclipse.jkube.integration.tests.gradle
     template:
@@ -30,11 +30,11 @@ items:
           jkube.eclipse.org/git-url: "@ignore@"
           jkube.eclipse.org/git-branch: "@ignore@"
         labels:
-          app: groovy-dsl-resource-requests-limits
+          app: groovy-dsl-container-resources
           provider: jkube
           version: "@ignore@"
           group: org.eclipse.jkube.integration.tests.gradle
-        name: groovy-dsl-resource-requests-limits
+        name: groovy-dsl-container-resources
       spec:
         containers:
         - env:
@@ -46,9 +46,9 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.name
-          image: groovy-dsl-resource-requests-limits:latest
+          image: groovy-dsl-container-resources:latest
           imagePullPolicy: IfNotPresent
-          name: orgeclipsejkubeintegrationtestsgradle-groovy-dsl-resource-requests-limits
+          name: orgeclipsejkubeintegrationtestsgradle-groovy-dsl-container-resources
           securityContext:
             privileged: false
           resources:

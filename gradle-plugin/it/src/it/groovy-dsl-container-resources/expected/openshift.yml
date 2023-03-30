@@ -12,16 +12,16 @@ items:
       app.openshift.io/vcs-uri: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
     labels:
-      app: groovy-dsl-resource-requests-limits
+      app: groovy-dsl-container-resources
       provider: jkube
       version: "@ignore@"
       group: org.eclipse.jkube.integration.tests.gradle
-    name: groovy-dsl-resource-requests-limits
+    name: groovy-dsl-container-resources
   spec:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
-      app: groovy-dsl-resource-requests-limits
+      app: groovy-dsl-container-resources
       provider: jkube
       group: org.eclipse.jkube.integration.tests.gradle
     strategy:
@@ -37,11 +37,11 @@ items:
           app.openshift.io/vcs-uri: "@ignore@"
           jkube.eclipse.org/git-branch: "@ignore@"
         labels:
-          app: groovy-dsl-resource-requests-limits
+          app: groovy-dsl-container-resources
           provider: jkube
           version: "@ignore@"
           group: org.eclipse.jkube.integration.tests.gradle
-        name: groovy-dsl-resource-requests-limits
+        name: groovy-dsl-container-resources
       spec:
         containers:
         - env:
@@ -49,9 +49,9 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          image: groovy-dsl-resource-requests-limits:latest
+          image: groovy-dsl-container-resources:latest
           imagePullPolicy: IfNotPresent
-          name: orgeclipsejkubeintegrationtestsgradle-groovy-dsl-resource-requests-limits
+          name: orgeclipsejkubeintegrationtestsgradle-groovy-dsl-container-resources
           securityContext:
             privileged: false
           resources:
@@ -66,8 +66,8 @@ items:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - orgeclipsejkubeintegrationtestsgradle-groovy-dsl-resource-requests-limits
+        - orgeclipsejkubeintegrationtestsgradle-groovy-dsl-container-resources
         from:
           kind: ImageStreamTag
-          name: groovy-dsl-resource-requests-limits:latest
+          name: groovy-dsl-container-resources:latest
       type: ImageChange
