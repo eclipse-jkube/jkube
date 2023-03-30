@@ -91,17 +91,6 @@
     <!-- Components typically detected by annotations, but moved here because of
          https://github.com/codehaus-plexus/plexus-containers/issues/4 -->
     <component>
-      <role>org.eclipse.jkube.kit.build.service.docker.config.handler.compose.DockerComposeConfigHandler</role>
-      <implementation>org.eclipse.jkube.kit.build.service.docker.config.handler.compose.DockerComposeConfigHandler</implementation>
-      <requirements>
-        <requirement>
-          <role>org.apache.maven.shared.filtering.MavenReaderFilter</role>
-          <field-name>readerFilter</field-name>
-        </requirement>
-      </requirements>
-      <isolated-realm>false</isolated-realm>
-    </component>
-    <component>
       <role>org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler</role>
       <implementation>org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler</implementation>
       <isolated-realm>false</isolated-realm>
