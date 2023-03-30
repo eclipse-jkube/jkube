@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.HashSet;
 
 public class JKubeFileInterpolator {
     public static final String DEFAULT_FILTER = "${*}";
@@ -137,24 +139,44 @@ public class JKubeFileInterpolator {
                     throw new IllegalArgumentException("Expression cycle detected, aborting.");
                 }
 
-                return replaceWithEscapeStr(line, searchPhrase, properties.get(property));
+                return replaceWithEscapeStr(line, searchPhrase, getPropertyValue(properties, expressionMarkers, property));
             }
         }
         return StringUtils.EMPTY;
     }
 
-    private static boolean isExpressionCycle(Map<String, String> properties, Map<String, String> expressionMarkers, String property) {
+    private static String getPropertyValue(Map<String, String> properties, Map<String, String> expressionMarkers, String property) {
         String value = properties.get(property);
-        // Check normal value
-        if (properties.get(value) != null) {
+        if (isProperty(value, expressionMarkers, properties)) {
+            return getPropertyValue(properties, expressionMarkers, parsePropertyKey(value, expressionMarkers));
+        } else {
+            return value;
+        }
+    }
+
+    private static boolean isExpressionCycle(Map<String, String> properties, Map<String, String> expressionMarkers, String property) {
+        Set<String> visited = new HashSet<>();
+        String value = properties.get(property);
+        while (isProperty(value, expressionMarkers, properties)) {
+            if (visited.contains(value)) {
+                return true;
+            }
+            visited.add(value);
+            value = properties.get(parsePropertyKey(value, expressionMarkers));
+        }
+        return false;
+    }
+
+    private static boolean isProperty(String property, Map<String, String> expressionMarkers, Map<String, String> properties) {
+        if (properties.containsKey(property)){
             return true;
         }
-
-        // Check value without delimiters
-        if (value != null) {
-            value = parsePropertyKey(value, expressionMarkers);
+        for (Map.Entry<String, String> entry : expressionMarkers.entrySet()) {
+            if (property.contains(entry.getKey())) {
+                return true;
+            }
         }
-        return properties.get(value) != null;
+        return false;
     }
 
     private static String parsePropertyKey(String property, Map<String, String> expressionMarkers) {

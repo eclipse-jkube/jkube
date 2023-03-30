@@ -69,6 +69,19 @@ class JKubeFileInterpolatorTest {
     }
 
     @Test
+    void testShouldResolveTransitiveReferences() {
+        // Given
+        Properties props = new Properties();
+        props.setProperty("key1", "${key2}");
+        props.setProperty("key2", "${key3}");
+        props.setProperty("key3", "value");
+
+        String result = JKubeFileInterpolator.interpolate("${key1}", props, Collections.singletonMap("${", "}"));
+
+        assertThat(result).isEqualTo("value");
+    }
+
+    @Test
     @EnabledOnOs(OS.LINUX)
     void testShouldResolveByEnvVarInLinux() {
         // Given
