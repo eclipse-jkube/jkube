@@ -26,6 +26,7 @@ Usage:
 * Fix #2040: Add support for adding resource limits via controller resource config
 * Fix #2086: Allow concurrent remote-dev sessions (service selector includes session id)
 * Fix #2093: ClassCastException when extracting plugins from pom
+* Fix #2100: NullPointerException while verifying assembly references in Dockerfile
 * Fix #2108: Bump BouncyCastle to 1.72
 * Fix #2108: Use BouncyCastle JDK 1.8 compatible jars
 * Fix #2104: Bump kubernetes-client to 6.5.1 (#2079)

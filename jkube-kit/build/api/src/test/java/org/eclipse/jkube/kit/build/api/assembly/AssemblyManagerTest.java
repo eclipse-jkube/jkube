@@ -88,26 +88,28 @@ class AssemblyManagerTest {
 
   @Test
   void copyMultipleValidVerifyGivenDockerfile() throws IOException {
+    AssemblyConfiguration assemblyConfiguration = AssemblyConfiguration.builder().name("other-layer").build();
     BuildConfiguration buildConfig = createBuildConfig().toBuilder()
-        .assembly(AssemblyConfiguration.builder().name("other-layer").build())
+        .assembly(assemblyConfiguration)
         .build();
 
     AssemblyManager.verifyAssemblyReferencedInDockerfile(
         new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_multiple_valid.test").getPath()),
-        buildConfig, new Properties(),
+        buildConfig.getFilter(), assemblyConfiguration, new Properties(),
         logger);
     verify(logger,times(0)).warn(anyString(), any());
   }
 
   @Test
   void copyMultipleInvalidVerifyGivenDockerfile() throws IOException {
+    AssemblyConfiguration assemblyConfiguration = AssemblyConfiguration.builder().name("other-layer").build();
     BuildConfiguration buildConfig = createBuildConfig().toBuilder()
-        .assembly(AssemblyConfiguration.builder().name("other-layer").build())
+        .assembly(assemblyConfiguration)
         .build();
 
     AssemblyManager.verifyAssemblyReferencedInDockerfile(
         new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
-        buildConfig, new Properties(),
+        buildConfig.getFilter(), assemblyConfiguration, new Properties(),
         logger);
     verify(logger,times(1)).warn(anyString(), any());
   }

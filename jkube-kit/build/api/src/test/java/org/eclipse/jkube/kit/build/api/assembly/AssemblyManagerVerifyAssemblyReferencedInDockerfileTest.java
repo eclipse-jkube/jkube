@@ -55,21 +55,22 @@ class AssemblyManagerVerifyAssemblyReferencedInDockerfileTest {
     @MethodSource("data")
     void verifyAssemblyReferencedInDockerfile_whenDockerfileProvided_thenLogsNWarnings(String description, String dockerFile,
         int expectedLogWarnings) throws IOException {
-      BuildConfiguration buildConfig = createBuildConfig();
+      AssemblyConfiguration assemblyConfiguration = AssemblyConfiguration.builder()
+          .name("maven")
+          .targetDir("/maven")
+          .build();
+      BuildConfiguration buildConfig = createBuildConfig(assemblyConfiguration);
 
       AssemblyManager.verifyAssemblyReferencedInDockerfile(
           new File(getClass().getResource(dockerFile).getPath()),
-          buildConfig, new Properties(),
+          buildConfig.getFilter(), assemblyConfiguration, new Properties(),
           logger);
       verify(logger, times(expectedLogWarnings)).warn(anyString(), any());
     }
 
-    private BuildConfiguration createBuildConfig() {
+    private BuildConfiguration createBuildConfig(AssemblyConfiguration assemblyConfiguration) {
       return BuildConfiguration.builder()
-          .assembly(AssemblyConfiguration.builder()
-              .name("maven")
-              .targetDir("/maven")
-              .build())
+          .assembly(assemblyConfiguration)
           .build();
     }
 }
