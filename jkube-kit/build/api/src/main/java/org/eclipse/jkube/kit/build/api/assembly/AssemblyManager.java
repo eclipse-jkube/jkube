@@ -157,20 +157,20 @@ public class AssemblyManager {
 
     // visible for testing
     static void verifyAssemblyReferencedInDockerfile(
-        File dockerFile, BuildConfiguration buildConfig, Properties properties, KitLogger log) throws IOException {
-        if (buildConfig.getAssembly() == null) {
+        File dockerFile, String filter, AssemblyConfiguration assemblyConfig, Properties properties, KitLogger log) throws IOException {
+        if (assemblyConfig == null) {
             return;
         }
         final List<String[]> keywordLines = new ArrayList<>();
         for (String keyword : new String[] { "ADD", "COPY" }) {
             keywordLines.addAll(
-                DockerFileUtil.extractLines(dockerFile, keyword, properties, buildConfig.getFilter()).stream()
+                DockerFileUtil.extractLines(dockerFile, keyword, properties, filter).stream()
                 .filter(line -> !line[0].startsWith("#"))
                 .collect(Collectors.toList())
             );
         }
         // TODO need to verify layers not assembly. Each layer must correspond to a COPY/ADD statement
-        final String name = buildConfig.getAssembly().getName();
+        final String name = assemblyConfig.getName();
         for (String[] line : keywordLines) {
             // contains an ADD/COPY ... targetDir .... All good.
             if (firstNonOptionArgument(line).filter(arg -> arg.contains(name)).isPresent()) {
@@ -381,7 +381,7 @@ public class AssemblyManager {
                     buildConfig.getDockerFile() + "\" (resolved to \"" + dockerFile + "\") doesn't exist");
         }
 
-        verifyAssemblyReferencedInDockerfile(dockerFile, buildConfig, params.getProperties(), log);
+        verifyAssemblyReferencedInDockerfile(dockerFile, buildConfig.getFilter(), assemblyConfig, params.getProperties(), log);
         interpolateDockerfile(dockerFile, buildDirs, params.getProperties(), buildConfig.getFilter());
         // User dedicated Dockerfile from extra directory
         archiveCustomizers.add(archiver -> {
