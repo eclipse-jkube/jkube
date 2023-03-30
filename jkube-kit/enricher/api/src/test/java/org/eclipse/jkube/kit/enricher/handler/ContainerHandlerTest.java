@@ -24,7 +24,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.InitContainerConfig;
-import org.eclipse.jkube.kit.config.resource.RequestsLimitsConfig;
+import org.eclipse.jkube.kit.config.resource.ContainerResourcesConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -611,7 +611,7 @@ class ContainerHandlerTest {
     }
 
     @Test
-    void getContainer_whenResourceRequestsLimitsProvided_thenShouldAddRequestsLimitsToContainer() {
+    void getContainer_whencontainerResourcesProvided_thenShouldAddRequestsLimitsToContainer() {
       // Given
       Map<String, String> requests = new HashMap<>();
       Map<String, String> limits = new HashMap<>();
@@ -620,7 +620,7 @@ class ContainerHandlerTest {
       requests.put("cpu", "250m");
       requests.put("memory", "64Mi");
       config = config.toBuilder()
-          .resourceRequestsLimits(RequestsLimitsConfig.builder()
+          .containerResources(ContainerResourcesConfig.builder()
               .requests(requests)
               .limits(limits)
               .build())

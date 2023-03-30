@@ -23,14 +23,14 @@ import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-class GroovyDSLResourceRequestsLimitsIT {
+class GroovyDSLContainerResourcesIT {
   @RegisterExtension
   private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
   void k8sResource_whenRun_generatesK8sManifests() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject("groovy-dsl-resource-requests-limits")
+    final BuildResult result = gradleRunner.withITProject("groovy-dsl-container-resources")
         .withArguments("build", "k8sResource", "--stacktrace")
         .build();
     // Then
@@ -44,7 +44,7 @@ class GroovyDSLResourceRequestsLimitsIT {
   @Test
   void ocResource_whenRun_generatesOpenShiftManifests() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject("groovy-dsl-resource-requests-limits")
+    final BuildResult result = gradleRunner.withITProject("groovy-dsl-container-resources")
         .withArguments("build", "ocResource", "--stacktrace")
         .build();
     // Then

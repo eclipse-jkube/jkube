@@ -36,7 +36,7 @@ import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
-import org.eclipse.jkube.kit.config.resource.RequestsLimitsConfig;
+import org.eclipse.jkube.kit.config.resource.ContainerResourcesConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -201,14 +201,14 @@ public class ContainerHandler {
     }
 
     private ResourceRequirements createResourcesFromConfig(ControllerResourceConfig config) {
-        if (config != null && config.getResourceRequestsLimits() != null) {
-            RequestsLimitsConfig requestsLimitsConfig = config.getResourceRequestsLimits();
+        if (config != null && config.getContainerResources() != null) {
+            ContainerResourcesConfig containerResources = config.getContainerResources();
             ResourceRequirementsBuilder resourceRequirementsBuilder = new ResourceRequirementsBuilder();
-            if (requestsLimitsConfig.getRequests() != null && !requestsLimitsConfig.getRequests().isEmpty()) {
-                resourceRequirementsBuilder.withRequests(getQuantityFromString(requestsLimitsConfig.getRequests()));
+            if (containerResources.getRequests() != null && !containerResources.getRequests().isEmpty()) {
+                resourceRequirementsBuilder.withRequests(getQuantityFromString(containerResources.getRequests()));
             }
-            if (requestsLimitsConfig.getLimits() != null && !requestsLimitsConfig.getLimits().isEmpty()) {
-                resourceRequirementsBuilder.withLimits(getQuantityFromString(requestsLimitsConfig.getLimits()));
+            if (containerResources.getLimits() != null && !containerResources.getLimits().isEmpty()) {
+                resourceRequirementsBuilder.withLimits(getQuantityFromString(containerResources.getLimits()));
             }
             return resourceRequirementsBuilder.build();
         }

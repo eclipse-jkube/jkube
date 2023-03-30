@@ -66,7 +66,7 @@ class ResourceConfigTest {
             .imagePullPolicy("Always")
             .replicas(2)
             .containerPrivileged(false)
-            .resourceRequestsLimits(RequestsLimitsConfig.builder()
+            .containerResources(ContainerResourcesConfig.builder()
                 .request("memory", "64Mi")
                 .limit("cpu", "500m")
                 .build())
@@ -82,8 +82,8 @@ class ResourceConfigTest {
         .hasFieldOrPropertyWithValue("imagePullPolicy", "Always")
         .hasFieldOrPropertyWithValue("replicas", 2)
         .hasFieldOrPropertyWithValue("containerPrivileged", false)
-        .hasFieldOrPropertyWithValue("resourceRequestsLimits.limits.cpu", "500m")
-        .hasFieldOrPropertyWithValue("resourceRequestsLimits.requests.memory", "64Mi");
+        .hasFieldOrPropertyWithValue("containerResources.limits.cpu", "500m")
+        .hasFieldOrPropertyWithValue("containerResources.requests.memory", "64Mi");
   }
 
   @Test

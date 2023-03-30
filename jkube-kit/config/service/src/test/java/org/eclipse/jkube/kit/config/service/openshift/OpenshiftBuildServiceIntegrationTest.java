@@ -42,7 +42,7 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
-import org.eclipse.jkube.kit.config.resource.RequestsLimitsConfig;
+import org.eclipse.jkube.kit.config.resource.ContainerResourcesConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -405,7 +405,7 @@ class OpenshiftBuildServiceIntegrationTest {
     limitsMap.put("cpu", "100m");
     limitsMap.put("memory", "256Mi");
     resourceConfig = resourceConfig.toBuilder()
-      .openshiftBuildConfig(RequestsLimitsConfig.builder().limits(limitsMap).build())
+      .openshiftBuildConfig(ContainerResourcesConfig.builder().limits(limitsMap).build())
       .build();
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig
         .resourceConfig(resourceConfig).build());

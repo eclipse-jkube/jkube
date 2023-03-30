@@ -91,7 +91,7 @@ This configuration field is focused only on changing various elements of Control
 
 For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster} assumes it to be `Always`)
 
-| <<resource-requests-limits-configuration, `resourceRequestsLimits`>>
+| <<container-resources-configuration, `containerResources`>>
 | Configure Controller's compute resource requirements
 |===
 
@@ -123,10 +123,10 @@ For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster
 | Environment variables that will be added to this InitContainer in Pod template spec.
 |===
 
-[[resource-requests-limits-configuration]]
-==== Resource Requests/Limits {plugin-configuration-type} configuration
+[[container-resources-configuration]]
+==== Container Resource {plugin-configuration-type} configuration
 
-.resourceRequestsLimits fields for specifying compute resource requirements
+.containerResources fields for specifying compute resource requirements
 [cols="1,5"]
 |===
 | Element | Description
