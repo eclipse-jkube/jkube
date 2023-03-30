@@ -133,31 +133,46 @@
           <artifactId>license-maven-plugin</artifactId>
           <version>${version.license-maven-plugin}</version>
           <configuration>
-            <aggregate>true</aggregate>
-            <header>header.txt</header>
+            <useDefaultExcludes>true</useDefaultExcludes>
             <properties>
               <owner>Red Hat, Inc.</owner>
             </properties>
-            <excludes>
-              <exclude>.editorconfig</exclude>
-              <exclude>license.txt</exclude>
-              <exclude>**/test-kubeconfig</exclude>
-              <exclude>**/*-services</exclude>
-              <exclude>**/*-default</exclude>
-              <exclude>**/*.adoc</exclude>
-              <exclude>**/expected-pom.xml</exclude>
-              <exclude>**/enricher</exclude>
-              <exclude>**/test/resources/**/*</exclude>
-              <exclude>**/it/src/it/*/expected/**/*</exclude>
-              <exclude>.lgtm</exclude>
-              <exclude>**/.gitkeep</exclude>
-              <exclude>Jenkinsfile</exclude>
-              <exclude>.mvn/**/*</exclude>
-              <exclude>mvnw</exclude>
-              <exclude>mvnw.cmd</exclude>
-              <exclude>**/gradle/wrapper/**/*</exclude>
-              <exclude>**/gradlew.bat</exclude>
-            </excludes>
+            <mapping>
+              <gradle>SLASHSTAR_STYLE</gradle>
+            </mapping>
+            <licenseSets>
+              <licenseSet>
+                <header>header.txt</header>
+                <excludes>
+                  <exclude>.editorconfig</exclude>
+                  <exclude>**/org.ops4j.pax.logging.cfg</exclude>
+                  <exclude>license.txt</exclude>
+                  <exclude>**/plugin</exclude>
+                  <exclude>**/test-kubeconfig</exclude>
+                  <exclude>**/*-services</exclude>
+                  <exclude>**/*-default</exclude>
+                  <exclude>**/*.adoc</exclude>
+                  <exclude>**/expected-pom.xml</exclude>
+                  <exclude>**/DockerfileWithChangedFileName</exclude>
+                  <exclude>**/enricher</exclude>
+                  <exclude>**/test/resources/**/*</exclude>
+                  <exclude>**/it/src/it/*/expected/**/*</exclude>
+                  <exclude>**/*.bin</exclude>
+                  <exclude>**/*.dat</exclude>
+                  <exclude>**/*.importorder</exclude>
+                  <exclude>**/*.timestamp</exclude>
+                  <exclude>**/.gitkeep</exclude>
+                  <exclude>Jenkinsfile</exclude>
+                  <exclude>.mvn/**/*</exclude>
+                  <exclude>mvnw</exclude>
+                  <exclude>mvnw.cmd</exclude>
+                  <exclude>**/.gradle/**/*</exclude>
+                  <exclude>**/gradle/wrapper/**/*</exclude>
+                  <exclude>**/gradlew.bat</exclude>
+                  <exclude>quickstarts/gradle/*/build/**/*</exclude>
+                </excludes>
+              </licenseSet>
+            </licenseSets>
           </configuration>
         </plugin>
         <plugin>
