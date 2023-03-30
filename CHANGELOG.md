@@ -31,6 +31,7 @@ Usage:
 * Fix #2108: Use BouncyCastle JDK 1.8 compatible jars
 * Fix #2104: Bump kubernetes-client to 6.5.1 (#2079)
 * Fix #2101: Resolve dynamic transitive properties when creating Dockerfile
+* Fix #2113: Removed unsupported Docker compose utilities inherited from Docker Maven Plugin (DMP)
 
 ### 1.11.0 (2023-02-16)
 * Fix #1316: Add support for adding InitContainers via plugin configuration
