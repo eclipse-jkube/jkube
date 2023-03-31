@@ -63,7 +63,7 @@ public class ConfigHelper {
      * @param imageCustomizer final customization hook for mangling the configuration
      * @return a list of resolved and customized image configuration.
      */
-    public static List<ImageConfiguration> resolveImages(KitLogger logger,
+    private static List<ImageConfiguration> resolveImages(KitLogger logger,
                                                          List<ImageConfiguration> images,
                                                          Resolver imageResolver,
                                                          String imageNameFilter,
@@ -126,14 +126,13 @@ public class ConfigHelper {
      * @param images the images to check
      * @param apiVersion the original API version intended to use
      * @param nameFormatter formatter for image names
-     * @return the minimal API Docker API required to be used for the given configuration.
      */
-    public static String initAndValidate(List<ImageConfiguration> images, String apiVersion, NameFormatter nameFormatter) {
+    private static void initAndValidate(List<ImageConfiguration> images, String apiVersion, NameFormatter nameFormatter, KitLogger log, JKubeConfiguration jKubeConfiguration) {
         // Init and validate configs. After this step, getResolvedImages() contains the valid configuration.
         for (ImageConfiguration imageConfiguration : images) {
             apiVersion = EnvUtil.extractLargerVersion(apiVersion, initAndValidate(nameFormatter, imageConfiguration));
+            printDockerfileInfoIfDockerfileMode(imageConfiguration, log, jKubeConfiguration);
         }
-        return apiVersion;
     }
 
     // Check if the provided image configuration matches the given
@@ -194,32 +193,44 @@ public class ConfigHelper {
                 customizer);                     // customizer (can be overwritten by a subclass)
 
         // Check for simple Dockerfile mode
-        if (isSimpleDockerFileMode(jKubeConfiguration.getBasedir())) {
-            File topDockerfile = getTopLevelDockerfile(jKubeConfiguration.getBasedir());
-            String defaultImageName = imageNameFormatter.format(getValueFromProperties(jKubeConfiguration.getProject().getProperties(),
-                    "jkube.image.name", "jkube.generator.name"));
+        ImageConfiguration dockerFileImageConfig = createImageConfigurationForSimpleDockerfile(resolvedImages, jKubeConfiguration, imageNameFormatter);
+        if (dockerFileImageConfig != null) {
             if (resolvedImages.isEmpty()) {
-                resolvedImages.add(createSimpleDockerfileConfig(topDockerfile, defaultImageName));
-            } else if (resolvedImages.size() == 1 && resolvedImages.get(0).getBuildConfiguration() == null) {
-                resolvedImages.set(0, addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile));
+                resolvedImages.add(dockerFileImageConfig);
+            } else {
+                resolvedImages.set(0, dockerFileImageConfig);
             }
         }
 
         // Initialize configuration and detect minimal API version
-        ConfigHelper.initAndValidate(resolvedImages, apiVersion, imageNameFormatter);
-
-        for (ImageConfiguration image : resolvedImages) {
-            BuildConfiguration buildConfiguration = image.getBuildConfiguration();
-            if (buildConfiguration != null &&  buildConfiguration.isDockerFileMode()) {
-                log.info("Using Dockerfile: %s", buildConfiguration.getDockerFile().getAbsolutePath());
-                log.info("Using Docker Context Directory: %s", buildConfiguration.getAbsoluteContextDirPath(jKubeConfiguration.getSourceDirectory(), jKubeConfiguration.getBasedir().getAbsolutePath()));
-            }
-        }
+        initAndValidate(resolvedImages, apiVersion, imageNameFormatter, log, jKubeConfiguration);
 
         return resolvedImages;
     }
 
+    private static ImageConfiguration createImageConfigurationForSimpleDockerfile(List<ImageConfiguration> resolvedImages, JKubeConfiguration jKubeConfiguration, ImageNameFormatter imageNameFormatter) {
+        if (isSimpleDockerFileMode(jKubeConfiguration.getBasedir())) {
+            File topDockerfile = getTopLevelDockerfile(jKubeConfiguration.getBasedir());
+            String defaultImageName = imageNameFormatter.format(getValueFromProperties(jKubeConfiguration.getProject().getProperties(),
+                "jkube.image.name", "jkube.generator.name"));
+            if (resolvedImages.isEmpty()) {
+                return createSimpleDockerfileConfig(topDockerfile, defaultImageName);
+            } else if (resolvedImages.size() == 1 && resolvedImages.get(0).getBuildConfiguration() == null) {
+                return addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile);
+            }
+        }
+        return null;
+    }
+
     // =========================================================================
+
+    private static void printDockerfileInfoIfDockerfileMode(ImageConfiguration imageConfiguration, KitLogger log, JKubeConfiguration jKubeConfiguration) {
+        BuildConfiguration buildConfiguration = imageConfiguration.getBuildConfiguration();
+        if (buildConfiguration != null &&  buildConfiguration.isDockerFileMode()) {
+            log.info("Using Dockerfile: %s", buildConfiguration.getDockerFile().getAbsolutePath());
+            log.info("Using Docker Context Directory: %s", buildConfiguration.getAbsoluteContextDirPath(jKubeConfiguration.getSourceDirectory(), jKubeConfiguration.getBasedir().getAbsolutePath()));
+        }
+    }
 
     /**
      * Allow subclasses to customize the given set of image configurations. This is called
@@ -234,7 +245,7 @@ public class ConfigHelper {
      * A resolver can map one given image configuration to one or more image configurations
      * This is e.g. used for resolving properties
      */
-    public interface Resolver {
+    private interface Resolver {
         List<ImageConfiguration> resolve(ImageConfiguration image);
     }
 
