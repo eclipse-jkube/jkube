@@ -611,6 +611,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
      * @return the configuration customized by our generators.
      */
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
+        log.info("Building Docker image");
         try {
             return GeneratorManager.generate(configs, generatorContextBuilder().build(), false);
         } catch (DependencyResolutionRequiredException de) {
