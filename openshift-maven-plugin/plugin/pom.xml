@@ -21,7 +21,7 @@
     <parent>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>openshift-maven-plugin-parent</artifactId>
-      <version>1.12.0</version>
+      <version>1.13-SNAPSHOT</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
