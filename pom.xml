@@ -113,7 +113,7 @@
     <version.mockito>4.6.1</version.mockito>
     <version.plexus-component-metadata>1.7.1</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
-    <version.sshd>2.9.1</version.sshd>
+    <version.sshd>2.9.2</version.sshd>
     <project.build.outputTimestamp>2023-04-03T09:43:08Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
