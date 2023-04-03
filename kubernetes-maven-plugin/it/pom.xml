@@ -28,7 +28,7 @@ for running a single test with mvnDebug.
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>kubernetes-maven-plugin-parent</artifactId>
-    <version>1.12-SNAPSHOT</version>
+    <version>1.13-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 

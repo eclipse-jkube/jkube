@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>thorntail</artifactId>
-  <version>1.10.1</version>
+  <version>1.12.0</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Thorntail</name>
   <packaging>war</packaging>
 

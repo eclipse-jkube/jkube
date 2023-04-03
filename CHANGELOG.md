@@ -20,7 +20,9 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.12-SNAPSHOT
+### 1.13-SNAPSHOT
+
+### 1.12.0 (2023-04-03)
 * Fix #1179: Move storageClass related functionality out of VolumePermissionEnricher to PersistentVolumeClaimStorageClassEnricher
 * Fix #1273: Deprecate `jkube.io` annotation prefix in favor of `jkube.eclipse.org` for JKubeAnnotations
 * Fix #2040: Add support for adding resource limits via controller resource config
