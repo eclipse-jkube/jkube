@@ -92,6 +92,7 @@
       - karaf
       - vertx
       - micronaut
+      - helidon
       - java-exec
       - webapp
   watcher:
@@ -120,6 +121,7 @@
       - wildfly-jar
       - karaf
       - vertx
+      - helidon
       - java-exec
       - webapp
   enricher:
