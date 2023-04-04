@@ -85,7 +85,7 @@
     <version.asciidoctor-maven-plugin>2.2.2</version.asciidoctor-maven-plugin>
     <version.asciidoctorj>2.2.0</version.asciidoctorj>
     <version.assertj-core>3.23.1</version.assertj-core>
-    <version.citrus>3.3.0</version.citrus>
+    <version.citrus>3.4.0</version.citrus>
     <version.commons-io>2.8.0</version.commons-io>
     <version.gradle>6.1.1</version.gradle>
     <version.groovy>2.4.21</version.groovy>
