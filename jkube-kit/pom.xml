@@ -64,6 +64,7 @@
       <module>jkube-kit-openliberty</module>
       <module>jkube-kit-wildfly-jar</module>
       <module>jkube-kit-smallrye</module>
+      <module>jkube-kit-helidon</module>
   </modules>
 
   <profiles>

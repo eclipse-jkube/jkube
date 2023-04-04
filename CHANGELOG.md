@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.14-SNAPSHOT
+* Fix #1714: Add HelidonGenerator to add opinionated container image for Helidon applications
 
 ### 1.13.1 (2023-06-16)
 * Fix #2212: Bump Kubernetes Client version to 6.7.2 (fixes issues when trace-logging OpenShift builds -regression in 6.7.1-)

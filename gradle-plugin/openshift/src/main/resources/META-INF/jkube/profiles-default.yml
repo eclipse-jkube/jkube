@@ -93,6 +93,7 @@
     - karaf
     - vertx
     - micronaut
+    - helidon
     - java-exec
     - webapp
   watcher:
