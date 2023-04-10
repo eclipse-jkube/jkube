@@ -150,6 +150,30 @@ class HelidonUtilsTest {
     assertThat(result).isEqualTo("8080");
   }
 
+  @Test
+  void hasHelidonHealthDependency_whenNoDependency_thenReturnFalse() {
+    // Given
+    JavaProject javaProject = createNewJKubeProjectWithDeps("io.helidon.webserver", "helidon-webserver");
+
+    // When
+    boolean result = HelidonUtils.hasHelidonHealthDependency(javaProject);
+
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void hasHelidonHealthDependency_whenHelidonHealthDependency_thenReturnTrue() {
+    // Given
+    JavaProject javaProject = createNewJKubeProjectWithDeps("io.helidon.health", "helidon-health");
+
+    // When
+    boolean result = HelidonUtils.hasHelidonHealthDependency(javaProject);
+
+    // Then
+    assertThat(result).isTrue();
+  }
+
   private JavaProject createNewJKubeProjectWithDeps(String groupId, String artifactId) {
     List<Dependency> dependencyList = Collections.singletonList(Dependency.builder()
         .groupId(groupId)
