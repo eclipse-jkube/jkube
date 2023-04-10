@@ -1,0 +1,25 @@
+[[generator-helidon]]
+=== Helidon
+
+ifeval::["{plugin-type}" == "maven"]
+The `Helidon` generator tries to detect Helidon based projects looking at project `pom.xml`:
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+The `Helidon` generator detects Helidon based projects looking at project `build.gradle`:
+endif::[]
+
+The base images chosen are the following, however, these can be overridden using `jkube.generator.from` property:
+[[generator-helidon-from]]
+.Webapp Base Images
+[cols="1,4,4"]
+|===
+| | Docker Build | S2I Build
+
+| *Native*
+| `registry.access.redhat.com/ubi8/ubi-minimal:8.7`
+| `registry.access.redhat.com/ubi8/ubi-minimal:8.7`
+
+| *Normal Build*
+| `quay.io/jkube/jkube-java`
+| `quay.io/jkube/jkube-java`
+|===

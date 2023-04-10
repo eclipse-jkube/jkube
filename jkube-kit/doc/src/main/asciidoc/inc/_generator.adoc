@@ -58,6 +58,10 @@ ifeval::["{plugin-type}" == "maven"]
 | `wildfly-jar`
 | Generator for WildFly Bootable JAR applications
 
+| <<generator-helidon, Helidon>>
+| `helidon`
+| Generator for Helidon based apps
+
 endif::[]
 |===
 
@@ -71,11 +75,12 @@ include::generator/_webapp.adoc[]
 include::generator/_quarkus.adoc[]
 include::generator/_openliberty.adoc[]
 include::generator/_micronaut.adoc[]
-
-include::generator/_api.adoc[]
+include::generator/_helidon.adoc[]
 ifeval::["{plugin-type}" == "maven"]
 include::generator/_karaf.adoc[]
 include::generator/_wildfly_jar.adoc[]
 
 endif::[]
+
+include::generator/_api.adoc[]
 
