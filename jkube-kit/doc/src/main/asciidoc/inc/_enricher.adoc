@@ -263,13 +263,13 @@ include::enricher/vertx-healthcheck/_jkube_healthcheck_vertx.adoc[]
 
 include::enricher/smallrye-healthcheck/_jkube_healthcheck_smallrye.adoc[]
 
+include::enricher/helidon-healthcheck/_jkube_healthcheck_helidon.adoc[]
+
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.
 ifeval::["{plugin-type}" == "maven"]
 
-
 include::enricher/_jkube_healthcheck_karaf.adoc[]
-
 
 include::enricher/_jkube_healthcheck_webapp.adoc[]
 
