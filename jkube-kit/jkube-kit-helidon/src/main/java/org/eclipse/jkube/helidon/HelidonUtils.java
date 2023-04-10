@@ -41,6 +41,10 @@ public class HelidonUtils {
         JKubeProjectUtil.hasDependency(javaProject, "io.helidon.integrations.graal", "helidon-mp-graal-native-image-extension");
   }
 
+  public static boolean hasHelidonHealthDependency(JavaProject javaProject) {
+    return JKubeProjectUtil.hasTransitiveDependency(javaProject, "io.helidon.health", "helidon-health");
+  }
+
   public static Properties getHelidonConfiguration(JavaProject javaProject) {
     final URLClassLoader urlClassLoader = getClassLoader(javaProject);
     final List<Supplier<Properties>> sources = Arrays.asList(
