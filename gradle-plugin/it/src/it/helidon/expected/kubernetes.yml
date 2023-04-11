@@ -1,0 +1,107 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.eclipse.org/git-commit: "@ignore@"
+      prometheus.io/path: "@ignore@"
+      prometheus.io/port: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      prometheus.io/scrape: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+    labels:
+      app: helidon
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: helidon
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: helidon
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+    labels:
+      app: helidon
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: helidon
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: helidon
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+    template:
+      metadata:
+        annotations:
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
+        labels:
+          app: helidon
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+        name: helidon
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: gradle/helidon:latest
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health/live
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            successThreshold: 1
+          name: helidon
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 9779
+            name: prometheus
+            protocol: TCP
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /health/ready
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            successThreshold: 1
+          securityContext:
+            privileged: false
