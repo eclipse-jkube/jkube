@@ -21,6 +21,7 @@ import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,6 +88,32 @@ class JKubeConfigurationTest {
     final File result = configuration.inSourceDir("other");
     // Then
     assertThat(result).isEqualTo(new File("/src/other"));
+  }
+
+  @Test
+  void builder() {
+    // Given
+    JKubeConfiguration.JKubeConfigurationBuilder builder = JKubeConfiguration.builder()
+        .project(JavaProject.builder().artifactId("test-project").build())
+        .sourceDirectory("src/main/jkube")
+        .outputDirectory("target")
+        .buildArgs(Collections.singletonMap("foo", "bar"))
+        .registryConfig(RegistryConfig.builder()
+            .registry("r.example.com")
+            .build())
+        .resolvedResourceSourceDirs(Collections.singletonList(new File("src/main/jkube")));
+
+    // When
+    JKubeConfiguration jKubeConfiguration = builder.build();
+
+    // Then
+    assertThat(jKubeConfiguration)
+        .hasFieldOrPropertyWithValue("project.artifactId", "test-project")
+        .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/jkube")
+        .hasFieldOrPropertyWithValue("outputDirectory", "target")
+        .hasFieldOrPropertyWithValue("buildArgs", Collections.singletonMap("foo", "bar"))
+        .hasFieldOrPropertyWithValue("registryConfig.registry", "r.example.com")
+        .hasFieldOrPropertyWithValue("resolvedResourceSourceDirs", Collections.singletonList(new File("src/main/jkube")));
   }
 
   /**

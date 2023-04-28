@@ -19,9 +19,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
+import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.ResourceFileType;
@@ -35,6 +39,7 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -87,7 +92,7 @@ class HelmServiceTest {
       // Given
       helmConfig.chart("Chart Name").version("1337");
       // When
-      HelmService.createChartYaml(helmConfig.build(), outputDir);
+      HelmService.createChartYaml(helmConfig.build(), outputDir, jKubeConfiguration);
       // Then
       ArgumentCaptor<Chart> argumentCaptor = ArgumentCaptor.forClass(Chart.class);
       resourceUtilMockedStatic.verify(() -> ResourceUtil.save(notNull(), argumentCaptor.capture(), eq(ResourceFileType.yaml)));
@@ -95,6 +100,66 @@ class HelmServiceTest {
           .hasFieldOrPropertyWithValue("apiVersion", "v1")
           .hasFieldOrPropertyWithValue("name", "Chart Name")
           .hasFieldOrPropertyWithValue("version", "1337");
+    }
+  }
+
+  @Test
+  void createChartYaml_whenInvalidChartYamlFragmentProvided_thenThrowException() throws Exception {
+    try (MockedStatic<ResourceUtil> ignored = mockStatic(ResourceUtil.class)) {
+      // Given
+      File fragmentsDir = new File(Objects.requireNonNull(getClass().getResource("/invalid-helm-fragments")).getFile());
+      File outputDir = Files.createTempDirectory("chart-output").toFile();
+      jKubeConfiguration = jKubeConfiguration.toBuilder()
+          .project(JavaProject.builder().properties(new Properties()).build())
+          .resolvedResourceSourceDirs(Collections.singletonList(fragmentsDir))
+          .build();
+      // When + Then
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> HelmService.createChartYaml(helmConfig.build(), outputDir, jKubeConfiguration))
+          .withMessageContaining("Failure in parsing Helm Chart fragment : ");
+    }
+  }
+
+  @Test
+  void createChartYaml_whenValidChartYamlFragmentProvided_thenMergeFragmentChart() throws Exception {
+    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
+      // Given
+      File fragmentsDir = new File(Objects.requireNonNull(getClass().getResource("/valid-helm-fragments")).getFile());
+      File outputDir = Files.createTempDirectory("chart-output").toFile();
+      Properties properties = new Properties();
+      properties.put("chart.name", "name-from-fragment");
+      jKubeConfiguration = jKubeConfiguration.toBuilder()
+          .project(JavaProject.builder().properties(properties).build())
+          .resolvedResourceSourceDirs(Collections.singletonList(fragmentsDir))
+          .build();
+      helmConfig
+          .chart("Chart Name")
+          .version("1337")
+          .description("Description from helmconfig")
+          .home("https://example.com")
+          .sources(Collections.singletonList("https://source.example.com"))
+          .keywords(Collections.singletonList("ci"))
+          .maintainers(Collections.singletonList(Maintainer.builder().name("maintainer-from-config").build()))
+          .icon("test-icon")
+          .engine("gotpl")
+          .dependencies(Collections.singletonList(HelmDependency.builder().name("dependency-from-config").build()));
+      // When
+      HelmService.createChartYaml(helmConfig.build(), outputDir, jKubeConfiguration);
+      // Then
+      ArgumentCaptor<Chart> argumentCaptor = ArgumentCaptor.forClass(Chart.class);
+      resourceUtilMockedStatic.verify(() -> ResourceUtil.save(notNull(), argumentCaptor.capture(), eq(ResourceFileType.yaml)));
+      assertThat(argumentCaptor.getValue())
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("name", "name-from-fragment")
+          .hasFieldOrPropertyWithValue("version", "1337")
+          .hasFieldOrPropertyWithValue("description", "Description from helmconfig")
+          .hasFieldOrPropertyWithValue("home", "https://example.com")
+          .hasFieldOrPropertyWithValue("icon", "test-icon")
+          .hasFieldOrPropertyWithValue("engine", "gotpl")
+          .hasFieldOrPropertyWithValue("keywords", Collections.singletonList("ci"))
+          .hasFieldOrPropertyWithValue("sources", Collections.singletonList("https://source.example.com"))
+          .hasFieldOrPropertyWithValue("maintainers", Collections.singletonList(Maintainer.builder().name("maintainer-from-config").build()))
+          .hasFieldOrPropertyWithValue("dependencies", Collections.singletonList(HelmDependency.builder().name("dependency-from-config").build()));
     }
   }
 
@@ -112,7 +177,7 @@ class HelmServiceTest {
       helmConfig.chart("Chart Name").version("1337")
           .dependencies(Collections.singletonList(helmDependency));
       // When
-      HelmService.createChartYaml(helmConfig.build(), outputDir);
+      HelmService.createChartYaml(helmConfig.build(), outputDir, jKubeConfiguration);
       // Then
       ArgumentCaptor<Chart> argumentCaptor = ArgumentCaptor.forClass(Chart.class);
       resourceUtilMockedStatic.verify(() -> ResourceUtil.save(notNull(), argumentCaptor.capture(), eq(ResourceFileType.yaml)));

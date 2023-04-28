@@ -326,6 +326,17 @@ class KubernetesResourceUtilTest {
             tuple(GenericKubernetesResource.class, "jkube/v1", "CustomKind", "custom")
         );
   }
+  
+  @Test
+  void readResourceFragmentsFrom_withExcludedFile_shouldNotIncludeExcludedFile() throws IOException {
+    // Given
+    File[] resourceFiles = new File[] { new File("Chart.helm.yaml")};
+    // When
+    final KubernetesListBuilder result = KubernetesResourceUtil.readResourceFragmentsFrom(
+        kubernetes, DEFAULT_RESOURCE_VERSIONING, "pong", resourceFiles);
+    // Then
+    assertThat(result.buildItems()).isEmpty();
+  }
 
   @Test
   void mergePodSpec_withFragmentWithContainerNameAndSidecarDisabled_shouldPreserveContainerNameFromFragment() {

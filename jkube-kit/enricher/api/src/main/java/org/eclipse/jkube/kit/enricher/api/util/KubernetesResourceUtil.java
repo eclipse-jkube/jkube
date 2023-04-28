@@ -136,9 +136,11 @@ public class KubernetesResourceUtil {
 
     static final Map<String,String> FILENAME_TO_KIND_MAPPER = new HashMap<>();
     static final Map<String,String> KIND_TO_FILENAME_MAPPER = new HashMap<>();
+    static final Set<String> EXCLUDED_RESOURCE_FILENAMES = new HashSet<>();
 
     static {
         initializeKindFilenameMapper();
+        initializeExcludedResourceFilenames();
     }
 
     /**
@@ -158,7 +160,8 @@ public class KubernetesResourceUtil {
 
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         if (resourceFiles != null) {
-            for (File file : resourceFiles) {
+            List<File> filteredResourceFiles = getFilteredResourceFiles(resourceFiles);
+            for (File file : filteredResourceFiles) {
                 builder.addToItems(getResource(platformMode, apiVersions, file, defaultName));
             }
         }
@@ -195,6 +198,10 @@ public class KubernetesResourceUtil {
     protected static void initializeKindFilenameMapper() {
         final Map<String, List<String>> mappings = KindFilenameMapperUtil.loadMappings();
         updateKindFilenameMapper(mappings);
+    }
+
+    private static void initializeExcludedResourceFilenames() {
+        EXCLUDED_RESOURCE_FILENAMES.add(".helm.yaml");
     }
 
     protected static void remove(String kind, String filename) {
@@ -930,6 +937,18 @@ public class KubernetesResourceUtil {
                 metadata1.setLabels(mergeMapsAndRemoveEmptyStrings(metadata2.getLabels(), metadata1.getLabels()));
             }
         }
+    }
+
+    private static List<File> getFilteredResourceFiles(File[] resourceFiles) {
+        List<File> filteredResourceFiles = new ArrayList<>();
+        for (File resourceFile : resourceFiles) {
+            boolean hasNoExcludedFileNamePattern = EXCLUDED_RESOURCE_FILENAMES.stream()
+                .noneMatch(s -> resourceFile.getName().endsWith(s));
+            if (hasNoExcludedFileNamePattern) {
+                filteredResourceFiles.add(resourceFile);
+            }
+        }
+        return filteredResourceFiles;
     }
 
     /**

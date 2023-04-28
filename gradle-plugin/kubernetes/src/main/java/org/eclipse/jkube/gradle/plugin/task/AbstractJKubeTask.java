@@ -135,6 +135,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
             .reactorProjects(Collections.singletonList(kubernetesExtension.javaProject))
             .sourceDirectory(kubernetesExtension.getBuildSourceDirectoryOrDefault())
             .outputDirectory(kubernetesExtension.getBuildOutputDirectoryOrDefault())
+            .resolvedResourceSourceDirs(ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()))
             .registryConfig(RegistryConfig.builder()
                 .settings(Collections.emptyList())
                 .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
