@@ -24,7 +24,12 @@ If you have already built the resource then you can omit this task.
 
 endif::[]
 
-The configuration is defined in a `helm` section within the plugin's configuration:
+In order to configure generated chart you need to provide chart related configuration in form of {plugin-configuration-type} to {plugin}.
+
+You can also provide a `Chart.yaml` fragment in `src/main/jkube` directory, {plugin} would merge it's contents with the
+opinionated defaults to create final chart.
+
+The {plugin-configuration-type} configuration is defined in a `helm` section within the plugin's configuration:
 
 ifeval::["{plugin-type}" == "maven"]
 include::maven/_example_helm_config.adoc[]

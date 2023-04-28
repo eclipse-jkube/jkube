@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 
@@ -42,6 +43,7 @@ import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -88,6 +90,19 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     @Parameter(property = "jkube.namespace")
     public String namespace;
+
+    /**
+     * Folder where to find project specific files
+     */
+    @Parameter(property = "jkube.resourceDir", defaultValue = "${basedir}/src/main/jkube")
+    protected File resourceDir;
+
+    /**
+     * Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, plugin will look at src/main/jkube/dev
+     * Same applies for resourceDirOpenShiftOverride property.
+     */
+    @Parameter(property = "jkube.environment")
+    protected String environment;
 
     @Parameter
     protected ClusterConfiguration access;
@@ -177,6 +192,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
                     .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                     .passwordDecryptionMethod(this::decrypt)
                     .build())
+                .resolvedResourceSourceDirs(ResourceUtil.getFinalResourceDirs(resourceDir, environment))
                 .build())
             .clusterAccess(clusterAccess)
             .offline(offline)
