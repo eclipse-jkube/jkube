@@ -8,11 +8,6 @@
 |====
 | Element | Description | Property
 
-| *apiVersion*
-| Use this variable if you are using an older version of docker not compatible with the current default use to
-communicate with the server.
-| `jkube.docker.apiVersion`
-
  | *authConfig*
 | Authentication information when pulling from or pushing to Docker registry. There is a dedicated section
   <<authentication, Authentication>> for how to do security.

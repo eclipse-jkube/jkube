@@ -85,11 +85,6 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   }
 
   @Override
-  public Property<String> getMinimalApiVersion() {
-    return new DefaultProperty<>(String.class);
-  }
-
-  @Override
   public Property<Boolean> getSkipMachine() {
     return new DefaultProperty<>(Boolean.class);
   }

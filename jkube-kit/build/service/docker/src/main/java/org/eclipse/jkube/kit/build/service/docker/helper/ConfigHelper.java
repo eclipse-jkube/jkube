@@ -21,7 +21,6 @@ import org.eclipse.jkube.kit.build.service.docker.config.handler.property.Proper
 import org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyMode;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.io.File;
@@ -119,22 +118,6 @@ public class ConfigHelper {
         return value;
     }
 
-    /**
-     * Initialize and validate the configuration.
-     *
-     *
-     * @param images the images to check
-     * @param apiVersion the original API version intended to use
-     * @param nameFormatter formatter for image names
-     */
-    private static void initAndValidate(List<ImageConfiguration> images, String apiVersion, NameFormatter nameFormatter, KitLogger log, JKubeConfiguration jKubeConfiguration) {
-        // Init and validate configs. After this step, getResolvedImages() contains the valid configuration.
-        for (ImageConfiguration imageConfiguration : images) {
-            apiVersion = EnvUtil.extractLargerVersion(apiVersion, initAndValidate(nameFormatter, imageConfiguration));
-            printDockerfileInfoIfDockerfileMode(imageConfiguration, log, jKubeConfiguration);
-        }
-    }
-
     // Check if the provided image configuration matches the given
     public static boolean matchesConfiguredImages(String imageList, ImageConfiguration imageConfig) {
         if (imageList == null) {
@@ -181,16 +164,15 @@ public class ConfigHelper {
         }
     }
 
-    public static List<ImageConfiguration> initImageConfiguration(String apiVersion, Date buildTimeStamp, List<ImageConfiguration> images, ImageConfigResolver imageConfigResolver, KitLogger log, String filter, ConfigHelper.Customizer customizer, JKubeConfiguration jKubeConfiguration) {
-        List<ImageConfiguration> resolvedImages;
-        ImageNameFormatter imageNameFormatter = new ImageNameFormatter(jKubeConfiguration.getProject(), buildTimeStamp);
+    public static List<ImageConfiguration> initImageConfiguration(Date buildTimeStamp, List<ImageConfiguration> unresolvedImages, ImageConfigResolver imageConfigResolver, KitLogger log, String filter, ConfigHelper.Customizer customizer, JKubeConfiguration jKubeConfiguration) {
+        final ImageNameFormatter imageNameFormatter = new ImageNameFormatter(jKubeConfiguration.getProject(), buildTimeStamp);
         // Resolve images
-        resolvedImages = ConfigHelper.resolveImages(
+        final List<ImageConfiguration> resolvedImages = ConfigHelper.resolveImages(
                 log,
-                images,                  // Unresolved images
+                unresolvedImages,
                 (ImageConfiguration image) -> imageConfigResolver.resolve(image, jKubeConfiguration.getProject()),
                 filter,                   // A filter which image to process
-                customizer);                     // customizer (can be overwritten by a subclass)
+                customizer);              // customizer (can be overwritten by a subclass)
 
         // Check for simple Dockerfile mode
         ImageConfiguration dockerFileImageConfig = createImageConfigurationForSimpleDockerfile(resolvedImages, jKubeConfiguration, imageNameFormatter);
@@ -202,8 +184,17 @@ public class ConfigHelper {
             }
         }
 
-        // Initialize configuration and detect minimal API version
-        initAndValidate(resolvedImages, apiVersion, imageNameFormatter, log, jKubeConfiguration);
+        // Init and validate Image configurations. After this step, getResolvedImages() contains the valid configuration.
+        for (ImageConfiguration imageConfiguration : resolvedImages) {
+            imageConfiguration.setName(imageNameFormatter.format(imageConfiguration.getName()));
+            if (imageConfiguration.getBuild() != null) {
+                imageConfiguration.getBuild().initAndValidate();
+            }
+            if (imageConfiguration.getRun() != null) {
+                imageConfiguration.getRun().initAndValidate();
+            }
+            printDockerfileInfoIfDockerfileMode(imageConfiguration, log, jKubeConfiguration);
+        }
 
         return resolvedImages;
     }
@@ -247,18 +238,6 @@ public class ConfigHelper {
      */
     private interface Resolver {
         List<ImageConfiguration> resolve(ImageConfiguration image);
-    }
-
-    public static String initAndValidate(ConfigHelper.NameFormatter nameFormatter, ImageConfiguration imageConfiguration) {
-        imageConfiguration.setName(nameFormatter.format(imageConfiguration.getName()));
-        String minimalApiVersion = null;
-        if (imageConfiguration.getBuild() != null) {
-            minimalApiVersion = imageConfiguration.getBuild().initAndValidate();
-        }
-        if (imageConfiguration.getRun() != null) {
-            minimalApiVersion = EnvUtil.extractLargerVersion(minimalApiVersion, imageConfiguration.getRun().initAndValidate());
-        }
-        return minimalApiVersion;
     }
 
     /**

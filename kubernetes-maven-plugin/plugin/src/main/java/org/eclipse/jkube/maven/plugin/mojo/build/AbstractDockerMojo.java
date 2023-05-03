@@ -113,9 +113,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(defaultValue = "${mojoExecution}", readonly = true)
     protected MojoExecution mojoExecution;
 
-    @Parameter(property = "jkube.docker.apiVersion")
-    protected String apiVersion;
-
     // For verbose output
     @Parameter(property = "jkube.docker.verbose", defaultValue = "false")
     protected String verbose;
@@ -322,8 +319,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected LogOutputSpecFactory logOutputSpecFactory;
 
-    protected String minimalApiVersion;
-
     // Access for creating OpenShift binary builds
     protected ClusterAccess clusterAccess;
 
@@ -447,7 +442,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                     .buildServiceConfig(buildServiceConfigBuilder().build())
                     .offline(offline)
                     .build();
-                resolvedImages = ConfigHelper.initImageConfiguration(apiVersion, getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), images, imageConfigResolver, log, filter, this, jkubeServiceHub.getConfiguration());
+                resolvedImages = ConfigHelper.initImageConfiguration(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), images, imageConfigResolver, log, filter, this, jkubeServiceHub.getConfiguration());
                 executeInternal();
             } catch (IOException | DependencyResolutionRequiredException exp) {
                 logException(exp);
@@ -520,7 +515,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 .certPath(certPath)
                 .machine(machine)
                 .maxConnections(maxConnections)
-                .minimalApiVersion(minimalApiVersion)
                 .projectProperties(project.getProperties())
                 .skipMachine(skipMachine)
                 .log(log)

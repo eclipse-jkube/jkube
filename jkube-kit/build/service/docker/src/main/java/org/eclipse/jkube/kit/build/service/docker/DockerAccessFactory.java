@@ -127,7 +127,6 @@ public class DockerAccessFactory {
         private DockerMachineConfiguration machine;
         private List<DockerConnectionDetector.DockerHostProvider> dockerHostProviders;
         private boolean skipMachine;
-        private String minimalApiVersion;
         private String dockerHost;
         private String certPath;
         private int maxConnections;

@@ -53,7 +53,6 @@ public class TaskUtil {
         .dockerHost(kubernetesExtension.getDockerHostOrNull())
         .certPath(kubernetesExtension.getCertPathOrNull())
         .machine(kubernetesExtension.machine)
-        .minimalApiVersion(kubernetesExtension.getMinimalApiVersion().getOrNull())
         .skipMachine(kubernetesExtension.getSkipMachineOrDefault())
         .build();
     DockerAccessFactory dockerAccessFactory = new DockerAccessFactory();

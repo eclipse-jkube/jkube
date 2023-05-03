@@ -323,7 +323,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
         throws IOException {
       return ConfigHelper.initImageConfiguration(
-          null /* no minimal api version */,
           getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
               DOCKER_BUILD_TIMESTAMP),
           images, imageConfigResolver,

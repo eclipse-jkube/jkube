@@ -43,7 +43,7 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
     private final FormatParameterReplacer formatParamReplacer;
 
     private final Date now;
-    private JavaProject project;
+    private final JavaProject project;
 
     public ImageNameFormatter(JavaProject project, Date now) {
         this.now = now;
