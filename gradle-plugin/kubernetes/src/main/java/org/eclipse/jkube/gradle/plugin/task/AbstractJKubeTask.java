@@ -179,7 +179,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected List<ImageConfiguration> resolveImages(ImageConfigResolver imageConfigResolver) throws IOException {
     return initImageConfiguration(
-        kubernetesExtension.getApiVersionOrNull(),
         getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
             DOCKER_BUILD_TIMESTAMP),
         kubernetesExtension.images, imageConfigResolver, kitLogger,

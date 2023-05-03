@@ -141,8 +141,6 @@ public abstract class KubernetesExtension {
 
   public abstract Property<String> getCertPath();
 
-  public abstract Property<String> getMinimalApiVersion();
-
   public abstract Property<Boolean> getSkipMachine();
 
   public abstract Property<Boolean> getForcePull();
@@ -583,10 +581,6 @@ public abstract class KubernetesExtension {
 
   public String getFilterOrNull() {
     return getOrDefaultString("jkube.image.filter", this::getFilter, null);
-  }
-
-  public String getApiVersionOrNull() {
-    return getOrDefaultString("jkube.docker.apiVersion", this::getApiVersion, null);
   }
 
   public String getImagePullPolicyOrNull() {
