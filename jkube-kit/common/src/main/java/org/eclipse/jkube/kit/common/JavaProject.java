@@ -242,7 +242,7 @@ public class JavaProject implements Serializable {
    */
   private List<Maintainer> maintainers;
 
-  @Builder
+  @Builder(toBuilder = true)
   public JavaProject(
       String name, String groupId, String artifactId, String version,
       File outputDirectory, File baseDirectory, File buildDirectory, File buildPackageDirectory,
