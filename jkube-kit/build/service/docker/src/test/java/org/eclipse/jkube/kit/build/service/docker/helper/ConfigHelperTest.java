@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -43,18 +44,25 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.eq;
 
 class ConfigHelperTest {
-  private ImageConfigResolver imageConfigResolver;
   private KitLogger logger;
+  private ImageConfigResolver imageConfigResolver;
   private JavaProject javaProject;
   private JKubeConfiguration jKubeConfiguration;
 
   @BeforeEach
   void setUp() {
-    imageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
     logger = spy(new KitLogger.SilentLogger());
-    javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
-    jKubeConfiguration = mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS);
-    when(jKubeConfiguration.getProject()).thenReturn(javaProject);
+    imageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
+    javaProject = JavaProject.builder()
+      .groupId("org.eclipse.jkube")
+      .artifactId("test-java-project")
+      .version("0.0.1-SNAPSHOT")
+      .properties(new Properties())
+      .baseDirectory(new File("dummy-dir"))
+      .build();
+    jKubeConfiguration = JKubeConfiguration.builder()
+      .project(javaProject)
+      .build();
   }
 
   @Test
@@ -63,7 +71,6 @@ class ConfigHelperTest {
     ImageConfiguration dummyImageConfiguration = createNewDummyImageConfiguration();
     List<ImageConfiguration> images = new ArrayList<>();
     images.add(dummyImageConfiguration);
-    when(jKubeConfiguration.getBasedir()).thenReturn(new File("dummydir"));
     when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
 
     // When
@@ -78,12 +85,12 @@ class ConfigHelperTest {
   @Test
   void initImageConfiguration_withSimpleDockerFileInProjectBaseDir_shouldCreateImageConfiguration() {
     List<ImageConfiguration> images = new ArrayList<>();
-    File dockerFile = new File(getClass().getResource("/dummy-javaproject/Dockerfile").getFile());
-    when(jKubeConfiguration.getBasedir()).thenReturn(dockerFile.getParentFile());
-    when(javaProject.getProperties()).thenReturn(new Properties());
-    when(javaProject.getGroupId()).thenReturn("org.eclipse.jkube");
-    when(javaProject.getArtifactId()).thenReturn("test-java-project");
-    when(javaProject.getVersion()).thenReturn("0.0.1-SNAPSHOT");
+    File dockerFile = new File(Objects.requireNonNull(getClass().getResource("/dummy-javaproject/Dockerfile")).getFile());
+    jKubeConfiguration = jKubeConfiguration.toBuilder()
+      .project(javaProject.toBuilder()
+        .baseDirectory(dockerFile.getParentFile())
+        .build())
+      .build();
 
     // When
     List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), images, imageConfigResolver, logger, null, configs -> configs, jKubeConfiguration);
@@ -104,9 +111,12 @@ class ConfigHelperTest {
     List<ImageConfiguration> images = new ArrayList<>();
     images.add(dummyImageConfiguration);
     File dockerFile = new File(getClass().getResource("/dummy-javaproject/Dockerfile").getFile());
-    when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
-    when(jKubeConfiguration.getBasedir()).thenReturn(dockerFile.getParentFile());
-    when(javaProject.getProperties()).thenReturn(new Properties());
+    jKubeConfiguration = jKubeConfiguration.toBuilder()
+      .project(javaProject.toBuilder()
+        .baseDirectory(dockerFile.getParentFile())
+        .build())
+      .build();
+    when(imageConfigResolver.resolve(dummyImageConfiguration, jKubeConfiguration.getProject())).thenReturn(images);
 
     // When
     List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration("1.12", new Date(), images, imageConfigResolver, logger, null, configs -> configs, jKubeConfiguration);
@@ -140,7 +150,6 @@ class ConfigHelperTest {
     ImageConfiguration dummyImageConfiguration = createNewDummyImageConfiguration();
     List<ImageConfiguration> images = Collections.singletonList(createNewDummyImageConfiguration());
     when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
-    when(jKubeConfiguration.getBasedir()).thenReturn(new File("test"));
 
     // When
     ConfigHelper.initImageConfiguration("1.12", new Date(), images, imageConfigResolver, logger, "i-dont-exist", configs -> configs, jKubeConfiguration);
@@ -152,9 +161,7 @@ class ConfigHelperTest {
   @Test
   void validateExternalPropertyActivation_withMultipleImagesWithoutExplicitExternalConfig_shouldThrowException() {
     // Given
-    Properties properties = new Properties();
-    properties.put("docker.imagePropertyConfiguration", "Override");
-    when(javaProject.getProperties()).thenReturn(properties);
+    javaProject.getProperties().put("docker.imagePropertyConfiguration", "Override");
     ImageConfiguration i1 = createNewDummyImageConfiguration();
     ImageConfiguration i2 = createNewDummyImageConfiguration().toBuilder()
         .name("imageconfig2")
