@@ -1,0 +1,19 @@
+apiVersion: v1
+name: helm
+version: 0.0.1-SNAPSHOT
+description: Helm Chart generation via fragment integration test
+keywords:
+  - test
+  - fragments
+home: https://example.com
+sources:
+  - https://example.com/fragments
+dependencies:
+  - name: dependency-via-fragment
+    version: 0.0.1
+    repository: https://example.com/dependency-via-fragment
+maintainers:
+  - name: maintainer-via-fragment
+    email: maintainer@example.com
+    url: https://example.com/user1
+icon: https://example.com/icon1

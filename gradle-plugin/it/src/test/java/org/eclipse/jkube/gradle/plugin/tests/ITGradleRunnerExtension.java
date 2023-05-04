@@ -66,6 +66,14 @@ public class ITGradleRunnerExtension implements BeforeEachCallback, AfterEachCal
     return path.toFile();
   }
 
+  public File resolveDefaultKubernetesHelmMetadataFile(String projectName) {
+    return resolveFile("build", "jkube", "helm", projectName, "kubernetes", "Chart.yaml");
+  }
+
+  public File resolveDefaultOpenShiftHelmMetadataFile(String projectName) {
+    return resolveFile("build", "jkube", "helm", projectName, "openshift", "Chart.yaml");
+  }
+
   public File resolveDefaultKubernetesResourceFile() {
     return resolveFile("build", "classes", "java", "main", "META-INF", "jkube", "kubernetes.yml");
   }
