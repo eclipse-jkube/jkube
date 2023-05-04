@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 class OpenShiftUndeployTaskTest {
 
   @RegisterExtension
-  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
+  public final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<OpenshiftUndeployService> openshiftUndeployServiceMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
@@ -54,8 +54,7 @@ class OpenShiftUndeployTaskTest {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       final OpenShiftClient openShiftClient = mock(OpenShiftClient.class);
       when(mock.createDefaultClient()).thenReturn(openShiftClient);
-      when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
-      when(openShiftClient.isSupported()).thenReturn(true);
+      when(openShiftClient.hasApiGroup("openshift.io", false)).thenReturn(true);
     });
     openshiftUndeployServiceMockedConstruction = mockConstruction(OpenshiftUndeployService.class);
     extension = new TestOpenShiftExtension();

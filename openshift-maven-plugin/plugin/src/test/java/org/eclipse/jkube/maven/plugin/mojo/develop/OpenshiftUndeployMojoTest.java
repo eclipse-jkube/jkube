@@ -57,8 +57,7 @@ class OpenshiftUndeployMojoTest {
     // Given
     final OpenShiftClient client = mock(OpenShiftClient.class);
     when(mockServiceHub.getClient()).thenReturn(client);
-    when(client.adapt(OpenShiftClient.class)).thenReturn(client);
-    when(client.isSupported()).thenReturn(true);
+    when(client.hasApiGroup("openshift.io", false)).thenReturn(true);
     // When
     final List<File> result = undeployMojo.getManifestsToUndeploy();
     // Then

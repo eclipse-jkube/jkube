@@ -58,7 +58,7 @@ public class ClusterAccess {
             String prefix = cause instanceof UnknownHostException ? "Unknown host " : "";
             kitLogger.warn("Cannot access cluster for detecting mode: %s%s",
                     prefix,
-                    cause != null ? cause.getMessage() : exp.getMessage());
+                    cause != null && cause.getMessage() != null ? cause.getMessage() : exp.getMessage());
         }
         return false;
     }
