@@ -55,7 +55,7 @@ class OpenshiftHelperTest {
     @Test
     void testOpenShiftClientWithAdaptableToOpenShift() {
         // Given
-        when(oc.isSupported()).thenReturn(true);
+        when(kc.hasApiGroup("openshift.io", false)).thenReturn(true);
         doReturn(oc).when(kc).adapt(OpenShiftClient.class);
         //When
         OpenShiftClient result = OpenshiftHelper.asOpenShiftClient(kc);
@@ -74,8 +74,7 @@ class OpenshiftHelperTest {
     @Test
     void testIsOpenShiftWhenSupported() {
         // Given
-        doReturn(oc).when(kc).adapt(OpenShiftClient.class);
-        when(oc.isSupported()).thenReturn(true);
+        when(kc.hasApiGroup("openshift.io", false)).thenReturn(true);
         //When
         boolean result = OpenshiftHelper.isOpenShift(kc);
         //Then
@@ -85,8 +84,7 @@ class OpenshiftHelperTest {
     @Test
     void testIsOpenShiftNotSupported() {
         // Given
-        doReturn(oc).when(kc).adapt(OpenShiftClient.class);
-        when(oc.isSupported()).thenReturn(false);
+        when(kc.hasApiGroup("openshift.io", false)).thenReturn(false);
         //When
         boolean result = OpenshiftHelper.isOpenShift(kc);
         //Then

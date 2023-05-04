@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.13-SNAPSHOT
 * Fix #1478: Should detect and warn the user if creating ingress and ingress controller not available
+* Fix #2150: Bump Kubernetes Client to 6.6.0 (fixes issues when trace-logging OpenShift builds)
 
 ### 1.12.0 (2023-04-03)
 * Fix #1179: Move storageClass related functionality out of VolumePermissionEnricher to PersistentVolumeClaimStorageClassEnricher

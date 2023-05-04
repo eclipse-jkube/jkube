@@ -185,7 +185,7 @@ class JKubeServiceHubTest {
     // Given
     jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT);
     try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
-      when(openShiftClient.isSupported()).thenReturn(true);
+      when(openShiftClient.hasApiGroup("openshift.io", false)).thenReturn(true);
       // When
       final UndeployService result = jKubeServiceHub.getUndeployService();
       // Then
