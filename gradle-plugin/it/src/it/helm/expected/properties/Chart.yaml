@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+name: helm
+home: https.example.com
+version: "@ignore@"
+description: Helm chart generation via properties integration test
+icon: https://example.com/chart1
