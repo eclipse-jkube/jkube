@@ -21,15 +21,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
-import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatus;
-import io.fabric8.kubernetes.api.model.authorization.v1.SubjectAccessReviewStatusBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.V1AuthorizationAPIGroupDSL;
-import io.fabric8.kubernetes.client.dsl.AuthorizationAPIGroupDSL;
-import io.fabric8.kubernetes.client.dsl.InOutCreateable;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -59,17 +59,21 @@ import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.common.TestHttpStaticServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.hasAccessForAction;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
+@EnableKubernetesMockClient(crud = true)
 class KubernetesHelperTest {
 
     private KitLogger logger;
+    private KubernetesMockServer mockServer;
+    private KubernetesClient mockClient;
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -323,14 +327,25 @@ class KubernetesHelperTest {
         assertThat(KubernetesHelper.addPort("90invalid", "", logger)).isNull();
     }
 
+    @ParameterizedTest
+    @MethodSource("controllerResources")
+    void isControllerResource_withController_returnsTrue(HasMetadata resource) {
+        assertThat(KubernetesHelper.isControllerResource(resource)).isTrue();
+    }
+
+    static Stream<Arguments> controllerResources() {
+        return Stream.of(
+            Arguments.of(new DeploymentBuilder().build()),
+            Arguments.of(new StatefulSetBuilder().build()),
+            Arguments.of(new ReplicationControllerBuilder().build()),
+            Arguments.of(new ReplicaSetBuilder().build()),
+            Arguments.of(new DeploymentConfigBuilder().build()),
+            Arguments.of(new DaemonSetBuilder().build())
+        );
+    }
+
     @Test
-    void testIsControllerResource() {
-        assertThat(KubernetesHelper.isControllerResource(new DeploymentBuilder().build())).isTrue();
-        assertThat(KubernetesHelper.isControllerResource(new StatefulSetBuilder().build())).isTrue();
-        assertThat(KubernetesHelper.isControllerResource(new ReplicationControllerBuilder().build())).isTrue();
-        assertThat(KubernetesHelper.isControllerResource(new ReplicaSetBuilder().build())).isTrue();
-        assertThat(KubernetesHelper.isControllerResource(new DeploymentConfigBuilder().build())).isTrue();
-        assertThat(KubernetesHelper.isControllerResource(new DaemonSetBuilder().build())).isTrue();
+    void isControllerResource_withNonController_returnsFalse() {
         assertThat(KubernetesHelper.isControllerResource(new ConfigMapBuilder().build())).isFalse();
     }
 
@@ -421,51 +436,32 @@ class KubernetesHelperTest {
             .containsEntry("template", "label");
     }
 
-    @Test
-    void createNewSelfSubjectAccessReview_whenGroupResourceNamespaceVerbProvided_thenShouldCreateSelfSubjectAccessReview() {
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void hasAccessForAction_whenApiServerReturnsAccessReviewWithStatus_thenReturnAllowed(boolean allowed) {
+        // Given
+        final AtomicReference<SelfSubjectAccessReview> requestedSSAR = new AtomicReference<>();
+        mockServer.expect()
+          .post()
+          .withPath("/apis/authorization.k8s.io/v1/selfsubjectaccessreviews")
+          .andReply(200, recordedRequest ->
+            new SelfSubjectAccessReviewBuilder(requestedSSAR.updateAndGet(old ->
+              Serialization.unmarshal(recordedRequest.getBody().inputStream(), SelfSubjectAccessReview.class)))
+              .withNewStatus()
+              .withAllowed(allowed)
+              .endStatus()
+              .build())
+          .always();
         // When
-        SelfSubjectAccessReview selfSubjectAccessReview = KubernetesHelper.createNewSelfSubjectAccessReview("example.com", "foos", "test-ns", "list");
-
+        final boolean result = hasAccessForAction(mockClient,
+          "test-ns", "example.com", "foos", "list");
         // Then
-        assertThat(selfSubjectAccessReview)
-            .hasFieldOrPropertyWithValue("spec.resourceAttributes.group", "example.com")
-            .hasFieldOrPropertyWithValue("spec.resourceAttributes.resource", "foos")
-            .hasFieldOrPropertyWithValue("spec.resourceAttributes.namespace", "test-ns")
-            .hasFieldOrPropertyWithValue("spec.resourceAttributes.verb", "list");
-    }
-
-    @Test
-    void hasAccessForAction_whenApiServerReturnsAllowedTrue_thenReturnTrue() {
-        try (KubernetesClient kubernetesClient = mock(KubernetesClient.class)) {
-            // Given
-            mockKubernetesClientAccessReviewCallReturns(kubernetesClient, new SubjectAccessReviewStatusBuilder()
-                .withAllowed(true)
-                .build());
-            SelfSubjectAccessReview selfSubjectAccessReview = createNewTestSelfSubjectAccessReview();
-
-            // When
-            boolean result = hasAccessForAction(kubernetesClient, selfSubjectAccessReview);
-
-            // Then
-            assertThat(result).isTrue();
-        }
-    }
-
-    @Test
-    void hasAccessForAction_whenApiServerReturnsAllowedFalse_thenReturnFalse() {
-        try (KubernetesClient kubernetesClient = mock(KubernetesClient.class)) {
-            // Given
-            mockKubernetesClientAccessReviewCallReturns(kubernetesClient, new SubjectAccessReviewStatusBuilder()
-                .withAllowed(false)
-                .build());
-            SelfSubjectAccessReview selfSubjectAccessReview = createNewTestSelfSubjectAccessReview();
-
-            // When
-            boolean result = hasAccessForAction(kubernetesClient, selfSubjectAccessReview);
-
-            // Then
-            assertThat(result).isFalse();
-        }
+        assertThat(result).isEqualTo(allowed);
+        assertThat(requestedSSAR.get())
+          .hasFieldOrPropertyWithValue("spec.resourceAttributes.namespace", "test-ns")
+          .hasFieldOrPropertyWithValue("spec.resourceAttributes.group", "example.com")
+          .hasFieldOrPropertyWithValue("spec.resourceAttributes.resource", "foos")
+          .hasFieldOrPropertyWithValue("spec.resourceAttributes.verb", "list");
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {
@@ -489,25 +485,5 @@ class KubernetesHelperTest {
         remoteStrList.add(String.format("http://localhost:%d/deployment.yaml", port));
         remoteStrList.add(String.format("http://localhost:%d/sa.yml", port));
         return remoteStrList;
-    }
-
-    private void mockKubernetesClientAccessReviewCallReturns(KubernetesClient kubernetesClient, SubjectAccessReviewStatus status) {
-        AuthorizationAPIGroupDSL authorizationAPIGroupDSL = mock(AuthorizationAPIGroupDSL.class);
-        V1AuthorizationAPIGroupDSL v1AuthorizationAPIGroupDSL = mock(V1AuthorizationAPIGroupDSL.class);
-        InOutCreateable<SelfSubjectAccessReview, SelfSubjectAccessReview> inOutCreateable = mock(InOutCreateable.class);
-        when(kubernetesClient.authorization()).thenReturn(authorizationAPIGroupDSL);
-        when(authorizationAPIGroupDSL.v1()).thenReturn(v1AuthorizationAPIGroupDSL);
-        when(v1AuthorizationAPIGroupDSL.selfSubjectAccessReview()).thenReturn(inOutCreateable);
-        when(inOutCreateable.create(any())).thenReturn(new SelfSubjectAccessReviewBuilder().withStatus(status).build());
-    }
-
-    private SelfSubjectAccessReview createNewTestSelfSubjectAccessReview() {
-        return new SelfSubjectAccessReviewBuilder()
-            .withNewSpec()
-            .withNewResourceAttributes()
-            .withGroup("foo")
-            .endResourceAttributes()
-            .endSpec()
-            .build();
     }
 }

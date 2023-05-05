@@ -21,17 +21,13 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
-import org.eclipse.jkube.kit.config.service.ApplyService;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
-import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,35 +36,26 @@ import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
 class ApplyMojoTest {
 
-  private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private File kubernetesManifestFile;
   private MavenProject mavenProject;
   private NamespacedOpenShiftClient defaultKubernetesClient;
   private String kubeConfigNamespace;
-  private IngressControllerDetectorService ingressControllerDetectorService;
 
   private ApplyMojo applyMojo;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
-    ingressControllerDetectorService = mock(IngressControllerDetectorService.class);
-    jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
-        withSettings().defaultAnswer(RETURNS_DEEP_STUBS), (mock, context) -> {
-          when(mock.getClient()).thenReturn(defaultKubernetesClient);
-          when(mock.getClusterAccess().createDefaultClient()).thenReturn(defaultKubernetesClient);
-          when(mock.getApplyService()).thenReturn(new ApplyService(defaultKubernetesClient, ingressControllerDetectorService, new KitLogger.SilentLogger()));
-        });
-    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, context) ->
-        when(mock.getNamespace()).thenAnswer(invocation -> kubeConfigNamespace));
+    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, context) -> {
+      when(mock.createDefaultClient()).thenReturn(defaultKubernetesClient);
+      when(mock.getNamespace()).thenAnswer(invocation -> kubeConfigNamespace);
+    });
     kubernetesManifestFile = Files.createFile(temporaryFolder.resolve("kubernetes.yml")).toFile();
     mavenProject = mock(MavenProject.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
@@ -87,7 +74,6 @@ class ApplyMojoTest {
   @AfterEach
   void tearDown() {
     clusterAccessMockedConstruction.close();
-    jKubeServiceHubMockedConstruction.close();
     mavenProject = null;
     applyMojo = null;
   }

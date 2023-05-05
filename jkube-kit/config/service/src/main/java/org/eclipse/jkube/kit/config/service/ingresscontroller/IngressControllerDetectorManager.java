@@ -15,21 +15,27 @@ package org.eclipse.jkube.kit.config.service.ingresscontroller;
 
 import org.eclipse.jkube.kit.common.IngressControllerDetector;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
+import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class IngressControllerDetectorService {
+public class IngressControllerDetectorManager {
+
+  private static final String[] SERVICE_PATHS = new String[] {
+    "META-INF/jkube/ingress-detectors"
+  };
   private final KitLogger log;
   private final List<IngressControllerDetector> ingressControllerDetectors;
 
-  public IngressControllerDetectorService(KitLogger log) {
-    this.log = log;
-    ingressControllerDetectors = new ArrayList<>();
+  public IngressControllerDetectorManager(JKubeServiceHub jKubeServiceHub) {
+    this(jKubeServiceHub.getLog(), new PluginServiceFactory<>(jKubeServiceHub.getClient())
+      .createServiceObjects(SERVICE_PATHS));
   }
 
-  public void setIngressControllerDetectors(List<IngressControllerDetector> detectors) {
-    ingressControllerDetectors.addAll(detectors);
+  IngressControllerDetectorManager(KitLogger log, List<IngressControllerDetector> ingressControllerDetectors) {
+    this.log = log;
+    this.ingressControllerDetectors = ingressControllerDetectors;
   }
 
   public boolean detect() {
@@ -42,12 +48,8 @@ public class IngressControllerDetectorService {
       }
     }
     if (anyDetectorHadPermission) {
-      logNoIngressControllerWarning();
+      log.warn("Ingress resources applied. However, no IngressController seems to be running at the moment, your service will most likely be not accessible.");
     }
     return false;
-  }
-
-  private void logNoIngressControllerWarning() {
-    log.warn("Applying Ingress resources, but no Ingress Controller seems to be running");
   }
 }

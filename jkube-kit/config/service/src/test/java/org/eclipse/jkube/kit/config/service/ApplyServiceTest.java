@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
 import io.fabric8.kubernetes.api.model.APIResource;
 import io.fabric8.kubernetes.api.model.APIResourceBuilder;
 import io.fabric8.kubernetes.api.model.APIResourceListBuilder;
@@ -29,13 +30,17 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
+import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorService;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -64,7 +69,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableKubernetesMockClient
 class ApplyServiceTest {
-    private KitLogger log;
 
     KubernetesMockServer mockServer;
     OpenShiftClient client;
@@ -73,10 +77,23 @@ class ApplyServiceTest {
 
     @BeforeEach
     void setUp() {
-        log = new KitLogger.SilentLogger();
-        IngressControllerDetectorService ingressControllerDetectorService = new IngressControllerDetectorService(log);
-        applyService = new ApplyService(client, ingressControllerDetectorService, log);
-        applyService.setNamespace("default");
+      final KitLogger log = new KitLogger.SilentLogger();
+      final JKubeServiceHub serviceHub = JKubeServiceHub.builder()
+        .log(log)
+        .configuration(JKubeConfiguration.builder().build())
+        .platformMode(RuntimeMode.KUBERNETES)
+        .clusterAccess(new ClusterAccess(log, ClusterConfiguration.from(client.getConfiguration()).build()))
+        .build();
+      applyService = new ApplyService(serviceHub);
+      applyService.setNamespace("default");
+      // In OpenShift
+      mockServer.expect()
+        .get()
+        .withPath("/apis")
+        .andReturn(200, new APIGroupListBuilder()
+          .addNewGroup().withName("build.openshift.io").withApiVersion("v1").endGroup()
+          .build())
+        .always();
     }
 
     @Test
@@ -128,7 +145,7 @@ class ApplyServiceTest {
             .once();
 
         // When
-        applyService.applyEntities(fileName, entities, log, 5);
+        applyService.applyEntities(fileName, entities, null, 5);
 
         // Then
         collector.assertEventsRecordedInOrder("new-ns", "new-service", "new-configmap", "new-deploy", "new-pod", "new-rc");
@@ -197,7 +214,7 @@ class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsNotRecorded("get-route");
-        assertThat(mockServer.getRequestCount()).isZero();
+        assertThat(mockServer.getRequestCount()).isEqualTo(1);
     }
 
     @Test
@@ -214,7 +231,7 @@ class ApplyServiceTest {
         applyService.apply(route, "route.yml");
 
         collector.assertEventsRecordedInOrder("get-route");
-        assertThat(mockServer.getRequestCount()).isOne();
+        assertThat(mockServer.getRequestCount()).isEqualTo(3);
     }
 
     @Test
@@ -409,6 +426,9 @@ class ApplyServiceTest {
         mockServer.expect().post().withPath("/apis/networking.k8s.io/v1/namespaces/ns2/ingresses")
                 .andReply(collector.record("ingress-ns2-create").andReturn(HTTP_OK, ingress))
                 .once();
+        mockServer.expect().post().withPath("/apis/authorization.k8s.io/v1/selfsubjectaccessreviews")
+            .andReturn(HTTP_OK, new SelfSubjectAccessReviewBuilder().withNewStatus().withAllowed(false).endStatus().build())
+            .always();
         mockServer.expect().post().withPath("/api/v1/namespaces/default/serviceaccounts")
                 .andReply(collector.record("serviceaccount-default-create").andReturn(HTTP_OK, serviceAccount))
                 .once();
@@ -417,11 +437,11 @@ class ApplyServiceTest {
         applyService.setFallbackNamespace("default");
 
         // When
-        applyService.applyEntities(null, entities, log, 5);
+        applyService.applyEntities(null, entities, null, 5);
 
         // Then
         collector.assertEventsRecordedInOrder("serviceaccount-default-create", "configmap-ns1-create", "ingress-ns2-create");
-        assertThat(mockServer.getRequestCount()).isEqualTo(6);
+        assertThat(mockServer.getRequestCount()).isEqualTo(10);
         applyService.setFallbackNamespace(null);
         applyService.setNamespace(configuredNamespace);
     }
@@ -444,16 +464,19 @@ class ApplyServiceTest {
         mockServer.expect().post().withPath("/apis/networking.k8s.io/v1/namespaces/default/ingresses")
                 .andReply(collector.record("ingress-default-ns-create").andReturn(HTTP_OK, ingress))
                 .once();
+        mockServer.expect().post().withPath("/apis/authorization.k8s.io/v1/selfsubjectaccessreviews")
+                .andReturn(HTTP_OK, new SelfSubjectAccessReviewBuilder().withNewStatus().withAllowed(false).endStatus().build())
+                .always();
         mockServer.expect().post().withPath("/api/v1/namespaces/default/serviceaccounts")
                 .andReply(collector.record("serviceaccount-default-ns-create").andReturn(HTTP_OK, serviceAccount))
                 .once();
 
         // When
-        applyService.applyEntities(null, entities, log, 5);
+        applyService.applyEntities(null, entities, null, 5);
 
         // Then
         collector.assertEventsRecordedInOrder("serviceaccount-default-ns-create", "configmap-default-ns-create", "ingress-default-ns-create");
-        assertThat(mockServer.getRequestCount()).isEqualTo(6);
+        assertThat(mockServer.getRequestCount()).isEqualTo(10);
         applyService.setFallbackNamespace(null);
     }
 

@@ -66,9 +66,6 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     } catch (IOException ioException) {
       kitLogger.error("Error in loading Kubernetes Manifests ", ioException);
       throw new IllegalStateException(ioException);
-    } catch (InterruptedException interruptedException) {
-      Thread.currentThread().interrupt();
-      throw new IllegalStateException(interruptedException.getMessage(), interruptedException);
     }
   }
 
@@ -77,7 +74,7 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     return super.shouldSkip() || kubernetesExtension.getSkipApplyOrDefault();
   }
 
-  private void applyEntities(String fileName, final Collection<HasMetadata> entities) throws InterruptedException {
+  private void applyEntities(String fileName, final Collection<HasMetadata> entities) {
     KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
     applyService.applyEntities(fileName, entities, serviceLogger, kubernetesExtension.getServiceUrlWaitTimeSecondsOrDefault());
   }

@@ -27,7 +27,6 @@ import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.PatchService;
 import org.junit.jupiter.api.AfterEach;
@@ -49,7 +48,7 @@ class PatchServiceTest {
 
     @BeforeEach
     void setUp() {
-        patchService = new PatchService(client, new KitLogger.SilentLogger());
+        patchService = new PatchService(client);
         Serialization.jsonMapper().disable(SerializationFeature.INDENT_OUTPUT);
     }
 

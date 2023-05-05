@@ -36,7 +36,6 @@ import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 
@@ -45,7 +44,6 @@ import java.util.Map;
 
 public class PatchService {
     private final KubernetesClient kubernetesClient;
-    private final KitLogger log;
 
     private static final Map<String, EntityPatcher<? extends HasMetadata>> patchers;
 
@@ -78,9 +76,8 @@ public class PatchService {
         patchers.put("Route", routePatcher());
     }
 
-    public PatchService(KubernetesClient client, KitLogger log) {
+    public PatchService(KubernetesClient client) {
         this.kubernetesClient = client;
-        this.log = log;
     }
 
     public <T extends HasMetadata> T compareAndPatchEntity(String namespace, T newDto, T oldDto) {

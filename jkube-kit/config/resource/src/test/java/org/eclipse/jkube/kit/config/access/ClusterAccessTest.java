@@ -77,21 +77,10 @@ class ClusterAccessTest {
   }
 
   @Test
-  void createDefaultClientInKubernetesShouldReturnKubernetesClient() {
+  void createDefaultClientShouldReturnKubernetesClient() {
     // When
     final KubernetesClient result = new ClusterAccess(logger, clusterConfiguration).createDefaultClient();
     // Then
     assertThat(result).isNotNull().isNotInstanceOf(OpenShiftClient.class);
-  }
-
-  @Test
-  void createDefaultClientInOpenShiftShouldReturnOpenShiftClient() {
-    // Given
-    mockServer.expect().get().withPath("/apis").andReturn(200,
-      new APIGroupListBuilder().addNewGroup().withName("project.openshift.io").withApiVersion("v1").endGroup().build()).once();
-    // When
-    final KubernetesClient result = new ClusterAccess(logger, clusterConfiguration).createDefaultClient();
-    // Then
-    assertThat(result).isNotNull().isInstanceOf(OpenShiftClient.class);
   }
 }

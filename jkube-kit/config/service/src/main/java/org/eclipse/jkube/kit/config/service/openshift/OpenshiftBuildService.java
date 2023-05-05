@@ -247,7 +247,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         if (!isOpenShift(k8sClient)) {
             throw new IllegalStateException("OpenShift platform has been specified but OpenShift has not been detected!");
         }
-        client = (OpenShiftClient) k8sClient;
+        client = OpenshiftHelper.asOpenShiftClient(k8sClient);
         if (buildServiceConfig.getResourceConfig() != null && buildServiceConfig.getResourceConfig().getNamespace() != null) {
             applicableOpenShiftNamespace = buildServiceConfig.getResourceConfig().getNamespace();
         } else {

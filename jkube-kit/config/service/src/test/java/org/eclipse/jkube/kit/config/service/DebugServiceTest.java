@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -41,8 +42,11 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.groups.Tuple;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorService;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,9 +83,14 @@ class DebugServiceTest {
   @BeforeEach
   void setUp() {
     logger = spy(new KitLogger.SilentLogger());
+    final JKubeServiceHub serviceHub = JKubeServiceHub.builder()
+      .log(logger)
+      .configuration(JKubeConfiguration.builder().build())
+      .platformMode(RuntimeMode.KUBERNETES)
+      .clusterAccess(new ClusterAccess(logger, ClusterConfiguration.from(kubernetesClient.getConfiguration()).build()))
+      .build();
     singleThreadExecutor = Executors.newSingleThreadExecutor();
-    IngressControllerDetectorService ingressControllerDetectorService = new IngressControllerDetectorService(logger);
-    final ApplyService applyService = new ApplyService(kubernetesClient, ingressControllerDetectorService, logger);
+    final ApplyService applyService = new ApplyService(serviceHub);
     applyService.setNamespace(kubernetesClient.getNamespace());
     debugService = new DebugService(logger, kubernetesClient, new PortForwardService(logger), applyService);
   }
@@ -174,8 +183,15 @@ class DebugServiceTest {
   @Test
   void enableDebuggingWithDeploymentConfig() {
     // Given
+    mockServer.expect()
+      .get()
+      .withPath("/apis")
+      .andReturn(200, new APIGroupListBuilder()
+        .addNewGroup().withName("build.openshift.io").withApiVersion("v1").endGroup()
+        .build())
+      .always();
     final DeploymentConfig deploymentConfig = initDeploymentConfig();
-    kubernetesClient.resource(deploymentConfig).createOrReplace();
+    kubernetesClient.resource(deploymentConfig).create();
     // When
     debugService.enableDebugging(deploymentConfig, "file.name", false);
     // Then

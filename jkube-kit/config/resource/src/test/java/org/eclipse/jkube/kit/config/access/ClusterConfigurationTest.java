@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.config.access;
 
 import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ConfigBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.Properties;
@@ -86,5 +87,49 @@ class ClusterConfigurationTest {
     final Config config = ClusterConfiguration.from().build().getConfig();
     // Then
     assertThat(config).isNotNull();
+  }
+
+  @Test
+  void loadsConfigurationFromKubernetesConfig() {
+    // Given
+    final Config config = new ConfigBuilder()
+      .withUsername("username")
+      .withPassword("password")
+      .withMasterUrl("https://example.com")
+      .withNamespace("namespace")
+      .withApiVersion("v1337")
+      .withCaCertFile("caCertFile")
+      .withCaCertData("caCertData")
+      .withClientKeyFile("clientKeyFile")
+      .withClientKeyData("clientKeyData")
+      .withClientKeyAlgo("clientKeyAlgo")
+      .withClientKeyPassphrase("clientKeyPassphrase")
+      .withTrustStoreFile("trustStoreFile")
+      .withTrustStorePassphrase("trustStorePassphrase")
+      .withKeyStoreFile("keyStoreFile")
+      .withKeyStorePassphrase("keyStorePassphrase")
+      .withTrustCerts(true)
+      .build();
+    // When
+    final ClusterConfiguration result = ClusterConfiguration.from(config).build();
+    // Then
+    // All fields match those of the original config
+    assertThat(result.getConfig())
+      .hasFieldOrPropertyWithValue("username", "username")
+      .hasFieldOrPropertyWithValue("password", "password")
+      .hasFieldOrPropertyWithValue("masterUrl", "https://example.com/")
+      .hasFieldOrPropertyWithValue("namespace", "namespace")
+      .hasFieldOrPropertyWithValue("apiVersion", "v1337")
+      .hasFieldOrPropertyWithValue("caCertFile", "caCertFile")
+      .hasFieldOrPropertyWithValue("caCertData", "caCertData")
+      .hasFieldOrPropertyWithValue("clientKeyFile", "clientKeyFile")
+      .hasFieldOrPropertyWithValue("clientKeyData", "clientKeyData")
+      .hasFieldOrPropertyWithValue("clientKeyAlgo", "clientKeyAlgo")
+      .hasFieldOrPropertyWithValue("clientKeyPassphrase", "clientKeyPassphrase")
+      .hasFieldOrPropertyWithValue("trustStoreFile", "trustStoreFile")
+      .hasFieldOrPropertyWithValue("trustStorePassphrase", "trustStorePassphrase")
+      .hasFieldOrPropertyWithValue("keyStoreFile", "keyStoreFile")
+      .hasFieldOrPropertyWithValue("keyStorePassphrase", "keyStorePassphrase")
+      .hasFieldOrPropertyWithValue("trustCerts", true);
   }
 }
