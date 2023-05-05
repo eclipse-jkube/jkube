@@ -56,7 +56,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@SuppressWarnings({"unused", "unchecked"})
+@SuppressWarnings({"unused"})
 @EnableKubernetesMockClient(crud = true)
 class KubernetesUndeployServiceTest {
 
@@ -74,12 +74,7 @@ class KubernetesUndeployServiceTest {
       .log(logger)
       .platformMode(RuntimeMode.KUBERNETES)
       .configuration(JKubeConfiguration.builder().build())
-      .clusterAccess(new ClusterAccess(logger, ClusterConfiguration.builder().namespace("test").build()) {
-        @Override
-        public <T extends KubernetesClient> T createDefaultClient() {
-          return (T)kubernetesClient;
-        }
-      })
+      .clusterAccess(new ClusterAccess(logger, ClusterConfiguration.from(kubernetesClient.getConfiguration()).namespace("test").build()))
       .build();
     kubernetesUndeployService = new KubernetesUndeployService(jKubeServiceHub, logger);
   }

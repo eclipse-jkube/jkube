@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.service.ingresscontroller;
 
-import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.IngressControllerDetector;
@@ -21,7 +20,6 @@ import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 
 import java.util.Objects;
 
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.createNewSelfSubjectAccessReview;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.hasAccessForAction;
 
 public class OpenShiftIngressControllerDetector implements IngressControllerDetector {
@@ -57,10 +55,8 @@ public class OpenShiftIngressControllerDetector implements IngressControllerDete
 
   @Override
   public boolean hasPermissions() {
-    SelfSubjectAccessReview listIngressClassAccess = createNewSelfSubjectAccessReview("networking.k8s.io", "ingressclasses", null, "list");
-    SelfSubjectAccessReview listPodsAnyNamespaceAccess = createNewSelfSubjectAccessReview("operator.openshift.io", "ingresscontrollers", INGRESS_OPENSHIFT_NAMESPACE, "list");
-
-    return hasAccessForAction(client, listIngressClassAccess) && hasAccessForAction(client, listPodsAnyNamespaceAccess);
+    return hasAccessForAction(client, null, "networking.k8s.io", "ingressclasses", "list")
+      && hasAccessForAction(client, INGRESS_OPENSHIFT_NAMESPACE, "operator.openshift.io", "ingresscontrollers", "list");
   }
 }
 

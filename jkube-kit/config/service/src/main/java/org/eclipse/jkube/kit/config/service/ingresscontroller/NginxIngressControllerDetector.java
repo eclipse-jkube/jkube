@@ -13,12 +13,10 @@
  */
 package org.eclipse.jkube.kit.config.service.ingresscontroller;
 
-import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.IngressControllerDetector;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.createNewSelfSubjectAccessReview;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.hasAccessForAction;
 
 public class NginxIngressControllerDetector implements IngressControllerDetector {
@@ -51,9 +49,7 @@ public class NginxIngressControllerDetector implements IngressControllerDetector
 
   @Override
   public boolean hasPermissions() {
-    SelfSubjectAccessReview listIngressClassAccess = createNewSelfSubjectAccessReview("networking.k8s.io", "ingressclasses", null, "list");
-    SelfSubjectAccessReview listPodsAnyNamespaceAccess = createNewSelfSubjectAccessReview(null, "pods", INGRESS_NGINX_NAMESPACE, "list");
-
-    return hasAccessForAction(client, listIngressClassAccess) && hasAccessForAction(client, listPodsAnyNamespaceAccess);
+    return hasAccessForAction(client, null, "networking.k8s.io", "ingressclasses", "list")
+      && hasAccessForAction(client, INGRESS_NGINX_NAMESPACE, null, "pods", "list");
   }
 }

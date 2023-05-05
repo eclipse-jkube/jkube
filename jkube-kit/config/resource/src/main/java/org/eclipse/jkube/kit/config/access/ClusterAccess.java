@@ -23,8 +23,6 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.openshift.client.OpenShiftAPIGroups;
-import io.fabric8.openshift.client.OpenShiftClient;
 
 /**
  * @author roland
@@ -40,19 +38,8 @@ public class ClusterAccess {
             ClusterConfiguration.builder().build() : clusterConfiguration;
     }
 
-    public <T extends KubernetesClient> T createDefaultClient() {
-        if (isOpenShift()) {
-            return (T) createOpenShiftClient();
-        }
-        return (T) createKubernetesClient();
-    }
-
-    private KubernetesClient createKubernetesClient() {
+    public KubernetesClient createDefaultClient() {
         return new KubernetesClientBuilder().withConfig(createDefaultConfig()).build();
-    }
-
-    private OpenShiftClient createOpenShiftClient() {
-        return createKubernetesClient().adapt(OpenShiftClient.class);
     }
 
     private Config createDefaultConfig() {
@@ -63,21 +50,8 @@ public class ClusterAccess {
         return this.clusterConfiguration.getNamespace();
     }
 
-    /**
-     * Returns true if this cluster is a traditional OpenShift cluster with the <code>/oapi</code> REST API
-     * or supports the new <code>/apis/image.openshift.io</code> API Group
-     */
-    public boolean isOpenShiftImageStream() {
-        if (isOpenShift()) {
-            try (final OpenShiftClient client = createOpenShiftClient()) {
-                return client.supportsOpenShiftAPIGroup(OpenShiftAPIGroups.IMAGE);
-            }
-        }
-        return false;
-    }
-
     public boolean isOpenShift() {
-        try (KubernetesClient client = createKubernetesClient()) {
+        try (KubernetesClient client = createDefaultClient()) {
             return OpenshiftHelper.isOpenShift(client);
         } catch (KubernetesClientException exp) {
             Throwable cause = exp.getCause();

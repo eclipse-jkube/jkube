@@ -38,7 +38,7 @@ public interface IngressControllerDetector {
   /**
    * Is Ingress Controller pod running in the cluster
    *
-   * @return boolean value if Ingress Controller is running, false otherwise.
+   * @return true if Ingress Controller is running, false otherwise.
    */
   boolean isIngressControllerReady();
 

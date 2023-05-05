@@ -28,14 +28,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class IngressControllerDetectorServiceTest {
+class IngressControllerDetectorManagerTest {
   private KitLogger logger;
-  private IngressControllerDetectorService ingressControllerService;
 
   @BeforeEach
   void setUp() {
     logger = spy(new KitLogger.SilentLogger());
-    ingressControllerService = new IngressControllerDetectorService(logger);
   }
 
   @Test
@@ -44,10 +42,10 @@ class IngressControllerDetectorServiceTest {
     IngressControllerDetector ingressControllerDetector = mock(IngressControllerDetector.class);
     when(ingressControllerDetector.hasPermissions()).thenReturn(true);
     when(ingressControllerDetector.isDetected()).thenReturn(true);
-    ingressControllerService.setIngressControllerDetectors(Collections.singletonList(ingressControllerDetector));
 
     // When
-    boolean result = ingressControllerService.detect();
+    boolean result = new IngressControllerDetectorManager(logger, Collections.singletonList(ingressControllerDetector))
+      .detect();
 
     // Then
     assertThat(result).isTrue();
@@ -59,14 +57,14 @@ class IngressControllerDetectorServiceTest {
     IngressControllerDetector ingressControllerDetector = mock(IngressControllerDetector.class);
     when(ingressControllerDetector.hasPermissions()).thenReturn(true);
     when(ingressControllerDetector.isDetected()).thenReturn(false);
-    ingressControllerService.setIngressControllerDetectors(Collections.singletonList(ingressControllerDetector));
 
     // When
-    boolean result = ingressControllerService.detect();
+    boolean result = new IngressControllerDetectorManager(logger, Collections.singletonList(ingressControllerDetector))
+      .detect();
 
     // Then
     assertThat(result).isFalse();
-    verify(logger).warn("Applying Ingress resources, but no Ingress Controller seems to be running");
+    verify(logger).warn("Ingress resources applied. However, no IngressController seems to be running at the moment, your service will most likely be not accessible.");
   }
 
   @Test
@@ -74,10 +72,10 @@ class IngressControllerDetectorServiceTest {
     // Given
     IngressControllerDetector ingressControllerDetector = mock(IngressControllerDetector.class);
     when(ingressControllerDetector.hasPermissions()).thenReturn(false);
-    ingressControllerService.setIngressControllerDetectors(Collections.singletonList(ingressControllerDetector));
 
     // When
-    boolean result = ingressControllerService.detect();
+    boolean result = new IngressControllerDetectorManager(logger, Collections.singletonList(ingressControllerDetector))
+      .detect();
 
     // Then
     assertThat(result).isFalse();

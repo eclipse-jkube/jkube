@@ -89,9 +89,6 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.apache.commons.lang3.StringUtils;
 
 
-/**
- * @author roland
- */
 public class KubernetesHelper {
     protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
     private static final String FILENAME_PATTERN_REGEX = "^(?<name>.*?)(-(?<type>[^-]+))?\\.(?<ext>yaml|yml|json)$";
@@ -263,10 +260,10 @@ public class KubernetesHelper {
     }
 
     /**
-     * Returns true if the pod is running
+     * Returns true if the pod is running.
      *
-     * @param pod Pod object
-     * @return boolean value indicating it's status
+     * @param pod Pod object.
+     * @return true if Pod is running, false otherwise.
      */
     public static boolean isPodRunning(Pod pod) {
         return isInPodPhase(pod, "run");
@@ -277,10 +274,10 @@ public class KubernetesHelper {
     }
 
     /**
-     * Returns true if the pod is running and ready
+     * Returns true if the pod is running and ready.
      *
-     * @param pod Pod object
-     * @return boolean value indicating it's status
+     * @param pod Pod object.
+     * @returntrue if Pod is ready, false otherwise.
      */
     public static boolean isPodReady(Pod pod) {
         if (!isPodRunning(pod)) {
@@ -639,7 +636,6 @@ public class KubernetesHelper {
     }
 
     public static String getEnvVar(List<EnvVar> envVarList, String name, String defaultValue) {
-        String answer = defaultValue;
         if (envVarList != null) {
             for (EnvVar envVar : envVarList) {
                 String envVarName = envVar.getName();
@@ -651,7 +647,7 @@ public class KubernetesHelper {
                 }
             }
         }
-        return answer;
+        return defaultValue;
     }
 
     public static boolean removeEnvVar(List<EnvVar> envVarList, String name) {
@@ -808,9 +804,9 @@ public class KubernetesHelper {
         return httpHeaders;
     }
 
-    public static SelfSubjectAccessReview createNewSelfSubjectAccessReview(String group, String resource, String namespace, String verb) {
-        SelfSubjectAccessReviewBuilder ssarBuilder = new SelfSubjectAccessReviewBuilder();
-        ResourceAttributesBuilder resourceAttributesBuilder = new ResourceAttributesBuilder();
+    public static boolean hasAccessForAction(
+      KubernetesClient client, String namespace, String group, String resource, String verb) {
+        final ResourceAttributesBuilder resourceAttributesBuilder = new ResourceAttributesBuilder();
         if (StringUtils.isNotBlank(group)) {
             resourceAttributesBuilder.withGroup(group);
         }
@@ -823,14 +819,10 @@ public class KubernetesHelper {
         if (StringUtils.isNotBlank(verb)) {
             resourceAttributesBuilder.withVerb(verb);
         }
-        return ssarBuilder.withNewSpec()
-            .withResourceAttributes(resourceAttributesBuilder.build())
-            .endSpec()
-            .build();
-    }
-
-    public static boolean hasAccessForAction(KubernetesClient client, SelfSubjectAccessReview accessReview) {
-        SelfSubjectAccessReview accessReviewFromServer = client.authorization().v1().selfSubjectAccessReview().create(accessReview);
+        final SelfSubjectAccessReview accessReviewFromServer = client.authorization().v1().selfSubjectAccessReview()
+          .create(new SelfSubjectAccessReviewBuilder()
+            .withNewSpec().withResourceAttributes(resourceAttributesBuilder.build()).endSpec()
+            .build());
         return accessReviewFromServer.getStatus().getAllowed();
     }
 }

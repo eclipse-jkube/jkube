@@ -13,12 +13,10 @@
  */
 package org.eclipse.jkube.kit.config.service.ingresscontroller;
 
-import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.IngressControllerDetector;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.createNewSelfSubjectAccessReview;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.hasAccessForAction;
 
 public class KongIngressControllerDetector implements IngressControllerDetector {
@@ -45,10 +43,8 @@ public class KongIngressControllerDetector implements IngressControllerDetector 
 
   @Override
   public boolean hasPermissions() {
-    SelfSubjectAccessReview listIngressClassAccess = createNewSelfSubjectAccessReview("networking.k8s.io", "ingressclasses", null, "list");
-    SelfSubjectAccessReview listPodsAnyNamespaceAccess = createNewSelfSubjectAccessReview(null, "pods", null, "list");
-
-    return hasAccessForAction(client, listIngressClassAccess) && hasAccessForAction(client, listPodsAnyNamespaceAccess);
+    return hasAccessForAction(client, null, "networking.k8s.io", "ingressclasses", "list")
+      && hasAccessForAction(client, null, null, "pods", "list");
   }
 
   private boolean checkManualInstallationAvailable() {

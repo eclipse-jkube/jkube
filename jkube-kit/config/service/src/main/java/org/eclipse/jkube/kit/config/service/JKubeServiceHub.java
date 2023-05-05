@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.config.service;
 
 import java.io.Closeable;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -23,18 +22,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.common.IngressControllerDetector;
 import org.eclipse.jkube.kit.common.service.MigrateService;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
-import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorService;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 import org.eclipse.jkube.kit.config.service.plugins.PluginManager;
@@ -42,9 +38,6 @@ import org.eclipse.jkube.kit.resource.helm.HelmService;
 
 import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
 
-/**
- * @author nicola
- */
 public class JKubeServiceHub implements Closeable {
 
     @Getter
@@ -109,7 +102,7 @@ public class JKubeServiceHub implements Closeable {
         kubernetesClientLazyBuilder = new LazyBuilder<>(() -> getClusterAccess().createDefaultClient());
         buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
         pluginManager = new LazyBuilder<>(() -> new PluginManager(this));
-        applyService = new LazyBuilder<>(() -> new ApplyService(getClient(), createIngressControllerDetectorService(), log));
+        applyService = new LazyBuilder<>(() -> new ApplyService(this));
         portForwardService = new LazyBuilder<>(() -> {
             getClient();
             return new PortForwardService(log);
@@ -186,11 +179,4 @@ public class JKubeServiceHub implements Closeable {
         return clusterAccessLazyBuilder.get();
     }
 
-    private IngressControllerDetectorService createIngressControllerDetectorService() {
-        final PluginServiceFactory<KubernetesClient> pluginServiceFactory = new PluginServiceFactory<>(getClient());
-        List<IngressControllerDetector> ingressControllerDetectors = pluginServiceFactory.createServiceObjects("META-INF/jkube/ingress-detectors");
-        IngressControllerDetectorService ingressControllerDetectorService = new IngressControllerDetectorService(log);
-        ingressControllerDetectorService.setIngressControllerDetectors(ingressControllerDetectors);
-        return ingressControllerDetectorService;
-    }
 }
