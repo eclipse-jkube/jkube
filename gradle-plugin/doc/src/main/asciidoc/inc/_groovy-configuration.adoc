@@ -349,12 +349,6 @@ endif::[]
 Defaults to `false`.
 | `jkube.deploy.servicesOnly`
 
-| *serviceUrlWaitTimeSeconds*
-| Seconds to wait for a URL to be generated for a service
-
-Defaults to `5`.
-| `jkube.serviceUrl.waitSeconds`
-
 | *skip*
 | With this parameter the execution of this plugin can be skipped completely.
 | `jkube.skip`

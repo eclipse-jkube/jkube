@@ -97,11 +97,6 @@ endif::[]
   Defaults to `${basedir}/target/jkube/applyJson`.
 | `jkube.deploy.jsonLogDir`
 
-| *waitSeconds*
-| How many seconds to wait for a URL to be generated for a service.
-
-  Defaults to `5`.
-| `jkube.serviceUrl.waitSeconds`
 
 | *resourceDir*
 | Folder where to find project specific files.

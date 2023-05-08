@@ -45,7 +45,7 @@ import static org.mockito.Mockito.when;
 class KubernetesApplyTaskTest {
 
   @RegisterExtension
-  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
+  public final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedConstruction<ApplyService> applyServiceMockedConstruction;
@@ -130,7 +130,7 @@ class KubernetesApplyTaskTest {
     // Then
     assertThat(applyServiceMockedConstruction.constructed()).hasSize(1);
     verify(applyServiceMockedConstruction.constructed().iterator().next(), times(1))
-        .applyEntities(any(), eq(Collections.emptyList()), any(), eq(5L));
+        .applyEntities(any(), eq(Collections.emptyList()));
   }
 
   @Test

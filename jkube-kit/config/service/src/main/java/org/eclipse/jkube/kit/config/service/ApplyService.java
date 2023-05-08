@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
@@ -1344,27 +1345,22 @@ public class ApplyService {
         this.rollingUpgradePreserveScale = rollingUpgradePreserveScale;
     }
 
-    public void applyEntities(String fileName, Collection<HasMetadata> entities, KitLogger serviceLogger,
-                                 long serviceUrlWaitTimeSeconds) {
-
-        applyStandardEntities(fileName, getK8sListWithNamespaceFirst(entities));
+    public void applyEntities(String fileName, Collection<HasMetadata> entities) {
+        getK8sListWithNamespaceFirst(entities).forEach(applyStandardEntities(fileName));
     }
 
-    private void applyStandardEntities(String fileName, List<HasMetadata> entities) {
-        for (HasMetadata entity : entities) {
+    private Consumer<HasMetadata> applyStandardEntities(String fileName) {
+        return entity -> {
             if (entity instanceof Pod) {
-                Pod pod = (Pod) entity;
-                applyPod(pod, fileName);
+                applyPod((Pod) entity, fileName);
             } else if (entity instanceof Service) {
-                Service service = (Service) entity;
-                applyService(service, fileName);
+                applyService((Service) entity, fileName);
             } else if (entity instanceof ReplicationController) {
-                ReplicationController replicationController = (ReplicationController) entity;
-                applyReplicationController(replicationController, fileName);
+                applyReplicationController((ReplicationController) entity, fileName);
             } else if (entity != null) {
                 apply(entity, fileName);
             }
-        }
+        };
     }
 
     public static List<HasMetadata> getK8sListWithNamespaceFirst(Collection<HasMetadata> k8sList) {

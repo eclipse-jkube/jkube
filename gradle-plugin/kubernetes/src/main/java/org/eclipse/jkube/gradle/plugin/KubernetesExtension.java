@@ -531,10 +531,6 @@ public abstract class KubernetesExtension {
     return getOrDefaultBoolean("jkube.rolling", this::getRollingUpgrades, false);
   }
 
-  public Integer getServiceUrlWaitTimeSecondsOrDefault() {
-    return getOrDefaultInteger("jkube.serviceUrl.waitSeconds", this::getServiceUrlWaitTimeSeconds, 5);
-  }
-
   public File getKubernetesManifestOrDefault() {
     return getOrDefaultFile("jkube.kubernetesManifest", this::getKubernetesManifest, javaProject.getOutputDirectory().toPath().resolve(DEFAULT_KUBERNETES_MANIFEST).toFile());
   }

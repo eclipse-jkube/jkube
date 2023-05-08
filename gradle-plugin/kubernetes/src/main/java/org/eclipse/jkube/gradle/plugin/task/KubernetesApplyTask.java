@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.service.ApplyService;
@@ -28,7 +27,6 @@ import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Collection;
 import java.util.List;
 
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.resolveFallbackNamespace;
@@ -58,7 +56,7 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
       kitLogger.info("Using %s at %s in namespace %s with manifest %s ", OpenshiftHelper.isOpenShift(kubernetes) ? "OpenShift" : "Kubernetes", masterUrl, applyService.getNamespace(), manifest);
 
       // Apply rest of the entities present in manifest
-      applyEntities(manifest.getName(), entities);
+      applyService.applyEntities(manifest.getName(), entities);
       kitLogger.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up",
           clusterAccess.isOpenShift() ? "oc" : "kubectl");
     } catch (KubernetesClientException e) {
@@ -72,11 +70,6 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
   @Override
   protected boolean shouldSkip() {
     return super.shouldSkip() || kubernetesExtension.getSkipApplyOrDefault();
-  }
-
-  private void applyEntities(String fileName, final Collection<HasMetadata> entities) {
-    KitLogger serviceLogger = createLogger("[[G]][SVC][[G]] [[s]]");
-    applyService.applyEntities(fileName, entities, serviceLogger, kubernetesExtension.getServiceUrlWaitTimeSecondsOrDefault());
   }
 
   protected void configureApplyService() {
