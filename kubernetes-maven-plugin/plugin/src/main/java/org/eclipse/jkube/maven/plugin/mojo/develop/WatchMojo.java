@@ -29,6 +29,7 @@ import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
@@ -73,6 +74,8 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
 
     @Parameter(property = "jkube.namespace")
     protected String namespace;
+    @Parameter
+    protected ResourceConfig resources;
 
     /**
      * Watcher specific options. This is a generic prefix where the keys have the form
@@ -84,7 +87,6 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     @Component
     private BuildPluginManager pluginManager;
 
-    KubernetesClient kubernetesClient;
 
     @Override
     public File getKubernetesManifest() {
@@ -92,17 +94,10 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     }
 
     @Override
-    protected void init() {
-        super.init();
-        kubernetesClient = clusterAccess.createDefaultClient();
-    }
-
-    @Override
     public void executeInternal() throws MojoExecutionException {
-        URL masterUrl = kubernetesClient.getMasterUrl();
-        KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
-
-        try {
+        try (KubernetesClient kubernetesClient = jkubeServiceHub.getClient()) {
+            URL masterUrl = kubernetesClient.getMasterUrl();
+            KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
             List<HasMetadata> appliedK8sResources = KubernetesHelper.loadResources(getManifest(kubernetesClient));
             WatcherContext context = getWatcherContext();
 

@@ -14,153 +14,125 @@
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 
-import io.fabric8.openshift.client.OpenShiftClient;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.withSettings;
 
 class WatchMojoTest {
   private File kubernetesManifestFile;
 
-  private JKubeServiceHub mockedJKubeServiceHub;
-  private ClusterAccess mockedClusterAccess;
   private MavenProject mavenProject;
-  private JavaProject mockedJavaProject;
   private Settings mavenSettings;
-  private OpenShiftClient mockKubernetesClient;
-  private ImageConfigResolver mockedImageConfigResolver;
-  private DockerAccessFactory mockedDockerAccessFactory;
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
-
+  private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
+  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private WatchMojo watchMojo;
 
   @BeforeEach
-  void setUp(@TempDir File temporaryFolder) throws IOException {
-    kubernetesManifestFile =  File.createTempFile("kubernetes", ".yml", temporaryFolder);
-    mockedJKubeServiceHub = mock(JKubeServiceHub.class);
-    mavenProject = mock(MavenProject.class);
+  void setUp(@TempDir Path temporaryFolder) throws Exception {
+    final File srcDir = Files.createDirectory(temporaryFolder.resolve("src")).toFile();
+    final File targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
+    jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
+      withSettings().defaultAnswer(RETURNS_DEEP_STUBS), (mock, context) -> {
+        final KubernetesClient kc = mock(KubernetesClient.class, RETURNS_DEEP_STUBS);
+        when(kc.getMasterUrl()).thenReturn(URI.create("https://www.example.com").toURL());
+        when(mock.getClient()).thenReturn(kc);
+        when(mock.getConfiguration()).thenReturn(JKubeConfiguration.builder()
+          .project(JavaProject.builder()
+            .baseDirectory(temporaryFolder.toFile())
+            .build())
+          .build());
+      });
+    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
+      when(mock.getNamespace()).thenReturn("namespace-from-config");
+    });
+    kubernetesManifestFile =  File.createTempFile("kubernetes", ".yml", srcDir);
+    mavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
+    when(mavenProject.getProperties()).thenReturn(new Properties());
+    when(mavenProject.getCompileClasspathElements()).thenReturn(Collections.emptyList());
+    when(mavenProject.getDependencies()).thenReturn(Collections.emptyList());
+    when(mavenProject.getDevelopers()).thenReturn(Collections.emptyList());
+    when(mavenProject.getBuild().getDirectory()).thenReturn(targetDir.getAbsolutePath());
+    when(mavenProject.getBuild().getOutputDirectory()).thenReturn(targetDir.getAbsolutePath());
     mavenSettings = mock(Settings.class);
-    mockedImageConfigResolver = mock(ImageConfigResolver.class);
-    mockKubernetesClient = mock(OpenShiftClient.class);
-    mockedDockerAccessFactory = mock(DockerAccessFactory.class);
-    mockedJavaProject = mock(JavaProject.class);
-    mockedClusterAccess = mock(ClusterAccess.class);
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
-
-    when(mockedJavaProject.getProperties()).thenReturn(new Properties());
-    when(mavenProject.getArtifactId()).thenReturn("artifact-id");
-    when(mavenProject.getVersion()).thenReturn("1337");
-    when(mavenProject.getDescription()).thenReturn("A description from Maven");
-    when(mavenProject.getParent()).thenReturn(null);
-    when(mockKubernetesClient.adapt(OpenShiftClient.class)).thenReturn(mockKubernetesClient);
-    when(mockKubernetesClient.isSupported()).thenReturn(false);
-    when(mockKubernetesClient.getMasterUrl()).thenReturn(URI.create("https://www.example.com").toURL());
-    when(mockedClusterAccess.getNamespace()).thenReturn("namespace-from-config");
-  }
-
-  @AfterEach
-  void tearDown() {
-    mavenProject = null;
-    watchMojo = null;
-    watcherManagerMockedStatic.close();
-  }
-
-  @Test
-  void executeInternal_whenNoNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws MojoExecutionException {
-    // Given
     // @formatter:off
     watchMojo = new WatchMojo() {{
       project = mavenProject;
       settings = mavenSettings;
       kubernetesManifest = kubernetesManifestFile;
-      imageConfigResolver = mockedImageConfigResolver;
-      dockerAccessFactory = mockedDockerAccessFactory;
-      kubernetesClient = mockKubernetesClient;
-      javaProject = mockedJavaProject;
-      jkubeServiceHub = mockedJKubeServiceHub;
-      clusterAccess = mockedClusterAccess;
+      imageConfigResolver = new ImageConfigResolver();
+      buildStrategy = JKubeBuildStrategy.jib;
+      setPluginContext(new HashMap<>());
     }};
     // @formatter:on
+  }
 
+  @AfterEach
+  void tearDown() {
+    watcherManagerMockedStatic.close();
+    clusterAccessMockedConstruction.close();
+    jKubeServiceHubMockedConstruction.close();
+  }
+
+  @Test
+  void executeInternal_whenNoNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
     // When
-    watchMojo.executeInternal();
-
+    watchMojo.execute();
     // Then
     watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("namespace-from-config"), any(), any()), times(1));
   }
 
   @Test
-  void executeInternal_whenNamespaceConfiguredInResourceConfig_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws MojoExecutionException {
+  void executeInternal_whenNamespaceConfiguredInResourceConfig_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
     // Given
-    ResourceConfig mockedResourceConfig = mock(ResourceConfig.class);
-    when(mockedResourceConfig.getNamespace()).thenReturn("namespace-from-resourceconfig");
-    // @formatter:off
-    watchMojo = new WatchMojo() {{
-      project = mavenProject;
-      settings = mavenSettings;
-      kubernetesManifest = kubernetesManifestFile;
-      imageConfigResolver = mockedImageConfigResolver;
-      dockerAccessFactory = mockedDockerAccessFactory;
-      kubernetesClient = mockKubernetesClient;
-      javaProject = mockedJavaProject;
-      jkubeServiceHub = mockedJKubeServiceHub;
-      clusterAccess = mockedClusterAccess;
-      resources = mockedResourceConfig;
-    }};
-    // @formatter:on
-
+    watchMojo.resources = ResourceConfig.builder()
+      .namespace("namespace-from-resource_config")
+      .build();
     // When
-    watchMojo.executeInternal();
-
+    watchMojo.execute();
     // Then
-    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("namespace-from-resourceconfig"), any(), any()), times(1));
+    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("namespace-from-resource_config"), any(), any()), times(1));
   }
 
   @Test
-  void executeInternal_whenNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws MojoExecutionException {
+  void executeInternal_whenNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
     // Given
-    // @formatter:off
-    watchMojo = new WatchMojo() {{
-      project = mavenProject;
-      settings = mavenSettings;
-      kubernetesManifest = kubernetesManifestFile;
-      imageConfigResolver = mockedImageConfigResolver;
-      dockerAccessFactory = mockedDockerAccessFactory;
-      kubernetesClient = mockKubernetesClient;
-      javaProject = mockedJavaProject;
-      jkubeServiceHub = mockedJKubeServiceHub;
-      clusterAccess = mockedClusterAccess;
-      namespace = "configured-namespace";
-    }};
-    // @formatter:on
-
+    watchMojo.namespace = "configured-namespace";
     // When
-    watchMojo.executeInternal();
-
+    watchMojo.execute();
     // Then
     watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("configured-namespace"), any(), any()), times(1));
   }
