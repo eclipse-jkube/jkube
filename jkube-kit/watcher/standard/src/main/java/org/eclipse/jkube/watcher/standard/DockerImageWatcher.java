@@ -140,14 +140,11 @@ public class DockerImageWatcher extends BaseWatcher {
     protected void restartContainer(WatchService.ImageWatcher watcher, Collection<HasMetadata> resources) {
         ImageConfiguration imageConfig = watcher.getImageConfiguration();
         String imageName = imageConfig.getName();
-        ClusterAccess clusterAccess = getContext().getJKubeServiceHub().getClusterAccess();
-        try (KubernetesClient client = clusterAccess.createDefaultClient()) {
-
-            String namespace = clusterAccess.getNamespace();
-
-            String imagePrefix = getImagePrefix(imageName);
+        final KubernetesClient client = getContext().getJKubeServiceHub().getClient();
+        try {
+            String namespace = getContext().getJKubeServiceHub().getClusterAccess().getNamespace();
             for (HasMetadata entity : resources) {
-                updateImageName(client, namespace, entity, imagePrefix, imageName);
+                updateImageName(client, namespace, entity, getImagePrefix(imageName), imageName);
             }
         } catch (KubernetesClientException e) {
             KubernetesHelper.handleKubernetesClientException(e, this.log);
