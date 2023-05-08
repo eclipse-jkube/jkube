@@ -126,6 +126,6 @@ class OpenShiftApplyTaskTest {
     // Then
     assertThat(applyServiceMockedConstruction.constructed()).hasSize(1);
     verify(applyServiceMockedConstruction.constructed().iterator().next(), times(1))
-      .applyEntities(any(), eq(Collections.emptyList()), any(), eq(5L));
+      .applyEntities(any(), eq(Collections.emptyList()));
   }
 }

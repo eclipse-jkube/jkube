@@ -145,7 +145,7 @@ class ApplyServiceTest {
             .once();
 
         // When
-        applyService.applyEntities(fileName, entities, null, 5);
+        applyService.applyEntities(fileName, entities);
 
         // Then
         collector.assertEventsRecordedInOrder("new-ns", "new-service", "new-configmap", "new-deploy", "new-pod", "new-rc");
@@ -437,7 +437,7 @@ class ApplyServiceTest {
         applyService.setFallbackNamespace("default");
 
         // When
-        applyService.applyEntities(null, entities, null, 5);
+        applyService.applyEntities(null, entities);
 
         // Then
         collector.assertEventsRecordedInOrder("serviceaccount-default-create", "configmap-ns1-create", "ingress-ns2-create");
@@ -472,7 +472,7 @@ class ApplyServiceTest {
                 .once();
 
         // When
-        applyService.applyEntities(null, entities, null, 5);
+        applyService.applyEntities(null, entities);
 
         // Then
         collector.assertEventsRecordedInOrder("serviceaccount-default-ns-create", "configmap-default-ns-create", "ingress-default-ns-create");
