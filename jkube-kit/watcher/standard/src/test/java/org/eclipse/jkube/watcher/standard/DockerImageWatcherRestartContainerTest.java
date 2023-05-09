@@ -67,12 +67,10 @@ class DockerImageWatcherRestartContainerTest {
   @BeforeEach
   public void setUp() {
     WatcherContext watcherContext = mock(WatcherContext.class, RETURNS_DEEP_STUBS);
-    ClusterAccess mockedClusterAccess = mock(ClusterAccess.class);
     mockedImageWatcher = mock(WatchService.ImageWatcher.class);
     mockedKubernetesClient = mock(KubernetesClient.class);
     when(watcherContext.getJKubeServiceHub().getClient()).thenReturn(mockedKubernetesClient);
-    when(watcherContext.getJKubeServiceHub().getClusterAccess()).thenReturn(mockedClusterAccess);
-    when(mockedClusterAccess.getNamespace()).thenReturn("test-ns");
+    when(watcherContext.getNamespace()).thenReturn("test-ns");
     dockerImageWatcher = new DockerImageWatcher(watcherContext);
   }
 
