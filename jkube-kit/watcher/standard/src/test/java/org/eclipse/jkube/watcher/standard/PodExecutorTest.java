@@ -23,7 +23,7 @@ import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.internal.core.v1.PodOperationsImpl;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchException;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.watcher.api.WatcherContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,16 +58,16 @@ class PodExecutorTest {
 
   @BeforeEach
   public void setUp() {
-    ClusterAccess clusterAccess = mock(ClusterAccess.class);
-    podOperations = mock(PodOperationsImpl.class, RETURNS_DEEP_STUBS);
     kubernetesClient = mock(KubernetesClient.class);
-    when(clusterAccess.getNamespace()).thenReturn("default");
-    when(clusterAccess.createDefaultClient()).thenReturn(kubernetesClient);
+    final WatcherContext watcherContext = mock(WatcherContext.class, RETURNS_DEEP_STUBS);
+    when(watcherContext.getNamespace()).thenReturn("default");
+    when(watcherContext.getJKubeServiceHub().getClient()).thenReturn(kubernetesClient);
+    podOperations = mock(PodOperationsImpl.class, RETURNS_DEEP_STUBS);
     podNonNamespaceOp = createPodsInNamespaceMock();
     when(podNonNamespaceOp.withName(anyString())).thenReturn(podOperations);
     kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
     kubernetesHelperMockedStatic.when(() -> KubernetesHelper.getNewestApplicationPodName(eq(kubernetesClient), any(), any())).thenReturn("test-pod");
-    podExecutor = new PodExecutor(clusterAccess, Duration.ZERO);
+    podExecutor = new PodExecutor(watcherContext, Duration.ZERO);
   }
 
   @AfterEach
