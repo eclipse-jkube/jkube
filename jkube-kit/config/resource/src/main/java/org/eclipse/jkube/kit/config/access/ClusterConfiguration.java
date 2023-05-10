@@ -53,7 +53,7 @@ public class ClusterConfiguration {
   private String trustStorePassphrase;
   private String keyStoreFile;
   private String keyStorePassphrase;
-  private boolean trustCerts;
+  private Boolean trustCerts;
 
   public String getNamespace() {
     return Optional.ofNullable(namespace).orElse(KubernetesHelper.getDefaultNamespace());
@@ -130,7 +130,9 @@ public class ClusterConfiguration {
       configBuilder.withTrustStorePassphrase(this.trustStorePassphrase);
     }
 
-    configBuilder.withTrustCerts(this.trustCerts);
+    if (this.trustCerts != null) {
+      configBuilder.withTrustCerts(this.trustCerts);
+    }
 
     return configBuilder.build();
 
