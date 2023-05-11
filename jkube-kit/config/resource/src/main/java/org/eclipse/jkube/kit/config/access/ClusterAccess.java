@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.config.access;
 
 
 import java.net.UnknownHostException;
+import java.util.Optional;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
@@ -55,8 +56,9 @@ public class ClusterAccess {
             return OpenshiftHelper.isOpenShift(client);
         } catch (KubernetesClientException exp) {
             Throwable cause = exp.getCause();
-            String prefix = cause instanceof UnknownHostException ? "Unknown host " : "";
-            kitLogger.warn("Cannot access cluster for detecting mode: %s%s",
+            String prefix = cause instanceof UnknownHostException ?
+              "Unknown host" : Optional.ofNullable(cause).map(Object::getClass).map(Class::getSimpleName).orElse("");
+            kitLogger.warn("Cannot access cluster for detecting mode: %s %s",
                     prefix,
                     cause != null && cause.getMessage() != null ? cause.getMessage() : exp.getMessage());
         }

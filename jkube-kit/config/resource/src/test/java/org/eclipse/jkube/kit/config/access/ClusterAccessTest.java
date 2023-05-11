@@ -73,7 +73,7 @@ class ClusterAccessTest {
     // Then
     assertThat(result).isFalse();
     verify(logger, times(1))
-        .warn(startsWith("Cannot access cluster for detecting mode"), eq(""), eq("An error has occurred."));
+        .warn(startsWith("Cannot access cluster for detecting mode"), eq("IOException"), eq("unknown.example.com"));
   }
 
   @Test
