@@ -30,11 +30,9 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
  */
 public class ClusterAccess {
 
-    private final KitLogger kitLogger;
     private final ClusterConfiguration clusterConfiguration;
 
-    public ClusterAccess(KitLogger kitLogger, ClusterConfiguration clusterConfiguration) {
-        this.kitLogger = kitLogger;
+    public ClusterAccess(ClusterConfiguration clusterConfiguration) {
         this.clusterConfiguration = clusterConfiguration == null ?
             ClusterConfiguration.builder().build() : clusterConfiguration;
     }
@@ -49,20 +47,6 @@ public class ClusterAccess {
 
     public String getNamespace() {
         return this.clusterConfiguration.getNamespace();
-    }
-
-    public boolean isOpenShift() {
-        try (KubernetesClient client = createDefaultClient()) {
-            return OpenshiftHelper.isOpenShift(client);
-        } catch (KubernetesClientException exp) {
-            Throwable cause = exp.getCause();
-            String prefix = cause instanceof UnknownHostException ?
-              "Unknown host" : Optional.ofNullable(cause).map(Object::getClass).map(Class::getSimpleName).orElse("");
-            kitLogger.warn("Cannot access cluster for detecting mode: %s %s",
-                    prefix,
-                    cause != null && cause.getMessage() != null ? cause.getMessage() : exp.getMessage());
-        }
-        return false;
     }
 
 }

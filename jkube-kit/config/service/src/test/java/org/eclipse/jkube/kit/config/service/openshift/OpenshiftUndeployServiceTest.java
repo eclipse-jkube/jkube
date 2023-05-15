@@ -74,7 +74,7 @@ class OpenshiftUndeployServiceTest {
       .log(logger)
       .platformMode(RuntimeMode.KUBERNETES)
       .configuration(JKubeConfiguration.builder().build())
-      .clusterAccess(new ClusterAccess(logger, ClusterConfiguration.from(openShiftClient.getConfiguration()).namespace("test").build()))
+      .clusterAccess(new ClusterAccess(ClusterConfiguration.from(openShiftClient.getConfiguration()).namespace("test").build()))
       .build();
     resourceConfig = ResourceConfig.builder().namespace("test").build();
     openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, logger);

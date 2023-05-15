@@ -413,7 +413,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         logOutputSpecFactory = new LogOutputSpecFactory(useColorForLogging(), logStdout, logDate);
         authConfigFactory = new AuthConfigFactory(log);
         imageConfigResolver.setLog(log);
-        clusterAccess = new ClusterAccess(log, initClusterConfiguration());
+        clusterAccess = new ClusterAccess(initClusterConfiguration());
         runtimeMode = getConfiguredRuntimeMode();
     }
 

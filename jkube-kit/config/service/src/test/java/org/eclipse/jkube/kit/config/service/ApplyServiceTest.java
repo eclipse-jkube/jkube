@@ -77,12 +77,11 @@ class ApplyServiceTest {
 
     @BeforeEach
     void setUp() {
-      final KitLogger log = new KitLogger.SilentLogger();
       final JKubeServiceHub serviceHub = JKubeServiceHub.builder()
-        .log(log)
+        .log(new KitLogger.SilentLogger())
         .configuration(JKubeConfiguration.builder().build())
         .platformMode(RuntimeMode.KUBERNETES)
-        .clusterAccess(new ClusterAccess(log, ClusterConfiguration.from(client.getConfiguration()).build()))
+        .clusterAccess(new ClusterAccess(ClusterConfiguration.from(client.getConfiguration()).build()))
         .build();
       applyService = new ApplyService(serviceHub);
       applyService.setNamespace("default");

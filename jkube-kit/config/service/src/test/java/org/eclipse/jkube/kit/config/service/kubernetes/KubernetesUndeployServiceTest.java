@@ -74,7 +74,7 @@ class KubernetesUndeployServiceTest {
       .log(logger)
       .platformMode(RuntimeMode.KUBERNETES)
       .configuration(JKubeConfiguration.builder().build())
-      .clusterAccess(new ClusterAccess(logger, ClusterConfiguration.from(kubernetesClient.getConfiguration()).namespace("test").build()))
+      .clusterAccess(new ClusterAccess(ClusterConfiguration.from(kubernetesClient.getConfiguration()).namespace("test").build()))
       .build();
     kubernetesUndeployService = new KubernetesUndeployService(jKubeServiceHub, logger);
   }

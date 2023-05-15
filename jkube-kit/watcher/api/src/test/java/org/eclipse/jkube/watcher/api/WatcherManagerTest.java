@@ -44,7 +44,6 @@ class WatcherManagerTest {
   void setUp() {
     JKubeServiceHub jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     logger = mock(KitLogger.class);
-    when(jKubeServiceHub.getClusterAccess().isOpenShift()).thenReturn(false);
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-watcher"));
     watcherContext = WatcherContext.builder()

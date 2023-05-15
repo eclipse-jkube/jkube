@@ -87,7 +87,7 @@ class DebugServiceTest {
       .log(logger)
       .configuration(JKubeConfiguration.builder().build())
       .platformMode(RuntimeMode.KUBERNETES)
-      .clusterAccess(new ClusterAccess(logger, ClusterConfiguration.from(kubernetesClient.getConfiguration()).build()))
+      .clusterAccess(new ClusterAccess(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build()))
       .build();
     singleThreadExecutor = Executors.newSingleThreadExecutor();
     final ApplyService applyService = new ApplyService(serviceHub);
