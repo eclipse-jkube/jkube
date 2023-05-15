@@ -127,8 +127,8 @@ public class JKubeServiceHub implements Closeable {
         if (clusterAccess != null) {
             return clusterAccess;
         }
-        return new ClusterAccess(log,
-            ClusterConfiguration.from(System.getProperties(), configuration.getProject().getProperties()).build());
+        return new ClusterAccess(ClusterConfiguration.from(
+          System.getProperties(), configuration.getProject().getProperties()).build());
     }
 
     public RuntimeMode getRuntimeMode() {

@@ -48,17 +48,23 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
 
       final File manifest = getManifest(kubernetes);
       URL masterUrl = kubernetes.getMasterUrl();
+
+      final boolean isOpenShift = OpenshiftHelper.isOpenShift(kubernetes);
       KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
       List<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
 
       configureApplyService();
 
-      kitLogger.info("Using %s at %s in namespace %s with manifest %s ", OpenshiftHelper.isOpenShift(kubernetes) ? "OpenShift" : "Kubernetes", masterUrl, applyService.getNamespace(), manifest);
+      kitLogger.info("Using %s at %s in namespace %s with manifest %s ",
+        isOpenShift ? "OpenShift" : "Kubernetes",
+        masterUrl,
+        applyService.getNamespace(),
+        manifest);
 
       // Apply rest of the entities present in manifest
       applyService.applyEntities(manifest.getName(), entities);
       kitLogger.info("[[B]]HINT:[[B]] Use the command `%s get pods -w` to watch your pods start up",
-          clusterAccess.isOpenShift() ? "oc" : "kubectl");
+        isOpenShift ? "oc" : "kubectl");
     } catch (KubernetesClientException e) {
       KubernetesResourceUtil.handleKubernetesClientException(e, kitLogger);
     } catch (IOException ioException) {

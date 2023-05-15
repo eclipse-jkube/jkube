@@ -79,7 +79,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     kitLogger = createLogger(null);
     logOutputSpecFactory = new LogOutputSpecFactory(isAnsiEnabled(), kubernetesExtension.getLogStdoutOrDefault(),
         kubernetesExtension.getLogDateOrNull());
-    clusterAccess = new ClusterAccess(kitLogger, initClusterConfiguration());
+    clusterAccess = new ClusterAccess(initClusterConfiguration());
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);
     ImageConfigResolver imageConfigResolver = new ImageConfigResolver();
