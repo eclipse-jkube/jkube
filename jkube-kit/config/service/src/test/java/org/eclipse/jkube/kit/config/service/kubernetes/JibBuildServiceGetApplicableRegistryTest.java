@@ -28,9 +28,9 @@ class JibBuildServiceGetApplicableRegistryTest {
       "word.word/word/word:tag,word.word",
       "word:5000/word:tag,word:5000",
       "word.word:5000/word:tag,word.word:5000",
-//      "word.word/word:tag,",
+      "word.word/word:tag,word.word",
       "word.word/word.word/word:tag,word.word",
-//      "word.word.word/word:tag,",
+      "word.word.word/word:tag,word.word.word",
       "word.word.word/word/word:tag,word.word.word"
   })
   void pull_whenRegistryNotPresentFromAnySource_thenReturnRegistryFromImageName(String from, String expectedPullRegistry) {
@@ -87,12 +87,12 @@ class JibBuildServiceGetApplicableRegistryTest {
   @CsvSource({
       "word:word,",
       "word/word:tag,",
-//      "word.word/word:tag,",
+      "word.word/word:tag,word.word",
       "word.word/word/word:tag,word.word",
       "word.word/word.word/word:tag,word.word",
       "word:5000/word:tag,word:5000",
       "word.word:5000/word:tag,word.word:5000",
-//      "word.word.word/word:tag,",
+      "word.word.word/word:tag,word.word.word",
       "word.word.word/word/word:tag,word.word.word"
   })
   void push_whenRegistryNotPresentFromAnySource_thenReturnRegistryFromImageName(String imageName, String expectedPushRegistry) {
