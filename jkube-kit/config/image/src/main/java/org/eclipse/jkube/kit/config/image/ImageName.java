@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.config.image;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -52,9 +54,6 @@ public class ImageName {
 
     // Digest
     private String digest;
-
-    // User name
-    private String user;
 
     /**
      * Create an image name
@@ -131,6 +130,16 @@ public class ImageName {
         return registry != null && registry.length() > 0;
     }
 
+    public boolean isFullyQualifiedName() {
+        if (StringUtils.isNotBlank(registry) && containsColon(registry)) {
+            return true;
+        }
+        return StringUtils.isNotBlank(registry) &&
+            StringUtils.isNotBlank(getUser()) &&
+            StringUtils.isNotBlank(getRepository()) &&
+            (StringUtils.isNotBlank(getTag()) || StringUtils.isNotBlank(getDigest()));
+    }
+
     private String joinTail(String[] parts) {
         StringBuilder builder = new StringBuilder();
         for (int i = 1;i < parts.length; i++) {
@@ -175,7 +184,10 @@ public class ImageName {
      */
     public String getNameWithoutTag(String optionalRegistry) {
         StringBuilder ret = new StringBuilder();
-        if (registry != null || optionalRegistry != null) {
+        if (!isFullyQualifiedName() && isRegistryValidPathComponent() &&
+            StringUtils.isNotBlank(optionalRegistry) && !optionalRegistry.equals(registry)) {
+            ret.append(optionalRegistry).append("/").append(registry).append("/");
+        } else if (registry != null || optionalRegistry != null) {
             ret.append(registry != null ? registry : optionalRegistry).append("/");
         }
         ret.append(repository);
@@ -220,7 +232,13 @@ public class ImageName {
      * @return user part or <code>null</code> if no user is present in the name
      */
     public String getUser() {
-        return user;
+        if (StringUtils.isNotBlank(repository)) {
+            if (repository.contains("/")) {
+                return repository.split("/")[0];
+            }
+            return null;
+        }
+        return null;
     }
 
     /**
@@ -229,8 +247,11 @@ public class ImageName {
      * @return simple name of the image
      */
     public String getSimpleName() {
-        String prefix = user + "/";
-        return repository.startsWith(prefix) ? repository.substring(prefix.length()) : repository;
+        int delimiterIndex = repository.indexOf('/');
+        if (delimiterIndex >= 0) {
+            return repository.substring(delimiterIndex + 1);
+        }
+        return repository;
     }
 
     /**
@@ -247,6 +268,7 @@ public class ImageName {
     private void doValidate() {
         List<String> errors = new ArrayList<>();
         // Strip off user from repository name
+        String user = getUser();
         String image = user != null ? repository.substring(user.length() + 1) : repository;
         Object[] checks = new Object[] {
                 "registry", DOMAIN_REGEXP, registry,
@@ -279,45 +301,24 @@ public class ImageName {
         String[] parts = rest.split("\\s*/\\s*");
         if (parts.length == 1) {
             registry = null;
-            user = null;
             repository = parts[0];
         } else if (parts.length >= 2) {
-            if (containsPeriodOrColon(parts[0])) {
-                if (parts.length > 2) {
-                    assignRegistryUserAndRepository(parts);
-                } else {
-                    checkWhetherFirstElementIsUserOrRegistryAndAssign(parts);
-                }
+            if (isValidDomain(parts[0])) {
+                registry = parts[0];
+                repository = joinTail(parts);
             } else {
                 registry = null;
-                user = parts[0];
                 repository = rest;
             }
         }
     }
 
-    private void checkWhetherFirstElementIsUserOrRegistryAndAssign(String[] parts) {
-        if (containsColon(parts[0])) {
-            assignRegistryAndRepository(parts);
-        } else {
-            assignUserAndRepository(parts);
-        }
+    private boolean isValidDomain(String str) {
+        return containsPeriodOrColon(str) && DOMAIN_REGEXP.matcher(str).matches();
     }
 
-    private void assignRegistryUserAndRepository(String[] parts) {
-        registry = parts[0];
-        user = parts[1];
-        repository = joinTail(parts);
-    }
-
-    private void assignUserAndRepository(String[] parts) {
-        user = parts[0];
-        repository = String.join("/", parts);
-    }
-
-    private void assignRegistryAndRepository(String[] parts) {
-        registry = parts[0];
-        repository = parts[1];
+    private boolean isRegistryValidPathComponent() {
+        return StringUtils.isNotBlank(registry) && !containsColon(registry);
     }
 
     // ================================================================================================

@@ -23,7 +23,9 @@ Usage:
 ### 1.14-SNAPSHOT
 * Fix #1713: Add HelidonHealthCheckEnricher to add Kubernetes health checks for Helidon applications
 * Fix #1714: Add HelidonGenerator to add opinionated container image for Helidon applications
+* Fix #1929: Docker Image Name parsing fix
 * Fix #1985: Update outdated methods in Spring Boot CRD Maven Quickstart
+* Fix #2116: Remove user field from ImageName class
 * Fix #2224: Quarkus native base image read from properties (configurable)
 
 ### 1.13.1 (2023-06-16)
@@ -31,7 +33,6 @@ Usage:
 
 ### 1.13.0 (2023-06-14)
 * Fix #1478: Should detect and warn the user if creating ingress and ingress controller not available
-* Fix #1929: Docker Image Name parsing fix
 * Fix #2092: Support for `Chart.yaml` fragments
 * Fix #2150: Bump Kubernetes Client to 6.6.0 (fixes issues when trace-logging OpenShift builds)
 * Fix #2162: Bump Kubernetes Client to 6.6.1 (HttpClient with support for PUT + InputStream)
