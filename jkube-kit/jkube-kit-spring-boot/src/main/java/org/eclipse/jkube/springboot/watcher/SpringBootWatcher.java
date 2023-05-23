@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -50,6 +51,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import org.apache.commons.lang3.StringUtils;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootPluginConfiguration;
 
@@ -129,7 +131,7 @@ public class SpringBootWatcher extends BaseWatcher {
     private void runRemoteSpringApplication(String url) {
         log.info("Running RemoteSpringApplication against endpoint: " + url);
 
-        String remoteSecret = validateSpringBootDevtoolsSettings();
+        final String remoteSecret = validateSpringBootDevtoolsSettings();
 
         final List<URLClassLoader> classLoaders = new ArrayList<>();
         ClassLoader pluginClassLoader = getClass().getClassLoader();
@@ -141,41 +143,36 @@ public class SpringBootWatcher extends BaseWatcher {
         ) {
             classLoaders.add(projectClassLoader);
 
-            StringBuilder buffer = new StringBuilder("java -cp ");
-            int count = 0;
-            for (URLClassLoader urlClassLoader : classLoaders) {
-                URL[] urLs = urlClassLoader.getURLs();
-                for (URL u : urLs) {
-                    if (count++ > 0) {
-                        buffer.append(File.pathSeparator);
-                    }
-                    try {
-                        URI uri = u.toURI();
-                        File file = new File(uri);
-                        buffer.append(file.getCanonicalPath());
-                    } catch (Exception e) {
-                        throw new IllegalStateException("Failed to create classpath: " + e, e);
-                    }
-                }
-            }
-
-            // Add dev tools to the classpath (the main class is not read from BOOT-INF/lib)
+            final String devToolsPath;
             try {
-                File devtools = getSpringBootDevToolsJar(getContext().getBuildContext().getProject());
-                buffer.append(File.pathSeparator);
-                buffer.append(devtools.getCanonicalPath());
+                devToolsPath = getSpringBootDevToolsJar(getContext().getBuildContext().getProject())
+                  .getCanonicalPath();
             } catch (Exception e) {
                 throw new IllegalStateException("Failed to include devtools in the classpath: " + e, e);
             }
+            final String classPath = classLoaders.stream().flatMap(cl -> Stream.of(cl.getURLs())).map(u -> {
+                try {
+                    URI uri = u.toURI();
+                    File file = new File(uri);
+                    return file.getCanonicalPath();
+                } catch (Exception e) {
+                    throw new IllegalStateException("Failed to create classpath: " + e, e);
+                }
+            }).collect(Collectors.joining(File.pathSeparator, "", File.pathSeparator))
+              // Add dev tools to the classpath (the main class is not read from BOOT-INF/lib)
+              .concat(devToolsPath);
+            final String[] command = new String[]{
+              javaBinary(),
+              "-cp",
+              classPath,
+              "-Dspring.devtools.remote.secret=" + remoteSecret,
+              "org.springframework.boot.devtools.RemoteSpringApplication",
+              url
+            };
 
-            buffer.append(" -Dspring.devtools.remote.secret=");
-            buffer.append(remoteSecret);
-            buffer.append(" org.springframework.boot.devtools.RemoteSpringApplication ");
-            buffer.append(url);
 
             try {
-                String command = buffer.toString();
-                log.debug("Running: " + command);
+                log.debug("Running: " + String.join(" ", command));
                 final Process process = runtime.exec(command);
 
                 final AtomicBoolean outputEnabled = new AtomicBoolean(true);
@@ -256,6 +253,15 @@ public class SpringBootWatcher extends BaseWatcher {
             throw new IllegalStateException("No " + DEV_TOOLS_REMOTE_SECRET + " property defined in application.properties or system properties");
         }
         return properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
+    }
+
+    private static String javaBinary() {
+        String path = new File(System.getProperty("java.home")).toPath().resolve("bin").resolve("java").toFile()
+          .getAbsolutePath();
+        if (isWindows()) {
+            path = path.concat(".exe");
+        }
+        return path;
     }
 
 }

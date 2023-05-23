@@ -124,11 +124,15 @@ class SpringBootWatcherIntegrationTest {
     FileUtils.write(applicationProperties, "spring.devtools.remote.secret=this-is-a-test", StandardCharsets.UTF_8);
     new SpringBootWatcher(runtime, watcherContext)
       .watch(Collections.emptyList(), null, Collections.singletonList(deployment), PlatformMode.kubernetes);
-    verify(runtime).exec(ArgumentMatchers.<String>argThat(command ->
-      command.startsWith("java -cp")
-        && command.contains(
-        absolutePath("spring-boot-lib.jar") + File.pathSeparator + absolutePath("spring-boot-devtools.jar"))
-        && command.matches(".+ org\\.springframework\\.boot.devtools\\.RemoteSpringApplication http://localhost:\\d+$")
+    verify(runtime).exec(ArgumentMatchers.<String[]>argThat(command -> command.length == 6
+      && command[0].matches(".+java(\\.exe)?")
+      && new File(command[0]).exists()
+      && command[1].equals("-cp")
+      && command[2].contains(
+      absolutePath("spring-boot-lib.jar") + File.pathSeparator + absolutePath("spring-boot-devtools.jar"))
+      && command[3].equals("-Dspring.devtools.remote.secret=this-is-a-test")
+      && command[4].equals("org.springframework.boot.devtools.RemoteSpringApplication")
+      && command[5].matches("^http://localhost:\\d+$")
     ));
   }
 
