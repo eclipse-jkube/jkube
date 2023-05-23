@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -55,10 +56,15 @@ import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootPlug
 public class SpringBootWatcher extends BaseWatcher {
 
     private final PortForwardService portForwardService;
+    private final Runtime runtime;
 
     public SpringBootWatcher(WatcherContext watcherContext) {
+        this(Runtime.getRuntime(), watcherContext);
+    }
+    SpringBootWatcher(Runtime runtime, WatcherContext watcherContext) {
         super(watcherContext, "spring-boot");
         portForwardService = new PortForwardService(watcherContext.getLogger());
+        this.runtime = runtime;
     }
 
     @Override
@@ -125,79 +131,78 @@ public class SpringBootWatcher extends BaseWatcher {
 
         String remoteSecret = validateSpringBootDevtoolsSettings();
 
-        ClassLoader classLoader = getClass().getClassLoader();
-        if (classLoader instanceof URLClassLoader) {
-            URLClassLoader pluginClassLoader = (URLClassLoader) classLoader;
-            try(URLClassLoader projectClassLoader = ClassUtil.createProjectClassLoader(
-                        getContext().getBuildContext().getProject().getCompileClassPathElements(), log)
-            ) {
-                URLClassLoader[] classLoaders = {projectClassLoader, pluginClassLoader};
+        final List<URLClassLoader> classLoaders = new ArrayList<>();
+        ClassLoader pluginClassLoader = getClass().getClassLoader();
+        if (pluginClassLoader instanceof URLClassLoader) {
+            classLoaders.add((URLClassLoader) pluginClassLoader);
+        }
+        try(URLClassLoader projectClassLoader = ClassUtil.createProjectClassLoader(
+                    getContext().getBuildContext().getProject().getCompileClassPathElements(), log)
+        ) {
+            classLoaders.add(projectClassLoader);
 
-                StringBuilder buffer = new StringBuilder("java -cp ");
-                int count = 0;
-                for (URLClassLoader urlClassLoader : classLoaders) {
-                    URL[] urLs = urlClassLoader.getURLs();
-                    for (URL u : urLs) {
-                        if (count++ > 0) {
-                            buffer.append(File.pathSeparator);
-                        }
-                        try {
-                            URI uri = u.toURI();
-                            File file = new File(uri);
-                            buffer.append(file.getCanonicalPath());
-                        } catch (Exception e) {
-                            throw new IllegalStateException("Failed to create classpath: " + e, e);
-                        }
+            StringBuilder buffer = new StringBuilder("java -cp ");
+            int count = 0;
+            for (URLClassLoader urlClassLoader : classLoaders) {
+                URL[] urLs = urlClassLoader.getURLs();
+                for (URL u : urLs) {
+                    if (count++ > 0) {
+                        buffer.append(File.pathSeparator);
+                    }
+                    try {
+                        URI uri = u.toURI();
+                        File file = new File(uri);
+                        buffer.append(file.getCanonicalPath());
+                    } catch (Exception e) {
+                        throw new IllegalStateException("Failed to create classpath: " + e, e);
                     }
                 }
-
-                // Add dev tools to the classpath (the main class is not read from BOOT-INF/lib)
-                try {
-                    File devtools = getSpringBootDevToolsJar(getContext().getBuildContext().getProject());
-                    buffer.append(File.pathSeparator);
-                    buffer.append(devtools.getCanonicalPath());
-                } catch (Exception e) {
-                    throw new IllegalStateException("Failed to include devtools in the classpath: " + e, e);
-                }
-
-                buffer.append(" -Dspring.devtools.remote.secret=");
-                buffer.append(remoteSecret);
-                buffer.append(" org.springframework.boot.devtools.RemoteSpringApplication ");
-                buffer.append(url);
-
-                try {
-                    String command = buffer.toString();
-                    log.debug("Running: " + command);
-                    final Process process = Runtime.getRuntime().exec(command);
-
-                    final AtomicBoolean outputEnabled = new AtomicBoolean(true);
-                    Runtime.getRuntime().addShutdownHook(new Thread("jkube:watch [spring-boot] shutdown hook") {
-                        @Override
-                        public void run() {
-                            log.info("Terminating the Spring remote client...");
-                            outputEnabled.set(false);
-                            process.destroy();
-                        }
-                    });
-                    KitLogger logger = new PrefixedLogger("Spring-Remote", log);
-                    Thread stdOutPrinter = startOutputProcessor(logger, process.getInputStream(), false, outputEnabled);
-                    Thread stdErrPrinter = startOutputProcessor(logger, process.getErrorStream(), true, outputEnabled);
-                    int status = process.waitFor();
-                    stdOutPrinter.join();
-                    stdErrPrinter.join();
-                    if (status != 0) {
-                        log.warn("Process returned status: %s", status);
-                    }
-                }  catch(InterruptedException ex) {
-                    Thread.currentThread().interrupt();
-                }catch (Exception e) {
-                    throw new RuntimeException("Failed to run RemoteSpringApplication: " + e, e);
-                }
-            } catch (IOException e) {
-                log.warn("Instructed to use project classpath, but cannot. Continuing build if we can: ", e);
             }
-        } else {
-            throw new IllegalStateException("ClassLoader must be a URLClassLoader but it is: " + classLoader.getClass().getName());
+
+            // Add dev tools to the classpath (the main class is not read from BOOT-INF/lib)
+            try {
+                File devtools = getSpringBootDevToolsJar(getContext().getBuildContext().getProject());
+                buffer.append(File.pathSeparator);
+                buffer.append(devtools.getCanonicalPath());
+            } catch (Exception e) {
+                throw new IllegalStateException("Failed to include devtools in the classpath: " + e, e);
+            }
+
+            buffer.append(" -Dspring.devtools.remote.secret=");
+            buffer.append(remoteSecret);
+            buffer.append(" org.springframework.boot.devtools.RemoteSpringApplication ");
+            buffer.append(url);
+
+            try {
+                String command = buffer.toString();
+                log.debug("Running: " + command);
+                final Process process = runtime.exec(command);
+
+                final AtomicBoolean outputEnabled = new AtomicBoolean(true);
+                runtime.addShutdownHook(new Thread("jkube:watch [spring-boot] shutdown hook") {
+                    @Override
+                    public void run() {
+                        log.info("Terminating the Spring remote client...");
+                        outputEnabled.set(false);
+                        process.destroy();
+                    }
+                });
+                KitLogger logger = new PrefixedLogger("Spring-Remote", log);
+                Thread stdOutPrinter = startOutputProcessor(logger, process.getInputStream(), false, outputEnabled);
+                Thread stdErrPrinter = startOutputProcessor(logger, process.getErrorStream(), true, outputEnabled);
+                int status = process.waitFor();
+                stdOutPrinter.join();
+                stdErrPrinter.join();
+                if (status != 0) {
+                    log.warn("Process returned status: %s", status);
+                }
+            }  catch(InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }catch (Exception e) {
+                throw new RuntimeException("Failed to run RemoteSpringApplication: " + e, e);
+            }
+        } catch (IOException e) {
+            log.warn("Instructed to use project classpath, but cannot. Continuing build if we can: ", e);
         }
     }
 
