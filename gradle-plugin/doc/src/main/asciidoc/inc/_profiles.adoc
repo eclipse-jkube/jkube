@@ -198,7 +198,7 @@ This plugin comes with a list of the following predefined profiles:
 | Includes no generators and only the <<jkube-dependency,jkube-dependency>> enricher for picking up and combining resources from the compile time dependencies.
 
 | *internal-microservice*
-| Do not expose a port for the service to generate. Otherwise the same as the _default_ profile.
+|  _default_ profile extension that prevents services from being externally exposed.
 |===
 
 [[profiles-extended]]
