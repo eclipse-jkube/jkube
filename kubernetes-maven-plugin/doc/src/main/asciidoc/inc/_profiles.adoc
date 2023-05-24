@@ -203,9 +203,6 @@ This plugin comes with a list of the following predefined profiles:
 
 | *internal-microservice*
 | Do not expose a port for the service to generate. Otherwise the same as the _default_ profile.
-
-| *osio*
-| Includes everything in the _default_ profile, plus additional enrichers and generators relevant only to https://openshift.io[OpenShift.io].
 |===
 
 [[profiles-extended]]
