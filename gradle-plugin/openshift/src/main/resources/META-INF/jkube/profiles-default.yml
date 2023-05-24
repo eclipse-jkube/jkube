@@ -149,4 +149,6 @@
   generator:
     excludes: []
   enricher:
-    excludes: []
+    excludes:
+      - jkube-ingress
+      - jkube-openshift-route
