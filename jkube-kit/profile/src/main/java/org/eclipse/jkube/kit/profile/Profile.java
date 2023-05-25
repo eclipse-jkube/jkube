@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.profile;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -96,11 +97,13 @@ public class Profile implements Comparable<Profile> {
             this.enricherConfig = ProcessorConfig.mergeProcessorConfigs(profileA.enricherConfig, profileB.enricherConfig);
             this.generatorConfig = ProcessorConfig.mergeProcessorConfigs(profileA.generatorConfig, profileB.generatorConfig);
             this.watcherConfig = ProcessorConfig.mergeProcessorConfigs(profileA.watcherConfig, profileB.watcherConfig);
+            this.parentProfile = Optional.ofNullable(profileA.parentProfile).orElse(profileB.parentProfile);
         } else {
             this.order = profileB.order;
             this.enricherConfig = ProcessorConfig.mergeProcessorConfigs(profileB.enricherConfig, profileA.enricherConfig);
             this.generatorConfig = ProcessorConfig.mergeProcessorConfigs(profileB.generatorConfig, profileA.generatorConfig);
             this.watcherConfig = ProcessorConfig.mergeProcessorConfigs(profileB.watcherConfig, profileA.watcherConfig);
+            this.parentProfile = Optional.ofNullable(profileB.parentProfile).orElse(profileA.parentProfile);
         }
     }
 

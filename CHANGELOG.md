@@ -26,6 +26,7 @@ Usage:
 * Fix #2162: Bump Kubernetes Client to 6.6.1 (HttpClient with support for PUT + InputStream)
 * Fix #2166: Potential command line injection in SpringBootWatcher
 * Fix #2170: `internal-microservice` profile prevents Service exposure
+* Fix #2174: Profile merge constructor accounts for parentProfile field
 
 ### 1.12.0 (2023-04-03)
 * Fix #1179: Move storageClass related functionality out of VolumePermissionEnricher to PersistentVolumeClaimStorageClassEnricher
