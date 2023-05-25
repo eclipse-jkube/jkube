@@ -132,7 +132,7 @@ class OpenShiftBuildServiceTest {
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
 
     // When
-    ImageConfiguration applicableImageConfig = openshiftBuildService.getApplicableImageConfiguration(imageConfiguration);
+    ImageConfiguration applicableImageConfig = openshiftBuildService.getApplicableImageConfiguration(imageConfiguration, RegistryConfig.builder().build());
 
     // Then
     assertThat(applicableImageConfig)
@@ -148,7 +148,7 @@ class OpenShiftBuildServiceTest {
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
 
     // When
-    ImageConfiguration applicableImageConfig = openshiftBuildService.getApplicableImageConfiguration(imageConfiguration);
+    ImageConfiguration applicableImageConfig = openshiftBuildService.getApplicableImageConfiguration(imageConfiguration, RegistryConfig.builder().build());
 
     // Then
     assertThat(applicableImageConfig)

@@ -34,7 +34,7 @@
             <image>
               <name>repository/xml-based-image-test:latest</name>
               <build>
-                <from>alpine</from>
+                <from>registry.access.redhat.com/ubi8/ubi-minimal:8.8-860</from>
                 <env>
                   <JAVA_OPTIONS>-Xmx256m</JAVA_OPTIONS>
                 </env>

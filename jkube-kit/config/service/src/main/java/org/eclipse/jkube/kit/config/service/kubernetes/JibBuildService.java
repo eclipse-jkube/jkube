@@ -25,7 +25,6 @@ import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -39,21 +38,16 @@ import org.eclipse.jkube.kit.service.jib.JibServiceUtil;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePullRegistryFrom;
+import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePushRegistryFrom;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.getBaseImage;
 
 public class JibBuildService extends AbstractImageBuildService {
-
-    private static final String DOCKER_LOGIN_DEFAULT_REGISTRY = "https://index.docker.io/v1/";
-    private static final List<String> DEFAULT_DOCKER_REGISTRIES = Arrays.asList(
-            "docker.io", "index.docker.io", "registry.hub.docker.com"
-    );
-    private static final String PUSH_REGISTRY = "jkube.docker.push.registry";
 
     private final KitLogger log;
     private final BuildServiceConfig buildServiceConfig;
@@ -80,11 +74,13 @@ public class JibBuildService extends AbstractImageBuildService {
             if (imageConfig.getBuildConfiguration().isDockerFileMode()) {
                 throw new JKubeServiceException("Dockerfile mode is not supported with JIB build strategy");
             }
-            prependRegistry(imageConfig, configuration.getProperties().getProperty(PUSH_REGISTRY));
+            String pushRegistry = getApplicablePushRegistryFrom(imageConfig, configuration.getRegistryConfig());
+            prependRegistry(imageConfig, pushRegistry);
             BuildDirs buildDirs = new BuildDirs(imageConfig.getName(), configuration);
+            String pullRegistry = getApplicableRegistry(false, imageConfig, configuration.getRegistryConfig());
             final Credential pullRegistryCredential = getRegistryCredentials(
-                configuration.getRegistryConfig(), false, imageConfig, log);
-            final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfig, pullRegistryCredential);
+                configuration.getRegistryConfig(), false, pullRegistry, log);
+            final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfig, pullRegistry, pullRegistryCredential);
 
             final Map<Assembly, List<AssemblyFileEntry>> layers = AssemblyManager.getInstance()
                 .copyFilesToFinalTarballDirectory(configuration, buildDirs,
@@ -110,11 +106,12 @@ public class JibBuildService extends AbstractImageBuildService {
     @Override
     protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
         try {
-            prependRegistry(imageConfiguration, registryConfig.getRegistry());
+            String pushRegistry = getApplicableRegistry(true, imageConfiguration, registryConfig);
+            prependRegistry(imageConfiguration, pushRegistry);
             log.info("This push refers to: %s", imageConfiguration.getName());
             JibServiceUtil.jibPush(
                 imageConfiguration,
-                getRegistryCredentials(registryConfig, true, imageConfiguration, log),
+                getRegistryCredentials(registryConfig, true, pushRegistry, log),
                 getBuildTarArchive(imageConfiguration, configuration),
                 log
             );
@@ -131,7 +128,7 @@ public class JibBuildService extends AbstractImageBuildService {
     static ImageConfiguration prependRegistry(ImageConfiguration imageConfiguration, String registry) {
         ImageName imageName = new ImageName(imageConfiguration.getName());
         if (!imageName.hasRegistry() && registry != null) {
-            imageConfiguration.setName(registry + "/" + imageConfiguration.getName());
+            imageConfiguration.setName(imageName.getFullName(registry));
             imageConfiguration.setRegistry(registry);
         }
         return imageConfiguration;
@@ -145,26 +142,8 @@ public class JibBuildService extends AbstractImageBuildService {
     }
 
     static Credential getRegistryCredentials(
-        RegistryConfig registryConfig, boolean isPush, ImageConfiguration imageConfiguration, KitLogger log)
+        RegistryConfig registryConfig, boolean isPush, String registry, KitLogger log)
         throws IOException {
-
-        String registry;
-        if (isPush) {
-            registry = EnvUtil.firstRegistryOf(
-                new ImageName(imageConfiguration.getName()).getRegistry(),
-                imageConfiguration.getRegistry(),
-                registryConfig.getRegistry()
-            );
-        } else {
-            registry = EnvUtil.firstRegistryOf(
-                new ImageName(getBaseImage(imageConfiguration)).getRegistry(),
-                registryConfig.getRegistry()
-            );
-        }
-        if (registry == null || DEFAULT_DOCKER_REGISTRIES.contains(registry)) {
-            registry = DOCKER_LOGIN_DEFAULT_REGISTRY; // Let's assume docker is default registry.
-        }
-
         AuthConfigFactory authConfigFactory = new AuthConfigFactory(log);
         AuthConfig standardAuthConfig = authConfigFactory.createAuthConfig(isPush, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(), registryConfig.getSettings(), null, registry, registryConfig.getPasswordDecryptionMethod());
         Credential credentials = null;
@@ -177,5 +156,15 @@ public class JibBuildService extends AbstractImageBuildService {
     static File getBuildTarArchive(ImageConfiguration imageConfiguration, JKubeConfiguration configuration) {
         BuildDirs buildDirs = new BuildDirs(imageConfiguration.getName(), configuration);
         return new File(buildDirs.getTemporaryRootDirectory(), JKubeBuildTarArchiver.ARCHIVE_FILE_NAME + ArchiveCompression.none.getFileSuffix());
+    }
+
+    static String getApplicableRegistry(boolean isPush, ImageConfiguration imageConfiguration, RegistryConfig registryConfig) {
+        String registry;
+        if (isPush) {
+            registry = getApplicablePushRegistryFrom(imageConfiguration, registryConfig);
+        } else {
+            registry = getApplicablePullRegistryFrom(getBaseImage(imageConfiguration, null), registryConfig);
+        }
+        return registry;
     }
 }

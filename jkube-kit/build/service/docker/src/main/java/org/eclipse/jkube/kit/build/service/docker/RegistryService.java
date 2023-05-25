@@ -27,6 +27,9 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 
+import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePullRegistryFrom;
+import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePushRegistryFrom;
+
 /**
  * Allows to interact with registries, eg. to push/pull images.
  */
@@ -56,11 +59,7 @@ public class RegistryService {
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
         String name = imageConfig.getName();
         if (buildConfig != null) {
-            String configuredRegistry = EnvUtil.firstRegistryOf(
-                new ImageName(imageConfig.getName()).getRegistry(),
-                imageConfig.getRegistry(),
-                registryConfig.getRegistry());
-
+            String configuredRegistry = getApplicablePushRegistryFrom(imageConfig, registryConfig);
 
             AuthConfig authConfig = createAuthConfig(true, new ImageName(name).getUser(), configuredRegistry, registryConfig);
 
@@ -104,7 +103,7 @@ public class RegistryService {
 
         final ImageName imageName = new ImageName(image);
         final long pullStartTime = System.currentTimeMillis();
-        final String actualRegistry = EnvUtil.firstRegistryOf(imageName.getRegistry(), registryConfig.getRegistry());
+        final String actualRegistry = getApplicablePullRegistryFrom(image, registryConfig);
         final CreateImageOptions createImageOptions = new CreateImageOptions(buildConfiguration.getCreateImageOptions())
             .fromImage(imageName.getNameWithoutTag(actualRegistry))
             .tag(imageName.getDigest() != null ? imageName.getDigest() : imageName.getTag());

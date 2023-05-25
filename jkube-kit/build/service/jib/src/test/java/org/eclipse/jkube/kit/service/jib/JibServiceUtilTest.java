@@ -54,7 +54,7 @@ class JibServiceUtilTest {
 
     @Test
     void testGetBaseImageWithNullBuildConfig() {
-        assertThat(JibServiceUtil.getBaseImage(ImageConfiguration.builder().build())).isEqualTo("busybox:latest");
+        assertThat(JibServiceUtil.getBaseImage(ImageConfiguration.builder().build(), null)).isEqualTo("busybox:latest");
     }
 
     @Test
@@ -66,7 +66,7 @@ class JibServiceUtilTest {
                 .build())
             .build();
         // When
-        final String result = JibServiceUtil.getBaseImage(imageConfiguration);
+        final String result = JibServiceUtil.getBaseImage(imageConfiguration, null);
         // Then
         assertThat(result).isEqualTo("quay.io/jkubeio/jkube-test-image:0.0.1");
     }
@@ -77,7 +77,7 @@ class JibServiceUtilTest {
             // Given
             ImageConfiguration imageConfiguration = getSampleImageConfiguration();
             // When
-            JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(imageConfiguration, null);
+            JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(imageConfiguration, null, null);
             // Then
             verify(jibContainerBuilder, times(1)).addLabel("foo", "bar");
             verify(jibContainerBuilder, times(1)).setEntrypoint(Arrays.asList("java", "-jar", "foo.jar"));
