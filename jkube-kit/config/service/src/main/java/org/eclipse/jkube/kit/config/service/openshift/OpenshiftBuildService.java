@@ -31,7 +31,6 @@ import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -76,6 +75,8 @@ import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromCo
 import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDockerfile;
 
 import static org.eclipse.jkube.kit.common.util.OpenshiftHelper.isOpenShift;
+import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePullRegistryFrom;
+import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePushRegistryFrom;
 import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamName;
 import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamTagName;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.computeS2IBuildName;
@@ -128,7 +129,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         initClient();
         String buildName = null;
         try {
-            final ImageConfiguration applicableImageConfig = getApplicableImageConfiguration(imageConfig);
+            final ImageConfiguration applicableImageConfig = getApplicableImageConfiguration(imageConfig, jKubeConfiguration.getRegistryConfig());
             ImageName imageName = new ImageName(applicableImageConfig.getName());
 
             File dockerTar = createBuildArchive(jKubeServiceHub, applicableImageConfig);
@@ -225,7 +226,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         }
     }
 
-    ImageConfiguration getApplicableImageConfiguration(ImageConfiguration imageConfig) {
+    ImageConfiguration getApplicableImageConfiguration(ImageConfiguration imageConfig, RegistryConfig registryConfig) {
         final ImageConfiguration.ImageConfigurationBuilder applicableImageConfigBuilder = imageConfig.toBuilder();
         if (imageConfig.getBuildConfiguration() != null && !imageConfig.getBuildConfiguration().isDockerFileMode()
             && imageConfig.getBuildConfiguration().getAssembly() != null) {
@@ -234,9 +235,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
                 .build());
         }
         if (buildServiceConfig.getBuildOutputKind() != null && buildServiceConfig.getBuildOutputKind().equals(DOCKER_IMAGE)) {
-            String applicableRegistry = EnvUtil.firstRegistryOf(
-                new ImageName(imageConfig.getName()).getRegistry(),
-                imageConfig.getRegistry());
+            String applicableRegistry = getApplicablePushRegistryFrom(imageConfig, registryConfig);
             applicableImageConfigBuilder.name(new ImageName(imageConfig.getName()).getFullName(applicableRegistry));
         }
         return applicableImageConfigBuilder.build();
@@ -342,7 +341,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
             fromImage = extractBaseFromConfiguration(buildConfig);
         }
 
-        String pullRegistry = EnvUtil.firstRegistryOf(new ImageName(fromImage).getRegistry(), jKubeConfiguration.getRegistryConfig().getRegistry(), jKubeConfiguration.getRegistryConfig().getRegistry());
+        String pullRegistry = getApplicablePullRegistryFrom(fromImage, jKubeConfiguration.getRegistryConfig());
 
         if (pullRegistry != null) {
             RegistryConfig registryConfig = jKubeConfiguration.getRegistryConfig();

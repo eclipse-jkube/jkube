@@ -1,4 +1,4 @@
-FROM alpine
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8-860
 EXPOSE 8082
 COPY /jkube-generated-layer-original/opt/deployments /opt/deployments/
 COPY /jkube-generated-layer-final-artifact/opt/deployments /opt/deployments/

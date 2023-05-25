@@ -116,8 +116,8 @@ public class JibServiceUtil {
     }
 
     public static JibContainerBuilder containerFromImageConfiguration(
-        ImageConfiguration imageConfiguration, Credential pullRegistryCredential) throws InvalidImageReferenceException {
-        final JibContainerBuilder containerBuilder = Jib.from(getRegistryImage(getBaseImage(imageConfiguration), pullRegistryCredential))
+        ImageConfiguration imageConfiguration, String pullRegistry, Credential pullRegistryCredential) throws InvalidImageReferenceException {
+        final JibContainerBuilder containerBuilder = Jib.from(getRegistryImage(getBaseImage(imageConfiguration, pullRegistry), pullRegistryCredential))
                 .setFormat(ImageFormat.Docker);
         return populateContainerBuilderFromImageConfiguration(containerBuilder, imageConfiguration);
     }
@@ -262,12 +262,13 @@ public class JibServiceUtil {
         System.out.println(JIB_LOG_PREFIX + generateProgressBar(1.0F));
     }
 
-    public static String getBaseImage(ImageConfiguration imageConfiguration) {
-        return Optional.ofNullable(imageConfiguration)
+    public static String getBaseImage(ImageConfiguration imageConfiguration, String optionalRegistry) {
+        String baseImage = Optional.ofNullable(imageConfiguration)
                 .map(ImageConfiguration::getBuildConfiguration)
                 .map(BuildConfiguration::getFrom)
                 .filter(((Predicate<String>) String::isEmpty).negate())
                 .orElse(BUSYBOX);
+        return new ImageName(baseImage).getFullName(optionalRegistry);
     }
 
     @Nonnull
