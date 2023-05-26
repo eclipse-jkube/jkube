@@ -24,6 +24,7 @@ Usage:
 * Fix #1478: Should detect and warn the user if creating ingress and ingress controller not available
 * Fix #2150: Bump Kubernetes Client to 6.6.0 (fixes issues when trace-logging OpenShift builds)
 * Fix #2162: Bump Kubernetes Client to 6.6.1 (HttpClient with support for PUT + InputStream)
+* Fix #2165: Introduce a Kubernetes resource Security Hardening profile (opt-in)
 * Fix #2166: Potential command line injection in SpringBootWatcher
 * Fix #2170: `internal-microservice` profile prevents Service exposure
 * Fix #2174: Profile merge constructor accounts for parentProfile field

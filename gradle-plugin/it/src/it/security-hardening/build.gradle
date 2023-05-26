@@ -1,0 +1,28 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version(project.hasProperty('version') ? version : '0.0.1-SNAPSHOT')
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+def extensionConfig = {
+    offline = true
+    images({
+        image {
+            name = 'repository/security-hardening:latest'
+            build {
+                from = 'quay.io/jkube/jkube-java'
+            }
+        }
+    })
+}
+
+kubernetes(extensionConfig)
+openshift(extensionConfig)

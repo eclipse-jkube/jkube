@@ -1,0 +1,78 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps.openshift.io/v1
+    kind: DeploymentConfig
+    metadata:
+      labels:
+        app: security-hardening
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: security-hardening
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        app: security-hardening
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+      strategy:
+        rollingParams:
+          timeoutSeconds: 3600
+        type: Rolling
+      template:
+        metadata:
+          labels:
+            app: security-hardening
+            provider: jkube
+            version: "@ignore@"
+            group: org.eclipse.jkube.integration.tests.gradle
+          name: security-hardening
+        spec:
+          automountServiceAccountToken: false
+          containers:
+            - env:
+                - name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+              image: repository/security-hardening:latest
+              imagePullPolicy: IfNotPresent
+              name: repository-security-hardening
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - NET_RAW
+                    - ALL
+                privileged: false
+                runAsNonRoot: true
+                runAsUser: 10000
+                seccompProfile:
+                  type: RuntimeDefault
+      triggers:
+        - type: ConfigChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - repository-security-hardening
+            from:
+              kind: ImageStreamTag
+              name: security-hardening:latest
+          type: ImageChange

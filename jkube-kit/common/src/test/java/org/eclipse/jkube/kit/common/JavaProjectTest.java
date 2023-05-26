@@ -34,6 +34,7 @@ class JavaProjectTest {
 
   static Stream<Arguments> isSnapshotData() {
     return Stream.of(
+      Arguments.of(null, false),
       Arguments.of("1.0.0", false),
       Arguments.of("1.0.0-SNAPSHOT", true),
       Arguments.of("1.0.0-snapshot", true),
