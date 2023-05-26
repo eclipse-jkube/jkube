@@ -106,3 +106,6 @@ org.eclipse.jkube.enricher.generic.ImagePullPolicyEnricher
 
 # Set StorageClass name in PersistentVolumeClaim annotation or in spec
 org.eclipse.jkube.enricher.generic.PersistentVolumeClaimStorageClassEnricher
+
+# Enforces best practice and recommended security rules
+org.eclipse.jkube.enricher.generic.SecurityHardeningEnricher

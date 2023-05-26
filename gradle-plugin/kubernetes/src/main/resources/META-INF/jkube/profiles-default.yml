@@ -157,3 +157,9 @@
     excludes:
       - jkube-ingress
       - jkube-openshift-route
+# Enforces best practice and recommended security rules
+- name: security-hardening
+  extends: default
+  enricher:
+    includes:
+      - jkube-security-hardening
