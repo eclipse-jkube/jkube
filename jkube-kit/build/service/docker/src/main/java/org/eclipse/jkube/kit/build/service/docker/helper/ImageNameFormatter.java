@@ -156,22 +156,15 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
         }
 
         public String lookup() {
-            String tag = getProperty(DOCKER_IMAGE_TAG);
+            final String tag = getProperty(DOCKER_IMAGE_TAG);
             if (!Strings.isNullOrEmpty(tag)) {
                 return tag;
+            } else if (project.isSnapshot() && mode == Mode.SNAPSHOT_WITH_TIMESTAMP) {
+                return "snapshot-" + new SimpleDateFormat("yyMMdd-HHmmss-SSSS").format(now);
+            } else if (project.isSnapshot() && mode == Mode.SNAPSHOT_LATEST) {
+                return "latest";
             }
-
-            tag = project.getVersion();
-            if (mode != Mode.PLAIN) {
-                if (tag.endsWith("-SNAPSHOT")) {
-                    if (mode == Mode.SNAPSHOT_WITH_TIMESTAMP) {
-                        tag = "snapshot-" + new SimpleDateFormat("yyMMdd-HHmmss-SSSS").format(now);
-                    } else if (mode == Mode.SNAPSHOT_LATEST) {
-                        tag = "latest";
-                    }
-                }
-            }
-            return tag;
+            return project.getVersion();
         }
     }
 
