@@ -22,6 +22,7 @@ import lombok.Singular;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.Properties;
 
@@ -241,6 +242,15 @@ public class JavaProject implements Serializable {
    * @return The project maintainers.
    */
   private List<Maintainer> maintainers;
+
+  /**
+   * Returns true if the project is a Maven project with a snapshot version.
+   *
+   * @return true if the project is a Maven project with a snapshot version, false otherwise.
+   */
+  public boolean isSnapshot() {
+    return version != null && version.toUpperCase(Locale.ROOT).endsWith("-SNAPSHOT");
+  }
 
   @Builder(toBuilder = true)
   public JavaProject(

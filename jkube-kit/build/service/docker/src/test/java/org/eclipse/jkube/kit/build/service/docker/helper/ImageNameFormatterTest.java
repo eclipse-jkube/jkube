@@ -33,7 +33,6 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
  */
 class ImageNameFormatterTest {
     private JavaProject project;
-    private final Date now = new Date();
     private ImageNameFormatter formatter;
 
     @BeforeEach
@@ -41,7 +40,7 @@ class ImageNameFormatterTest {
         project = JavaProject.builder()
           .properties(new Properties())
           .build();
-        formatter = new ImageNameFormatter(project, now);
+        formatter = new ImageNameFormatter(project, new Date());
     }
     @Test
     void simple() {
@@ -104,7 +103,7 @@ class ImageNameFormatterTest {
     }
 
     @Test
-    void tagWithnonSnapshotArtifact() {
+    void tagWithNonSnapshotArtifact() {
         project.setArtifactId("docker-maven-plugin");
         project.setGroupId("io.fabric8");
         project.setVersion("1.2.3");
