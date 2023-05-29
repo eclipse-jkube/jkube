@@ -1,0 +1,19 @@
+
+[[jkube-security-hardening]]
+==== jkube-security-hardening
+
+This enricher enforces security best practices and recommendations for Kubernetes objects
+such as Deployments, ReplicaSets, Jobs, CronJobs, and so on.
+
+The enricher is not included in the `default` <<profiles, profile>>.
+However, you can easily enable it by <<profiles-using,leveraging>> the `security-hardening`
+profile.
+
+These are *some* of the rules enforces by this enricher:
+
+* Disables the auto-mounting of the service account token.
+* Prevents containers from running in privileged mode.
+* Ensures containers do not allow privilege escalation.
+* Prevents containers from running as the root user.
+* Configures the container to run as a user with a high UID to avoid host conflict.
+* Ensures the container's seccomp is set to Runtime/Default.

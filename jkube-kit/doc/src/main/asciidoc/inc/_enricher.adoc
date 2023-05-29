@@ -29,7 +29,7 @@ The <<generator-example,Generator example>> is a good blueprint, simply replace 
 
 This plugin comes with a set of default enrichers.
 ifeval::["{plugin-type}" == "maven"]
-In addition custom enrichers can be easily added by providing implementation of the <<enricher-api, Enricher API>> and adding these as a dependency to the build.
+In addition, custom enrichers can be easily added by providing implementation of the <<enricher-api, Enricher API>> and adding these as a dependency to the build.
 endif::[]
 
 [[enrichers-default]]
@@ -119,6 +119,9 @@ endif::[]
 
 | <<jkube-secret-file>>
 | Add Secret elements defined as annotation.
+
+| <<jkube-security-hardening>>
+| Enforces best practice and recommended security rules for Kubernetes and OpenShift resources.
 
 | <<jkube-service>>
 | Create a default service if missing and extract ports from the Docker image configuration.
@@ -210,6 +213,8 @@ include::enricher/_jkube_replicas.adoc[]
 include::enricher/revisionhistory/_jkube_revision_history.adoc[]
 
 include::enricher/secret-file/_jkube_secret_file.adoc[]
+
+include::enricher/security-hardening/_index.adoc[]
 
 include::enricher/service/_jkube_service.adoc[]
 

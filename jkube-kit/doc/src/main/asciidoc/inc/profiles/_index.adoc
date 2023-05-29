@@ -203,7 +203,11 @@ This plugin comes with the following predefined profiles:
 | Includes no generators and only the <<jkube-dependency,jkube-dependency>> enricher for picking up and combining resources from the compile time dependencies.
 
 | *internal-microservice*
-|  _default_ profile extension that prevents services from being externally exposed.
+| _default_ profile extension that prevents services from being externally exposed.
+
+| *security-hardening*
+| _default_ profile extension that enables the <<jkube-security-hardening,security-hardening>>
+  enricher.
 |===
 
 [[profiles-extended]]
