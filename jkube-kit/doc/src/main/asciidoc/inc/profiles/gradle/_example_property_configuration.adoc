@@ -1,0 +1,4 @@
+[source, sh, subs="+attributes"]
+----
+gradle -Pjkube.profile=my-spring-boot-apps {task-prefix}Build {task-prefix}Apply
+----
