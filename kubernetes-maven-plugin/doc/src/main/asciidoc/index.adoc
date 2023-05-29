@@ -33,7 +33,7 @@ include::inc/goals/_goals.adoc[]
 
 include::{kitdoc-path}/inc/_generator.adoc[]
 include::{kitdoc-path}/inc/_enricher.adoc[]
-include::inc/_profiles.adoc[]
+include::{kitdoc-path}/inc/profiles/_index.adoc[]
 include::{kitdoc-path}/inc/plugins/_jkube_plugins.adoc[]
 
 include::inc/_access.adoc[]

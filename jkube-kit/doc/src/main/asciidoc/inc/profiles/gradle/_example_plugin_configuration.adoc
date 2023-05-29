@@ -1,0 +1,7 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+  profile = 'my-spring-boot-apps' // (1)
+}
+----
+<1> Name which selects the profile from the `profiles.yml` or `profiles-default.yml` file.

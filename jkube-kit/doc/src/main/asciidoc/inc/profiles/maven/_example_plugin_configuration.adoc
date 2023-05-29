@@ -1,0 +1,12 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <configuration>
+    <profile>my-spring-boot-apps</profile> <!--1-->
+    <!-- ... -->
+  </configuration>
+</plugin>
+----
+<1> Name which selects the profile from the `profiles.yml` or `profiles-default.yml` file.

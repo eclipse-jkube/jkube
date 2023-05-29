@@ -1,0 +1,4 @@
+[source, sh, subs="+attributes"]
+----
+mvn -Djkube.profile=my-spring-boot-apps {goal-prefix}:build {goal-prefix}:apply
+----

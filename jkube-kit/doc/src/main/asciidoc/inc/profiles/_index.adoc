@@ -4,8 +4,9 @@
 
 Profiles can be used to combine a set of enrichers and generators and to give this combination a referable name.
 
-Profiles are defined in YAML. The following example shows a simple profiles which uses only the
-<<generator-spring-boot, Spring Boot generator>> and some enrichers adding for adding default resources:
+Profiles are defined in YAML. The following example shows a simple profile which uses only the
+<<generator-spring-boot, Spring Boot generator>> and a few enrichers to add a Kubernetes
+Deployment and a Service:
 
 .Profile Definition
 [source, yaml]
@@ -33,8 +34,8 @@ Profiles are defined in YAML. The following example shows a simple profiles whic
 <1> Profile's name
 <2> <<generators, Generators>> to use
 <3> <<enrichers, Enrichers>> to use
-<4> List of enricher to *include* in that given order
-<5> List of enricher to *exclude*
+<4> List of enrichers to *include* in that given order
+<5> List of enrichers to *exclude* (especially useful when extending profiles)
 <6> Configuration for services an enrichers
 <7> An order which influences the way how profiles with the same name are merged
 
@@ -46,8 +47,12 @@ Each `profiles.yml` has a list of profiles which are defined with these elements
 | Element | Description
 
 | *name*
-| Profile name. This plugin comes with a set of <<profiles-predefined, predefined profiles>>. Those profiles can be
-  extended by defining a custom profile with the same name of the profile to extend.
+| Profile name.
+
+| *extends*
+| This plugin comes with a set of <<profiles-predefined, predefined profiles>>.
+  These profiles can be extended by defining a custom profile that references the name of the
+  profile to extend in the `extends` field.
 
 | *generator*
 | List of generator definitions. See <<generator-enricher-definition, below>> for the format of these definitions.
@@ -64,7 +69,7 @@ Each `profiles.yml` has a list of profiles which are defined with these elements
 
 The definition of generators and enrichers in the profile follows the same format:
 
-.Generator and Enericher definition
+.Generator and Enricher definition
 [cols="1,6"]
 |===
 | Element | Description
@@ -82,7 +87,7 @@ The definition of generators and enrichers in the profile follows the same forma
 [[profiles-lookup-order]]
 == Lookup order
 
-Profiles can be defined externally either directly as a build resource in `src/main/jkube/profiles.yml` or provided as part of a plugin's dependency where it is supposed to be included as `META-INF/jkube/profiles.yml`. Multiple profiles can be include in these `profiles.yml` descriptors as a list:
+Profiles can be defined externally either directly as a build resource in `src/main/jkube/profiles.yml` or provided as part of a plugin's dependency where it is supposed to be included as `META-INF/jkube/profiles.yml`. Multiple profiles can be included in these `profiles.yml` descriptors as a list:
 
 If a profile is <<profiles-using, used>> then it is looked up from various places in the following order:
 
@@ -90,9 +95,12 @@ If a profile is <<profiles-using, used>> then it is looked up from various place
 * From the compile and plugin classpath from `META-INF/jkube/profiles.yml`. Use this location for defining your custom profiles which you want to include via dependencies.
 * From the project in `src/main/jkube/profiles.yml`. The directory can be tuned with the plugin option `resourceDir` (property: `jkube.resourceDir`)
 
-When multiple profiles of the same name are found, then these profiles are merged. If profile have an order number, then the _higher_ order takes precedences when merging profiles.
+When multiple profiles of the same name are found, then these profiles are merged.
+If the profiles have an order number, then the profile with _higher_ order takes precedence
+when merging.
 
-For _includes_ of the same processors, the processor is moved to the earliest position. E.g consider the following two profiles with the name `my-profile`
+For _includes_ of the same processors, the processor is moved to the earliest position.
+e.g. consider the following two profiles with the name `my-profile`
 
 .Profile A
 [source, yaml]
@@ -136,53 +144,46 @@ Profiles can be selected by defining them in the plugin configuration, by giving
 
 Here is an example how the profile can be used in a plugin configuration:
 
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-<plugin>
-  <groupId>org.eclipse.jkube</groupId>
-  <artifactId>{plugin}</artifactId>
-  <configuration>
-    <profile>my-spring-boot-apps</profile> <!--1-->
-    <!-- ... -->
-  </configuration>
-</plugin>
-----
-<1> Name which select the profile from the `profiles.yml`
+include::{plugin-type}/_example_plugin_configuration.adoc[]
 
-.Profile as system property
+.Profile as property
 
-Alternatively a profile can be also specified on the command line when calling Maven:
+Alternatively a profile can be also specified on the command line or as a project property:
 
-[source, sh, subs="+attributes"]
-----
-mvn -Djkube.profile=my-spring-boot-apps {goal-prefix}:build {goal-prefix}:deploy
-----
+include::{plugin-type}/_example_property_configuration.adoc[]
 
-If a configuration for enrichers and generators are provided as part of the plugin's `<configuration>` then this takes precedence over any profile specified.
+If a configuration for enrichers and generators is provided as part of the project plugin's configuration then this takes precedence and overrides any of the defaults provided by the selected profile.
 
 [[profiles-resource-fragments]]
 .Profiles for resource fragments
 
-Profiles are also very useful when used together with resource fragments in `src/main/jkube`. By default the resource objects defined here are enriched with the configured profile (if any). A different profile can be selected easily by using a sub directory within `src/main/jkube`. The name of each sub directory is interpreted as a profile name and all resource definition files found in this sub directory are enhanced with the enhancers defined in this profile.
+Profiles are also very useful when used together with resource fragments in `src/main/jkube`.
+By default, the resource objects defined here are enriched with the configured profile (if any).
+A different profile can be selected easily by using a subdirectory within `src/main/jkube`.
+The name of each subdirectory is interpreted as a profile name and all resource definition files found in this subdirectory are enhanced with the enhancers defined in this profile.
 
 For example, consider the following directory layout:
 
 [source, subs="+attributes"]
 ----
-src/main/{goal-prefix}:
-  app-rc.yml
-  app-svc.yml
-  raw/ -->
-    couchbase-rc.yml
-    couchbase-svc.yml
+.
+├── src/main/jkube
+  ├── app-rc.yml
+  ├── app-svc.yml
+  └── raw
+    ├── couchbase-rc.yml
+    └── couchbase-svc.yml
 ----
 
-Here, the resource descriptors `app-rc.yml` and `app-svc.yml` are enhanced with the enrichers defined in the main configuration. The files two files `couchbase-rc.yml` and `couchbase-svc.yml` in the sub directory `raw/` instead are enriched with the profile **raw**. This is a predefined profile which includes no enricher at all, so the couchbase resource objects are not enriched and taken over literally. This is an easy way how you can fine tune enrichment for different object set.
+Here, the resource descriptors `app-rc.yml` and `app-svc.yml` are enhanced with the enrichers defined in the main configuration.
+The two  files `couchbase-rc.yml` and `couchbase-svc.yml` in the subdirectory `raw/` are enriched with the profile **raw** instead.
+This is a predefined profile which includes no enricher at all, so the couchbase resource objects are not enriched and taken over literally.
+This is an easy way how you can fine tune enrichment for different object set.
 
 [[profiles-predefined]]
 == Predefined Profiles
 
-This plugin comes with a list of the following predefined profiles:
+This plugin comes with the following predefined profiles:
 
 .Predefined Profiles
 [cols="1,6"]
@@ -206,36 +207,17 @@ This plugin comes with a list of the following predefined profiles:
 |===
 
 [[profiles-extended]]
-## Extending Profiles
+== Extending Profiles
 
-A profile can also extend another profile to avoid repetition e.g of generators if the profile is only about including certain enrichers. For example, for a profile like:
-
-[source, yaml]
-----
-- name: minimal
-   extends: default
-   enricher:
-     includes:
-      - jkube-name
-      - jkube-controller
-      - jkube-service
-      - jkube-image
-      - jkube-project-label
-      - jkube-debug
-      - jkube-namespace
-      - jkube-metadata
-      - jkube-controller-from-configuration
-      - jkube-openshift-deploymentconfig
-      - jkube-openshift-project
-      - jkube-openshift-route
-
-----
-one then would not need to repeat all generators as they are inherited from the `default` profile.
-
-[[profiles-default]]
-.Default Profile
+A profile can also extend another profile to avoid repetition.
+This is useful to add optional enrichers/generators to a given profile or to partially exclude enrichers/generators from another.
 
 [source, yaml]
 ----
-include::{plugindir}/src/main/resources/META-INF/jkube/profiles-default.yml[tags=default]
+- name: security-hardening
+  extends: default
+  enricher:
+    includes:
+      - jkube-security-hardening
 ----
+For example, this profiles includes the optional `jkube-security-hardening` enricher to the default profile.

@@ -16,7 +16,7 @@
 trap 'exit' ERR
 
 mvn clean install -DskipTests
-mkdir docs-generated
+mkdir -p docs-generated
 # Kubernetes Gradle Plugin
 mvn -f gradle-plugin/doc -Phtml package
 cp gradle-plugin/doc/target/generated-docs/index.html docs-generated/kubernetes-gradle-plugin.html
