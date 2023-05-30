@@ -154,10 +154,10 @@ class ImageNameFullNameParseTest {
     return Stream.of(
         new Object[][] {
             {
-                "Repo and Name with special characters", "invalid.name-with__separators/eclipse_jkube"
+                "Repo and Name with special characters", "invalid.name-with__separators/eclipse_-jkube"
             },
             {
-                "Repo, Name and Tag with special characters", "invalid.name-with__separators/eclipse_jkube:valid__tag-4.2"
+                "Repo, Name and Tag with special characters", "invalid.name-with__separators/eclipse_jkube:valid!__tag-4.2"
             },
         });
   }
