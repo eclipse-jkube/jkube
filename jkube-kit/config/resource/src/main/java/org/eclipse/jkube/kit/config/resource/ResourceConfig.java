@@ -21,6 +21,7 @@ import lombok.NoArgsConstructor;
 import lombok.Singular;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -197,5 +198,23 @@ public class ResourceConfig {
     // jkube.namespaceEnvVar
 
     // jkube.provider
+
+
+  public List<ServiceAccountConfig> getServiceAccounts() {
+    if (StringUtils.isNotBlank(serviceAccount)) {
+      List<ServiceAccountConfig> resolvedServiceAccountConfigs = new ArrayList<>();
+      if (serviceAccounts == null || serviceAccounts.isEmpty()) {
+        serviceAccounts = new ArrayList<>();
+      }
+      resolvedServiceAccountConfigs.addAll(serviceAccounts);
+      resolvedServiceAccountConfigs.add(ServiceAccountConfig.builder()
+              .name(serviceAccount)
+              .bindToAllControllers(true)
+              .generate(false)
+          .build());
+      return resolvedServiceAccountConfigs;
+    }
+    return serviceAccounts;
+  }
 }
 

@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -163,9 +164,11 @@ class ResourceConfigTest {
             .hasFieldOrPropertyWithValue("name", "entryKey")
             .hasFieldOrPropertyWithValue("value", "entryValue"))
         .satisfies(r -> assertThat(r.getServiceAccounts())
-            .singleElement(InstanceOfAssertFactories.type(ServiceAccountConfig.class))
-            .hasFieldOrPropertyWithValue("name", "foo-sa")
-            .hasFieldOrPropertyWithValue("deploymentRef", "foo-deployment"))
+            .hasSize(2)
+            .containsExactlyInAnyOrder(
+                ServiceAccountConfig.builder().name("foo-sa").deploymentRef("foo-deployment").build(),
+                ServiceAccountConfig.builder().name("foo-sa").bindToAllControllers(true).generate(false).build()
+            ))
         .satisfies(r -> assertThat(r.getOpenshiftBuildConfig())
             .hasFieldOrPropertyWithValue("limits.memory", "128Mi")
             .hasFieldOrPropertyWithValue("limits.cpu", "500m")
@@ -205,5 +208,45 @@ class ResourceConfigTest {
         .hasFieldOrPropertyWithValue("getUrl", "http://:8080/q/health")
         .hasFieldOrPropertyWithValue("initialDelaySeconds", 3)
         .hasFieldOrPropertyWithValue("timeoutSeconds", 3);
+  }
+
+  @Test
+  void getServiceAccounts_whenServiceAccountsListPresent_returnsList() {
+    // Given
+    ServiceAccountConfig serviceAccountConfig = createNewServiceAccountConfig();
+    ResourceConfig resourceConfig = ResourceConfig.builder()
+        .serviceAccount(serviceAccountConfig)
+        .build();
+
+    // When
+    List<ServiceAccountConfig> serviceAccountConfigList = resourceConfig.getServiceAccounts();
+
+    // Then
+    assertThat(serviceAccountConfigList)
+        .singleElement()
+        .isEqualTo(serviceAccountConfig);
+  }
+
+  @Test
+  void getServiceAccounts_whenServiceAccountProvided_returnsSingleElementList() {
+    // Given
+    ResourceConfig resourceConfig = ResourceConfig.builder().serviceAccount("test-sa").build();
+
+    // When
+    List<ServiceAccountConfig> serviceAccountConfigList = resourceConfig.getServiceAccounts();
+
+    // Then
+    assertThat(serviceAccountConfigList)
+        .singleElement()
+        .hasFieldOrPropertyWithValue("name", "test-sa")
+        .hasFieldOrPropertyWithValue("bindToAllControllers", true)
+        .hasFieldOrPropertyWithValue("generate", false);
+  }
+
+  private ServiceAccountConfig createNewServiceAccountConfig() {
+    return ServiceAccountConfig.builder()
+        .name("test-sa")
+        .generate(false)
+        .build();
   }
 }

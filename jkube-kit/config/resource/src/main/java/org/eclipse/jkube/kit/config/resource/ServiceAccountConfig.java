@@ -28,6 +28,8 @@ public class ServiceAccountConfig {
 
   private String name;
   private String deploymentRef;
+  private Boolean bindToAllControllers;
+  private Boolean generate;
 
 }
 

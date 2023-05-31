@@ -14,10 +14,13 @@
 package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -126,6 +129,31 @@ class ServiceAccountEnricherTest {
         assertThat(builder.buildItems())
             .hasSize(1)
             .hasOnlyElementsOfType(Deployment.class);
+    }
+
+    @Test
+    void create_whenBothFragmentAndResourceConfigHaveServiceAccountSet_thenUseFragmentServiceAccount() {
+        // Given
+        context.getProperties().put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
+        context = context.toBuilder()
+            .resources(ResourceConfig.builder().serviceAccount("sa-from-config").build())
+            .build();
+        final KubernetesListBuilder builder = new KubernetesListBuilder();
+        builder.addToItems(createNewDeploymentFragmentWithServiceAccountNameConfigured("sa-from-fragment"));
+
+        // When
+        new ServiceAccountEnricher(context).create(PlatformMode.kubernetes, builder);
+
+        // Then
+        assertThat(builder.buildItems())
+            .hasSize(1)
+            .asList()
+            .singleElement(InstanceOfAssertFactories.type(Deployment.class))
+            .extracting(Deployment::getSpec)
+            .extracting(DeploymentSpec::getTemplate)
+            .extracting(PodTemplateSpec::getSpec)
+            .extracting(PodSpec::getServiceAccountName)
+            .isEqualTo("sa-from-fragment");
     }
 
     private void enrichAndAssert(KubernetesListBuilder builder, String expectedServiceAccountName) {

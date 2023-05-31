@@ -36,8 +36,8 @@ class ServiceAccountNameViaGroovyDSLIT {
 
   static Stream<Arguments> testInput() {
     return Stream.of(
-//        arguments("no-fragment", new String[] {}),
-//        arguments("unrelated-fragment", new String[] {"-Pjkube.resourceDir=./regularFragmentDir"}),
+        arguments("no-fragment", new String[] {}),
+        arguments("unrelated-fragment", new String[] {"-Pjkube.resourceDir=./regularFragmentDir"}),
         arguments("fragment-overriding-serviceaccount", new String[] {"-Pjkube.resourceDir=./overridingServiceAccountNameFragmentDir"})
     );
   }
