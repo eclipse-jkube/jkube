@@ -2,39 +2,46 @@
 apiVersion: v1
 kind: List
 items:
-- apiVersion: apps/v1
-  kind: Deployment
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
   metadata:
     annotations:
+      app.openshift.io/vcs-ref: "@ignore@"
       jkube.eclipse.org/git-url: "@ignore@"
+      app.openshift.io/vcs-uri: "@ignore@"
       jkube.eclipse.org/git-commit: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
     labels:
-      app: serviceaccount-via-groovy-dsl
+      app: serviceaccounts-via-groovy-dsl
       provider: jkube
       version: "@ignore@"
       group: org.eclipse.jkube.integration.tests.gradle
-    name: serviceaccount-via-groovy-dsl
+    name: serviceaccounts-via-groovy-dsl
   spec:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
-      matchLabels:
-        app: serviceaccount-via-groovy-dsl
-        provider: jkube
-        group: org.eclipse.jkube.integration.tests.gradle
+      app: serviceaccounts-via-groovy-dsl
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+    strategy:
+      rollingParams:
+        timeoutSeconds: 3600
+      type: Rolling
     template:
       metadata:
         annotations:
+          app.openshift.io/vcs-ref: "@ignore@"
           jkube.eclipse.org/git-url: "@ignore@"
+          app.openshift.io/vcs-uri: "@ignore@"
           jkube.eclipse.org/git-commit: "@ignore@"
           jkube.eclipse.org/git-branch: "@ignore@"
         labels:
-          app: serviceaccount-via-groovy-dsl
+          app: serviceaccounts-via-groovy-dsl
           provider: jkube
           version: "@ignore@"
           group: org.eclipse.jkube.integration.tests.gradle
-        name: serviceaccount-via-groovy-dsl
+        name: serviceaccounts-via-groovy-dsl
       spec:
         containers:
         - env:
@@ -42,13 +49,19 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          - name: HOSTNAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          image: repository/serviceaccount-via-groovy-dsl:latest
+          image: repository/serviceaccounts-via-groovy-dsl:latest
           imagePullPolicy: IfNotPresent
-          name: repository-serviceaccount-via-groovy-dsl
+          name: repository-serviceaccounts-via-groovy-dsl
           securityContext:
             privileged: false
         serviceAccountName: my-serviceaccount
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - repository-serviceaccounts-via-groovy-dsl
+        from:
+          kind: ImageStreamTag
+          name: serviceaccounts-via-groovy-dsl:latest
+      type: ImageChange

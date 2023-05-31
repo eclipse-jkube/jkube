@@ -6,7 +6,7 @@ items:
   kind: ServiceAccount
   metadata:
     labels:
-      app: serviceaccount-via-groovy-dsl
+      app: serviceaccounts-via-groovy-dsl
       provider: jkube
       version: "@ignore@"
       group: org.eclipse.jkube.integration.tests.gradle
@@ -21,16 +21,16 @@ items:
       jkube.eclipse.org/git-commit: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
     labels:
-      app: serviceaccount-via-groovy-dsl
+      app: serviceaccounts-via-groovy-dsl
       provider: jkube
       version: "@ignore@"
       group: org.eclipse.jkube.integration.tests.gradle
-    name: serviceaccount-via-groovy-dsl
+    name: serviceaccounts-via-groovy-dsl
   spec:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
-      app: serviceaccount-via-groovy-dsl
+      app: serviceaccounts-via-groovy-dsl
       provider: jkube
       group: org.eclipse.jkube.integration.tests.gradle
     strategy:
@@ -46,7 +46,7 @@ items:
           jkube.eclipse.org/git-commit: "@ignore@"
           jkube.eclipse.org/git-branch: "@ignore@"
         labels:
-          app: serviceaccount-via-groovy-dsl
+          app: serviceaccounts-via-groovy-dsl
           provider: jkube
           version: "@ignore@"
           group: org.eclipse.jkube.integration.tests.gradle
@@ -57,9 +57,9 @@ items:
             valueFrom:
               fieldRef:
                 fieldPath: metadata.namespace
-          image: repository/serviceaccount-via-groovy-dsl:latest
+          image: repository/serviceaccounts-via-groovy-dsl:latest
           imagePullPolicy: IfNotPresent
-          name: repository-serviceaccount-via-groovy-dsl
+          name: repository-serviceaccounts-via-groovy-dsl
           securityContext:
             privileged: false
         serviceAccountName: my-serviceaccount
@@ -68,8 +68,8 @@ items:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - repository-serviceaccount-via-groovy-dsl
+        - repository-serviceaccounts-via-groovy-dsl
         from:
           kind: ImageStreamTag
-          name: serviceaccount-via-groovy-dsl:latest
+          name: serviceaccounts-via-groovy-dsl:latest
       type: ImageChange
