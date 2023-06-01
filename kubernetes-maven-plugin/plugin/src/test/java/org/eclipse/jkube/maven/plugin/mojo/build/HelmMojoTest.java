@@ -15,25 +15,22 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.openshift.api.model.TemplateBuilder;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Maintainer;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
-import io.fabric8.openshift.api.model.Template;
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.Scm;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -47,13 +44,10 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -62,11 +56,9 @@ class HelmMojoTest {
   @TempDir
   private Path projectDir;
   private HelmMojo helmMojo;
-  private MockedStatic<ResourceUtil> resourceUtilMockedStatic;
 
   @BeforeEach
   void setUp() {
-    resourceUtilMockedStatic = mockStatic(ResourceUtil.class);
     helmMojo = new HelmMojo();
     helmMojo.offline = true;
     helmMojo.project = new MavenProject();
@@ -85,7 +77,6 @@ class HelmMojoTest {
   @AfterEach
   void tearDown() {
     helmMojo = null;
-    resourceUtilMockedStatic.close();
   }
 
   @Test
@@ -149,16 +140,15 @@ class HelmMojoTest {
     try (MockedConstruction<HelmService> helmServiceMockedConstruction = mockConstruction(HelmService.class)) {
       // Given
       helmMojo.kubernetesTemplate = projectDir.resolve("kubernetes.yml").toFile();
-      Template template = mock(Template.class);
-      resourceUtilMockedStatic.when(() -> ResourceUtil.load(helmMojo.kubernetesTemplate, KubernetesResource.class))
-        .thenReturn(template);
-      resourceUtilMockedStatic.when(() -> ResourceUtil.load(helmMojo.kubernetesTemplate, KubernetesResource.class))
-        .thenReturn(template);
+      Serialization.saveYaml(helmMojo.kubernetesTemplate, new KubernetesListBuilder()
+        .addToItems(new TemplateBuilder().withNewMetadata().withName("the-template-for-params").endMetadata().build())
+        .build());
       // When
       helmMojo.execute();
       // Then
       assertThat(helmServiceMockedConstruction.constructed()).hasSize(1);
-      assertThat(helmMojo.helm.getParameterTemplates()).contains(template);
+      assertThat(helmMojo.helm.getParameterTemplates()).singleElement()
+        .hasFieldOrPropertyWithValue("metadata.name", "the-template-for-params");
     }
   }
 
@@ -166,13 +156,11 @@ class HelmMojoTest {
   void executeInternalFindIconUrlFromProvidedFile() throws Exception {
     try (MockedConstruction<HelmService> helmServiceMockedConstruction = mockConstruction(HelmService.class)) {
       // Given
-      final HasMetadata listEntry =  new ConfigMapBuilder()
-        .withNewMetadata().addToAnnotations("jkube.eclipse.org/iconUrl", "https://my-icon").endMetadata()
-        .build();
-      helmMojo.kubernetesManifest = Files.createFile(projectDir.resolve("kubernetes.yml")).toFile();
-      resourceUtilMockedStatic.when(() -> ResourceUtil.load(helmMojo.kubernetesManifest, KubernetesResource.class))
-        .thenReturn(new KubernetesListBuilder().addToItems(listEntry).build());
-
+      helmMojo.kubernetesManifest = projectDir.resolve("kubernetes.yml").toFile();
+      Serialization.saveYaml(helmMojo.kubernetesManifest, new KubernetesListBuilder()
+        .addToItems(new ConfigMapBuilder().withNewMetadata()
+        .addToAnnotations("jkube.eclipse.org/iconUrl", "https://my-icon").endMetadata().build())
+        .build());
       // When
       helmMojo.execute();
       // Then

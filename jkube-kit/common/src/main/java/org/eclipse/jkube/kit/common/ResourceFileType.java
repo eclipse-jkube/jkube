@@ -14,12 +14,13 @@
 package org.eclipse.jkube.kit.common;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.util.FileUtil;
+import org.eclipse.jkube.kit.common.util.Serialization;
 
 /**
  * Type of resources supported
@@ -29,29 +30,19 @@ import org.apache.commons.lang3.StringUtils;
  */
 public enum ResourceFileType {
 
-    json("json","json") {
-        @Override
-        public ObjectMapper getObjectMapper() {
-            return Serialization.jsonMapper();
-        }
-    },
+    json("json","json", Serialization::saveJson),
 
-    yaml("yml","yml") {
-        @Override
-        public ObjectMapper getObjectMapper() {
-            return Serialization.yamlMapper();
-        }
-    };
+    yaml("yml","yml", Serialization::saveYaml);
 
     private final String extension;
     private final String artifactType;
+    private final Serializer serializer;
 
-    ResourceFileType(String extension, String artifactType) {
+    ResourceFileType(String extension, String artifactType, Serializer serializer) {
         this.extension = extension;
         this.artifactType = artifactType;
+        this.serializer = serializer;
     }
-
-    public abstract ObjectMapper getObjectMapper();
 
     public File addExtensionIfMissing(File file) {
         String path = file.getAbsolutePath();
@@ -64,6 +55,11 @@ public enum ResourceFileType {
 
     public String getArtifactType() {
         return artifactType;
+    }
+
+    public void serialize(File file, Object object) throws IOException {
+        FileUtil.createDirectory(file.getParentFile());
+        serializer.serialize(file, object);
     }
 
     public static ResourceFileType fromExtension(String ext) {
@@ -87,6 +83,11 @@ public enum ResourceFileType {
         } else {
             throw new IllegalArgumentException(String.format("Unsupported extension '%s' for file %s. Must be one of %s", ext, file, Arrays.asList(values())));
         }
+    }
+
+    @FunctionalInterface
+    public interface Serializer {
+        void serialize(File file, Object object) throws IOException;
     }
 }
 

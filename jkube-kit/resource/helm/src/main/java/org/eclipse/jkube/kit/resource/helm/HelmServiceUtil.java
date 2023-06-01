@@ -23,7 +23,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 
 import java.io.File;
@@ -184,7 +184,7 @@ public class HelmServiceUtil {
     if (manifest != null && manifest.isFile()) {
       KubernetesResource dto;
       try {
-        dto = ResourceUtil.load(manifest, KubernetesResource.class);
+        dto = Serialization.unmarshal(manifest);
       } catch (IOException e) {
         throw new IllegalStateException("Failed to load kubernetes YAML " + manifest + ". " + e, e);
       }
@@ -211,8 +211,8 @@ public class HelmServiceUtil {
     }
     for (File sourceFile : Objects
       .requireNonNull(sourceFiles, "No template files found in the provided directory")) {
-      final KubernetesResource dto = ResourceUtil.load(sourceFile, KubernetesResource.class);
-      if (dto instanceof  Template) {
+      final KubernetesResource dto = Serialization.unmarshal(sourceFile);
+      if (dto instanceof Template) {
         ret.add((Template) dto);
       } else if (dto instanceof KubernetesList) {
         Optional.ofNullable(((KubernetesList)dto).getItems())

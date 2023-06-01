@@ -15,8 +15,6 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -25,16 +23,9 @@ import java.util.Optional;
 
 import org.eclipse.jkube.kit.common.ResourceFileType;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.HasMetadataComparator;
 import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,17 +36,6 @@ import org.apache.commons.lang3.StringUtils;
  * @author roland
  */
 public class ResourceUtil {
-
-    static {
-        Serialization.UNMATCHED_FIELD_TYPE_MODULE.setRestrictToTemplates(false);
-        Serialization.UNMATCHED_FIELD_TYPE_MODULE.setLogWarnings(false);
-        for (ObjectMapper mapper : new ObjectMapper[]{Serialization.jsonMapper(), Serialization.yamlMapper()}) {
-            mapper.enable(SerializationFeature.INDENT_OUTPUT);
-        }
-        ((YAMLFactory)Serialization.yamlMapper().getFactory())
-            .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true)
-            .configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, true);
-    }
 
     private ResourceUtil() {}
 
@@ -77,10 +57,7 @@ public class ResourceUtil {
         if (!manifest.isFile() || !manifest.exists()) {
             return Collections.emptyList();
         }
-        final List<HasMetadata> kubernetesResources = new ArrayList<>();
-        try (InputStream fis = Files.newInputStream(manifest.toPath())) {
-            kubernetesResources.addAll(split(Serialization.unmarshal(fis, Collections.emptyMap())));
-        }
+        final List<HasMetadata> kubernetesResources = new ArrayList<>(split(Serialization.unmarshal(manifest)));
         kubernetesResources.sort(new HasMetadataComparator());
         return kubernetesResources;
     }
@@ -105,10 +82,6 @@ public class ResourceUtil {
         return Collections.emptyList();
     }
 
-    public static <T extends KubernetesResource> T load(File file, Class<T> clazz) throws IOException {
-        return Serialization.unmarshal(Files.newInputStream(file.toPath()), clazz);
-    }
-
     public static File save(File file, Object data) throws IOException {
         return save(file, data, ResourceFileType.fromFile(file));
     }
@@ -116,24 +89,8 @@ public class ResourceUtil {
     public static File save(File file, Object data, ResourceFileType type) throws IOException {
         boolean hasExtension = FilenameUtils.indexOfExtension(file.getAbsolutePath()) != -1;
         File output = hasExtension ? file : type.addExtensionIfMissing(file);
-        FileUtil.createDirectory(file.getParentFile());
-        getObjectMapper(type).writeValue(output, data);
+        type.serialize(output, data);
         return output;
-    }
-
-    public static String toJson(Object resource) throws JsonProcessingException {
-        return serializeAsString(resource, ResourceFileType.json);
-    }
-
-    private static String serializeAsString(Object resource, ResourceFileType resourceFileType) throws JsonProcessingException {
-        return getObjectMapper(resourceFileType).writeValueAsString(resource);
-    }
-
-    private static ObjectMapper getObjectMapper(ResourceFileType resourceFileType) {
-        return resourceFileType.getObjectMapper()
-                .enable(SerializationFeature.INDENT_OUTPUT)
-                .disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS)
-                .disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     }
 
     public static List<File> getFinalResourceDirs(File resourceDir, String environmentAsCommaSeparateStr) {

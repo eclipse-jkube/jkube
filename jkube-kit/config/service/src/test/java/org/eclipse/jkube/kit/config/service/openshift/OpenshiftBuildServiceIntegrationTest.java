@@ -21,7 +21,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.api.model.ImageStreamTagBuilder;
@@ -38,6 +37,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
@@ -53,7 +53,6 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.api.model.WatchEvent;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.BuildBuilder;
 import io.fabric8.openshift.api.model.BuildConfig;
@@ -167,12 +166,10 @@ class OpenshiftBuildServiceIntegrationTest {
         .openshiftPullSecret("pullsecret-fabric8")
         .openshiftPushSecret("pushsecret-fabric8")
         .buildOutputKind("DockerImage");
-    Serialization.jsonMapper().disable(SerializationFeature.INDENT_OUTPUT);
   }
 
   @AfterEach
   void tearDown() {
-    Serialization.jsonMapper().enable(SerializationFeature.INDENT_OUTPUT);
     jKubeBuildTarArchiver.close();
   }
 

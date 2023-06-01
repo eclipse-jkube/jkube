@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.IntOrString;
@@ -23,13 +22,11 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.PatchService;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,12 +46,6 @@ class PatchServiceTest {
     @BeforeEach
     void setUp() {
         patchService = new PatchService(client);
-        Serialization.jsonMapper().disable(SerializationFeature.INDENT_OUTPUT);
-    }
-
-    @AfterEach
-    void tearDown() {
-        Serialization.jsonMapper().enable(SerializationFeature.INDENT_OUTPUT);
     }
 
     @Test

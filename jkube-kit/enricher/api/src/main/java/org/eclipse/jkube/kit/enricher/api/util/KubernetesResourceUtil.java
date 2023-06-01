@@ -14,9 +14,7 @@
 package org.eclipse.jkube.kit.enricher.api.util;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -47,11 +45,11 @@ import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MapUtil;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
@@ -188,7 +186,7 @@ public class KubernetesResourceUtil {
                                           File file, String appName) throws IOException {
         final Map<String, Object> fragment = readAndEnrichFragment(platformMode, apiVersions, file, appName);
         try {
-            return Serialization.jsonMapper().convertValue(fragment, HasMetadata.class);
+            return Serialization.convertValue(fragment, HasMetadata.class);
         } catch (ClassCastException exp) {
             throw new IllegalArgumentException(String.format("Resource fragment %s has an invalid syntax (%s)", file.getPath(), exp.getMessage()));
         }
@@ -250,7 +248,7 @@ public class KubernetesResourceUtil {
         String name = matcher.group("name");
         String type = matcher.group("type");
 
-        Map<String,Object> fragment = readFragment(file);
+        final Map<String,Object> fragment = Serialization.unmarshal(file, new TypeReference<Map<String, Object>>() {});
 
         final String kind;
         if (type != null) {
@@ -358,16 +356,6 @@ public class KubernetesResourceUtil {
             return (Map<String, Object>) mo;
         } else {
             throw new IllegalArgumentException("Metadata is expected to be a Map, not a " + mo.getClass());
-        }
-    }
-
-    private static Map<String,Object> readFragment(File file) throws IOException {
-        TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
-        try (InputStream fis = new FileInputStream(file)) {
-            final Map<String, Object> ret = Serialization.unmarshal(fis, typeRef);
-            return ret != null ? ret : new HashMap<>();
-        } catch (Exception e) {
-            throw new IOException(String.format("Error reading fragment [%s] %s", file, e.getMessage()), e);
         }
     }
 

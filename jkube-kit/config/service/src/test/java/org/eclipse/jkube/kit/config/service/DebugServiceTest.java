@@ -35,7 +35,6 @@ import io.fabric8.kubernetes.api.model.apps.ReplicaSetSpecBuilder;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
@@ -44,6 +43,7 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -344,7 +344,7 @@ class DebugServiceTest {
     mockServer.expect().put()
       .withPath("/apis/apps/v1/namespaces/test/deployments/" + deployment.getMetadata().getName())
       .andReply(200, r -> {
-        final Deployment d = Serialization.unmarshal(r.getBody().readUtf8(), Deployment.class);
+        final Deployment d = Serialization.unmarshal(r.getBody().inputStream(), Deployment.class);
         kubernetesClient.resource(new PodBuilder()
           .withMetadata(new ObjectMetaBuilder(d.getSpec().getTemplate().getMetadata())
             .withName("pod-in-debug-mode")

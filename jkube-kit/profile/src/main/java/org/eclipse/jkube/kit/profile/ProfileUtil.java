@@ -14,8 +14,8 @@
 package org.eclipse.jkube.kit.profile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -23,9 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -130,8 +128,8 @@ public class ProfileUtil {
 
         File profileFile = findProfileYaml(directory);
         if (profileFile != null) {
-            List<Profile> fileProfiles = fromYaml(Files.newInputStream(profileFile.toPath()));
-            for (Profile profile : fileProfiles) {
+            for (Profile profile : Serialization.unmarshal(profileFile, new TypeReference<List<Profile>>() {
+            })) {
                 if (profile.getName().equals(name)) {
                     profiles.add(profile);
                     break;
@@ -186,7 +184,7 @@ public class ProfileUtil {
         List<Profile > ret = new ArrayList<>();
         for (String location : getMetaInfProfilePaths(ext)) {
             for (String url : ClassUtil.getResources(location)) {
-                for (Profile profile : fromYaml(new URL(url).openStream())) {
+                for (Profile profile : Serialization.unmarshal(new URL(url), new TypeReference<List<Profile>>() {})) {
                     if (name.equals(profile.getName())) {
                         ret.add(profile);
                     }
@@ -220,18 +218,6 @@ public class ProfileUtil {
 
     private static String getProfileFileName(String fileName, String ext) {
         return String.format(fileName, StringUtils.isNotBlank(ext) ? "-" + ext : "");
-    }
-
-    /**
-     * Load a profile from an input stream. This must be in YAML format
-     *
-     * @param is inputstream to read the profile from
-     * @return the de-serialized profile
-     * @throws IOException if deserialization fails
-     */
-    public static List<Profile> fromYaml(InputStream is) throws IOException {
-        TypeReference<List<Profile>> typeRef = new TypeReference<List<Profile>>() {};
-        return Serialization.yamlMapper().readValue(is, typeRef);
     }
 
     // ================================================================================

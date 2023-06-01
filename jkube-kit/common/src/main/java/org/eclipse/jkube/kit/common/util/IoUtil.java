@@ -55,11 +55,9 @@ public class IoUtil {
      */
     public static void download(KitLogger log, URL downloadUrl, File target) throws IOException {
         log.progressStart();
-        try (HttpClient client = HttpClientUtils.createHttpClient(Config.empty())
-            .newBuilder().readTimeout(30, TimeUnit.MINUTES).build()
-        ) {
+        try (HttpClient client = HttpClientUtils.createHttpClient(Config.empty()).newBuilder().build()) {
             final HttpResponse<InputStream> response = client.sendAsync(
-                client.newHttpRequestBuilder().url(downloadUrl).build(), InputStream.class)
+                client.newHttpRequestBuilder().timeout(30, TimeUnit.MINUTES).url(downloadUrl).build(), InputStream.class)
                 .get();
             final int length = Integer.parseInt(response.headers(StandardHttpHeaders.CONTENT_LENGTH)
                 .stream().findAny().orElse("-1"));

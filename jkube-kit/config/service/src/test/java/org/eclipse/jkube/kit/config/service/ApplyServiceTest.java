@@ -38,6 +38,7 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -52,7 +53,6 @@ import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicyBuilder;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
@@ -238,8 +238,8 @@ class ApplyServiceTest {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
-        GenericKubernetesResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericKubernetesResource.class);
-        GenericKubernetesResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericKubernetesResource.class);
+        GenericKubernetesResource gateway = Serialization.unmarshal(gatewayFragment, GenericKubernetesResource.class);
+        GenericKubernetesResource virtualService = Serialization.unmarshal(virtualServiceFragment, GenericKubernetesResource.class);
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get()
                 .withPath("/apis/networking.istio.io/v1alpha3")
@@ -269,8 +269,8 @@ class ApplyServiceTest {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
-        GenericKubernetesResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericKubernetesResource.class);
-        GenericKubernetesResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericKubernetesResource.class);
+        GenericKubernetesResource gateway = Serialization.unmarshal(gatewayFragment, GenericKubernetesResource.class);
+        GenericKubernetesResource virtualService = Serialization.unmarshal(virtualServiceFragment, GenericKubernetesResource.class);
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get()
                  .withPath("/apis/networking.istio.io/v1alpha3")
@@ -313,8 +313,8 @@ class ApplyServiceTest {
         // Given
         File gatewayFragment = new File(getClass().getResource("/gateway-cr.yml").getFile());
         File virtualServiceFragment = new File(getClass().getResource("/virtualservice-cr.yml").getFile());
-        GenericKubernetesResource gateway = Serialization.yamlMapper().readValue(gatewayFragment, GenericKubernetesResource.class);
-        GenericKubernetesResource virtualService = Serialization.yamlMapper().readValue(virtualServiceFragment, GenericKubernetesResource.class);
+        GenericKubernetesResource gateway = Serialization.unmarshal(gatewayFragment, GenericKubernetesResource.class);
+        GenericKubernetesResource virtualService = Serialization.unmarshal(virtualServiceFragment, GenericKubernetesResource.class);
         WebServerEventCollector collector = new WebServerEventCollector();
         mockServer.expect().get()
             .withPath("/apis/networking.istio.io/v1alpha3")

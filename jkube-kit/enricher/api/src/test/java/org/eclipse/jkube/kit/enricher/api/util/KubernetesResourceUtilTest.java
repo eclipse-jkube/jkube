@@ -59,9 +59,9 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -222,8 +222,7 @@ class KubernetesResourceUtilTest {
       assertThatIOException()
           .isThrownBy(() -> KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING, resource, "app"))
           .withMessageContaining("I-Dont-EXIST.yaml")
-          .withMessageContaining("No such file or directory")
-          .withCauseInstanceOf(FileNotFoundException.class);
+          .isInstanceOf(NoSuchFileException.class);
     }
 
     @Test

@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.builder.Visitable;
 import io.fabric8.kubernetes.api.builder.VisitableBuilder;
@@ -34,11 +33,11 @@ import io.fabric8.openshift.api.model.ImageChangeTriggerBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -152,8 +151,8 @@ public class TriggersAnnotationEnricher extends BaseEnricher {
         });
 
         try {
-            return ResourceUtil.toJson(triggerList);
-        } catch (JsonProcessingException e) {
+            return Serialization.asJson(triggerList);
+        } catch (Exception e) {
             getLog().error("Error while creating ImageStreamTag triggers for Kubernetes resources: %s", e);
             return "[]";
         }

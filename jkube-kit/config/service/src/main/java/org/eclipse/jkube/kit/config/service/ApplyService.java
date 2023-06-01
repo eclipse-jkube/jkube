@@ -35,12 +35,11 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorManager;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -582,8 +581,8 @@ public class ApplyService {
                     text = result.toString();
                 } else {
                     try {
-                        text = ResourceUtil.toJson(result);
-                    } catch (JsonProcessingException e) {
+                        text = Serialization.asJson(result);
+                    } catch (Exception e) {
                         log.warn("Cannot convert " + result + " to JSON: " + e, e);
                         if (result != null) {
                             text = result.toString();
@@ -614,7 +613,7 @@ public class ApplyService {
     public Object processTemplate(Template entity, String sourceName) {
             try {
                 return OpenshiftHelper.processTemplatesLocally(entity, false);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 onApplyError("Failed to process template " + sourceName + ". " + e + ". " + entity, e);
                 return null;
             }

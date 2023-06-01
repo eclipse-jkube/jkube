@@ -23,14 +23,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ExecAction;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.Probe;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,7 +90,7 @@ class VertxHealthCheckEnricherTest {
 
       @Test
       @DisplayName("and port using config, should enable probes with configured port")
-      void andPortUsingConfig_shouldConfigureProbesWithPort() throws Exception {
+      void andPortUsingConfig_shouldConfigureProbesWithPort() {
         VertxHealthCheckEnricher enricher = new VertxHealthCheckEnricher(context);
         final String config = "{\"type\":\"tcp\",\"liveness\":{\"port\":\"1234\"},\"readiness\":{\"port\":\"1235\"}}";
         jKubePluginConfiguration.putAll(createFakeConfig(config));
@@ -817,8 +816,8 @@ class VertxHealthCheckEnricherTest {
     }
 
     @SuppressWarnings("unchecked")
-    private TreeMap<String, String> createFakeConfigLikeMaven(String config) throws Exception {
-        Map<String, Object> nestedConfig = Serialization.jsonMapper().readValue(config, Map.class);
+    private TreeMap<String, String> createFakeConfigLikeMaven(String config) {
+        Map<String, Object> nestedConfig = Serialization.unmarshal(config, Map.class);
         return nestedConfig.entrySet().stream()
                 .filter(e -> e.getValue() instanceof String)
                 .map(e -> new AbstractMap.SimpleEntry<>(e.getKey(), (String)e.getValue()))
@@ -826,8 +825,8 @@ class VertxHealthCheckEnricherTest {
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, Object> createFakeConfig(String config) throws JsonProcessingException {
-        Map<String, Object> healthCheckVertxMap = Serialization.jsonMapper().readValue(config, Map.class);
+    private Map<String, Object> createFakeConfig(String config) {
+        Map<String, Object> healthCheckVertxMap = Serialization.unmarshal(config, Map.class);
 
         Map<String, Object> enricherConfigMap = new HashMap<>();
         enricherConfigMap.put("jkube-healthcheck-vertx", healthCheckVertxMap);
