@@ -13,11 +13,14 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -26,10 +29,16 @@ import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class ServiceAccountEnricherTest {
     private JKubeEnricherContext context;
@@ -128,6 +137,34 @@ class ServiceAccountEnricherTest {
             .hasOnlyElementsOfType(Deployment.class);
     }
 
+    @ParameterizedTest(name = "resources serviceAccount={0}, deployment, then generated deployment {2} is {3}")
+    @MethodSource("resourceConfigTestData")
+    void create_whenServiceAccountResourceConfigProvided_thenServiceAccountSetInGeneratedController(String resourceConfigServiceAccount, DeploymentBuilder deploymentFragment, String serviceAccountField, String serviceAccountName) {
+        // Given
+        context.getProperties().put("jkube.enricher.jkube-serviceaccount.skipCreate", "true");
+        context = context.toBuilder()
+            .resources(ResourceConfig.builder().serviceAccount(resourceConfigServiceAccount).build())
+            .project(JavaProject.builder().groupId("org.example").artifactId("cheese").version("0.0.1").build())
+            .build();
+        final KubernetesListBuilder builder = new KubernetesListBuilder();
+        builder.addToItems(deploymentFragment);
+
+        // When
+        new ServiceAccountEnricher(context).create(PlatformMode.kubernetes, builder);
+
+        // Then
+        assertControllerHasServiceAccountFieldSet(builder, serviceAccountField, serviceAccountName);
+    }
+
+    private static Stream<Arguments> resourceConfigTestData() {
+        return Stream.of(
+            arguments("", createNewDeploymentFragment(), "serviceAccountName", null),
+            arguments("sa-from-config", createNewDeploymentFragment(), "serviceAccountName", "sa-from-config"),
+            arguments("sa-from-config", createNewDeploymentFragmentWithServiceAccountConfigured("sa-from-fragment"), "serviceAccount", "sa-from-fragment"),
+            arguments("sa-from-config", createNewDeploymentFragmentWithServiceAccountNameConfigured("sa-from-fragment"), "serviceAccountName","sa-from-fragment")
+        );
+    }
+
     private void enrichAndAssert(KubernetesListBuilder builder, String expectedServiceAccountName) {
         final ServiceAccountEnricher saEnricher = new ServiceAccountEnricher(context);
         saEnricher.create(PlatformMode.kubernetes, builder);
@@ -145,7 +182,7 @@ class ServiceAccountEnricherTest {
           .build();
     }
 
-    private DeploymentBuilder createNewDeploymentFragment() {
+    private static DeploymentBuilder createNewDeploymentFragment() {
         return new DeploymentBuilder()
             .withNewMetadata().withName("cheese").endMetadata()
             .withNewSpec()
@@ -157,7 +194,7 @@ class ServiceAccountEnricherTest {
             .endSpec();
     }
 
-    private DeploymentBuilder createNewDeploymentFragmentWithServiceAccountConfigured(String serviceAccount) {
+    private static DeploymentBuilder createNewDeploymentFragmentWithServiceAccountConfigured(String serviceAccount) {
         return createNewDeploymentFragment().editSpec()
             .editTemplate()
             .editSpec()
@@ -167,7 +204,7 @@ class ServiceAccountEnricherTest {
             .endSpec();
     }
 
-    private DeploymentBuilder createNewDeploymentFragmentWithServiceAccountNameConfigured(String serviceAccountName) {
+    private static DeploymentBuilder createNewDeploymentFragmentWithServiceAccountNameConfigured(String serviceAccountName) {
         return createNewDeploymentFragment().editSpec()
             .editTemplate()
             .editSpec()
@@ -175,5 +212,19 @@ class ServiceAccountEnricherTest {
             .endSpec()
             .endTemplate()
             .endSpec();
+    }
+
+    private void assertControllerHasServiceAccountFieldSet(KubernetesListBuilder builder, String serviceAccountField, String serviceAccountName) {
+        Optional<HasMetadata> hasMetadataOptional = builder.buildItems()
+            .stream()
+            .filter(h -> h.getKind().equalsIgnoreCase("Deployment"))
+            .findAny();
+        assertThat(hasMetadataOptional)
+            .isPresent()
+            .get(InstanceOfAssertFactories.type(Deployment.class))
+            .extracting(Deployment::getSpec)
+            .extracting(DeploymentSpec::getTemplate)
+            .extracting(PodTemplateSpec::getSpec)
+            .hasFieldOrPropertyWithValue(serviceAccountField, serviceAccountName);
     }
 }
