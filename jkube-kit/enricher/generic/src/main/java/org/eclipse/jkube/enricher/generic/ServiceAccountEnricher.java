@@ -16,12 +16,15 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ServiceAccountConfig;
@@ -61,6 +64,9 @@ public class ServiceAccountEnricher extends BaseEnricher {
                 .filter(sa -> sa.getDeploymentRef() != null)
                 .collect(Collectors.toMap(ServiceAccountConfig::getDeploymentRef, ServiceAccountConfig::getName)));
         }
+        if (resourceConfig != null && StringUtils.isNotBlank(resourceConfig.getServiceAccount())) {
+            deploymentToSaPair.put(JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()), resourceConfig.getServiceAccount());
+        }
         builder.addAllToServiceAccountItems(createServiceAccountFromResourceConfig(resourceConfig));
         builder.addAllToServiceAccountItems(createServiceAccountsReferencedInDeployment(builder, deploymentToSaPair));
     }
@@ -88,13 +94,16 @@ public class ServiceAccountEnricher extends BaseEnricher {
                     serviceAccounts.add(createServiceAccount(serviceAccountName));
                 }
                 if(deploymentToSaPair.containsKey(deploymentBuilder.buildMetadata().getName())) {
-                    deploymentBuilder.editSpec()
-                        .editTemplate()
-                        .editSpec()
-                        .withServiceAccountName(deploymentToSaPair.get(deploymentBuilder.buildMetadata().getName()))
-                        .endSpec()
-                        .endTemplate()
-                        .endSpec();
+                    PodSpec podSpec = deploymentBuilder.buildSpec().getTemplate().getSpec();
+                    if (StringUtils.isBlank(podSpec.getServiceAccount()) && StringUtils.isBlank(podSpec.getServiceAccountName())) {
+                        deploymentBuilder.editSpec()
+                            .editTemplate()
+                            .editSpec()
+                            .withServiceAccountName(deploymentToSaPair.get(deploymentBuilder.buildMetadata().getName()))
+                            .endSpec()
+                            .endTemplate()
+                            .endSpec();
+                    }
                 }
             }
         });

@@ -28,6 +28,7 @@ Usage:
 * Fix #2166: Potential command line injection in SpringBootWatcher
 * Fix #2170: `internal-microservice` profile prevents Service exposure
 * Fix #2174: Profile merge constructor accounts for parentProfile field
+* Fix #2187: `serviceAccount` configuration option has stopped working
 
 ### 1.12.0 (2023-04-03)
 * Fix #1179: Move storageClass related functionality out of VolumePermissionEnricher to PersistentVolumeClaimStorageClassEnricher
