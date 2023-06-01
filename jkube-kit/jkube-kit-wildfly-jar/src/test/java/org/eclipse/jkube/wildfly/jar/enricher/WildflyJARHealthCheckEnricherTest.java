@@ -24,18 +24,17 @@ import io.fabric8.kubernetes.api.model.ContainerFluentImpl;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -88,7 +87,7 @@ class WildflyJARHealthCheckEnricherTest {
     @DisplayName("cloud configuration with wildfly jar version before 25.0.0, should not add startup probe")
     void cloudConfiguration_withWildflyJarBefore25_0shouldNotAdd_startupProbe() {
         wildFlyJarDependencyWithVersion("24.1.1.Final");
-        
+
         Map<String, Object> config = new HashMap<>();
         config.put("cloud", null);
         setupExpectations(config, Collections.emptyMap());
@@ -299,15 +298,10 @@ class WildflyJARHealthCheckEnricherTest {
 
     @SuppressWarnings("unchecked")
     private Map<String, Map<String, Object>> createFakeConfig(String config) {
-        try {
-            Map<String, Object> healthCheckJarMap = Serialization.jsonMapper().readValue(config, Map.class);
-            Map<String, Map<String, Object>> enricherConfigMap = new HashMap<>();
-            enricherConfigMap.put("jkube-healthcheck-wildfly-jar", healthCheckJarMap);
-            return enricherConfigMap;
-        } catch (JsonProcessingException jsonProcessingException) {
-            jsonProcessingException.printStackTrace();
-        }
-        return null;
+        Map<String, Object> healthCheckJarMap = Serialization.unmarshal(config, Map.class);
+        Map<String, Map<String, Object>> enricherConfigMap = new HashMap<>();
+        enricherConfigMap.put("jkube-healthcheck-wildfly-jar", healthCheckJarMap);
+        return enricherConfigMap;
     }
 
     private void assertHttpGet(Probe probe, String scheme, String path, int port) {

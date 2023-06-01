@@ -15,11 +15,10 @@ package org.eclipse.jkube.kit.build.api.helper;
 
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.common.util.Serialization;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -100,8 +99,8 @@ public class KubernetesConfigAuthUtil {
     final File applicableFile = kubeConfig == null ?
         getHomeDir().toPath().resolve(KUBECONFIG_FILE).toFile() : new File(kubeConfig);
     if (applicableFile.exists()) {
-      try (FileInputStream fis = new FileInputStream(applicableFile)) {
-        return Serialization.unmarshal(fis, new TypeReference<Map<String, Object>>() {});
+      try {
+        return Serialization.unmarshal(applicableFile, new TypeReference<Map<String, Object>>() {});
       } catch (IOException ex) {
         // Ignore
       }

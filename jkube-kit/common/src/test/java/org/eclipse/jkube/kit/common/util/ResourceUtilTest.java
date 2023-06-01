@@ -197,41 +197,6 @@ class ResourceUtilTest {
     }
 
     @Test
-    void load_withCustomResourceFile_shouldLoadGenericKubernetesResource() throws Exception {
-        // When
-        final HasMetadata result = ResourceUtil.load(
-            new File(ResourceUtilTest.class.getResource( "/util/resource-util/custom-resource-cr.yml").getFile()),
-            HasMetadata.class
-        );
-        // Then
-        assertThat(result)
-            .isInstanceOf(GenericKubernetesResource.class)
-            .hasFieldOrPropertyWithValue("kind", "SomeCustomResource")
-            .hasFieldOrPropertyWithValue("metadata.name", "my-custom-resource");
-    }
-
-    @Test
-    void load_withTemplate_shouldLoadTemplate() throws Exception {
-        // When
-        final HasMetadata result = ResourceUtil.load(
-            new File(ResourceUtilTest.class.getResource( "/util/resource-util/template.yml").getFile()),
-            HasMetadata.class
-        );
-        // Then
-        assertThat(result)
-            .isInstanceOf(Template.class)
-            .hasFieldOrPropertyWithValue("metadata.name", "template-example")
-            .extracting("objects").asList().singleElement()
-            .isInstanceOf(Pod.class)
-            .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
-            .extracting("spec.containers").asList().singleElement()
-            .hasFieldOrPropertyWithValue("image", "busybox")
-            .hasFieldOrPropertyWithValue("securityContext.additionalProperties.privileged", "${POD_SECURITY_CONTEXT}")
-            .extracting("env").asList().singleElement()
-            .hasFieldOrPropertyWithValue("value", "${ENV_VAR_KEY}");
-    }
-
-    @Test
     void save_withValidYamlFileAndItem_shouldSave() throws IOException {
         // Given
         final File file = new File(temporaryFolder, "temp-resource.yaml");

@@ -37,6 +37,7 @@ import org.eclipse.jkube.kit.common.archive.JKubeTarArchiver;
 import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import com.google.common.collect.Streams;
@@ -206,7 +207,7 @@ public class HelmService {
 
   private static void processSourceFiles(File sourceDir, File templatesDir) throws IOException {
     for (File file : listYamls(sourceDir)) {
-      final KubernetesResource dto = ResourceUtil.load(file, KubernetesResource.class);
+      final KubernetesResource dto = Serialization.unmarshal(file);
       if (dto instanceof Template) {
         splitAndSaveTemplate((Template) dto, templatesDir);
       } else {

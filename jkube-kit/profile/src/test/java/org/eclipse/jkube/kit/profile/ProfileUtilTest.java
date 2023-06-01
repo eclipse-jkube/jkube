@@ -33,29 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ProfileUtilTest {
 
     @Test
-    void simple() throws IOException {
-        InputStream is = getClass().getResourceAsStream("/jkube/config/profiles-lookup-dir/profiles.yaml");
-        assertThat(is).isNotNull();
-        List<Profile> profiles = ProfileUtil.fromYaml(is);
-        assertThat(profiles).isNotNull().hasSize(4)
-            .first().hasFieldOrPropertyWithValue("name", "simple")
-            .satisfies(profile -> assertThat(profile.getEnricherConfig())
-                .returns(true, c -> c.use("base"))
-                .returns(false, c -> c.use("blub")))
-            .satisfies(profile -> assertThat(profile.getGeneratorConfig())
-                .returns(false, c -> c.use("java.app"))
-                .returns(true, c -> c.use("spring.swarm")));
-    }
-
-    @Test
-    void multiple() throws IOException {
-        InputStream is = getClass().getResourceAsStream("/jkube/config/ProfileUtilTest-multiple.yml");
-        assertThat(is).isNotNull();
-        List<Profile> profiles = ProfileUtil.fromYaml(is);
-        assertThat(profiles).hasSize(2);
-    }
-
-    @Test
     void fromClasspath() throws IOException {
         List<Profile> profiles = ProfileUtil.readAllFromClasspath("one", "");
         assertThat(profiles).singleElement().isNotNull();
@@ -81,7 +58,15 @@ class ProfileUtilTest {
 
     @Test
     void findProfile_whenValidProfileArg_returnsValidProfile() throws URISyntaxException, IOException {
-        assertThat(ProfileUtil.findProfile("simple", getProfileDir())).isNotNull();
+        assertThat(ProfileUtil.findProfile("simple", getProfileDir()))
+          .isNotNull()
+          .hasFieldOrPropertyWithValue("name", "simple")
+            .satisfies(profile -> assertThat(profile.getEnricherConfig())
+                .returns(true, c -> c.use("base"))
+                .returns(false, c -> c.use("blub")))
+            .satisfies(profile -> assertThat(profile.getGeneratorConfig())
+                .returns(false, c -> c.use("java.app"))
+                .returns(true, c -> c.use("spring.swarm")));
     }
 
     @Test

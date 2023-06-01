@@ -21,27 +21,23 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.openshift.api.model.TemplateBuilder;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Maintainer;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.openshift.api.model.Template;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.when;
 
-@SuppressWarnings("ResultOfMethodCallIgnored")
 class HelmServiceUtilTest {
 
   private File manifest;
@@ -206,34 +202,81 @@ class HelmServiceUtilTest {
 
   @Test
   void findIconUrl_fromProvidedFile_returnsValidUrl() throws IOException {
-    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
-      // Given
-      HasMetadata listEntry = mock(HasMetadata.class,RETURNS_DEEP_STUBS);
-      resourceUtilMockedStatic.when(() -> ResourceUtil.load(manifest, KubernetesResource.class))
-          .thenReturn(new KubernetesList("List", Collections.singletonList(listEntry), "Invented", null));
-      manifest.createNewFile();
-      when(listEntry.getMetadata().getAnnotations()).thenReturn(Collections.singletonMap("jkube.io/iconUrl", "https://my-icon"));
-      // When
-      String url = HelmServiceUtil.findIconURL(manifest);
-      // Then
-      assertThat(url).isEqualTo("https://my-icon");
-    }
+    // Given
+    final GenericKubernetesResource inventedType = new GenericKubernetesResourceBuilder()
+      .withKind("Invented").withApiVersion("jkube.eclipse.org/v1alpha1")
+      .withNewMetadata().addToAnnotations("jkube.io/iconUrl", "https://my-icon").endMetadata()
+      .build();
+    Serialization.saveYaml(manifest, new KubernetesListBuilder().addToItems(inventedType).build());
+    // When
+    String url = HelmServiceUtil.findIconURL(manifest);
+    // Then
+    assertThat(url).isEqualTo("https://my-icon");
   }
 
   @Test
-  void findTemplatesFromProvidedFile() throws Exception {
-    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
-      // Given
-      Template template = mock(Template.class);
-      resourceUtilMockedStatic.when(() -> ResourceUtil.load(manifest, KubernetesResource.class))
-          .thenReturn(template);
-      // When
-      List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
-      // Then
-      assertThat(templateList)
-          .hasSize(1)
-          .contains(template);
-    }
+  void findOpenShiftParameterTemplatesFromProvidedFile() throws Exception {
+    // Given
+    Serialization.saveYaml(manifest, new TemplateBuilder()
+      .withNewMetadata().withName("template-from-manifest").endMetadata()
+      .build());
+    // When
+    List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
+    // Then
+    assertThat(templateList)
+      .singleElement()
+      .hasFieldOrPropertyWithValue("metadata.name", "template-from-manifest");
   }
 
+  @Test
+  void findOpenShiftParameterTemplatesFromNull() throws Exception {
+    // When
+    List<Template> templateList = HelmServiceUtil.findTemplates(null);
+    // Then
+    assertThat(templateList).isEmpty();
+  }
+
+  @Test
+  void findOpenShiftParameterTemplatesFromProvidedFileAsList() throws Exception {
+    // Given
+    Serialization.saveYaml(manifest, new KubernetesListBuilder()
+      .addToItems(new TemplateBuilder()
+        .withNewMetadata().withName("template-from-manifest-list").endMetadata()
+        .build()).build());
+    // When
+    List<Template> templateList = HelmServiceUtil.findTemplates(manifest);
+    // Then
+    assertThat(templateList)
+      .singleElement()
+      .hasFieldOrPropertyWithValue("metadata.name", "template-from-manifest-list");
+  }
+
+  @Test
+  void findOpenShiftParameterTemplatesFromProvidedDirectoryWhenEmpty() throws Exception {
+    // When
+    List<Template> templateList = HelmServiceUtil.findTemplates(templateDir);
+    // Then
+    assertThat(templateList).isEmpty();
+  }
+
+  @Test
+  void findOpenShiftParameterTemplatesFromProvidedDirectoryWithTemplateFiles() throws Exception {
+    // Given
+    Serialization.saveYaml(new File(templateDir, "template-1-template.yml"), new TemplateBuilder()
+      .withNewMetadata().withName("template-1").endMetadata()
+      .build());
+    Serialization.saveYaml(new File(templateDir, "template-2-template.yaml"), new TemplateBuilder()
+      .withNewMetadata().withName("template-2").endMetadata()
+      .build());
+    Serialization.saveYaml(new File(templateDir, "pod-pod.yaml"), new PodBuilder()
+      .withNewMetadata().withName("pod").endMetadata()
+      .build());
+    // When
+    List<Template> templateList = HelmServiceUtil.findTemplates(templateDir);
+    // Then
+    assertThat(templateList)
+      .hasSize(2)
+      .extracting("metadata.name")
+      .containsExactlyInAnyOrder("template-1", "template-2");
+  }
 }

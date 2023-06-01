@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +22,6 @@ import java.util.Set;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Parameter;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -54,7 +52,7 @@ public class OpenshiftHelper {
     }
 
 
-    public static KubernetesList processTemplatesLocally(Template entity, boolean failOnMissingParameterValue) throws IOException {
+    public static KubernetesList processTemplatesLocally(Template entity, boolean failOnMissingParameterValue) {
         List<HasMetadata> objects = null;
         if (entity != null) {
             objects = entity.getObjects();
@@ -65,7 +63,7 @@ public class OpenshiftHelper {
         List<Parameter> parameters = entity != null ? entity.getParameters() : null;
         if (parameters != null && !parameters.isEmpty()) {
             String json = "{\"kind\": \"List\", \"apiVersion\": \"" + DEFAULT_API_VERSION + "\",\n" +
-                    "  \"items\": " + ResourceUtil.toJson(objects) + " }";
+                    "  \"items\": " + Serialization.asJson(objects) + " }";
 
             // let's make a few passes in case there's expressions in values
             for (int i = 0; i < 5; i++) {
@@ -85,7 +83,7 @@ public class OpenshiftHelper {
                     json = json.replace(from, value);
                 }
             }
-            return  Serialization.jsonMapper().readerFor(KubernetesList.class).readValue(json);
+            return  Serialization.unmarshal(json, KubernetesList.class);
         } else {
             KubernetesList answer = new KubernetesList();
             answer.setItems(objects);

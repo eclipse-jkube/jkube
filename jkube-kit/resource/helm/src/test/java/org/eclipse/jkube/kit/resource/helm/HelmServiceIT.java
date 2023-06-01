@@ -27,13 +27,13 @@ import java.util.stream.Collectors;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.openshift.api.model.ParameterBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -70,7 +70,7 @@ class HelmServiceIT {
         new File(HelmServiceIT.class.getResource("/it/sources/additional-file.txt").toURI())
     ));
     helmConfig.setParameterTemplates(Collections.singletonList(
-        ResourceUtil.load(new File(HelmServiceIT.class.getResource("/it/sources/global-template.yml").toURI()), Template.class)
+        Serialization.unmarshal(HelmServiceIT.class.getResource("/it/sources/global-template.yml"), Template.class)
     ));
     helmConfig.setParameters(Arrays.asList(
         new ParameterBuilder().withName("annotation_from_config").withValue("{{ .Chart.Name | upper }}").build(),

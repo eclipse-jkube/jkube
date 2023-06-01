@@ -15,8 +15,6 @@ package org.eclipse.jkube.kit.config.service.openshift;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -27,9 +25,9 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.TagEvent;
@@ -123,9 +121,7 @@ class ImageStreamServiceTest {
     }
 
     private Map readImageStreamDescriptor(File target) throws IOException {
-        try (InputStream fis = Files.newInputStream(target.toPath())) {
-            return Serialization.unmarshal(fis, Map.class);
-        }
+        return Serialization.unmarshal(target, Map.class);
     }
 
     private void setupClientMock(final ImageStream lookedUpIs, final String namespace, final String name) {

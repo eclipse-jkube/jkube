@@ -16,12 +16,12 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.Template;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -205,10 +205,10 @@ public class DependencyEnricher extends BaseEnricher {
         for (URI uri : artifactSet) {
             try {
                 log.debug("Processing Kubernetes YAML in at: %s", uri);
-                KubernetesList resources = Serialization.yamlMapper().readValue(uri.toURL(), KubernetesList.class);
+                KubernetesList resources = Serialization.unmarshal(uri.toURL(), KubernetesList.class);
                 List<HasMetadata> items = resources.getItems();
                 if (items.isEmpty() && Objects.equals("Template", resources.getKind())) {
-                    Template template = Serialization.yamlMapper().readValue(uri.toURL(), Template.class);
+                    Template template = Serialization.unmarshal(uri.toURL(), Template.class);
                     if (template != null) {
                         items.add(template);
                     }
