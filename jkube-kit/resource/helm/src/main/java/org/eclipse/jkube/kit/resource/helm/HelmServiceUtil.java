@@ -201,7 +201,9 @@ public class HelmServiceUtil {
     final List<Template> ret = new ArrayList<>();
     final File[] sourceFiles;
     if (templateDir != null && templateDir.isDirectory()) {
-      sourceFiles = templateDir.listFiles((dir, filename) -> filename.endsWith("-template.yml"));
+      sourceFiles = templateDir.listFiles((dir, filename) ->
+              filename.toLowerCase(Locale.ROOT).endsWith("-template.yml") ||
+              filename.toLowerCase(Locale.ROOT).endsWith("-template.yaml"));
     } else if (templateDir != null) {
       sourceFiles = new File[] { templateDir };
     } else {
