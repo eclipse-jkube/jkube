@@ -74,5 +74,9 @@
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>mockwebserver</artifactId>
+    </dependency>
   </dependencies>
 </project>
