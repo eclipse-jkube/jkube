@@ -43,7 +43,6 @@ public class JKubeConfiguration implements Serializable {
   private Map<String, String> buildArgs;
   private RegistryConfig registryConfig;
   private List<JavaProject> reactorProjects;
-  private List<File> resolvedResourceSourceDirs;
 
   public File getBasedir() {
     return project.getBaseDirectory();

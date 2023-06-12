@@ -21,10 +21,12 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 
@@ -34,6 +36,7 @@ import io.fabric8.openshift.api.model.ParameterBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.util.Serialization;
+import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -51,7 +54,10 @@ class HelmServiceIT {
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws Exception {
     mapper = new ObjectMapper(new YAMLFactory());
-    helmService = new HelmService(new JKubeConfiguration(), new KitLogger.SilentLogger());
+    helmService = new HelmService(
+      JKubeConfiguration.builder().project(JavaProject.builder().properties(new Properties()).build()).build(),
+      new ResourceServiceConfig(),
+      new KitLogger.SilentLogger());
     helmOutputDir = Files.createDirectory(temporaryFolder.resolve("helm-output")).toFile();
     helmConfig = new HelmConfig();
     helmConfig.setSourceDir(new File(HelmServiceIT.class.getResource("/it/sources").toURI()).getAbsolutePath());

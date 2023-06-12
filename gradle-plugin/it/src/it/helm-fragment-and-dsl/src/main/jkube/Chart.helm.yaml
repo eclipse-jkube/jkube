@@ -1,0 +1,6 @@
+apiVersion: v1
+name: helm-fragment-and-dsl
+description: Helm Chart generation via fragment integration test
+icon: https://example.com/icon-from-fragment-overrides-dsl
+keywords:
+  - from-fragment-overrides-dsl

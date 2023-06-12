@@ -1,10 +1,10 @@
 ---
 apiVersion: v1
-name: helm
+name: helm-fragment
 home: https://example.com
 sources:
 - https://example.com/fragments
-version: "@ignore@"
+version: 0.0.1-SNAPSHOT
 description: Helm Chart generation via fragment integration test
 keywords:
 - test

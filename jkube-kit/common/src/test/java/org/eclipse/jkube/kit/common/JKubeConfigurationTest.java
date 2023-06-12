@@ -100,8 +100,7 @@ class JKubeConfigurationTest {
         .buildArgs(Collections.singletonMap("foo", "bar"))
         .registryConfig(RegistryConfig.builder()
             .registry("r.example.com")
-            .build())
-        .resolvedResourceSourceDirs(Collections.singletonList(new File("src/main/jkube")));
+            .build());
 
     // When
     JKubeConfiguration jKubeConfiguration = builder.build();
@@ -112,8 +111,7 @@ class JKubeConfigurationTest {
         .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/jkube")
         .hasFieldOrPropertyWithValue("outputDirectory", "target")
         .hasFieldOrPropertyWithValue("buildArgs", Collections.singletonMap("foo", "bar"))
-        .hasFieldOrPropertyWithValue("registryConfig.registry", "r.example.com")
-        .hasFieldOrPropertyWithValue("resolvedResourceSourceDirs", Collections.singletonList(new File("src/main/jkube")));
+        .hasFieldOrPropertyWithValue("registryConfig.registry", "r.example.com");
   }
 
   /**

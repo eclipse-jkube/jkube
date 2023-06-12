@@ -20,6 +20,7 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
+import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -57,7 +58,7 @@ class PluginServiceTest {
           .outputDirectory(temporaryFolder)
           .build())
         .build(),
-      new BuildServiceConfig(), new LazyBuilder<>(() -> null), true);
+      new BuildServiceConfig(), new ResourceServiceConfig(), new LazyBuilder<>(hub -> null), true);
   }
 
   @Test

@@ -63,6 +63,7 @@ class HelmMojoTest {
     helmMojo.offline = true;
     helmMojo.project = new MavenProject();
     helmMojo.settings = new Settings();
+    helmMojo.interpolateTemplateParameters = true;
     helmMojo.jkubeServiceHub = JKubeServiceHub.builder()
       .configuration(JKubeConfiguration.builder().build())
       .log(new KitLogger.SilentLogger())

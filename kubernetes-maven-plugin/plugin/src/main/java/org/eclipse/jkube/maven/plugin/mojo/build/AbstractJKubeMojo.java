@@ -15,11 +15,15 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.shared.filtering.MavenFileFilter;
+import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
+import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
@@ -37,21 +41,28 @@ import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.kit.resource.service.DefaultResourceService;
 import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
+import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.updateResourceConfigNamespace;
 
 public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLoggerProvider {
 
     protected static final String DEFAULT_LOG_PREFIX = "k8s: ";
+
+    @Component(role = MavenFileFilter.class, hint = "default")
+    private MavenFileFilter mavenFileFilter;
 
     @Parameter(defaultValue = "${project}", readonly = true)
     protected MavenProject project;
@@ -88,6 +99,12 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter(defaultValue = "${settings}", readonly = true)
     protected Settings settings;
 
+    /**
+     * The jkube working directory
+     */
+    @Parameter(property = "jkube.workDir", defaultValue = "${project.build.directory}/jkube")
+    protected File workDir;
+
     @Parameter(property = "jkube.namespace")
     public String namespace;
 
@@ -103,6 +120,22 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
      */
     @Parameter(property = "jkube.environment")
     protected String environment;
+
+    /**
+     * The artifact type for attaching the generated resource file to the project.
+     * Can be either 'json' or 'yaml'
+     */
+    @Parameter(property = "jkube.resourceType")
+    protected ResourceFileType resourceFileType = yaml;
+
+    /**
+     * The generated kubernetes and openshift manifests
+     */
+    @Parameter(property = "jkube.targetDir", defaultValue = "${project.build.outputDirectory}/META-INF/jkube")
+    protected File targetDir;
+
+    @Parameter(property="jkube.interpolateTemplateParameters", defaultValue = "true")
+    protected Boolean interpolateTemplateParameters;
 
     @Parameter
     protected ClusterConfiguration access;
@@ -182,6 +215,18 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         return ClusterConfiguration.from(access, System.getProperties(), project.getProperties()).build();
     }
 
+    private ResourceServiceConfig initResourceServiceConfig() {
+        return ResourceServiceConfig.builder()
+          .project(javaProject)
+          .resourceDirs(ResourceUtil.getFinalResourceDirs(resourceDir, environment))
+          .targetDir(targetDir)
+          .resourceFileType(resourceFileType)
+          .resourceConfig(resources)
+          .resourceFilesProcessor(resourceFiles -> mavenFilterFiles(resourceFiles, workDir))
+          .interpolateTemplateParameters(interpolateTemplateParameters)
+          .build();
+    }
+
     protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder(JavaProject javaProject) {
         return JKubeServiceHub.builder()
             .log(log)
@@ -192,11 +237,12 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
                     .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                     .passwordDecryptionMethod(this::decrypt)
                     .build())
-                .resolvedResourceSourceDirs(ResourceUtil.getFinalResourceDirs(resourceDir, environment))
                 .build())
             .clusterAccess(clusterAccess)
             .offline(offline)
-            .platformMode(getRuntimeMode());
+            .platformMode(getRuntimeMode())
+            .resourceServiceConfig(initResourceServiceConfig())
+            .resourceService(new LazyBuilder<>(hub -> new DefaultResourceService(hub.getResourceServiceConfig())));
     }
 
     public ResourceConfig getResources() {
@@ -210,6 +256,29 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
             getKitLogger().error("Failure in decrypting password");
         }
         return password;
+    }
+
+    private File[] mavenFilterFiles(File[] resourceFiles, File outDir) throws IOException {
+        if (resourceFiles == null) {
+            return new File[0];
+        }
+        if (!outDir.exists() && !outDir.mkdirs()) {
+            throw new IOException("Cannot create working dir " + outDir);
+        }
+        File[] ret = new File[resourceFiles.length];
+        int i = 0;
+        for (File resource : resourceFiles) {
+            File targetFile = new File(outDir, resource.getName());
+            try {
+                mavenFileFilter.copyFile(resource, targetFile, true,
+                  project, null, false, "utf8", session);
+                ret[i++] = targetFile;
+            } catch (MavenFilteringException exp) {
+                throw new IOException(
+                  String.format("Cannot filter %s to %s", resource, targetFile), exp);
+            }
+        }
+        return ret;
     }
 }
 

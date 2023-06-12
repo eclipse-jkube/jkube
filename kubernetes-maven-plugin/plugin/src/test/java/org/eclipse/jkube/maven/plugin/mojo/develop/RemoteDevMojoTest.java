@@ -47,6 +47,7 @@ class RemoteDevMojoTest {
     remoteDevMojo = new RemoteDevMojo() {{
       project = mavenProject;
       settings = mock(Settings.class, RETURNS_DEEP_STUBS);
+      interpolateTemplateParameters = false;
     }};
     started = new CompletableFuture<>();
     remoteDevelopmentService = mockConstruction(RemoteDevelopmentService.class, (mock, ctx) ->

@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.common.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
@@ -93,6 +94,11 @@ public class Serialization {
 
   public static <T> T unmarshal(String string, Class<T> type) {
     return KUBERNETES_SERIALIZATION.unmarshal(string, type);
+  }
+
+  public static <T> T merge(T original, T overrides) throws IOException {
+    final ObjectReader reader = JSON_MAPPER.readerForUpdating(original);
+    return reader.readValue(asJson(overrides));
   }
 
   public static <T> T convertValue(Object object, Class<T> type) {

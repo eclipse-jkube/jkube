@@ -41,9 +41,9 @@ public class HandlerHub {
     private final PodTemplateHandler podTemplateHandler;
     @Getter
     private final List<ControllerHandlerLazyBuilder<? extends HasMetadata>> controllerHandlers;
-    private final LazyBuilder<NamespaceHandler> namespaceHandler;
-    private final LazyBuilder<ProjectHandler> projectHandler;
-    private final LazyBuilder<ServiceHandler> serviceHandler;
+    private final LazyBuilder.VoidLazyBuilder<NamespaceHandler> namespaceHandler;
+    private final LazyBuilder.VoidLazyBuilder<ProjectHandler> projectHandler;
+    private final LazyBuilder.VoidLazyBuilder<ServiceHandler> serviceHandler;
 
     public HandlerHub(GroupArtifactVersion groupArtifactVersion, Properties configuration) {
         ProbeHandler probeHandler = new ProbeHandler();
@@ -61,9 +61,9 @@ public class HandlerHub {
             new ControllerHandlerLazyBuilder<>(Job.class,() -> new JobHandler(podTemplateHandler)),
             new ControllerHandlerLazyBuilder<>(CronJob.class, () -> new CronJobHandler(podTemplateHandler))
         );
-        namespaceHandler = new LazyBuilder<>(NamespaceHandler::new);
-        projectHandler = new LazyBuilder<>(ProjectHandler::new);
-        serviceHandler = new LazyBuilder<>(ServiceHandler::new);
+        namespaceHandler = new LazyBuilder.VoidLazyBuilder<>(NamespaceHandler::new);
+        projectHandler = new LazyBuilder.VoidLazyBuilder<>(ProjectHandler::new);
+        serviceHandler = new LazyBuilder.VoidLazyBuilder<>(ServiceHandler::new);
     }
 
     public NamespaceHandler getNamespaceHandler() { return namespaceHandler.get(); }
@@ -87,6 +87,6 @@ public class HandlerHub {
     public <T extends HasMetadata> ControllerHandler<T> getHandlerFor(Class<T> controllerType) {
         return (ControllerHandler<T>) controllerHandlers.stream()
             .filter(handler -> handler.getControllerHandlerType().isAssignableFrom(controllerType))
-            .findAny().map(LazyBuilder::get).orElse(null);
+            .findAny().map(LazyBuilder.VoidLazyBuilder::get).orElse(null);
     }
 }

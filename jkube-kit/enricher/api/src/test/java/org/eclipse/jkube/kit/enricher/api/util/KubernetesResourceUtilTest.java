@@ -54,6 +54,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -61,7 +62,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -326,16 +329,25 @@ class KubernetesResourceUtilTest {
             tuple(GenericKubernetesResource.class, "jkube/v1", "CustomKind", "custom")
         );
   }
-  
+
   @Test
-  void readResourceFragmentsFrom_withExcludedFile_shouldNotIncludeExcludedFile() throws IOException {
+  void readResourceFragmentsFrom_withExcludedFile_shouldNotIncludeExcludedFile(@TempDir Path resourceDir) throws IOException {
     // Given
-    File[] resourceFiles = new File[] { new File("Chart.helm.yaml")};
+    final File[] resourceFiles = new File[] {
+      Files.write(resourceDir.resolve("Chart.helm.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
+      Files.write(resourceDir.resolve("Chart.helm.yml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
+      Files.write(resourceDir.resolve("Chart.hElm.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
+      Files.write(resourceDir.resolve("other.hElm.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
+      Files.write(resourceDir.resolve("configmap.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
+      Files.write(resourceDir.resolve("named-cm.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile()
+    };
     // When
     final KubernetesListBuilder result = KubernetesResourceUtil.readResourceFragmentsFrom(
         kubernetes, DEFAULT_RESOURCE_VERSIONING, "pong", resourceFiles);
     // Then
-    assertThat(result.buildItems()).isEmpty();
+    assertThat(result.buildItems()).hasSize(2)
+      .extracting("additionalProperties.field")
+      .containsExactly("value", "value");
   }
 
   @Test

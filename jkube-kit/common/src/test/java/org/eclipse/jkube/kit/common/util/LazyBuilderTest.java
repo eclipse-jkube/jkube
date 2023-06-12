@@ -38,7 +38,7 @@ class LazyBuilderTest {
       count.incrementAndGet();
       return 1;
     };
-    final LazyBuilder<Integer> lazyBuilder = new LazyBuilder<>(build);
+    final LazyBuilder.VoidLazyBuilder<Integer> lazyBuilder = new LazyBuilder.VoidLazyBuilder<>(build);
     // When
     final int result = IntStream.rangeClosed(1, 10).map(t -> lazyBuilder.get()).sum();
     // Then
@@ -60,9 +60,9 @@ class LazyBuilderTest {
       } catch (InterruptedException ignored) {}
       return 1;
     };
-    final LazyBuilder<Integer> lazyBuilder = new LazyBuilder<>(build);
+    final LazyBuilder.VoidLazyBuilder<Integer> lazyBuilder = new LazyBuilder.VoidLazyBuilder<>(build);
     final ExecutorService es = Executors.newSingleThreadExecutor();
-    final Future<Integer> concurrentResult = es.submit(lazyBuilder::get);
+    final Future<Integer> concurrentResult = es.submit(() -> lazyBuilder.get());
     // When
     final int result = IntStream.rangeClosed(1, 10).map(t -> lazyBuilder.get()).sum();
     cdl.countDown();
@@ -81,7 +81,7 @@ class LazyBuilderTest {
     @DisplayName("with get never called should return false")
     void noGetShouldReturnFalse() {
       // When
-      final LazyBuilder<Boolean> builder = new LazyBuilder<>(() -> true);
+      final LazyBuilder.VoidLazyBuilder<Boolean> builder = new LazyBuilder.VoidLazyBuilder<>(() -> true);
       // Then
       assertThat(builder).returns(false, LazyBuilder::hasInstance);
     }
@@ -90,7 +90,7 @@ class LazyBuilderTest {
     @DisplayName("with get called should return true")
     void withGetShouldReturnTrue() {
       // When
-      final LazyBuilder<Boolean> builder = new LazyBuilder<>(() -> true);
+      final LazyBuilder.VoidLazyBuilder<Boolean> builder = new LazyBuilder.VoidLazyBuilder<>(() -> true);
       builder.get();
       // Then
       assertThat(builder).returns(true, LazyBuilder::hasInstance);

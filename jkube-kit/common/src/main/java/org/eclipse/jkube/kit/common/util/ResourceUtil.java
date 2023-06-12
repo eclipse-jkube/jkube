@@ -62,7 +62,7 @@ public class ResourceUtil {
         return kubernetesResources;
     }
 
-    private static List<HasMetadata> split(Object resource) throws IOException {
+    private static List<HasMetadata> split(Object resource) {
         if (resource instanceof Collection) {
             final List<HasMetadata> collectionItems = new ArrayList<>();
             for (Object item : ((Collection<?>)resource)) {

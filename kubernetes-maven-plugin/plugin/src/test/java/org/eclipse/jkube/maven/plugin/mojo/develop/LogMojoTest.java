@@ -72,6 +72,7 @@ class LogMojoTest {
     logMojo = new LogMojo() { {
       project = mavenProject;
       settings = mock(Settings.class);
+      interpolateTemplateParameters = false;
       kubernetesManifest = kubernetesManifestFile;
     }};
     // @formatter:on

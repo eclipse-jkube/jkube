@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+name: helm-properties
+home: https://example.com
+version: 0.0.1-SNAPSHOT-from-properties
+description: Helm chart generation via properties integration test
+icon: https://example.com/chart1

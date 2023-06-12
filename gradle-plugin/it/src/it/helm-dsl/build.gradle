@@ -1,0 +1,48 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+def extensionConfig = {
+    offline = true
+    images {
+        image {
+            name = 'repository/helm-dsl:latest'
+            build {
+                from = 'repository/from:latest'
+            }
+        }
+    }
+    helm {
+        chart = 'helm-dsl'
+        version = "0.0.1-SNAPSHOT"
+        description = 'Helm chart generation via groovy dsl integration test'
+        home = "https://example.com"
+        sources = ['https://example.com/groovy-dsl-config']
+        keywords = ['test', 'groovy-dsl-config']
+        dependencies = [{
+                            name = 'dependency-via-groovy-dsl-config'
+                            version = '0.0.1'
+                            repository = 'https://example.com/dependency-via-groovy-dsl-config'
+                        }]
+        maintainers = [{
+                           name = 'maintainer-via-groovy-dsl-config'
+                           email = 'maintainer@example.com'
+                           url = 'https://example.com/user1'
+                       }]
+        icon = 'https://example.com/icon1'
+    }
+}
+
+kubernetes(extensionConfig)
+openshift(extensionConfig)
+

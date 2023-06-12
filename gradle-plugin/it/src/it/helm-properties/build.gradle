@@ -1,0 +1,29 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+def extensionConfig = {
+    offline = true
+    images {
+        image {
+            name = 'repository/helm-properties:latest'
+            build {
+                from = 'repository/from:latest'
+            }
+        }
+    }
+}
+
+kubernetes(extensionConfig)
+openshift(extensionConfig)
+

@@ -25,13 +25,9 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.ResourceFileType;
-import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
-import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
@@ -39,12 +35,9 @@ import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.enricher.api.DefaultEnricherManager;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
-import org.eclipse.jkube.kit.resource.service.DefaultResourceService;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -55,11 +48,8 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
-import org.apache.maven.shared.filtering.MavenFileFilter;
-import org.apache.maven.shared.filtering.MavenFilteringException;
 
 import static org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
-import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.useDekorate;
@@ -77,15 +67,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     // Filename for holding the build timestamp
     public static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
 
-    /**
-     * The generated kubernetes and openshift manifests
-     */
-    @Parameter(property = "jkube.targetDir", defaultValue = "${project.build.outputDirectory}/META-INF/jkube")
-    protected File targetDir;
-
-    @Component(role = MavenFileFilter.class, hint = "default")
-    private MavenFileFilter mavenFileFilter;
-
     @Component
     protected ImageConfigResolver imageConfigResolver;
 
@@ -95,11 +76,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.useProjectClasspath", defaultValue = "false")
     private boolean useProjectClasspath = false;
 
-    /**
-     * The jkube working directory
-     */
-    @Parameter(property = "jkube.workDir", defaultValue = "${project.build.directory}/jkube")
-    private File workDir;
 
     // Skip resource descriptors validation
     @Parameter(property = "jkube.skipResourceValidation", defaultValue = "false")
@@ -107,7 +83,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     // Determine if the plugin should stop when a validation error is encountered
     @Parameter(property = "jkube.failOnValidationError", defaultValue = "false")
-    private Boolean failOnValidationError;
+    protected Boolean failOnValidationError;
 
     // Reusing image configuration from d-m-p
     @Parameter
@@ -151,26 +127,14 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter(property = "jkube.skip.resource", defaultValue = "false")
     protected boolean skipResource;
 
-    /**
-     * The artifact type for attaching the generated resource file to the project.
-     * Can be either 'json' or 'yaml'
-     */
-    @Parameter(property = "jkube.resourceType")
-    private ResourceFileType resourceFileType = yaml;
 
     // When resource generation is delegated to Dekorate, should JKube resources be merged with Dekorate's
     @Parameter(property = "jkube.mergeWithDekorate", defaultValue = "false")
     private Boolean mergeWithDekorate;
 
-    @Parameter(property="jkube.interpolateTemplateParameters", defaultValue = "true")
-    protected Boolean interpolateTemplateParameters;
 
     @Component
     protected MavenProjectHelper projectHelper;
-
-    // resourceDir when environment has been applied
-    private List<File> realResourceDirs;
-
 
 
     @Override
@@ -203,7 +167,9 @@ public class ResourceMojo extends AbstractJKubeMojo {
                 final File artifact = jkubeServiceHub.getResourceService().writeResources(resourceList, resourceClassifier, log);
                 validateIfRequired(resourceClassifierDir, resourceClassifier);
                 // Attach it to the Maven reactor so that it will also get deployed
-                projectHelper.attachArtifact(project, this.resourceFileType.getArtifactType(), resourceClassifier.getValue(), artifact);
+                projectHelper.attachArtifact(project,
+                  jkubeServiceHub.getResourceServiceConfig().getResourceFileType().getArtifactType(),
+                  resourceClassifier.getValue(), artifact);
             }
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to generate kubernetes descriptor", e);
@@ -213,22 +179,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Override
     protected RuntimeMode getRuntimeMode() {
         return RuntimeMode.KUBERNETES;
-    }
-
-    @Override
-    protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder(JavaProject javaProject) {
-        realResourceDirs = ResourceUtil.getFinalResourceDirs(resourceDir, environment);
-        final ResourceServiceConfig resourceServiceConfig = ResourceServiceConfig.builder()
-            .project(javaProject)
-            .resourceDirs(realResourceDirs)
-            .targetDir(targetDir)
-            .resourceFileType(resourceFileType)
-            .resourceConfig(resources)
-            .resourceFilesProcessor(resourceFiles -> mavenFilterFiles(resourceFiles, workDir))
-            .interpolateTemplateParameters(interpolateTemplateParameters)
-            .build();
-        return super.initJKubeServiceHubBuilder(javaProject)
-            .resourceService(new LazyBuilder<>(() -> new DefaultResourceService(resourceServiceConfig)));
     }
 
     protected PlatformMode getPlatformMode() {
@@ -243,6 +193,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         throws MojoExecutionException, MojoFailureException {
         try {
             if (!skipResourceValidation) {
+                log.verbose("Validating resources");
                 new ResourceValidator(resourceDir, classifier, log).validate();
             }
         } catch (ConstraintViolationException e) {
@@ -279,9 +230,8 @@ public class ResourceMojo extends AbstractJKubeMojo {
         }
     }
 
-    private KubernetesList generateResources()
-        throws IOException {
-
+    private KubernetesList generateResources() throws IOException {
+        log.verbose("Generating resources");
         JKubeEnricherContext.JKubeEnricherContextBuilder ctxBuilder = JKubeEnricherContext.builder()
                 .jKubeBuildStrategy(buildStrategy)
                 .project(javaProject)
@@ -298,11 +248,13 @@ public class ResourceMojo extends AbstractJKubeMojo {
     }
 
     private ProcessorConfig extractEnricherConfig() throws IOException {
-        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile, realResourceDirs, enricher);
+        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile,
+          jkubeServiceHub.getResourceServiceConfig().getResourceDirs(), enricher);
     }
 
     private ProcessorConfig extractGeneratorConfig() throws IOException {
-        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, realResourceDirs, generator);
+        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile,
+          jkubeServiceHub.getResourceServiceConfig().getResourceDirs(), generator);
     }
 
     // ==================================================================================
@@ -333,30 +285,8 @@ public class ResourceMojo extends AbstractJKubeMojo {
           jkubeServiceHub.getConfiguration());
     }
 
-    private File[] mavenFilterFiles(File[] resourceFiles, File outDir) throws IOException {
-        if (resourceFiles == null) {
-            return new File[0];
-        }
-        if (!outDir.exists() && !outDir.mkdirs()) {
-            throw new IOException("Cannot create working dir " + outDir);
-        }
-        File[] ret = new File[resourceFiles.length];
-        int i = 0;
-        for (File resource : resourceFiles) {
-            File targetFile = new File(outDir, resource.getName());
-            try {
-                mavenFileFilter.copyFile(resource, targetFile, true,
-                    project, null, false, "utf8", session);
-                ret[i++] = targetFile;
-            } catch (MavenFilteringException exp) {
-                throw new IOException(
-                    String.format("Cannot filter %s to %s", resource, targetFile), exp);
-            }
-        }
-        return ret;
-    }
-
     private boolean hasJKubeDir() {
+        final List<File> realResourceDirs = jkubeServiceHub.getResourceServiceConfig().getResourceDirs();
         return !realResourceDirs.isEmpty() && realResourceDirs.get(0).isDirectory();
     }
 

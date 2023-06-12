@@ -1,9 +1,9 @@
 apiVersion: v1
-name: helm
+name: helm-dsl
 home: https://example.com
 sources:
   - https://example.com/groovy-dsl-config
-version: "@ignore@"
+version: 0.0.1-SNAPSHOT
 description: Helm chart generation via groovy dsl integration test
 keywords:
   - test

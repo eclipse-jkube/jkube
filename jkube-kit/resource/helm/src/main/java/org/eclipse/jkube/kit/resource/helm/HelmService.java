@@ -22,13 +22,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.BiPredicate;
+import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -40,6 +40,7 @@ import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.Serialization;
+import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 
 import com.google.common.collect.Streams;
@@ -65,16 +66,20 @@ public class HelmService {
 
   private static final String YAML_EXTENSION = ".yaml";
   private static final String CHART_API_VERSION = "v1";
-  private static final String FRAGMENT_FILE_EXTENSION = ".helm.yaml";
   private static final String CHART_FILENAME = "Chart" + YAML_EXTENSION;
   private static final String VALUES_FILENAME = "values" + YAML_EXTENSION;
+
+  private static final String CHART_FRAGMENT_REGEX = "^chart\\.helm\\.(?<ext>yaml|yml|json)$";
+  public static final Pattern CHART_FRAGMENT_PATTERN = Pattern.compile(CHART_FRAGMENT_REGEX, Pattern.CASE_INSENSITIVE);
   private static final String GOLANG_EXPRESSION_REGEX = "\\{\\{.+}}";
 
   private final JKubeConfiguration jKubeConfiguration;
+  private final ResourceServiceConfig resourceServiceConfig;
   private final KitLogger logger;
 
-  public HelmService(JKubeConfiguration jKubeConfiguration, KitLogger logger) {
+  public HelmService(JKubeConfiguration jKubeConfiguration, ResourceServiceConfig resourceServiceConfig, KitLogger logger) {
     this.jKubeConfiguration = jKubeConfiguration;
+    this.resourceServiceConfig = resourceServiceConfig;
     this.logger = logger;
   }
 
@@ -100,7 +105,7 @@ public class HelmService {
       logger.debug("Processing source files");
       processSourceFiles(sourceDir, templatesDir);
       logger.debug("Creating %s", CHART_FILENAME);
-      createChartYaml(helmConfig, outputDir, jKubeConfiguration);
+      createChartYaml(helmConfig, outputDir);
       logger.debug("Copying additional files");
       copyAdditionalFiles(helmConfig, outputDir);
       logger.debug("Gathering parameters for placeholders");
@@ -236,104 +241,57 @@ public class HelmService {
     }
   }
 
-  static void createChartYaml(HelmConfig helmConfig, File outputDir, JKubeConfiguration jKubeConfiguration) throws IOException {
-    final Chart chartFromHelmConfig = createChartFromHelmConfig(helmConfig);
-    final Chart chartFromFragment = createChartFromFragment(jKubeConfiguration);
-    final Chart mergedChart = mergeCharts(chartFromHelmConfig, chartFromFragment);
+  void createChartYaml(HelmConfig helmConfig, File outputDir) throws IOException {
+    final Chart chartFromHelmConfig = chartFromHelmConfig(helmConfig);
+    final Chart chartFromFragment = createChartFromFragment(resourceServiceConfig, jKubeConfiguration.getProperties());
+    final Chart mergedChart = Serialization.merge(chartFromHelmConfig, chartFromFragment);
 
     File outputChartFile = new File(outputDir, CHART_FILENAME);
     ResourceUtil.save(outputChartFile, mergedChart, ResourceFileType.yaml);
   }
 
-  private static Chart mergeCharts(Chart chartFromHelmConfig, Chart chartFromFragment) {
-    if (chartFromFragment == null) {
-      return chartFromHelmConfig;
-    }
-    Chart.ChartBuilder chartBuilder = chartFromFragment.toBuilder();
-    updateOriginal((c1, c2) -> StringUtils.isBlank(c1.getApiVersion()) && StringUtils.isNotBlank(c2.getApiVersion()),
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.apiVersion(chartFromHelmConfig.getApiVersion()));
-    updateOriginal((c1, c2) -> StringUtils.isBlank(c1.getName()) && StringUtils.isNotBlank(c2.getName()),
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.name(chartFromHelmConfig.getName()));
-    updateOriginal((c1, c2) -> StringUtils.isBlank(c1.getHome()) && StringUtils.isNotBlank(c2.getHome()),
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.home(chartFromHelmConfig.getHome()));
-    updateOriginal((c1, c2) -> StringUtils.isBlank(c1.getVersion()) && StringUtils.isNotBlank(c2.getVersion()),
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.version(chartFromHelmConfig.getVersion()));
-    updateOriginal((c1, c2) -> StringUtils.isBlank(c1.getDescription()) && StringUtils.isNotBlank(c2.getDescription()),
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.description(chartFromHelmConfig.getDescription()));
-    updateOriginal((c1, c2) -> StringUtils.isBlank(c1.getEngine()) && StringUtils.isNotBlank(c2.getEngine()),
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.engine(chartFromHelmConfig.getEngine()));
-    updateOriginal((c1, c2) -> StringUtils.isBlank(c1.getIcon()) && StringUtils.isNotBlank(c2.getIcon()),
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.icon(chartFromHelmConfig.getIcon()));
-    updateOriginal((c1, c2) -> c1.getSources() == null && c2.getSources() != null,
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.sources(chartFromHelmConfig.getSources()));
-    updateOriginal((c1, c2) -> c1.getKeywords() == null && c2.getKeywords() != null,
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.keywords(chartFromHelmConfig.getKeywords()));
-    updateOriginal((c1, c2) -> c1.getMaintainers() == null && c2.getMaintainers() != null,
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.maintainers(chartFromHelmConfig.getMaintainers()));
-    updateOriginal((c1, c2) -> c1.getDependencies() == null && c2.getDependencies() != null,
-        chartBuilder, chartFromFragment, chartFromHelmConfig,
-        cb -> cb.dependencies(chartFromHelmConfig.getDependencies()));
-
-    return chartBuilder.build();
+  private static Chart chartFromHelmConfig(HelmConfig helmConfig) {
+    return Chart.builder()
+      .apiVersion(CHART_API_VERSION)
+      .name(helmConfig.getChart())
+      .version(helmConfig.getVersion())
+      .description(helmConfig.getDescription())
+      .home(helmConfig.getHome())
+      .sources(helmConfig.getSources())
+      .maintainers(helmConfig.getMaintainers())
+      .icon(helmConfig.getIcon())
+      .keywords(helmConfig.getKeywords())
+      .engine(helmConfig.getEngine())
+      .dependencies(helmConfig.getDependencies())
+      .build();
   }
 
-  private static void updateOriginal(BiPredicate<Chart, Chart> condition, Chart.ChartBuilder chartBuilder, Chart original, Chart opinionated, Consumer<Chart.ChartBuilder> chartBuilderConsumer) {
-    if (condition.test(original, opinionated)) {
-      chartBuilderConsumer.accept(chartBuilder);
-    }
-  }
-
-  private static Chart createChartFromHelmConfig(HelmConfig helmConfig) {
-    Chart chart = new Chart();
-    chart.setApiVersion(CHART_API_VERSION);
-    chart.setName(helmConfig.getChart());
-    chart.setVersion(helmConfig.getVersion());
-    chart.setDescription(helmConfig.getDescription());
-    chart.setHome(helmConfig.getHome());
-    chart.setSources(helmConfig.getSources());
-    chart.setMaintainers(helmConfig.getMaintainers());
-    chart.setIcon(helmConfig.getIcon());
-    chart.setKeywords(helmConfig.getKeywords());
-    chart.setEngine(helmConfig.getEngine());
-    chart.setDependencies(helmConfig.getDependencies());
-    return chart;
-  }
-
-  private static Chart createChartFromFragment(JKubeConfiguration jKubeConfiguration) {
-    File helmChartFragment = getChartYamlFileFromFragmentsDir(jKubeConfiguration.getResolvedResourceSourceDirs());
+  private static Chart createChartFromFragment(ResourceServiceConfig resourceServiceConfig, Properties properties) {
+    File helmChartFragment = resolveChartYamlFileFromFragmentsDir(resourceServiceConfig);
     if (helmChartFragment != null && helmChartFragment.exists()) {
       try {
-        String interpolatedFragmentContent = interpolate(helmChartFragment, jKubeConfiguration.getProperties(), DEFAULT_FILTER);
-        return Serialization.yamlMapper().readValue(interpolatedFragmentContent, Chart.class);
-      } catch (IOException e) {
-        throw new IllegalArgumentException("Failure in parsing Helm Chart fragment : " + e.getMessage());
+        String interpolatedFragmentContent = interpolate(helmChartFragment, properties, DEFAULT_FILTER);
+        return Serialization.unmarshal(interpolatedFragmentContent, Chart.class);
+      } catch (Exception e) {
+        throw new IllegalArgumentException("Failure in parsing Helm Chart fragment: " + e.getMessage(), e);
       }
     }
     return null;
   }
 
-  private static File getChartYamlFileFromFragmentsDir(List<File> fragmentDirs) {
-    File foundChartYamlFile = null;
+  private static File resolveChartYamlFileFromFragmentsDir(ResourceServiceConfig resourceServiceConfig) {
+    final List<File> fragmentDirs = resourceServiceConfig.getResourceDirs();
     if (fragmentDirs != null) {
-      Optional<File> fileOptional = fragmentDirs.stream()
-          .map(f -> new File(f, String.format("%s%s", "Chart", FRAGMENT_FILE_EXTENSION)))
-          .filter(File::exists)
-          .findFirst();
-      if (fileOptional.isPresent()) {
-        foundChartYamlFile = fileOptional.get();
+      for (File fragmentDir : fragmentDirs) {
+        if (fragmentDir.exists() && fragmentDir.isDirectory()) {
+          final File[] fragments = fragmentDir.listFiles((dir, name) -> CHART_FRAGMENT_PATTERN.matcher(name).matches());
+          if (fragments != null && fragments.length > 0) {
+            return fragments[0];
+          }
+        }
       }
     }
-    return foundChartYamlFile;
+    return null;
   }
 
   private static void copyAdditionalFiles(HelmConfig helmConfig, File outputDir) throws IOException {
