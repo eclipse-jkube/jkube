@@ -20,7 +20,7 @@ import lombok.Getter;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 
 @Getter
-public class ControllerHandlerLazyBuilder<T extends HasMetadata> extends LazyBuilder<ControllerHandler<T>> {
+public class ControllerHandlerLazyBuilder<T extends HasMetadata> extends LazyBuilder.VoidLazyBuilder<ControllerHandler<T>> {
 
   private final Class<T> controllerHandlerType;
 

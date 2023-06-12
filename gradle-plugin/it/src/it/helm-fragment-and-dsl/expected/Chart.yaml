@@ -1,0 +1,19 @@
+---
+apiVersion: v1
+name: helm-fragment-and-dsl
+home: https://example.com
+sources:
+- https://example.com/groovy-dsl-config
+version: 0.0.1-from-dsl
+description: Helm Chart generation via fragment integration test
+keywords:
+- from-fragment-overrides-dsl
+maintainers:
+- name: maintainer-via-groovy-dsl-config
+  email: maintainer@example.com
+  url: https://example.com/user1
+icon: https://example.com/icon-from-fragment-overrides-dsl
+dependencies:
+- name: dependency-via-groovy-dsl-config
+  version: 0.0.1
+  repository: https://example.com/dependency-via-groovy-dsl-config

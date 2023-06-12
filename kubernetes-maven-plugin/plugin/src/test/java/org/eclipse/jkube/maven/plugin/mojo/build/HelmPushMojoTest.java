@@ -63,6 +63,7 @@ class HelmPushMojoTest {
     helmPushMojo.settings = new Settings();
     helmPushMojo.securityDispatcher = mock(SecDispatcher.class);
     helmPushMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
+    helmPushMojo.interpolateTemplateParameters = true;
     helmPushMojo.project.getBuild()
       .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     helmPushMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());

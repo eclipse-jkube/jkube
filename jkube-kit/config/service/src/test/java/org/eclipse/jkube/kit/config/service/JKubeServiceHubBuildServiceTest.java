@@ -55,9 +55,15 @@ class JKubeServiceHubBuildServiceTest {
       Class<? extends BuildService> buildServiceClass) {
     // Given
     final BuildServiceConfig config = BuildServiceConfig.builder().jKubeBuildStrategy(buildStrategy).build();
-    final JKubeServiceHub jKubeServiceHub = new JKubeServiceHub(null, runtimeMode, new KitLogger.StdoutLogger(),
-        mock(DockerServiceHub.class, RETURNS_DEEP_STUBS), new JKubeConfiguration(), config, new LazyBuilder<>(() -> null),
-        true);
+    final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
+      .platformMode(runtimeMode)
+      .log(new KitLogger.SilentLogger())
+      .dockerServiceHub(mock(DockerServiceHub.class, RETURNS_DEEP_STUBS))
+      .configuration(new JKubeConfiguration())
+      .buildServiceConfig(config)
+      .resourceService(new LazyBuilder<>(hub -> null))
+      .offline(true)
+      .build();
     // When
     final BuildService result = jKubeServiceHub.getBuildService();
     // Then

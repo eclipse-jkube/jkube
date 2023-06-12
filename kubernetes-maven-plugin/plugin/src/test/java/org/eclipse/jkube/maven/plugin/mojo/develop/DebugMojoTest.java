@@ -72,6 +72,7 @@ class DebugMojoTest {
       project = mavenProject;
       settings = mock(Settings.class);
       kubernetesManifest = kubernetesManifestFile;
+      interpolateTemplateParameters = false;
     }};
     // @formatter:on
   }

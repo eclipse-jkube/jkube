@@ -30,6 +30,7 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceService;
+import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
@@ -48,35 +49,39 @@ public class JKubeServiceHub implements Closeable {
     private final DockerServiceHub dockerServiceHub;
     @Getter
     private final BuildServiceConfig buildServiceConfig;
+    @Getter
+    private final ResourceServiceConfig resourceServiceConfig;
     private final ClusterAccess clusterAccess;
     @Getter
     @Setter
     private RuntimeMode platformMode;
-    private LazyBuilder<BuildServiceManager> buildServiceManager;
-    private LazyBuilder<PluginManager> pluginManager;
-    private final LazyBuilder<ResourceService> resourceService;
-    private LazyBuilder<PortForwardService> portForwardService;
-    private LazyBuilder<ApplyService> applyService;
-    private LazyBuilder<UndeployService> undeployService;
-    private LazyBuilder<MigrateService> migrateService;
-    private LazyBuilder<DebugService> debugService;
-    private LazyBuilder<HelmService> helmService;
-    private LazyBuilder<ClusterAccess> clusterAccessLazyBuilder;
-    private LazyBuilder<KubernetesClient> kubernetesClientLazyBuilder;
+    private LazyBuilder<JKubeServiceHub, BuildServiceManager> buildServiceManager;
+    private LazyBuilder<JKubeServiceHub, PluginManager> pluginManager;
+    private final LazyBuilder<JKubeServiceHub, ResourceService> resourceService;
+    private LazyBuilder<JKubeServiceHub, PortForwardService> portForwardService;
+    private LazyBuilder<JKubeServiceHub, ApplyService> applyService;
+    private LazyBuilder<JKubeServiceHub, UndeployService> undeployService;
+    private LazyBuilder<JKubeServiceHub, MigrateService> migrateService;
+    private LazyBuilder<JKubeServiceHub, DebugService> debugService;
+    private LazyBuilder<JKubeServiceHub, HelmService> helmService;
+    private LazyBuilder<JKubeServiceHub, ClusterAccess> clusterAccessLazyBuilder;
+    private LazyBuilder<JKubeServiceHub, KubernetesClient> kubernetesClientLazyBuilder;
     private final boolean offline;
 
     @Builder
     public JKubeServiceHub(
             ClusterAccess clusterAccess, RuntimeMode platformMode, KitLogger log,
             DockerServiceHub dockerServiceHub, JKubeConfiguration configuration,
-            BuildServiceConfig buildServiceConfig,
-            LazyBuilder<ResourceService> resourceService, boolean offline) {
+            BuildServiceConfig buildServiceConfig, ResourceServiceConfig resourceServiceConfig,
+            LazyBuilder<JKubeServiceHub, ResourceService> resourceService,
+            boolean offline) {
         this.clusterAccess = clusterAccess;
         this.platformMode = platformMode;
         this.log = log;
         this.dockerServiceHub = dockerServiceHub;
         this.configuration = configuration;
         this.buildServiceConfig = buildServiceConfig;
+        this.resourceServiceConfig = resourceServiceConfig;
         this.resourceService = resourceService;
         this.offline = offline;
         init();
@@ -85,7 +90,7 @@ public class JKubeServiceHub implements Closeable {
     @Override
     public void close() {
         if (kubernetesClientLazyBuilder.hasInstance()) {
-            kubernetesClientLazyBuilder.get().close();
+            kubernetesClientLazyBuilder.get(this).close();
         }
         Optional.ofNullable(dockerServiceHub).map(DockerServiceHub::getDockerAccess).ifPresent(DockerAccess::shutdown);
     }
@@ -98,26 +103,26 @@ public class JKubeServiceHub implements Closeable {
     }
 
     private void initLazyBuilders() {
-        clusterAccessLazyBuilder = new LazyBuilder<>(this::initClusterAccessIfNecessary);
-        kubernetesClientLazyBuilder = new LazyBuilder<>(() -> getClusterAccess().createDefaultClient());
-        buildServiceManager = new LazyBuilder<>(() -> new BuildServiceManager(this));
-        pluginManager = new LazyBuilder<>(() -> new PluginManager(this));
-        applyService = new LazyBuilder<>(() -> new ApplyService(this));
-        portForwardService = new LazyBuilder<>(() -> {
+        clusterAccessLazyBuilder = new LazyBuilder<>(JKubeServiceHub::initClusterAccessIfNecessary);
+        kubernetesClientLazyBuilder = new LazyBuilder<>(hub -> getClusterAccess().createDefaultClient());
+        buildServiceManager = new LazyBuilder<>(BuildServiceManager::new);
+        pluginManager = new LazyBuilder<>(PluginManager::new);
+        applyService = new LazyBuilder<>(ApplyService::new);
+        portForwardService = new LazyBuilder<>(hub -> {
             getClient();
             return new PortForwardService(log);
         });
-        debugService = new LazyBuilder<>(() ->
-            new DebugService(log, getClient(), portForwardService.get(), applyService.get()));
-        undeployService = new LazyBuilder<>(() -> {
+        debugService = new LazyBuilder<>(hub ->
+            new DebugService(log, getClient(), portForwardService.get(hub), applyService.get(hub)));
+        undeployService = new LazyBuilder<>(hub -> {
             final KubernetesClient client = getClient();
             if (platformMode == RuntimeMode.OPENSHIFT && isOpenShift(client)) {
-                return new OpenshiftUndeployService(this, log);
+                return new OpenshiftUndeployService(hub, log);
             }
-            return new KubernetesUndeployService(this, log);
+            return new KubernetesUndeployService(hub, log);
         });
-        migrateService = new LazyBuilder<>(() -> new MigrateService(getConfiguration().getBasedir(), log));
-        helmService = new LazyBuilder<>(() -> new HelmService(getConfiguration(), log));
+        migrateService = new LazyBuilder<>(hub -> new MigrateService(getConfiguration().getBasedir(), log));
+        helmService = new LazyBuilder<>(hub -> new HelmService(hub.getConfiguration(), hub.getResourceServiceConfig(), log));
     }
 
     private ClusterAccess initClusterAccessIfNecessary() {
@@ -136,47 +141,47 @@ public class JKubeServiceHub implements Closeable {
     }
 
     public BuildService getBuildService() {
-        return buildServiceManager.get().resolveBuildService();
+        return buildServiceManager.get(this).resolveBuildService();
     }
 
     public PluginManager getPluginManager() {
-        return pluginManager.get();
+        return pluginManager.get(this);
     }
 
     public ResourceService getResourceService() {
-        return resourceService.get();
+        return resourceService.get(this);
     }
 
     public ApplyService getApplyService() {
-        return applyService.get();
+        return applyService.get(this);
     }
 
     public UndeployService getUndeployService() {
-        return undeployService.get();
+        return undeployService.get(this);
     }
 
     public MigrateService getMigrateService() {
-        return migrateService.get();
+        return migrateService.get(this);
     }
 
     public PortForwardService getPortForwardService() {
-        return portForwardService.get();
+        return portForwardService.get(this);
     }
 
     public DebugService getDebugService() {
-        return debugService.get();
+        return debugService.get(this);
     }
 
     public HelmService getHelmService() {
-        return helmService.get();
+        return helmService.get(this);
     }
 
     public KubernetesClient getClient() {
-        return kubernetesClientLazyBuilder.get();
+        return kubernetesClientLazyBuilder.get(this);
     }
 
     public ClusterAccess getClusterAccess() {
-        return clusterAccessLazyBuilder.get();
+        return clusterAccessLazyBuilder.get(this);
     }
 
 }

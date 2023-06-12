@@ -24,10 +24,13 @@ If you have already built the resource then you can omit this task.
 
 endif::[]
 
-In order to configure generated chart you need to provide chart related configuration in form of {plugin-configuration-type} to {plugin}.
+There are multiple ways to configure the generated Helm Chart:
 
-You can also provide a `Chart.yaml` fragment in `src/main/jkube` directory, {plugin} would merge it's contents with the
-opinionated defaults to create final chart.
+* By providing a `Chart.helm.yaml` fragment in `src/main/jkube` directory.
+* Through the `helm` section in the {plugin} {plugin-configuration-type} configuration.
+
+When using the fragment approach, you simply need to create a `Chart.helm.yaml` file in the `src/main/jkube` directory with the fields you want to override.
+JKube will take care of merging this fragment with the opinionated and configured defaults.
 
 The {plugin-configuration-type} configuration is defined in a `helm` section within the plugin's configuration:
 

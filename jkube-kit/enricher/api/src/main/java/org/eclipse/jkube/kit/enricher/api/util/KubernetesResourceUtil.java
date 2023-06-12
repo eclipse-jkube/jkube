@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -89,7 +90,6 @@ import static org.eclipse.jkube.kit.common.util.KubernetesHelper.convertToEnvVar
 public class KubernetesResourceUtil {
     private KubernetesResourceUtil() { }
 
-
     public static final String API_VERSION = "v1";
     public static final String EXTENSIONS_VERSION = "extensions/v1beta1";
     public static final String API_APPS_VERSION = "apps/v1";
@@ -136,11 +136,12 @@ public class KubernetesResourceUtil {
 
     static final Map<String,String> FILENAME_TO_KIND_MAPPER = new HashMap<>();
     static final Map<String,String> KIND_TO_FILENAME_MAPPER = new HashMap<>();
-    static final Set<String> EXCLUDED_RESOURCE_FILENAMES = new HashSet<>();
+    static final Set<String> EXCLUDED_RESOURCE_FILENAME_SUFFIXES = new HashSet<>();
 
     static {
         initializeKindFilenameMapper();
-        initializeExcludedResourceFilenames();
+        EXCLUDED_RESOURCE_FILENAME_SUFFIXES.add(".helm.yaml");
+        EXCLUDED_RESOURCE_FILENAME_SUFFIXES.add(".helm.yml");
     }
 
     /**
@@ -160,9 +161,11 @@ public class KubernetesResourceUtil {
 
         final KubernetesListBuilder builder = new KubernetesListBuilder();
         if (resourceFiles != null) {
-            List<File> filteredResourceFiles = getFilteredResourceFiles(resourceFiles);
-            for (File file : filteredResourceFiles) {
-                builder.addToItems(getResource(platformMode, apiVersions, file, defaultName));
+            for (File file : resourceFiles) {
+                if (EXCLUDED_RESOURCE_FILENAME_SUFFIXES.stream()
+                  .noneMatch(s -> file.getName().toLowerCase(Locale.ROOT).endsWith(s))) {
+                    builder.addToItems(getResource(platformMode, apiVersions, file, defaultName));
+                }
             }
         }
         return builder;
@@ -198,10 +201,6 @@ public class KubernetesResourceUtil {
     protected static void initializeKindFilenameMapper() {
         final Map<String, List<String>> mappings = KindFilenameMapperUtil.loadMappings();
         updateKindFilenameMapper(mappings);
-    }
-
-    private static void initializeExcludedResourceFilenames() {
-        EXCLUDED_RESOURCE_FILENAMES.add(".helm.yaml");
     }
 
     protected static void remove(String kind, String filename) {
@@ -937,18 +936,6 @@ public class KubernetesResourceUtil {
                 metadata1.setLabels(mergeMapsAndRemoveEmptyStrings(metadata2.getLabels(), metadata1.getLabels()));
             }
         }
-    }
-
-    private static List<File> getFilteredResourceFiles(File[] resourceFiles) {
-        List<File> filteredResourceFiles = new ArrayList<>();
-        for (File resourceFile : resourceFiles) {
-            boolean hasNoExcludedFileNamePattern = EXCLUDED_RESOURCE_FILENAMES.stream()
-                .noneMatch(s -> resourceFile.getName().endsWith(s));
-            if (hasNoExcludedFileNamePattern) {
-                filteredResourceFiles.add(resourceFile);
-            }
-        }
-        return filteredResourceFiles;
     }
 
     /**

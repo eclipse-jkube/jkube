@@ -238,7 +238,7 @@ class JKubeServiceHubTest {
   @Test
   void getResourceService() {
     // Given
-    jKubeServiceHubBuilder.resourceService(new LazyBuilder<>(() -> mock(ResourceService.class)));
+    jKubeServiceHubBuilder.resourceService(new LazyBuilder<>(hub -> mock(ResourceService.class)));
     try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
       // When
       final ResourceService resourceService = jKubeServiceHub.getResourceService();
