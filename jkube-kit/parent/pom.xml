@@ -66,7 +66,7 @@
     <version.ow2.asm>9.4</version.ow2.asm>
 
     <!-- =======================================================  -->
-    <version.image.jkube-images>0.0.18</version.image.jkube-images>
+    <version.image.jkube-images>0.0.19</version.image.jkube-images>
     <!-- === Java base image versions for docker, s2i (istag == s2i) -->
     <!-- Upstream -->
     <version.image.java.upstream.docker>${version.image.jkube-images}</version.image.java.upstream.docker>
