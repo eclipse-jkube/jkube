@@ -277,7 +277,7 @@ public class KubernetesHelper {
      * Returns true if the pod is running and ready.
      *
      * @param pod Pod object.
-     * @returntrue if Pod is ready, false otherwise.
+     * @return true if Pod is ready, false otherwise.
      */
     public static boolean isPodReady(Pod pod) {
         if (!isPodRunning(pod)) {
