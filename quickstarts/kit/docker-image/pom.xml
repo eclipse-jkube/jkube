@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.kit</groupId>
   <artifactId>docker-image</artifactId>
-  <version>1.13-SNAPSHOT</version>
+  <version>1.13.0</version>
   <name>Eclipse JKube :: Quickstarts :: Kit :: Docker Image</name>
   <packaging>jar</packaging>
 

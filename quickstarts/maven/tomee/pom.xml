@@ -19,7 +19,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.eclipse.jkube.quickstarts.maven</groupId>
 	<artifactId>tomee</artifactId>
-	<version>1.12.0</version>
+	<version>1.13.0</version>
 	<name>Eclipse JKube :: Quickstarts :: Maven :: Tomee</name>
 	<packaging>war</packaging>
 

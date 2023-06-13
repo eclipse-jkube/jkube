@@ -19,7 +19,7 @@
     <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>1.13-SNAPSHOT</version>
+    <version>1.13.0</version>
     <relativePath>../../parent/pom.xml</relativePath>
   </parent>
 

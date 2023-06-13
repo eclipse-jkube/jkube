@@ -19,7 +19,7 @@
 
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube</artifactId>
-  <version>1.13-SNAPSHOT</version>
+  <version>1.13.0</version>
   <packaging>pom</packaging>
   <description>Eclipse JKube</description>
   <name>Eclipse JKube</name>
@@ -114,7 +114,7 @@
     <version.plexus-component-metadata>2.1.1</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.sshd>2.9.2</version.sshd>
-    <project.build.outputTimestamp>2023-04-03T09:43:08Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2023-06-13T14:12:32Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
 
