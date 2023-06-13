@@ -30,7 +30,8 @@ Usage:
 * Fix #2170: `internal-microservice` profile prevents Service exposure
 * Fix #2174: Profile merge constructor accounts for parentProfile field
 * Fix #2187: `serviceAccount` configuration option has stopped working
-* Fix #2192: Bump Kubernetes Client to 6.7.0 (use JKube Serialization util to wrap around the Kubernetes Client KubernetesSerialization)
+* Fix #2192: Bump Kubernetes Client to 6.7.1 (use JKube Serialization util to wrap around the Kubernetes Client KubernetesSerialization)
+* Fix #2201: Bumps JKube Base images to 0.0.19
 
 ### 1.12.0 (2023-04-03)
 * Fix #1179: Move storageClass related functionality out of VolumePermissionEnricher to PersistentVolumeClaimStorageClassEnricher
