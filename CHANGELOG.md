@@ -20,9 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.14-SNAPSHOT
-
-### 1.13.0 (2023-06-13)
+### 1.13.0 (2023-06-14)
 * Fix #1478: Should detect and warn the user if creating ingress and ingress controller not available
 * Fix #2092: Support for `Chart.yaml` fragments
 * Fix #2150: Bump Kubernetes Client to 6.6.0 (fixes issues when trace-logging OpenShift builds)
