@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.14-SNAPSHOT
+* Fix #2212: Bump Kubernetes Client version to 6.7.2 (fixes issues when trace-logging OpenShift builds -regression in 6.7.1-)
 
 ### 1.13.0 (2023-06-14)
 * Fix #1478: Should detect and warn the user if creating ingress and ingress controller not available
