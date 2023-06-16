@@ -26,5 +26,5 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.eclipse.jkube:jkube-kit-api:1.13.0'
+    implementation 'org.eclipse.jkube:jkube-kit-api:1.13.1'
 }
