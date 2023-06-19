@@ -55,8 +55,8 @@ public class JavaExecGenerator extends BaseGenerator {
   }
 
     private static final String WEB_PORT_DEFAULT = "8080";
-    private static final String JOLOKIA_PORT_DEFAULT = "8778";
-    private static final String PROMETHEUS_PORT_DEFAULT = "9779";
+    public static final String JOLOKIA_PORT_DEFAULT = "8778";
+    public static final String PROMETHEUS_PORT_DEFAULT = "9779";
     // Environment variable used for specifying a main class
     static final String JAVA_MAIN_CLASS_ENV_VAR = "JAVA_MAIN_CLASS";
     protected static final String JAVA_OPTIONS = "JAVA_OPTIONS";

@@ -51,4 +51,18 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <resources>
+            <!-- Copy over default images versions defined above -->
+            <resource>
+                <directory>src/main/resources-filtered</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+            </resource>
+        </resources>
+    </build>
+
 </project>

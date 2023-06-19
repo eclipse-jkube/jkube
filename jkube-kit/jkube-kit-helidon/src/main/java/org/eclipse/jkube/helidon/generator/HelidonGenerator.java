@@ -17,6 +17,7 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 import java.util.List;
@@ -25,11 +26,9 @@ import java.util.Optional;
 import static org.eclipse.jkube.helidon.HelidonUtils.extractPort;
 import static org.eclipse.jkube.helidon.HelidonUtils.getHelidonConfiguration;
 import static org.eclipse.jkube.helidon.HelidonUtils.hasHelidonDependencies;
-import static org.eclipse.jkube.helidon.HelidonUtils.hasHelidonGraalNativeImageExtension;
 
 public class HelidonGenerator extends JavaExecGenerator {
   public static final String HELIDON = "helidon";
-  public static final String DEFAULT_NATIVE_BASE_IMAGE = "registry.access.redhat.com/ubi8/ubi-minimal:8.7-1107";
 
   public HelidonGenerator(GeneratorContext context) {
     super(context, HELIDON);
@@ -42,37 +41,23 @@ public class HelidonGenerator extends JavaExecGenerator {
 
   @Override
   protected AssemblyConfiguration createAssembly() {
-    if (isNativeImage()) {
-      return HelidonAssemblies.NATIVE.createAssemblyConfiguration(this);
-    }
-    return HelidonAssemblies.STANDARD.createAssemblyConfiguration(this);
+    return HelidonGenerators.from(getProject()).createAssemblyConfiguration(this);
   }
 
   @Override
   protected String getBuildWorkdir() {
-    if (isNativeImage()) {
-      return "/";
-    }
-    return getConfig(JavaExecGenerator.Config.TARGET_DIR);
+    return HelidonGenerators.from(getProject()).getBuildWorkdir(this);
   }
 
   @Override
   protected String getFromAsConfigured() {
-    if (isNativeImage()) {
-      return Optional.ofNullable(super.getFromAsConfigured()).orElse(getNativeFrom());
-    }
-    return super.getFromAsConfigured();
+    return Optional.ofNullable(super.getFromAsConfigured())
+      .orElse(HelidonGenerators.from(getProject()).fromSelector(this).getFrom());
   }
 
   @Override
   protected Arguments getBuildEntryPoint() {
-    if (isNativeImage()) {
-      final Arguments.ArgumentsBuilder ab = Arguments.builder();
-      ab.execArgument("./" + getProject().getArtifactId());
-      getExtraJavaOptions().forEach(ab::execArgument);
-      return ab.build();
-    }
-    return null;
+    return HelidonGenerators.from(getProject()).getBuildEntryPoint(this);
   }
 
   @Override
@@ -82,19 +67,17 @@ public class HelidonGenerator extends JavaExecGenerator {
 
   @Override
   protected String getDefaultJolokiaPort() {
-    return isNativeImage() ? "0" : super.getDefaultJolokiaPort();
+    return HelidonGenerators.from(getProject()).getDefaultJolokiaPort();
   }
 
   @Override
   protected String getDefaultPrometheusPort() {
-    return isNativeImage() ? "0" : super.getDefaultPrometheusPort();
+    return HelidonGenerators.from(getProject()).getDefaultPrometheusPort();
   }
 
-  private String getNativeFrom() {
-    return DEFAULT_NATIVE_BASE_IMAGE;
-  }
-
-  private boolean isNativeImage() {
-    return hasHelidonGraalNativeImageExtension(getProject());
+  @SuppressWarnings("java:S1185") // Expose super method to HelidonGenerators
+  @Override
+  protected String getConfig(Configs.Config key) {
+    return super.getConfig(key);
   }
 }
