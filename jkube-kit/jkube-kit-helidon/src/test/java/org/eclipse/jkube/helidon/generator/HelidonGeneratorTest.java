@@ -14,7 +14,6 @@
 package org.eclipse.jkube.helidon.generator;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.eclipse.jkube.generator.api.DefaultImageLookup;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -30,7 +29,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.MockedConstruction;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,10 +41,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.when;
 
 class HelidonGeneratorTest {
   @TempDir
@@ -108,7 +108,7 @@ class HelidonGeneratorTest {
 
   @Test
   @DisplayName("isApplicable, with no valid ImageConfiguration and Helidon dependency, returns true")
-  void isApplicable_hHelidonDependencyNoImageConfiguration_returnsTrue() {
+  void isApplicable_helidonDependencyNoImageConfiguration_returnsTrue() {
     // Given
     project.setDependenciesWithTransitive(Collections.singletonList(Dependency.builder()
         .groupId("io.helidon.webserver")
@@ -121,47 +121,119 @@ class HelidonGeneratorTest {
     assertThat(result).isTrue();
   }
 
-  @Test
-  @DisplayName("customize, in Kubernetes, should return image based on docker")
-  void customize_whenKubernetesMode_thenReturnDockerForm() {
-    try (MockedConstruction<DefaultImageLookup> ignored = mockConstruction(DefaultImageLookup.class,
-        (mock, ctx) -> when(mock.getImageName("java.upstream.docker")).thenReturn("helidon/docker"))) {
-      // Given
-      HelidonGenerator helidonGenerator = new HelidonGenerator(ctx);
-      in(RuntimeMode.KUBERNETES);
-
-      // When
-      List<ImageConfiguration> result = helidonGenerator.customize(new ArrayList<>(), true);
-
-      // Then
-      assertBuildFrom(result, "helidon/docker");
-    }
-  }
-
-  @Test
-  @DisplayName("customize, in OpenShift, should return image based on s2i")
-  void customize_whenOpenShiftMode_shouldReturnS2iFrom() {
-    try (MockedConstruction<DefaultImageLookup> ignored = mockConstruction(DefaultImageLookup.class,
-        (mock, ctx) -> when(mock.getImageName("java.upstream.s2i")).thenReturn("quarkus/s2i"))) {
-      // Given
-      in(RuntimeMode.OPENSHIFT);
-      // When
-      final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
-      // Then
-      assertBuildFrom(result, "quarkus/s2i");
-    }
-  }
-
-  @Test
-  @DisplayName("customize, in Kubernetes with native artifact, should return image based on ubi")
-  void customize_inKubernetes_shouldReturnNativeUbiFrom() {
+  @ParameterizedTest(name = "{index}: customize, standard packaging in ''{0}'' mode, should return ''{1}'' as from image")
+  @MethodSource("customize_withStandardPackaging_fromData")
+  void customize_withStandardPackaging_from(RuntimeMode runtimeMode, String expectedFromStartsWith) {
     // Given
-    in(RuntimeMode.KUBERNETES);
+    in(runtimeMode);
+    // When
+    final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
+    // Then
+    assertThat(result).singleElement()
+      .extracting("buildConfiguration.from").asString()
+      .startsWith(expectedFromStartsWith);
+  }
+
+  static Stream<Arguments> customize_withStandardPackaging_fromData() {
+    return Stream.of(
+      Arguments.of(RuntimeMode.KUBERNETES, "quay.io/jkube/jkube-java:"),
+      Arguments.of(RuntimeMode.OPENSHIFT, "quay.io/jkube/jkube-java:")
+    );
+  }
+
+  @ParameterizedTest(name = "{index}: customize, native packaging in ''{0}'' mode, should return ''{1}'' as from image")
+  @MethodSource("customize_withNativePackaging_fromData")
+  void customize_withNativePackaging_from(RuntimeMode runtimeMode, String expectedFromStartsWith) {
+    // Given
+    withNativeExtensionDependencyInTarget();
+    in(runtimeMode);
+    // When
+    final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
+    // Then
+    assertThat(result).singleElement()
+      .extracting("buildConfiguration.from").asString()
+      .startsWith(expectedFromStartsWith);
+  }
+
+  static Stream<Arguments> customize_withNativePackaging_fromData() {
+    return Stream.of(
+      Arguments.of(RuntimeMode.KUBERNETES, "registry.access.redhat.com/ubi8/ubi-minimal:"),
+      Arguments.of(RuntimeMode.OPENSHIFT, "registry.access.redhat.com/ubi8/ubi-minimal:")
+    );
+  }
+
+  @Test
+  @DisplayName("customize, with standard packaging, should set workDir to targetDir")
+  void customize_withStandardPackaging_workDir(){
+    // When
+    final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
+    // Then
+    assertThat(result).singleElement()
+      .extracting("buildConfiguration.workdir").asString()
+      .startsWith("/deployments");
+  }
+
+  @Test
+  @DisplayName("customize, with native packaging, should set workDir to root directory")
+  void customize_withNativePackaging_workDir(){
+    // Given
     withNativeExtensionDependencyInTarget();
     // When
-    final List<ImageConfiguration> resultImages = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
+    final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
     // Then
-    assertBuildFrom(resultImages, "registry.access.redhat.com/ubi8/ubi-minimal:8.7-1107");
+    assertThat(result).singleElement()
+      .extracting("buildConfiguration.workdir").asString()
+      .startsWith("/");
+  }
+
+  @Test
+  @DisplayName("customize, with standard packaging, has Jolokia port")
+  void customize_withStandardPackaging_hasJolokiaPort(){
+    // When
+    final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
+    // Then
+    assertThat(result).singleElement()
+      .extracting("buildConfiguration.ports").asList()
+      .contains("8778");
+  }
+
+  @Test
+  @DisplayName("customize, with native packaging, disables Jolokia")
+  void customize_withNativePackaging_disablesJolokia(){
+    // Given
+    withNativeExtensionDependencyInTarget();
+    // When
+    final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
+    // Then
+    assertThat(result).singleElement()
+      .extracting("buildConfiguration.env")
+      .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+      .containsEntry("AB_JOLOKIA_OFF", "true");
+  }
+
+  @Test
+  @DisplayName("customize, with standard packaging, has Prometheus port")
+  void customize_withStandardPackaging_hasPrometheusPort(){
+    // When
+    final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
+    // Then
+    assertThat(result).singleElement()
+      .extracting("buildConfiguration.ports").asList()
+      .contains("9779");
+  }
+
+  @Test
+  @DisplayName("customize, with native packaging, disables Prometheus")
+  void customize_withNativePackaging_disablesPrometheus(){
+    // Given
+    withNativeExtensionDependencyInTarget();
+    // When
+    final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
+    // Then
+    assertThat(result).singleElement()
+      .extracting("buildConfiguration.env")
+      .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+      .containsEntry("AB_PROMETHEUS_OFF", "true");
   }
 
   @Test
@@ -231,14 +303,6 @@ class HelidonGeneratorTest {
 
   private void in(RuntimeMode runtimeMode) {
     ctx = ctx.toBuilder().runtimeMode(runtimeMode).build();
-  }
-
-  private void assertBuildFrom(List<ImageConfiguration> resultImages, String baseImage) {
-    assertThat(resultImages)
-        .isNotNull()
-        .hasSize(1)
-        .extracting("buildConfiguration.from")
-        .containsExactly(baseImage);
   }
 
   private void withNativeExtensionDependencyInTarget() {

@@ -23,8 +23,13 @@ import java.io.File;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 
-public class HelidonAssemblies {
-  public static final HelidonAssembly NATIVE = helidonGenerator -> {
+
+@FunctionalInterface
+public interface HelidonAssembly {
+
+  AssemblyConfiguration createAssemblyConfiguration(HelidonGenerator helidonGenerator);
+
+  HelidonAssembly NATIVE = helidonGenerator -> {
     final JavaProject project = helidonGenerator.getContext().getProject();
     final AssemblyFileSet.AssemblyFileSetBuilder artifactFileSetBuilder = AssemblyFileSet.builder()
         .outputDirectory(new File("."))
@@ -34,12 +39,14 @@ public class HelidonAssemblies {
     if (nativeBinary.exists()) {
       artifactFileSetBuilder.include(nativeBinary.getName());
     }
-    return createAssemblyConfiguration(helidonGenerator.getBuildWorkdir())
-        .layer(Assembly.builder().fileSet(artifactFileSetBuilder.build()).build())
-        .build();
+    return AssemblyConfiguration.builder()
+      .targetDir(helidonGenerator.getBuildWorkdir())
+      .excludeFinalOutputArtifact(true)
+      .layer(Assembly.builder().fileSet(artifactFileSetBuilder.build()).build())
+      .build();
   };
 
-  public static final HelidonAssembly STANDARD = helidonGenerator -> {
+  HelidonAssembly STANDARD = helidonGenerator -> {
     final JavaProject project = helidonGenerator.getContext().getProject();
     AssemblyFileSet.AssemblyFileSetBuilder libFileSet = AssemblyFileSet.builder()
         .outputDirectory(new File("."))
@@ -54,20 +61,11 @@ public class HelidonAssemblies {
     if (defaultArtifactFile != null) {
       artifactFileSet.include(getRelativePath(project.getBuildPackageDirectory(), defaultArtifactFile).getPath());
     }
-    return createAssemblyConfiguration(helidonGenerator.getBuildWorkdir())
+    return AssemblyConfiguration.builder()
+        .targetDir(helidonGenerator.getBuildWorkdir())
+        .excludeFinalOutputArtifact(true)
         .layer(Assembly.builder().id("libs").fileSet(libFileSet.build()).build())
         .layer(Assembly.builder().id("artifact").fileSet(artifactFileSet.build()).build())
         .build();
   };
-
-  private static AssemblyConfiguration.AssemblyConfigurationBuilder createAssemblyConfiguration(String targetDir) {
-    return AssemblyConfiguration.builder()
-        .targetDir(targetDir)
-        .excludeFinalOutputArtifact(true);
-  }
-
-  @FunctionalInterface
-  public interface HelidonAssembly {
-    AssemblyConfiguration createAssemblyConfiguration(HelidonGenerator quarkusGenerator);
-  }
 }
