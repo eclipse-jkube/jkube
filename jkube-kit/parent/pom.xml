@@ -49,7 +49,7 @@
     <version.jgit>5.12.0.202106070339-r</version.jgit>
     <version.jnr-unixsocket>0.38.17</version.jnr-unixsocket>
     <version.jsr305>3.0.2</version.jsr305>
-    <version.lombok>1.18.24</version.lombok>
+    <version.lombok>1.18.28</version.lombok>
     <version.maven-archiver>3.6.0</version.maven-archiver>
     <version.maven-core>3.6.3</version.maven-core>
     <version.maven-filtering>3.3.1</version.maven-filtering>
