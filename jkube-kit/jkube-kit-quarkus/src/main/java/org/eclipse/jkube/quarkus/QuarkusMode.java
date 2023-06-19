@@ -19,23 +19,23 @@ import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.quarkus.generator.QuarkusAssemblies;
+import org.eclipse.jkube.quarkus.generator.QuarkusAssembly;
 
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
 public enum QuarkusMode {
 
-  NATIVE("native", false, QuarkusAssemblies.NATIVE),
-  FAST_JAR("fast-jar", false, QuarkusAssemblies.FAST_JAR),
-  LEGACY_JAR("legacy-jar", false, QuarkusAssemblies.LEGACY_JAR),
-  UBER_JAR("uber-jar", true, QuarkusAssemblies.UBER_JAR);
+  NATIVE("native", false, QuarkusAssembly.NATIVE),
+  FAST_JAR("fast-jar", false, QuarkusAssembly.FAST_JAR),
+  LEGACY_JAR("legacy-jar", false, QuarkusAssembly.LEGACY_JAR),
+  UBER_JAR("uber-jar", true, QuarkusAssembly.UBER_JAR);
 
   private final String packageType;
   private final boolean isFatJar;
-  private final QuarkusAssemblies.QuarkusAssembly assembly;
+  private final QuarkusAssembly assembly;
 
-  QuarkusMode(String packageType, boolean isFatJar, QuarkusAssemblies.QuarkusAssembly assembly) {
+  QuarkusMode(String packageType, boolean isFatJar, QuarkusAssembly assembly) {
     this.packageType = packageType;
     this.isFatJar = isFatJar;
     this.assembly = assembly;
@@ -45,7 +45,7 @@ public enum QuarkusMode {
     return isFatJar;
   }
 
-  public QuarkusAssemblies.QuarkusAssembly getAssembly() {
+  public QuarkusAssembly getAssembly() {
     return assembly;
   }
 

@@ -27,9 +27,12 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.findSingleFileThatEndsWith;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
-public class QuarkusAssemblies {
+@FunctionalInterface
+public interface QuarkusAssembly {
 
-  public static final QuarkusAssembly NATIVE = quarkusGenerator -> {
+  AssemblyConfiguration createAssemblyConfiguration(QuarkusGenerator quarkusGenerator);
+
+  QuarkusAssembly NATIVE = quarkusGenerator -> {
     final JavaProject project = quarkusGenerator.getContext().getProject();
     final Properties quarkusConfiguration = getQuarkusConfiguration(project);
     final AssemblyFileSet artifactFileSet = createFileSet(project)
@@ -37,12 +40,14 @@ public class QuarkusAssemblies {
         .include(findSingleFileThatEndsWith(project, runnerSuffix(quarkusConfiguration)))
         .fileMode("0755")
         .build();
-    return createAssemblyConfiguration(quarkusGenerator.getBuildWorkdir())
-        .layer(Assembly.builder().fileSet(artifactFileSet).build())
-        .build();
+    return AssemblyConfiguration.builder()
+      .targetDir(quarkusGenerator.getBuildWorkdir())
+      .excludeFinalOutputArtifact(true)
+      .layer(Assembly.builder().fileSet(artifactFileSet).build())
+      .build();
   };
 
-  public static final QuarkusAssembly FAST_JAR = quarkusGenerator -> {
+  QuarkusAssembly FAST_JAR = quarkusGenerator -> {
     final JavaProject project = quarkusGenerator.getContext().getProject();
     final File quarkusAppDirectory = new File(project.getBuildDirectory(), "quarkus-app");
     if (!quarkusAppDirectory.exists()) {
@@ -60,13 +65,15 @@ public class QuarkusAssemblies {
         .exclude("lib/**/*")
         .exclude("lib/*")
         .fileMode("0640");
-    return createAssemblyConfiguration(quarkusGenerator.getBuildWorkdir())
-        .layer(Assembly.builder().id("lib").fileSet(libFileSet.build()).build())
-        .layer(Assembly.builder().id("fast-jar").fileSet(fastJarFileSet.build()).build())
-        .build();
+    return AssemblyConfiguration.builder()
+      .targetDir(quarkusGenerator.getBuildWorkdir())
+      .excludeFinalOutputArtifact(true)
+      .layer(Assembly.builder().id("lib").fileSet(libFileSet.build()).build())
+      .layer(Assembly.builder().id("fast-jar").fileSet(fastJarFileSet.build()).build())
+      .build();
   };
 
-  public static final QuarkusAssembly LEGACY_JAR = quarkusGenerator -> {
+  QuarkusAssembly LEGACY_JAR = quarkusGenerator -> {
     final JavaProject project = quarkusGenerator.getContext().getProject();
     AssemblyFileSet.AssemblyFileSetBuilder libFileSet = createFileSet(project)
         .directory(FileUtil.getRelativePath(project.getBaseDirectory(), project.getBuildDirectory()))
@@ -76,24 +83,28 @@ public class QuarkusAssemblies {
         .directory(FileUtil.getRelativePath(project.getBaseDirectory(), project.getBuildDirectory()))
         .include(findSingleFileThatEndsWith(project, runnerSuffix(getQuarkusConfiguration(project)) + ".jar"))
         .fileMode("0640");
-    return createAssemblyConfiguration(quarkusGenerator.getBuildWorkdir())
-        .layer(Assembly.builder().id("lib").fileSet(libFileSet.build()).build())
-        .layer(Assembly.builder().id("artifact").fileSet(artifactFileSet.build()).build())
-        .build();
+    return AssemblyConfiguration.builder()
+      .targetDir(quarkusGenerator.getBuildWorkdir())
+      .excludeFinalOutputArtifact(true)
+      .layer(Assembly.builder().id("lib").fileSet(libFileSet.build()).build())
+      .layer(Assembly.builder().id("artifact").fileSet(artifactFileSet.build()).build())
+      .build();
   };
 
-  public static final QuarkusAssembly UBER_JAR = quarkusGenerator -> {
+  QuarkusAssembly UBER_JAR = quarkusGenerator -> {
     final JavaProject project = quarkusGenerator.getContext().getProject();
     final AssemblyFileSet.AssemblyFileSetBuilder fileSetBuilder = createFileSet(project)
         .directory(FileUtil.getRelativePath(project.getBaseDirectory(), project.getBuildDirectory()))
         .include(findSingleFileThatEndsWith(project, runnerSuffix(getQuarkusConfiguration(project)) + ".jar"))
         .fileMode("0640");
-    return createAssemblyConfiguration(quarkusGenerator.getBuildWorkdir())
-        .layer(Assembly.builder().fileSet(fileSetBuilder.build()).build())
-        .build();
+    return AssemblyConfiguration.builder()
+      .targetDir(quarkusGenerator.getBuildWorkdir())
+      .excludeFinalOutputArtifact(true)
+      .layer(Assembly.builder().fileSet(fileSetBuilder.build()).build())
+      .build();
   };
 
-  private static AssemblyFileSet.AssemblyFileSetBuilder createFileSet(JavaProject project) {
+  static AssemblyFileSet.AssemblyFileSetBuilder createFileSet(JavaProject project) {
     final AssemblyFileSet.AssemblyFileSetBuilder assemblyFileSetBuilder = AssemblyFileSet.builder()
         .outputDirectory(new File("."));
     // We also need to exclude default jar file
@@ -104,14 +115,4 @@ public class QuarkusAssemblies {
     return assemblyFileSetBuilder;
   }
 
-  private static AssemblyConfiguration.AssemblyConfigurationBuilder createAssemblyConfiguration(String targetDir) {
-    return AssemblyConfiguration.builder()
-        .targetDir(targetDir)
-        .excludeFinalOutputArtifact(true);
-  }
-
-  @FunctionalInterface
-  public interface QuarkusAssembly {
-    AssemblyConfiguration createAssemblyConfiguration(QuarkusGenerator quarkusGenerator);
-  }
 }
