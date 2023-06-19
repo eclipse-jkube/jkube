@@ -22,37 +22,41 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class QuarkusGeneratorExposedPortsTest {
 
   private GeneratorContext ctx;
 
   private File target;
-  private List<String> compileClassPathElements;
   private Properties projectProperties;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
     target = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-    compileClassPathElements = new ArrayList<>();
-    ctx = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
     projectProperties = new Properties();
-    when(ctx.getProject().getProperties()).thenReturn(projectProperties);
-    when(ctx.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
-    when(ctx.getProject().getCompileClassPathElements()).thenReturn(compileClassPathElements);
-    when(ctx.getProject().getBaseDirectory()).thenReturn(target);
-    when(ctx.getProject().getBuildDirectory()).thenReturn(target);
-    when(ctx.getProject().getOutputDirectory()).thenReturn(target);
+    ctx = GeneratorContext.builder()
+      .logger(new KitLogger.SilentLogger())
+      .project(JavaProject.builder()
+        .version("1.33.7-SNAPSHOT")
+        .baseDirectory(target)
+        .buildDirectory(target.getAbsoluteFile())
+        .properties(projectProperties)
+        .outputDirectory(target)
+        .build())
+      .config(new ProcessorConfig())
+      .strategy(JKubeBuildStrategy.s2i)
+      .build();
   }
 
   @Test
@@ -87,8 +91,10 @@ class QuarkusGeneratorExposedPortsTest {
   void withApplicationProperties_shouldAddConfigured() throws IOException {
     // Given
     withFastJarInTarget();
-    compileClassPathElements.add(
-        QuarkusGeneratorExposedPortsTest.class.getResource("/generator-extract-ports").getPath());
+    ctx = ctx.toBuilder().project(ctx.getProject().toBuilder()
+        .compileClassPathElement(QuarkusGeneratorExposedPortsTest.class.getResource("/generator-extract-ports").getPath())
+        .build())
+      .build();
     // When
     final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), false);
     // Then
@@ -104,8 +110,10 @@ class QuarkusGeneratorExposedPortsTest {
     // Given
     withFastJarInTarget();
     projectProperties.put("quarkus.profile", "dev");
-    compileClassPathElements.add(
-        QuarkusGeneratorExposedPortsTest.class.getResource("/generator-extract-ports").getPath());
+    ctx = ctx.toBuilder().project(ctx.getProject().toBuilder()
+        .compileClassPathElement(QuarkusGeneratorExposedPortsTest.class.getResource("/generator-extract-ports").getPath())
+        .build())
+      .build();
     // When
     final List<ImageConfiguration> result = new QuarkusGenerator(ctx).customize(new ArrayList<>(), false);
     // Then
