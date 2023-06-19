@@ -83,44 +83,40 @@ class HelidonGeneratorTest {
   @DisplayName("isApplicable, when valid ImageConfiguration present, then returns false")
   void isApplicable_whenImageConfigurationPresent_thenReturnFalse() {
     // Given
-    HelidonGenerator helidonGenerator = new HelidonGenerator(ctx);
-
+    final List<ImageConfiguration> configs = Collections.singletonList(ImageConfiguration.builder()
+      .name("foo:latest")
+      .build(BuildConfiguration.builder()
+        .from("foo-base:latest")
+        .build())
+      .build());
     // When
-    boolean result = helidonGenerator.isApplicable(Collections.singletonList(ImageConfiguration.builder()
-        .name("foo:latest")
-        .build(BuildConfiguration.builder()
-            .from("foo-base:latest")
-            .build())
-        .build()));
+    boolean result = new HelidonGenerator(ctx).isApplicable(configs);
     // Then
     assertThat(result).isFalse();
   }
 
   @Test
-  @DisplayName("isApplicable, when helidon dependencies present, then returns true")
-  void isApplicable_whenHelidonDependenciesPresent_thenReturnTrue() {
+  @DisplayName("isApplicable, with no valid ImageConfiguration and no Helidon dependency, returns false")
+  void isApplicable_noHelidonDependencyNoImageConfiguration_returnsFalse() {
     // Given
-    HelidonGenerator helidonGenerator = new HelidonGenerator(ctx);
-
+    final List<ImageConfiguration> configs = Collections.emptyList();
     // When
-    boolean result = helidonGenerator.isApplicable(Collections.emptyList());
-
+    boolean result = new HelidonGenerator(ctx).isApplicable(configs);
     // Then
     assertThat(result).isFalse();
   }
 
   @Test
-  @DisplayName("isApplicable, when valid ImageConfiguration absent, then returns false")
-  void isApplicable_whenHelidonDependenciesAbsent_thenReturnFalse() {
+  @DisplayName("isApplicable, with no valid ImageConfiguration and Helidon dependency, returns true")
+  void isApplicable_hHelidonDependencyNoImageConfiguration_returnsTrue() {
     // Given
     project.setDependenciesWithTransitive(Collections.singletonList(Dependency.builder()
         .groupId("io.helidon.webserver")
         .artifactId("helidon-webserver")
         .build()));
-    HelidonGenerator helidonGenerator = new HelidonGenerator(ctx);
-
-    boolean result = helidonGenerator.isApplicable(Collections.emptyList());
-
+    final List<ImageConfiguration> configs = Collections.emptyList();
+    // When
+    boolean result = new HelidonGenerator(ctx).isApplicable(configs);
     // Then
     assertThat(result).isTrue();
   }
