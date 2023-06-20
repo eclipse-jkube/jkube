@@ -188,6 +188,36 @@ class QuarkusGeneratorTest {
     }
 
     @Test
+    @DisplayName("in Kubernetes with native artifact, should disable Jolokia")
+    void customize_inKubernetes_shouldDisableJolokia() throws IOException {
+      // Given
+      in(RuntimeMode.KUBERNETES);
+      withNativeBinaryInTarget();
+      // When
+      final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
+      // Then
+      assertThat(resultImages).singleElement()
+        .extracting("buildConfiguration.env")
+        .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+        .containsEntry("AB_JOLOKIA_OFF", "true");
+    }
+
+    @Test
+    @DisplayName("in Kubernetes with native artifact, should disable Prometheus")
+    void customize_inKubernetes_shouldDisablePrometheus() throws IOException {
+      // Given
+      in(RuntimeMode.KUBERNETES);
+      withNativeBinaryInTarget();
+      // When
+      final List<ImageConfiguration> resultImages = new QuarkusGenerator(ctx).customize(new ArrayList<>(), true);
+      // Then
+      assertThat(resultImages).singleElement()
+        .extracting("buildConfiguration.env")
+        .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+        .containsEntry("AB_PROMETHEUS_OFF", "true");
+    }
+
+    @Test
     @DisplayName("with configured image, should return configured image")
     void withConfiguredImage_shouldReturnConfigured() {
       // Given
