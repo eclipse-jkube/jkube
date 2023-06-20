@@ -25,25 +25,24 @@ import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Arguments;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.quarkus.QuarkusMode;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.findSingleFileThatEndsWith;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.hasQuarkusPlugin;
-import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
 public class QuarkusGenerator extends JavaExecGenerator {
 
   public static final String QUARKUS = "quarkus";
 
+  private final QuarkusNestedGenerator nestedGenerator;
+
   public QuarkusGenerator(GeneratorContext context) {
     super(context, QUARKUS);
+    nestedGenerator = QuarkusNestedGenerator.from(context, getGeneratorConfig());
   }
 
   @AllArgsConstructor
@@ -74,53 +73,32 @@ public class QuarkusGenerator extends JavaExecGenerator {
 
   @Override
   protected String getDefaultJolokiaPort() {
-    if (isNativeImage()) {
-      return "0";
-    }
-    return super.getDefaultJolokiaPort();
+    return nestedGenerator.getDefaultJolokiaPort();
   }
 
   @Override
   protected String getDefaultPrometheusPort() {
-    if (isNativeImage()) {
-      return "0";
-    }
-    return super.getDefaultPrometheusPort();
+    return nestedGenerator.getDefaultPrometheusPort();
   }
 
   @Override
   protected String getFromAsConfigured() {
-    if (isNativeImage()) {
-      return Optional.ofNullable(super.getFromAsConfigured()).orElse(getNativeFrom());
-    }
-    return super.getFromAsConfigured();
+    return Optional.ofNullable(super.getFromAsConfigured()).orElse(nestedGenerator.getFrom());
   }
 
   @Override
   protected AssemblyConfiguration createAssembly() {
-    if (isNativeImage()) {
-      return QuarkusMode.NATIVE.getAssembly().createAssemblyConfiguration(this);
-    }
-    return QuarkusMode.from(getProject()).getAssembly().createAssemblyConfiguration(this);
+    return nestedGenerator.createAssemblyConfiguration();
   }
 
   @Override
   protected String getBuildWorkdir() {
-    if (isNativeImage()) {
-      return "/";
-    }
-    return getConfig(JavaExecGenerator.Config.TARGET_DIR);
+    return nestedGenerator.getBuildWorkdir();
   }
 
   @Override
   protected Arguments getBuildEntryPoint() {
-    if (isNativeImage()) {
-      final Arguments.ArgumentsBuilder ab = Arguments.builder();
-      ab.execArgument("./" + findSingleFileThatEndsWith(getProject(), runnerSuffix(getQuarkusConfiguration(getProject()))));
-      getExtraJavaOptions().forEach(ab::execArgument);
-      return ab.build();
-    }
-    return null;
+    return nestedGenerator.getBuildEntryPoint();
   }
 
   @Override
@@ -134,20 +112,9 @@ public class QuarkusGenerator extends JavaExecGenerator {
     return Collections.singletonList("-Dquarkus.http.host=0.0.0.0");
   }
 
-  private boolean isNativeImage() {
-    return Boolean.parseBoolean(getConfig(Config.NATIVE_IMAGE)) || QuarkusMode.from(getProject()) == QuarkusMode.NATIVE;
-  }
-
-  private String getNativeFrom() {
-    if (getContext().getRuntimeMode() != RuntimeMode.OPENSHIFT) {
-      return "registry.access.redhat.com/ubi8/ubi-minimal:8.6";
-    }
-    return "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0";
-  }
-
   @Override
   protected boolean isFatJar() {
-    return QuarkusMode.from(getProject()).isFatJar();
+    return nestedGenerator.isFatJar();
   }
 
 }

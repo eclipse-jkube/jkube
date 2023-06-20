@@ -111,6 +111,10 @@ public abstract class BaseGenerator implements Generator {
         return context;
     }
 
+    public GeneratorConfig getGeneratorConfig() {
+        return config;
+    }
+
     protected String getConfig(Configs.Config key) {
         return config.get(key);
     }
@@ -120,11 +124,7 @@ public abstract class BaseGenerator implements Generator {
     }
 
     protected String getConfigWithFallback(Config key, String fallbackPropertyKey, String defaultVal) {
-        final String value = getConfig(key, Configs.getFromSystemPropertyWithPropertiesAsFallback(getProject().getProperties(), fallbackPropertyKey));
-        if (value != null) {
-            return value;
-        }
-        return defaultVal;
+        return config.getWithFallback(key, fallbackPropertyKey, defaultVal);
     }
 
     // Get 'from' as configured without any default and image stream tag handling
