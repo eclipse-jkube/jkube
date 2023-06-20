@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.quickstart.springboot.crd;
 
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -29,7 +29,7 @@ public class Application {
 
   @Bean
   public KubernetesClient kubernetesClient() {
-    return new DefaultKubernetesClient();
+    return new KubernetesClientBuilder().build();
   }
 
   @Bean
