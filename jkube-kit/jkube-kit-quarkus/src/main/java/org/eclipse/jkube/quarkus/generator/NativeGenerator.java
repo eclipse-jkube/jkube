@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
+import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Arguments;
@@ -21,7 +22,6 @@ import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.FileUtil;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import java.util.Properties;
 
@@ -31,17 +31,16 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.runnerSuffix;
 
 public class NativeGenerator extends AbstractQuarkusNestedGenerator {
 
+  private final FromSelector fromSelector;
+
   public NativeGenerator(GeneratorContext generatorContext, GeneratorConfig generatorConfig) {
     super(generatorContext, generatorConfig);
+    fromSelector = new FromSelector.Default(generatorContext, "quarkus-native");
   }
 
   @Override
   public String getFrom() {
-    // TODO: use value from property
-    if (getRuntimeMode() != RuntimeMode.OPENSHIFT) {
-      return "registry.access.redhat.com/ubi8/ubi-minimal:8.6";
-    }
-    return "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0";
+    return fromSelector.getFrom();
   }
 
   @Override
