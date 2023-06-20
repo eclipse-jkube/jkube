@@ -53,4 +53,12 @@ public class GeneratorConfig {
         return ProcessorConfig.getConfigValue(config, name, GENERATOR_PROP_PREFIX, properties, key, defaultVal);
     }
 
+    public String getWithFallback(Configs.Config key, String fallbackPropertyKey, String defaultVal) {
+        final String value = get(key, Configs.getFromSystemPropertyWithPropertiesAsFallback(properties, fallbackPropertyKey));
+        if (value != null) {
+            return value;
+        }
+        return defaultVal;
+    }
+
 }
