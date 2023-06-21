@@ -17,7 +17,6 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 import java.util.List;
@@ -29,9 +28,11 @@ import static org.eclipse.jkube.helidon.HelidonUtils.hasHelidonDependencies;
 
 public class HelidonGenerator extends JavaExecGenerator {
   public static final String HELIDON = "helidon";
+  private final HelidonNestedGenerator nestedGenerator;
 
   public HelidonGenerator(GeneratorContext context) {
     super(context, HELIDON);
+    nestedGenerator = HelidonNestedGenerator.from(context, getGeneratorConfig());
   }
 
   @Override
@@ -41,23 +42,22 @@ public class HelidonGenerator extends JavaExecGenerator {
 
   @Override
   protected AssemblyConfiguration createAssembly() {
-    return HelidonGenerators.from(getProject()).createAssemblyConfiguration(this);
+    return nestedGenerator.createAssemblyConfiguration();
   }
 
   @Override
   protected String getBuildWorkdir() {
-    return HelidonGenerators.from(getProject()).getBuildWorkdir(this);
+    return nestedGenerator.getBuildWorkdir();
   }
 
   @Override
   protected String getFromAsConfigured() {
-    return Optional.ofNullable(super.getFromAsConfigured())
-      .orElse(HelidonGenerators.from(getProject()).fromSelector(this).getFrom());
+    return Optional.ofNullable(super.getFromAsConfigured()).orElse(nestedGenerator.getFrom());
   }
 
   @Override
   protected Arguments getBuildEntryPoint() {
-    return HelidonGenerators.from(getProject()).getBuildEntryPoint(this);
+    return nestedGenerator.getBuildEntryPoint();
   }
 
   @Override
@@ -67,17 +67,11 @@ public class HelidonGenerator extends JavaExecGenerator {
 
   @Override
   protected String getDefaultJolokiaPort() {
-    return HelidonGenerators.from(getProject()).getDefaultJolokiaPort();
+    return nestedGenerator.getDefaultJolokiaPort();
   }
 
   @Override
   protected String getDefaultPrometheusPort() {
-    return HelidonGenerators.from(getProject()).getDefaultPrometheusPort();
-  }
-
-  @SuppressWarnings("java:S1185") // Expose super method to HelidonGenerators
-  @Override
-  protected String getConfig(Configs.Config key) {
-    return super.getConfig(key);
+    return nestedGenerator.getDefaultPrometheusPort();
   }
 }
