@@ -106,9 +106,9 @@
     <image.helidon-native.upstream.docker>registry.access.redhat.com/ubi8/ubi-minimal:${version.image.ubi-minimal}</image.helidon-native.upstream.docker>
     <image.helidon-native.upstream.istag>registry.access.redhat.com/ubi8/ubi-minimal:${version.image.ubi-minimal}</image.helidon-native.upstream.istag>
 
-    <!-- Quarkus --> <!-- TODO: Bump UBI minimal image -->
+    <!-- Quarkus -->
     <image.quarkus-native.upstream.s2i>quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0</image.quarkus-native.upstream.s2i>
-    <image.quarkus-native.upstream.docker>registry.access.redhat.com/ubi8/ubi-minimal:8.6</image.quarkus-native.upstream.docker>
+    <image.quarkus-native.upstream.docker>registry.access.redhat.com/ubi8/ubi-minimal:${version.image.ubi-minimal}</image.quarkus-native.upstream.docker>
     <image.quarkus-native.upstream.istag>quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0</image.quarkus-native.upstream.istag>
 
     <!-- karaf -->
