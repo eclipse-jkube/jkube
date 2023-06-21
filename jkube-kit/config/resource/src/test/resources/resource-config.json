@@ -47,7 +47,6 @@
     "name": "foo-sa",
     "deploymentRef": "foo-deployment"
   }],
-  "customResourceDefinitions": ["crontab.sample.example.com"],
   "createExternalUrls": true,
   "routeDomain": "example.com",
   "liveness": {

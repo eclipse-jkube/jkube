@@ -100,8 +100,6 @@ public class ResourceConfig {
   private String namespace;
   private String serviceAccount;
   @Singular
-  private List<String> customResourceDefinitions;
-  @Singular
   private List<ServiceAccountConfig> serviceAccounts;
   private ContainerResourcesConfig openshiftBuildConfig;
   private Boolean createExternalUrls;
