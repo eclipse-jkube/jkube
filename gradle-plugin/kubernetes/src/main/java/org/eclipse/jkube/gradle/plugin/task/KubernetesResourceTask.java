@@ -25,7 +25,7 @@ import java.io.IOException;
 
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.useDekorate;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.updateKindFilenameMappings;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments.updateKindFilenameMappings;
 
 @SuppressWarnings("CdiInjectionPointsInspection")
 public class KubernetesResourceTask extends AbstractJKubeTask {

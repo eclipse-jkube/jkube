@@ -23,7 +23,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,10 +73,10 @@ class WriteUtil {
         log.error("No name for generated item %s", item);
         continue;
       }
-      String fileName = KubernetesResourceUtil.getNameWithSuffix(name, item.getKind());
+      String fileName = KubernetesResourceFragments.getNameWithSuffix(name, item.getKind());
       int fileCount = generatedFiles.compute(fileName, (f, i) -> i == null ? 0 : i + 1);
       if (fileCount > 0) {
-        fileName = KubernetesResourceUtil.getNameWithSuffix(name + "-" + fileCount, item.getKind());
+        fileName = KubernetesResourceFragments.getNameWithSuffix(name + "-" + fileCount, item.getKind());
       }
 
       // Here we are writing individual file for all the resources.

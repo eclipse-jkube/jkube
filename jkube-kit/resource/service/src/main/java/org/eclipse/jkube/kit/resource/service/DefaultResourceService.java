@@ -31,6 +31,7 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.Profile;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
@@ -87,7 +88,7 @@ public class DefaultResourceService implements ResourceService {
       resourceServiceConfig.getResourceDirs()
           .forEach(resourceDir -> log.info("Using resource templates from %s", resourceDir));
       final File[] processedResource = processResourceFiles(resourceFiles);
-      KubernetesListBuilder builder = processResourceFragments(platformMode, processedResource);
+      KubernetesListBuilder builder = processResourceFragments(processedResource);
 
       // Create default resources for app resources only
       enricherManager.createDefaultResources(platformMode, builder);
@@ -103,11 +104,11 @@ public class DefaultResourceService implements ResourceService {
     }
   }
 
-  private KubernetesListBuilder processResourceFragments(PlatformMode platformMode, File[] resourceFiles) throws IOException {
+  private KubernetesListBuilder processResourceFragments(File[] resourceFiles) throws IOException {
     final KubernetesListBuilder builder = new KubernetesListBuilder();
     // Add resource files found in the JKube directory
     if (resourceFiles != null && resourceFiles.length > 0) {
-      builder.addAllToItems(readResourceFragments(platformMode, resourceFiles).buildItems());
+      builder.addAllToItems(readResourceFragments(resourceFiles).buildItems());
     }
     return builder;
   }
@@ -126,7 +127,7 @@ public class DefaultResourceService implements ResourceService {
           File[] resourceFiles = listResourceFragments(profileDir);
           final File[] processedResources = processResourceFiles(resourceFiles);
           if (processedResources.length > 0) {
-            KubernetesListBuilder profileBuilder = readResourceFragments(platformMode, processedResources);
+            KubernetesListBuilder profileBuilder = readResourceFragments(processedResources);
             enricherManager.createDefaultResources(platformMode, enricherConfig, profileBuilder);
             enricherManager.enrich(platformMode, enricherConfig, profileBuilder);
             ret.addAll(profileBuilder.buildItems());
@@ -137,9 +138,8 @@ public class DefaultResourceService implements ResourceService {
     return ret;
   }
 
-  private KubernetesListBuilder readResourceFragments(PlatformMode platformMode, File[] resourceFiles) throws IOException {
-    return KubernetesResourceUtil.readResourceFragmentsFrom(
-        platformMode,
+  private KubernetesListBuilder readResourceFragments(File[] resourceFiles) throws IOException {
+    return KubernetesResourceFragments.readResourceFragmentsFrom(
         KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING,
         JKubeProjectUtil.createDefaultResourceName(resourceServiceConfig.getProject().getArtifactId()),
         resourceFiles);
