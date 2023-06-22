@@ -53,7 +53,7 @@ import static org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatt
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.useDekorate;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.updateKindFilenameMappings;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments.updateKindFilenameMappings;
 import static org.eclipse.jkube.maven.plugin.mojo.build.BuildMojo.CONTEXT_KEY_BUILD_TIMESTAMP;
 
 
