@@ -14,32 +14,32 @@
 package org.eclipse.jkube.generator.webapp;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.api.support.BaseGenerator;
+import org.eclipse.jkube.generator.webapp.handler.CustomAppServerHandler;
+import org.eclipse.jkube.kit.common.*;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.Assembly;
-import org.eclipse.jkube.kit.common.AssemblyFile;
-import org.eclipse.jkube.kit.common.AssemblyConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.common.Arguments;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.support.BaseGenerator;
-import org.eclipse.jkube.generator.webapp.handler.CustomAppServerHandler;
-import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
@@ -50,46 +50,29 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  */
 public class WebAppGenerator extends BaseGenerator {
 
-  @AllArgsConstructor
-  private enum Config implements Configs.Config {
-    // App server to use (like 'tomcat', 'jetty', 'wildfly'
-    SERVER("server", null),
-
-    // Directory where to deploy to
-    TARGET_DIR("targetDir", "/deployments"),
-
-    // Unix user under which the war should be installed. If null, the default image user is used
-    USER("user", null),
-
-    // Command to execute. If null, the base image default command is used
-    CMD("cmd", null),
-
-    // Context path under which the app will be available
-    PATH("path", "/"),
-
-    // Ports to expose as a command separated list
-    PORTS("ports", "8080"),
-
-    // If from base image supports S2I builds in OpenShift cluster
-    SUPPORTS_S2I_BUILD("supportsS2iBuild", "false"),
-
-    ENV("env", null);
-
-    @Getter
-    protected String key;
-    @Getter
-    protected String defaultValue;
-  }
+  private static final Object CHECKSUM_FILENAME = ".jkube-checksum";
 
   public WebAppGenerator(GeneratorContext context) {
     super(context, "webapp");
   }
 
+  public static Map<String, String> extractEnvVariables(String envConfigValue) {
+    if (StringUtils.isBlank(envConfigValue)) {
+      return Collections.emptyMap();
+    }
+
+    return Pattern.compile("\\n\\s*").splitAsStream(envConfigValue) // "envName1=value1\n   envName2=value2"
+        .map(envNameValue -> envNameValue.split("=")) //
+        .filter(e -> e.length == 2) //
+        .collect(Collectors.toMap(e -> e[0], e -> e[1]));
+
+  }
+
   @Override
   public boolean isApplicable(List<ImageConfiguration> configs) {
-      return shouldAddGeneratedImageConfiguration(configs) &&
-              (JKubeProjectUtil.hasPlugin(getProject(), "org.apache.maven.plugins", "maven-war-plugin")
-                      || JKubeProjectUtil.hasGradlePlugin(getProject(), "org.gradle.api.plugins.WarPlugin"));
+    return shouldAddGeneratedImageConfiguration(configs) &&
+        (JKubeProjectUtil.hasPlugin(getProject(), "org.apache.maven.plugins", "maven-war-plugin")
+            || JKubeProjectUtil.hasGradlePlugin(getProject(), "org.gradle.api.plugins.WarPlugin"));
   }
 
   @Override
@@ -98,13 +81,11 @@ public class WebAppGenerator extends BaseGenerator {
     if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT &&
         getContext().getStrategy() == JKubeBuildStrategy.s2i &&
         !prePackagePhase &&
-        !handler.supportsS2iBuild()
-    ) {
+        !handler.supportsS2iBuild()) {
       throw new IllegalArgumentException("S2I not yet supported for the webapp-generator. Use " +
           "-Djkube.build.strategy=docker for OpenShift mode. Please refer to the reference manual at " +
           "https://www.eclipse.org/jkube/docs for details about build modes.");
     }
-
 
     log.info("Using %s as base image for webapp", handler.getFrom());
 
@@ -172,21 +153,58 @@ public class WebAppGenerator extends BaseGenerator {
     return defaultEnv;
   }
 
-  public static Map<String, String> extractEnvVariables(String envConfigValue) {
-    if (StringUtils.isBlank(envConfigValue)) {
-      return Collections.emptyMap();
+  private boolean isArtifactSameAsPrevious(File sourceFile) throws IOException, NoSuchAlgorithmException {
+    Path path = sourceFile.getParentFile().toPath();
+    byte[] data = Files.readAllBytes(sourceFile.toPath());
+    byte[] hash = MessageDigest.getInstance("MD5").digest(data);
+    String checksum = new BigInteger(1, hash).toString(16);
+    String previousChecksum = getPreviousChecksum(path);
+    log.info("Checksum for %s is %s", sourceFile.getName(), checksum);
+    log.info("Previous checksum for %s is %s", sourceFile.getName(), previousChecksum);
+    boolean sameChecksum = checksum.equals(previousChecksum);
+    log.info("Same checksum for %s: %s", sourceFile.getName(), sameChecksum ? "yes" : "no");
+    saveChecksum(path, checksum);
+    return sameChecksum;
+  }
+
+  private void saveChecksum(Path path, String checksum) {
+    String fileName = path + File.separator + CHECKSUM_FILENAME;
+    File f = new File(fileName);
+    try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(f.toPath()))) {
+      log.info("Saving checksum for %s", path);
+      oos.writeObject(checksum);
+      oos.flush();
+    } catch (IOException e) {
+      log.warn("Failed to save checksum: " + e.getMessage());
     }
+  }
 
-    return Pattern.compile("\\n\\s*").splitAsStream(envConfigValue) // "envName1=value1\n   envName2=value2"
-        .map(envNameValue -> envNameValue.split("=")) //
-        .filter(e -> e.length == 2) //
-        .collect(Collectors.toMap(e -> e[0], e -> e[1]));
-
+  private String getPreviousChecksum(Path path) {
+    String fileName = path + File.separator + CHECKSUM_FILENAME;
+    try {
+      File f = new File(fileName);
+      if (f.exists()) {
+        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(f.toPath()))) {
+          return (String) ois.readObject();
+        }
+      }
+    } catch (IOException | ClassNotFoundException e) {
+      log.warn("Failed to read checksum: " + e.getMessage());
+    }
+    return null;
   }
 
   private AssemblyConfiguration createAssembly(AppServerHandler handler) {
     final File sourceFile = Objects.requireNonNull(JKubeProjectUtil.getFinalOutputArtifact(getProject()),
-        "Final output artifact file was not detected. The project may have not been built. HINT: try to compile and package your application prior to running the container image build task."); 
+        "Final output artifact file was not detected. The project may have not been built. HINT: try to compile and package your application prior to running the container image build task.");
+    try {
+      if (isArtifactSameAsPrevious(sourceFile)) {
+        log.warn("Final output artifact is the same as previous build. You might have forgotten to run mvn package!");
+      }
+    } catch (IOException | NoSuchAlgorithmException e) {
+      log.warn("Failed to check if final output artifact is the same as previous build.", e);
+    }
+
     final String targetFilename;
     final String extension = FilenameUtils.getExtension(sourceFile.getName());
     final String path = getConfig(Config.PATH);
@@ -231,5 +249,36 @@ public class WebAppGenerator extends BaseGenerator {
 
   private String getUser(AppServerHandler handler) {
     return getConfig(Config.USER, handler.getUser());
+  }
+
+  @AllArgsConstructor
+  private enum Config implements Configs.Config {
+    // App server to use (like 'tomcat', 'jetty', 'wildfly'
+    SERVER("server", null),
+
+    // Directory where to deploy to
+    TARGET_DIR("targetDir", "/deployments"),
+
+    // Unix user under which the war should be installed. If null, the default image user is used
+    USER("user", null),
+
+    // Command to execute. If null, the base image default command is used
+    CMD("cmd", null),
+
+    // Context path under which the app will be available
+    PATH("path", "/"),
+
+    // Ports to expose as a command separated list
+    PORTS("ports", "8080"),
+
+    // If from base image supports S2I builds in OpenShift cluster
+    SUPPORTS_S2I_BUILD("supportsS2iBuild", "false"),
+
+    ENV("env", null);
+
+    @Getter
+    protected String key;
+    @Getter
+    protected String defaultValue;
   }
 }
