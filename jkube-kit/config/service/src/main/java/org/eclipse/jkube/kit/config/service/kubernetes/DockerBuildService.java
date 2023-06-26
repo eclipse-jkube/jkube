@@ -70,7 +70,10 @@ public class DockerBuildService extends AbstractImageBuildService {
         try {
             dockerServices.getRegistryService().pushImage(imageConfiguration, retries, registryConfig, skipTag);
         } catch (IOException ex) {
-            throw new JKubeServiceException("Error while trying to push the image: " + ex.getMessage(), ex);
+            String message = "Error while trying to push the image: " + ex.getMessage() +
+                             "\nPossible issue: wrong image name or registry." +
+                             "\nHint: Rename image name or registry with the jkube.generator.name property = registry name and user name and image name";
+            throw new JKubeServiceException(message, ex);
         }
     }
 
