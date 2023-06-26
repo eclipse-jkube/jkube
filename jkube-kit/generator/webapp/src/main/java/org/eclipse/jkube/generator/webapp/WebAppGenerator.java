@@ -14,14 +14,6 @@
 package org.eclipse.jkube.generator.webapp;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.math.BigInteger;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -49,8 +41,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  * @author kameshs
  */
 public class WebAppGenerator extends BaseGenerator {
-
-  private static final String CHECKSUM_FILENAME = ".jkube-checksum";
 
   public WebAppGenerator(GeneratorContext context) {
     super(context, "webapp");
@@ -153,59 +143,9 @@ public class WebAppGenerator extends BaseGenerator {
     return defaultEnv;
   }
 
-  private boolean isArtifactSameAsPrevious(File sourceFile) throws IOException, NoSuchAlgorithmException {
-    Path path = sourceFile.getParentFile().toPath();
-    byte[] data = Files.readAllBytes(sourceFile.toPath());
-    byte[] hash = MessageDigest.getInstance("MD5").digest(data);
-    String checksum = new BigInteger(1, hash).toString(16);
-    String previousChecksum = getPreviousChecksum(path);
-    log.info("Checksum for %s is %s", sourceFile.getName(), checksum);
-    log.info("Previous checksum for %s is %s", sourceFile.getName(), previousChecksum);
-    boolean isSameChecksum = checksum.equals(previousChecksum);
-    log.info("Same checksum for %s: %s", sourceFile.getName(), isSameChecksum ? "yes" : "no");
-    saveChecksum(path, checksum);
-    return isSameChecksum;
-  }
-
-  private void saveChecksum(Path path, String checksum) {
-    String fileName = path + File.separator + CHECKSUM_FILENAME;
-    File f = new File(fileName);
-    try (ObjectOutputStream oos = new ObjectOutputStream(Files.newOutputStream(f.toPath()))) {
-      log.info("Saving checksum for %s", path);
-      oos.writeObject(checksum);
-      oos.flush();
-    } catch (IOException e) {
-      log.warn("Failed to save checksum: " + e.getMessage());
-    }
-  }
-
-  private String getPreviousChecksum(Path path) {
-    String fileName = path + File.separator + CHECKSUM_FILENAME;
-    try {
-      File f = new File(fileName);
-      if (f.exists()) {
-        try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(f.toPath()))) {
-          return (String) ois.readObject();
-        }
-      }
-    } catch (IOException | ClassNotFoundException e) {
-      log.warn("Failed to read checksum: " + e.getMessage());
-    }
-    return null;
-  }
-
   private AssemblyConfiguration createAssembly(AppServerHandler handler) {
     final File sourceFile = Objects.requireNonNull(JKubeProjectUtil.getFinalOutputArtifact(getProject()),
         "Final output artifact file was not detected. The project may have not been built. HINT: try to compile and package your application prior to running the container image build task.");
-    try {
-      if (isArtifactSameAsPrevious(sourceFile)) {
-        log.warn(
-            "Final output artifact is the same as previous build. You might have forgotten to compile and package your application after making changes.");
-      }
-    } catch (IOException | NoSuchAlgorithmException e) {
-      log.warn("Failed to check if final output artifact is the same as previous build.", e);
-    }
-
     final String targetFilename;
     final String extension = FilenameUtils.getExtension(sourceFile.getName());
     final String path = getConfig(Config.PATH);
