@@ -21,15 +21,14 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class JavaExecGeneratorCustomPropertiesTest {
 
@@ -38,10 +37,9 @@ class JavaExecGeneratorCustomPropertiesTest {
 
   @BeforeEach
   void setUp() {
-    generatorContext = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
     projectProperties = new Properties();
-    when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
-    when(generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
+    JavaProject project = JavaProject.builder().properties(projectProperties).version("1.33.7-SNAPSHOT").build();
+    generatorContext = GeneratorContext.builder().project(project).logger(new KitLogger.SilentLogger()).build();
   }
 
   @Test

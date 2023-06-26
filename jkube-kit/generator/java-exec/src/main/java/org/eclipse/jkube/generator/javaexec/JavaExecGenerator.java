@@ -193,6 +193,7 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     protected AssemblyConfiguration createAssembly() {
+        checkAndWarnIfProjectHasNotBeenBuilt();
         final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
         builder.name("deployments");
         builder.targetDir(getConfig(Config.TARGET_DIR));
