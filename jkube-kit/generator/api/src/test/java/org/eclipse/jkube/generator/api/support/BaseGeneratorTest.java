@@ -26,6 +26,7 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -41,7 +42,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.entry;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,6 +54,9 @@ import static org.mockito.Mockito.when;
  */
 
 class BaseGeneratorTest {
+  @TempDir
+  Path temporaryFolder;
+  private File targetDir;
   private GeneratorContext ctx;
   private JavaProject project;
 
@@ -72,6 +80,132 @@ class BaseGeneratorTest {
     config = null;
     properties = null;
   }
+
+  @Test
+  @DisplayName("Warn if final output artifact is missing")
+  void warnIfMissingFinalOutputArtifact() throws IOException {
+    // @Todo: move these initializations to setup method when replacing mocks with real objects
+    KitLogger testLogger = spy(new KitLogger.SilentLogger());
+    targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
+    project = JavaProject.builder()
+            .baseDirectory(targetDir)
+            .buildDirectory(targetDir.getAbsoluteFile())
+            .buildPackageDirectory(targetDir.getAbsoluteFile())
+            .outputDirectory(targetDir)
+            .buildFinalName("sample")
+            .packaging("jar")
+            .build();
+    ctx = GeneratorContext.builder()
+            .project(project)
+            .logger(testLogger)
+            .build();
+
+    // Given, When
+    new TestBaseGenerator(ctx, "test").checkAndWarnIfProjectHasNotBeenBuilt();
+
+    // Then
+    verify(ctx.getLogger())
+            .error("test: Final output artifact file was not detected. The project may have not been built." +
+                   " HINT: try to compile and package your application prior to running the container image build task.");
+  }
+
+  @Test
+  @DisplayName("No warnings or errors if the final output artifact is present")
+  void noWarnOrErrorIfFinalOutPutArtifactPresent() throws IOException {
+    // @Todo: move these initializations to setup method when replacing mocks with real objects
+    KitLogger testLogger = spy(new KitLogger.SilentLogger());
+    targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
+    project = JavaProject.builder()
+            .baseDirectory(targetDir)
+            .buildDirectory(targetDir.getAbsoluteFile())
+            .buildPackageDirectory(targetDir.getAbsoluteFile())
+            .outputDirectory(targetDir)
+            .buildFinalName("sample")
+            .packaging("jar")
+            .build();
+    ctx = GeneratorContext.builder()
+            .project(project)
+            .logger(testLogger)
+            .build();
+
+    // Given
+    Files.createFile(targetDir.toPath().resolve("sample.jar"));
+    TestBaseGenerator testGenerator = new TestBaseGenerator(ctx, "test");
+
+    // When
+    testGenerator.checkAndWarnIfProjectHasNotBeenBuilt();
+
+    // Then
+    verify(ctx.getLogger(), times(0)).info(anyString());
+    verify(ctx.getLogger(), times(0)).error(anyString());
+  }
+
+  @Test
+  @DisplayName("Warn if the final output artifact is same as previous")
+  void warnIfFinalArtifactSameAsPrevious() throws IOException {
+    // @Todo: move these initializations to setup method when replacing mocks with real objects
+    KitLogger testLogger = spy(new KitLogger.SilentLogger());
+    targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
+    project = JavaProject.builder()
+            .baseDirectory(targetDir)
+            .buildDirectory(targetDir.getAbsoluteFile())
+            .buildPackageDirectory(targetDir.getAbsoluteFile())
+            .outputDirectory(targetDir)
+            .buildFinalName("sample")
+            .packaging("jar")
+            .build();
+    ctx = GeneratorContext.builder()
+            .project(project)
+            .logger(testLogger)
+            .build();
+
+    // Given
+    Files.createFile(targetDir.toPath().resolve("sample.jar"));
+    TestBaseGenerator generator = new TestBaseGenerator(ctx, "test");
+
+    // When
+    generator.checkAndWarnIfProjectHasNotBeenBuilt();
+    generator.checkAndWarnIfProjectHasNotBeenBuilt(); // calling twice to simulate that the final output artifacts were not changed
+
+    // Then
+    verify(ctx.getLogger())
+            .info("test: Final output artifact is the same as previous build. " +
+                  "HINT: You might have forgotten to compile and package your application after making changes.");
+  }
+
+  @Test
+  @DisplayName("No warn or error if the final output artifact is present and different from previous")
+  void noWarnOrErrorIfFinalOutputNotSameAsPrevious() throws IOException {
+    // @Todo: move these initializations to setup method when replacing mocks with real objects
+    KitLogger testLogger = spy(new KitLogger.StdoutLogger());
+    targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
+    project = JavaProject.builder()
+            .baseDirectory(targetDir)
+            .buildDirectory(targetDir.getAbsoluteFile())
+            .buildPackageDirectory(targetDir.getAbsoluteFile())
+            .outputDirectory(targetDir)
+            .buildFinalName("sample")
+            .packaging("jar")
+            .build();
+    ctx = GeneratorContext.builder()
+            .project(project)
+            .logger(testLogger)
+            .build();
+
+    // Given
+    File artifact = Files.createFile(targetDir.toPath().resolve("sample.jar")).toFile();
+    TestBaseGenerator generator = new TestBaseGenerator(ctx, "test");
+
+    // When (This simulates that final output artifacts were changed)
+    generator.checkAndWarnIfProjectHasNotBeenBuilt();
+    artifact.setLastModified(artifact.lastModified() + 100);
+    generator.checkAndWarnIfProjectHasNotBeenBuilt();
+
+    // Then
+    verify(ctx.getLogger(), times(0)).info(anyString());
+    verify(ctx.getLogger(), times(0)).error(anyString());
+  }
+
 
   @Test
   @DisplayName("get from as configured with properties and configuration, should return configured")
