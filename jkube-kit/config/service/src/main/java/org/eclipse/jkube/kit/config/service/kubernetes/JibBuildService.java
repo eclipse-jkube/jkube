@@ -116,7 +116,12 @@ public class JibBuildService extends AbstractImageBuildService {
                 log
             );
         } catch (Exception ex) {
-            throw new JKubeServiceException("Error when push JIB image", ex);
+            String message = "Error when push JIB image: " + ex.getMessage();
+            if(ex.getMessage().contains("denied") || ex.getMessage().contains("unauthorized")) {
+                message += "\nPossible issue: wrong image name or registry." +
+                           "\nHint: Rename image name or registry with the jkube.generator.name property = registry name and user name and image name";
+            }
+            throw new JKubeServiceException(message, ex);
         }
     }
 
