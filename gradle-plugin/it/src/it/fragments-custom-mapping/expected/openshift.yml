@@ -1,0 +1,82 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps.openshift.io/v1
+    kind: DeploymentConfig
+    metadata:
+      annotations:
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: fragments-custom-mapping
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        app: fragments-custom-mapping
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+      strategy:
+        rollingParams:
+          timeoutSeconds: 3600
+        type: Rolling
+      template:
+        metadata:
+          annotations:
+            jkube.eclipse.org/git-commit: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            app.openshift.io/vcs-ref: "@ignore@"
+            app.openshift.io/vcs-uri: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
+          labels:
+            app: fragments-custom-mapping
+            provider: jkube
+            version: "@ignore@"
+            group: org.eclipse.jkube.integration.tests.gradle
+          name: fragments-custom-mapping
+        spec:
+          containers:
+            - env:
+                - name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+              image: repository/fragments-custom-mapping:latest
+              imagePullPolicy: IfNotPresent
+              name: repository-fragments-custom-mapping
+              securityContext:
+                privileged: false
+      triggers:
+      - type: ConfigChange
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+          - repository-fragments-custom-mapping
+          from:
+            kind: ImageStreamTag
+            name: fragments-custom-mapping:latest
+        type: ImageChange
+  - apiVersion: my.unique.crd/v1alfa1
+    kind: Template
+    metadata:
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: first
+  - apiVersion: my.unique.crd/v1alfa1
+    kind: Template
+    metadata:
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: second

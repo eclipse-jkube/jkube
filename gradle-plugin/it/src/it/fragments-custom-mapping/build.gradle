@@ -1,0 +1,36 @@
+plugins {
+    id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
+    id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
+    id 'java'
+}
+
+group = 'org.eclipse.jkube.integration.tests.gradle'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+def extensionConfig = {
+    offline = true
+    mappings {
+        mapping {
+            kind = 'Template'
+            filenameTypes = 'my_template, mtpl'
+        }
+    }
+    images {
+        image {
+            name = 'repository/fragments-custom-mapping:latest'
+            build {
+                from = 'repository/from:latest'
+            }
+        }
+    }
+    mappings
+}
+
+kubernetes(extensionConfig)
+openshift(extensionConfig)
+

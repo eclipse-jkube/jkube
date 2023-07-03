@@ -12,7 +12,6 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-kind: Template
 parameters:
   - name: replicas
   - name: paused
