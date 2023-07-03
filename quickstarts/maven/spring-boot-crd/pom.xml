@@ -77,13 +77,6 @@
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
             <version>${jkube.version}</version>
-            <configuration>
-              <resources>
-                <customResourceDefinitions>
-                  <customResourceDefinition>frameworks.jkube.eclipse.org</customResourceDefinition>
-                </customResourceDefinitions>
-              </resources>
-            </configuration>
           </plugin>
         </plugins>
       </build>
@@ -96,13 +89,6 @@
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>openshift-maven-plugin</artifactId>
             <version>${jkube.version}</version>
-            <configuration>
-              <resources>
-                <customResourceDefinitions>
-                  <customResourceDefinition>frameworks.jkube.eclipse.org</customResourceDefinition>
-                </customResourceDefinitions>
-              </resources>
-            </configuration>
           </plugin>
         </plugins>
       </build>

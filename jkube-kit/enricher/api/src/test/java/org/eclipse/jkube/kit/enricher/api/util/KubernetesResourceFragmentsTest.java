@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.api.util;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
@@ -28,9 +29,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,17 +39,14 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.eclipse.jkube.kit.config.resource.PlatformMode.kubernetes;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments.getNameWithSuffix;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments.readResourceFragmentsFrom;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class KubernetesResourceFragmentsTest {
 
@@ -117,6 +112,11 @@ public class KubernetesResourceFragmentsTest {
     @Test
     void withKnownMapping_shouldReturnKnownMapping() {
       assertThat(getNameWithSuffix("name", "Pod")).isEqualTo("name-pod");
+    }
+
+    @Test
+    void withKnownMappingAndNameWithDots_shouldReplaceDotsWithUnderscore() {
+      assertThat(getNameWithSuffix("name.with.dots", "Pod")).isEqualTo("name_with_dots-pod");
     }
 
     @Test
@@ -199,69 +199,41 @@ public class KubernetesResourceFragmentsTest {
     }
 
     @Test
-    @DisplayName("with value in name and file, should be named from value")
-    void withValueInNameAndFile_shouldBeNamedNamedFromValue() throws IOException {
+    @DisplayName("with empty file and name and kind in file name, should return empty resource")
+    void withEmptyFileAndNameAndKindInFileName_shouldReturnEmptyResource() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        DEFAULT_RESOURCE_VERSIONING, "app", new File(fragmentsDir, "named-svc.yaml"));
+        DEFAULT_RESOURCE_VERSIONING, "app", new File(fragmentsDir, "empty-file-svc.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
         .isInstanceOf(Service.class)
         .hasFieldOrPropertyWithValue("apiVersion", "v1")
         .hasFieldOrPropertyWithValue("kind", "Service")
-        .hasFieldOrPropertyWithValue("metadata.name", "pong");
+        .hasFieldOrPropertyWithValue("metadata.name", "empty-file");
     }
 
     @Test
-    @DisplayName("with value in name, should be named from value")
-    void withValueInName_shouldBeNamedNamedFromValue() throws IOException {
-      // When
-      final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        DEFAULT_RESOURCE_VERSIONING, "app", new File(fragmentsDir, "rc.yml"));
-      // Then
-      assertThat(result.buildItems())
-        .singleElement()
-        .isInstanceOf(ReplicationController.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "v1")
-        .hasFieldOrPropertyWithValue("kind", "ReplicationController")
-        .hasFieldOrPropertyWithValue("metadata.name", "flipper");
-    }
-
-    @Test
-    @DisplayName("with no name both in value and file, should be named from app name")
-    void withNoNameInValueAndNoNameInFileName_shouldBeNamedFromAppName() throws IOException {
-      // When
-      final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        DEFAULT_RESOURCE_VERSIONING, "app", new File(fragmentsDir, "svc.yml"));
-      // Then
-      assertThat(result.buildItems())
-        .singleElement()
-        .isInstanceOf(Service.class)
-        .hasFieldOrPropertyWithValue("apiVersion", "v1")
-        .hasFieldOrPropertyWithValue("kind", "Service")
-        .hasFieldOrPropertyWithValue("metadata.name", "app");
-    }
-
-    @DisplayName("with invalid resource filename")
-    @ParameterizedTest(name = "{index}: ''{0}'', should throw exception")
-    @MethodSource("invalidResources")
-    void withInvalidResource(String resourceType, String resourceFile, String message) {
+    @DisplayName("with invalid file name, should throw exception")
+    void invalidFilename() {
       // Given
-      final File resource = new File(fragmentsDir, resourceFile);
+      final File resource = new File(fragmentsDir, "simple-rc.txt");
       // When & Then
       assertThatIllegalArgumentException()
         .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom(DEFAULT_RESOURCE_VERSIONING, "app", resource))
-        .withMessageContaining(message);
+        .withMessage("Resource file name 'simple-rc.txt' does not match pattern <name>-<type>.(yaml|yml|json)");
+
     }
 
-    Stream<Arguments> invalidResources() {
-      return Stream.of(
-        arguments("invalid extension file", "simple-rc.txt",
-          "Resource file name 'simple-rc.txt' does not match pattern <name>-<type>.(yaml|yml|json)"),
-        arguments("invalid type", "simple-bla.yaml", "Unknown type 'bla' for file simple-bla.yaml"),
-        arguments("no type and no kind", "contains_no_kind.yml",
-          "No type given as part of the file name (e.g. 'app-rc.yml') and no 'Kind' defined in resource descriptor contains_no_kind.yml"));
+    @Test
+    @DisplayName("with no kind inferrable from file name, should throw exception")
+    void withNoKindInferrableFromFileName_shouldThrowException() {
+      // Given
+      final File resource = new File(fragmentsDir, "contains_no_kind.yml");
+      // When & Then
+      assertThatIllegalArgumentException()
+        .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom(DEFAULT_RESOURCE_VERSIONING, "app", resource))
+        .withMessageStartingWith("No type given as part of the file name (e.g. 'app-rc.yml') and no 'kind' defined in resource descriptor contains_no_kind.yml");
     }
 
     @Test
@@ -288,8 +260,53 @@ public class KubernetesResourceFragmentsTest {
     }
 
     @Test
-    @DisplayName("with value in kind not in file, should get the kind from value")
-    void withValueInKindAndNotInFilename_shouldGetKindFromValue() throws IOException {
+    @DisplayName("with name in field and file name, should be named from field")
+    void withNameInFieldAndFilename_shouldBeNamedFromField() throws IOException {
+      // When
+      final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
+        DEFAULT_RESOURCE_VERSIONING, "app", new File(fragmentsDir, "named-svc.yaml"));
+      // Then
+      assertThat(result.buildItems())
+        .singleElement()
+        .isInstanceOf(Service.class)
+        .hasFieldOrPropertyWithValue("apiVersion", "v1")
+        .hasFieldOrPropertyWithValue("kind", "Service")
+        .hasFieldOrPropertyWithValue("metadata.name", "pong");
+    }
+
+    @Test
+    @DisplayName("with name in field, should be named from field")
+    void withNameInField_shouldBeamedFromField() throws IOException {
+      // When
+      final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
+        DEFAULT_RESOURCE_VERSIONING, "app", new File(fragmentsDir, "rc.yml"));
+      // Then
+      assertThat(result.buildItems())
+        .singleElement()
+        .isInstanceOf(ReplicationController.class)
+        .hasFieldOrPropertyWithValue("apiVersion", "v1")
+        .hasFieldOrPropertyWithValue("kind", "ReplicationController")
+        .hasFieldOrPropertyWithValue("metadata.name", "flipper");
+    }
+
+    @Test
+    @DisplayName("with no name both in value and file, should be named from default name")
+    void withNoNameInFieldAndNoNameInFilename_shouldBeNamedFromDefaultName() throws IOException {
+      // When
+      final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
+        DEFAULT_RESOURCE_VERSIONING, "default-app", new File(fragmentsDir, "svc.yml"));
+      // Then
+      assertThat(result.buildItems())
+        .singleElement()
+        .isInstanceOf(Service.class)
+        .hasFieldOrPropertyWithValue("apiVersion", "v1")
+        .hasFieldOrPropertyWithValue("kind", "Service")
+        .hasFieldOrPropertyWithValue("metadata.name", "default-app");
+    }
+
+    @Test
+    @DisplayName("with kind inf field not in file, should get the kind from value")
+    void withKindInFieldAndNotInFilename_shouldGetKindFromValue() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
         DEFAULT_RESOURCE_VERSIONING, "app", new File(fragmentsDir, "contains_kind.yml"));
@@ -302,7 +319,7 @@ public class KubernetesResourceFragmentsTest {
     }
 
     @Test
-    @DisplayName("with kind from file, should get the kind from filename")
+    @DisplayName("with kind in filename, should get the kind from filename")
     void withKindFromFilename_shouldGetKindFromFilename() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
@@ -317,8 +334,8 @@ public class KubernetesResourceFragmentsTest {
     }
 
     @Test
-    @DisplayName("with kind in field and in filename, should get the kind from value")
-    void withValueInKindAndInFilename_shouldGetKindFromValue() throws IOException {
+    @DisplayName("with kind in field and in filename, should get the kind from field")
+    void withKindInFieldAndInFilename_shouldGetKindFromField() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
         DEFAULT_RESOURCE_VERSIONING, "app", new File(fragmentsDir, "override-kind-pod.yml"));
@@ -328,6 +345,20 @@ public class KubernetesResourceFragmentsTest {
         .isInstanceOf(GenericKubernetesResource.class)
         .hasFieldOrPropertyWithValue("apiVersion", "custom.jkube.eclipse.org/v1")
         .hasFieldOrPropertyWithValue("kind", "NotAPod");
+    }
+
+    @Test
+    @DisplayName("with kind in field and in filename with dashes, should get the kind from value")
+    void withValueInKindAndFilenameWithDashes_shouldGetKindFromValue() throws IOException {
+      // When
+      final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
+        DEFAULT_RESOURCE_VERSIONING, "app", new File(fragmentsDir, "file-name-with-dashes-kind-in-field.yml"));
+      // Then
+      assertThat(result.buildItems())
+        .singleElement()
+        .isInstanceOf(Pod.class)
+        .hasFieldOrPropertyWithValue("apiVersion", "v1")
+        .hasFieldOrPropertyWithValue("kind", "Pod");
     }
 
     @Test

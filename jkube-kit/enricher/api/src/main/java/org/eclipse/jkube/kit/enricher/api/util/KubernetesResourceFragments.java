@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.regex.Matcher;
@@ -78,7 +79,7 @@ public class KubernetesResourceFragments {
 
   public static String getNameWithSuffix(String name, String kind) {
     String suffix =  KIND_TO_FILENAME_MAPPER.get(kind);
-    return String.format("%s-%s", name, suffix != null ? suffix : "cr");
+    return String.format("%s-%s", name.replace(".", "_"), suffix != null ? suffix : "cr");
   }
 
 
@@ -136,65 +137,53 @@ public class KubernetesResourceFragments {
 
   // Read fragment and add default values
   private static Map<String, Object> readAndEnrichFragment(
-    ResourceVersioning apiVersions, File file, String appName) throws IOException {
+    ResourceVersioning apiVersions, File file, String defaultName) throws IOException {
+    final Map<String, Object> fragment = Optional.ofNullable(Serialization.unmarshal(file, new TypeReference<Map<String, Object>>() {}))
+      .orElse(new HashMap<>());
+    final Map<String, Object> metadata = getOrInitMetadata(fragment);
 
-    Matcher matcher = FILENAME_PATTERN.matcher(file.getName());
+    // Fragment is complete let's skip any additional processing
+    if (StringUtils.isNotBlank((String) fragment.get("apiVersion")) &&
+      StringUtils.isNotBlank((String) fragment.get("kind")) &&
+      StringUtils.isNotBlank((String) metadata.get("name"))) {
+      return fragment;
+    }
+
+    // Infer values
+    final Matcher matcher = FILENAME_PATTERN.matcher(file.getName());
     if (!matcher.matches()) {
       throw new IllegalArgumentException(
         String.format("Resource file name '%s' does not match pattern <name>-<type>.(yaml|yml|json)", file.getName()));
     }
-    String name = matcher.group("name");
-    String type = matcher.group("type");
+    final String nameFromFile = matcher.group("name");
+    final String typeFromFile = matcher.group("type"); // nullable
 
-    final Map<String,Object> fragment = Serialization.unmarshal(file, new TypeReference<Map<String, Object>>() {});
-
-    final String kind;
-    if (type != null) {
-      kind = getAndValidateKindFromType(file, type);
-    } else {
-      // Try name as type
-      kind = FILENAME_TO_KIND_MAPPER.get(name.toLowerCase());
-      if (kind != null) {
-        // Name is in fact the type, so lets erase the name.
-        name = null;
+    // Kind
+    boolean nameFromFileIsKind = false;
+    if (fragment.get("kind") == null) {
+      final String kindFromType = typeFromFile == null ? null : FILENAME_TO_KIND_MAPPER.get(typeFromFile.toLowerCase());
+      final String kindFromName = FILENAME_TO_KIND_MAPPER.get(nameFromFile.toLowerCase());
+      if (kindFromType == null && kindFromName == null) {
+        throw new IllegalArgumentException(
+          "No type given as part of the file name (e.g. 'app-rc.yml') " +
+          "and no 'kind' defined in resource descriptor " + file.getName() +
+          ".\nMust be one of: " + StringUtils.join(FILENAME_TO_KIND_MAPPER.keySet().iterator(), ", "));
       }
+      nameFromFileIsKind = kindFromType == null;
+      fragment.put("kind", nameFromFileIsKind ? kindFromName : kindFromType);
     }
 
-    addKind(fragment, kind, file.getName());
+    // Name
+    metadata.putIfAbsent("name", StringUtils.isNotBlank(nameFromFile) && !nameFromFileIsKind ?
+      nameFromFile : defaultName);
 
-    String apiVersion = apiVersions.getForKind((String)fragment.get("kind"));
-
-    fragment.putIfAbsent("apiVersion", apiVersion);
-
-    Map<String, Object> metaMap = getMetadata(fragment);
-    // No name means: generated app name should be taken as resource name
-    String value = StringUtils.isNotBlank(name) ? name : appName;
-    metaMap.putIfAbsent("name", value);
+    // ApiVersion
+    fragment.putIfAbsent("apiVersion", apiVersions.getForKind((String)fragment.get("kind")));
 
     return fragment;
   }
 
-  private static String getAndValidateKindFromType(File file, String type) {
-    String kind;
-    kind = FILENAME_TO_KIND_MAPPER.get(type.toLowerCase());
-    if (kind == null) {
-      throw new IllegalArgumentException(
-        String.format("Unknown type '%s' for file %s. Must be one of : %s",
-          type, file.getName(), StringUtils.join(FILENAME_TO_KIND_MAPPER.keySet().iterator(), ", ")));
-    }
-    return kind;
-  }
-
-  private static void addKind(Map<String, Object> fragment, String kind, String fileName) {
-    if (kind == null && !fragment.containsKey("kind")) {
-      throw new IllegalArgumentException(
-        "No type given as part of the file name (e.g. 'app-rc.yml') " +
-          "and no 'Kind' defined in resource descriptor " + fileName);
-    }
-    fragment.putIfAbsent("kind", kind);
-  }
-
-  private static Map<String, Object> getMetadata(Map<String, Object> fragment) {
+  private static Map<String, Object> getOrInitMetadata(Map<String, Object> fragment) {
     Object mo = fragment.get("metadata");
     Map<String, Object> meta;
     if (mo == null) {
