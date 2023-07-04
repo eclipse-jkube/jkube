@@ -24,8 +24,11 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
+import io.fabric8.kubernetes.api.model.runtime.RawExtension;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -461,6 +464,22 @@ class KubernetesHelperTest {
           .hasFieldOrPropertyWithValue("spec.resourceAttributes.group", "example.com")
           .hasFieldOrPropertyWithValue("spec.resourceAttributes.resource", "foos")
           .hasFieldOrPropertyWithValue("spec.resourceAttributes.verb", "list");
+    }
+
+    @ParameterizedTest(name = "{index}: {0} returns {1}")
+    @MethodSource("getKindTestCases")
+    void getKind(KubernetesResource resource, String expectedKind) {
+        assertThat(KubernetesHelper.getKind(resource)).isEqualTo(expectedKind);
+    }
+
+    static Stream<Arguments> getKindTestCases() {
+        return Stream.of(
+          Arguments.of(new Pod(), "Pod"),
+          Arguments.of(new Template(), "Template"),
+          Arguments.of(new KubernetesList(), "List"),
+          Arguments.of(new RawExtension(), "RawExtension"),
+          Arguments.of(null, null)
+        );
     }
 
     private void assertLocalFragments(File[] fragments, int expectedSize) {

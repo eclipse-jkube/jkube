@@ -28,11 +28,15 @@ import io.fabric8.kubernetes.api.model.APIResourceListBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
+import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
@@ -106,7 +110,12 @@ class ApplyServiceTest {
             new ReplicationControllerBuilder().withNewMetadata().withName("rc1").endMetadata().build(),
             new NamespaceBuilder().withNewMetadata().withName("ns1").endMetadata().build(),
             new NetworkPolicyBuilder().withNewMetadata().withName("npv1").endMetadata().build(),
-            new io.fabric8.kubernetes.api.model.extensions.NetworkPolicyBuilder().withNewMetadata().withName("np-ext").endMetadata().build()
+            new io.fabric8.kubernetes.api.model.extensions.NetworkPolicyBuilder().withNewMetadata().withName("np-ext").endMetadata().build(),
+            new SecretBuilder().withNewMetadata().withName("secret1").endMetadata().build(),
+            new RoleBindingBuilder().withNewMetadata().withName("rb1").endMetadata().build(),
+            new ServiceAccountBuilder().withNewMetadata().withName("sa1").endMetadata().build(),
+            new PersistentVolumeClaimBuilder().withNewMetadata().withName("pvc1").endMetadata().build(),
+            new CustomResourceDefinitionBuilder().withNewMetadata().withName("crd1").endMetadata().build()
         ));
         String fileName = "foo.yml";
         WebServerEventCollector collector = new WebServerEventCollector();
@@ -142,13 +151,34 @@ class ApplyServiceTest {
             .withPath("/apis/extensions/v1beta1/namespaces/default/networkpolicies")
             .andReply(collector.record("new-np-extensions").andReturn(HTTP_CREATED, ""))
             .once();
+        mockServer.expect().post()
+            .withPath("/api/v1/namespaces/default/secrets")
+            .andReply(collector.record("new-secret").andReturn(HTTP_CREATED, ""))
+            .once();
+        mockServer.expect().post()
+            .withPath("/apis/rbac.authorization.k8s.io/v1/namespaces/default/rolebindings")
+            .andReply(collector.record("new-rb").andReturn(HTTP_CREATED, ""))
+            .once();
+        mockServer.expect().post()
+            .withPath("/api/v1/namespaces/default/serviceaccounts")
+            .andReply(collector.record("new-sa").andReturn(HTTP_CREATED, ""))
+            .once();
+        mockServer.expect().post()
+            .withPath("/api/v1/namespaces/default/persistentvolumeclaims")
+            .andReply(collector.record("new-pvc").andReturn(HTTP_CREATED, ""))
+            .once();
+        mockServer.expect().post()
+            .withPath("/apis/apiextensions.k8s.io/v1/customresourcedefinitions")
+            .andReply(collector.record("new-crd").andReturn(HTTP_CREATED, ""))
+            .once();
 
         // When
         applyService.applyEntities(fileName, entities);
 
         // Then
-        collector.assertEventsRecordedInOrder("new-ns", "new-service", "new-configmap", "new-deploy", "new-pod", "new-rc");
-        collector.assertEventsRecorded("new-np-v1", "new-np-extensions");
+        collector.assertEventsRecordedInOrder(
+          "new-ns", "new-secret", "new-sa", "new-service", "new-rb", "new-pvc", "new-configmap", "new-deploy", "new-pod", "new-rc");
+        collector.assertEventsRecorded("new-np-v1", "new-np-extensions", "new-crd");
     }
 
     @Test
