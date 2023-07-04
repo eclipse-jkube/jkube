@@ -40,6 +40,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import io.fabric8.kubernetes.api.model.HTTPHeader;
+import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.authorization.v1.ResourceAttributesBuilder;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
@@ -246,11 +247,12 @@ public class KubernetesHelper {
      * @param entity entity as HasMetadata
      * @return kind of resource
      */
-    public static String getKind(HasMetadata entity) {
+    public static String getKind(KubernetesResource entity) {
         if (entity != null) {
-            // TODO use reflection to find the kind?
             if (entity instanceof KubernetesList) {
                 return "List";
+            } else if (entity instanceof HasMetadata) {
+                return ((HasMetadata) entity).getKind();
             } else {
                 return entity.getClass().getSimpleName();
             }
