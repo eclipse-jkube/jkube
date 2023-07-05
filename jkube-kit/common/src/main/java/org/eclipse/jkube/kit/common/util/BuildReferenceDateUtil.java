@@ -40,6 +40,7 @@ public class BuildReferenceDateUtil {
    * @param projectBuildDir project's build directory
    * @param dockerBuildTimestampFile docker build timestamp file
    * @return timestamp to use
+   * @throws IOException IO Exception
    */
   public static Date getBuildTimestamp(Map<String, Object> pluginContext, String buildTimestampContextKey,
                                                     String projectBuildDir, String dockerBuildTimestampFile) throws IOException {
