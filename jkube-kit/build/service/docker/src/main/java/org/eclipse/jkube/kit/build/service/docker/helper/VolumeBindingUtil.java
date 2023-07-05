@@ -100,7 +100,8 @@ public class VolumeBindingUtil {
      * Resolves relative paths in the supplied {@code bindingString}, and returns a binding string that has relative
      * paths replaced with absolute paths.  If the supplied {@code bindingString} does not contain a relative path, it
      * is returned unmodified.
-     * <h3>Discussion:</h3>
+     *
+     * <br> <b>Discussion:</b>
      * <p>
      * Volumes may be defined inside of {@code service} blocks <a href="https://docs.docker.com/compose/compose-file/compose-file-v2/#volumes-volume_driver">
      * as documented here</a>:
@@ -131,7 +132,7 @@ public class VolumeBindingUtil {
      * <p>
      * Volume strings that do not begin with a {@code ./}, {@code ../}, or {@code ~} are returned as-is.
      * </p>
-     * <h3>Examples:</h3>
+     * <br> <b>Examples:</b>
      * <p>
      * Given {@code baseDir} equal to "/path/to/basedir" and a {@code bindingString} string equal to
      * "./reldir:/some/other/dir", this method returns {@code /path/to/basedir/reldir:/some/other/dir}
