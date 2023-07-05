@@ -97,6 +97,7 @@
     <version.junit5>5.9.2</version.junit5>
     <version.kubernetes-client>6.7.2</version.kubernetes-client>
     <version.license-maven-plugin>4.2</version.license-maven-plugin>
+    <version.lombok>1.18.28</version.lombok>
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.11.0</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>3.3.0</version.maven-enforcer-plugin>
@@ -109,10 +110,11 @@
     <version.maven-release-plugin>3.0.1</version.maven-release-plugin>
     <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
     <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
-    <version.maven-surefire-plugin>3.0.0-M5</version.maven-surefire-plugin>
+    <version.maven-surefire-plugin>3.1.2</version.maven-surefire-plugin>
     <version.mockito>4.6.1</version.mockito>
     <version.plexus-component-metadata>2.1.1</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
+    <version.sonar-maven-plugin>3.9.1.2184</version.sonar-maven-plugin>
     <version.sshd>2.9.2</version.sshd>
     <project.build.outputTimestamp>2023-06-16T07:02:10Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
@@ -177,21 +179,6 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>${version.maven-jar-plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>${version.maven-javadoc-plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-release-plugin</artifactId>
-          <version>${version.maven-release-plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-plugin-plugin</artifactId>
           <version>${version.maven-plugin-plugin}</version>
           <executions>
@@ -211,9 +198,61 @@
           </executions>
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${version.maven-enforcer-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>${version.maven-failsafe-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>${version.maven-gpg-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>${version.maven-jar-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${version.maven-javadoc-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>${version.maven-release-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${version.maven-resources-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${version.maven-source-plugin}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${version.maven-surefire-plugin}</version>
+        </plugin>
+        <plugin>
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok-maven-plugin</artifactId>
           <version>${version.lombok-maven-plugin}</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+              <version>${version.lombok}</version>
+            </dependency>
+          </dependencies>
         </plugin>
         <plugin>
           <groupId>org.asciidoctor</groupId>
@@ -233,7 +272,6 @@
                 <toc>left</toc>
                 <linkcss>false</linkcss>
             </attributes>
-            <sourceHighlighter>coderay</sourceHighlighter>
             <backend>html5</backend>
           </configuration>
           <dependencies>
@@ -279,13 +317,17 @@
             <!-- ///////////////////////////////////////////////////// -->
           </executions>
         </plugin>
+        <plugin>
+          <groupId>org.sonarsource.scanner.maven</groupId>
+          <artifactId>sonar-maven-plugin</artifactId>
+          <version>${version.sonar-maven-plugin}</version>
+        </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
-        <version>${version.maven-enforcer-plugin}</version>
         <executions>
           <execution>
             <id>dependency-convergence</id>
@@ -313,7 +355,6 @@
           <plugin>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok-maven-plugin</artifactId>
-            <version>${version.lombok-maven-plugin}</version>
             <executions>
               <execution>
                 <id>delombok</id>
@@ -356,7 +397,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
-            <version>${version.maven-gpg-plugin}</version>
             <executions>
               <execution>
                 <id>sign-artifacts</id>
@@ -365,9 +405,9 @@
                   <goal>sign</goal>
                 </goals>
                 <configuration>
-                  <passphrase>${gpg.passphrase}</passphrase>
                   <useAgent>true</useAgent>
                   <gpgArguments>
+                    <arg>--batch</arg>
                     <arg>--pinentry-mode</arg>
                     <arg>loopback</arg>
                   </gpgArguments>
@@ -378,7 +418,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-enforcer-plugin</artifactId>
-            <version>${version.maven-enforcer-plugin}</version>
             <executions>
               <execution>
                 <id>enforce-no-snapshots</id>
@@ -399,7 +438,6 @@
           <plugin>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok-maven-plugin</artifactId>
-            <version>${version.lombok-maven-plugin}</version>
             <executions>
               <execution>
                 <id>prepare-javadoc-sources</id>
@@ -435,7 +473,6 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
-            <version>${version.maven-source-plugin}</version>
             <executions>
               <execution>
                 <id>attach-sources</id>
@@ -444,33 +481,6 @@
                 </goals>
               </execution>
             </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!-- "milestone" profiles used for deploying manually -->
-    <profile>
-      <id>milestone</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
-            <version>${version.maven-gpg-plugin}</version>
-            <executions>
-              <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
-                <goals>
-                  <goal>sign</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <useAgent>true</useAgent>
-              <keyname>rhuss@redhat.com</keyname>
-            </configuration>
           </plugin>
         </plugins>
       </build>
@@ -527,7 +537,6 @@
             <artifactId>asciidoctor-maven-plugin</artifactId>
             <configuration>
               <backend>html</backend>
-              <sourceHighlighter>coderay</sourceHighlighter>
               <attributes>
                 <toc>left</toc>
               </attributes>
