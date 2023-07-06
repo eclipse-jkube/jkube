@@ -944,46 +944,41 @@ public class ApplyService {
     }
 
     /**
-     * Creates and return a project in openshift
-     * @param project
-     * @return
+     * Creates an OpenShift Project
      */
-    public boolean applyProject(Project project) {
-        return applyProjectRequest(new ProjectRequestBuilder()
-                .withDisplayName(project.getMetadata().getName())
-                .withMetadata(project.getMetadata()).build());
+    public void applyProject(Project project) {
+        applyProjectRequest(new ProjectRequestBuilder()
+            .withDisplayName(project.getMetadata().getName())
+            .withMetadata(project.getMetadata()).build());
     }
 
     /**
      * Returns true if the ProjectRequest is created
      */
-    public boolean applyProjectRequest(ProjectRequest entity) {
+    public void applyProjectRequest(ProjectRequest entity) {
+        final String projectName = getOrCreateMetadata(entity).getName();
+        Objects.requireNonNull(projectName, "No name for " + entity);
         // Check whether project creation attempted before
-        if (projectsCreated.contains(getName(entity))) {
-            return false;
+        if (projectsCreated.contains(projectName)) {
+            return;
         }
-        String currentNamespace = getOrCreateMetadata(entity).getName();
-        log.info("Creating project: " + currentNamespace);
-        String name = getName(entity);
-        Objects.requireNonNull(name, "No name for " + entity);
+        log.info("Creating project: " + projectName);
         if (!OpenshiftHelper.isOpenShift(kubernetesClient)) {
-            log.warn("Cannot check for Project " + currentNamespace + " as not running against OpenShift!");
-            return false;
+            log.warn("Cannot check for Project " + projectName + " as not running against OpenShift!");
+            return;
         }
-        boolean exists = checkNamespace(name);
+        boolean exists = checkNamespace(projectName);
         // We may want to be more fine-grained on the phase of the project
         if (!exists) {
             try {
                 Object answer = asOpenShiftClient().projectrequests().create(entity);
                 // Add project to created projects
-                projectsCreated.add(name);
-                logGeneratedEntity("Created ProjectRequest: ", currentNamespace, entity, answer);
-                return true;
+                projectsCreated.add(projectName);
+                logGeneratedEntity("Created ProjectRequest: ", projectName, entity, answer);
             } catch (Exception e) {
-                onApplyError("Failed to create ProjectRequest: " + name + " due " + e.getMessage(), e);
+                onApplyError("Failed to create ProjectRequest: " + projectName + " due " + e.getMessage(), e);
             }
         }
-        return false;
     }
 
     private void doCreate(HasMetadata resource, String namespace, String fileName) {
@@ -1064,20 +1059,20 @@ public class ApplyService {
 
     public void applyPod(Pod pod, String sourceName) {
         String currentNamespace = applicableNamespace(pod, namespace, fallbackNamespace);
-        String id = getName(pod);
-        Objects.requireNonNull(id, "No name for " + pod + " " + sourceName);
+        final String name = getName(pod);
+        Objects.requireNonNull(name, "No name for " + pod + " " + sourceName);
         if (isServicesOnlyMode()) {
-            log.debug("Only processing Services right now so ignoring Pod: " + currentNamespace + ":" + id);
+            log.debug("Only processing Services right now so ignoring Pod: " + currentNamespace + ":" + name);
             return;
         }
-        Pod old = kubernetesClient.pods().inNamespace(currentNamespace).withName(id).get();
+        Pod old = kubernetesClient.pods().inNamespace(currentNamespace).withName(name).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(pod, old)) {
                 log.info("Pod has not changed so not doing anything");
             } else {
                 if (isRecreateMode()) {
-                    log.info("Deleting Pod: " + id);
-                    kubernetesClient.pods().inNamespace(currentNamespace).withName(id).delete();
+                    log.info("Deleting Pod: " + name);
+                    kubernetesClient.pods().inNamespace(currentNamespace).withName(name).delete();
                     doCreate(pod, currentNamespace, sourceName);
                 } else {
                     doPatchEntity(old, pod, currentNamespace, sourceName);
@@ -1085,7 +1080,8 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a pod from " + sourceName + " namespace " + currentNamespace + " name " + getName(pod));
+                log.warn("Creation disabled so not creating a pod from %s in namespace %s with name %s",
+                  sourceName, currentNamespace, name);
             } else {
                 doCreate(pod, currentNamespace, sourceName);
             }
