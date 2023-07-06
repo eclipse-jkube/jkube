@@ -61,7 +61,7 @@ public class RegistryService {
         if (buildConfig != null) {
             String configuredRegistry = getApplicablePushRegistryFrom(imageConfig, registryConfig);
 
-            AuthConfig authConfig = createAuthConfig(true, new ImageName(name).getUser(), configuredRegistry, registryConfig);
+            AuthConfig authConfig = createAuthConfig(true, new ImageName(name).inferUser(), configuredRegistry, registryConfig);
 
             long start = System.currentTimeMillis();
             docker.pushImage(name, authConfig, configuredRegistry, retries);

@@ -133,7 +133,7 @@ public class TriggersAnnotationEnricher extends BaseEnricher {
                 String containerName = container.getName();
                 String containerImage = container.getImage();
                 ImageName image = new ImageName(containerImage);
-                if (isContainerAllowed(containerName) && image.getRegistry() == null && image.getUser() == null) {
+                if (isContainerAllowed(containerName) && image.getRegistry() == null && image.inferUser() == null) {
                     // Imagestreams used as trigger are in the same namespace
                     String tag = image.getTag() != null ? image.getTag() : "latest";
 
