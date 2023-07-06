@@ -157,18 +157,16 @@ class ImageNameTest {
     @Test
     void testImageNameWithUsernameHavingPeriods() {
         // Given
-        String name = "roman.gordill/customer-service-cache:latest";
-
+        final String name = "quay.io/roman.gordill/customer-service-cache:latest";
         // When
-        String nameWithRegistry = new ImageName(name).getFullName("quay.io");
-        ImageName imageName = new ImageName(nameWithRegistry);
-
+        final ImageName result = new ImageName(name);
         // Then
-        assertThat(imageName).isNotNull();
-        assertThat(imageName.getUser()).isEqualTo("roman.gordill");
-        assertThat(imageName.getRepository()).isEqualTo("roman.gordill/customer-service-cache");
-        assertThat(imageName.getTag()).isEqualTo("latest");
-        assertThat(imageName.getRegistry()).isEqualTo("quay.io");
+        assertThat(result)
+          .isNotNull()
+          .hasFieldOrPropertyWithValue("repository", "roman.gordill/customer-service-cache")
+          .hasFieldOrPropertyWithValue("tag", "latest")
+          .hasFieldOrPropertyWithValue("registry", "quay.io")
+          .returns("roman.gordill", ImageName::inferUser);
     }
 
     @ParameterizedTest
@@ -183,7 +181,7 @@ class ImageNameTest {
 
         // Then
         assertThat(imageName).isNotNull();
-        assertThat(imageName.getUser()).isNull();
+        assertThat(imageName.inferUser()).isNull();
         assertThat(imageName.getRegistry()).isEqualTo(registry);
         assertThat(imageName.getRepository()).isEqualTo(repository);
         assertThat(imageName.getTag()).isEqualTo(tag);
@@ -199,7 +197,7 @@ class ImageNameTest {
 
         // Then
         assertThat(imageName).isNotNull();
-        assertThat(imageName.getUser()).isNull();
+        assertThat(imageName.inferUser()).isNull();
         assertThat(imageName.getRegistry()).isEqualTo("foo.com:5000");
         assertThat(imageName.getRepository()).isEqualTo("customer-service-cache");
         assertThat(imageName.getTag()).isEqualTo("latest");

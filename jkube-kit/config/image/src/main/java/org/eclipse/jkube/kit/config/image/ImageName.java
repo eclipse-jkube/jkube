@@ -135,7 +135,7 @@ public class ImageName {
             return true;
         }
         return StringUtils.isNotBlank(registry) &&
-            StringUtils.isNotBlank(getUser()) &&
+            StringUtils.isNotBlank(inferUser()) &&
             StringUtils.isNotBlank(getRepository()) &&
             (StringUtils.isNotBlank(getTag()) || StringUtils.isNotBlank(getDigest()));
     }
@@ -206,7 +206,7 @@ public class ImageName {
     }
 
     /**
-     * Get the full name of this image like {@link #getFullName(String)} does, but allow
+     * Get the full name of this image like {@link #getFullName()} does, but allow
      * an optional registry. This registry is used when this image does not already
      * contain a registry. If no tag was provided in the initial name, <code>latest</code> is used.
      *
@@ -226,12 +226,14 @@ public class ImageName {
     }
 
     /**
-     * Get the user (or "project") part of the image name. This is the part after the registry and before
-     * the image name
+     * Try to infer the user (or "project") part of the image name. This is usually the part after the registry
+     * and before the image name.
+     * <p> The main purpose of this method is to allow the inference of user credentials for the registry from the image
+     * name.
      *
-     * @return user part or <code>null</code> if no user is present in the name
+     * @return user part or <code>null</code> if no user can't be inferred from the image name.
      */
-    public String getUser() {
+    public String inferUser() {
         if (StringUtils.isNotBlank(repository)) {
             if (repository.contains("/")) {
                 return repository.split("/")[0];
@@ -268,7 +270,7 @@ public class ImageName {
     private void doValidate() {
         List<String> errors = new ArrayList<>();
         // Strip off user from repository name
-        String user = getUser();
+        String user = inferUser();
         String image = user != null ? repository.substring(user.length() + 1) : repository;
         Object[] checks = new Object[] {
                 "registry", DOMAIN_REGEXP, registry,
@@ -329,21 +331,21 @@ public class ImageName {
 
     // ---------------------------------------------------------------------
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L18
-    private static final String nameComponentRegexp = "[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?";
+    private static final String NAME_COMPONENT_REGEXP = "[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?";
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L25
-    private static final String domainComponentRegexp = "(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])";
+    private static final String DOMAIN_COMPONENT_REGEXP = "(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])";
 
     // ==========================================================
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L18
-    private static final Pattern NAME_COMP_REGEXP = Pattern.compile(nameComponentRegexp);
+    private static final Pattern NAME_COMP_REGEXP = Pattern.compile(NAME_COMPONENT_REGEXP);
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L53
-    private static final Pattern IMAGE_NAME_REGEXP = Pattern.compile(nameComponentRegexp + "(?:(?:/" + nameComponentRegexp + ")+)?");
+    private static final Pattern IMAGE_NAME_REGEXP = Pattern.compile(NAME_COMPONENT_REGEXP + "(?:(?:/" + NAME_COMPONENT_REGEXP + ")+)?");
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L31
-    private static final Pattern DOMAIN_REGEXP = Pattern.compile("^" + domainComponentRegexp + "(?:\\." + domainComponentRegexp + ")*(?::[0-9]+)?$");
+    private static final Pattern DOMAIN_REGEXP = Pattern.compile("^" + DOMAIN_COMPONENT_REGEXP + "(?:\\." + DOMAIN_COMPONENT_REGEXP + ")*(?::[0-9]+)?$");
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L37
     private static final Pattern TAG_REGEXP = Pattern.compile("^[\\w][\\w.-]{0,127}$");

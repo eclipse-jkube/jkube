@@ -147,7 +147,7 @@ public class KubernetesResourceUtil {
 
     private static String extractImageUser(String image, String groupId) {
         ImageName name = new ImageName(image);
-        String imageUser = name.getUser();
+        String imageUser = name.inferUser();
         if(imageUser != null) {
             return imageUser;
         } else {
