@@ -16,8 +16,7 @@ pipeline {
         }
         sshagent(['github-bot-ssh']) {
           sh 'echo "Cloning Project"'
-          // sh 'git clone git@github.com:eclipse/jkube.git' // disabled temporarily, credentials not working
-          sh 'git clone https://github.com/eclipse/jkube.git'
+          sh 'git clone git@github.com:eclipse/jkube.git'
         }
         dir('jkube') {
           sh 'echo "Deploying Snapshots"'
