@@ -55,22 +55,6 @@ jobs:
         paths:
         - ~/.m2
 
-  javadoc:
-    docker:
-      - image: cimg/openjdk:11.0
-    steps:
-    - checkout
-    - restore_cache:
-        key: maven-javadoc-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
-    - run:
-        command: |
-          # Run Maven build with javadoc jar generation
-          ./mvnw clean install javadoc:jar -DskipTests -Pjavadoc
-    - save_cache:
-        key: maven-javadoc-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
-        paths:
-        - ~/.m2
-
   sonar:
     docker:
       - image: cimg/openjdk:11.0
@@ -139,7 +123,6 @@ workflows:
   all:
     jobs:
     - build
-    - javadoc
     - test
     - sonar:
         filters:
