@@ -69,27 +69,6 @@ jobs:
         paths:
         - ~/.m2
 
-  sonar-pr:
-    docker:
-      - image: cimg/openjdk:11.0
-    steps:
-    - checkout
-    - restore_cache:
-        key: maven-sonar-pr-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
-    - run: |
-        if [ -n "${CIRCLE_PULL_REQUEST}" ]; then
-          MAVEN_OPTS="-Xmx3000m" ./mvnw -B -Pjacoco,sonar clean install \
-             -Dsonar.pullrequest.key=${CIRCLE_PULL_REQUEST##*/} \
-             -Dsonar.pullrequest.branch=${CIRCLE_BRANCH} \
-             -Dsonar.pullrequest.base=master
-        else
-          echo "No Sonar PR analysis as this is not a pull request"
-        fi
-    - save_cache:
-        key: maven-sonar-pr-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
-        paths:
-        - ~/.m2
-
   doc-preview-pr:
     docker:
       - image: cimg/openjdk:11.0
@@ -128,6 +107,5 @@ workflows:
         filters:
           branches:
             only: master
-    - sonar-pr
     - doc-preview-pr
     - dependencies-pr
