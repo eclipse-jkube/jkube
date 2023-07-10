@@ -29,6 +29,7 @@ cp gradle-plugin/doc/target/generated-docs/index.html docs-generated/openshift-g
 # OpenShift Maven Plugin
 mvn -f kubernetes-maven-plugin/doc -Phtml package -Dplugin=openshift-maven-plugin -Dgoal-prefix=oc -Dcluster=OpenShift
 cp kubernetes-maven-plugin/doc/target/generated-docs/index.html docs-generated/openshift-maven-plugin.html
+cp kubernetes-maven-plugin/doc/target/generated-docs/asciidoctor.css docs-generated/asciidoctor.css
 
 cat << EOF >> docs-generated/index.html
 <html>

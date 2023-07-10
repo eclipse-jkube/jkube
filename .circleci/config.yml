@@ -55,24 +55,9 @@ jobs:
         paths:
         - ~/.m2
 
-  doc-preview-pr:
-    docker:
-      - image: cimg/openjdk:11.0
-    steps:
-    - checkout
-    - run: |
-        if [ -n "${CIRCLE_PULL_REQUEST}" ]; then
-          ./scripts/generateDoc.sh
-        else
-          echo "No Doc preview run as this is not a pull request"
-        fi
-    - store_artifacts:
-        path: ./docs-generated/
-
 workflows:
   version: 2
   all:
     jobs:
     - build
     - test
-    - doc-preview-pr
