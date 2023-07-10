@@ -7,6 +7,9 @@ pipeline {
     // https://wiki.eclipse.org/Jenkins#JDK
     jdk 'temurin-jdk11-latest'
   }
+  options {
+    disableConcurrentBuilds(abortPrevious: true)
+  }
   stages {
     stage('Validate Javadoc') {
       steps {
