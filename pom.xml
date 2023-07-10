@@ -276,7 +276,7 @@
                 <idseparator>-</idseparator>
                 <allow-uri-read>true</allow-uri-read>
                 <toc>left</toc>
-                <linkcss>false</linkcss>
+                <linkcss>true</linkcss>
             </attributes>
             <backend>html5</backend>
           </configuration>
@@ -535,27 +535,6 @@
           </plugin>
 
         </plugins>
-      </build>
-    </profile>
-
-
-    <!-- "doc-html" for creating the asciidocs -->
-     <profile>
-      <id>doc-html</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.asciidoctor</groupId>
-            <artifactId>asciidoctor-maven-plugin</artifactId>
-            <configuration>
-              <backend>html</backend>
-              <attributes>
-                <toc>left</toc>
-              </attributes>
-            </configuration>
-          </plugin>
-        </plugins>
-        <defaultGoal>generate-resources asciidoctor:process-asciidoc</defaultGoal>
       </build>
     </profile>
 
