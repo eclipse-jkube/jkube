@@ -55,20 +55,6 @@ jobs:
         paths:
         - ~/.m2
 
-  sonar:
-    docker:
-      - image: cimg/openjdk:11.0
-    steps:
-    - checkout
-    - restore_cache:
-        key: maven-sonar-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
-    - run: |
-        MAVEN_OPTS="-Xmx3000m" ./mvnw -B -Pjacoco,sonar clean install
-    - save_cache:
-        key: maven-sonar-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
-        paths:
-        - ~/.m2
-
   doc-preview-pr:
     docker:
       - image: cimg/openjdk:11.0
@@ -103,9 +89,5 @@ workflows:
     jobs:
     - build
     - test
-    - sonar:
-        filters:
-          branches:
-            only: master
     - doc-preview-pr
     - dependencies-pr

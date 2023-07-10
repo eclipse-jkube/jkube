@@ -11,20 +11,23 @@ pipeline {
     disableConcurrentBuilds(abortPrevious: true)
   }
   stages {
-    stage('Sonar') {
+    stage('Sonar (PR)') {
+      when { changeRequest() }
       steps {
-        sshagent(['github-bot-ssh']) {
-          sh 'echo "Cloning Project"'
-          sh 'git clone git@github.com:eclipse/jkube.git'
-        }
-        dir('jkube') {
-          sh 'echo "Building Project and analyzing with Sonar"'
-          // Needs install instad of verify since ITs rely on artifacts from previous modules
-          sh './mvnw -V -B -e -Pjacoco,sonar install ' +
-             '-Dsonar.pullrequest.key=${CHANGE_ID} ' +
-             '-Dsonar.pullrequest.branch=${GIT_BRANCH} ' +
-             '-Dsonar.pullrequest.base=master'
-        }
+        sh 'echo "Building Project and analyzing with Sonar"'
+        // Needs install instad of verify since ITs rely on artifacts from previous modules
+        sh './mvnw -V -B -e -Pjacoco,sonar install ' +
+           '-Dsonar.pullrequest.key=${CHANGE_ID} ' +
+           '-Dsonar.pullrequest.branch=${GIT_BRANCH} ' +
+           '-Dsonar.pullrequest.base=master'
+      }
+    }
+    stage('Sonar (main)') {
+      when { not { changeRequest() } }
+      steps {
+        sh 'echo "Building Project and analyzing with Sonar"'
+        // Needs install instad of verify since ITs rely on artifacts from previous modules
+        sh './mvnw -V -B -e -Pjacoco,sonar install'
       }
     }
   }
