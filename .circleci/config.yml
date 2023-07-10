@@ -83,20 +83,6 @@ jobs:
     - store_artifacts:
         path: ./docs-generated/
 
-  dependencies-pr:
-    docker:
-      - image: cimg/openjdk:11.0
-    steps:
-    - checkout
-    - run: | # Script dependencies
-        sudo apt-get update && sudo apt-get install -y libxml-xpath-perl
-    - run: |
-        if [ -n "${CIRCLE_PULL_REQUEST}" ]; then
-          mvn install -DskipTests && ./scripts/eclipse-dash-tool.sh
-        fi
-    - store_artifacts:
-        path: ./target/dependencies-resolved.csv
-
 workflows:
   version: 2
   all:
@@ -108,4 +94,3 @@ workflows:
           branches:
             only: master
     - doc-preview-pr
-    - dependencies-pr
