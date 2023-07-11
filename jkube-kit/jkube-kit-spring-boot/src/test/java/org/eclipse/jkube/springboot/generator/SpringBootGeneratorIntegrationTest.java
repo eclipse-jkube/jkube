@@ -83,7 +83,7 @@ class SpringBootGeneratorIntegrationTest {
   }
 
   @Test
-  @DisplayName("customize, with standard packaging, has image name")
+  @DisplayName("customize, with standard packaging, has standard image name")
   void customize_withStandardPackaging_thenImageNameContainsGroupArtifactAndLatestTag() {
     // Given
     withCustomMainClass();
@@ -100,7 +100,7 @@ class SpringBootGeneratorIntegrationTest {
   }
 
   @Test
-  @DisplayName("customize, with standard packaging, has image alias")
+  @DisplayName("customize, with standard packaging, has 'spring-boot' image alias")
   void customize_withStandardPackaging_thenImageAliasSpringBoot() {
     // Given
     withCustomMainClass();
@@ -117,7 +117,7 @@ class SpringBootGeneratorIntegrationTest {
   }
 
   @Test
-  @DisplayName("customize, with standard packaging, has image from")
+  @DisplayName("customize, with standard packaging, has image from based on standard Java Exec generator image")
   void customize_withStandardPackaging_hasFrom() {
     // Given
     withCustomMainClass();
@@ -137,7 +137,7 @@ class SpringBootGeneratorIntegrationTest {
   }
 
   @Test
-  @DisplayName("customize, with standard packaging, has default web port")
+  @DisplayName("customize, with standard packaging, has '8080' web port")
   void customize_withStandardPackaging_thenImageHasDefaultWebPort() {
     // Given
     withCustomMainClass();
@@ -280,7 +280,7 @@ class SpringBootGeneratorIntegrationTest {
   }
 
   @Test
-  @DisplayName("customize, when color configuration provided, then add spring.output.ansi.enabled property to JAVA_OPTIONS environment variable")
+  @DisplayName("customize, when color configuration provided, enables ANSI color output")
   void customize_withColorConfiguration_shouldAddAnsiEnabledPropertyToJavaOptions() {
     // Given
     properties.put("jkube.generator.spring-boot.color", "always");
