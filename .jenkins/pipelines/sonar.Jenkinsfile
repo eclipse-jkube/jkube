@@ -23,6 +23,8 @@ pipeline {
            '-Dsonar.pullrequest.key=${CHANGE_ID} ' +
            '-Dsonar.pullrequest.branch=${GIT_BRANCH} ' +
            '-Dsonar.pullrequest.base=master'
+        // CodeCov
+        sh 'wget -O - https://codecov.io/bash | bash'
       }
     }
     stage('Sonar (main)') {
@@ -31,6 +33,8 @@ pipeline {
         sh 'echo "Building Project and analyzing with Sonar"'
         // Needs install instad of verify since ITs rely on artifacts from previous modules
         sh './mvnw -V -B -e -Pjacoco,sonar install'
+        // CodeCov
+        sh 'wget -O - https://codecov.io/bash | bash'
       }
     }
   }

@@ -15,24 +15,6 @@
 version: 2.1
 
 jobs:
-  test:
-    docker:
-      - image: cimg/openjdk:11.0
-    steps:
-    - checkout
-    - restore_cache:
-        key: maven-test-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
-    - run:
-        command: |
-          # Run maven build
-          ./mvnw -B -Pjacoco clean install
-          # Run codeocov analysis
-          bash <(curl -s https://codecov.io/bash)
-    - save_cache:
-        key: maven-test-{{ .Branch }}-{{ .Revision }}-{{ checksum "pom.xml" }}
-        paths:
-        - ~/.m2
-
   build:
     docker:
       - image: cimg/openjdk:8.0
@@ -60,4 +42,3 @@ workflows:
   all:
     jobs:
     - build
-    - test
