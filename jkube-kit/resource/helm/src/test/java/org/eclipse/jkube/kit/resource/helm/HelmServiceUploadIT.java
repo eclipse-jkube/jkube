@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -257,7 +256,7 @@ class HelmServiceUploadIT {
       .andReturn(404, "")
       .always();
     // When
-    final FileNotFoundException result = assertThrows(FileNotFoundException.class,
+    final BadUploadException result = assertThrows(BadUploadException.class,
       () -> helmService.uploadHelmChart(helmConfig));
     // Then
     assertThat(result).isNotNull();

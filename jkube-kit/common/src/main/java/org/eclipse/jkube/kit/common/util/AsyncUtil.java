@@ -13,10 +13,14 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -55,5 +59,18 @@ public class AsyncUtil {
       }
       return ret;
     });
+  }
+
+  public static <T> T get(CompletableFuture<T> completableFuture, Duration duration) {
+    try {
+      return completableFuture.get(duration.toMillis(), TimeUnit.MILLISECONDS);
+    } catch (ExecutionException e) {
+      throw new IllegalStateException(e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException(e);
+    } catch (TimeoutException e) {
+      throw new IllegalStateException("Failure while waiting to get future ", e);
+    }
   }
 }

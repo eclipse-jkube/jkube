@@ -13,10 +13,18 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import java.io.File;
-import java.io.IOException;
+import org.eclipse.jkube.kit.common.KitLogger;
 
-public interface HelmUploader {
-  HelmRepository.HelmRepoType getType();
-  void uploadSingle(File file, HelmRepository repository) throws IOException, BadUploadException ;
+import java.io.File;
+
+public class ChartMuseumHelmRepositoryUploader extends StandardRepositoryUploader {
+
+  public ChartMuseumHelmRepositoryUploader(KitLogger logger) {
+    super("POST", logger, HelmRepository.HelmRepoType.CHARTMUSEUM);
+  }
+
+  @Override
+  public String url(File helmChart, HelmRepository repository) {
+    return repository.getUrl();
+  }
 }
