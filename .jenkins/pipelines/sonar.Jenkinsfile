@@ -15,6 +15,9 @@ pipeline {
       when { changeRequest() }
       steps {
         sh 'echo "Building Project and analyzing with Sonar"'
+        // Required by Sonar to compare coverage info, etc. with master
+        sh 'git remote add upstream https://github.com/eclipse/jkube.git'
+        sh 'git fetch upstream'
         // Needs install instad of verify since ITs rely on artifacts from previous modules
         sh './mvnw -V -B -e -Pjacoco,sonar install ' +
            '-Dsonar.pullrequest.key=${CHANGE_ID} ' +
