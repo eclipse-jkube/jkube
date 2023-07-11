@@ -160,7 +160,7 @@ public class HelmService {
       throws IOException, BadUploadException {
 
     for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
-      final HelmUploader helmUploader = new HelmUploader(logger);
+      final HelmUploaderManager helmUploaderManager = new HelmUploaderManager(logger);
       logger.info("Uploading Helm Chart \"%s\" to %s", helmConfig.getChart(), helmRepository.getName());
       logger.debug("OutputDir: %s", helmConfig.getOutputDir());
 
@@ -170,7 +170,7 @@ public class HelmService {
       final File tarballFile = new File(tarballOutputDir, String.format("%s-%s%s.%s",
           helmConfig.getChart(), helmConfig.getVersion(), resolveHelmClassifier(helmConfig), helmConfig.getChartExtension()));
 
-      helmUploader.uploadSingle(tarballFile, helmRepository);
+      helmUploaderManager.getHelmUploader(helmRepository.getType()).uploadSingle(tarballFile, helmRepository);
     }
   }
 
