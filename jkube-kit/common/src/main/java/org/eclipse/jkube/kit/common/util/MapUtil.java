@@ -116,7 +116,7 @@ public class MapUtil {
      *     three: other
      * }</pre>
      * @param flattenedMap map with a flat structure
-     * @return Hash map
+     * @return converted nested map
      */
     public static Map<String, Object> getNestedMap(Map<String, ?> flattenedMap) {
         final Map<String, Object> result = new LinkedHashMap<>();
