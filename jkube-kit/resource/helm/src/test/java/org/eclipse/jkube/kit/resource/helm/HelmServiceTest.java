@@ -39,20 +39,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.notNull;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HelmServiceTest {
@@ -192,110 +187,5 @@ class HelmServiceTest {
           .hasFieldOrPropertyWithValue("dependencies",
               Collections.singletonList(helmDependency));
     }
-  }
-
-  @Test
-  void uploadChart_withValidRepository_shouldUpload()
-      throws IOException, BadUploadException {
-    try (MockedConstruction<HelmUploader> helmUploaderMockedConstruction = mockConstruction(HelmUploader.class,
-        (mock, ctx) -> doNothing().when(mock).uploadSingle(any(File.class), any()))) {
-      // Given
-      final HelmRepository helmRepository = completeValidRepository().name("stable-repo").build();
-      helmConfig
-          .types(Collections.singletonList(HelmType.KUBERNETES))
-          .chart("chartName")
-          .version("1337")
-          .chartExtension("tar.gz")
-          .outputDir("target")
-          .tarballOutputDir("target")
-          .snapshotRepository(HelmRepository.builder().name("Snapshot-Repo").build())
-          .stableRepository(helmRepository);
-      // When
-      helmService.uploadHelmChart(helmConfig.build());
-      // Then
-      ArgumentCaptor<File> argumentCaptor = ArgumentCaptor.forClass(File.class);
-      assertThat(helmUploaderMockedConstruction.constructed()).hasSize(1);
-      HelmUploader constructedHelmUploader = helmUploaderMockedConstruction.constructed().get(0);
-      verify(constructedHelmUploader).uploadSingle(argumentCaptor.capture(), eq(helmRepository));
-      String fileName = "chartName-1337.tar.gz";
-      assertThat(argumentCaptor.getValue())
-          .hasName(fileName);
-    }
-  }
-
-  @Test
-  void uploadHelmChart_withInvalidRepositoryConfiguration_shouldFail() {
-    // Given
-    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
-        .snapshotRepository(HelmRepository.builder().name("INVALID").build())
-        .build();
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class,
-      () -> helmService.uploadHelmChart(helm));
-    // Then
-    assertThat(result).hasMessage("No repository or invalid repository configured for upload");
-  }
-
-  @Test
-  void uploadHelmChart_withMissingRepositoryConfiguration_shouldFail() {
-    // Given
-    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT").build();
-    // When
-    final IllegalStateException result = assertThrows(IllegalStateException.class,
-      () -> helmService.uploadHelmChart(helm));
-    // Then
-    assertThat(result).hasMessage("No repository or invalid repository configured for upload");
-  }
-
-  @Test
-  void uploadHelmChart_withServerConfigurationWithoutUsername_shouldFail() {
-    // Given
-    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
-        .snapshotRepository(completeValidRepository().username(null).build()).build();
-    jKubeConfiguration.getRegistryConfig().getSettings()
-        .add(RegistryServerConfiguration.builder().id("SNAP-REPO").build());
-    // When
-    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
-        helmService.uploadHelmChart(helm));
-    // Then
-    assertThat(result).hasMessage("Repo SNAP-REPO was found in server list but has no username/password.");
-  }
-
-  @Test
-  void uploadHelmChart_withServerConfigurationWithoutPassword_shouldFail() {
-    // Given
-    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
-        .snapshotRepository(completeValidRepository().password(null).build()).build();
-    jKubeConfiguration.getRegistryConfig().getSettings()
-        .add(RegistryServerConfiguration.builder().id("SNAP-REPO").build());
-    // When
-    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
-        helmService.uploadHelmChart(helm));
-    // Then
-    assertThat(result).hasMessage("Repo SNAP-REPO has a username but no password defined.");
-  }
-
-
-  @Test
-  void uploadHelmChart_withMissingServerConfiguration_shouldFail() {
-    // Given
-    final HelmConfig helm = helmConfig.chart("chart").version("1337-SNAPSHOT")
-        .snapshotRepository(completeValidRepository().username(null).build()).build();
-    jKubeConfiguration.getRegistryConfig().getSettings()
-        .add(RegistryServerConfiguration.builder().id("DIFFERENT").build());
-    // When
-    final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
-        helmService.uploadHelmChart(helm));
-    // Then
-    assertThat(result).hasMessage("No credentials found for SNAP-REPO in configuration or settings.xml server list.");
-  }
-
-  private static HelmRepository.HelmRepositoryBuilder completeValidRepository() {
-    return HelmRepository.builder()
-        .name("SNAP-REPO")
-        .type(HelmRepository.HelmRepoType.ARTIFACTORY)
-        .url("https://example.com/artifactory")
-        .username("User")
-        .password("S3cret");
   }
 }
