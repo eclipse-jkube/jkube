@@ -31,7 +31,7 @@ public class HelmUploader {
     this.logger = logger;
   }
 
-  protected void uploadSingle(File file, HelmRepository repository)
+  void uploadSingle(File file, HelmRepository repository)
       throws IOException, BadUploadException {
     HttpURLConnection connection;
 
@@ -64,7 +64,7 @@ public class HelmUploader {
     connection.disconnect();
   }
 
-  protected void writeFileOnConnection(File file, HttpURLConnection connection) throws IOException {
+  private void writeFileOnConnection(File file, HttpURLConnection connection) throws IOException {
     try (FileInputStream fileInputStream = new FileInputStream(file)) {
       IOUtils.copy(fileInputStream, connection.getOutputStream());
     }
