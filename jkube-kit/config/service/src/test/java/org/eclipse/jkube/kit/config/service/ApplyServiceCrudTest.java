@@ -22,7 +22,11 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -134,20 +138,28 @@ class ApplyServiceCrudTest {
   void applyInServicesMode() {
     // Given
     final KubernetesList toApply = new KubernetesListBuilder()
-      .addToItems(new PodBuilder().withNewMetadata().withName("a-pod").endMetadata().build())
-      .addToItems(new DeploymentBuilder().withNewMetadata().withName("a-deployment").endMetadata().build())
-      .addToItems(new ServiceBuilder().withNewMetadata().withName("a-service").endMetadata().build())
-      .addToItems(new ServiceAccountBuilder().withNewMetadata().withName("a-sa").endMetadata().build())
+      .addToItems(new PodBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new DeploymentBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new ServiceBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new ServiceAccountBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new RoleBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new DaemonSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new ReplicaSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new StatefulSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
       .build();
     applyService.setServicesOnlyMode(true);
     // When
     applyService.apply(toApply, "list.yml");
     // Then
     assertThat(kubernetesClient)
-      .returns(null, c -> c.apps().deployments().inNamespace("default").withName("a-deployment").get())
-      .returns(null, c -> c.pods().inNamespace("default").withName("a-pod").get())
-      .returns(null, c -> c.serviceAccounts().inNamespace("default").withName("a-sa").get())
-      .returns("a-service", c -> c.services().inNamespace("default").withName("a-service").get().getMetadata().getName());
+      .returns(null, c -> c.apps().deployments().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.pods().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.serviceAccounts().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.rbac().roles().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.apps().daemonSets().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.apps().replicaSets().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.apps().statefulSets().inNamespace("default").withName("a-resource").get())
+      .returns("a-resource", c -> c.services().inNamespace("default").withName("a-resource").get().getMetadata().getName());
   }
 
   @DisplayName("apply with new resources and creation disabled, should do nothing")
@@ -201,7 +213,11 @@ class ApplyServiceCrudTest {
       Arguments.of(new PodBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
       Arguments.of(new DeploymentBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
       Arguments.of(new ServiceBuilder().withNewMetadata().withName("a-resource").endMetadata().withNewSpec().endSpec().build()),
-      Arguments.of(new ServiceAccountBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      Arguments.of(new ServiceAccountBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
+      Arguments.of(new RoleBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
+      Arguments.of(new DaemonSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
+      Arguments.of(new ReplicaSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
+      Arguments.of(new StatefulSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
     );
   }
 
