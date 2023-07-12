@@ -397,7 +397,8 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a ServiceAccount from " + sourceName + " namespace " + currentNamespace + " name " + getName(serviceAccount));
+                log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
+                  "ServiceAccount", sourceName, currentNamespace, id);
             } else {
                 doCreate(serviceAccount, currentNamespace, sourceName);
             }
@@ -804,7 +805,8 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a Service from " + sourceName + " namespace " + currentNamespace + " name " + getName(service));
+                log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
+                  "Service", sourceName, currentNamespace, id);
             } else {
                 doCreate(service, currentNamespace, sourceName);
             }
@@ -841,7 +843,8 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a " + kind + " from " + sourceName + " namespace " + currentNamespace + " name " + getName(resource));
+                log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
+                  kind, sourceName, currentNamespace, id);
             } else {
                 doCreate(resource, currentNamespace, sourceName);
             }
@@ -1080,8 +1083,8 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a pod from %s in namespace %s with name %s",
-                  sourceName, currentNamespace, name);
+                log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
+                  "Pod", sourceName, currentNamespace, name);
             } else {
                 doCreate(pod, currentNamespace, sourceName);
             }

@@ -19,9 +19,10 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -37,10 +38,14 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.startsWith;
@@ -130,65 +135,74 @@ class ApplyServiceCrudTest {
     // Given
     final KubernetesList toApply = new KubernetesListBuilder()
       .addToItems(new PodBuilder().withNewMetadata().withName("a-pod").endMetadata().build())
+      .addToItems(new DeploymentBuilder().withNewMetadata().withName("a-deployment").endMetadata().build())
       .addToItems(new ServiceBuilder().withNewMetadata().withName("a-service").endMetadata().build())
+      .addToItems(new ServiceAccountBuilder().withNewMetadata().withName("a-sa").endMetadata().build())
       .build();
     applyService.setServicesOnlyMode(true);
     // When
     applyService.apply(toApply, "list.yml");
     // Then
     assertThat(kubernetesClient)
+      .returns(null, c -> c.apps().deployments().inNamespace("default").withName("a-deployment").get())
       .returns(null, c -> c.pods().inNamespace("default").withName("a-pod").get())
+      .returns(null, c -> c.serviceAccounts().inNamespace("default").withName("a-sa").get())
       .returns("a-service", c -> c.services().inNamespace("default").withName("a-service").get().getMetadata().getName());
   }
 
-  @Test
-  @DisplayName("apply with new resource and creation disabled, should do nothing")
-  void applyWithNewResourceAndCreationDisabled() {
+  @DisplayName("apply with new resources and creation disabled, should do nothing")
+  @ParameterizedTest
+  @MethodSource("applyResourcesData")
+  void applyWithNewResourceAndCreationDisabled(HasMetadata toApplyResource) {
     // Given
-    final Pod toApply = new PodBuilder().withNewMetadata()
-      .withName("a-pod")
-      .endMetadata().build();
     applyService.setAllowCreate(false);
     // When
-    applyService.apply(toApply, "pod.yml");
+    applyService.apply(toApplyResource, "resource.yml");
     // Then
-    assertThat(kubernetesClient.pods().inNamespace("default").withName("a-pod").get())
+    assertThat(kubernetesClient.resource(toApplyResource).inNamespace("default").get())
       .isNull();
-    verify(log).warn("Creation disabled so not creating a pod from %s in namespace %s with name %s",
-      "pod.yml", "default", "a-pod");
+    verify(log).warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
+      toApplyResource.getKind(), "resource.yml", "default", "a-resource");
   }
 
-  @Test
   @DisplayName("apply with existing resource, should update the resource")
-  void applyWithExistingResource() {
+  @ParameterizedTest
+  @MethodSource("applyResourcesData")
+  void applyWithExistingResources(HasMetadata toApplyResource) {
     // Given
-    final Pod toApply = new PodBuilder().withNewMetadata()
-      .withName("a-pod")
-      .endMetadata().build();
-    final Pod original = kubernetesClient.resource(toApply).inNamespace("default").create();
+    final HasMetadata original = kubernetesClient.resource(toApplyResource).inNamespace("default").create();
+    toApplyResource.getMetadata().getAnnotations().put("updated", "true");
     // When
-    applyService.apply(toApply, "pod.yml");
+    applyService.apply(toApplyResource, "resource.yml");
     // Then
-    assertThat(kubernetesClient.pods().inNamespace("default").withName("a-pod").get())
+    assertThat(kubernetesClient.resource(toApplyResource).inNamespace("default").get())
       .hasFieldOrPropertyWithValue("metadata.uid", original.getMetadata().getUid())
-      .hasFieldOrPropertyWithValue("metadata.creationTimestamp", original.getMetadata().getCreationTimestamp());
+      .hasFieldOrPropertyWithValue("metadata.creationTimestamp", original.getMetadata().getCreationTimestamp())
+      .hasFieldOrPropertyWithValue("metadata.annotations.updated", "true");
   }
 
-  @Test
   @DisplayName("apply with existing resource, in recreate mode, should delete and recreate resource")
-  void applyWithExistingResourceInRecreateMode() {
+  @ParameterizedTest
+  @MethodSource("applyResourcesData")
+  void applyWithExistingResourceInRecreateMode(HasMetadata toApplyResource) {
     // Given
-    final Pod toApply = new PodBuilder().withNewMetadata()
-      .withName("a-pod")
-      .endMetadata().build();
-    final Pod original = kubernetesClient.resource(toApply).inNamespace("default").create();
     applyService.setRecreateMode(true);
+    final HasMetadata original = kubernetesClient.resource(toApplyResource).inNamespace("default").create();
     // When
-    applyService.apply(toApply, "pod.yml");
+    applyService.apply(toApplyResource, "resource.yml");
     // Then
-    assertThat(kubernetesClient.pods().inNamespace("default").withName("a-pod").get())
+    assertThat(kubernetesClient.resource(toApplyResource).inNamespace("default").get())
       .extracting("metadata.uid")
       .isNotEqualTo(original.getMetadata().getUid());
+  }
+
+  static Stream<Arguments> applyResourcesData() {
+    return Stream.of(
+      Arguments.of(new PodBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
+      Arguments.of(new DeploymentBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
+      Arguments.of(new ServiceBuilder().withNewMetadata().withName("a-resource").endMetadata().withNewSpec().endSpec().build()),
+      Arguments.of(new ServiceAccountBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+    );
   }
 
   @Test
