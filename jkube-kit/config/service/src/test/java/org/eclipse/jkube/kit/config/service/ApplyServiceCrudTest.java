@@ -19,13 +19,18 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodBuilder;
+import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinitionBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.rbac.RoleBindingBuilder;
 import io.fabric8.kubernetes.api.model.rbac.RoleBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -143,9 +148,14 @@ class ApplyServiceCrudTest {
       .addToItems(new ServiceBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
       .addToItems(new ServiceAccountBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
       .addToItems(new RoleBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new RoleBindingBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
       .addToItems(new DaemonSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
       .addToItems(new ReplicaSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
       .addToItems(new StatefulSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new ReplicationControllerBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new PersistentVolumeClaimBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new CustomResourceDefinitionBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      .addToItems(new SecretBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
       .build();
     applyService.setServicesOnlyMode(true);
     // When
@@ -156,16 +166,20 @@ class ApplyServiceCrudTest {
       .returns(null, c -> c.pods().inNamespace("default").withName("a-resource").get())
       .returns(null, c -> c.serviceAccounts().inNamespace("default").withName("a-resource").get())
       .returns(null, c -> c.rbac().roles().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.rbac().roleBindings().inNamespace("default").withName("a-resource").get())
       .returns(null, c -> c.apps().daemonSets().inNamespace("default").withName("a-resource").get())
       .returns(null, c -> c.apps().replicaSets().inNamespace("default").withName("a-resource").get())
       .returns(null, c -> c.apps().statefulSets().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.replicationControllers().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.persistentVolumeClaims().inNamespace("default").withName("a-resource").get())
+      .returns(null, c -> c.apiextensions().v1().customResourceDefinitions().withName("a-resource").get())
       .returns("a-resource", c -> c.services().inNamespace("default").withName("a-resource").get().getMetadata().getName());
   }
 
-  @DisplayName("apply with new resources and creation disabled, should do nothing")
+  @DisplayName("apply with new namespaced resource and creation disabled, should do nothing")
   @ParameterizedTest
-  @MethodSource("applyResourcesData")
-  void applyWithNewResourceAndCreationDisabled(HasMetadata toApplyResource) {
+  @MethodSource("applyNamespacedResourcesData")
+  void applyWithNewNamespacedResourceAndCreationDisabled(HasMetadata toApplyResource) {
     // Given
     applyService.setAllowCreate(false);
     // When
@@ -177,10 +191,25 @@ class ApplyServiceCrudTest {
       toApplyResource.getKind(), "resource.yml", "default", "a-resource");
   }
 
+  @DisplayName("apply with new cluster-scoped resource and creation disabled, should do nothing")
+  @ParameterizedTest
+  @MethodSource("applyClusterScopedResourcesData")
+  void applyWithNewResourceAndCreationDisabled(HasMetadata toApplyResource) {
+    // Given
+    applyService.setAllowCreate(false);
+    // When
+    applyService.apply(toApplyResource, "resource.yml");
+    // Then
+    assertThat(kubernetesClient.resource(toApplyResource).inNamespace("default").get())
+      .isNull();
+    verify(log).warn("Creation disabled so not creating a %s from %s with name %s",
+      toApplyResource.getKind(), "resource.yml", "a-resource");
+  }
+
   @DisplayName("apply with existing resource, should update the resource")
   @ParameterizedTest
-  @MethodSource("applyResourcesData")
-  void applyWithExistingResources(HasMetadata toApplyResource) {
+  @MethodSource("applyAllResourcesData")
+  void applyWithExistingNamespacedResources(HasMetadata toApplyResource) {
     // Given
     final HasMetadata original = kubernetesClient.resource(toApplyResource).inNamespace("default").create();
     toApplyResource.getMetadata().getAnnotations().put("updated", "true");
@@ -195,8 +224,8 @@ class ApplyServiceCrudTest {
 
   @DisplayName("apply with existing resource, in recreate mode, should delete and recreate resource")
   @ParameterizedTest
-  @MethodSource("applyResourcesData")
-  void applyWithExistingResourceInRecreateMode(HasMetadata toApplyResource) {
+  @MethodSource("applyAllResourcesData")
+  void applyWithExistingNamespacedResourceInRecreateMode(HasMetadata toApplyResource) {
     // Given
     applyService.setRecreateMode(true);
     final HasMetadata original = kubernetesClient.resource(toApplyResource).inNamespace("default").create();
@@ -208,17 +237,32 @@ class ApplyServiceCrudTest {
       .isNotEqualTo(original.getMetadata().getUid());
   }
 
-  static Stream<Arguments> applyResourcesData() {
+  static Stream<Arguments> applyNamespacedResourcesData() {
     return Stream.of(
       Arguments.of(new PodBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
       Arguments.of(new DeploymentBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
       Arguments.of(new ServiceBuilder().withNewMetadata().withName("a-resource").endMetadata().withNewSpec().endSpec().build()),
       Arguments.of(new ServiceAccountBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
       Arguments.of(new RoleBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
+      Arguments.of(new RoleBindingBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
       Arguments.of(new DaemonSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
       Arguments.of(new ReplicaSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
-      Arguments.of(new StatefulSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
+      Arguments.of(new StatefulSetBuilder().withNewMetadata().withName("a-resource").endMetadata().build()),
+      Arguments.of(new ReplicationControllerBuilder().withNewMetadata().withName("a-resource").endMetadata().withNewSpec().endSpec().build()),
+      Arguments.of(new SecretBuilder().withNewMetadata().withName("a-resource").endMetadata().build())
     );
+  }
+
+  static Stream<Arguments> applyClusterScopedResourcesData() {
+    return Stream.of(
+      Arguments.of(new CustomResourceDefinitionBuilder().withNewMetadata().withName("a-resource").endMetadata()
+        .withNewSpec().withNewNames().withKind("Custom").withPlural("customs").endNames().endSpec()
+        .build())
+    );
+  }
+
+  static Stream<Arguments> applyAllResourcesData() {
+    return Stream.concat(applyNamespacedResourcesData(), applyClusterScopedResourcesData());
   }
 
   @Test

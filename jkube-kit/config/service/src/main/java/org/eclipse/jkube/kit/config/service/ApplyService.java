@@ -45,16 +45,11 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim;
-import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.ReplicationController;
 import io.fabric8.kubernetes.api.model.ReplicationControllerSpec;
-import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
-import io.fabric8.kubernetes.api.model.ServiceAccount;
-import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
-import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -145,12 +140,8 @@ public class ApplyService {
      * Applies the given DTOs onto the Kubernetes master
      */
     private void applyEntity(Object dto, String sourceName) {
-        if (dto instanceof Pod) {
-            applyPod((Pod) dto, sourceName);
-        } else if (dto instanceof ReplicationController) {
+        if (dto instanceof ReplicationController) {
             applyReplicationController((ReplicationController) dto, sourceName);
-        } else if (dto instanceof Service) {
-            applyService((Service) dto, sourceName);
         } else if (dto instanceof Route) {
             applyRoute((Route) dto, sourceName);
         } else if (dto instanceof BuildConfig) {
@@ -162,18 +153,12 @@ public class ApplyService {
             } else {
                 log.warn("Not connected to OpenShift cluster so cannot apply entity %s", dto);
             }
-        } else if (dto instanceof RoleBinding) {
-            applyRoleBinding((RoleBinding) dto, sourceName);
         } else if (dto instanceof ImageStream) {
             applyImageStream((ImageStream) dto, sourceName);
         } else if (dto instanceof OAuthClient) {
             applyOAuthClient((OAuthClient) dto, sourceName);
         } else if (dto instanceof Template) {
             applyTemplate((Template) dto, sourceName);
-        } else if (dto instanceof ServiceAccount) {
-            applyServiceAccount((ServiceAccount) dto, sourceName);
-        } else if (dto instanceof Secret) {
-            applySecret((Secret) dto, sourceName);
         } else if (dto instanceof Ingress) {
             applyResource((Ingress) dto, sourceName);
             ingressControllerDetectorManager.detect();
@@ -182,8 +167,6 @@ public class ApplyService {
             ingressControllerDetectorManager.detect();
         } else if (dto instanceof PersistentVolumeClaim) {
             applyPersistentVolumeClaim((PersistentVolumeClaim) dto, sourceName);
-        } else if (dto instanceof CustomResourceDefinition) {
-            applyCustomResourceDefinition((CustomResourceDefinition) dto, sourceName);
         } else if (dto instanceof Job) {
             applyJob((Job) dto, sourceName);
         } else if (dto instanceof Namespace) {
@@ -338,45 +321,6 @@ public class ApplyService {
         }
     }
 
-    /**
-     * Creates/updates a service account and processes it returning the processed DTOs
-     */
-    public void applyServiceAccount(ServiceAccount serviceAccount, String sourceName) {
-        String currentNamespace = applicableNamespace(serviceAccount, namespace, fallbackNamespace);
-        String id = getName(serviceAccount);
-        Objects.requireNonNull(id, "No name for " + serviceAccount + " " + sourceName);
-        if (isServicesOnlyMode()) {
-            log.debug("Only processing Services right now so ignoring ServiceAccount: " + id);
-            return;
-        }
-        ServiceAccount old = kubernetesClient.serviceAccounts().inNamespace(currentNamespace).withName(id).get();
-        if (isRunning(old)) {
-            if (UserConfigurationCompare.configEqual(serviceAccount, old)) {
-                log.info("ServiceAccount has not changed so not doing anything");
-            } else {
-                if (isRecreateMode()) {
-                    kubernetesClient.serviceAccounts().inNamespace(currentNamespace).withName(id).delete();
-                    doCreate(serviceAccount, currentNamespace, sourceName);
-                } else {
-                    log.info("Updating a ServiceAccount from " + sourceName);
-                    try {
-                        Object answer = kubernetesClient.serviceAccounts().inNamespace(currentNamespace).withName(id).replace(serviceAccount);
-                        logGeneratedEntity("Updated ServiceAccount: ", currentNamespace, serviceAccount, answer);
-                    } catch (Exception e) {
-                        onApplyError("Failed to update ServiceAccount from " + sourceName + ". " + e + ". " + serviceAccount, e);
-                    }
-                }
-            }
-        } else {
-            if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
-                  "ServiceAccount", sourceName, currentNamespace, id);
-            } else {
-                doCreate(serviceAccount, currentNamespace, sourceName);
-            }
-        }
-    }
-
     public void applyPersistentVolumeClaim(PersistentVolumeClaim entity, String sourceName) {
         // we cannot update PVCs
         boolean alwaysRecreate = true;
@@ -408,38 +352,10 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a PersistentVolumeClaim from " + sourceName + " namespace " + currentNamespace + " name " + getName(entity));
+                log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
+                  "PersistentVolumeClaim", sourceName, currentNamespace, id);
             } else {
                 doCreate(entity, currentNamespace, sourceName);
-            }
-        }
-    }
-
-    public void applyCustomResourceDefinition(CustomResourceDefinition entity, String fileName) {
-        final String name = getName(entity);
-        Objects.requireNonNull(name, "No name for CustomResourceDefinition " + fileName);
-        if (isServicesOnlyMode()) {
-            log.debug("Only processing Services right now so ignoring Custom Resource Definition: %s", name);
-            return;
-        }
-        CustomResourceDefinition old = kubernetesClient.apiextensions().v1().customResourceDefinitions().withName(name).get();
-        if (isRunning(old)) {
-            if (UserConfigurationCompare.configEqual(entity, old)) {
-                log.info("Custom Resource Definition has not changed so not doing anything");
-            } else {
-                if (isRecreateMode()) {
-                    log.info("Deleting Custom Resource Definition: %s", name);
-                    kubernetesClient.apiextensions().v1().customResourceDefinitions().withName(name).delete();
-                    doCreate(entity, null, fileName);
-                } else {
-                    doPatchEntity(old, entity, null, fileName);
-                }
-            }
-        } else {
-            if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a Custom Resource Definition from " + fileName + " name " + getName(entity));
-            } else {
-                doCreate(entity, null, fileName);
             }
         }
     }
@@ -448,38 +364,6 @@ public class ApplyService {
         return claim != null &&
                 claim.getStatus() != null &&
                 "Bound".equals(claim.getStatus().getPhase());
-    }
-
-    public void applySecret(Secret secret, String sourceName) {
-        String currentNamespace = applicableNamespace(secret, namespace, fallbackNamespace);
-        String id = getName(secret);
-        Objects.requireNonNull(id, "No name for " + secret + " " + sourceName);
-        if (isServicesOnlyMode()) {
-            log.debug("Only processing Services right now so ignoring Secrets: " + id);
-            return;
-        }
-
-        Secret old = kubernetesClient.secrets().inNamespace(currentNamespace).withName(id).get();
-        // check if the secret already exists or not
-        if (isRunning(old)) {
-            // if the secret already exists and is the same, then do nothing
-            if (UserConfigurationCompare.configEqual(secret, old)) {
-                log.info("Secret has not changed so not doing anything");
-            } else {
-                if (isRecreateMode()) {
-                    kubernetesClient.secrets().inNamespace(currentNamespace).withName(id).delete();
-                    doCreate(secret, currentNamespace, sourceName);
-                } else {
-                    doPatchEntity(old, secret, currentNamespace, sourceName);
-                }
-            }
-        } else {
-            if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a Secret from " + sourceName + " namespace " + currentNamespace + " name " + getName(secret));
-            } else {
-                doCreate(secret, currentNamespace, sourceName);
-            }
-        }
     }
 
     private void logGeneratedEntity(String message, String namespace, HasMetadata entity, Object result) {
@@ -638,44 +522,6 @@ public class ApplyService {
         }
     }
 
-    public void applyRoleBinding(RoleBinding entity, String sourceName) {
-        String id = getName(entity);
-
-        Objects.requireNonNull(id, "No name for " + entity + " " + sourceName);
-        String currentNamespace = applicableNamespace(entity, namespace, fallbackNamespace);
-
-        RoleBinding old = kubernetesClient.rbac().roleBindings().inNamespace(currentNamespace).withName(id).get();
-        if (isRunning(old)) {
-            if (UserConfigurationCompare.configEqual(entity, old)) {
-                log.info("RoleBinding has not changed so not doing anything");
-            } else {
-                if (isRecreateMode()) {
-                    log.info("Deleting RoleBinding: " + id);
-                    kubernetesClient.rbac().roleBindings().inNamespace(currentNamespace).withName(id).delete();
-                    doCreate(entity, currentNamespace, sourceName);
-                } else {
-                    log.info("Updating RoleBinding from " + sourceName);
-                    try {
-                        String resourceVersion = KubernetesHelper.getResourceVersion(old);
-                        ObjectMeta metadata = getOrCreateMetadata(entity);
-                        metadata.setNamespace(currentNamespace);
-                        metadata.setResourceVersion(resourceVersion);
-                        Object answer = kubernetesClient.rbac().roleBindings().inNamespace(currentNamespace).withName(id).replace(entity);
-                        logGeneratedEntity("Updated RoleBinding: ", currentNamespace, entity, answer);
-                    } catch (Exception e) {
-                        onApplyError("Failed to update RoleBinding from " + sourceName + ". " + e + ". " + entity, e);
-                    }
-                }
-            }
-        } else {
-            if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating RoleBinding from " + sourceName + " namespace " + currentNamespace + " name " + getName(entity));
-            } else {
-                doCreate(entity, currentNamespace, sourceName);
-            }
-        }
-    }
-
     public void applyImageStream(ImageStream entity, String sourceName) {
         if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
             String kind = getKind(entity);
@@ -754,43 +600,12 @@ public class ApplyService {
         }
     }
 
-    public void applyService(Service service, String sourceName) {
-        String currentNamespace = applicableNamespace(service, namespace, fallbackNamespace);
-        String id = getName(service);
-        Objects.requireNonNull(id, "No name for " + service + " " + sourceName);
-        if (isIgnoreServiceMode()) {
-            log.debug("Ignoring Service: " + currentNamespace + ":" + id);
-            return;
-        }
-        Service old = kubernetesClient.services().inNamespace(currentNamespace).withName(id).get();
-        if (isRunning(old)) {
-            if (UserConfigurationCompare.configEqual(service, old)) {
-                log.info("Service has not changed so not doing anything");
-            } else {
-                if (isRecreateMode()) {
-                    log.info("Deleting Service: " + id);
-                    kubernetesClient.services().inNamespace(currentNamespace).withName(id).delete();
-                    doCreate(service, currentNamespace, sourceName);
-                } else {
-                    doPatchEntity(old, service, currentNamespace, sourceName);
-                }
-            }
-        } else {
-            if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
-                  "Service", sourceName, currentNamespace, id);
-            } else {
-                doCreate(service, currentNamespace, sourceName);
-            }
-        }
-    }
-
-    public <T extends HasMetadata,L> void applyResource(T resource, String sourceName) {
+    public <T extends HasMetadata> void applyResource(T resource, String sourceName) {
         String currentNamespace = applicableNamespace(resource, namespace, fallbackNamespace);
         String id = getName(resource);
         String kind = getKind(resource);
         Objects.requireNonNull(id, "No name for " + resource + " " + sourceName);
-        if (isServicesOnlyMode()) {
+        if (isServicesOnlyMode() && !(resource instanceof Service)) {
             log.debug("Ignoring " + kind + ": " + currentNamespace + ":" + id);
             return;
         }
@@ -806,17 +621,23 @@ public class ApplyService {
                 } else {
                     log.info("Updating " + kind + " from " + sourceName);
                     try {
-                        Object answer = kubernetesClient.resource(resource).inNamespace(currentNamespace).replace();
-                        logGeneratedEntity("Updated " + kind + ": ", currentNamespace, resource, answer);
+                        T updatedResource = kubernetesClient
+                          .resource(resource)
+                          .inNamespace(currentNamespace)
+                          .patch();
+                        logGeneratedEntity("Updated " + kind + ": ", currentNamespace, resource, updatedResource);
                     } catch (Exception e) {
                         onApplyError("Failed to update " + kind + " from " + sourceName + ". " + e + ". " + resource, e);
                     }
                 }
             }
         } else {
-            if (!isAllowCreate()) {
+            if (!isAllowCreate() && resource instanceof Namespaced) {
                 log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
                   kind, sourceName, currentNamespace, id);
+            } else if (!isAllowCreate()) {
+                log.warn("Creation disabled so not creating a %s from %s with name %s",
+                  kind, sourceName, id);
             } else {
                 doCreate(resource, currentNamespace, sourceName);
             }
@@ -1025,40 +846,10 @@ public class ApplyService {
             }
         } else {
             if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a ReplicationController from " + sourceName + " namespace " + currentNamespace + " name " + getName(replicationController));
+                log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
+                  "ReplicationController", sourceName, currentNamespace, id);
             } else {
                 doCreate(replicationController, currentNamespace, sourceName);
-            }
-        }
-    }
-
-    public void applyPod(Pod pod, String sourceName) {
-        String currentNamespace = applicableNamespace(pod, namespace, fallbackNamespace);
-        final String name = getName(pod);
-        Objects.requireNonNull(name, "No name for " + pod + " " + sourceName);
-        if (isServicesOnlyMode()) {
-            log.debug("Only processing Services right now so ignoring Pod: " + currentNamespace + ":" + name);
-            return;
-        }
-        Pod old = kubernetesClient.pods().inNamespace(currentNamespace).withName(name).get();
-        if (isRunning(old)) {
-            if (UserConfigurationCompare.configEqual(pod, old)) {
-                log.info("Pod has not changed so not doing anything");
-            } else {
-                if (isRecreateMode()) {
-                    log.info("Deleting Pod: " + name);
-                    kubernetesClient.pods().inNamespace(currentNamespace).withName(name).delete();
-                    doCreate(pod, currentNamespace, sourceName);
-                } else {
-                    doPatchEntity(old, pod, currentNamespace, sourceName);
-                }
-            }
-        } else {
-            if (!isAllowCreate()) {
-                log.warn("Creation disabled so not creating a %s from %s in namespace %s with name %s",
-                  "Pod", sourceName, currentNamespace, name);
-            } else {
-                doCreate(pod, currentNamespace, sourceName);
             }
         }
     }
