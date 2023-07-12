@@ -40,7 +40,6 @@ import org.eclipse.jkube.kit.common.util.UserConfigurationCompare;
 import org.eclipse.jkube.kit.config.service.ingresscontroller.IngressControllerDetectorManager;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil;
 
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Namespace;
@@ -53,18 +52,11 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
 import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apps.DaemonSet;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSet;
-import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
-import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
-import io.fabric8.kubernetes.api.model.rbac.Role;
 import io.fabric8.kubernetes.api.model.rbac.RoleBinding;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.DeploymentConfig;
@@ -166,14 +158,12 @@ public class ApplyService {
         } else if (dto instanceof DeploymentConfig) {
             DeploymentConfig resource = (DeploymentConfig) dto;
             if (OpenshiftHelper.isOpenShift(kubernetesClient)) {
-                applyResource(resource, sourceName, asOpenShiftClient().deploymentConfigs());
+                applyResource(resource, sourceName);
             } else {
                 log.warn("Not connected to OpenShift cluster so cannot apply entity %s", dto);
             }
         } else if (dto instanceof RoleBinding) {
             applyRoleBinding((RoleBinding) dto, sourceName);
-        } else if (dto instanceof Role) {
-            applyResource((Role) dto, sourceName, kubernetesClient.rbac().roles());
         } else if (dto instanceof ImageStream) {
             applyImageStream((ImageStream) dto, sourceName);
         } else if (dto instanceof OAuthClient) {
@@ -184,21 +174,11 @@ public class ApplyService {
             applyServiceAccount((ServiceAccount) dto, sourceName);
         } else if (dto instanceof Secret) {
             applySecret((Secret) dto, sourceName);
-        } else if (dto instanceof ConfigMap) {
-            applyResource((ConfigMap) dto, sourceName, kubernetesClient.configMaps());
-        } else if (dto instanceof DaemonSet) {
-            applyResource((DaemonSet) dto, sourceName, kubernetesClient.apps().daemonSets());
-        } else if (dto instanceof Deployment) {
-            applyResource((Deployment) dto, sourceName, kubernetesClient.apps().deployments());
-        } else if (dto instanceof ReplicaSet) {
-            applyResource((ReplicaSet) dto, sourceName, kubernetesClient.apps().replicaSets());
-        } else if (dto instanceof StatefulSet) {
-            applyResource((StatefulSet) dto, sourceName, kubernetesClient.apps().statefulSets());
         } else if (dto instanceof Ingress) {
-            applyResource((Ingress) dto, sourceName, kubernetesClient.extensions().ingresses());
+            applyResource((Ingress) dto, sourceName);
             ingressControllerDetectorManager.detect();
-        }else if (dto instanceof io.fabric8.kubernetes.api.model.networking.v1.Ingress) {
-            applyResource((io.fabric8.kubernetes.api.model.networking.v1.Ingress) dto, sourceName, kubernetesClient.network().v1().ingresses());
+        } else if (dto instanceof io.fabric8.kubernetes.api.model.networking.v1.Ingress) {
+            applyResource((io.fabric8.kubernetes.api.model.networking.v1.Ingress) dto, sourceName);
             ingressControllerDetectorManager.detect();
         } else if (dto instanceof PersistentVolumeClaim) {
             applyPersistentVolumeClaim((PersistentVolumeClaim) dto, sourceName);
@@ -206,8 +186,6 @@ public class ApplyService {
             applyCustomResourceDefinition((CustomResourceDefinition) dto, sourceName);
         } else if (dto instanceof Job) {
             applyJob((Job) dto, sourceName);
-        } else if (dto instanceof NetworkPolicy) {
-            applyResource( (NetworkPolicy) dto, sourceName, kubernetesClient.network().networkPolicies());
         } else if (dto instanceof Namespace) {
             applyNamespace((Namespace) dto);
         } else if (dto instanceof Project) {
@@ -215,13 +193,7 @@ public class ApplyService {
         } else if (dto instanceof GenericKubernetesResource) {
             applyGenericKubernetesResource((GenericKubernetesResource) dto, sourceName);
         } else if (dto instanceof HasMetadata) {
-            HasMetadata entity = (HasMetadata) dto;
-            try {
-                log.info("Applying %s %s from %s", getKind(entity), getName(entity), sourceName);
-                kubernetesClient.resource(entity).inNamespace(applicableNamespace((HasMetadata) dto, namespace, fallbackNamespace)).createOrReplace();
-            } catch (Exception e) {
-                onApplyError("Failed to create " + getKind(entity) + " from " + sourceName + ". " + e, e);
-            }
+            applyResource((HasMetadata) dto, sourceName);
         } else {
             throw new IllegalArgumentException("Unknown entity type " + dto);
         }
@@ -813,7 +785,7 @@ public class ApplyService {
         }
     }
 
-    public <T extends HasMetadata,L> void applyResource(T resource, String sourceName, MixedOperation<T, L, ? extends Resource<T>> resources) {
+    public <T extends HasMetadata,L> void applyResource(T resource, String sourceName) {
         String currentNamespace = applicableNamespace(resource, namespace, fallbackNamespace);
         String id = getName(resource);
         String kind = getKind(resource);
@@ -822,19 +794,19 @@ public class ApplyService {
             log.debug("Ignoring " + kind + ": " + currentNamespace + ":" + id);
             return;
         }
-        T old = resources.inNamespace(currentNamespace).withName(id).get();
+        T old = kubernetesClient.resource(resource).inNamespace(currentNamespace).get();
         if (isRunning(old)) {
             if (UserConfigurationCompare.configEqual(resource, old)) {
                 log.info(kind + " has not changed so not doing anything");
             } else {
                 if (isRecreateMode()) {
                     log.info("Deleting " + kind + ": " + id);
-                    resources.inNamespace(currentNamespace).withName(id).delete();
+                    kubernetesClient.resource(resource).inNamespace(currentNamespace).delete();
                     doCreate(resource, currentNamespace, sourceName);
                 } else {
                     log.info("Updating " + kind + " from " + sourceName);
                     try {
-                        Object answer = resources.inNamespace(currentNamespace).withName(id).replace(resource);
+                        Object answer = kubernetesClient.resource(resource).inNamespace(currentNamespace).replace();
                         logGeneratedEntity("Updated " + kind + ": ", currentNamespace, resource, answer);
                     } catch (Exception e) {
                         onApplyError("Failed to update " + kind + " from " + sourceName + ". " + e + ". " + resource, e);
