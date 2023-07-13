@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.common.util;
 
 import io.fabric8.kubernetes.client.http.HttpResponse;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -34,15 +35,17 @@ public class Fabric8HttpUtil {
    * @param response Http Response of a particular request
    * @return map containing various components of header as key value pairs
    */
-  public static Map<String, String> extractAuthenticationChallengeIntoMap(HttpResponse<byte[]> response) {
-    String wwwAuthenticateHeader = response.header(WWW_AUTHENTICATE);
-    String[] wwwAuthenticateHeaders = wwwAuthenticateHeader.split(",");
+  public static Map<String, String> extractAuthenticationChallengeIntoMap(HttpResponse<?> response) {
     Map<String, String> result = new HashMap<>();
-    for (String challenge : wwwAuthenticateHeaders) {
-      if (challenge.contains("=")) {
-        String[] challengeParts = challenge.split("=");
-        if (challengeParts.length == 2) {
-          result.put(challengeParts[0], strip(challengeParts[1], "\""));
+    String wwwAuthenticateHeader = response.header(WWW_AUTHENTICATE);
+    if (StringUtils.isNotBlank(wwwAuthenticateHeader)) {
+      String[] wwwAuthenticateHeaders = wwwAuthenticateHeader.split(",");
+      for (String challenge : wwwAuthenticateHeaders) {
+        if (challenge.contains("=")) {
+          String[] challengeParts = challenge.split("=");
+          if (challengeParts.length == 2) {
+            result.put(challengeParts[0], strip(challengeParts[1], "\""));
+          }
         }
       }
     }

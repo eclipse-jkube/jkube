@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 
 import java.util.List;
@@ -25,8 +24,8 @@ public class HelmUploaderManager {
 
   private final List<HelmUploader> helmUploaderList;
 
-  public HelmUploaderManager(KitLogger log) {
-    this.helmUploaderList = new PluginServiceFactory<>(log).createServiceObjects(SERVICE_PATHS);
+  public HelmUploaderManager() {
+    this.helmUploaderList = new PluginServiceFactory<>(null).createServiceObjects(SERVICE_PATHS);
   }
 
   public HelmUploader getHelmUploader(HelmRepository.HelmRepoType type) {

@@ -159,8 +159,8 @@ public class HelmService {
   private void uploadHelmChart(HelmConfig helmConfig, HelmRepository helmRepository)
       throws IOException, BadUploadException {
 
+    final HelmUploaderManager helmUploaderManager = new HelmUploaderManager();
     for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
-      final HelmUploaderManager helmUploaderManager = new HelmUploaderManager(logger);
       logger.info("Uploading Helm Chart \"%s\" to %s", helmConfig.getChart(), helmRepository.getName());
       logger.debug("OutputDir: %s", helmConfig.getOutputDir());
 
@@ -171,6 +171,7 @@ public class HelmService {
           helmConfig.getChart(), helmConfig.getVersion(), resolveHelmClassifier(helmConfig), helmConfig.getChartExtension()));
 
       helmUploaderManager.getHelmUploader(helmRepository.getType()).uploadSingle(tarballFile, helmRepository);
+      logger.info("Upload Successful");
     }
   }
 

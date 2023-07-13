@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.client.http.HttpRequest;
 import io.fabric8.kubernetes.client.http.HttpResponse;
 import io.fabric8.kubernetes.client.utils.HttpClientUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Base64Util;
 
 import java.io.File;
@@ -31,13 +30,11 @@ import static org.eclipse.jkube.kit.common.util.AsyncUtil.get;
 
 public abstract class StandardRepositoryUploader implements HelmUploader {
   private final String method;
-  private final KitLogger logger;
   private final HelmRepository.HelmRepoType type;
   private static final long HELM_UPLOAD_TIMEOUT_MINUTES = 30;
 
-  protected StandardRepositoryUploader(String method, KitLogger logger, HelmRepository.HelmRepoType type) {
+  protected StandardRepositoryUploader(String method, HelmRepository.HelmRepoType type) {
     this.method = method;
-    this.logger = logger;
     this.type = type;
   }
 
@@ -53,12 +50,13 @@ public abstract class StandardRepositoryUploader implements HelmUploader {
     String uploadUrl = url(file, repository);
 
     try (HttpClient httpClient = HttpClientUtils.getHttpClientFactory().newBuilder().tag(new RequestConfigBuilder().withRequestRetryBackoffLimit(0).build()).build()) {
-      HttpRequest.Builder httpRequestBuilder = httpClient.newHttpRequestBuilder();
-      httpRequestBuilder.uri(uploadUrl);
-      // At this point username and password are always populated since this is requirement in HelmService
-      httpRequestBuilder.header("Authorization", String.format("Basic %s", Base64Util.encodeToString(repository.getUsername() + ":" + repository.getPassword())));
-      httpRequestBuilder.method(method, "application/gzip", Files.newInputStream(file.toPath()), file.length());
-      HttpResponse<byte[]> response = get(httpClient.sendAsync(httpRequestBuilder.build(), byte[].class), Duration.ofMinutes(HELM_UPLOAD_TIMEOUT_MINUTES));
+      HttpRequest httpRequest = httpClient.newHttpRequestBuilder()
+          .method(method, "application/gzip", Files.newInputStream(file.toPath()), file.length())
+          // At this point username and password are always populated since this is requirement in HelmService
+          .header("Authorization", String.format("Basic %s", Base64Util.encodeToString(repository.getUsername() + ":" + repository.getPassword())))
+          .uri(uploadUrl)
+          .build();
+      HttpResponse<byte[]> response = get(httpClient.sendAsync(httpRequest, byte[].class), Duration.ofMinutes(HELM_UPLOAD_TIMEOUT_MINUTES));
       handleHttpResponse(response);
     }
   }
@@ -74,12 +72,6 @@ public abstract class StandardRepositoryUploader implements HelmUploader {
         responseStr = "No details provided";
       }
       throw new BadUploadException(responseStr);
-    } else {
-      String message = Integer.toString(response.code());
-      if (response.body() != null) {
-        message += " - " + new String(response.body());
-      }
-      logger.info(message);
     }
   }
 

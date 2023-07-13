@@ -13,14 +13,12 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import org.eclipse.jkube.kit.common.KitLogger;
-
 import java.io.File;
 
 public class ArtifactoryHelmRepositoryUploader extends StandardRepositoryUploader {
 
-  public ArtifactoryHelmRepositoryUploader(KitLogger logger) {
-    super("PUT", logger, HelmRepository.HelmRepoType.ARTIFACTORY);
+  public ArtifactoryHelmRepositoryUploader() {
+    super("PUT", HelmRepository.HelmRepoType.ARTIFACTORY);
   }
 
   @Override
