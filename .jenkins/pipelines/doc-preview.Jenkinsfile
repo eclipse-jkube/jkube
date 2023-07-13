@@ -16,12 +16,8 @@ pipeline {
       steps {
         sh 'echo "Generating project documentation"'
         sh './scripts/generateDoc.sh'
+        archiveArtifacts artifacts: 'docs-generated/*.html,docs-generated/*.txt,docs-generated/*.css', fingerprint: true
       }
-    }
-  }
-  post {
-    success {
-      archiveArtifacts artifacts: 'docs-generated/*.html,docs-generated/*.txt,docs-generated/*.css', fingerprint: true
     }
   }
 }
