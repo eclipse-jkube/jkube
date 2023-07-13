@@ -678,6 +678,14 @@
       <!-- == test ====================================== -->
 
       <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kubernetes-client-api</artifactId>
+        <type>test-jar</type>
+        <version>${version.kubernetes-client}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter-engine</artifactId>
         <version>${version.junit5}</version>

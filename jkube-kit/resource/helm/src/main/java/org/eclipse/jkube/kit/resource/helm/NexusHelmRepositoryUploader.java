@@ -13,13 +13,11 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import org.eclipse.jkube.kit.common.KitLogger;
-
 import java.io.File;
 
 public class NexusHelmRepositoryUploader extends StandardRepositoryUploader {
-  public NexusHelmRepositoryUploader(KitLogger logger) {
-    super("PUT", logger, HelmRepository.HelmRepoType.NEXUS);
+  public NexusHelmRepositoryUploader() {
+    super("PUT", HelmRepository.HelmRepoType.NEXUS);
   }
 
   @Override

@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.common.util;
 
 import io.fabric8.kubernetes.client.http.HttpResponse;
+import io.fabric8.kubernetes.client.http.TestHttpResponse;
 import org.junit.jupiter.api.Test;
 
 import java.io.UnsupportedEncodingException;
@@ -53,7 +54,7 @@ class Fabric8HttpUtilTest {
     String wwwAuthenticateValue = "Bearer realm=\"https://auth.example.com/token\",service=\"registry.example.com\",scope=\"repository:myuser/test-chart:pull\"";
     Map<String, List<String>> responseHeaders = new HashMap<>();
     responseHeaders.put("WWW-Authenticate", Collections.singletonList(wwwAuthenticateValue));
-    HttpResponse<byte[]> response = new TestFabric8HttpResponse(HTTP_OK, responseHeaders, null, null);
+    HttpResponse<byte[]> response = new TestHttpResponse<byte[]>(responseHeaders).withCode(HTTP_OK);
 
     // When
     Map<String, String> wwwAuthenticateAsMap = Fabric8HttpUtil.extractAuthenticationChallengeIntoMap(response);

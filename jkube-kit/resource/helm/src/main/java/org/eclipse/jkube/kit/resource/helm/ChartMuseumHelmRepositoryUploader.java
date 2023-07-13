@@ -13,14 +13,12 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import org.eclipse.jkube.kit.common.KitLogger;
-
 import java.io.File;
 
 public class ChartMuseumHelmRepositoryUploader extends StandardRepositoryUploader {
 
-  public ChartMuseumHelmRepositoryUploader(KitLogger logger) {
-    super("POST", logger, HelmRepository.HelmRepoType.CHARTMUSEUM);
+  public ChartMuseumHelmRepositoryUploader() {
+    super("POST", HelmRepository.HelmRepoType.CHARTMUSEUM);
   }
 
   @Override

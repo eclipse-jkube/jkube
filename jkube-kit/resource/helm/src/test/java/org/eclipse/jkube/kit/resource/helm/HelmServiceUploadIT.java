@@ -51,6 +51,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.spy;
@@ -339,7 +340,7 @@ class HelmServiceUploadIT {
     // When
     helmService.uploadHelmChart(helmConfig);
     // Then
-    verify(logger).info("201 - Upload successful");
+    verify(logger).info("Upload Successful");
   }
 
   @DisplayName("Logs success after successful POST request")
@@ -355,7 +356,7 @@ class HelmServiceUploadIT {
     // When
     helmService.uploadHelmChart(helmConfig);
     // Then
-    verify(logger).info("201 - Upload successful");
+    verify(logger).info("Upload Successful");
   }
 
   @DisplayName("Sends file in PUT request")
@@ -419,6 +420,54 @@ class HelmServiceUploadIT {
       // Then
       assertThat(mockServer.getLastRequest().getBody().readUtf8())
         .isEqualTo("I'm a tar.gz, not a .tgz");
+    }
+  }
+
+  @DisplayName("OCI repository specifics")
+  @Nested
+  class OCI {
+
+    @BeforeEach
+    void setUp() {
+      helmConfig.getSnapshotRepository().setType("OCI");
+    }
+
+    @Test
+    @DisplayName("Sends chart metadata file, tarball and manifest file in separate requests")
+    void withSuccessfulUpload_shouldUploadBlobsAndUpdateManifest() throws Exception {
+      // Given
+      helmConfig.setChartExtension("tar.gz");
+      Files.write(
+          Paths.get(helmConfig.getOutputDir()).resolve("kubernetes")
+              .resolve("Helm-Chart-1337-SNAPSHOT.tar.gz"),
+          "I'm a tar.gz, not a .tgz".getBytes(StandardCharsets.UTF_8));
+      Files.write(Paths.get(helmConfig.getOutputDir()).resolve("kubernetes").resolve("Chart.yaml"),
+          "---\napiVersion: v1\nname: test-chart\nversion: 0.0.1".getBytes(StandardCharsets.UTF_8));
+      mockServer.expect().post()
+          .withPath("/v2/test-chart/blobs/uploads/")
+          .andReply(new TestMockResponseProvider(202, singletonMap("Location", "/v2/test-chart/blobs/upload/first-upload-endpoint"), null))
+          .once();
+      mockServer.expect().post()
+          .withPath("/v2/test-chart/blobs/uploads/")
+          .andReply(new TestMockResponseProvider(202, singletonMap("Location", "/v2/test-chart/blobs/upload/second-upload-endpoint"), null))
+          .once();
+      mockServer.expect().put()
+          .withPath("/v2/test-chart/blobs/upload/first-upload-endpoint?digest=sha256%3Ac7051faa2fb28d147b34070a6bce25eaf1ee6bb4ca3b47af5ee6148d50079154")
+          .andReply(new TestMockResponseProvider(200, singletonMap("Docker-Content-Digest", "dockerdigest1"), null))
+          .once();
+      mockServer.expect().put()
+          .withPath("/v2/test-chart/blobs/upload/second-upload-endpoint?digest=sha256%3A530abfbfb3897f927efcac9610a26e97c7455d2bf5a7a5b8be02e646f10a041f")
+          .andReply(new TestMockResponseProvider(200, singletonMap("Docker-Content-Digest", "dockerdigest2"), null))
+          .once();
+      mockServer.expect().put()
+          .withPath("/v2/test-chart/manifests/0.0.1")
+          .andReply(new TestMockResponseProvider(200, singletonMap("Docker-Content-Digest", "manifestdigest"), null))
+          .once();
+      // When
+      helmService.uploadHelmChart(helmConfig);
+      // Then
+      assertThat(mockServer.getLastRequest().getBody().readUtf8())
+          .isEqualTo("{\"schemaVersion\":2,\"config\":{\"mediaType\":\"application/vnd.cncf.helm.config.v1+json\",\"digest\":\"dockerdigest2\",\"size\":57},\"layers\":[{\"mediaType\":\"application/vnd.cncf.helm.chart.content.v1.tar+gzip\",\"digest\":\"dockerdigest1\",\"size\":24}]}");
     }
   }
 

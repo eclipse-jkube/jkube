@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -27,7 +26,8 @@ class HelmUploaderManagerTest {
     return Stream.of(
         Arguments.of("ARTIFACTORY", ArtifactoryHelmRepositoryUploader.class),
         Arguments.of("NEXUS", NexusHelmRepositoryUploader.class),
-        Arguments.of("CHARTMUSEUM", ChartMuseumHelmRepositoryUploader.class)
+        Arguments.of("CHARTMUSEUM", ChartMuseumHelmRepositoryUploader.class),
+        Arguments.of("OCI", OCIRepositoryUploader.class)
     );
   }
 
@@ -35,7 +35,7 @@ class HelmUploaderManagerTest {
   @MethodSource("testData")
   void getHelmUploader_whenValidHelmTypeProvided_thenReturnAppropriateUploader(HelmRepository.HelmRepoType type, Class<? extends HelmUploader> helmUploaderType) {
     // Given
-    HelmUploaderManager helmUploaderManager = new HelmUploaderManager(new KitLogger.SilentLogger());
+    HelmUploaderManager helmUploaderManager = new HelmUploaderManager();
 
     // When
     HelmUploader helmUploader = helmUploaderManager.getHelmUploader(type);
