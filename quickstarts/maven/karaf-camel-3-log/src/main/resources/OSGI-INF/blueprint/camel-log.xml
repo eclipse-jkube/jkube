@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    Copyright (c) 2019 Red Hat, Inc.
+    This program and the accompanying materials are made
+    available under the terms of the Eclipse Public License 2.0
+    which is available at:
+
+        https://www.eclipse.org/legal/epl-2.0/
+
+    SPDX-License-Identifier: EPL-2.0
+
+    Contributors:
+      Red Hat, Inc. - initial API and implementation
+
+-->
+<!--
+   This is the OSGi Blueprint XML file defining the Camel context and routes.  Because the file is in the
+   OSGI-INF/blueprint directory inside our JAR, it will be automatically activated as soon as the bundle is installed.
+
+   The root element for any OSGi Blueprint file is 'blueprint' - you also see the namespace definitions for both the Blueprint
+   and the Camel namespaces.
+-->
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0">
+
+    <bean id="orderGenerator" class="org.eclipse.jkube.quickstart.karaf.OrderGenerator"/>
+    <bean id="orderLogger" class="org.slf4j.LoggerFactory" factory-method="getLogger">
+        <argument value="org.eclipse.jkube.quickstart.karaf" />
+    </bean>
+    <bean id="helloLogger" class="org.slf4j.LoggerFactory" factory-method="getLogger">
+        <argument value="org.eclipse.jkube.quickstart.karaf.hello" />
+    </bean>
+    <!--
+      The namespace for the camelContext element in Blueprint is 'http://camel.apache.org/schema/blueprint'.
+
+      While it is not required to assign id's to the <camelContext/> and <route/> elements, it is a good idea
+      to set those for runtime management purposes (logging, JMX MBeans, ...)
+    -->
+    <camelContext id="log-example-context" xmlns="http://camel.apache.org/schema/blueprint">
+        <!-- a route to generate a random order every 5th second -->
+        <route id="generate-order">
+            <from id="route-timer" uri="timer:order?period=5000"/>
+            <bean id="route-generate-order" method="generateOrder" ref="orderGenerator"/>
+            <setHeader name="Exchange.FILE_NAME" id="route-header-file-name">
+                <method method="generateFileName" ref="orderGenerator"/>
+            </setHeader>
+            <log id="route-log-order-generate" logger="orderLogger" message="Generating order ${file:name}"/>
+            <to id="route-to-input" uri="file:work/orders/input"/>
+        </route>
+        <route id="process-order">
+            <from id="route-from-input" uri="file:work/orders/input"/>
+            <log id="route-log-order-processed" message="Processing order ${file:name}"/>
+            <to id="route-to-processed-orders" uri="file:work/orders/processed"/>
+        </route>
+        <!--
+          A very simple Camel route, that uses a timer to trigger a message every 5 second.
+
+          The <setBody> sets a body into the Camel Message.
+
+          The <log/> elements are used to add human-friendly business logging statements. They make it easier to see what the
+          route is doing.
+        -->
+        <route id="log-route">
+            <from id="route-timer" uri="timer:foo?period=5s"/>
+            <setBody id="route-set-body">
+                <simple>Hello from Camel!</simple>
+            </setBody>
+            <log id="route-log" logger="helloLogger" loggingLevel="INFO" message="${body}"/>
+            <log id="route-log" logger="helloLogger" loggingLevel="INFO" message="My id is ${id}"/>
+        </route>
+    </camelContext>
+</blueprint>

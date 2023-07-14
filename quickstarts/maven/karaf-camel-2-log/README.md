@@ -1,12 +1,12 @@
 ---
-name: "Maven :: Karaf Camel Log"
+name: "Maven :: Karaf Camel 2 Log"
 description: |
-  Simple Apache Camel application on top of Apache Karaf that logs a series of messages to the Server log.
+  Simple Apache Camel 2 application on top of Apache Karaf that logs a series of messages to the Server log.
   The application also generates and processes random orders using Camel routes.
 ---
 # Eclipse JKube Karaf Quickstart - Camel Log
 
-This quickstart shows a simple Apache Camel application that logs a series of messages to the Server log and
+This quickstart shows a simple Apache Camel 2 application that logs a series of messages to the Server log and
 generates and processes random orders.
 
 ## Features
