@@ -33,7 +33,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <camel.version>2.25.4</camel.version> <!-- Never bump major, specific example for Camel 2 -->
+    <camel.version>3.2.0</camel.version> <!-- Never bump major, specific example for Camel 2 -->
     <karaf.version>4.4.3</karaf.version>
   </properties>
 
