@@ -19,13 +19,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
-  <artifactId>karaf-camel-log</artifactId>
+  <artifactId>karaf-camel-3-log</artifactId>
   <version>1.13.1</version>
   <packaging>bundle</packaging>
-  <name>Eclipse JKube :: Quickstarts :: Maven :: Karaf Camel Log</name>
+  <name>Eclipse JKube :: Quickstarts :: Maven :: Karaf Camel 3 Log</name>
 
   <description>
-    Simple Apache Camel application on top of Apache Karaf that logs a series of messages to the Server log.
+    Simple Apache Camel 3 application on top of Apache Karaf that logs a series of messages to the Server log.
     The application also generates and processes random orders using Camel routes.
   </description>
 
@@ -33,19 +33,21 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <camel.version>2.25.4</camel.version>
-    <karaf.version>4.3.5</karaf.version>
+    <camel.version>3.21.0</camel.version>
+    <karaf.version>4.4.3</karaf.version>
   </properties>
 
   <dependencies>
     <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-core</artifactId>
+      <groupId>org.apache.camel.karaf</groupId>
+      <artifactId>apache-camel</artifactId>
       <version>${camel.version}</version>
+      <classifier>features</classifier>
+      <type>xml</type>
     </dependency>
     <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-blueprint</artifactId>
+      <groupId>org.apache.camel.karaf</groupId>
+      <artifactId>camel-core-osgi</artifactId>
       <version>${camel.version}</version>
     </dependency>
     <dependency>
@@ -136,6 +138,7 @@
             <feature>system</feature>
             <feature>scr</feature>
             <feature>management</feature>
+            <feature>identity</feature>
             <feature>aries-blueprint</feature>
             <feature>camel-core</feature>
             <feature>camel-blueprint</feature>
