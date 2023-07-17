@@ -26,6 +26,7 @@ Usage:
 * Fix #1929: Docker Image Name parsing fix
 * Fix #1985: Update outdated methods in Spring Boot CRD Maven Quickstart
 * Fix #2116: Remove user field from ImageName class
+* Fix #2219: Kind/Filename mappings include optional apiVersion configuration
 * Fix #2224: Quarkus native base image read from properties (configurable)
 * Fix #2228: Quarkus native base image uses UBI 8.7
 

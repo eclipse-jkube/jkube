@@ -9,7 +9,7 @@
 :toc-title: {plugin}
 :doctype: book
 :icons: font
-:plugindir: ../../../../../kubernetes
+:plugindir: {docdir}../../../../../kubernetes
 :kitdoc-path: {docdir}/../../../../../jkube-kit/doc/src/main/asciidoc
 :plugin-type: gradle
 :plugin-configuration-type: Groovy DSL
@@ -41,6 +41,6 @@ include::inc/_registry.adoc[]
 
 include::inc/_authentication.adoc[]
 
-include::inc/_kind-filename-type-mapping.adoc[]
+include::{kitdoc-path}/inc/mapping-config/_index.adoc[]
 
 
