@@ -19,6 +19,11 @@ def extensionConfig = {
             kind = 'Template'
             filenameTypes = 'my_template, mtpl'
         }
+        mapping {
+            kind = 'Full'
+            apiVersion = 'full.example.com/v1'
+            filenameTypes = 'full, fl'
+        }
     }
     images {
         image {

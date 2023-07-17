@@ -32,7 +32,6 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.Profile;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 
@@ -140,7 +139,6 @@ public class DefaultResourceService implements ResourceService {
 
   private KubernetesListBuilder readResourceFragments(File[] resourceFiles) throws IOException {
     return KubernetesResourceFragments.readResourceFragmentsFrom(
-        KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING,
         JKubeProjectUtil.createDefaultResourceName(resourceServiceConfig.getProject().getArtifactId()),
         resourceFiles);
   }

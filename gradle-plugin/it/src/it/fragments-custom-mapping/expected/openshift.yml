@@ -62,6 +62,15 @@ items:
             kind: ImageStreamTag
             name: fragments-custom-mapping:latest
         type: ImageChange
+  - apiVersion: full.example.com/v1
+    kind: Full
+    metadata:
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: first
   - apiVersion: my.unique.crd/v1alfa1
     kind: Template
     metadata:
@@ -71,6 +80,15 @@ items:
         version: "@ignore@"
         group: org.eclipse.jkube.integration.tests.gradle
       name: first
+  - apiVersion: full.example.com/v1
+    kind: Full
+    metadata:
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: second
   - apiVersion: my.unique.crd/v1alfa1
     kind: Template
     metadata:

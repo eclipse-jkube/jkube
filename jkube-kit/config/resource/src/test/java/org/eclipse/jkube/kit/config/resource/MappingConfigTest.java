@@ -32,6 +32,7 @@ class MappingConfigTest {
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("kind", "CronTab")
+        .hasFieldOrPropertyWithValue("apiVersion", "custom-cron-tab.example.com/v1")
         .hasFieldOrPropertyWithValue("filenameTypes", "crontab,cr");
   }
 
@@ -54,29 +55,54 @@ class MappingConfigTest {
   }
 
   @Test
-  void isValid_withInvalidObject_shouldReturnFalse() {
+  void isValid_withMissingKind_shouldReturnFalse() {
     // Given
     MappingConfig config = MappingConfig.builder()
-        .build();
-
+      .apiVersion("custom-cron-tab.example.com/v1")
+      .filenameTypes("crontab,cr")
+      .build();
     // When
     boolean result = config.isValid();
-
     // Then
     assertThat(result).isFalse();
   }
 
   @Test
-  void isValid_withValidObject_shouldReturnTrue() {
+  void isValid_withMissingFileNameTypes_shouldReturnFalse() {
+    // Given
+    MappingConfig config = MappingConfig.builder()
+      .apiVersion("custom-cron-tab.example.com/v1")
+      .kind("Foo")
+      .build();
+    // When
+    boolean result = config.isValid();
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void isValid_withKindAndFileName_shouldReturnTrue() {
     // Given
     MappingConfig config = MappingConfig.builder()
         .kind("Foo")
         .filenameTypes("foos")
         .build();
-
     // When
     boolean result = config.isValid();
+    // Then
+    assertThat(result).isTrue();
+  }
 
+  @Test
+  void isValid_withKindAndApiVersionAndFileName_shouldReturnTrue() {
+    // Given
+    MappingConfig config = MappingConfig.builder()
+        .kind("Foo")
+        .apiVersion("custom-cron-tab.example.com/v1")
+        .filenameTypes("foos")
+        .build();
+    // When
+    boolean result = config.isValid();
     // Then
     assertThat(result).isTrue();
   }
