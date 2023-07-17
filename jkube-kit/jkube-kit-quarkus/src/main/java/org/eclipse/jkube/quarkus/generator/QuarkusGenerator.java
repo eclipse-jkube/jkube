@@ -68,7 +68,7 @@ public class QuarkusGenerator extends JavaExecGenerator {
 
   @Override
   protected String getDefaultWebPort() {
-    return extractPort(getProject(), getQuarkusConfiguration(getProject()), super.getDefaultWebPort());
+    return extractPort(getQuarkusConfiguration(getProject()), super.getDefaultWebPort());
   }
 
   @Override

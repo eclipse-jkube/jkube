@@ -63,14 +63,14 @@ public class QuarkusUtils {
 
   private QuarkusUtils() {}
 
-  public static String extractPort(JavaProject javaProject, Properties properties, String defaultValue) {
-    final Optional<String> activeProfile = getActiveProfile(javaProject);
-    if (activeProfile.isPresent()) {
-      final String profilePort = properties.getProperty(String.format("%%%s.%s", activeProfile.get(), QUARKUS_HTTP_PORT));
-      if (StringUtils.isNotBlank(profilePort)) {
-        return profilePort;
-      }
-    }
+  public static String extractPort(Properties properties, String defaultValue) {
+    // final Optional<String> activeProfile = getActiveProfile(javaProject);
+    // if (activeProfile.isPresent()) {
+    //   final String profilePort = properties.getProperty(String.format("%%%s.%s", activeProfile.get(), QUARKUS_HTTP_PORT));
+    //   if (StringUtils.isNotBlank(profilePort)) {
+    //     return profilePort;
+    //   }
+    // }
     return properties.getProperty(QUARKUS_HTTP_PORT, defaultValue);
   }
 
