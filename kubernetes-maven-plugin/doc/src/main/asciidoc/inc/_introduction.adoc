@@ -391,7 +391,7 @@ The resource fragments are in `src/main/jkube`.
 
 As you can see, there is no `metadata` section as would be expected for Kubernetes resources because it will be automatically added by the `{plugin}`. The object's `Kind`, if not given, is automatically derived from the
 filename. In this case, the `{plugin}` will create a `Deployment` because the file is called `deployment.yml`. Similar mappings between file names and resource type exist for each supported resource kind, the
-complete list of which (along with associated abbreviations) can be found in the <<appendix-kind-mapping, Appendix>>.
+complete list of which (along with associated abbreviations) can be found in the <<default-kind-filename-mapping, Kind Filename Mapping>> section.
 
 
 

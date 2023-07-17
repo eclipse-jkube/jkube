@@ -1,0 +1,55 @@
+[[kind-filename-mapping]]
+= Kind/Filename Mapping
+
+[[default-kind-filename-mapping]]
+== Default Kind/Filename Mapping
+
+include::{plugindir}/src/main/resources/META-INF/jkube/kind-filename-type-mapping-default.adoc[]
+
+[[custom-kind-mapping]]
+== Custom Kind/Filename Mapping
+
+You can add your custom `Kind/Filename` mappings.
+To do it you have two approaches:
+
+* Setting an environment variable or system property called `jkube.mapping` pointing out to a `.properties` files with pairs `<kind>=><filename1>, <filename2>`
+By default if no environment variable nor system property is set, JKube looks for a file located at classpath `/META-INF/jkube.kind-filename-type-mapping-default.properties`.
+
+* By defining the Mapping in the plugin's configuration
+
+ifeval::["{plugin-type}" == "maven"]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <configuration>
+    <mappings>
+      <mapping>
+        <kind>Var</kind> <!--1-->
+        <filenameTypes>foo, bar</filenameTypes> <!--2-->
+        <apiVersion>api.example.com/v1</apiVersion> <!--3-->
+      </mapping>
+    </mappings>
+  </configuration>
+</plugin>
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+kubernetes {
+    mappings {
+        mapping {
+            kind = "Var" // <1>
+            filenameTypes = "foo, bar" // <2>
+            apiVersion = "api.example.com/v1" // <3>
+        }
+    }
+}
+----
+endif::[]
+<1> The kind name (mandatory)
+<2> The filename types (mandatory), a comma-separated list of filenames to map to the specified kind
+<3> The apiVersion (optional)
