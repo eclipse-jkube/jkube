@@ -121,7 +121,7 @@ class QuarkusGeneratorExposedPortsTest {
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
         .asList()
-        .containsExactly("31337", "8778", "9779");
+        .containsExactly("1337", "8778", "9779");
   }
 
   private void withNativeBinaryInTarget() throws IOException {

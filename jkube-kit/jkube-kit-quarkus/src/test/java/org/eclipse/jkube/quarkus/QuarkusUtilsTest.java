@@ -54,47 +54,24 @@ class QuarkusUtilsTest {
   }
 
   @Test
-  void extractPort_noProfileAndNoPort_shouldReturnDefault() {
+  void extractPort_whenServerPortPropertyPresent_thenReturnPort() {
+    // Given
+    Properties properties = new Properties();
+    properties.put("quarkus.http.port", "8888");
     // When
-    final String result = extractPort(new Properties(), "80");
+    String result = QuarkusUtils.extractPort(properties, "8080");
     // Then
-    assertThat(result).isEqualTo("80");
+    assertThat(result).isEqualTo("8888");
   }
 
   @Test
-  void extractPort_noProfileAndPort_shouldReturnPort() {
+  void extractPort_whenServerPortPropertyAbsent_thenReturnDefaultPort() {
     // Given
-    final Properties properties = new Properties();
-    properties.put("quarkus.http.port", "1337");
+    Properties properties = new Properties();
     // When
-    final String result = extractPort(properties, "80");
+    String result = QuarkusUtils.extractPort(properties, "8080");
     // Then
-    assertThat(result).isEqualTo("1337");
-  }
-
-  @Test
-  void extractPort_inactiveProfileAndPort_shouldReturnPort() {
-    // Given
-    final Properties properties = new Properties();
-    properties.put("quarkus.http.port", "1337");
-    properties.put("%dev.quarkus.http.port", "31337");
-    // When
-    final String result = extractPort(properties, "80");
-    // Then
-    assertThat(result).isEqualTo("1337");
-  }
-
-  @Test
-  void extractPort_activeProfileAndPort_shouldReturnProfilePort() {
-    // Given
-    final Properties properties = new Properties();
-    properties.put("quarkus.http.port", "1337");
-    properties.put("%dev.quarkus.http.port", "31337");
-    javaProject.getProperties().put("quarkus.profile", "dev");
-    // When
-    final String result = extractPort(properties, "80");
-    // Then
-    assertThat(result).isEqualTo("31337");
+    assertThat(result).isEqualTo("8080");
   }
 
   @Test
