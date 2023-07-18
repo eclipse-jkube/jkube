@@ -24,7 +24,9 @@ pipeline {
            '-Dsonar.pullrequest.branch=${GIT_BRANCH} ' +
            '-Dsonar.pullrequest.base=master'
         // CodeCov
-        sh 'wget -O - https://codecov.io/bash | bash'
+        withCredentials([string(credentialsId: 'CODECOV_TOKEN', variable: 'CODECOV_TOKEN')]) {
+          sh 'wget -O - https://codecov.io/bash | bash -s -- -t $CODECOV_TOKEN'
+        }
       }
     }
     stage('Sonar (main)') {
