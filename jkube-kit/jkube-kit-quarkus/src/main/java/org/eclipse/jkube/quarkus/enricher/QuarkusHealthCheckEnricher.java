@@ -32,6 +32,8 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.QUARKUS_GROUP_ID;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.isStartupEndpointSupported;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.resolveCompleteQuarkusHealthRootPath;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
+import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
 
 /**
  * Enriches Quarkus containers with health checks if the quarkus-smallrye-health is present
@@ -87,7 +89,7 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         }
         return new ProbeBuilder()
             .withNewHttpGet()
-              .withNewPort(asInteger(getConfig(Config.PORT)))
+              .withNewPort(asInteger(extractPort(getContext().getProject(), getQuarkusConfiguration(getContext().getProject()), getConfig(Config.PORT))))
               .withPath(resolveHealthPath(pathResolver.apply(getContext().getProject())))
               .withScheme(getConfig(Config.SCHEME))
             .endHttpGet()
