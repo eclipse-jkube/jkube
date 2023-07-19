@@ -15,11 +15,14 @@ package org.eclipse.jkube.springboot.generator;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
+import org.eclipse.jkube.kit.common.Arguments;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
@@ -51,8 +54,11 @@ public class SpringBootGenerator extends JavaExecGenerator {
         protected String defaultValue;
     }
 
+    private final SpringBootNestedGenerator nestedGenerator;
+
     public SpringBootGenerator(GeneratorContext context) {
         super(context, "spring-boot");
+        nestedGenerator = SpringBootNestedGenerator.from(context, getGeneratorConfig());
     }
 
     @Override
@@ -119,5 +125,36 @@ public class SpringBootGenerator extends JavaExecGenerator {
             JKubeProjectUtil.getClassLoader(getProject()));
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()));
         return properties.getProperty(propertyHelper.getServerPortPropertyKey(), super.getDefaultWebPort());
+    }
+
+    @Override
+    protected AssemblyConfiguration createAssembly() {
+        return Optional.ofNullable(nestedGenerator.createAssemblyConfiguration())
+            .orElse(super.createAssembly());
+    }
+
+    @Override
+    protected String getBuildWorkdir() {
+        return nestedGenerator.getBuildWorkdir();
+    }
+
+    @Override
+    protected String getFromAsConfigured() {
+        return Optional.ofNullable(super.getFromAsConfigured()).orElse(nestedGenerator.getFrom());
+    }
+
+    @Override
+    protected Arguments getBuildEntryPoint() {
+        return nestedGenerator.getBuildEntryPoint();
+    }
+
+    @Override
+    protected String getDefaultJolokiaPort() {
+        return nestedGenerator.getDefaultJolokiaPort();
+    }
+
+    @Override
+    protected String getDefaultPrometheusPort() {
+        return nestedGenerator.getDefaultPrometheusPort();
     }
 }
