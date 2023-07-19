@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -39,6 +40,7 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
+import io.fabric8.zjsonpatch.JsonPatch;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -341,10 +343,13 @@ class DebugServiceTest {
   }
 
   private Deployment withDeploymentRollout(Deployment deployment) {
-    mockServer.expect().put()
+    mockServer.expect().patch()
       .withPath("/apis/apps/v1/namespaces/test/deployments/" + deployment.getMetadata().getName())
       .andReply(200, r -> {
-        final Deployment d = Serialization.unmarshal(r.getBody().inputStream(), Deployment.class);
+        final Deployment d = Serialization.convertValue(
+          JsonPatch.apply(Serialization.unmarshal(r.getBody().inputStream(), JsonNode.class),
+            Serialization.convertValue(deployment, JsonNode.class)),
+          Deployment.class);
         kubernetesClient.resource(new PodBuilder()
           .withMetadata(new ObjectMetaBuilder(d.getSpec().getTemplate().getMetadata())
             .withName("pod-in-debug-mode")

@@ -63,8 +63,6 @@
                 <goals>
                   <goal>process-asciidoc</goal>
                 </goals>
-                <configuration>
-                </configuration>
               </execution>
             </executions>
           </plugin>

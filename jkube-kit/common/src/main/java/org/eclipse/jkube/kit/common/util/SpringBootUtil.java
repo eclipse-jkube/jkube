@@ -103,5 +103,13 @@ public class SpringBootUtil {
         }
         return Collections.emptyMap();
     }
+
+    public static boolean isSpringBootRepackage(JavaProject project) {
+        Plugin plugin = JKubeProjectUtil.getPlugin(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        return Optional.ofNullable(plugin)
+            .map(Plugin::getExecutions)
+            .map(e -> e.contains("repackage"))
+            .orElse(false);
+    }
 }
 

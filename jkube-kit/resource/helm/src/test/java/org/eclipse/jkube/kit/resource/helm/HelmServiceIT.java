@@ -30,8 +30,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.openshift.api.model.ParameterBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
@@ -46,14 +44,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class HelmServiceIT {
 
-  private ObjectMapper mapper;
   private HelmService helmService;
   private HelmConfig helmConfig;
   private File helmOutputDir;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws Exception {
-    mapper = new ObjectMapper(new YAMLFactory());
     helmService = new HelmService(
       JKubeConfiguration.builder().project(JavaProject.builder().properties(new Properties()).build()).build(),
       new ResourceServiceConfig(),
@@ -133,9 +129,9 @@ class HelmServiceIT {
     final Path expectations = new File(HelmServiceIT.class.getResource("/it/expected").toURI()).toPath();
     final Path generatedYamls = helmOutputDir.toPath();
     for (Path expected : Files.walk(expectations).filter(Files::isRegularFile).collect(Collectors.toList())) {
-      final Map<String, ?> expectedContent = mapper.readValue(replacePlaceholders(expected), Map.class);
-      final Map<String, ?> actualContent =
-          mapper.readValue(replacePlaceholders(generatedYamls.resolve(expectations.relativize(expected))), Map.class);
+      final Map<String, ?> expectedContent = Serialization.unmarshal(replacePlaceholders(expected), Map.class);
+      final Map<String, ?> actualContent = Serialization.unmarshal(
+        replacePlaceholders(generatedYamls.resolve(expectations.relativize(expected))), Map.class);
       assertThat(actualContent).isEqualTo(expectedContent);
     }
   }

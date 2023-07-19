@@ -650,15 +650,14 @@ public class DockerAccessWithHcClient implements DockerAccess {
 
     private TemporaryImageHandler tagTemporaryImage(ImageName name, String registry) throws DockerAccessException {
         String targetImage = name.getFullName(registry);
-        if (name.hasRegistry() || registry == null) {
+        String fullName = name.getFullName();
+        if ((name.isFullyQualifiedName() && name.hasRegistry()) || targetImage.equals(fullName) || registry == null) {
             return () ->
                 log.info("Temporary image tag skipped. Target image '%s' already has registry set or no registry is available",
                     targetImage);
         }
 
-        String fullName = name.getFullName();
         boolean alreadyHasImage = hasImage(targetImage);
-
         if (alreadyHasImage) {
             log.warn("Target image '%s' already exists. Tagging of '%s' will replace existing image",
                 targetImage, fullName);

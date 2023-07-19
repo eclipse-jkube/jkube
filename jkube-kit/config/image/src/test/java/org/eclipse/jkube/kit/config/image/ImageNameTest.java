@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
@@ -156,17 +157,34 @@ class ImageNameTest {
     @Test
     void testImageNameWithUsernameHavingPeriods() {
         // Given
-        String name = "roman.gordill/customer-service-cache:latest";
+        final String name = "quay.io/roman.gordill/customer-service-cache:latest";
+        // When
+        final ImageName result = new ImageName(name);
+        // Then
+        assertThat(result)
+          .isNotNull()
+          .hasFieldOrPropertyWithValue("repository", "roman.gordill/customer-service-cache")
+          .hasFieldOrPropertyWithValue("tag", "latest")
+          .hasFieldOrPropertyWithValue("registry", "quay.io")
+          .returns("roman.gordill", ImageName::inferUser);
+    }
 
+    @ParameterizedTest
+    @CsvSource({
+        "foo.com/customer-service-cache:latest,foo.com,customer-service-cache,latest",
+        "myregistry.127.0.0.1.nip.io/eclipse-temurin:11.0.18_10-jdk-alpine,myregistry.127.0.0.1.nip.io,eclipse-temurin,11.0.18_10-jdk-alpine"
+    })
+    void testImageNameWithRegistry(String name, String registry, String repository, String tag) {
+        // Given
         // When
         ImageName imageName = new ImageName(name);
 
         // Then
         assertThat(imageName).isNotNull();
-        assertThat(imageName.getUser()).isEqualTo("roman.gordill");
-        assertThat(imageName.getRepository()).isEqualTo("roman.gordill/customer-service-cache");
-        assertThat(imageName.getTag()).isEqualTo("latest");
-        assertThat(imageName.getRegistry()).isNull();
+        assertThat(imageName.inferUser()).isNull();
+        assertThat(imageName.getRegistry()).isEqualTo(registry);
+        assertThat(imageName.getRepository()).isEqualTo(repository);
+        assertThat(imageName.getTag()).isEqualTo(tag);
     }
 
     @Test
@@ -179,7 +197,7 @@ class ImageNameTest {
 
         // Then
         assertThat(imageName).isNotNull();
-        assertThat(imageName.getUser()).isNull();
+        assertThat(imageName.inferUser()).isNull();
         assertThat(imageName.getRegistry()).isEqualTo("foo.com:5000");
         assertThat(imageName.getRepository()).isEqualTo("customer-service-cache");
         assertThat(imageName.getTag()).isEqualTo("latest");

@@ -157,8 +157,8 @@ public abstract class BaseGenerator implements Generator {
                     tag = "latest";
                 }
                 fromExt.put(JKubeBuildStrategy.SourceStrategy.name.key(), iName.getSimpleName() + ":" + tag);
-                if (iName.getUser() != null) {
-                    fromExt.put(JKubeBuildStrategy.SourceStrategy.namespace.key(), iName.getUser());
+                if (iName.inferUser() != null) {
+                    fromExt.put(JKubeBuildStrategy.SourceStrategy.namespace.key(), iName.inferUser());
                 }
                 fromExt.put(JKubeBuildStrategy.SourceStrategy.kind.key(), "ImageStreamTag");
             } else {

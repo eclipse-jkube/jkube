@@ -23,13 +23,23 @@ public class RegistryUtil {
 
   public static String getApplicablePushRegistryFrom(ImageConfiguration imageConfiguration, RegistryConfig registryConfig) {
     ImageName imageName = new ImageName(imageConfiguration.getName());
-    return EnvUtil.firstRegistryOf(imageName.getRegistry(),
-        imageConfiguration.getRegistry(),
-        registryConfig.getRegistry());
+    if (imageName.isFullyQualifiedName()) {
+      return EnvUtil.firstRegistryOf(imageName.getRegistry(),
+          imageConfiguration.getRegistry(),
+          registryConfig.getRegistry());
+    } else {
+      return EnvUtil.firstRegistryOf(imageConfiguration.getRegistry(),
+          registryConfig.getRegistry(),
+          imageName.getRegistry());
+    }
   }
 
   public static String getApplicablePullRegistryFrom(String fromImage, RegistryConfig registryConfig) {
     ImageName imageName = new ImageName(fromImage);
-    return EnvUtil.firstRegistryOf(imageName.getRegistry(), registryConfig.getRegistry());
+    if (imageName.isFullyQualifiedName()) {
+      return EnvUtil.firstRegistryOf(imageName.getRegistry(), registryConfig.getRegistry());
+    } else {
+      return EnvUtil.firstRegistryOf(registryConfig.getRegistry(), imageName.getRegistry());
+    }
   }
 }

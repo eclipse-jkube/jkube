@@ -89,6 +89,8 @@ public class MapUtil {
      * <pre>{@code
      * Collections.singletonMap("key.nested-key", "value");
      * }</pre>
+     * @param source map of maps
+     * @return map with merged nested-keys
      */
     public static Map<String, Object> getFlattenedMap(Map<?, ?> source) {
         return buildFlattenedMap(source, null);
@@ -113,6 +115,8 @@ public class MapUtil {
      *     key: value
      *     three: other
      * }</pre>
+     * @param flattenedMap map with a flat structure
+     * @return converted nested map
      */
     public static Map<String, Object> getNestedMap(Map<String, ?> flattenedMap) {
         final Map<String, Object> result = new LinkedHashMap<>();

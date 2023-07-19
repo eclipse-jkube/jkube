@@ -18,7 +18,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
-import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
@@ -28,90 +27,53 @@ import io.fabric8.kubernetes.api.model.PodSpecBuilder;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.ReplicationController;
-import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccountBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
-import io.fabric8.kubernetes.api.model.batch.v1.Job;
-import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.api.model.networking.v1.NetworkPolicy;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.InitContainerConfig;
-import org.eclipse.jkube.kit.config.resource.MappingConfig;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.net.UnknownHostException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.eclipse.jkube.kit.config.resource.PlatformMode.kubernetes;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.FILENAME_TO_KIND_MAPPER;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.KIND_TO_FILENAME_MAPPER;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.addNewConfigMapEntriesToExistingConfigMap;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createConfigMapEntry;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createNewInitContainersFromConfig;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.getNameWithSuffix;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.handleKubernetesClientException;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.initializeKindFilenameMapper;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isContainerImage;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeResources;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.spy;
 
 class KubernetesResourceUtilTest {
-
-  private static File fragmentsDir;
   private KitLogger log;
   private ImageConfiguration imageConfiguration;
 
-  @BeforeAll
-  static void initPath() {
-    fragmentsDir = new File(Objects.requireNonNull(KubernetesResourceUtilTest.class.getResource(
-        "/kubernetes-resource-util/simple-rc.yaml")).getFile()).getParentFile();
-  }
-
   @BeforeEach
   void setUp() {
-    FILENAME_TO_KIND_MAPPER.clear();
-    KIND_TO_FILENAME_MAPPER.clear();
-    initializeKindFilenameMapper();
     log = spy(new KitLogger.SilentLogger());
     imageConfiguration = ImageConfiguration.builder()
         .name("foo/bar:latest")
@@ -119,168 +81,6 @@ class KubernetesResourceUtilTest {
             .from("base:latest")
             .build())
         .build();
-  }
-
-  @Nested
-  @DisplayName("get resource")
-  @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-  class GetResource {
-    @Test
-    @DisplayName("with version, kind and name from yaml file, should return valid resource")
-    void withYamlFileAndVersionKindNameFromFile_shouldReturnValidResource() throws IOException {
-      // When
-      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-          new File(fragmentsDir, "simple-rc.yaml"), "app");
-      // Then
-      assertThat(result)
-          .isInstanceOf(ReplicationController.class)
-          .hasFieldOrPropertyWithValue("apiVersion", "v1")
-          .hasFieldOrPropertyWithValue("kind", "ReplicationController")
-          .hasFieldOrPropertyWithValue("metadata.name", "simple");
-    }
-
-    @Test
-    @DisplayName("with kind, name and version from json file, should return valid resource")
-    void withJsonFileAndVersionKindNameFromFile_shouldReturnValidResource() throws IOException {
-      // When
-      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-          new File(fragmentsDir, "simple-rc.json"), "app");
-      // Then
-      assertThat(result)
-          .isInstanceOf(ReplicationController.class)
-          .hasFieldOrPropertyWithValue("apiVersion", "v1")
-          .hasFieldOrPropertyWithValue("kind", "ReplicationController")
-          .hasFieldOrPropertyWithValue("metadata.name", "simple");
-    }
-
-    @Test
-    @DisplayName("with value in name and file, should be named from value")
-    void withValueInNameAndFile_shouldBeNamedNamedFromValue() throws IOException {
-      // When
-      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-          new File(fragmentsDir, "named-svc.yaml"), "app");
-      // Then
-      assertThat(result)
-          .isInstanceOf(Service.class)
-          .hasFieldOrPropertyWithValue("apiVersion", "v1")
-          .hasFieldOrPropertyWithValue("kind", "Service")
-          .hasFieldOrPropertyWithValue("metadata.name", "pong");
-    }
-
-    @Test
-    @DisplayName("with value in name, should be named from value")
-    void withValueInName_shouldBeNamedNamedFromValue() throws IOException {
-      // When
-      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-          new File(fragmentsDir, "rc.yml"), "app");
-      // Then
-      assertThat(result)
-          .isInstanceOf(ReplicationController.class)
-          .hasFieldOrPropertyWithValue("apiVersion", "v1")
-          .hasFieldOrPropertyWithValue("kind", "ReplicationController")
-          .hasFieldOrPropertyWithValue("metadata.name", "flipper");
-    }
-
-    @Test
-    @DisplayName("with no name both in value and file, should be named from app name")
-    void withNoNameInValueAndNoNameInFileName_shouldBeNamedFromAppName() throws IOException {
-      // When
-      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-          new File(fragmentsDir, "svc.yml"), "app");
-      // Then
-      assertThat(result)
-          .isInstanceOf(Service.class)
-          .hasFieldOrPropertyWithValue("apiVersion", "v1")
-          .hasFieldOrPropertyWithValue("kind", "Service")
-          .hasFieldOrPropertyWithValue("metadata.name", "app");
-    }
-
-    @DisplayName("with invalid resource")
-    @ParameterizedTest(name = "{index}: ''{0}'', should throw exception")
-    @MethodSource("invalidResources")
-    void withInvalidResource(String resourceType, String resourceFile, String message) {
-      // Given
-      final File resource = new File(fragmentsDir, resourceFile);
-      // When & Then
-      assertThatIllegalArgumentException()
-          .isThrownBy(() -> KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING, resource, "app"))
-          .withMessageContaining(message);
-    }
-
-    Stream<Arguments> invalidResources() {
-      return Stream.of(
-          arguments("invalid extension file", "simple-rc.txt",
-              "Resource file name 'simple-rc.txt' does not match pattern <name>-<type>.(yaml|yml|json)"),
-          arguments("invalid type", "simple-bla.yaml", "Unknown type 'bla' for file simple-bla.yaml"),
-          arguments("no type and no kind", "contains_no_kind.yml",
-              "No type given as part of the file name (e.g. 'app-rc.yml') and no 'Kind' defined in resource descriptor contains_no_kind.yml"));
-    }
-
-    @Test
-    @DisplayName("with non-existent file, should throw exception")
-    void withNonExistentFile_shouldThrowException() {
-      // Given
-      final File resource = new File(fragmentsDir, "I-Dont-EXIST.yaml");
-      // When & Then
-      assertThatIOException()
-          .isThrownBy(() -> KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING, resource, "app"))
-          .withMessageContaining("I-Dont-EXIST.yaml")
-          .isInstanceOf(NoSuchFileException.class);
-    }
-
-    @Test
-    @DisplayName("with value in kind not in file, should get the kind from value")
-    void withValueInKindAndNotInFilename_shouldGetKindFromValue() throws IOException {
-      // When
-      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-          new File(fragmentsDir, "contains_kind.yml"), "app");
-      // Then
-      assertThat(result)
-          .isInstanceOf(ReplicationController.class)
-          .hasFieldOrPropertyWithValue("apiVersion", "v1")
-          .hasFieldOrPropertyWithValue("kind", "ReplicationController");
-    }
-
-    @Test
-    @DisplayName("with kind from file, should get the kind from file")
-    void withKindFromFilename_shouldGetKindFromFilename() throws IOException {
-      // When
-      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-          new File(fragmentsDir, "job.yml"), "app");
-      // Then
-      assertThat(result)
-          .isInstanceOf(Job.class)
-          .hasFieldOrPropertyWithValue("apiVersion", "batch/v1")
-          .hasFieldOrPropertyWithValue("kind", "Job")
-          .hasFieldOrPropertyWithValue("metadata.name", "app");
-    }
-
-    @Test
-    @DisplayName("with network ingress, should load network v1 ingress")
-    void withNetworkV1Ingress_shouldLoadNetworkV1Ingress() throws IOException {
-      // When
-      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-          new File(fragmentsDir, "network-v1-ingress.yml"), "app");
-      // Then
-      assertThat(result)
-          .isInstanceOf(Ingress.class)
-          .hasFieldOrPropertyWithValue("apiVersion", "networking.k8s.io/v1")
-          .hasFieldOrPropertyWithValue("kind", "Ingress")
-          .hasFieldOrPropertyWithValue("metadata.name", "my-ingress");
-    }
-
-    @Test
-    @DisplayName("with network policy v1, should load V1 network policy")
-    void withNetworkPolicyV1_shouldLoadV1NetworkPolicy() throws Exception {
-      // When
-      final HasMetadata result = KubernetesResourceUtil.getResource(kubernetes, DEFAULT_RESOURCE_VERSIONING,
-          new File(fragmentsDir, "networking-v1-np.yml"), "app");
-      // Then
-      assertThat(result)
-          .isInstanceOf(NetworkPolicy.class)
-          .hasFieldOrPropertyWithValue("kind", "NetworkPolicy")
-          .hasFieldOrPropertyWithValue("spec.podSelector.matchLabels.role", "db");
-    }
   }
 
   @Test
@@ -311,43 +111,6 @@ class KubernetesResourceUtilTest {
     final String result = KubernetesResourceUtil.extractContainerName(gav, imageConfiguration);
     // Then
     assertThat(result).isEqualTo("orgeclipsejkubetesting-test-image");
-  }
-
-  @Test
-  void readResourceFragmentsFrom_withValidDirectory_shouldReadAllFragments() throws IOException {
-    // When
-    final KubernetesListBuilder result = KubernetesResourceUtil.readResourceFragmentsFrom(
-        kubernetes, DEFAULT_RESOURCE_VERSIONING, "pong", new File(fragmentsDir, "complete-directory")
-            .listFiles());
-    // Then
-    assertThat(result.build().getItems())
-        .hasSize(3)
-        .extracting("class", "apiVersion", "kind", "metadata.name")
-        .containsExactlyInAnyOrder(
-            tuple(Service.class, "v1", "Service", "pong"),
-            tuple(ReplicationController.class, "v1", "ReplicationController", "pong"),
-            tuple(GenericKubernetesResource.class, "jkube/v1", "CustomKind", "custom")
-        );
-  }
-
-  @Test
-  void readResourceFragmentsFrom_withExcludedFile_shouldNotIncludeExcludedFile(@TempDir Path resourceDir) throws IOException {
-    // Given
-    final File[] resourceFiles = new File[] {
-      Files.write(resourceDir.resolve("Chart.helm.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
-      Files.write(resourceDir.resolve("Chart.helm.yml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
-      Files.write(resourceDir.resolve("Chart.hElm.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
-      Files.write(resourceDir.resolve("other.hElm.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
-      Files.write(resourceDir.resolve("configmap.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile(),
-      Files.write(resourceDir.resolve("named-cm.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile()
-    };
-    // When
-    final KubernetesListBuilder result = KubernetesResourceUtil.readResourceFragmentsFrom(
-        kubernetes, DEFAULT_RESOURCE_VERSIONING, "pong", resourceFiles);
-    // Then
-    assertThat(result.buildItems()).hasSize(2)
-      .extracting("additionalProperties.field")
-      .containsExactly("value", "value");
   }
 
   @Test
@@ -440,28 +203,6 @@ class KubernetesResourceUtilTest {
   }
 
   @Test
-  void getNameWithSuffix_withKnownMapping_shouldReturnKnownMapping() {
-    assertThat(getNameWithSuffix("name", "Pod")).isEqualTo("name-pod");
-  }
-
-  @Test
-  void getNameWithSuffix_withUnknownMapping_shouldReturnCR() {
-    assertThat(getNameWithSuffix("name", "VeryCustomKind")).isEqualTo("name-cr");
-  }
-
-  @Test
-  void updateKindFilenameMappings_whenAddsCronTabMapping_updatesKindToFileNameMapper() {
-    // Given
-    final Map<String, List<String>> mappings = Collections.singletonMap("CronTab", Collections.singletonList("foo"));
-    // When
-    KubernetesResourceUtil.updateKindFilenameMapper(mappings);
-    // Then
-    assertThat(getNameWithSuffix("name", "CronTab")).isEqualTo("name-foo");
-    assertThat(KIND_TO_FILENAME_MAPPER).containsKey("CronTab");
-    assertThat(FILENAME_TO_KIND_MAPPER).containsKey("foo");
-  }
-
-  @Test
   void createConfigMapEntry_whenKeyAndPathProvided_thenShouldCreateEntryWithFileContents() throws IOException {
     // Given
     URL fileUrl = getClass().getResource("/kubernetes-resource-util/configmap-directory/test.properties");
@@ -546,49 +287,6 @@ class KubernetesResourceUtilTest {
           .containsEntry("prod.properties", "db.url=jdbc:mysql://prod.example.com:3306/sample_db");
   }
 
-  @Test
-  void remove_whenInvoked_shouldRemoveKindFilenameMappings() {
-    // Given
-    KubernetesResourceUtil.updateKindFilenameMapper(Collections.singletonMap("CronTab", Collections.singletonList("foo")));
-
-    // When
-    KubernetesResourceUtil.remove("CronTab", "foo");
-
-    // Then
-    assertThat(KIND_TO_FILENAME_MAPPER).doesNotContainKey("CronTab");
-    assertThat(FILENAME_TO_KIND_MAPPER).doesNotContainKey("foo");
-  }
-
-  @Test
-  void updateKindFilenameMappings_whenProvidedMappingConfigs_thenShouldAddMappings() {
-    // Given
-    List<MappingConfig> mappingConfigs = Collections.singletonList(MappingConfig.builder()
-            .kind("CronTab")
-            .filenameTypes("crontab,cr")
-        .build());
-
-    // When
-    KubernetesResourceUtil.updateKindFilenameMappings(mappingConfigs);
-
-    // Then
-    assertThat(KIND_TO_FILENAME_MAPPER).containsEntry("CronTab", "cr");
-    assertThat(FILENAME_TO_KIND_MAPPER)
-        .containsEntry("crontab", "CronTab")
-        .containsEntry("cr", "CronTab");
-  }
-
-  @Test
-  void updateKindFilenameMappings_whenProvidedInvalidMappingConfigs_thenThrowException() {
-    // Given
-    List<MappingConfig> mappingConfigs = Collections.singletonList(MappingConfig.builder()
-        .kind("foo")
-        .build());
-
-    // When + Then
-    assertThatIllegalArgumentException()
-        .isThrownBy(() -> KubernetesResourceUtil.updateKindFilenameMappings(mappingConfigs))
-        .withMessageContaining("Invalid mapping for Kind foo and Filename Types");
-  }
 
   @Test
   void removeItemFromKubernetesBuilder_whenInvoked_shouldRemoveItem() {

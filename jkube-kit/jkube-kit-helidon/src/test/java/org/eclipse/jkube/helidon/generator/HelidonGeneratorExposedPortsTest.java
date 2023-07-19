@@ -91,7 +91,7 @@ class HelidonGeneratorExposedPortsTest {
     // Given
     whenStandardJarInTarget();
     ctx = ctx.toBuilder().project(ctx.getProject().toBuilder()
-        .compileClassPathElement(HelidonGeneratorExposedPortsTest.class.getResource("/generator-extract-ports").getPath())
+        .compileClassPathElement(HelidonGeneratorExposedPortsTest.class.getResource("/custom-port-configuration").getPath())
         .build())
       .build();
     // When

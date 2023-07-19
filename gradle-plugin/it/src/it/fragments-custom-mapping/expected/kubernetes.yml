@@ -1,0 +1,89 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: fragments-custom-mapping
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        matchLabels:
+          app: fragments-custom-mapping
+          provider: jkube
+          group: org.eclipse.jkube.integration.tests.gradle
+      template:
+        metadata:
+          annotations:
+            jkube.eclipse.org/git-commit: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
+          labels:
+            app: fragments-custom-mapping
+            provider: jkube
+            version: "@ignore@"
+            group: org.eclipse.jkube.integration.tests.gradle
+          name: fragments-custom-mapping
+        spec:
+          containers:
+            - env:
+                - name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: HOSTNAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+              image: repository/fragments-custom-mapping:latest
+              imagePullPolicy: IfNotPresent
+              name: repository-fragments-custom-mapping
+              securityContext:
+                privileged: false
+  - apiVersion: full.example.com/v1
+    kind: Full
+    metadata:
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: first
+  - apiVersion: my.unique.crd/v1alfa1
+    kind: Template
+    metadata:
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: first
+  - apiVersion: full.example.com/v1
+    kind: Full
+    metadata:
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: second
+  - apiVersion: my.unique.crd/v1alfa1
+    kind: Template
+    metadata:
+      labels:
+        app: fragments-custom-mapping
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: second

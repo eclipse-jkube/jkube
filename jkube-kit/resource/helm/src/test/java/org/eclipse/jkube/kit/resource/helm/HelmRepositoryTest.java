@@ -41,7 +41,7 @@ class HelmRepositoryTest {
     // Given
     final String serializedChart = "{" +
         "\"name\":\"repo-name\"," +
-        "\"url\":\"http://example.com/url\"," +
+        "\"url\":\"https://example.com/url\"," +
         "\"username\":\"user\"," +
         "\"password\":\"pass\"," +
         "\"type\":\"ARTIFACTORY\"}";
@@ -50,11 +50,11 @@ class HelmRepositoryTest {
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("name", "repo-name")
-        .hasFieldOrPropertyWithValue("url", "http://example.com/url")
+        .hasFieldOrPropertyWithValue("url", "https://example.com/url")
         .hasFieldOrPropertyWithValue("username", "user")
         .hasFieldOrPropertyWithValue("password", "pass")
         .hasFieldOrPropertyWithValue("type", HelmRepoType.ARTIFACTORY)
-        .hasToString("[repo-name / http://example.com/url]");
+        .hasToString("[repo-name / https://example.com/url]");
   }
 
   @Test
@@ -62,7 +62,7 @@ class HelmRepositoryTest {
     // Given
     final HelmRepository.HelmRepositoryBuilder builder = HelmRepository.builder()
         .name("repo-name")
-        .url("http://example.com/url")
+        .url("https://example.com/url")
         .username("user")
         .password("pass")
         .type(HelmRepoType.ARTIFACTORY);
@@ -71,11 +71,26 @@ class HelmRepositoryTest {
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("name", "repo-name")
-        .hasFieldOrPropertyWithValue("url", "http://example.com/url")
+        .hasFieldOrPropertyWithValue("url", "https://example.com/url")
         .hasFieldOrPropertyWithValue("username", "user")
         .hasFieldOrPropertyWithValue("password", "pass")
-        .hasFieldOrPropertyWithValue("type", HelmRepoType.ARTIFACTORY)
-        .hasToString("[repo-name / http://example.com/url]");
+        .hasFieldOrPropertyWithValue("type", HelmRepoType.ARTIFACTORY);
   }
 
+  @Test
+  void toString_returnsStringRepresentationWithNameAndUrl() {
+    // Given
+    final HelmRepository repository = HelmRepository.builder()
+      .name("repo-name")
+      .url("https://example.com/url")
+      .username("user")
+      .password("pass")
+      .type(HelmRepoType.ARTIFACTORY)
+      .build();
+    // When
+    final String result = repository.toString();
+    // Then
+    assertThat(result).isEqualTo("[repo-name / https://example.com/url]");
+
+  }
 }

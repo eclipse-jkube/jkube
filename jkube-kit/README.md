@@ -1,5 +1,13 @@
 ## JKube-Kit
 
+JKube Kit is the core engine powering our Maven plugins.
+
+The main difference between Fabric8 Maven Plugin and JKube is the extraction and decoupling of the core components from
+Maven. This enables other projects and frameworks to reuse all of JKube's functionality by exposing it through a public API.
+
+Some thin adapter Maven specific modules like [jkube-kit-enricher-maven](enricher/maven/pom.xml) and
+[jkube-kit-generator-maven](generator/maven/pom.xml) are provided as glue to get to the Maven specific build information
+like the project's coordinates.
 This project contains various building blocks for the JKube developer toolbox.
 
 Actually it contains the following abstractions which has been extracted from both projects:

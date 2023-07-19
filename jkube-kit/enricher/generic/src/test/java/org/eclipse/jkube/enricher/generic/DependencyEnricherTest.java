@@ -22,7 +22,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.KindAndName;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -86,9 +86,7 @@ class DependencyEnricherTest {
          * Our override file also contains a ConfigMap item with name jenkins, load it while
          * loading Kubernetes resources.
          */
-        return KubernetesResourceUtil.readResourceFragmentsFrom(
-                PlatformMode.kubernetes,
-                KubernetesResourceUtil.DEFAULT_RESOURCE_VERSIONING,
+        return KubernetesResourceFragments.readResourceFragmentsFrom(
                 "the-project",
                 resourceList.toArray(new File[0]));
     }

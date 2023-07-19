@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.function.Supplier;
 
@@ -167,6 +168,50 @@ class HelidonHealthCheckEnricherTest {
       .hasFieldOrPropertyWithValue("startupProbe.initialDelaySeconds", 5)
       .hasFieldOrPropertyWithValue("startupProbe.periodSeconds", 5)
       .hasFieldOrPropertyWithValue("startupProbe.httpGet.port.IntVal", 8080);
+  }
+
+  @Test
+  void create_whenPortConfiguredViaApplicationYaml_thenUseThatPort() {
+    // Given
+    withHelidonHealth();
+    withMicroprofileDependency("5.0");
+    context = context.toBuilder()
+        .project(context.getProject().toBuilder()
+            .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/custom-port-configuration")).getPath())
+            .build())
+        .build();
+    HelidonHealthCheckEnricher helidonHealthCheckEnricher = new HelidonHealthCheckEnricher(context);
+
+    // When
+    helidonHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
+
+    // Then
+    assertThat(getFirstContainerFromDeployment())
+        .hasFieldOrPropertyWithValue("livenessProbe.httpGet.port.IntVal", 1337)
+        .hasFieldOrPropertyWithValue("readinessProbe.httpGet.port.IntVal", 1337)
+        .hasFieldOrPropertyWithValue("startupProbe.httpGet.port.IntVal", 1337);
+  }
+
+  @Test
+  void create_whenPortConfiguredViaMicroprofileConfigProperties_thenUseThatPort() {
+    // Given
+    withHelidonHealth();
+    withMicroprofileDependency("5.0");
+    context = context.toBuilder()
+        .project(context.getProject().toBuilder()
+            .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/custom-port-microprofile-configuration")).getPath())
+            .build())
+        .build();
+    HelidonHealthCheckEnricher helidonHealthCheckEnricher = new HelidonHealthCheckEnricher(context);
+
+    // When
+    helidonHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
+
+    // Then
+    assertThat(getFirstContainerFromDeployment())
+        .hasFieldOrPropertyWithValue("livenessProbe.httpGet.port.IntVal", 1337)
+        .hasFieldOrPropertyWithValue("readinessProbe.httpGet.port.IntVal", 1337)
+        .hasFieldOrPropertyWithValue("startupProbe.httpGet.port.IntVal", 1337);
   }
 
   private void withMicroprofileDependency(String microProfileVersion) {

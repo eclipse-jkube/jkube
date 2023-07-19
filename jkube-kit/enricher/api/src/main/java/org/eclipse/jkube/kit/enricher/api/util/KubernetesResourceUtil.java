@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,14 +30,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.stream.Stream;
 import java.util.stream.Collectors;
 
@@ -47,20 +43,15 @@ import io.fabric8.kubernetes.api.model.PodTemplateSpecBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KindFilenameMapperUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MapUtil;
-import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.InitContainerConfig;
-import org.eclipse.jkube.kit.config.resource.MappingConfig;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ResourceVersioning;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -79,7 +70,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 
-import static org.eclipse.jkube.kit.common.util.KubernetesHelper.FILENAME_PATTERN;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.convertToEnvVarList;
 
 /**
@@ -134,211 +124,6 @@ public class KubernetesResourceUtil {
         KubernetesResourceUtil.SIMPLE_FIELD_TYPES.add(byte.class);
     }
 
-    static final Map<String,String> FILENAME_TO_KIND_MAPPER = new HashMap<>();
-    static final Map<String,String> KIND_TO_FILENAME_MAPPER = new HashMap<>();
-    static final Set<String> EXCLUDED_RESOURCE_FILENAME_SUFFIXES = new HashSet<>();
-
-    static {
-        initializeKindFilenameMapper();
-        EXCLUDED_RESOURCE_FILENAME_SUFFIXES.add(".helm.yaml");
-        EXCLUDED_RESOURCE_FILENAME_SUFFIXES.add(".helm.yml");
-    }
-
-    /**
-     * Read all Kubernetes resource fragments from a directory and create a {@link KubernetesListBuilder} which
-     * can be adapted later.
-     *
-     * @param platformMode platform whether it's Kubernetes/OpenShift
-     * @param apiVersions the api versions to use
-     * @param defaultName the default name to use when none is given
-     * @param resourceFiles files to add.
-     * @return the list builder
-     * @throws IOException in case file is not found
-     */
-    public static KubernetesListBuilder readResourceFragmentsFrom(
-        PlatformMode platformMode, ResourceVersioning apiVersions, String defaultName, File[] resourceFiles)
-        throws IOException {
-
-        final KubernetesListBuilder builder = new KubernetesListBuilder();
-        if (resourceFiles != null) {
-            for (File file : resourceFiles) {
-                if (EXCLUDED_RESOURCE_FILENAME_SUFFIXES.stream()
-                  .noneMatch(s -> file.getName().toLowerCase(Locale.ROOT).endsWith(s))) {
-                    builder.addToItems(getResource(platformMode, apiVersions, file, defaultName));
-                }
-            }
-        }
-        return builder;
-    }
-
-    /**
-     * Read a Kubernetes resource fragment and add meta information extracted from the filename
-     * to the resource descriptor. I.e. the following elements are added if not provided in the fragment:
-     *
-     * <ul>
-     *     <li>name - Name of the resource added to metadata</li>
-     *     <li>kind - Resource's kind</li>
-     *     <li>apiVersion - API version (given as parameter to this method)</li>
-     * </ul>
-     *
-     * @param platformMode Platform whether it's Kubernetes/OpenShift
-     * @param apiVersions the API versions to add if not given.
-     * @param file file to read.
-     * @param appName resource name specifying resources belonging to this application
-     * @return HasMetadata object for resource
-     * @throws IOException in case file loading is failed
-     */
-    public static HasMetadata getResource(PlatformMode platformMode, ResourceVersioning apiVersions,
-                                          File file, String appName) throws IOException {
-        final Map<String, Object> fragment = readAndEnrichFragment(platformMode, apiVersions, file, appName);
-        try {
-            return Serialization.convertValue(fragment, HasMetadata.class);
-        } catch (ClassCastException exp) {
-            throw new IllegalArgumentException(String.format("Resource fragment %s has an invalid syntax (%s)", file.getPath(), exp.getMessage()));
-        }
-    }
-
-    protected static void initializeKindFilenameMapper() {
-        final Map<String, List<String>> mappings = KindFilenameMapperUtil.loadMappings();
-        updateKindFilenameMapper(mappings);
-    }
-
-    protected static void remove(String kind, String filename) {
-        FILENAME_TO_KIND_MAPPER.remove(filename);
-        KIND_TO_FILENAME_MAPPER.remove(kind);
-    }
-
-    public static void updateKindFilenameMappings(List<MappingConfig> mappings) {
-        if (mappings != null) {
-            final Map<String, List<String>> mappingKindFilename = new HashMap<>();
-            for (MappingConfig mappingConfig : mappings) {
-                if (mappingConfig.isValid()) {
-                    mappingKindFilename.put(mappingConfig.getKind(), Arrays.asList(mappingConfig.getFilenamesAsArray()));
-                } else {
-                    throw new IllegalArgumentException(String.format("Invalid mapping for Kind %s and Filename Types %s",
-                      mappingConfig.getKind(), mappingConfig.getFilenameTypes()));
-                }
-            }
-            updateKindFilenameMapper(mappingKindFilename);
-        }
-    }
-
-    public static void updateKindFilenameMapper(final Map<String, List<String>> mappings) {
-
-        final Set<Map.Entry<String, List<String>>> entries = mappings.entrySet();
-
-        for (Map.Entry<String, List<String>> entry : entries) {
-
-            final List<String> filenameTypes = entry.getValue();
-            final String kind = entry.getKey();
-            for (String filenameType : filenameTypes) {
-                FILENAME_TO_KIND_MAPPER.put(filenameType, kind);
-            }
-
-            // In previous version, last one wins, so we do the same.
-            KIND_TO_FILENAME_MAPPER.put(kind, filenameTypes.get(filenameTypes.size() - 1));
-
-        }
-
-    }
-
-    // Read fragment and add default values
-    private static Map<String, Object> readAndEnrichFragment(
-        PlatformMode platformMode, ResourceVersioning apiVersions, File file, String appName) throws IOException {
-
-        Matcher matcher = FILENAME_PATTERN.matcher(file.getName());
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException(
-                    String.format("Resource file name '%s' does not match pattern <name>-<type>.(yaml|yml|json)", file.getName()));
-        }
-        String name = matcher.group("name");
-        String type = matcher.group("type");
-
-        final Map<String,Object> fragment = Serialization.unmarshal(file, new TypeReference<Map<String, Object>>() {});
-
-        final String kind;
-        if (type != null) {
-            kind = getAndValidateKindFromType(file, type);
-        } else {
-            // Try name as type
-            kind = FILENAME_TO_KIND_MAPPER.get(name.toLowerCase());
-            if (kind != null) {
-                // Name is in fact the type, so lets erase the name.
-                name = null;
-            }
-        }
-
-        addKind(fragment, kind, file.getName());
-
-        String apiVersion = apiVersions.getCoreVersion();
-
-        switch ((String)fragment.get("kind")) {
-            case "Ingress" :
-                apiVersion = apiVersions.getExtensionsVersion();
-                break;
-
-            case "StatefulSet" :
-            case "Deployment" :
-                apiVersion = apiVersions.getAppsVersion();
-                break;
-
-            case "NetworkPolicy" :
-                apiVersion = apiVersions.getNetworkingVersion();
-                break;
-
-            case "Job" :
-                apiVersion = apiVersions.getJobVersion();
-                break;
-
-            case "DeploymentConfig" :
-                apiVersion = platformMode == PlatformMode.openshift ? apiVersions.getOpenshiftV1version(): apiVersion;
-                break;
-
-            case "CronJob" :
-                apiVersion = apiVersions.getCronJobVersion();
-                break;
-
-            case "CustomResourceDefinition":
-                apiVersion = apiVersions.getApiExtensionsVersion();
-                break;
-            case "ClusterRole" :
-            case "ClusterRoleBinding" :
-            case "Role" :
-            case "RoleBinding" :
-                apiVersion = apiVersions.getRbacVersion();
-                break;
-        }
-
-        fragment.putIfAbsent("apiVersion", apiVersion);
-
-        Map<String, Object> metaMap = getMetadata(fragment);
-        // No name means: generated app name should be taken as resource name
-        String value = StringUtils.isNotBlank(name) ? name : appName;
-        metaMap.putIfAbsent("name", value);
-
-        return fragment;
-    }
-
-    private static String getAndValidateKindFromType(File file, String type) {
-        String kind;
-        kind = FILENAME_TO_KIND_MAPPER.get(type.toLowerCase());
-        if (kind == null) {
-            throw new IllegalArgumentException(
-                    String.format("Unknown type '%s' for file %s. Must be one of : %s",
-                            type, file.getName(), StringUtils.join(FILENAME_TO_KIND_MAPPER.keySet().iterator(), ", ")));
-        }
-        return kind;
-    }
-
-    private static void addKind(Map<String, Object> fragment, String kind, String fileName) {
-        if (kind == null && !fragment.containsKey("kind")) {
-            throw new IllegalArgumentException(
-                    "No type given as part of the file name (e.g. 'app-rc.yml') " +
-                            "and no 'Kind' defined in resource descriptor " + fileName);
-        }
-        fragment.putIfAbsent("kind", kind);
-    }
-
     public static void removeItemFromKubernetesBuilder(KubernetesListBuilder builder, HasMetadata item) {
         List<HasMetadata> items = builder.buildItems();
         List<HasMetadata> newListItems = new ArrayList<>();
@@ -351,25 +136,6 @@ public class KubernetesResourceUtil {
     }
     // ===============================================================================================
 
-    private static Map<String, Object> getMetadata(Map<String, Object> fragment) {
-        Object mo = fragment.get("metadata");
-        Map<String, Object> meta;
-        if (mo == null) {
-            meta = new HashMap<>();
-            fragment.put("metadata", meta);
-            return meta;
-        } else if (mo instanceof Map) {
-            return (Map<String, Object>) mo;
-        } else {
-            throw new IllegalArgumentException("Metadata is expected to be a Map, not a " + mo.getClass());
-        }
-    }
-
-    public static String getNameWithSuffix(String name, String kind) {
-        String suffix =  KIND_TO_FILENAME_MAPPER.get(kind);
-        return String.format("%s-%s", name, suffix != null ? suffix : "cr");
-    }
-
     public static String extractContainerName(GroupArtifactVersion groupArtifactVersion, ImageConfiguration imageConfig) {
         String alias = imageConfig.getAlias();
         String containerName =  alias != null ? alias : extractImageUser(imageConfig.getName(), groupArtifactVersion.getGroupId()) + "-" + groupArtifactVersion.getArtifactId();
@@ -381,7 +147,7 @@ public class KubernetesResourceUtil {
 
     private static String extractImageUser(String image, String groupId) {
         ImageName name = new ImageName(image);
-        String imageUser = name.getUser();
+        String imageUser = name.inferUser();
         if(imageUser != null) {
             return imageUser;
         } else {

@@ -41,7 +41,7 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
-import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
+import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments;
 
 import com.google.common.collect.Streams;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -160,7 +160,7 @@ public class HelmService {
       throws IOException, BadUploadException {
 
     for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
-      final HelmUploader helmUploader = new HelmUploader(logger);
+      final HelmUploaderManager helmUploaderManager = new HelmUploaderManager(logger);
       logger.info("Uploading Helm Chart \"%s\" to %s", helmConfig.getChart(), helmRepository.getName());
       logger.debug("OutputDir: %s", helmConfig.getOutputDir());
 
@@ -170,7 +170,7 @@ public class HelmService {
       final File tarballFile = new File(tarballOutputDir, String.format("%s-%s%s.%s",
           helmConfig.getChart(), helmConfig.getVersion(), resolveHelmClassifier(helmConfig), helmConfig.getChartExtension()));
 
-      helmUploader.uploadSingle(tarballFile, helmRepository);
+      helmUploaderManager.getHelmUploader(helmRepository.getType()).uploadSingle(tarballFile, helmRepository);
     }
   }
 
@@ -234,7 +234,7 @@ public class HelmService {
 
   private static void splitAndSaveTemplate(Template template, File templatesDir) throws IOException {
     for (HasMetadata object : Optional.ofNullable(template.getObjects()).orElse(Collections.emptyList())) {
-      String name = KubernetesResourceUtil.getNameWithSuffix(KubernetesHelper.getName(object),
+      String name = KubernetesResourceFragments.getNameWithSuffix(KubernetesHelper.getName(object),
           KubernetesHelper.getKind(object)) + YAML_EXTENSION;
       File outFile = new File(templatesDir, name);
       ResourceUtil.save(outFile, object);

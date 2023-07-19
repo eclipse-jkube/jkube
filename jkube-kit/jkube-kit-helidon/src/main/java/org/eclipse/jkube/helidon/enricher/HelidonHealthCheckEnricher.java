@@ -16,8 +16,8 @@ package org.eclipse.jkube.helidon.enricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.microprofile.enricher.AbstractMicroprofileHealthCheckEnricher;
 
-import java.util.Optional;
-
+import static org.eclipse.jkube.helidon.HelidonUtils.extractPort;
+import static org.eclipse.jkube.helidon.HelidonUtils.getHelidonConfiguration;
 import static org.eclipse.jkube.helidon.HelidonUtils.hasHelidonHealthDependency;
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
 
@@ -34,6 +34,6 @@ public class HelidonHealthCheckEnricher extends AbstractMicroprofileHealthCheckE
 
   @Override
   protected int getPort() {
-    return asInteger(Optional.ofNullable(getPortFromConfiguration()).orElse(DEFAULT_HELIDON_PORT));
+    return asInteger(extractPort(getHelidonConfiguration(getContext().getProject()), DEFAULT_HELIDON_PORT));
   }
 }
