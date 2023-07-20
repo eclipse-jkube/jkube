@@ -142,6 +142,7 @@
           <version>${version.license-maven-plugin}</version>
           <configuration>
             <useDefaultExcludes>true</useDefaultExcludes>
+            <aggregate>true</aggregate>
             <properties>
               <owner>Red Hat, Inc.</owner>
             </properties>
