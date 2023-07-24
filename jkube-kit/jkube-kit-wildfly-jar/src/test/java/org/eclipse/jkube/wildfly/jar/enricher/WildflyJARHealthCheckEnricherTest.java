@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import io.fabric8.kubernetes.api.model.ContainerFluentImpl;
+import io.fabric8.kubernetes.api.model.ContainerFluent;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -281,7 +281,7 @@ class WildflyJARHealthCheckEnricherTest {
         });
 
         assertThat(containerBuilders).singleElement()
-            .extracting(ContainerFluentImpl::buildEnv).asList()
+            .extracting(ContainerFluent::buildEnv).asList()
             .singleElement()
             .hasFieldOrPropertyWithValue("name", "HOSTNAME")
             .extracting("valueFrom.fieldRef.fieldPath").isNotNull()

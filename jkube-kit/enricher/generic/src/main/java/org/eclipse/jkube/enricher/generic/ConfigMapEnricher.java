@@ -111,7 +111,7 @@ public class ConfigMapEnricher extends BaseEnricher {
 
             if ((configMap.getData() != null && !configMap.getData().isEmpty())
                     || (configMap.getBinaryData() != null && !configMap.getBinaryData().isEmpty())) {
-                builder.addToConfigMapItems(configMap);
+                builder.addToItems(configMap);
             }
         } catch (IOException e) {
             throw new IllegalArgumentException(e);

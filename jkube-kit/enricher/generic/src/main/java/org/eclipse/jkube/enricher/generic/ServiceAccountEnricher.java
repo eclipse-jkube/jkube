@@ -67,12 +67,12 @@ public class ServiceAccountEnricher extends BaseEnricher {
         if (resourceConfig != null && StringUtils.isNotBlank(resourceConfig.getServiceAccount())) {
             deploymentToSaPair.put(JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()), resourceConfig.getServiceAccount());
         }
-        builder.addAllToServiceAccountItems(createServiceAccountFromResourceConfig(resourceConfig));
-        builder.addAllToServiceAccountItems(createServiceAccountsReferencedInDeployment(builder, deploymentToSaPair));
+        builder.addAllToItems(createServiceAccountFromResourceConfig(resourceConfig));
+        builder.addAllToItems(createServiceAccountsReferencedInDeployment(builder, deploymentToSaPair));
     }
 
-    private List<ServiceAccount> createServiceAccountFromResourceConfig(ResourceConfig resourceConfig) {
-        List<ServiceAccount> serviceAccounts = new ArrayList<>();
+    private List<HasMetadata> createServiceAccountFromResourceConfig(ResourceConfig resourceConfig) {
+        List<HasMetadata> serviceAccounts = new ArrayList<>();
         if(resourceConfig != null && resourceConfig.getServiceAccounts() != null && !Boolean.parseBoolean(getConfig(Config.SKIP_CREATE))) {
             for(ServiceAccountConfig serviceAccountConfig : resourceConfig.getServiceAccounts()) {
                 if(serviceAccountConfig.getName() != null) {
@@ -83,8 +83,8 @@ public class ServiceAccountEnricher extends BaseEnricher {
         return serviceAccounts;
     }
 
-    private List<ServiceAccount> createServiceAccountsReferencedInDeployment(KubernetesListBuilder builder, Map<String, String> deploymentToSaPair) {
-        List<ServiceAccount> serviceAccounts = new ArrayList<>();
+    private List<HasMetadata> createServiceAccountsReferencedInDeployment(KubernetesListBuilder builder, Map<String, String> deploymentToSaPair) {
+        List<HasMetadata> serviceAccounts = new ArrayList<>();
         builder.accept(new TypedVisitor<DeploymentBuilder>() {
             @Override
             public void visit(DeploymentBuilder deploymentBuilder) {

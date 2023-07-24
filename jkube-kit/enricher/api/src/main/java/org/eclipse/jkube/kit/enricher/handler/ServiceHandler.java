@@ -47,7 +47,7 @@ public class ServiceHandler {
                   .withLabels(getLabels(service))
                 .endMetadata();
 
-            ServiceFluent.SpecNested<ServiceBuilder> serviceSpecBuilder = serviceBuilder.withNewSpec();
+            ServiceFluent<?>.SpecNested<ServiceBuilder> serviceSpecBuilder = serviceBuilder.withNewSpec();
 
             List<ServicePort> servicePorts = new ArrayList<>();
 

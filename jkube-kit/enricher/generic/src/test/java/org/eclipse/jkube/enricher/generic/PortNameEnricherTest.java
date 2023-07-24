@@ -104,6 +104,6 @@ class PortNameEnricherTest {
         .endSpec()
         .endTemplate();
     // @formatter:on
-    return new KubernetesListBuilder().addToPodTemplateItems(ptb.build());
+    return new KubernetesListBuilder().addToItems(ptb.build());
   }
 }

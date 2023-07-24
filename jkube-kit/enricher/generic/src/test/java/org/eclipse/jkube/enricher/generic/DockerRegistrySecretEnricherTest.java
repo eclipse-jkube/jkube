@@ -62,7 +62,7 @@ class DockerRegistrySecretEnricherTest {
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
         Secret secretEnriched = createBaseSecret(true, ANNOTATION);
-        builder.addToSecretItems(secretEnriched);
+        builder.addToItems(secretEnriched);
         enricher.create(PlatformMode.kubernetes, builder);
 
         secretEnriched = (Secret) builder.buildItem(0);
@@ -84,7 +84,7 @@ class DockerRegistrySecretEnricherTest {
         DockerRegistrySecretEnricher enricher = new DockerRegistrySecretEnricher(context);
         KubernetesListBuilder builder = new KubernetesListBuilder();
         Secret secretEnriched = createBaseSecret(true, "maven.jkube.io/dockerServerId");
-        builder.addToSecretItems(secretEnriched);
+        builder.addToItems(secretEnriched);
         enricher.create(PlatformMode.kubernetes, builder);
 
         secretEnriched = (Secret) builder.buildItem(0);
@@ -107,7 +107,7 @@ class DockerRegistrySecretEnricherTest {
         KubernetesListBuilder builder = new KubernetesListBuilder();
         Secret secret = createBaseSecret(true, ANNOTATION);
         secret.setKind("Secrets");
-        builder.addToSecretItems(createBaseSecret(true, ANNOTATION));
+        builder.addToItems(createBaseSecret(true, ANNOTATION));
         KubernetesList expected = builder.build();
 
         enricher.create(PlatformMode.kubernetes, builder);
@@ -120,7 +120,7 @@ class DockerRegistrySecretEnricherTest {
         KubernetesListBuilder builder = new KubernetesListBuilder();
         Secret secret = createBaseSecret(true, ANNOTATION);
         secret.getMetadata().getAnnotations().put(ANNOTATION, "docker1.io");
-        builder.addToSecretItems(createBaseSecret(true, ANNOTATION));
+        builder.addToItems(createBaseSecret(true, ANNOTATION));
 
         KubernetesList expected = builder.build();
 

@@ -50,7 +50,7 @@ class FileDataSecretEnricherTest {
         final FileDataSecretEnricher fileDataSecretEnricher =
                 new FileDataSecretEnricher(context);
         final KubernetesListBuilder builder = new KubernetesListBuilder();
-        builder.addToSecretItems(createBaseSecret("maven.jkube.io/secret/"));
+        builder.addToItems(createBaseSecret("maven.jkube.io/secret/"));
 
         // When
         fileDataSecretEnricher.create(PlatformMode.kubernetes,builder);
@@ -70,7 +70,7 @@ class FileDataSecretEnricherTest {
         // Given
         final FileDataSecretEnricher fileDataSecretEnricher = new FileDataSecretEnricher(context);
         final KubernetesListBuilder builder = new KubernetesListBuilder();
-        builder.addToSecretItems(createBaseSecret("jkube.eclipse.org/secret/"));
+        builder.addToItems(createBaseSecret("jkube.eclipse.org/secret/"));
 
         // When
         fileDataSecretEnricher.create(PlatformMode.kubernetes,builder);

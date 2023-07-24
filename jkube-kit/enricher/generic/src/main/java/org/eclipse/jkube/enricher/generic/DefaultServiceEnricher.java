@@ -162,7 +162,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
     }
 
     private void addServices(KubernetesListBuilder builder, List<ServiceConfig> services) {
-        builder.addToServiceItems(toArray(getContext().getHandlerHub().getServiceHandler().getServices(services)));
+        builder.addToItems(toArray(getContext().getHandlerHub().getServiceHandler().getServices(services)));
     }
 
     // convert list to array, never returns null.
@@ -220,7 +220,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
               .withName(serviceName)
               .withLabels(extractLabels())
             .endMetadata();
-        ServiceFluent.SpecNested<ServiceBuilder> specBuilder = builder.withNewSpec();
+        ServiceFluent<?>.SpecNested<ServiceBuilder> specBuilder = builder.withNewSpec();
         if (!ports.isEmpty()) {
             specBuilder.withPorts(ports);
         } else if (Configs.asBoolean(getConfig(Config.HEADLESS))) {
@@ -284,7 +284,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
             log.info("Adding headless default service '%s'",
                      defaultService.getMetadata().getName());
         }
-        builder.addToServiceItems(defaultService);
+        builder.addToItems(defaultService);
     }
 
     // ....................................................................................

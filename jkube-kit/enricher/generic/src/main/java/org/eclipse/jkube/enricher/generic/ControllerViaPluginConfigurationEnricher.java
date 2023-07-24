@@ -146,13 +146,13 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
     }
 
     private void mergeDeploymentSpec(DeploymentBuilder builder, DeploymentSpec spec) {
-        DeploymentFluent.SpecNested<DeploymentBuilder> specBuilder = builder.editSpec();
+        DeploymentFluent<?>.SpecNested<DeploymentBuilder> specBuilder = builder.editSpec();
         KubernetesResourceUtil.mergeSimpleFields(specBuilder, spec);
         specBuilder.endSpec();
     }
 
     private void mergeStatefulSetSpec(StatefulSetBuilder builder, StatefulSetSpec spec) {
-        StatefulSetFluent.SpecNested<StatefulSetBuilder> specBuilder = builder.editSpec();
+        StatefulSetFluent<?>.SpecNested<StatefulSetBuilder> specBuilder = builder.editSpec();
         KubernetesResourceUtil.mergeSimpleFields(specBuilder, spec);
         specBuilder.endSpec();
     }

@@ -49,7 +49,7 @@ class ConfigMapEnricherTest {
     void should_materialize_file_content_from_deprecated_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-application.properties",
                 "src/test/resources/test-application.properties", "maven.jkube.io/cm/");
-        final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
@@ -63,7 +63,7 @@ class ConfigMapEnricherTest {
     @Test
     void should_materialize_dir_content_from_deprecated_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-dir", "src/test/resources/test-dir", "maven.jkube.io/cm/");
-        final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
@@ -81,7 +81,7 @@ class ConfigMapEnricherTest {
     @Test
     void should_materialize_binary_file_content_from_deprecated_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test.bin", "src/test/resources/test.bin", "maven.jkube.io/cm/");
-        final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
@@ -97,7 +97,7 @@ class ConfigMapEnricherTest {
     void should_materialize_file_content_from_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-application.properties",
             "src/test/resources/test-application.properties", "jkube.eclipse.org/cm/");
-        final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
@@ -111,7 +111,7 @@ class ConfigMapEnricherTest {
     @Test
     void should_materialize_dir_content_from_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test-dir", "src/test/resources/test-dir", "jkube.eclipse.org/cm/");
-        final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
@@ -129,7 +129,7 @@ class ConfigMapEnricherTest {
     @Test
     void should_materialize_binary_file_content_from_annotation() {
         final ConfigMap baseConfigMap = createAnnotationConfigMap("test.bin", "src/test/resources/test.bin", "jkube.eclipse.org/cm/");
-        final KubernetesListBuilder builder = new KubernetesListBuilder().addToConfigMapItems(baseConfigMap);
+        final KubernetesListBuilder builder = new KubernetesListBuilder().addToItems(baseConfigMap);
         new ConfigMapEnricher(context).create(PlatformMode.kubernetes, builder);
 
         final ConfigMap configMap = (ConfigMap) builder.buildFirstItem();
