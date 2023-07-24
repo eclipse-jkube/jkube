@@ -208,7 +208,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
         switch (type) {
             case "HTTP":
-                ProbeFluent.HttpGetNested<ProbeBuilder> http = builder.withNewHttpGet()
+                ProbeFluent<?>.HttpGetNested<ProbeBuilder> http = builder.withNewHttpGet()
                         .withScheme(scheme)
                         .withPath(path);
                 port.ifPresent(http::withNewPort);
@@ -223,7 +223,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
                 http.endHttpGet();
                 break;
             case "TCP":
-                ProbeFluent.TcpSocketNested<ProbeBuilder> tcp = builder.withNewTcpSocket();
+                ProbeFluent<?>.TcpSocketNested<ProbeBuilder> tcp = builder.withNewTcpSocket();
                 port.ifPresent(tcp::withNewPort);
                 portName.ifPresent(tcp::withNewPort);
                 tcp.endTcpSocket();

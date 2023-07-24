@@ -116,9 +116,9 @@ public class ImageEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<ReplicationControllerBuilder>() {
             @Override
             public void visit(ReplicationControllerBuilder item) {
-                ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder> spec =
+                ReplicationControllerFluent<ReplicationControllerBuilder>.SpecNested<ReplicationControllerBuilder> spec =
                     item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
-                ReplicationControllerSpecFluent.TemplateNested<ReplicationControllerFluent.SpecNested<ReplicationControllerBuilder>>
+                ReplicationControllerSpecFluent<?>.TemplateNested<ReplicationControllerFluent<ReplicationControllerBuilder>.SpecNested<ReplicationControllerBuilder>>
                     template =
                     spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
@@ -130,9 +130,9 @@ public class ImageEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<ReplicaSetBuilder>() {
             @Override
             public void visit(ReplicaSetBuilder item) {
-                ReplicaSetFluent.SpecNested<ReplicaSetBuilder> spec =
+                ReplicaSetFluent<ReplicaSetBuilder>.SpecNested<ReplicaSetBuilder> spec =
                     item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
-                ReplicaSetSpecFluent.TemplateNested<ReplicaSetFluent.SpecNested<ReplicaSetBuilder>> template =
+                ReplicaSetSpecFluent<?>.TemplateNested<ReplicaSetFluent<ReplicaSetBuilder>.SpecNested<ReplicaSetBuilder>> template =
                     spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
@@ -143,9 +143,9 @@ public class ImageEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<DeploymentBuilder>() {
             @Override
             public void visit(DeploymentBuilder item) {
-                DeploymentFluent.SpecNested<DeploymentBuilder> spec =
+                DeploymentFluent<DeploymentBuilder>.SpecNested<DeploymentBuilder> spec =
                     item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
-                DeploymentSpecFluent.TemplateNested<DeploymentFluent.SpecNested<DeploymentBuilder>> template =
+                DeploymentSpecFluent<?>.TemplateNested<DeploymentFluent<DeploymentBuilder>.SpecNested<DeploymentBuilder>> template =
                     spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
@@ -156,9 +156,9 @@ public class ImageEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<DaemonSetBuilder>() {
             @Override
             public void visit(DaemonSetBuilder item) {
-                DaemonSetFluent.SpecNested<DaemonSetBuilder> spec =
+                DaemonSetFluent<DaemonSetBuilder>.SpecNested<DaemonSetBuilder> spec =
                         item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
-                DaemonSetSpecFluent.TemplateNested<DaemonSetFluent.SpecNested<DaemonSetBuilder>> template =
+                DaemonSetSpecFluent<?>.TemplateNested<DaemonSetFluent<DaemonSetBuilder>.SpecNested<DaemonSetBuilder>> template =
                         spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
@@ -169,9 +169,9 @@ public class ImageEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<StatefulSetBuilder>() {
             @Override
             public void visit(StatefulSetBuilder item) {
-                StatefulSetFluent.SpecNested<StatefulSetBuilder> spec =
+                StatefulSetFluent<StatefulSetBuilder>.SpecNested<StatefulSetBuilder> spec =
                         item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
-                StatefulSetSpecFluent.TemplateNested<StatefulSetFluent.SpecNested<StatefulSetBuilder>> template =
+                StatefulSetSpecFluent<?>.TemplateNested<StatefulSetFluent<StatefulSetBuilder>.SpecNested<StatefulSetBuilder>> template =
                         spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
@@ -182,9 +182,9 @@ public class ImageEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<DeploymentConfigBuilder>() {
             @Override
             public void visit(DeploymentConfigBuilder item) {
-                DeploymentConfigFluent.SpecNested<DeploymentConfigBuilder> spec =
+                DeploymentConfigFluent<DeploymentConfigBuilder>.SpecNested<DeploymentConfigBuilder> spec =
                         item.buildSpec() == null ? item.withNewSpec() : item.editSpec();
-                DeploymentConfigSpecFluent.TemplateNested<DeploymentConfigFluent.SpecNested<DeploymentConfigBuilder>> template =
+                DeploymentConfigSpecFluent<?>.TemplateNested<DeploymentConfigFluent<DeploymentConfigBuilder>.SpecNested<DeploymentConfigBuilder>> template =
                         spec.buildTemplate() == null ? spec.withNewTemplate() : spec.editTemplate();
                 template.endTemplate().endSpec();
             }
@@ -198,7 +198,7 @@ public class ImageEnricher extends BaseEnricher {
         builder.accept(new TypedVisitor<PodTemplateSpecBuilder>() {
             @Override
             public void visit(PodTemplateSpecBuilder templateBuilder) {
-                PodTemplateSpecFluent.SpecNested<PodTemplateSpecBuilder> podSpec =
+                PodTemplateSpecFluent<?>.SpecNested<PodTemplateSpecBuilder> podSpec =
                     templateBuilder.buildSpec() == null ? templateBuilder.withNewSpec() : templateBuilder.editSpec();
 
                 List<Container> containers = podSpec.buildContainers();

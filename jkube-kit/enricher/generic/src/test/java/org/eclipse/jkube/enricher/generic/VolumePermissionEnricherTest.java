@@ -82,7 +82,7 @@ class VolumePermissionEnricherTest {
                 .withVolumeMounts(new VolumeMountBuilder().withName("vol-blub").withMountPath("blub").build())
                 .build();
         ptb.editTemplate().editSpec().withInitContainers(Collections.singletonList(initContainer)).endSpec().endTemplate();
-        KubernetesListBuilder klb = new KubernetesListBuilder().addToPodTemplateItems(ptb.build());
+        KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(ptb.build());
 
         VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
         enricher.enrich(PlatformMode.kubernetes,klb);
@@ -127,7 +127,7 @@ class VolumePermissionEnricherTest {
                 ptb = addVolume(ptb, vn);
             }
 
-            KubernetesListBuilder klb = new KubernetesListBuilder().addToPodTemplateItems(ptb.build());
+            KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(ptb.build());
 
             enricher.enrich(PlatformMode.kubernetes,klb);
 
@@ -173,7 +173,7 @@ class VolumePermissionEnricherTest {
 
         VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
         KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
-        kubernetesListBuilder.addToPodTemplateItems(addVolume(createEmptyPodTemplate(), "volumeC").build());
+        kubernetesListBuilder.addToItems(addVolume(createEmptyPodTemplate(), "volumeC").build());
 
         // When
         enricher.enrich(PlatformMode.kubernetes, kubernetesListBuilder);

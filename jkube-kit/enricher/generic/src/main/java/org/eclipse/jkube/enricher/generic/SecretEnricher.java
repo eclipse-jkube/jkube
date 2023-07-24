@@ -122,7 +122,7 @@ public abstract class SecretEnricher extends BaseEnricher {
 
             Secret secret = new SecretBuilder().withData(data).withMetadata(metadata).withType(type).build();
             if(!secretToIndexMap.containsKey(secretConfig.getName())) {
-                builder.addToSecretItems(i, secret);
+                builder.addToItems(i, secret);
             }
         }
     }
