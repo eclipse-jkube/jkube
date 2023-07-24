@@ -30,7 +30,7 @@
     - [Troubleshooting](#troubleshooting)
 - [Rebranding Notice](#rebranding-notice--loudspeaker-)
 - [Contributing](https://www.eclipse.org/jkube/contributing/)
-- [How to use Eclipse JKube snapshot artifacts?](./USING-SNAPSHOT-SNAPSHOTS.md)
+- [How to use Eclipse JKube snapshot artifacts?](./USING-SNAPSHOT-ARTIFACTS.md)
 - [Add your organization to ADOPTERS](./ADOPTERS.md)
 - [FAQs](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin/#faq)
 
