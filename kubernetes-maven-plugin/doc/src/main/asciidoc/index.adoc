@@ -43,6 +43,6 @@ include::inc/_authentication.adoc[]
 include::inc/_volumes.adoc[]
 include::inc/_integrations.adoc[]
 
-include::inc/_faq.adoc[]
+include::{kitdoc-path}/inc/_faq.adoc[]
 
 include::{kitdoc-path}/inc/mapping-config/_index.adoc[]
