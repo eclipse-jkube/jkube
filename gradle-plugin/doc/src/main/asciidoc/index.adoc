@@ -43,4 +43,4 @@ include::inc/_authentication.adoc[]
 
 include::{kitdoc-path}/inc/mapping-config/_index.adoc[]
 
-
+include::{kitdoc-path}/inc/_faq.adoc[]
