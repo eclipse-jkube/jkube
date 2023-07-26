@@ -14,6 +14,7 @@
 package org.eclipse.jkube.gradle.plugin.tests;
 
 import java.io.IOException;
+import java.nio.file.Files;
 
 import org.eclipse.jkube.kit.common.ResourceVerify;
 
@@ -65,5 +66,27 @@ class SpringBootIT {
         .contains("jkube-healthcheck-spring-boot: Adding liveness probe on port 8080")
         .contains("jkube-service-discovery: Using first mentioned service port '8080' ")
         .contains("jkube-revision-history: Adding revision history limit to 2");
+  }
+
+  @Test
+  void k8sBuild_whenRunWithJibBuildStrategy_generatesLayeredImage() throws IOException {
+    // When
+    final BuildResult result = gradleRunner.withITProject("spring-boot")
+        .withArguments("clean", "build", "k8sBuild", "-Pjkube.build.strategy=jib", "--stacktrace")
+        .build();
+    // Then
+    String generatedDockerfileContent = new String(Files.readAllBytes(gradleRunner.resolveDefaultDockerfile( "gradle", "spring-boot", "latest").toPath()));
+    assertThat(generatedDockerfileContent)
+        .contains("FROM quay.io/jkube/jkube-java:")
+        .contains("ENV JAVA_MAIN_CLASS=org.springframework.boot.loader.JarLauncher JAVA_APP_DIR=/deployments")
+        .contains("EXPOSE 8080 8778 9779")
+        .contains("COPY /dependencies/deployments /deployments/")
+        .contains("COPY /spring-boot-loader/deployments /deployments/")
+        .contains("COPY /application/deployments /deployments/")
+        .contains("WORKDIR /deployments")
+        .contains("ENTRYPOINT [\"java\",\"org.springframework.boot.loader.JarLauncher\"]");
+    assertThat(result).extracting(BuildResult::getOutput).asString()
+        .contains("Running generator spring-boot")
+        .contains("Spring Boot layered jar detected");
   }
 }

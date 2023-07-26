@@ -21,7 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.14-SNAPSHOT
-* Fix #2353: Add condition and alias to HelmDependency model
+* Fix #1674: SpringBootGenerator utilizes the layered jar if present and use it as Docker layers
 * Fix #1713: Add HelidonHealthCheckEnricher to add Kubernetes health checks for Helidon applications
 * Fix #1714: Add HelidonGenerator to add opinionated container image for Helidon applications
 * Fix #1929: Docker Image Name parsing fix
@@ -39,6 +39,7 @@ Usage:
 * Fix #2302 Bump Kubernetes Client version to 6.8.0
 * Fix #2324: Update SpringBootConfigurationHelper for Spring Boot 3.x
 * Fix #2350: Enrichers with NAME configuration override fragments with default names
+* Fix #2353: Add condition and alias to HelmDependency model
 
 ### 1.13.1 (2023-06-16)
 * Fix #2212: Bump Kubernetes Client version to 6.7.2 (fixes issues when trace-logging OpenShift builds -regression in 6.7.1-)

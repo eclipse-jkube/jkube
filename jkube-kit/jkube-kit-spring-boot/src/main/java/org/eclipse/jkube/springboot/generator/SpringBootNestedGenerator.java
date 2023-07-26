@@ -15,17 +15,24 @@ package org.eclipse.jkube.springboot.generator;
 
 import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static org.eclipse.jkube.generator.javaexec.JavaExecGenerator.JOLOKIA_PORT_DEFAULT;
 import static org.eclipse.jkube.generator.javaexec.JavaExecGenerator.PROMETHEUS_PORT_DEFAULT;
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.isLayeredJar;
 
 public interface SpringBootNestedGenerator {
   JavaProject getProject();
 
-  default AssemblyConfiguration createAssemblyConfiguration() {
+  default AssemblyConfiguration createAssemblyConfiguration(List<AssemblyFileSet> defaultFileSets) {
     return null;
   }
 
@@ -49,7 +56,15 @@ public interface SpringBootNestedGenerator {
 
   String getTargetDir();
 
-  static SpringBootNestedGenerator from(GeneratorContext generatorContext, GeneratorConfig generatorConfig) {
+  default Map<String, String> getEnv() {
+    return Collections.emptyMap();
+  }
+
+  static SpringBootNestedGenerator from(GeneratorContext generatorContext, GeneratorConfig generatorConfig, FatJarDetector.Result fatJarDetectorResult) {
+    if (fatJarDetectorResult != null && fatJarDetectorResult.getArchiveFile() != null &&
+        isLayeredJar(fatJarDetectorResult.getArchiveFile())) {
+      return new LayeredJarGenerator(generatorContext, generatorConfig, fatJarDetectorResult);
+    }
     return new FatJarGenerator(generatorContext, generatorConfig);
   }
 }
