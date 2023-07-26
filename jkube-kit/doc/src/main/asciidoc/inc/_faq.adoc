@@ -20,13 +20,13 @@ spec:
 
 The above will generate an environment variable `$FOO` of value `bar`
 
-For a full list of the environments used in java base images, https://hub.docker.com/r/jkube.java-jboss-openjdk8-jdk[see this list]
+For a full list of the environments used in java base images, https://github.com/jkubeio/jkube-images#available-imagesk[see this list]
 
 === How do I define a system property?
 
 The simplest way is to add system properties to the `JAVA_OPTIONS` environment variable.
 
-For a full list of the environments used in java base images, https://hub.docker.com/r/jkube.java-jboss-openjdk8-jdk[see this list]
+For a full list of the environments used in java base images, https://github.com/jkubeio/jkube-images#available-images[see this list]
 
 e.g. add a `src/main/jkube/deployment.yml` file to your project containing something like:
 
@@ -126,12 +126,29 @@ Where the above defines the `PersistentVolumeClaim` called `foo` which is then m
 `Ingress` you need to enable `jkube.createExternalUrls` property to `true` and `jkube.domain` property to desired host
 suffix, it would be appended to your service name for host value.
 
-You can also provide a host for it in properties like this:
+ifeval::["{plugin-type}" == "maven"]
+You can also provide a host for it in XML config like this:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<project>
+ <!-- ... -->
+  <properties>
+    <!-- ... -->
+     <jkube.createExternalUrls>true</jkube.createExternalUrls>
+     <jkube.domain>example.com</jkube.domain>
+  </properties>
+</project>
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+You can also provide a host for it in `gradle.properties` file like this:
 [source,properties,indent=0,subs="verbatim,quotes,attributes"]
 ----
 jkube.createExternalUrls=true
 jkube.domain=example.com
 ----
+endif::[]
 
 ifeval::["{plugin-type}" == "maven"]
 You can find an example in our link: https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot[spring-boot]
