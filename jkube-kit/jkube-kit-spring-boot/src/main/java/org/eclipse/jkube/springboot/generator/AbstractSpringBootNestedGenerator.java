@@ -17,6 +17,7 @@ import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 
 public abstract class AbstractSpringBootNestedGenerator implements SpringBootNestedGenerator {
 
@@ -41,5 +42,9 @@ public abstract class AbstractSpringBootNestedGenerator implements SpringBootNes
   @Override
   public String getTargetDir() {
     return generatorConfig.get(JavaExecGenerator.Config.TARGET_DIR);
+  }
+
+  protected KitLogger getLogger() {
+    return generatorContext.getLogger();
   }
 }

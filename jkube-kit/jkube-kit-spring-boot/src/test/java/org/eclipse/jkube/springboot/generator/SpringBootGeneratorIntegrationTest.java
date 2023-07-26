@@ -19,30 +19,40 @@ import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.springboot.SpringBootLayeredJarExecUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.jar.Attributes;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 class SpringBootGeneratorIntegrationTest {
@@ -185,7 +195,7 @@ class SpringBootGeneratorIntegrationTest {
       when(fatJarDetectorResult.getArchiveFile()).thenReturn(targetDir.toPath().resolve("sample.jar").toFile());
     })) {
       // Given
-      Files.createFile(targetDir.toPath().resolve("sample.jar"));
+      createDummyFatJar(targetDir.toPath().resolve("sample.jar").toFile());
 
       // When
       final List<ImageConfiguration> resultImages = new SpringBootGenerator(context).customize(new ArrayList<>(), false);
@@ -206,6 +216,144 @@ class SpringBootGeneratorIntegrationTest {
               .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
               .extracting("includes").asList()
               .containsExactly("sample.jar"));
+    }
+  }
+
+  @Test
+  @DisplayName("customize, in Kubernetes and layered jar artifact, should create assembly layers")
+  void customize_inKubernetesAndLayeredJarArtifact_shouldCreateAssemblyLayers() throws IOException {
+    File layeredJar = targetDir.toPath().resolve("layered.jar").toFile();
+    try (
+        MockedStatic<SpringBootLayeredJarExecUtils> springBootLayeredJarExecUtilsMockedStatic = mockStatic(SpringBootLayeredJarExecUtils.class);
+        MockedConstruction<FatJarDetector> ignore = mockConstruction(FatJarDetector.class, (mock, ctx) -> {
+          FatJarDetector.Result fatJarDetectorResult = mock(FatJarDetector.Result.class);
+          when(mock.scan()).thenReturn(fatJarDetectorResult);
+          when(fatJarDetectorResult.getArchiveFile()).thenReturn(layeredJar);
+        })) {
+      // Given
+      createDummyLayeredJar(layeredJar);
+      springBootLayeredJarExecUtilsMockedStatic.when(() -> SpringBootLayeredJarExecUtils.listLayers(any(), any(File.class)))
+              .thenReturn(Arrays.asList("dependencies", "spring-boot-loader", "snapshot-dependencies", "application"));
+      createExtractedLayers(targetDir);
+
+      // When
+      final List<ImageConfiguration> resultImages = new SpringBootGenerator(context).customize(new ArrayList<>(), false);
+      // Then
+      assertThat(resultImages)
+          .isNotNull()
+          .singleElement()
+          .extracting(ImageConfiguration::getBuild)
+          .satisfies(b -> assertThat(b.getEnv())
+              .containsEntry("JAVA_MAIN_CLASS", "org.springframework.boot.loader.JarLauncher"))
+          .extracting(BuildConfiguration::getAssembly)
+          .hasFieldOrPropertyWithValue("targetDir", "/deployments")
+          .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
+          .extracting(AssemblyConfiguration::getLayers)
+          .asList()
+          .hasSize(5)
+          .contains(
+              Assembly.builder()
+                  .id("jkube-includes")
+                  .fileSet(AssemblyFileSet.builder()
+                      .directory(new File("src/main/jkube-includes/bin"))
+                      .outputDirectory(new File("bin"))
+                      .fileMode("0755")
+                      .build())
+                  .fileSet(AssemblyFileSet.builder()
+                      .directory(new File("src/main/jkube-includes"))
+                      .outputDirectory(new File("."))
+                      .fileMode("0644")
+                      .build())
+                  .build(),
+              Assembly.builder()
+                  .id("dependencies")
+                  .fileSet(AssemblyFileSet.builder()
+                      .outputDirectory(new File("."))
+                      .directory(new File("target/dependencies"))
+                      .exclude("*")
+                      .fileMode("0640")
+                      .build())
+                  .build(),
+              Assembly.builder()
+                  .id("spring-boot-loader")
+                  .fileSet(AssemblyFileSet.builder()
+                      .outputDirectory(new File("."))
+                      .directory(new File("target/spring-boot-loader"))
+                      .exclude("*")
+                      .fileMode("0640")
+                      .build())
+                  .build(),
+              Assembly.builder()
+                  .id("snapshot-dependencies")
+                  .fileSet(AssemblyFileSet.builder()
+                      .outputDirectory(new File("."))
+                      .directory(new File("target/snapshot-dependencies"))
+                      .exclude("*")
+                      .fileMode("0640")
+                      .build())
+                  .build(),
+              Assembly.builder()
+                  .id("application")
+                  .fileSet(AssemblyFileSet.builder()
+                      .outputDirectory(new File("."))
+                      .directory(new File("target/application"))
+                      .exclude("*")
+                      .fileMode("0640")
+                      .build())
+                  .build()
+              );
+    }
+  }
+
+  private void createExtractedLayers(File targetDir) throws IOException {
+    File applicationLayer = new File(targetDir, "application");
+    File dependencies = new File(targetDir, "dependencies");
+    File snapshotDependencies = new File(targetDir, "snapshot-dependencies");
+    File springBootLoader = new File(targetDir, "spring-boot-loader");
+    Files.createDirectories(new File(applicationLayer, "BOOT-INF/classes").toPath());
+    Files.createDirectory(applicationLayer.toPath().resolve("META-INF"));
+    Files.createFile(applicationLayer.toPath().resolve("BOOT-INF").resolve("classes").resolve("application.properties"));
+    Files.createDirectories(dependencies.toPath().resolve("BOOT-INF").resolve("lib"));
+    Files.createFile(dependencies.toPath().resolve("BOOT-INF").resolve("lib").resolve("spring-core.jar"));
+    Files.createDirectories(snapshotDependencies.toPath().resolve("BOOT-INF").resolve("lib"));
+    Files.createFile(snapshotDependencies.toPath().resolve("BOOT-INF").resolve("lib").resolve("test-SNAPSHOT.jar"));
+    Files.createDirectories(springBootLoader.toPath().resolve("org").resolve("springframework").resolve("boot").resolve("loader"));
+    Files.createFile(springBootLoader.toPath().resolve("org").resolve("springframework").resolve("boot").resolve("loader").resolve("Launcher.class"));
+  }
+
+  private void createDummyLayeredJar(File layeredJar) throws IOException {
+    Manifest manifest = new Manifest();
+    manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+    manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "org.springframework.boot.loader.JarLauncher");
+    try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(layeredJar.toPath()), manifest)) {
+      jarOutputStream.putNextEntry(new JarEntry("META-INF/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/boot/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/boot/loader/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/boot/loader/ClassPathIndexFile.class"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/boot/loader/JarLauncher.class"));
+      jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/"));
+      jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/classes/"));
+      jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/layers.idx"));
+    }
+  }
+
+  private void createDummyFatJar(File layeredJar) throws IOException {
+    Manifest manifest = new Manifest();
+    manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+    manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "org.springframework.boot.loader.JarLauncher");
+    try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(layeredJar.toPath()), manifest)) {
+      jarOutputStream.putNextEntry(new JarEntry("META-INF/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/boot/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/boot/loader/"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/boot/loader/ClassPathIndexFile.class"));
+      jarOutputStream.putNextEntry(new JarEntry("org/springframework/boot/loader/JarLauncher.class"));
+      jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/"));
+      jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/classes/"));
+      jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/classpath.idx"));
     }
   }
 

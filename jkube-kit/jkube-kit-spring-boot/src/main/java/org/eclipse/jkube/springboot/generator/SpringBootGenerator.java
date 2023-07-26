@@ -57,7 +57,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     public SpringBootGenerator(GeneratorContext context) {
         super(context, "spring-boot");
-        nestedGenerator = SpringBootNestedGenerator.from(context, getGeneratorConfig());
+        nestedGenerator = SpringBootNestedGenerator.from(context, getGeneratorConfig(), detectFatJar());
     }
 
     @Override
@@ -95,6 +95,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
                 res.put(SpringBootUtil.DEV_TOOLS_REMOTE_SECRET_ENV, secret);
             }
         }
+        res.putAll(nestedGenerator.getEnv());
         return res;
     }
 
@@ -124,7 +125,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     @Override
     protected AssemblyConfiguration createAssembly() {
-        return Optional.ofNullable(nestedGenerator.createAssemblyConfiguration())
+        return Optional.ofNullable(nestedGenerator.createAssemblyConfiguration(addAdditionalFiles()))
             .orElse(super.createAssembly());
     }
 
