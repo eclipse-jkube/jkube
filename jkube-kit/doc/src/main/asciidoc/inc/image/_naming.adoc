@@ -1,8 +1,11 @@
 [[image-name]]
-When specifying the image name in the configuration with the `<name>` field, then you can use several placeholders.
+When specifying the image name in the configuration with the `name` field, then you can use several placeholders.
 These placeholders are replaced during the execution by this plugin.
-In addition, you can use regular Maven properties.
-These properties are resolved by Maven itself.
+
+ifeval::["{plugin-type}" == "gradle"]
+In addition, you can use regular Gradle properties.
+These properties are resolved by Gradle itself.
+endif::[]
 
 .Image Names
 [cols="1,5"]
@@ -10,7 +13,7 @@ These properties are resolved by Maven itself.
 | Placeholder | Description
 
 | *%g*
-| The last part of the Maven group name.
+| The last part of the {plugin-type}     group name.
 The name gets sanitized, so that it can be used as username on GitHub.
 Only the part after the last dot is used.
 For example, given the group id `org.eclipse.jkube`, this placeholder would insert `jkube`.
@@ -34,7 +37,7 @@ For example, the project version `1.2.3-SNAPSHOT+internal` becomes the `latest-i
 
 | *%t*
 | If the project version ends with `-SNAPSHOT`, this placeholder resolves to `snapshot-<timestamp>` where timestamp has the date format `yyMMdd-HHmmss-SSSS` (eg `snapshot-`).
-This feature is especially useful during development in oder to avoid conflicts when images are to be updated which are still in use.
+This feature is especially useful during development in order to avoid conflicts when images are to be updated which are still in use.
 You need to take care yourself of cleaning up old images afterwards, though.
 
 If the `${project.version}` contains a https://semver.org/spec/v2.0.0.html#spec-item-10[build metadata part] (i.e. everything after the `+`), then the `+` is substituted and the rest is appended.
