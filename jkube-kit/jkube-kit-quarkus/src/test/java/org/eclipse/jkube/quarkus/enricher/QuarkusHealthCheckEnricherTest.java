@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -262,6 +263,26 @@ class QuarkusHealthCheckEnricherTest {
         .extracting(
             "livenessProbe", "readinessProbe", "startupProbe")
         .containsExactly(tuple(null, null, null));
+  }
+
+  @Test
+  void create_whenPortConfiguredViaApplicationProperties_thenUseThatPort() {
+    // Given
+    withSmallryeExtension("2.1.3.7.Final");
+    context = context.toBuilder()
+        .project(context.getProject().toBuilder()
+            .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/utils-test/config/properties")).getPath())
+            .build())
+        .build();
+    QuarkusHealthCheckEnricher helidonHealthCheckEnricher = new QuarkusHealthCheckEnricher(context);
+
+    // When
+    helidonHealthCheckEnricher.create(PlatformMode.kubernetes, klb);
+
+    // Then
+    assertContainers(klb)
+        .extracting("livenessProbe.httpGet.port.IntVal", "readinessProbe.httpGet.port.IntVal", "startupProbe.httpGet.port.IntVal")
+        .containsExactly(tuple(1337, 1337, 1337));;
   }
 
   private AbstractListAssert<?, List<? extends Container>, Container, ObjectAssert<Container>> assertContainers(
