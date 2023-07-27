@@ -19,14 +19,15 @@ import org.eclipse.jkube.kit.config.image.ImageName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Date;
 import java.util.Properties;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -45,6 +46,7 @@ class ImageNameFormatterTest {
           .build();
         formatter = new ImageNameFormatter(project, new Date());
     }
+
     @Test
     void simple() {
         assertThat(formatter.format("bla")).isEqualTo("bla");
@@ -79,10 +81,10 @@ class ImageNameFormatterTest {
 
     @Test
     void artifact() {
-        project.setArtifactId("Docker....Maven.....Plugin");
+        project.setArtifactId("Kubernetes....Maven.....Plugin");
         project.setProperties(new Properties());
 
-        assertThat(formatter.format("--> %a <--")).isEqualTo("--> docker.maven.plugin <--");
+        assertThat(formatter.format("--> %a <--")).isEqualTo("--> kubernetes.maven.plugin <--");
     }
 
     @Test
@@ -95,113 +97,71 @@ class ImageNameFormatterTest {
         assertThat(result).isEqualTo("1.2.3");
     }
 
-    @Test
-    void tagWithSnapshot() {
-        project.setArtifactId("docker-maven-plugin");
-        project.setGroupId("io.fabric8");
-        project.setVersion("1.2.3-SNAPSHOT");
-        assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:latest");
-        assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3-SNAPSHOT");
-        assertThat(formatter.format("%g/%a:%t")).matches(".*snapshot-[\\d-]+$");
-    }
-
-    @Test
-    void tagWithNonSnapshotArtifact() {
-        project.setArtifactId("docker-maven-plugin");
-        project.setGroupId("io.fabric8");
-        project.setVersion("1.2.3");
-        assertThat(formatter.format("%g/%a:%l")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
-        assertThat(formatter.format("%g/%a:%v")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
-        assertThat(formatter.format("%g/%a:%t")).isEqualTo("fabric8/docker-maven-plugin:1.2.3");
-    }
-
-    @Test
-    void snapshotVersion() {
+    @ParameterizedTest(name = "version = {0}, format = {1} should generate image name {2}")
+    @CsvSource({
+        "1.2.3-SNAPSHOT,%g/%a:%l,jkube/kubernetes-maven-plugin:latest",
+        "1.2.3-SNAPSHOT,%g/%a:%v,jkube/kubernetes-maven-plugin:1.2.3-SNAPSHOT",
+        "1.2.3-SNAPSHOT+semver.build_meta-data,%g/%a:%l,jkube/kubernetes-maven-plugin:latest-semver.build_meta-data",
+        "1.2.3-SNAPSHOT+semver.build_meta-data,%g/%a:%v,jkube/kubernetes-maven-plugin:1.2.3-SNAPSHOT-semver.build_meta-data",
+        "1.2.3,%g/%a:%l,jkube/kubernetes-maven-plugin:1.2.3",
+        "1.2.3,%g/%a:%v,jkube/kubernetes-maven-plugin:1.2.3",
+        "1.2.3,%g/%a:%t,jkube/kubernetes-maven-plugin:1.2.3"
+    })
+    void format_whenVersionAndImageFormatProvided_shouldGenerateImageName(String version, String imageFormat, String result) {
         project.setArtifactId("kubernetes-maven-plugin");
         project.setGroupId("org.eclipse.jkube");
-        project.setVersion("1.2.3-SNAPSHOT");
+        project.setVersion(version);
         project.setProperties(new Properties());
-        assertThat(formatter.format("%g/%a:%l"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:latest")
-            .satisfies(ImageNameFormatterTest::validImageName);
-        assertThat(formatter.format("%g/%a:%v"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-SNAPSHOT")
-            .satisfies(ImageNameFormatterTest::validImageName);
+        assertThat(formatter.format(imageFormat))
+            .isEqualTo(result)
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
+    }
+
+    @Test
+    void format_whenVersionAndImageTagInTimestampFormat_thenShouldGenerateImageName() {
+        // Given
+        withProject("1.2.3-SNAPSHOT", new Properties());
+
+        // When + Then
         assertThat(formatter.format("%g/%a:%t"))
             .matches("^jkube/kubernetes-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}$")
-            .satisfies(ImageNameFormatterTest::validImageName);
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
     }
 
     @Test
     void snapshotVersionWithSemVerBuildmetadata() {
-        project.setArtifactId("kubernetes-maven-plugin");
-        project.setGroupId("org.eclipse.jkube");
-        project.setVersion("1.2.3-SNAPSHOT+semver.build_meta-data");
-        project.setProperties(new Properties());
-        assertThat(formatter.format("%g/%a:%l"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:latest-semver.build_meta-data")
-            .satisfies(ImageNameFormatterTest::validImageName);
-        assertThat(formatter.format("%g/%a:%v"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-SNAPSHOT-semver.build_meta-data")
-            .satisfies(ImageNameFormatterTest::validImageName);
+        // Given
+        withProject("1.2.3-SNAPSHOT+semver.build_meta-data", new Properties());
+        // When + Then
         assertThat(formatter.format("%g/%a:%t"))
             .matches("^jkube/kubernetes-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}-semver\\.build_meta-data$")
-            .satisfies(ImageNameFormatterTest::validImageName);
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
     }
 
-    @Test
-    void plusSubstitute() {
+    @ParameterizedTest(name = "given jkube.image.tag.semver_plus_substitution=_ image format = {0}, then + replaced with _ in image name")
+    @ValueSource(strings = {"%g/%a:%l", "%g/%a:%v", "%g/%a:%t"})
+    void plusSubstitute(String imageFormat) {
+        // Given
         final Properties properties = new Properties();
         properties.put(ImageNameFormatter.SEMVER_PLUS_SUBSTITUTION, "_");
-        project.setArtifactId("kubernetes-maven-plugin");
-        project.setGroupId("org.eclipse.jkube");
-        project.setVersion("1.2.3+semver.build_meta-data");
-        project.setProperties(properties);
-        assertThat(formatter.format("%g/%a:%l"))
+        withProject("1.2.3+semver.build_meta-data", properties);
+        // When + Then
+        assertThat(formatter.format(imageFormat))
             .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3_semver.build_meta-data")
-            .satisfies(ImageNameFormatterTest::validImageName);
-        assertThat(formatter.format("%g/%a:%v"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3_semver.build_meta-data")
-            .satisfies(ImageNameFormatterTest::validImageName);
-        assertThat(formatter.format("%g/%a:%t"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3_semver.build_meta-data")
-            .satisfies(ImageNameFormatterTest::validImageName);
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
     }
 
-    @Test
-    void plusSubstituteIsPlus() {
+    @ParameterizedTest(name = "given jkube.image.tag.semver_plus_substitution=+ image format = {0}, then property ignored and + replaced with _ in image name")
+    @ValueSource(strings = {"%g/%a:%l", "%g/%a:%v", "%g/%a:%t"})
+    void plusSubstituteIsPlus(String imageFormat) {
+        // Given
         final Properties properties = new Properties();
         properties.put(ImageNameFormatter.SEMVER_PLUS_SUBSTITUTION, "+");
-        project.setArtifactId("kubernetes-maven-plugin");
-        project.setGroupId("org.eclipse.jkube");
-        project.setVersion("1.2.3+semver.build_meta-data");
-        project.setProperties(properties);
-        assertThat(formatter.format("%g/%a:%l"))
+        withProject("1.2.3+semver.build_meta-data", properties);
+        // When + Then
+        assertThat(formatter.format(imageFormat))
             .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-semver.build_meta-data")
-            .satisfies(ImageNameFormatterTest::validImageName);
-        assertThat(formatter.format("%g/%a:%v"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-semver.build_meta-data")
-            .satisfies(ImageNameFormatterTest::validImageName);
-        assertThat(formatter.format("%g/%a:%t"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-semver.build_meta-data")
-            .satisfies(ImageNameFormatterTest::validImageName);
-    }
-
-    @Test
-    void releaseVersion() {
-        project.setArtifactId("kubernetes-maven-plugin");
-        project.setGroupId("org.eclipse.jkube");
-        project.setVersion("1.2.3");
-        project.setProperties(new Properties());
-        assertThat(formatter.format("%g/%a:%l"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3")
-            .satisfies(ImageNameFormatterTest::validImageName);
-        assertThat(formatter.format("%g/%a:%v"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3")
-            .satisfies(ImageNameFormatterTest::validImageName);
-        assertThat(formatter.format("%g/%a:%t"))
-            .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3")
-            .satisfies(ImageNameFormatterTest::validImageName);
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
     }
 
     @Test
@@ -224,7 +184,10 @@ class ImageNameFormatterTest {
         assertThat(result).isEqualTo("registry.gitlab.com/myproject/myrepo/mycontainer:der12");
     }
 
-    private static void validImageName(String v) {
-        assertThatCode(() -> ImageName.validate(v)).doesNotThrowAnyException();
+    private void withProject(String version, Properties properties) {
+        project.setArtifactId("kubernetes-maven-plugin");
+        project.setGroupId("org.eclipse.jkube");
+        project.setVersion(version);
+        project.setProperties(properties);
     }
 }
