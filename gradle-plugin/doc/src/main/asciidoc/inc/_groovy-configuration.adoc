@@ -490,7 +490,7 @@ include::image/_configuration.adoc[]
 
 The `build` section is mandatory and is explained in <<build-configuration, below>>.
 
-include::image/_naming.adoc[]
+include::{kitdoc-path}/inc/image/_naming.adoc[]
 
 include::{kitdoc-path}/inc/build/_index.adoc[]
 
