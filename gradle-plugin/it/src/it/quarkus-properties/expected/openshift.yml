@@ -1,0 +1,128 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        jkube.eclipse.org/git-commit: "@ignore@"
+        app.openshift.io/vcs-ref: "@ignore@"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9779"
+        jkube.eclipse.org/git-url: "@ignore@"
+        prometheus.io/scrape: "true"
+        app.openshift.io/vcs-uri: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+      labels:
+        app: quarkus-properties
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: quarkus-properties
+    spec:
+      ports:
+        - name: http-alt
+          port: 8008
+          protocol: TCP
+          targetPort: 8008
+      selector:
+        app: quarkus-properties
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+  - apiVersion: apps.openshift.io/v1
+    kind: DeploymentConfig
+    metadata:
+      annotations:
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        app.openshift.io/vcs-ref: "@ignore@"
+        app.openshift.io/vcs-uri: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+      labels:
+        app: quarkus-properties
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: quarkus-properties
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        app: quarkus-properties
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+      strategy:
+        rollingParams:
+          timeoutSeconds: 3600
+        type: Rolling
+      template:
+        metadata:
+          annotations:
+            jkube.eclipse.org/git-commit: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            app.openshift.io/vcs-ref: "@ignore@"
+            app.openshift.io/vcs-uri: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
+          labels:
+            app: quarkus-properties
+            provider: jkube
+            version: "@ignore@"
+            group: org.eclipse.jkube.integration.tests.gradle
+          name: quarkus-properties
+        spec:
+          containers:
+            - env:
+                - name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+              image: quarkus-properties:latest
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /q/health/live
+                  port: 8008
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                successThreshold: 1
+              name: quarkus
+              ports:
+                - containerPort: 8008
+                  name: http-alt
+                  protocol: TCP
+                - containerPort: 9779
+                  name: prometheus
+                  protocol: TCP
+                - containerPort: 8778
+                  name: jolokia
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /q/health/ready
+                  port: 8008
+                  scheme: HTTP
+                initialDelaySeconds: 5
+                successThreshold: 1
+              securityContext:
+                privileged: false
+              startupProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /q/health/started
+                  port: 8008
+                  scheme: HTTP
+                initialDelaySeconds: 5
+                successThreshold: 1
+      triggers:
+        - type: ConfigChange
+        - imageChangeParams:
+            automatic: true
+            containerNames:
+              - quarkus
+            from:
+              kind: ImageStreamTag
+              name: quarkus-properties:latest
+          type: ImageChange
