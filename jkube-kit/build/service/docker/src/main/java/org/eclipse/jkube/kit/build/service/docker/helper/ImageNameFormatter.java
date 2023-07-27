@@ -219,23 +219,14 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
             StringBuilder ret = new StringBuilder(tagName.length());
 
             for (char c : tagName.toCharArray()) {
-                final boolean wordCharacter = Character.isLetterOrDigit(c) || '_' == c; // matches '\w'
-                if (wordCharacter || '.' == c) {
+                final boolean allowedCharacter = Character.isLetterOrDigit(c) || '_' == c || '.' == c || '-' == c; // matches '\w'
+                if (allowedCharacter) {
                     ret.append(c);
-                    continue;
-                }
-
-                if ('-' == c) {
-                    ret.append(c);
-                    continue;
-                }
-
-                if ('+' == c) {
+                } else if ('+' == c) {
                     ret.append(plusSubstitute);
-                    continue;
+                } else {
+                    ret.append('-');
                 }
-
-                ret.append('-');
             }
 
             return ret.length() <= 127 ? ret.toString() : ret.substring(0, 128);
@@ -256,23 +247,20 @@ public class ImageNameFormatter implements ConfigHelper.NameFormatter {
                 if (underscores <= 2) {
                     ret.append(c);
                 }
-                continue;
-            }
-
-            if (c == '.') {
+            } else if (c == '.') {
                 // Only one dot in a row is allowed
                 if (!lastWasADot) {
                     ret.append(c);
                 }
                 lastWasADot = true;
-                continue;
+            } else {
+                underscores = 0;
+                lastWasADot = false;
+                if (Character.isLetter(c) || Character.isDigit(c) || c == '-') {
+                    ret.append(c);
+                }
             }
 
-            underscores = 0;
-            lastWasADot = false;
-            if (Character.isLetter(c) || Character.isDigit(c) || c == '-') {
-                ret.append(c);
-            }
         }
 
         // All characters must be lowercase
