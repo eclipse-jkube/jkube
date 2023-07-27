@@ -31,7 +31,7 @@ public class ITGradleRunnerExtension implements BeforeEachCallback, AfterEachCal
   @Override
   public void beforeEach(ExtensionContext context) throws Exception {
     gradleRunner = GradleRunner.create()
-        .withGradleDistribution(new URI("https://services.gradle.org/distributions/gradle-6.9-bin.zip"))
+        .withGradleDistribution(new URI("https://services.gradle.org/distributions/gradle-7.6.1-bin.zip"))
         .withDebug(true)
         .withPluginClasspath(Arrays.stream(System.getProperty("java.class.path").split(File.pathSeparator))
             .map(File::new).collect(Collectors.toList()));

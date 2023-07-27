@@ -11,19 +11,22 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java'
     id 'application'
     id 'org.eclipse.jkube.kubernetes' version "${jKubeVersion}"
     id 'org.eclipse.jkube.openshift' version "${jKubeVersion}"
-    id 'io.vertx.vertx-plugin' version '1.3.0'
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = 'org.eclipse.jkube.integration.tests.gradle'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = '11'
-def vertxVersion = '4.2.2'
+def vertxVersion = '4.4.4'
 def launcherClassName = 'io.vertx.core.Launcher'
+def mainVerticleName = "org.eclipse.jkube.it.gradle.vertx.MainVerticle"
 
 repositories {
     mavenCentral()
@@ -36,6 +39,14 @@ application {
 dependencies {
     implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
     implementation "io.vertx:vertx-web:$vertxVersion"
+}
+
+shadowJar {
+    archiveClassifier.set("fat")
+    manifest {
+        attributes "Main-Verticle": mainVerticleName
+    }
+    mergeServiceFiles()
 }
 
 kubernetes {
@@ -98,8 +109,4 @@ if (project.hasProperty('configMode') && project.getProperty('configMode').equal
             }
         }
     }
-}
-
-vertx {
-    mainVerticle = 'org.eclipse.jkube.it.gradle.vertx.MainVerticle'
 }
