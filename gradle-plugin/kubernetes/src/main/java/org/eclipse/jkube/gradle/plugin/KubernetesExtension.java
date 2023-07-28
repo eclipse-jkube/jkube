@@ -604,7 +604,7 @@ public abstract class KubernetesExtension {
   }
 
   public String getRegistryOrDefault() {
-    return getOrDefaultString("jkube.docker.registry", this::getRegistry, "docker.io");
+    return getOrDefaultString("jkube.docker.registry", this::getRegistry, null);
   }
 
   public String getBuildRecreateOrDefault() {
