@@ -141,14 +141,11 @@ public class JibServiceUtil {
      * @param log                Logger
      */
     public static void jibPush(ImageConfiguration imageConfiguration, Credential pushCredentials, File tarArchive, KitLogger log) {
-        BuildConfiguration buildImageConfiguration = imageConfiguration.getBuildConfiguration();
         String imageName = getFullImageName(imageConfiguration, null);
+        List<String> additionalTags = imageConfiguration.getBuildConfiguration().getTags();
         try {
-            for (String tag : getAllImageTags(buildImageConfiguration.getTags(), imageName)) {
-                String imageNameWithTag = getFullImageName(imageConfiguration, tag);
-                log.info("Pushing image: %s", imageNameWithTag);
-                pushImage(TarImage.at(tarArchive.toPath()), imageNameWithTag, pushCredentials, log);
-            }
+            log.info("Pushing image: %s", imageName);
+            pushImage(TarImage.at(tarArchive.toPath()), additionalTags, imageName, pushCredentials, log);
         } catch (IllegalStateException e) {
             log.error("Exception occurred while pushing the image: %s", imageConfiguration.getName());
             throw new IllegalStateException(e.getMessage(), e);
@@ -158,12 +155,12 @@ public class JibServiceUtil {
         }
     }
 
-    private static void pushImage(TarImage baseImage, String targetImageName, Credential credential, KitLogger logger)
+    private static void pushImage(TarImage baseImage, List<String> additionalTags, String targetImageName, Credential credential, KitLogger logger)
             throws InterruptedException {
 
         final ExecutorService jibBuildExecutor = Executors.newCachedThreadPool();
         try {
-            submitPushToJib(baseImage, getRegistryImage(targetImageName, credential), jibBuildExecutor, logger);
+            submitPushToJib(baseImage, getRegistryImage(targetImageName, credential), additionalTags, jibBuildExecutor, logger);
         } catch (RegistryException | CacheDirectoryCreationException | InvalidImageReferenceException | IOException | ExecutionException e) {
             logger.error("Exception occurred while pushing the image: %s, %s", targetImageName, e.getMessage());
             throw new IllegalStateException(e.getMessage(), e);
@@ -220,13 +217,21 @@ public class JibServiceUtil {
         return tagSet;
     }
 
-    private static void submitPushToJib(TarImage baseImage, RegistryImage targetImage, ExecutorService jibBuildExecutor, KitLogger logger) throws InterruptedException, ExecutionException, RegistryException, CacheDirectoryCreationException, IOException {
-        Jib.from(baseImage).setCreationTime(Instant.now()).containerize(Containerizer.to(targetImage)
+    private static void submitPushToJib(TarImage baseImage, RegistryImage targetImage, List<String> additionalTags, ExecutorService jibBuildExecutor, KitLogger logger) throws InterruptedException, ExecutionException, RegistryException, CacheDirectoryCreationException, IOException {
+        Jib.from(baseImage).setCreationTime(Instant.now()).containerize(createJibContainerizer(targetImage, additionalTags, jibBuildExecutor, logger));
+        logUpdateFinished();
+    }
+
+    private static Containerizer createJibContainerizer(RegistryImage targetImage, List<String> additionalTags, ExecutorService jibBuildExecutor, KitLogger logger) {
+        Containerizer containerizer = Containerizer.to(targetImage)
             .setAllowInsecureRegistries(true)
             .setExecutorService(jibBuildExecutor)
             .addEventHandler(LogEvent.class, log(logger))
-            .addEventHandler(ProgressEvent.class, new ProgressEventHandler(logUpdate())));
-        logUpdateFinished();
+            .addEventHandler(ProgressEvent.class, new ProgressEventHandler(logUpdate()));
+        if (additionalTags != null) {
+            additionalTags.forEach(containerizer::withAdditionalTag);
+        }
+        return containerizer;
     }
 
     private static RegistryImage getRegistryImage(String targetImage, Credential credential) throws InvalidImageReferenceException {

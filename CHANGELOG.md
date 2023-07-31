@@ -30,6 +30,7 @@ Usage:
 * Fix #2224: Quarkus native base image read from properties (configurable)
 * Fix #2228: Quarkus native base image uses UBI 8.7
 * Fix #2290: JKube is not picking docker credentials from `~/.docker/config.json` file
+* Fix #2293: JibServiceUtil pushes separate images for additional tags specified in build configuration
 * Fix #2299: Gradle v8.x compatibility
 * Fix #2302 Bump Kubernetes Client version to 6.8.0
 
