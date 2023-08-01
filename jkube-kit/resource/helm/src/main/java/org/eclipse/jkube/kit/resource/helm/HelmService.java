@@ -66,7 +66,7 @@ public class HelmService {
 
   private static final String YAML_EXTENSION = ".yaml";
   private static final String CHART_API_VERSION = "v1";
-  private static final String CHART_FILENAME = "Chart" + YAML_EXTENSION;
+  public static final String CHART_FILENAME = "Chart" + YAML_EXTENSION;
   private static final String VALUES_FILENAME = "values" + YAML_EXTENSION;
 
   private static final String CHART_FRAGMENT_REGEX = "^chart\\.helm\\.(?<ext>yaml|yml|json)$";

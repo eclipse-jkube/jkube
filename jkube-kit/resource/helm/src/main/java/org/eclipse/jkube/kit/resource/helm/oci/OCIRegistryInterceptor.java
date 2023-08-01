@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -18,9 +18,9 @@ import io.fabric8.kubernetes.client.http.HttpClient;
 import io.fabric8.kubernetes.client.http.HttpRequest;
 import io.fabric8.kubernetes.client.http.HttpResponse;
 import io.fabric8.kubernetes.client.http.Interceptor;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.util.Base64Util;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
 
 import java.io.IOException;
@@ -65,7 +65,7 @@ public class OCIRegistryInterceptor implements Interceptor {
       headerBuilder.setHeader(AUTHORIZATION, BEARER + accessToken);
     }
   }
-  
+
   @Override
   public CompletableFuture<Boolean> afterFailure(BasicBuilder headerBuilder, HttpResponse<?> response, RequestTags tags) {
     if (response.code() == HTTP_UNAUTHORIZED) {
