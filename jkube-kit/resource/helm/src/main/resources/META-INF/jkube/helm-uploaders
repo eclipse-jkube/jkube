@@ -1,4 +1,4 @@
 org.eclipse.jkube.kit.resource.helm.ArtifactoryHelmRepositoryUploader,100
 org.eclipse.jkube.kit.resource.helm.ChartMuseumHelmRepositoryUploader,100
 org.eclipse.jkube.kit.resource.helm.NexusHelmRepositoryUploader,100
-org.eclipse.jkube.kit.resource.helm.OCIRepositoryUploader,100
+org.eclipse.jkube.kit.resource.helm.oci.OCIRepositoryUploader,100

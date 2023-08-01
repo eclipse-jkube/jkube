@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -18,16 +18,31 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.input.CountingInputStream;
+
+import java.io.IOException;
 
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Setter
 @EqualsAndHashCode
 public class OCIManifestLayer {
+
   private String mediaType;
   private String digest;
   private long size;
+
+  public static OCIManifestLayer from(CountingInputStream blobStream) throws IOException {
+    blobStream.mark(Integer.MAX_VALUE);
+    final String digest = "sha256:" + DigestUtils.sha256Hex(blobStream);
+    final long size = blobStream.getByteCount();
+    blobStream.reset();
+    blobStream.resetByteCount();
+    return OCIManifestLayer.builder()
+      .digest(digest)
+      .size(size)
+      .build();
+  }
 }

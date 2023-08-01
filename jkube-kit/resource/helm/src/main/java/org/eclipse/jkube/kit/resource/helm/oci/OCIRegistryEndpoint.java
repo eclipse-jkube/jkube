@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2019 Red Hat, Inc.
  * This program and the accompanying materials are made
  * available under the terms of the Eclipse Public License 2.0
@@ -15,43 +15,45 @@ package org.eclipse.jkube.kit.resource.helm.oci;
 
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.resource.helm.Chart;
+import org.eclipse.jkube.kit.resource.helm.HelmRepository;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OCIRegistryEndpoint {
-  private final String url;
 
-  public OCIRegistryEndpoint(String baseUrl) {
-    this.url = StringUtils.removeEnd(baseUrl, "/");
+  private static final Map<String, String> PROTOCOL_MAPPER = new HashMap<>();
+  static {
+    PROTOCOL_MAPPER.put("oci", "http");
+    PROTOCOL_MAPPER.put("ocis", "https");
   }
 
-  public String getBlobUrl(String chartName, String digest) throws MalformedURLException {
-    return String.format("%s/%s/blobs/sha256:%s", getV2ApiUrl(), chartName, digest);
+  private final URI baseUrl;
+  private final URI apiV2Url;
+
+  public OCIRegistryEndpoint(HelmRepository repository) {
+    final URI repositoryUri = URI.create(StringUtils.removeEnd(repository.getUrl(), "/"));
+    this.baseUrl = URI.create(PROTOCOL_MAPPER.getOrDefault(repositoryUri.getScheme(), repositoryUri.getScheme()) + "://" +
+      repositoryUri.getHost() +
+      (repositoryUri.getPort() > 0 ? ":" + repositoryUri.getPort() : ""));
+    this.apiV2Url = URI.create(baseUrl + "/v2" + repositoryUri.getPath());
   }
 
-  public String getBlobUploadInitUrl(String chartName) throws MalformedURLException {
-    return String.format("%s/%s/blobs/uploads/", getV2ApiUrl(), chartName);
+  public String getBlobUrl(Chart chart, OCIManifestLayer blob) {
+    return String.format("%s/%s/blobs/%s", apiV2Url, chart.getName(), blob.getDigest());
   }
 
-  public String getManifestUrl(String chartName, String version) throws MalformedURLException {
-    return String.format("%s/%s/manifests/%s", getV2ApiUrl(), chartName, version);
+  public String getBlobUploadInitUrl(Chart chart) {
+    return String.format("%s/%s/blobs/uploads/", apiV2Url, chart.getName());
   }
 
-  public String getV2ApiUrl() throws MalformedURLException {
-    URL registryUrl = new URL(url);
-
-    return String.format("%s/v2%s", getBaseUrl(), registryUrl.getPath());
+  public String getManifestUrl(Chart chart) {
+    return String.format("%s/%s/manifests/%s", apiV2Url, chart.getName(), chart.getVersion());
   }
 
-  public String getBaseUrl() throws MalformedURLException {
-    URL registryUrl = new URL(url);
-
-    String portString = "";
-    if (registryUrl.getPort() > 0) {
-      portString = String.format(":%d", registryUrl.getPort());
-    }
-
-    return String.format("%s://%s%s", registryUrl.getProtocol(), registryUrl.getHost(), portString);
+  public URI getBaseUrl() {
+    return baseUrl;
   }
 }

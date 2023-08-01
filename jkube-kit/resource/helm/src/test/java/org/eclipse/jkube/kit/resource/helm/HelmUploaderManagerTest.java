@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import org.eclipse.jkube.kit.resource.helm.oci.OCIRepositoryUploader;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
