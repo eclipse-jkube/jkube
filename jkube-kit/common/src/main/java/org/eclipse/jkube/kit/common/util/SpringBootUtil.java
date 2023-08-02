@@ -130,5 +130,27 @@ public class SpringBootUtil {
             throw new IllegalStateException("Failure in inspecting fat jar for layers.idx file", ioException);
         }
     }
+
+    public static Plugin getNativePlugin(JavaProject project) {
+        Plugin plugin = JKubeProjectUtil.getPlugin(project, "org.graalvm.buildtools", "native-maven-plugin");
+        if (plugin != null) {
+            return plugin;
+        }
+        return JKubeProjectUtil.getPlugin(project, "org.graalvm.buildtools.native", "org.graalvm.buildtools.native.gradle.plugin");
+    }
+
+    public static File getNativeArtifactFile(JavaProject project) {
+        for (String location : new String[] {"", "native/nativeCompile/"}) {
+            File nativeArtifactDir = new File(project.getBuildDirectory(), location);
+            File[] nativeExecutableArtifacts = nativeArtifactDir.listFiles(f -> f.isFile() && f.canExecute());
+            if (nativeExecutableArtifacts != null && nativeExecutableArtifacts.length > 0) {
+                if (nativeExecutableArtifacts.length == 1) {
+                    return nativeExecutableArtifacts[0];
+                }
+                throw new IllegalStateException("More than one native executable file found in " + nativeArtifactDir.getAbsolutePath());
+            }
+        }
+        return null;
+    }
 }
 
