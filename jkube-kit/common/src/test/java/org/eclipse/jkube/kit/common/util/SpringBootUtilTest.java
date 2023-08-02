@@ -296,4 +296,148 @@ class SpringBootUtilTest {
         // Then
         assertThat(result).isTrue();
     }
+
+    @Test
+    void getNativePlugin_whenNoNativePluginPresent_thenReturnNull() {
+        assertThat(SpringBootUtil.getNativePlugin(JavaProject.builder().build())).isNull();
+    }
+
+    @Test
+    void getNativePlugin_whenMavenNativePluginPresent_thenReturnPlugin() {
+        // Given
+        JavaProject javaProject = JavaProject.builder()
+            .plugin(Plugin.builder()
+                .groupId("org.graalvm.buildtools")
+                .artifactId("native-maven-plugin")
+                .build())
+            .build();
+
+        // When
+        Plugin plugin = SpringBootUtil.getNativePlugin(javaProject);
+
+        // Then
+        assertThat(plugin).isNotNull();
+    }
+
+    @Test
+    void getNativePlugin_whenGradleNativePluginPresent_thenReturnPlugin() {
+        // Given
+        JavaProject javaProject = JavaProject.builder()
+            .plugin(Plugin.builder()
+                .groupId("org.graalvm.buildtools.native")
+                .artifactId("org.graalvm.buildtools.native.gradle.plugin")
+                .build())
+            .build();
+
+        // When
+        Plugin plugin = SpringBootUtil.getNativePlugin(javaProject);
+
+        // Then
+        assertThat(plugin).isNotNull();
+    }
+
+    @Test
+    void getNativeArtifactFile_whenNativeExecutableNotFound_thenReturnNull(@TempDir File temporaryFolder) throws IOException {
+        // Given
+        JavaProject javaProject = JavaProject.builder()
+            .artifactId("sample")
+            .buildDirectory(temporaryFolder)
+            .plugin(Plugin.builder()
+                .groupId("org.graalvm.buildtools")
+                .artifactId("native-maven-plugin")
+                .build())
+            .build();
+
+        // When
+        File nativeArtifactFound = SpringBootUtil.getNativeArtifactFile(javaProject);
+
+        // Then
+        assertThat(nativeArtifactFound).isNull();
+    }
+
+    @Test
+    void getNativeArtifactFile_whenNativeExecutableInStandardMavenBuildDirectory_thenReturnNativeArtifact(@TempDir File temporaryFolder) throws IOException {
+        // Given
+        File nativeArtifactFile = Files.createFile(temporaryFolder.toPath().resolve("sample")).toFile();
+        assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
+        JavaProject javaProject = JavaProject.builder()
+            .artifactId("sample")
+            .buildDirectory(temporaryFolder)
+            .plugin(Plugin.builder()
+                .groupId("org.graalvm.buildtools")
+                .artifactId("native-maven-plugin")
+                .build())
+            .build();
+
+        // When
+        File nativeArtifactFound = SpringBootUtil.getNativeArtifactFile(javaProject);
+
+        // Then
+        assertThat(nativeArtifactFound).hasName("sample");
+    }
+
+    @Test
+    void getNativeArtifactFile_whenMoreThanOneNativeExecutableInStandardMavenBuildDirectory_thenThrowException(@TempDir File temporaryFolder) throws IOException {
+        // Given
+        File nativeArtifactFile = Files.createFile(temporaryFolder.toPath().resolve("sample")).toFile();
+        assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
+        File nativeArtifactFile2 = Files.createFile(temporaryFolder.toPath().resolve("sample2")).toFile();
+        assertThat(nativeArtifactFile2.setExecutable(true)).isTrue();
+        JavaProject javaProject = JavaProject.builder()
+            .artifactId("sample")
+            .buildDirectory(temporaryFolder)
+            .plugin(Plugin.builder()
+                .groupId("org.graalvm.buildtools")
+                .artifactId("native-maven-plugin")
+                .build())
+            .build();
+
+        // When + Then
+        assertThatIllegalStateException()
+            .isThrownBy(() -> SpringBootUtil.getNativeArtifactFile(javaProject))
+            .withMessage("More than one native executable file found in " + temporaryFolder.getAbsolutePath());
+    }
+
+    @Test
+    void getNativeArtifactFile_whenNativeExecutableInStandardMavenBuildDirectoryAndImageNameOverridden_thenReturnNativeArtifact(@TempDir File temporaryFolder) throws IOException {
+        // Given
+        File nativeArtifactFile = Files.createFile(temporaryFolder.toPath().resolve("custom-native-name")).toFile();
+        assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
+        JavaProject javaProject = JavaProject.builder()
+            .artifactId("sample")
+            .buildDirectory(temporaryFolder)
+            .plugin(Plugin.builder()
+                .groupId("org.graalvm.buildtools")
+                .artifactId("native-maven-plugin")
+                .build())
+            .build();
+
+        // When
+        File nativeArtifactFound = SpringBootUtil.getNativeArtifactFile(javaProject);
+
+        // Then
+        assertThat(nativeArtifactFound).hasName("custom-native-name");
+    }
+
+    @Test
+    void getNativeArtifactFile_whenNativeExecutableInStandardGradleNativeDirectory_thenReturnNativeArtifact(@TempDir File temporaryFolder) throws IOException {
+        // Given
+        Files.createDirectories(temporaryFolder.toPath().resolve("native").resolve("nativeCompile"));
+        File nativeArtifactFile = Files.createFile(temporaryFolder.toPath().resolve("native").resolve("nativeCompile").resolve("sample")).toFile();
+        assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
+        JavaProject javaProject = JavaProject.builder()
+            .artifactId("sample")
+            .buildDirectory(temporaryFolder)
+            .plugin(Plugin.builder()
+                .groupId("org.graalvm.buildtools.native")
+                .artifactId("org.graalvm.buildtools.native.gradle.plugin")
+                .build())
+            .build();
+
+        // When
+        File nativeArtifactFound = SpringBootUtil.getNativeArtifactFile(javaProject);
+
+        // Then
+        assertThat(nativeArtifactFound).hasName("sample");
+    }
 }

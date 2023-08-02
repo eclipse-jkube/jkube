@@ -52,12 +52,13 @@ class SpringBootGeneratorIntegrationTest {
   private File targetDir;
   private Properties properties;
   private GeneratorContext context;
+  private JavaProject javaProject;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
     properties = new Properties();
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-    final JavaProject javaProject = JavaProject.builder()
+    javaProject = JavaProject.builder()
         .baseDirectory(temporaryFolder.toFile())
         .buildDirectory(targetDir.getAbsoluteFile())
         .buildPackageDirectory(targetDir.getAbsoluteFile())
@@ -74,6 +75,7 @@ class SpringBootGeneratorIntegrationTest {
             .artifactId("spring-boot-maven-plugin")
             .version(SPRING_VERSION)
             .build())
+        .artifactId("sample")
         .buildFinalName("sample")
         .build();
     context = GeneratorContext.builder()
@@ -390,4 +392,102 @@ class SpringBootGeneratorIntegrationTest {
     }
   }
 
+  @Nested
+  @DisplayName("With Native artifact")
+  class Native {
+    @Test
+    @DisplayName("customize, in Kubernetes and native artifact, should create assembly")
+    void customize_inKubernetesAndNativeArtifact_shouldCreateNativeAssembly() throws IOException {
+      // Given
+      properties.put("jkube.generator.spring-boot.mainClass", "org.example.Foo");
+      withNativePluginAndArtifactInProject();
+
+      // When
+      final List<ImageConfiguration> resultImages = new SpringBootGenerator(context).customize(new ArrayList<>(), false);
+
+      // Then
+      assertThat(resultImages)
+          .isNotNull()
+          .singleElement()
+          .extracting(ImageConfiguration::getBuild)
+          .extracting(BuildConfiguration::getAssembly)
+          .hasFieldOrPropertyWithValue("targetDir", "/")
+          .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
+          .extracting(AssemblyConfiguration::getLayers)
+          .asList().hasSize(1)
+          .satisfies(layers -> assertThat(layers).element(0).asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+              .extracting(Assembly::getFileSets)
+              .asList().element(2)
+              .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
+              .hasFieldOrPropertyWithValue("fileMode", "0755")
+              .extracting("includes").asList()
+              .containsExactly("sample"));
+    }
+
+    @Test
+    @DisplayName("customize, with native packaging, disables Jolokia port")
+    void customize_withNativePackaging_disablesJolokiaPort() throws IOException {
+      // Given
+      withNativePluginAndArtifactInProject();
+
+      // When
+      final List<ImageConfiguration> result = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
+      // Then
+      assertThat(result).singleElement()
+          .extracting("buildConfiguration.env")
+          .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+          .containsEntry("AB_JOLOKIA_OFF", "true");
+    }
+
+    @Test
+    @DisplayName("customize, with native packaging, disables Prometheus port")
+    void customize_withNativePackaging_disablesPrometheusPort() throws IOException {
+      // Given
+      withNativePluginAndArtifactInProject();
+      // When
+      final List<ImageConfiguration> result = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
+      // Then
+      assertThat(result).singleElement()
+          .extracting("buildConfiguration.env")
+          .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+          .containsEntry("AB_PROMETHEUS_OFF", "true");
+    }
+
+    @DisplayName("has image from based on standard native executable image")
+    @Test
+    void customize_withNativePackaging_from() throws IOException {
+      // Given
+      withNativePluginAndArtifactInProject();
+      // When
+      final List<ImageConfiguration> result = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
+      // Then
+      assertThat(result).singleElement()
+          .extracting("buildConfiguration.from").asString()
+          .startsWith("registry.access.redhat.com/ubi8/ubi-minimal:");
+    }
+
+    @Test
+    @DisplayName("customize, with native packaging, should set workDir to root directory")
+    void customize_withNativePackaging_workDir() throws IOException {
+      // Given
+      withNativePluginAndArtifactInProject();
+      // When
+      final List<ImageConfiguration> result = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
+      // Then
+      assertThat(result).singleElement()
+          .extracting("buildConfiguration.workdir").asString()
+          .startsWith("/");
+    }
+  }
+
+  private void withNativePluginAndArtifactInProject() throws IOException {
+    javaProject = javaProject.toBuilder()
+        .plugin(Plugin.builder().groupId("org.graalvm.buildtools").artifactId("native-maven-plugin").build())
+        .build();
+    context = context.toBuilder()
+        .project(javaProject)
+        .build();
+    File nativeArtifactFile = Files.createFile(targetDir.toPath().resolve("sample")).toFile();
+    assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
+  }
 }
