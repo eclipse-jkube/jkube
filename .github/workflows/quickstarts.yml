@@ -36,6 +36,7 @@ jobs:
           allowed-endpoints: >
             access.redhat.com:443
             api.adoptopenjdk.net:443
+            downloads.gradle.org:443
             downloads.gradle-dn.com:443
             github.com:443
             jcenter.bintray.com:443

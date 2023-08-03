@@ -435,10 +435,5 @@ class GradleUtilTest {
     public Class<?> publicType() {
       return JavaPlugin.class;
     }
-
-    @Override
-    public boolean hasUsefulDisplayName() {
-      return false;
-    }
   }
 }

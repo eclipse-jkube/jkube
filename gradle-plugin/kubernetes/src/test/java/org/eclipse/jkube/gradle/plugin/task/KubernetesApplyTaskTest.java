@@ -23,7 +23,6 @@ import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 
-import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -139,7 +138,7 @@ class KubernetesApplyTaskTest {
     extension = new TestKubernetesExtension() {
       @Override
       public Property<Boolean> getSkipApply() {
-        return new DefaultProperty<>(Boolean.class).value(true);
+        return super.getSkipApply().value(true);
       }
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
