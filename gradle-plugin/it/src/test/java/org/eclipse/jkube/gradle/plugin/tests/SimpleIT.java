@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SimpleIT {
 
   @RegisterExtension
-  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
+  final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
   void tasks_containsKubernetesAndOpenShiftTasks() {
