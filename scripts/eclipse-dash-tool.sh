@@ -44,7 +44,10 @@ function downloadTool() {
 function generateDependencyList() {
   echo "Generating dependency list"
   rm "$PROJECT_ROOT/target/dependencies.txt"
-  mvn -f "$PROJECT_ROOT/pom.xml" dependency:list -DskipTests -Dmaven.javadoc.skip=true -DappendOutput=true -DoutputFile="$DEPENDENCY_LIST"
+  # https://gitlab.eclipse.org/eclipsefdn/emo-team/iplab/-/issues/9839#note_1198470
+  mvn -f "$PROJECT_ROOT/pom.xml" dependency:list                                                \
+      -DskipTests -Dmaven.javadoc.skip=true -DappendOutput=true -DoutputFile="$DEPENDENCY_LIST" \
+      -DexcludeGroupIds=org.gradle
 }
 
 function runTool() {

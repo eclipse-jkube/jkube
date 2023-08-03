@@ -25,7 +25,6 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 
-import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,7 +97,7 @@ class KubernetesPushTaskTest {
     extension = new TestKubernetesExtension() {
       @Override
       public Property<Boolean> getSkipPush() {
-        return new DefaultProperty<>(Boolean.class).value(true);
+        return super.getSkipPush().value(true);
       }
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);

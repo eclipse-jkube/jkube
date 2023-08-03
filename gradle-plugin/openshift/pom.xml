@@ -50,30 +50,13 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy-all</artifactId>
+            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.gradle</groupId>
-            <artifactId>gradle-base-services</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-core-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-logging</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-plugins</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-model-core</artifactId>
+            <artifactId>gradle-all</artifactId>
+            <version>${version.gradle}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -104,26 +87,6 @@
             All gradle dependencies are required and gradle-all is no longer valid
             It's unrealistic to add a dependency for each of the gradle subprojects
          -->
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-base-services-groovy</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-messaging</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-native</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-platform-jvm</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.gradle</groupId>
-            <artifactId>gradle-process-services</artifactId>
-        </dependency>
     </dependencies>
 
     <!-- TODO: Remove once JMockit is no longer in the project -->

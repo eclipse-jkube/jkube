@@ -26,7 +26,6 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +59,7 @@ class KubernetesBuildTaskTest {
   void setUp() throws IOException {
     // Mock required for environments with no DOCKER available (don't remove)
     dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class,
-        (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
+      (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
     dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class, (mock, ctx) -> {
       when(mock.isApplicable()).thenReturn(isBuildServiceApplicable);
       if (isBuildError) {
@@ -72,11 +71,11 @@ class KubernetesBuildTaskTest {
     extension = new TestKubernetesExtension();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     extension.images = Collections.singletonList(ImageConfiguration.builder()
-        .name("foo/bar:latest")
-        .build(BuildConfiguration.builder()
-            .dockerFile("Dockerfile")
-            .build())
-        .build());
+      .name("foo/bar:latest")
+      .build(BuildConfiguration.builder()
+        .dockerFile("Dockerfile")
+        .build())
+      .build());
   }
 
   @AfterEach
@@ -93,7 +92,7 @@ class KubernetesBuildTaskTest {
     buildTask.runTask();
     // Then
     assertThat(buildTask.jKubeServiceHub.getBuildService()).isNotNull()
-        .isInstanceOf(DockerBuildService.class);
+      .isInstanceOf(DockerBuildService.class);
     verify(buildTask.jKubeServiceHub.getBuildService(), times(1)).build(any());
   }
 
@@ -104,8 +103,8 @@ class KubernetesBuildTaskTest {
     final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
     // When & Then
     assertThatIllegalStateException()
-        .isThrownBy(buildTask::runTask)
-        .withMessage("No suitable Build Service was found for your current configuration");
+      .isThrownBy(buildTask::runTask)
+      .withMessage("No suitable Build Service was found for your current configuration");
   }
 
   @Test
@@ -115,8 +114,8 @@ class KubernetesBuildTaskTest {
     final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
     // When & Then
     assertThatExceptionOfType(GradleException.class)
-        .isThrownBy(buildTask::runTask)
-        .withMessage("Exception during Build");
+      .isThrownBy(buildTask::runTask)
+      .withMessage("Exception during Build");
   }
 
   @Test
@@ -125,7 +124,7 @@ class KubernetesBuildTaskTest {
     extension = new TestKubernetesExtension() {
       @Override
       public Property<Boolean> getSkipBuild() {
-        return new DefaultProperty<>(Boolean.class).value(true);
+        return super.getSkipBuild().value(true);
       }
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);

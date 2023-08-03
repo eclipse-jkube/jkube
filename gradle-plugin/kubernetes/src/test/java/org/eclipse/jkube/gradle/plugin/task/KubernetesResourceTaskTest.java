@@ -24,7 +24,6 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 
 import org.apache.commons.io.FileUtils;
-import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -87,7 +86,7 @@ class KubernetesResourceTaskTest {
     KubernetesExtension extension = new TestKubernetesExtension() {
       @Override
       public Property<Boolean> getSkipResource() {
-        return new DefaultProperty<>(Boolean.class).value(true);
+        return super.getSkipResource().value(true);
       }
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
