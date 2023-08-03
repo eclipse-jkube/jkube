@@ -25,7 +25,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class HelidonIT {
   @RegisterExtension
-  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
+  final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
   void k8sResource_whenRun_generatesK8sManifestsWithProbes() throws IOException, ParseException {

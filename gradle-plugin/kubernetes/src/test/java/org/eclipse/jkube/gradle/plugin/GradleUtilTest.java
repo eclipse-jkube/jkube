@@ -18,9 +18,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,6 +34,7 @@ import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 
+import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -40,9 +43,12 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -189,6 +195,25 @@ class GradleUtilTest {
         );
   }
 
+  @Test
+  void extractGradlePlugins_withMultipleAndSomePacked() {
+    // Given
+    final Iterator<? extends Plugin<?>> pluginIterator = Arrays.asList(
+      new KubernetesPlugin(),
+      new GeneratedPlugin()
+    ).iterator();
+    final PluginContainer pc = mock(PluginContainer.class);
+    when(project.getPlugins()).thenReturn(pc);
+    when(pc.iterator()).thenAnswer(i -> pluginIterator);
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result.getGradlePlugins()).containsExactlyInAnyOrder(
+      "org.eclipse.jkube.gradle.plugin.KubernetesPlugin",
+      "org.gradle.api.plugins.JavaPlugin"
+    );
+  }
+
  /**
    * Some plugins might modify the ConfigurationContainer collection while we traverse it.
    *
@@ -298,10 +323,10 @@ class GradleUtilTest {
   }
 
   @Test
-  void canBeResolved_withDeprecatedAndResolutionAlternatives_shouldReturnFalse() {
+  void canBeResolved_withCanBeResolvedFalse_shouldReturnFalse() {
     // Given
     final DeprecatableConfiguration c = mock(DeprecatableConfiguration.class);
-    when(c.getResolutionAlternatives()).thenReturn(Collections.emptyList());
+    when(c.isCanBeResolved()).thenReturn(false);
     // When
     final boolean result = canBeResolved(c);
     // Then
@@ -309,11 +334,35 @@ class GradleUtilTest {
   }
 
   @Test
-  void canBeResolved_DeprecatedAndNullResolutionAlternativesAndResolvable_shouldReturnTrue() {
+  void canBeResolved_withDeprecatedAndResolutionAlternatives_shouldReturnFalse() {
+    // Given
+    final DeprecatableConfiguration c = mock(DeprecatableConfiguration.class);
+    when(c.isCanBeResolved()).thenReturn(true);
+    when(c.getResolutionAlternatives()).thenReturn(Collections.singletonList("Alternative"));
+    // When
+    final boolean result = canBeResolved(c);
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void canBeResolved_withDeprecatedAndNullResolutionAlternativesAndResolvable_shouldReturnTrue() {
     // Given
     final DeprecatableConfiguration c = mock(DeprecatableConfiguration.class);
     when(c.isCanBeResolved()).thenReturn(true);
     when(c.getResolutionAlternatives()).thenReturn(null);
+    // When
+    final boolean result = canBeResolved(c);
+    // Then
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  void canBeResolved_withDeprecatedAndEmptyResolutionAlternatives_shouldReturnFalse() {
+    // Given
+    final DeprecatableConfiguration c = mock(DeprecatableConfiguration.class);
+    when(c.isCanBeResolved()).thenReturn(true);
+    when(c.getResolutionAlternatives()).thenReturn(Collections.emptyList());
     // When
     final boolean result = canBeResolved(c);
     // Then
@@ -373,6 +422,23 @@ class GradleUtilTest {
     @Override
     public int hashCode() {
       return Objects.hash(id);
+    }
+  }
+  private static final class GeneratedPlugin implements Plugin<Project>, GeneratedSubclass {
+
+    @Override
+    public void apply(Project target) {
+      // NO-OP
+    }
+
+    @Override
+    public Class<?> publicType() {
+      return JavaPlugin.class;
+    }
+
+    @Override
+    public boolean hasUsefulDisplayName() {
+      return false;
     }
   }
 }

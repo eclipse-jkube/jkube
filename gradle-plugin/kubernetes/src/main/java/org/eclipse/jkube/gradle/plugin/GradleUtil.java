@@ -48,6 +48,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -76,8 +77,7 @@ public class GradleUtil {
         .dependenciesWithTransitive(extractDependenciesWithTransitive(gradleProject))
 //        .localRepositoryBaseDirectory(gradleProject.)
         .plugins(extractPlugins(gradleProject))
-        .gradlePlugins(new ArrayList<>(gradleProject.getPlugins()).stream()
-            .map(Object::getClass).map(Class::getName).collect(Collectors.toList()))
+        .gradlePlugins(extractGradlePlugins(gradleProject))
 //
 //        .site(gradleProject.)
 //        .organizationName(gradleProject.)
@@ -151,6 +151,14 @@ public class GradleUtil {
         .collect(Collectors.toList());
   }
 
+  private static List<String> extractGradlePlugins(Project gradleProject) {
+    final List<String> ret = new ArrayList<>();
+    for (org.gradle.api.Plugin<?> plugin : gradleProject.getPlugins()) {
+      ret.add(GeneratedSubclasses.unpackType(plugin).getName());
+    }
+    return ret;
+  }
+
   private static SourceSetContainer extractSourceSets(Project gradleProject) {
     return gradleProject.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
   }
@@ -197,7 +205,8 @@ public class GradleUtil {
 
   static boolean canBeResolved(Configuration configuration) {
     boolean isDeprecatedForResolving = configuration instanceof DeprecatableConfiguration
-        && ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null;
+        && ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null
+        && !((DeprecatableConfiguration) configuration).getResolutionAlternatives().isEmpty();
     return configuration.isCanBeResolved() && !isDeprecatedForResolving;
   }
 
