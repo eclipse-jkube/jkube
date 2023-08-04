@@ -109,6 +109,10 @@ public class Serialization {
     return KUBERNETES_SERIALIZATION.asJson(object);
   }
 
+  public static String asYaml(Object object) {
+    return KUBERNETES_SERIALIZATION.asYaml(object);
+  }
+
   public static void saveJson(File resultFile, Object value) throws IOException {
     JSON_MAPPER.writeValue(resultFile, value);
   }
