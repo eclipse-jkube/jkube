@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 class KubernetesConfigViewTaskTest {
 
   @RegisterExtension
-  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
+  final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private TestKubernetesExtension extension;
 

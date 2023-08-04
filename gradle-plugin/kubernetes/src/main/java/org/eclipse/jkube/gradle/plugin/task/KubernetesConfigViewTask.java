@@ -55,7 +55,7 @@ public class KubernetesConfigViewTask extends AbstractJKubeTask {
       for (Method method : KubernetesExtension.class.getMethods()) {
         if (method.getParameters().length == 0 && Property.class.isAssignableFrom(method.getReturnType())) {
           effectiveConfig.put(CaseUtils.toCamelCase(method.getName().replaceFirst("^get", ""), false),
-              ((Property) method.invoke(kubernetesExtension)).getOrElse(null));
+              ((Property<?>) method.invoke(kubernetesExtension)).getOrElse(null));
         }
       }
       for (Field field : KubernetesExtension.class.getDeclaredFields()) {
@@ -63,7 +63,7 @@ public class KubernetesConfigViewTask extends AbstractJKubeTask {
           effectiveConfig.put(field.getName(), field.get(kubernetesExtension));
         }
       }
-      kitLogger.info("%n%s", MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(effectiveConfig));
+      kitLogger.info("%n%s%n---", MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(effectiveConfig));
     } catch (InvocationTargetException | IllegalAccessException | JsonProcessingException ex) {
       kitLogger.error("Error when reading configuration: %s", ex.getMessage());
     }
