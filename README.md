@@ -10,7 +10,7 @@
 [![Twitter](https://img.shields.io/twitter/follow/jkubeio?style=social)](https://twitter.com/jkubeio)
 
 <p align="center">
-  <a href="https://www.eclipse.org/jkube/">
+  <a href="https://www.eclipse.dev/jkube/">
     <img src="./media/JKube-Logo-final-horizontal-color.png" alt="Eclipse JKube" title="The Eclipse JKube Logo"/>
   </a>
 </p>
@@ -22,17 +22,17 @@
   - [Kubernetes Gradle Plugin](#kubernetes-gradle-plugin)
   - [OpenShift Maven Plugin](#openshift-maven-plugin)
   - [OpenShift Gradle Plugin](#openshift-gradle-plugin)
-- [Migrating from Fabric8 Maven Plugin to Kubernetes/OpenShift Maven Plugin](https://www.eclipse.org/jkube/docs/migration-guide)
+- [Migrating from Fabric8 Maven Plugin to Kubernetes/OpenShift Maven Plugin](https://www.eclipse.dev/jkube/docs/migration-guide)
 - [Getting Started](#getting-started)
   - [Maven Quickstarts](./quickstarts/maven)
   - [Gradle Quickstarts](./quickstarts/gradle)
   - [Hello World using Eclipse JKube](#hello-world-using-eclipse-jkube)
     - [Troubleshooting](#troubleshooting)
 - [Rebranding Notice](#rebranding-notice--loudspeaker-)
-- [Contributing](https://www.eclipse.org/jkube/contributing/)
+- [Contributing](https://www.eclipse.dev/jkube/contributing/)
 - [How to use Eclipse JKube snapshot artifacts?](./USING-SNAPSHOT-ARTIFACTS.md)
 - [Add your organization to ADOPTERS](./ADOPTERS.md)
-- [FAQs](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin/#faq)
+- [FAQs](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin/#faq)
 
 ## Introduction
 
@@ -48,7 +48,7 @@ This project contains various building blocks for the Kubernetes Java developer 
 ### Kubernetes Maven Plugin
 
 - [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/kubernetes-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22kubernetes-maven-plugin%22)
-- [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin)
+- [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin)
 - Add to project:
   ```xml
   <plugin>
@@ -68,7 +68,7 @@ This project contains various building blocks for the Kubernetes Java developer 
 ### Kubernetes Gradle Plugin
 
 - [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube.kubernetes/org.eclipse.jkube.kubernetes.gradle.plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube.kubernetes%22%20AND%20a:%22org.eclipse.jkube.kubernetes.gradle.plugin%22)
-- [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.org/jkube/docs/kubernetes-gradle-plugin/)
+- [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.dev/jkube/docs/kubernetes-gradle-plugin/)
 - Add to project:
   ```groovy
   plugins {
@@ -86,7 +86,7 @@ This project contains various building blocks for the Kubernetes Java developer 
 ### OpenShift Gradle Plugin
 
 - [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube.openshift/org.eclipse.jkube.openshift.gradle.plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube.openshift%22%20AND%20a:%22org.eclipse.jkube.openshift.gradle.plugin%22)
-- [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.org/jkube/docs/openshift-gradle-plugin/)
+- [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.dev/jkube/docs/openshift-gradle-plugin/)
 - Add to project:
   ```groovy
   plugins {
@@ -104,7 +104,7 @@ This project contains various building blocks for the Kubernetes Java developer 
 ### OpenShift Maven Plugin
 
 - [![Maven Central](https://img.shields.io/maven-central/v/org.eclipse.jkube/openshift-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22org.eclipse.jkube%22%20AND%20a:%22openshift-maven-plugin%22)
-- [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.org/jkube/docs/openshift-maven-plugin)
+- [![Documentation](https://img.shields.io/badge/plugin-documentation-lightgrey)](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin)
 - Add to project:
   ```xml
   <plugin>

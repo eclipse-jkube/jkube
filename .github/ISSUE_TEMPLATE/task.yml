@@ -27,11 +27,11 @@ body:
 
         Useful Links:
 
-          - 📄  Documentation: https://www.eclipse.org/jkube/docs/
-          - 📝  Contributing: https://www.eclipse.org/jkube/contributing
+          - 📄  Documentation: https://www.eclipse.dev/jkube/docs/
+          - 📝  Contributing: https://www.eclipse.dev/jkube/contributing/
 
   - type: dropdown
-    id: component 
+    id: component
     attributes:
       label: Component
       description: Component

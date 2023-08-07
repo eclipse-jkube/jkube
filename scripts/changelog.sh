@@ -116,7 +116,7 @@ function emailTemplate() {
   lines+="$numberedChangelog\n\n"
   lines+="Your feedback is highly appreciated, you can provide it by replying to the mailing list or through the usual channels. $githubLinkId $gitterLinkId\n\n"
   lines+="[1] https://repo1.maven.org/maven2/org/eclipse/jkube/kubernetes-maven-plugin/$1/\n"
-  lines+="[2] https://www.eclipse.org/jkube/docs/migration-guide/\n"
+  lines+="[2] https://www.eclipse.dev/jkube/docs/migration-guide/\n"
   lines+="$changelogLinks\n"
   lines+="$githubLinkId https://github.com/eclipse/jkube\n"
   lines+="$gitterLinkId https://gitter.im/eclipse/jkube\n"
