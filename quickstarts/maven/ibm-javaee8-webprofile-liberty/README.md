@@ -198,5 +198,5 @@ Server was started
 ```
 
 [openliberty]: http://openliberty.io/
-[k-m-p]: https://www.eclipse.org/jkube
+[k-m-p]: https://www.eclipse.dev/jkube
 [minikube]: https://github.com/kubernetes/minikube

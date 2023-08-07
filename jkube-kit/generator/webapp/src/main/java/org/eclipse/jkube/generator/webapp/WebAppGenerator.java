@@ -102,7 +102,7 @@ public class WebAppGenerator extends BaseGenerator {
     ) {
       throw new IllegalArgumentException("S2I not yet supported for the webapp-generator. Use " +
           "-Djkube.build.strategy=docker for OpenShift mode. Please refer to the reference manual at " +
-          "https://www.eclipse.org/jkube/docs for details about build modes.");
+          "https://www.eclipse.dev/jkube/docs for details about build modes.");
     }
 
 
@@ -186,7 +186,7 @@ public class WebAppGenerator extends BaseGenerator {
 
   private AssemblyConfiguration createAssembly(AppServerHandler handler) {
     final File sourceFile = Objects.requireNonNull(JKubeProjectUtil.getFinalOutputArtifact(getProject()),
-        "Final output artifact file was not detected. The project may have not been built. HINT: try to compile and package your application prior to running the container image build task."); 
+        "Final output artifact file was not detected. The project may have not been built. HINT: try to compile and package your application prior to running the container image build task.");
     final String targetFilename;
     final String extension = FilenameUtils.getExtension(sourceFile.getName());
     final String path = getConfig(Config.PATH);

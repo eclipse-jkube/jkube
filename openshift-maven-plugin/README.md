@@ -21,13 +21,17 @@ To enable OpenShift maven plugin on your project just add this to the plugins se
       </plugin>
 ```
 
-| Goal                                          | Description                           |
-| --------------------------------------------- | ------------------------------------- |
-| [`oc:resource`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:resource) | Create OpenShift resource descriptors |
-| [`oc:build`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:build) | Build Docker images |
-| [`oc:push`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:push) | Push Docker images to a registry  |
-| [`oc:deploy`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:deploy) | Deploy OpenShift resource objects to a cluster  |
-| [`oc:watch`](https://www.eclipse.org/jkube/docs/openshift-maven-plugin#oc:watch) | Watch for doing rebuilds and restarts |
+| Goal                                                                                          | Description                                                                                    |
+|-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| [`oc:resource`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:resource)     | Create Kubernetes resource descriptors                                                         |
+| [`oc:build`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:build)           | Build Docker images                                                                            |
+| [`oc:push`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:push)             | Push Docker images to a registry                                                               |
+| [`oc:deploy`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:deploy)         | Deploy Kubernetes resource objects to a cluster                                                |
+| [`oc:helm`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:helm)             | Generate Helm charts for your application                                                      |
+| [`oc:helm-push`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:helm-push)   | Push generated Helm Charts to remote repository                                                |
+| [`oc:remote-dev`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:remote-dev) | Run and debug code in your local machine while connected to services available in your cluster |
+| [`oc:watch`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:watch)           | Watch for doing rebuilds and restarts                                                          |
+
 
 ### Features
 

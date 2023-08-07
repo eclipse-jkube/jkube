@@ -87,7 +87,7 @@ class MavenUtilTest {
     assertThat(project.getDescription()).isEqualTo("test description");
     assertThat(project.getOutputDirectory()).hasName("target");
     assertThat(project.getBuildDirectory()).hasName(".");
-    assertThat(project.getDocumentationUrl()).isEqualTo("https://www.eclipse.org/jkube/");
+    assertThat(project.getDocumentationUrl()).isEqualTo("https://www.eclipse.dev/jkube/");
     assertThat(mavenProject.getCompileClasspathElements()).hasSize(1);
     assertThat(mavenProject.getCompileClasspathElements()).first().isEqualTo("./target");
     assertThat(project.getProperties()).contains(entry("foo", "bar"));
@@ -178,7 +178,7 @@ class MavenUtilTest {
     mavenProject.setBuild(build);
     DistributionManagement distributionManagement = new DistributionManagement();
     Site site = new Site();
-    site.setUrl("https://www.eclipse.org/jkube/");
+    site.setUrl("https://www.eclipse.dev/jkube/");
     distributionManagement.setSite(site);
     mavenProject.setDistributionManagement(distributionManagement);
     mavenProject.setUrl("https://projects.eclipse.org/projects/ecd.jkube");

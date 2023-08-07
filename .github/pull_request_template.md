@@ -18,7 +18,7 @@ What types of changes does your code introduce? Put an `x` in all the boxes that
    test, version modification, documentation, etc.)
 
 ## Checklist
- - [ ] I have read the [contributing guidelines](https://www.eclipse.org/jkube/contributing)
+ - [ ] I have read the [contributing guidelines](https://www.eclipse.dev/jkube/contributing)
  - [ ] I signed-off my commit with a user that has signed the [Eclipse Contributor Agreement](https://www.eclipse.org/legal/ECA.php)
  - [ ] My code follows the style guidelines of this project
  - [ ] I Keep It Small and Simple: The smaller the PR is, the easier it is to review and have it merged

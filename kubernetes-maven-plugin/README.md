@@ -21,13 +21,16 @@ To enable kubernetes maven plugin on your project just add this to the plugins s
       </plugin>
 ```
 
-| Goal                                          | Description                           |
-| --------------------------------------------- | ------------------------------------- |
-| [`k8s:resource`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:resource) | Create Kubernetes resource descriptors |
-| [`k8s:build`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:build) | Build Docker images |
-| [`k8s:push`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:push) | Push Docker images to a registry  |
-| [`k8s:deploy`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:deploy) | Deploy Kubernetes resource objects to a cluster  |
-| [`k8s:watch`](https://www.eclipse.org/jkube/docs/kubernetes-maven-plugin#k8s:watch) | Watch for doing rebuilds and restarts |
+| Goal                                                                                            | Description                                                                                    |
+|-------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
+| [`k8s:resource`](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin#jkube:resource)     | Create Kubernetes resource descriptors                                                         |
+| [`k8s:build`](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin#jkube:build)           | Build Docker images                                                                            |
+| [`k8s:push`](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin#jkube:push)             | Push Docker images to a registry                                                               |
+| [`k8s:deploy`](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin#jkube:deploy)         | Deploy Kubernetes resource objects to a cluster                                                |
+| [`k8s:helm`](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin#jkube:helm)             | Generate Helm charts for your application                                                      |
+| [`k8s:helm-push`](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin#jkube:helm-push)   | Push generated Helm Charts to remote repository                                                |
+| [`k8s:remote-dev`](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin#jkube:remote-dev) | Run and debug code in your local machine while connected to services available in your cluster |
+| [`k8s:watch`](https://www.eclipse.dev/jkube/docs/kubernetes-maven-plugin#jkube:watch)           | Watch for doing rebuilds and restarts                                                          |
 
 ### Features
 
