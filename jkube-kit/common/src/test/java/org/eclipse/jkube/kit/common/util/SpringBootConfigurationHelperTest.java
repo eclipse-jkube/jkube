@@ -20,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Optional;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,13 +37,81 @@ class SpringBootConfigurationHelperTest {
   }
 
   @Nested
+  @DisplayName("With '3.0' Spring Boot Version")
+  class SpringBoot3 {
+    private SpringBootConfigurationHelper springBootConfigurationHelper;
+
+    @BeforeEach
+    void setUp() {
+      springBootConfigurationHelper = new SpringBootConfigurationHelper("3.0");
+    }
+
+    @Test
+    @DisplayName("getManagementPort defaults to 'management.server.port'")
+    void getManagementPort() {
+      assertThat(springBootConfigurationHelper.getManagementPort(properties)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("getServerPort defaults to 'server.port'")
+    void getServerPort() {
+      assertThat(springBootConfigurationHelper.getServerPort(properties)).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("getServletPathPropertyKey defaults to 'spring.mvc.servlet.path'")
+    void getServletPathPropertyKey() {
+      assertThat(springBootConfigurationHelper.getServletPathPropertyKey()).isEqualTo("spring.mvc.servlet.path");
+    }
+
+    @Test
+    @DisplayName("getManagementContextPathPropertyKey defaults to 'management.server.base-path'")
+    void getManagementContextPathPropertyKey() {
+      assertThat(springBootConfigurationHelper.getManagementContextPathPropertyKey()).isEqualTo("management.server.base-path");
+    }
+
+    @Test
+    @DisplayName("getServerKeystorePropertyKey defaults to 'server.ssl.key-store'")
+    void getServerKeystorePropertyKey() {
+      assertThat(springBootConfigurationHelper.getServerKeystorePropertyKey()).isEqualTo("server.ssl.key-store");
+    }
+
+    @Test
+    @DisplayName("getManagementKeystorePropertyKey defaults to 'management.server.ssl.key-store'")
+    void getManagementKeystorePropertyKey() {
+      assertThat(springBootConfigurationHelper.getManagementKeystorePropertyKey())
+          .isEqualTo("management.server.ssl.key-store");
+    }
+
+    @Test
+    @DisplayName("getServerContextPathPropertyKey defaults to 'server.servlet.context-path'")
+    void getServerContextPathPropertyKey() {
+      assertThat(springBootConfigurationHelper.getServerContextPathPropertyKey())
+          .isEqualTo("server.servlet.context-path");
+    }
+
+    @Test
+    @DisplayName("getActuatorBasePathPropertyKey defaults to 'management.endpoints.web.base-path'")
+    void getActuatorBasePathPropertyKey() {
+      assertThat(springBootConfigurationHelper.getActuatorBasePathPropertyKey())
+          .isEqualTo("management.endpoints.web.base-path");
+    }
+
+    @Test
+    @DisplayName("getActuatorDefaultBasePath defaults to '/actuator'")
+    void getActuatorDefaultBasePath() {
+      assertThat(springBootConfigurationHelper.getActuatorDefaultBasePath()).isEqualTo("/actuator");
+    }
+  }
+
+  @Nested
   @DisplayName("With '2.0' Spring Boot Version")
   class SpringBoot2 {
     private SpringBootConfigurationHelper springBootConfigurationHelper;
 
     @BeforeEach
     void setUp() {
-      springBootConfigurationHelper = new SpringBootConfigurationHelper(Optional.of("2.0"));
+      springBootConfigurationHelper = new SpringBootConfigurationHelper("2.0");
     }
 
     @Test
@@ -114,7 +181,7 @@ class SpringBootConfigurationHelperTest {
     @ValueSource(strings = { "1.0", "undefined" })
     @DisplayName("getManagementPort defaults to 'management.port' (Spring Boot 1)")
     void getManagementPort(String version) {
-      assertThat(new SpringBootConfigurationHelper(Optional.of(version)).getManagementPort(properties))
+      assertThat(new SpringBootConfigurationHelper(version).getManagementPort(properties))
         .isEqualTo(1);
     }
 
@@ -122,7 +189,7 @@ class SpringBootConfigurationHelperTest {
     @ValueSource(strings = { "1.0", "undefined" })
     @DisplayName("getServerPort defaults to 'server.port' (Spring Boot 1)")
     void getServerPort(String version) {
-      assertThat(new SpringBootConfigurationHelper(Optional.of(version)).getServerPort(properties))
+      assertThat(new SpringBootConfigurationHelper(version).getServerPort(properties))
         .isEqualTo(1);
     }
 
@@ -130,7 +197,7 @@ class SpringBootConfigurationHelperTest {
     @ValueSource(strings = { "1.0", "undefined" })
     @DisplayName("getServerKeystorePropertyKey defaults to 'server.ssl.key-store' (Spring Boot 1)")
     void getServerKeystorePropertyKey(String version) {
-      assertThat(new SpringBootConfigurationHelper(Optional.of(version)).getServerKeystorePropertyKey())
+      assertThat(new SpringBootConfigurationHelper(version).getServerKeystorePropertyKey())
         .isEqualTo("server.ssl.key-store");
     }
 
@@ -138,7 +205,7 @@ class SpringBootConfigurationHelperTest {
     @ValueSource(strings = { "1.0", "undefined" })
     @DisplayName("getManagementKeystorePropertyKey defaults to 'management.ssl.key-store' (Spring Boot 1)")
     void getManagementKeystorePropertyKey(String version) {
-      assertThat(new SpringBootConfigurationHelper(Optional.of(version)).getManagementKeystorePropertyKey())
+      assertThat(new SpringBootConfigurationHelper(version).getManagementKeystorePropertyKey())
         .isEqualTo("management.ssl.key-store");
     }
 
@@ -146,7 +213,7 @@ class SpringBootConfigurationHelperTest {
     @ValueSource(strings = { "1.0", "undefined" })
     @DisplayName("getServletPathPropertyKey defaults to 'server.servlet-path' (Spring Boot 1)")
     void getServletPathPropertyKey(String version) {
-      assertThat(new SpringBootConfigurationHelper(Optional.of(version)).getServletPathPropertyKey())
+      assertThat(new SpringBootConfigurationHelper(version).getServletPathPropertyKey())
         .isEqualTo("server.servlet-path");
     }
 
@@ -154,7 +221,7 @@ class SpringBootConfigurationHelperTest {
     @ValueSource(strings = { "1.0", "undefined" })
     @DisplayName("getServerContextPathPropertyKey defaults to 'server.context-path' (Spring Boot 1)")
     void getServerContextPathPropertyKey(String version) {
-      assertThat(new SpringBootConfigurationHelper(Optional.of(version)).getServerContextPathPropertyKey())
+      assertThat(new SpringBootConfigurationHelper(version).getServerContextPathPropertyKey())
         .isEqualTo("server.context-path");
     }
 
@@ -162,7 +229,7 @@ class SpringBootConfigurationHelperTest {
     @ValueSource(strings = { "1.0", "undefined" })
     @DisplayName("getManagementContextPathPropertyKey defaults to 'management.context-path' (Spring Boot 1)")
     void getManagementContextPathPropertyKey(String version) {
-      assertThat(new SpringBootConfigurationHelper(Optional.of(version)).getManagementContextPathPropertyKey())
+      assertThat(new SpringBootConfigurationHelper(version).getManagementContextPathPropertyKey())
         .isEqualTo("management.context-path");
     }
 
@@ -170,7 +237,7 @@ class SpringBootConfigurationHelperTest {
     @ValueSource(strings = { "1.0", "undefined" })
     @DisplayName("getActuatorBasePathPropertyKey defaults to '' (Spring Boot 1)")
     void getActuatorBasePathPropertyKey(String version) {
-      assertThat(new SpringBootConfigurationHelper(Optional.of(version)).getActuatorBasePathPropertyKey())
+      assertThat(new SpringBootConfigurationHelper(version).getActuatorBasePathPropertyKey())
         .isEmpty();
     }
 
@@ -178,7 +245,7 @@ class SpringBootConfigurationHelperTest {
     @ValueSource(strings = { "1.0", "undefined" })
     @DisplayName("getActuatorDefaultBasePath defaults to '' (Spring Boot 1)")
     void getActuatorDefaultBasePath(String version) {
-      assertThat(new SpringBootConfigurationHelper(Optional.of(version)).getActuatorDefaultBasePath()).
+      assertThat(new SpringBootConfigurationHelper(version).getActuatorDefaultBasePath()).
         isEmpty();
     }
   }

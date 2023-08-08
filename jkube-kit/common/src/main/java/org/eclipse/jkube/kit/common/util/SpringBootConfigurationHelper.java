@@ -17,6 +17,7 @@ package org.eclipse.jkube.kit.common.util;
 import java.util.Optional;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,23 +37,23 @@ public class SpringBootConfigurationHelper {
     public static final String DEV_TOOLS_REMOTE_SECRET_ENV = "SPRING_DEVTOOLS_REMOTE_SECRET";
 
     /*
-        Following are property keys for spring-boot-1 and their spring-boot-2 equivalent
+        Following are property keys for spring-boot-1 and their spring-boot-2 equivalent and their spring-boot-3 equivalent
      */
-    private static final String[] MANAGEMENT_PORT = {"management.port", "management.server.port"};
-    private static final String[] SERVER_PORT = {"server.port", "server.port"};
-    private static final String[] SERVER_KEYSTORE = {"server.ssl.key-store", "server.ssl.key-store"};
-    private static final String[] MANAGEMENT_KEYSTORE = {"management.ssl.key-store", "management.server.ssl.key-store"};
-    private static final String[] SERVLET_PATH = {"server.servlet-path", "server.servlet.path"};
-    private static final String[] SERVER_CONTEXT_PATH = {"server.context-path", "server.servlet.context-path"};
-    private static final String[] MANAGEMENT_CONTEXT_PATH = {"management.context-path", "management.server.servlet.context-path"};
-    private static final String[] ACTUATOR_BASE_PATH = {"", "management.endpoints.web.base-path"};
-    private static final String[] ACTUATOR_DEFAULT_BASE_PATH = {"", "/actuator"};
+    private static final String[] MANAGEMENT_PORT = {"management.port", "management.server.port", "management.server.port"};
+    private static final String[] SERVER_PORT = {"server.port", "server.port", "server.port"};
+    private static final String[] SERVER_KEYSTORE = {"server.ssl.key-store", "server.ssl.key-store", "server.ssl.key-store"};
+    private static final String[] MANAGEMENT_KEYSTORE = {"management.ssl.key-store", "management.server.ssl.key-store", "management.server.ssl.key-store"};
+    private static final String[] SERVLET_PATH = {"server.servlet-path", "server.servlet.path", "spring.mvc.servlet.path"};
+    private static final String[] SERVER_CONTEXT_PATH = {"server.context-path", "server.servlet.context-path", "server.servlet.context-path"};
+    private static final String[] MANAGEMENT_CONTEXT_PATH = {"management.context-path", "management.server.servlet.context-path", "management.server.base-path"};
+    private static final String[] ACTUATOR_BASE_PATH = {"", "management.endpoints.web.base-path", "management.endpoints.web.base-path"};
+    private static final String[] ACTUATOR_DEFAULT_BASE_PATH = {"", "/actuator", "/actuator"};
 
-    private int propertyOffset;
+    private final int propertyOffset;
 
     private static final int DEFAULT_SERVER_PORT = 8080;
 
-    public SpringBootConfigurationHelper(Optional<String> springBootVersion) {
+    public SpringBootConfigurationHelper(String springBootVersion) {
         this.propertyOffset = propertyOffset(springBootVersion);
     }
 
@@ -107,18 +108,18 @@ public class SpringBootConfigurationHelper {
         return keys[propertyOffset];
     }
 
-    private int propertyOffset(Optional<String> springBootVersion) {
+    private int propertyOffset(String springBootVersion) {
         Optional<Integer> majorVersion = majorVersion(springBootVersion);
         int idx = majorVersion.map(v -> v - 1).orElse(0);
-        idx = Math.min(idx, 1);
+        idx = Math.min(idx, 2);
         idx = Math.max(idx, 0);
         return idx;
     }
 
-    private Optional<Integer> majorVersion(Optional<String> version) {
-        if (version.isPresent()) {
+    private Optional<Integer> majorVersion(String version) {
+        if (StringUtils.isNotBlank(version)) {
             try {
-                return Optional.of(Integer.parseInt(version.get().substring(0, version.get().indexOf('.'))));
+                return Optional.of(Integer.parseInt(version.substring(0, version.indexOf('.'))));
             } catch (Exception e) {
                 LOG.warn("Cannot spring boot major version from {}", version);
             }

@@ -123,7 +123,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
             SpringBootUtil.getSpringBootActiveProfile(getProject()),
             JKubeProjectUtil.getClassLoader(getProject()));
-        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()));
+        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()).orElse(null));
         return properties.getProperty(propertyHelper.getServerPortPropertyKey(), super.getDefaultWebPort());
     }
 
