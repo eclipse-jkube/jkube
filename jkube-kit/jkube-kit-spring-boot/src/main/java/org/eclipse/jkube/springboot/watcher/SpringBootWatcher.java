@@ -113,7 +113,7 @@ public class SpringBootWatcher extends BaseWatcher {
         Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
             JKubeProjectUtil.getClassLoader(getContext().getBuildContext().getProject()));
         SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(
-            SpringBootUtil.getSpringBootVersion(getContext().getBuildContext().getProject()));
+            SpringBootUtil.getSpringBootVersion(getContext().getBuildContext().getProject()).orElse(null));
 
         int localHostPort = IoUtil.getFreeRandomPort();
         int containerPort = propertyHelper.getServerPort(properties);

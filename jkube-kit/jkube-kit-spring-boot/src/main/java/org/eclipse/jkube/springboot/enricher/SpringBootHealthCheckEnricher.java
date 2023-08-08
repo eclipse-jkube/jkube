@@ -95,7 +95,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
     }
 
     protected Probe buildProbe(Properties springBootProperties, Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh) {
-        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(getContext().getDependencyVersion(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID));
+        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(getContext().getDependencyVersion(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID).orElse(null));
         Integer managementPort = propertyHelper.getManagementPort(springBootProperties);
         boolean usingManagementPort = managementPort != null;
 

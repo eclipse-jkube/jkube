@@ -76,7 +76,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
           .processorConfig(new ProcessorConfig())
           .build());
         when(context.getProjectClassLoaders()).thenReturn(projectClassLoaders);
-        propertyHelper = new SpringBootConfigurationHelper(Optional.of(getSpringBootVersion()));
+        propertyHelper = new SpringBootConfigurationHelper(getSpringBootVersion());
     }
     protected abstract String getSpringBootVersion();
 
