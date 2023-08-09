@@ -119,5 +119,25 @@ public class SpringBootUtil {
             .map(e -> e.contains("repackage"))
             .orElse(false);
     }
+
+    public static boolean isSpringBootBuildImageSupported(JavaProject project) {
+        Optional<String> springBootVersionOptional = getSpringBootVersion(project);
+        if (springBootVersionOptional.isPresent()) {
+            String springBootVersion = springBootVersionOptional.get();
+            return isSpringBootVersionAtLeast(springBootVersion, 2, 3);
+        }
+        return false;
+    }
+
+    public static boolean isSpringBootVersionAtLeast(String springBootVersion, int expectedMajorVersion, int expectedMinorVersion) {
+        String[] springBootVersionParts = springBootVersion.split("\\.");
+        if (springBootVersionParts.length >= 3) {
+            int majorVersion = Integer.parseInt(springBootVersionParts[0]);
+            int minorVersion = Integer.parseInt(springBootVersionParts[1]);
+
+          return majorVersion > expectedMajorVersion || minorVersion >= expectedMinorVersion;
+        }
+        return false;
+    }
 }
 

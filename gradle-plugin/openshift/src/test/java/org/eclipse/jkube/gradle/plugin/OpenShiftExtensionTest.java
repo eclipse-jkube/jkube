@@ -13,9 +13,12 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -40,5 +43,17 @@ class OpenShiftExtensionTest {
     when(partial.getPlatformMode()).thenCallRealMethod();
     final PlatformMode result = partial.getPlatformMode();
     assertThat(result).isEqualTo(PlatformMode.openshift);
+  }
+
+  @ParameterizedTest(name = "buildStrategy = {0} isDockerAccessRequired = {1}")
+  @CsvSource({"s2i,false", "docker,false", "jib,false", "spring,true"})
+  void isDockerAccessRequired_whenBuildStrategyProvided_thenReturnTrueOnlyForSpring(String buildStrategy, boolean expectedResult) {
+    // Given
+    final OpenShiftExtension partial = mock(OpenShiftExtension.class);
+    when(partial.getBuildStrategyOrDefault()).thenReturn(JKubeBuildStrategy.valueOf(buildStrategy));
+    when(partial.isDockerAccessRequired()).thenCallRealMethod();
+
+    // When + Then
+    assertThat(partial.isDockerAccessRequired()).isEqualTo(expectedResult);
   }
 }

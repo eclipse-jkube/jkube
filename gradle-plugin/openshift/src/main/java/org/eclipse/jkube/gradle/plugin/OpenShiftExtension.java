@@ -57,7 +57,7 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
 
   @Override
   public boolean isDockerAccessRequired() {
-    return false;
+    return getBuildStrategyOrDefault().equals(JKubeBuildStrategy.spring);
   }
 
   @Override

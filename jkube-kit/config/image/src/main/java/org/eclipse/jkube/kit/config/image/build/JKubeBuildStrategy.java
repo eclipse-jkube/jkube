@@ -35,7 +35,9 @@ public enum JKubeBuildStrategy {
     /**
      * Docker build with a binary source
      */
-    docker("Docker");
+    docker("Docker"),
+
+    spring("Spring");
 
     // Source strategy elements
     public enum SourceStrategy {

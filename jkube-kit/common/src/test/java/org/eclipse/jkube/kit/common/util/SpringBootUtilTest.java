@@ -264,4 +264,64 @@ class SpringBootUtilTest {
         // Then
         assertThat(result).isFalse();
     }
+
+    @Test
+    void isSpringBootBuildImageSupported_whenNoSpringBootDependency_thenReturnFalse() {
+        // Given
+        JavaProject javaProject = JavaProject.builder().build();
+
+        // When
+        boolean result = SpringBootUtil.isSpringBootBuildImageSupported(javaProject);
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void isSpringBootBuildImageSupported_whenSpringBootVersionBefore2_3_0_thenReturnFalse() {
+        // Given
+        JavaProject javaProject = JavaProject.builder()
+            .dependency(Dependency.builder()
+                .groupId("org.springframework.boot")
+                .artifactId("spring-boot-web")
+                .version("2.2.9.RELEASE")
+                .build())
+            .build();
+
+        // When
+        boolean result = SpringBootUtil.isSpringBootBuildImageSupported(javaProject);
+
+        // Then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    void isSpringBootBuildImageSupported_whenSpringBootVersionAfter2_3_0_thenReturnTrue() {
+        // Given
+        JavaProject javaProject = JavaProject.builder()
+            .dependency(Dependency.builder()
+                .groupId("org.springframework.boot")
+                .artifactId("spring-boot-web")
+                .version("3.1.2")
+                .build())
+            .build();
+
+        // When
+        boolean result = SpringBootUtil.isSpringBootBuildImageSupported(javaProject);
+
+        // Then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    void isSpringBootVersionAtLeast_whenSpringBootVersionLessThanGivenVersion_thenReturnFalse() {
+        assertThat(SpringBootUtil.isSpringBootVersionAtLeast("2.2.9.RELEASE", 2, 3))
+            .isFalse();
+    }
+
+    @Test
+    void isSpringBootVersionAtLeast_whenSpringBootVersionLessThanThanGivenVersion_thenReturnTrue() {
+        assertThat(SpringBootUtil.isSpringBootVersionAtLeast("3.1.2", 2, 3))
+            .isTrue();
+    }
 }
