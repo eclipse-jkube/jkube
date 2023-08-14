@@ -53,8 +53,8 @@ function version() {
 function packageMaven() {
   echo "Packaging all Maven quickstart projects (excluding sub-modules)"
   cd "$QUICKSTARTS" || exit 1
-  find . -type f -name "pom.xml" -exec grep -q -z -v '../pom.xml</relativePath>' {} \; -print0 | \
-    xargs -0 -L 1 -P 1 -I{} sh -c "mvn -f '{}' clean package || exit 255"
+  find . -type f -name "pom.xml" -exec grep -q -z -v '../pom.xml</relativePath>' {} \; -printf '%h\0' | \
+    xargs -0 -L 1 -P 1 -I{} sh -c "cd {} && mvn clean package && cd ${QUICKSTARTS} || exit 255"
 }
 
 function packageGradle() {
