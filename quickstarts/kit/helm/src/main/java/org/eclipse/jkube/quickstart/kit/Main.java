@@ -30,6 +30,7 @@ import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -109,6 +110,7 @@ public class Main {
                 .build())
             .outputDirectory("target")
             .build())
+        .resourceServiceConfig(ResourceServiceConfig.builder().build())
         .platformMode(RuntimeMode.KUBERNETES)
         .log(new KitLogger.StdoutLogger())
         .build().getHelmService()
