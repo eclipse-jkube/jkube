@@ -21,7 +21,7 @@
 
   <artifactId>eclipse-jkube-sample-custom-enricher-parent</artifactId>
   <groupId>org.eclipse.jkube.quickstarts.kit</groupId>
-  <version>1.13.1</version>
+  <version>1.14-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <parent>
@@ -38,7 +38,7 @@
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
     <jkube.version>${project.version}</jkube.version>
-    <istio-client.version>5.12.2</istio-client.version>
+    <istio-client.version>6.8.0</istio-client.version>
   </properties>
 
   <modules>
@@ -50,10 +50,8 @@
     <dependencies>
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-parent</artifactId>
+        <artifactId>jkube-kit-enricher-api</artifactId>
         <version>${jkube.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
