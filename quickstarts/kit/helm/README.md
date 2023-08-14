@@ -8,7 +8,7 @@ description: |
 This [quickstart](../../../quickstarts) will generate Helm charts using JKube Kit API.
 
 It first creates a temporary directory containing the source manifests/templates that will be included in the chart.
-These manifests include some that are generated programatically using the Fabric8 Kubernetes client. And some that are
+These manifests include some that are generated programmatically using the Fabric8 Kubernetes client. And some that are
 copied from the static directory.
 
 Once the process completes, the new generated chart is available in the `target/helm` directory and as a tarball in the
