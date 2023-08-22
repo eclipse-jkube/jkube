@@ -42,6 +42,8 @@ class ImageNameFormatterTest {
     @BeforeEach
     void setUp(){
         project = JavaProject.builder()
+          .artifactId("kubernetes-maven-plugin")
+          .groupId("org.eclipse.jkube")
           .properties(new Properties())
           .build();
         formatter = new ImageNameFormatter(project, new Date());
@@ -59,7 +61,7 @@ class ImageNameFormatterTest {
                 .withMessage("No image name format element '%z' known");
     }
 
-    @ParameterizedTest(name = "with groupId = ''{0}'' shoud return ''{1}''")
+    @ParameterizedTest(name = "with groupId = ''{0}'' should return ''{1}''")
     @DisplayName("format with %g")
     @MethodSource("formatWithPercentGData")
     void formatWithPercentG(String groupId, String expectedName) {
@@ -82,7 +84,6 @@ class ImageNameFormatterTest {
     @Test
     void artifact() {
         project.setArtifactId("Kubernetes....Maven.....Plugin");
-        project.setProperties(new Properties());
 
         assertThat(formatter.format("--> %a <--")).isEqualTo("--> kubernetes.maven.plugin <--");
     }
@@ -108,10 +109,7 @@ class ImageNameFormatterTest {
         "1.2.3,%g/%a:%t,jkube/kubernetes-maven-plugin:1.2.3"
     })
     void format_whenVersionAndImageFormatProvided_shouldGenerateImageName(String version, String imageFormat, String result) {
-        project.setArtifactId("kubernetes-maven-plugin");
-        project.setGroupId("org.eclipse.jkube");
         project.setVersion(version);
-        project.setProperties(new Properties());
         assertThat(formatter.format(imageFormat))
             .isEqualTo(result)
             .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
@@ -120,8 +118,7 @@ class ImageNameFormatterTest {
     @Test
     void format_whenVersionAndImageTagInTimestampFormat_thenShouldGenerateImageName() {
         // Given
-        withProject("1.2.3-SNAPSHOT", new Properties());
-
+        project.setVersion("1.2.3-SNAPSHOT");
         // When + Then
         assertThat(formatter.format("%g/%a:%t"))
             .matches("^jkube/kubernetes-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}$")
@@ -131,7 +128,7 @@ class ImageNameFormatterTest {
     @Test
     void snapshotVersionWithSemVerBuildmetadata() {
         // Given
-        withProject("1.2.3-SNAPSHOT+semver.build_meta-data", new Properties());
+        project.setVersion("1.2.3-SNAPSHOT+semver.build_meta-data");
         // When + Then
         assertThat(formatter.format("%g/%a:%t"))
             .matches("^jkube/kubernetes-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}-semver\\.build_meta-data$")
@@ -142,9 +139,8 @@ class ImageNameFormatterTest {
     @ValueSource(strings = {"%g/%a:%l", "%g/%a:%v", "%g/%a:%t"})
     void plusSubstitute(String imageFormat) {
         // Given
-        final Properties properties = new Properties();
-        properties.put(ImageNameFormatter.SEMVER_PLUS_SUBSTITUTION, "_");
-        withProject("1.2.3+semver.build_meta-data", properties);
+        project.getProperties().put("jkube.image.tag.semver_plus_substitution", "_");
+        project.setVersion("1.2.3+semver.build_meta-data");
         // When + Then
         assertThat(formatter.format(imageFormat))
             .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3_semver.build_meta-data")
@@ -155,9 +151,8 @@ class ImageNameFormatterTest {
     @ValueSource(strings = {"%g/%a:%l", "%g/%a:%v", "%g/%a:%t"})
     void plusSubstituteIsPlus(String imageFormat) {
         // Given
-        final Properties properties = new Properties();
-        properties.put(ImageNameFormatter.SEMVER_PLUS_SUBSTITUTION, "+");
-        withProject("1.2.3+semver.build_meta-data", properties);
+        project.getProperties().put("jkube.image.tag.semver_plus_substitution", "+");
+        project.setVersion("1.2.3+semver.build_meta-data");
         // When + Then
         assertThat(formatter.format(imageFormat))
             .isEqualTo("jkube/kubernetes-maven-plugin:1.2.3-semver.build_meta-data")
@@ -167,7 +162,7 @@ class ImageNameFormatterTest {
     @Test
     void groupIdWithProperty() {
         // Given
-        project.getProperties().put("jkube.image.user","this.it..is");
+        project.getProperties().put("jkube.image.user", "this.it..is");
         // When
         final String result = formatter.format("%g/name");
         // Then
@@ -182,12 +177,5 @@ class ImageNameFormatterTest {
         final String result = formatter.format("registry.gitlab.com/myproject/myrepo/mycontainer:${git.commit.id.abbrev}");
         // Then
         assertThat(result).isEqualTo("registry.gitlab.com/myproject/myrepo/mycontainer:der12");
-    }
-
-    private void withProject(String version, Properties properties) {
-        project.setArtifactId("kubernetes-maven-plugin");
-        project.setGroupId("org.eclipse.jkube");
-        project.setVersion(version);
-        project.setProperties(properties);
     }
 }
