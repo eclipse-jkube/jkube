@@ -56,7 +56,7 @@
     <version.mockwebserver>0.2.2</version.mockwebserver>
     <version.networknt.validator>1.0.86</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
-    <version.plexus-classworlds>2.6.0</version.plexus-classworlds>
+    <version.plexus-classworlds>2.7.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
     <version.plexus-utils>3.5.0</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
