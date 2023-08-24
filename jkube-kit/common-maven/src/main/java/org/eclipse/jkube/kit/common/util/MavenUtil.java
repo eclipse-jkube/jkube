@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+import org.apache.maven.model.Profile;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Dependency;
@@ -202,7 +203,8 @@ public class MavenUtil {
                 .packaging(mavenProject.getPackaging())
                 .dependencies(getDependencies(mavenProject))
                 .dependenciesWithTransitive(getTransitiveDependencies(mavenProject))
-                .plugins(getPlugins(mavenProject));
+                .plugins(getPlugins(mavenProject))
+                .activeProfiles(mavenProject.getActiveProfiles().stream().map(Profile::getId).collect(Collectors.toList()));
 
         if (mavenProject.getOrganization() != null) {
             builder.site(mavenProject.getOrganization().getUrl())

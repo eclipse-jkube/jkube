@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.maven.model.Profile;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -92,6 +93,7 @@ class MavenUtilTest {
     assertThat(mavenProject.getCompileClasspathElements()).first().isEqualTo("./target");
     assertThat(project.getProperties()).contains(entry("foo", "bar"));
     assertThat(project.getUrl()).isEqualTo("https://projects.eclipse.org/projects/ecd.jkube");
+    assertThat(project.getActiveProfiles()).isEmpty();
     assertThat(project.getMaintainers()).isEqualTo(
             Collections.singletonList(org.eclipse.jkube.kit.common.Maintainer.builder()
                     .name("Dev1")
@@ -156,6 +158,22 @@ class MavenUtilTest {
     assertThat(plugins.get(1).getVersion()).isEqualTo("0.1.0");
     assertThat(plugins.get(1).getExecutions()).hasSize(3);
     assertThat(plugins.get(1).getExecutions()).isEqualTo(Arrays.asList("resource", "build", "helm"));
+  }
+
+  @Test
+  void convertMavenProjectToJKubeProject_whenActiveProfilesPresent_thenJavaProjectActiveProfilesNotEmpty() throws DependencyResolutionRequiredException {
+    // Given
+    mavenProject = getMavenProject();
+    Profile testProfile = new Profile();
+    testProfile.setId("test");
+    mavenProject.setActiveProfiles(Collections.singletonList(testProfile));
+
+    // When
+    JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, getMavenSession());
+
+    // Then
+    assertThat(javaProject.getActiveProfiles())
+        .containsExactly("test");
   }
 
   private MavenProject getMavenProject() {

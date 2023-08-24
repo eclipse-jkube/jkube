@@ -244,6 +244,13 @@ public class JavaProject implements Serializable {
   private List<Maintainer> maintainers;
 
   /**
+   * List of currently active profiles (applicable for maven projects)
+   * @param activeProfiles currently active profiles in current execution
+   * @return list of currently active profiles
+   */
+  private List<String> activeProfiles;
+
+  /**
    * Returns true if the project is a Maven project with a snapshot version.
    *
    * @return true if the project is a Maven project with a snapshot version, false otherwise.
@@ -261,7 +268,7 @@ public class JavaProject implements Serializable {
       String site, String description, String organizationName, String documentationUrl,
       String buildFinalName, File artifact, String packaging, String issueManagementSystem, String issueManagementUrl,
       String url, String scmUrl, String scmTag,
-      @Singular List<Maintainer> maintainers) {
+      @Singular List<Maintainer> maintainers, @Singular List<String> activeProfiles) {
 
     this.name = name;
     this.groupId = groupId;
@@ -290,6 +297,7 @@ public class JavaProject implements Serializable {
     this.scmTag = scmTag;
     this.buildPackageDirectory = buildPackageDirectory;
     this.maintainers = maintainers;
+    this.activeProfiles = activeProfiles;
   }
 }
 
