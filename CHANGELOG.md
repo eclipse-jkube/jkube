@@ -29,6 +29,7 @@ Usage:
 * Fix #2219: Kind/Filename mappings include optional apiVersion configuration
 * Fix #2224: Quarkus native base image read from properties (configurable)
 * Fix #2228: Quarkus native base image uses UBI 8.7
+* Fix #2239: Quarkus healthcheck enricher infers overridden server port in application.properties
 * Fix #2290: JKube is not picking docker credentials from `~/.docker/config.json` file
 * Fix #2293: JibServiceUtil pushes separate images for additional tags specified in build configuration
 * Fix #2299: Gradle v8.x compatibility
