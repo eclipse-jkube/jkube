@@ -50,7 +50,7 @@
     <version.jnr-unixsocket>0.38.20</version.jnr-unixsocket>
     <version.jsr305>3.0.2</version.jsr305>
     <version.maven-archiver>3.6.1</version.maven-archiver>
-    <version.maven-core>3.6.3</version.maven-core>
+    <version.maven-core>3.9.4</version.maven-core>
     <version.maven-filtering>3.3.1</version.maven-filtering>
     <version.maven-plugin-annotations>3.9.0</version.maven-plugin-annotations>
     <version.mockwebserver>0.2.2</version.mockwebserver>
