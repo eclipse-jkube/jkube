@@ -16,7 +16,6 @@ package org.eclipse.jkube.springboot.generator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
@@ -25,7 +24,7 @@ import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
-import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
+import org.eclipse.jkube.kit.common.util.SpringBootConfiguration;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
@@ -33,7 +32,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.DEV_TOOLS_REMOTE_SECRET;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.isSpringBootRepackage;
 import static org.eclipse.jkube.springboot.SpringBootDevtoolsUtils.addDevToolsFilesToFatJar;
 import static org.eclipse.jkube.springboot.SpringBootDevtoolsUtils.ensureSpringDevToolSecretToken;
@@ -64,8 +63,8 @@ public class SpringBootGenerator extends JavaExecGenerator {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs) {
         return shouldAddGeneratedImageConfiguration(configs) &&
-          (JKubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID) ||
-            JKubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), SpringBootConfigurationHelper.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID));
+          (JKubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), SpringBootUtil.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID) ||
+            JKubeProjectUtil.hasPluginOfAnyArtifactId(getProject(), SpringBootUtil.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID));
     }
 
     @Override
@@ -91,9 +90,9 @@ public class SpringBootGenerator extends JavaExecGenerator {
             final String secret = SpringBootUtil.getSpringBootApplicationProperties(
                     SpringBootUtil.getSpringBootActiveProfile(getProject()),
                     JKubeProjectUtil.getClassLoader(getProject()))
-                .getProperty(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET);
+                .getProperty(SpringBootUtil.DEV_TOOLS_REMOTE_SECRET);
             if (secret != null) {
-                res.put(SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET_ENV, secret);
+                res.put(SpringBootUtil.DEV_TOOLS_REMOTE_SECRET_ENV, secret);
             }
         }
         return res;
@@ -120,11 +119,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     @Override
     protected String getDefaultWebPort() {
-        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
-            SpringBootUtil.getSpringBootActiveProfile(getProject()),
-            JKubeProjectUtil.getClassLoader(getProject()));
-        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(SpringBootUtil.getSpringBootVersion(getProject()).orElse(null));
-        return properties.getProperty(propertyHelper.getServerPortPropertyKey(), super.getDefaultWebPort());
+        return "" + SpringBootConfiguration.from(getProject()).getServerPort();
     }
 
     @Override

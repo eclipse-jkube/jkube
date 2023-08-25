@@ -37,7 +37,7 @@ import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.IoUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
+import org.eclipse.jkube.kit.common.util.SpringBootConfiguration;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -52,7 +52,7 @@ import io.fabric8.kubernetes.api.model.LabelSelector;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.DEV_TOOLS_REMOTE_SECRET;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootPluginConfiguration;
 
 public class SpringBootWatcher extends BaseWatcher {
@@ -71,8 +71,8 @@ public class SpringBootWatcher extends BaseWatcher {
 
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) {
-        return JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID) ||
-         JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID);
+        return JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(), SpringBootUtil.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID) ||
+         JKubeProjectUtil.hasPluginOfAnyArtifactId(getContext().getBuildContext().getProject(), SpringBootUtil.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID);
     }
 
     @Override
@@ -110,21 +110,16 @@ public class SpringBootWatcher extends BaseWatcher {
             return null;
         }
 
-        Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
-            JKubeProjectUtil.getClassLoader(getContext().getBuildContext().getProject()));
-        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(
-            SpringBootUtil.getSpringBootVersion(getContext().getBuildContext().getProject()).orElse(null));
+        final SpringBootConfiguration springBootConfiguration = SpringBootConfiguration.from(
+          getContext().getBuildContext().getProject());
+        int localPort = IoUtil.getFreeRandomPort();
+        int containerPort = springBootConfiguration.getServerPort();
+        portForwardService.forwardPortAsync(kubernetes, selector, containerPort, localPort);
 
-        int localHostPort = IoUtil.getFreeRandomPort();
-        int containerPort = propertyHelper.getServerPort(properties);
-        portForwardService.forwardPortAsync(kubernetes, selector, containerPort, localHostPort);
-
-        return createForwardUrl(propertyHelper, properties, localHostPort);
-    }
-
-    private String createForwardUrl(SpringBootConfigurationHelper propertyHelper, Properties properties, int localPort) {
-        String scheme = StringUtils.isNotBlank(properties.getProperty(propertyHelper.getServerKeystorePropertyKey())) ? "https://" : "http://";
-        String contextPath = properties.getProperty(propertyHelper.getServerContextPathPropertyKey(), "");
+        String scheme = StringUtils.isNotBlank(springBootConfiguration.getServerKeystore()) ?
+          "https://" : "http://";
+        String contextPath = StringUtils.isNotBlank(springBootConfiguration.getServerContextPath()) ?
+          springBootConfiguration.getServerContextPath() : "";
         return scheme + "localhost:" + localPort + contextPath;
     }
 
@@ -235,7 +230,7 @@ public class SpringBootWatcher extends BaseWatcher {
 
     private File getSpringBootDevToolsJar(JavaProject project) {
         String version = SpringBootUtil.getSpringBootDevToolsVersion(project).orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
-        return JKubeProjectUtil.resolveArtifact(getContext().getBuildContext().getProject(), SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
+        return JKubeProjectUtil.resolveArtifact(getContext().getBuildContext().getProject(), SpringBootUtil.SPRING_BOOT_GROUP_ID, SpringBootUtil.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
     }
 
     private String validateSpringBootDevtoolsSettings() {

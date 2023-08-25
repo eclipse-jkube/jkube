@@ -30,6 +30,14 @@ import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFrom
  */
 public class SpringBootUtil {
 
+    public static final String SPRING_BOOT_GROUP_ID = "org.springframework.boot";
+//    public static final String SPRING_BOOT_ARTIFACT_ID = "spring-boot";
+    public static final String SPRING_BOOT_DEVTOOLS_ARTIFACT_ID = "spring-boot-devtools";
+    public static final String SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID = "spring-boot-maven-plugin";
+    public static final String SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID = "org.springframework.boot.gradle.plugin";
+    public static final String DEV_TOOLS_REMOTE_SECRET = "spring.devtools.remote.secret";
+    public static final String DEV_TOOLS_REMOTE_SECRET_ENV = "SPRING_DEVTOOLS_REMOTE_SECRET";
+
     private SpringBootUtil() {}
 
     /**
@@ -77,11 +85,11 @@ public class SpringBootUtil {
     /**
      * Determine the spring-boot major version for the current project
      *
-     * @param mavenProject  project
+     * @param javaProject  project
      * @return spring boot version or null
      */
-    public static Optional<String> getSpringBootVersion(JavaProject mavenProject) {
-        return Optional.ofNullable(JKubeProjectUtil.getAnyDependencyVersionWithGroupId(mavenProject, SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID));
+    public static Optional<String> getSpringBootVersion(JavaProject javaProject) {
+        return Optional.ofNullable(JKubeProjectUtil.getAnyDependencyVersionWithGroupId(javaProject, SPRING_BOOT_GROUP_ID));
     }
 
     public static String getSpringBootActiveProfile(JavaProject project) {
@@ -93,11 +101,11 @@ public class SpringBootUtil {
     }
 
     public static Map<String, Object> getSpringBootPluginConfiguration(JavaProject javaProject) {
-        Plugin mavenPlugin = JKubeProjectUtil.getPlugin(javaProject, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        Plugin mavenPlugin = JKubeProjectUtil.getPlugin(javaProject, SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
         if (mavenPlugin != null) {
             return mavenPlugin.getConfiguration();
         }
-        Plugin gradlePlugin = JKubeProjectUtil.getPlugin(javaProject, SpringBootConfigurationHelper.SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID);
+        Plugin gradlePlugin = JKubeProjectUtil.getPlugin(javaProject, SPRING_BOOT_GRADLE_PLUGIN_ARTIFACT_ID);
         if (gradlePlugin != null) {
             return gradlePlugin.getConfiguration();
         }
@@ -105,7 +113,7 @@ public class SpringBootUtil {
     }
 
     public static boolean isSpringBootRepackage(JavaProject project) {
-        Plugin plugin = JKubeProjectUtil.getPlugin(project, SpringBootConfigurationHelper.SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
+        Plugin plugin = JKubeProjectUtil.getPlugin(project, SPRING_BOOT_MAVEN_PLUGIN_ARTIFACT_ID);
         return Optional.ofNullable(plugin)
             .map(Plugin::getExecutions)
             .map(e -> e.contains("repackage"))

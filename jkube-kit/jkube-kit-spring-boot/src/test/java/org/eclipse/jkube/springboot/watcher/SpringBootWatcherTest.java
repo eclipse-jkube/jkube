@@ -39,6 +39,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -75,14 +76,16 @@ class SpringBootWatcherTest {
     }
 
     @Test
-    void getPortForwardUrl() {
-        try (MockedStatic<SpringBootUtil> springBootUtilMockedStatic = Mockito.mockStatic(SpringBootUtil.class);
-             MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic = Mockito.mockStatic(KubernetesHelper.class);
-             MockedConstruction<PortForwardService> portForwardServiceMockedConstruction = Mockito.mockConstruction(PortForwardService.class)) {
+    void getPortForwardUrl() throws IOException {
+        try (MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic = Mockito.mockStatic(KubernetesHelper.class);
+             MockedConstruction<PortForwardService> portForwardServiceMockedConstruction = Mockito.mockConstruction(PortForwardService.class);
+             OutputStream fos = Files.newOutputStream(watcherContext.getBuildContext().getProject().getOutputDirectory().toPath().resolve("application.properties"))
+        ) {
             // Given
-            Properties properties = new Properties();
+            final Properties properties = new Properties();
             properties.put("server.port", "9001");
-            springBootUtilMockedStatic.when(() -> SpringBootUtil.getSpringBootApplicationProperties(any())).thenReturn(properties);
+            properties.store(fos, null);
+
             List<HasMetadata> resources = new ArrayList<>();
             resources.add(new DeploymentBuilder().withNewMetadata().withName("d1").endMetadata()
                     .withNewSpec()
