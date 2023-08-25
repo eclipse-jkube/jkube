@@ -36,9 +36,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.DEV_TOOLS_REMOTE_SECRET;
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID;
-import static org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID;
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.DEV_TOOLS_REMOTE_SECRET;
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.SPRING_BOOT_DEVTOOLS_ARTIFACT_ID;
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.SPRING_BOOT_GROUP_ID;
 
 public class SpringBootDevtoolsUtils {
   private SpringBootDevtoolsUtils() { }

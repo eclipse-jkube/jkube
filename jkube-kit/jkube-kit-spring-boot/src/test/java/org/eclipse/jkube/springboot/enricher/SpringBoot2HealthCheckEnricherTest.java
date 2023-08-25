@@ -20,4 +20,9 @@ public class SpringBoot2HealthCheckEnricherTest extends AbstractSpringBootHealth
     protected String getSpringBootVersion() {
         return "2.0.0.RELEASE";
     }
+
+    @Override
+    protected String getActuatorDefaultBasePath() {
+        return "/actuator";
+    }
 }

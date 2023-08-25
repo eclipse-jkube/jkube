@@ -15,13 +15,11 @@ package org.eclipse.jkube.springboot.enricher;
 
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
-import java.util.Properties;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.common.util.SpringBootConfigurationHelper;
-import org.eclipse.jkube.kit.common.util.SpringBootUtil;
+import org.eclipse.jkube.kit.common.util.SpringBootConfiguration;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 import org.apache.commons.lang3.StringUtils;
@@ -85,8 +83,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
     protected Probe discoverSpringBootHealthCheck(Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh) {
         try {
             if (getContext().getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES)) {
-                Properties properties = SpringBootUtil.getSpringBootApplicationProperties(getContext().getProjectClassLoaders().getCompileClassLoader());
-                return buildProbe(properties, initialDelay, period, timeout, failureTh, successTh);
+                return buildProbe(initialDelay, period, timeout, failureTh, successTh);
             }
         } catch (Exception ex) {
             log.error("Error while reading the spring-boot configuration", ex);
@@ -94,32 +91,35 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
         return null;
     }
 
-    protected Probe buildProbe(Properties springBootProperties, Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh) {
-        SpringBootConfigurationHelper propertyHelper = new SpringBootConfigurationHelper(getContext().getDependencyVersion(SpringBootConfigurationHelper.SPRING_BOOT_GROUP_ID, SpringBootConfigurationHelper.SPRING_BOOT_ARTIFACT_ID).orElse(null));
-        Integer managementPort = propertyHelper.getManagementPort(springBootProperties);
+    protected Probe buildProbe(Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh) {
+        final SpringBootConfiguration springBootConfiguration = SpringBootConfiguration.from(getContext().getProject());
+        Integer managementPort = springBootConfiguration.getManagementPort();
         boolean usingManagementPort = managementPort != null;
 
         Integer port = managementPort;
         if (port == null) {
-            port = propertyHelper.getServerPort(springBootProperties);
+            port = springBootConfiguration.getServerPort();
         }
 
         String scheme;
         String prefix;
         if (usingManagementPort) {
-            scheme = StringUtils.isNotBlank(springBootProperties.getProperty(propertyHelper.getManagementKeystorePropertyKey())) ? SCHEME_HTTPS : SCHEME_HTTP;
-            prefix = springBootProperties.getProperty(propertyHelper.getManagementContextPathPropertyKey(), "");
+            scheme = StringUtils.isNotBlank(springBootConfiguration.getManagementKeystore()) ? SCHEME_HTTPS : SCHEME_HTTP;
+            prefix = StringUtils.isNotBlank(springBootConfiguration.getManagementContextPath()) ?
+              springBootConfiguration.getManagementContextPath() : "";
         } else {
-            scheme = StringUtils.isNotBlank(springBootProperties.getProperty(propertyHelper.getServerKeystorePropertyKey())) ? SCHEME_HTTPS : SCHEME_HTTP;
-            prefix = springBootProperties.getProperty(propertyHelper.getServerContextPathPropertyKey(), "");
-            prefix += springBootProperties.getProperty(propertyHelper.getServletPathPropertyKey(), "");
-            prefix += springBootProperties.getProperty(propertyHelper.getManagementContextPathPropertyKey(), "");
+            scheme = StringUtils.isNotBlank(springBootConfiguration.getServerKeystore()) ? SCHEME_HTTPS : SCHEME_HTTP;
+            prefix = StringUtils.isNotBlank(springBootConfiguration.getServerContextPath()) ?
+              springBootConfiguration.getServerContextPath() : "";
+            prefix += StringUtils.isNotBlank(springBootConfiguration.getServletPath()) ?
+              springBootConfiguration.getServletPath() : "";
+            prefix += StringUtils.isNotBlank(springBootConfiguration.getManagementContextPath()) ?
+              springBootConfiguration.getManagementContextPath() : "";
         }
 
-        String actuatorBasePathKey = propertyHelper.getActuatorBasePathPropertyKey();
-        String actuatorBasePath = propertyHelper.getActuatorDefaultBasePath();
-        if (actuatorBasePathKey != null) {
-            actuatorBasePath = springBootProperties.getProperty(actuatorBasePathKey, actuatorBasePath);
+        String actuatorBasePath = springBootConfiguration.getActuatorDefaultBasePath();
+        if (StringUtils.isNotBlank(springBootConfiguration.getActuatorBasePath())) {
+            actuatorBasePath = springBootConfiguration.getActuatorBasePath();
         }
 
         // lets default to adding a spring boot actuator health check
