@@ -201,6 +201,12 @@ Defaults to empty string.
 | *repository*
 | URL pointing to a chart repository.
 
+| *condition*
+| Optional reference to a boolean value that toggles the inclusion of the dependency.  IE `subchart.enabled`. For more information see helm https://helm.sh/docs/topics/charts/#tags-and-condition-fields-in-dependencies[documentation].
+
+| *alias*
+| Optional reference to the map that will be passed as the value scope for the subchart. For more information see helm https://helm.sh/docs/topics/charts/#alias-field-in-dependencies[documentation].
+
 |===
 
 [[helm-parameters]]

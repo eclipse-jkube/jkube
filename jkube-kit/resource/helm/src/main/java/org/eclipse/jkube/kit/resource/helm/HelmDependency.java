@@ -49,4 +49,10 @@ public class HelmDependency {
   @JsonProperty
   private String repository;
 
+  @JsonProperty
+  private String condition;
+
+  @JsonProperty
+  private String alias;
+
 }
