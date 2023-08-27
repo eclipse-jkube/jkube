@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.14-SNAPSHOT
+* Fix #2353: Add condition and alias to HelmDependency model
 * Fix #1713: Add HelidonHealthCheckEnricher to add Kubernetes health checks for Helidon applications
 * Fix #1714: Add HelidonGenerator to add opinionated container image for Helidon applications
 * Fix #1929: Docker Image Name parsing fix
