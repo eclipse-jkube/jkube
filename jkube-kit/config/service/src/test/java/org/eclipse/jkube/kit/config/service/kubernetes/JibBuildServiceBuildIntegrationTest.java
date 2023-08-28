@@ -106,6 +106,7 @@ class JibBuildServiceBuildIntegrationTest {
     FileUtils.touch(otherFile);
     final ImageConfiguration ic = imageConfiguration.toBuilder()
         .build(BuildConfiguration.builder()
+            .from("gcr.io/distroless/base")
             .assembly(AssemblyConfiguration.builder()
                 .name("custom")
                 .targetDir("/deployments")
@@ -121,13 +122,14 @@ class JibBuildServiceBuildIntegrationTest {
                         .destName(otherFile.getName()).build())
                     .build())
                 .build())
+            .volume("/deployments")
             .build())
         .build();
     // When
     jibBuildService.build(ic);
     // Then
     assertDockerFile()
-        .hasContent("FROM busybox\n" +
+        .hasContent("FROM gcr.io/distroless/base\n" +
             "COPY /deployments-layer/deployments /deployments/\n" +
             "COPY /other-layer/deployments /deployments/\n" +
             "COPY /jkube-generated-layer-final-artifact/deployments /deployments/\n" +
@@ -150,9 +152,9 @@ class JibBuildServiceBuildIntegrationTest {
         );
     ArchiveAssertions.assertThat(resolveDockerBuildDirs().resolve("tmp").resolve("docker-build.tar").toFile())
       .fileTree()
-      .hasSize(6)
+      .hasSize(17)
       .contains("config.json", "manifest.json")
-      .haveExactly(4, new Condition<>(s -> s.endsWith(".tar.gz"), "Tar File layers"));
+      .haveExactly(15, new Condition<>(s -> s.endsWith(".tar.gz"), "Tar File layers"));
   }
 
 
