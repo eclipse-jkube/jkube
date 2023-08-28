@@ -30,7 +30,7 @@ import org.eclipse.jkube.enricher.generic.DefaultControllerEnricher;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.EnricherConfig;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
@@ -43,7 +43,7 @@ public class DeploymentConfigEnricher extends BaseEnricher {
 
     private static final String ENRICHER_NAME = "jkube-openshift-deploymentconfig";
 
-    public DeploymentConfigEnricher(JKubeEnricherContext context) {
+    public DeploymentConfigEnricher(EnricherContext context) {
         super(context, ENRICHER_NAME);
     }
 

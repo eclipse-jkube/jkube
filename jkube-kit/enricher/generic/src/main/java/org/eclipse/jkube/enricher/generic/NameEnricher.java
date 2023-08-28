@@ -28,9 +28,10 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * Enricher for adding a "name" to the metadata to various objects we create.
- * The name is only added if not already set.
  *
- * @author roland
+ * The default name is only added if not already set.
+ *
+ * The configured name (in case is set) always overrides the resource's name (regardless of how that name was inferred).
  */
 public class NameEnricher extends BaseEnricher {
 

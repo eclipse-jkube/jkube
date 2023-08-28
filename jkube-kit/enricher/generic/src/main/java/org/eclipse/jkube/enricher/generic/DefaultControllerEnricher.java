@@ -103,21 +103,19 @@ public class DefaultControllerEnricher extends BaseEnricher {
 
   @Override
   public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-    final String name = getConfig(Config.NAME,
+    final List<ImageConfiguration> images = getImages();
+    // Check if at least a replica set is added. If not add a default one
+    // At least one image must be present, otherwise the resulting config will be invalid
+    if (!KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS) && !images.isEmpty()) {
+      final String name = getConfig(Config.NAME,
         JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-    final ControllerResourceConfig controllerResourceConfig = getControllerResourceConfig().toBuilder()
+      final ControllerResourceConfig controllerResourceConfig = getControllerResourceConfig().toBuilder()
         .controllerName(getControllerName(name))
         .imagePullPolicy(getImagePullPolicy(Config.PULL_POLICY))
         .replicas(getReplicaCount(builder, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
         .restartPolicy(getControllerResourceConfig().getRestartPolicy())
         .schedule(getConfig(Config.SCHEDULE))
         .build();
-
-    final List<ImageConfiguration> images = getImages();
-
-    // Check if at least a replica set is added. If not add a default one
-    // At least one image must be present, otherwise the resulting config will be invalid
-    if (!KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS) && !images.isEmpty()) {
       final ControllerHandler<? extends HasMetadata> ch = getContext().getHandlerHub()
           .getHandlerFor(fromType(getConfig(Config.TYPE)));
       final HasMetadata resource = ch.get(controllerResourceConfig, images);

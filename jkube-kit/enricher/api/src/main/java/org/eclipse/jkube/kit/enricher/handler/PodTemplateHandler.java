@@ -56,7 +56,7 @@ public class PodTemplateHandler {
 
         return new PodSpecBuilder()
             .withRestartPolicy(restartPolicy)
-            .withContainers(containerHandler.getContainers(config,images))
+            .withContainers(containerHandler.getContainers(config, images))
             .withInitContainers(createNewInitContainersFromConfig(config.getInitContainers()))
             .withVolumes(getVolumes(config))
             .build();

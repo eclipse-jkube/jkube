@@ -23,8 +23,10 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import org.assertj.core.api.Condition;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,9 +34,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class NameEnricherTest {
 
@@ -46,9 +45,7 @@ class NameEnricherTest {
   @BeforeEach
   void setUp() {
     properties = new Properties();
-    ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
-    // @formatter:off
     klb.addToItems(
         new ConfigMapBuilder().withNewMetadata().endMetadata().build(),
         new DeploymentBuilder().withNewMetadata().endMetadata().build(),
@@ -56,11 +53,15 @@ class NameEnricherTest {
         new ReplicationControllerBuilder().withNewMetadata().endMetadata().build(),
         new NamespaceBuilder().build()
     );
-    // @formatter:on
-    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-    when(context.getProperties()).thenReturn(properties);
-    when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
-    when(context.getGav().getSanitizedArtifactId()).thenReturn("artifact-id");
+
+    context = JKubeEnricherContext.builder()
+      .project(JavaProject.builder()
+        .properties(properties)
+        .artifactId("artifact-id")
+        .build())
+      .resources(ResourceConfig.builder().build())
+      .processorConfig(new ProcessorConfig())
+      .build();
   }
 
   @Test

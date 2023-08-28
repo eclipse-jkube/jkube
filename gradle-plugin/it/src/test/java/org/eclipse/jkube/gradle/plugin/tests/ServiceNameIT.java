@@ -16,6 +16,7 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -23,39 +24,43 @@ import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-class ServiceIT {
+@DisplayName("Service can have name overridden by configuration")
+class ServiceNameIT {
+
+  private static final String TEST_PROJECT = "service-name";
+
   @RegisterExtension
   protected final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  void k8sResourceTask_whenRun_generatesK8sManifestWithService() throws IOException, ParseException {
+  void k8sResourceTask() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject("service")
-        .withArguments("k8sResource", "--stacktrace")
-        .build();
+    final BuildResult result = gradleRunner.withITProject(TEST_PROJECT)
+      .withArguments("k8sResource", "--stacktrace")
+      .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
-        gradleRunner.resolveFile("expected", "kubernetes.yml"));
+      gradleRunner.resolveFile("expected", "kubernetes.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Using resource templates from")
-        .contains("Adding a default Deployment")
-        .contains("Adding revision history limit to 2")
-        .contains("validating");
+      .contains("Using resource templates from")
+      .contains("Adding a default Deployment")
+      .contains("Adding revision history limit to 2")
+      .contains("validating");
   }
 
   @Test
-  void ocResourceTask_whenRun_generatesOpenShiftManifestWithServiceAndRoute() throws IOException, ParseException {
+  void ocResourceTask() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject("service")
-        .withArguments("ocResource", "--stacktrace")
-        .build();
+    final BuildResult result = gradleRunner.withITProject(TEST_PROJECT)
+      .withArguments("ocResource", "--stacktrace")
+      .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
-        gradleRunner.resolveFile("expected", "openshift.yml"));
+      gradleRunner.resolveFile("expected", "openshift.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
-        .contains("Using resource templates from")
-        .contains("Adding a default Deployment")
-        .contains("Adding revision history limit to 2")
-        .contains("validating");
+      .contains("Using resource templates from")
+      .contains("Adding a default Deployment")
+      .contains("Adding revision history limit to 2")
+      .contains("validating");
   }
 }
