@@ -74,18 +74,17 @@ public class ControllerViaPluginConfigurationEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        final String name = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
-        final ControllerResourceConfig controllerResourceConfig = ControllerResourceConfig.builder()
-                .controllerName(name)
-                .imagePullPolicy(getImagePullPolicy(Config.PULL_POLICY))
-                .replicas(getReplicaCount(builder, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
-                .initContainers(Optional.ofNullable(getControllerResourceConfig().getInitContainers()).orElse(Collections.emptyList()))
-                .schedule(getConfig(Config.SCHEDULE))
-                .build();
-
         final List<ImageConfiguration> images = getImages();
         // Check if at least a replica set is added. If not add a default one
         if (KubernetesResourceUtil.checkForKind(builder, POD_CONTROLLER_KINDS)) {
+            final String name = getConfig(Config.NAME, JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId()));
+            final ControllerResourceConfig controllerResourceConfig = ControllerResourceConfig.builder()
+              .controllerName(name)
+              .imagePullPolicy(getImagePullPolicy(Config.PULL_POLICY))
+              .replicas(getReplicaCount(builder, Configs.asInt(getConfig(Config.REPLICA_COUNT))))
+              .initContainers(Optional.ofNullable(getControllerResourceConfig().getInitContainers()).orElse(Collections.emptyList()))
+              .schedule(getConfig(Config.SCHEDULE))
+              .build();
             // At least one image must be present, otherwise the resulting config will be invalid
             if (KubernetesResourceUtil.checkForKind(builder, "StatefulSet")) {
                 final StatefulSetSpec spec = statefulSetHandler.get(controllerResourceConfig, images).getSpec();

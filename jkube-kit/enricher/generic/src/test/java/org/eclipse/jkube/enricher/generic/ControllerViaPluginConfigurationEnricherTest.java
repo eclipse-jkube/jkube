@@ -25,53 +25,55 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
+import io.fabric8.openshift.api.model.DeploymentConfig;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
+import org.eclipse.jkube.enricher.generic.openshift.DeploymentConfigEnricher;
+import org.eclipse.jkube.enricher.generic.openshift.ImageChangeTriggerEnricher;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.EnricherContext;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.eclipse.jkube.kit.enricher.handler.DeploymentHandler;
-import org.eclipse.jkube.kit.enricher.handler.StatefulSetHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.util.Properties;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class ControllerViaPluginConfigurationEnricherTest {
   private ControllerViaPluginConfigurationEnricher controllerViaPluginConfigurationEnricher;
   private KubernetesListBuilder kubernetesListBuilder;
   private EnricherContext context;
-  private DeploymentHandler mockedDeploymentHandler;
 
   @BeforeEach
   void setUp() {
-    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-    when(context.getGav().getSanitizedArtifactId()).thenReturn("test-project");
-    when(context.getConfiguration().getResource()).thenReturn(ResourceConfig.builder()
-        .build());
+    context = JKubeEnricherContext.builder()
+      .log(new KitLogger.SilentLogger())
+      .project(JavaProject.builder()
+        .artifactId("test-project")
+        .build())
+      .image(ImageConfiguration.builder()
+        .name("test-project:tag")
+        .build(BuildConfiguration.builder()
+          .from("repository/image:tag")
+          .build())
+        .build())
+      .resources(ResourceConfig.builder().build())
+      .processorConfig(new ProcessorConfig())
+      .build();
     kubernetesListBuilder = new KubernetesListBuilder();
+    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
   }
 
   @Test
   void create_withDeploymentFragment_shouldMergeOpinionatedDefaultsWithFragment() {
     // Given
-    mockDeploymentHandler();
-    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
     kubernetesListBuilder.addToItems(createNewDeploymentBuilder());
-
     // When
     controllerViaPluginConfigurationEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
     // Then
     assertGeneratedListContainsDeploymentWithNameAndEnvVar(kubernetesListBuilder, "test-project");
   }
@@ -79,16 +81,10 @@ class ControllerViaPluginConfigurationEnricherTest {
   @Test
   void create_withDeploymentFragmentAndConfiguredControllerName_shouldConsiderConfiguredNameInMergedResource() {
     // Given
-    mockDeploymentHandler();
-    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
-    Properties properties = new Properties();
-    properties.put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
-    when(context.getProperties()).thenReturn(properties);
+    context.getProperties().put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
     kubernetesListBuilder.addToItems(createNewDeploymentBuilder());
-
     // When
     controllerViaPluginConfigurationEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
     // Then
     assertGeneratedListContainsDeploymentWithNameAndEnvVar(kubernetesListBuilder, "configured-name");
   }
@@ -96,19 +92,13 @@ class ControllerViaPluginConfigurationEnricherTest {
   @Test
   void create_withDeploymentFragmentWithExistingNameAndConfiguredControllerName_shouldConsiderExistingNameInMergedResource() {
     // Given
-    mockDeploymentHandler();
-    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
-    Properties properties = new Properties();
-    properties.put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
-    when(context.getProperties()).thenReturn(properties);
+    context.getProperties().put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
     DeploymentBuilder deploymentFragment = createNewDeploymentBuilder().withNewMetadata()
         .withName("existing-name")
         .endMetadata();
     kubernetesListBuilder.addToItems(deploymentFragment);
-
     // When
     controllerViaPluginConfigurationEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
     // Then
     assertGeneratedListContainsDeploymentWithNameAndEnvVar(kubernetesListBuilder, "existing-name");
   }
@@ -116,13 +106,9 @@ class ControllerViaPluginConfigurationEnricherTest {
   @Test
   void create_withStatefulSetFragment_shouldMergeOpinionatedDefaultsWithFragment() {
     // Given
-    mockStatefulSetHandler();
-    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
     kubernetesListBuilder.addToItems(createNewStatefulSetBuilder());
-
     // When
     controllerViaPluginConfigurationEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
     // Then
     assertGeneratedListContainsStatefulSetWithNameAndEnvVar(kubernetesListBuilder, "test-project");
   }
@@ -130,16 +116,10 @@ class ControllerViaPluginConfigurationEnricherTest {
   @Test
   void create_withStatefulSetFragmentAndConfiguredControllerName_shouldConsiderConfiguredNameInMergedResource() {
     // Given
-    mockStatefulSetHandler();
-    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
-    Properties properties = new Properties();
-    properties.put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
-    when(context.getProperties()).thenReturn(properties);
+    context.getProperties().put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
     kubernetesListBuilder.addToItems(createNewStatefulSetBuilder());
-
     // When
     controllerViaPluginConfigurationEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
     // Then
     assertGeneratedListContainsStatefulSetWithNameAndEnvVar(kubernetesListBuilder, "configured-name");
   }
@@ -147,19 +127,13 @@ class ControllerViaPluginConfigurationEnricherTest {
   @Test
   void create_withStatefulSetFragmentWithExistingNameAndConfiguredControllerName_shouldConsiderExistingNameInMergedResource() {
     // Given
-    mockStatefulSetHandler();
-    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
-    Properties properties = new Properties();
-    properties.put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
-    when(context.getProperties()).thenReturn(properties);
+    context.getProperties().put("jkube.enricher.jkube-controller-from-configuration.name", "configured-name");
     StatefulSetBuilder statefulSetFragment = createNewStatefulSetBuilder().withNewMetadata()
         .withName("existing-name")
         .endMetadata();
     kubernetesListBuilder.addToItems(statefulSetFragment);
-
     // When
     controllerViaPluginConfigurationEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
     // Then
     assertGeneratedListContainsStatefulSetWithNameAndEnvVar(kubernetesListBuilder, "existing-name");
   }
@@ -167,23 +141,37 @@ class ControllerViaPluginConfigurationEnricherTest {
   @Test
   void create_withDeploymentFragmentAndImagePullPolicyPropertySet_shouldSendConfiguredPolicyToDeploymentHandler() {
     // Given
-    mockDeploymentHandler();
-    ArgumentCaptor<ControllerResourceConfig> controllerResourceConfigArgumentCaptor = ArgumentCaptor.forClass(ControllerResourceConfig.class);
-    controllerViaPluginConfigurationEnricher = new ControllerViaPluginConfigurationEnricher(context);
-    when(context.getProperty("jkube.imagePullPolicy")).thenReturn("Never");
+    context.getProperties().put("jkube.imagePullPolicy", "Never");
     DeploymentBuilder deploymentFragment = createNewDeploymentBuilder().withNewMetadata()
         .withName("existing-name")
         .endMetadata();
     kubernetesListBuilder.addToItems(deploymentFragment);
-
     // When
     controllerViaPluginConfigurationEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
-
     // Then
-    verify(mockedDeploymentHandler, times(1))
-        .get(controllerResourceConfigArgumentCaptor.capture(), any());
-    assertThat(controllerResourceConfigArgumentCaptor.getValue())
-        .hasFieldOrPropertyWithValue("imagePullPolicy", "Never");
+    assertThat(kubernetesListBuilder.build().getItems()).asInstanceOf(InstanceOfAssertFactories.list(Deployment.class))
+      .singleElement()
+      .extracting("spec.template.spec.containers")
+      .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+      .singleElement()
+      .hasFieldOrPropertyWithValue("imagePullPolicy", "Never");
+  }
+
+  @Test
+  void enablesImageChangeTriggers() {
+    // Given
+    context.getProperties().put("jkube.internal.effective.platform.mode", "OPENSHIFT");
+    kubernetesListBuilder.addToItems(createNewDeploymentBuilder().build());
+    controllerViaPluginConfigurationEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
+    new DeploymentConfigEnricher(context).create(PlatformMode.openshift, kubernetesListBuilder);
+    // When
+    new ImageChangeTriggerEnricher(context).create(PlatformMode.openshift, kubernetesListBuilder);
+    // Then
+    assertThat(kubernetesListBuilder.build().getItems()).asInstanceOf(InstanceOfAssertFactories.list(DeploymentConfig.class))
+      .singleElement()
+      .extracting("spec.triggers").asList().hasSize(2)
+      .extracting("type")
+      .containsExactlyInAnyOrder("ImageChange", "ConfigChange");
   }
 
   private void assertGeneratedListContainsDeploymentWithNameAndEnvVar(KubernetesListBuilder kubernetesListBuilder, String name) {
@@ -220,18 +208,6 @@ class ControllerViaPluginConfigurationEnricherTest {
         .contains(new EnvVarBuilder().withName("FOO").withValue("bar").build());
   }
 
-  private void mockDeploymentHandler() {
-    mockedDeploymentHandler = mock(DeploymentHandler.class, RETURNS_DEEP_STUBS);
-    when(context.getHandlerHub().getHandlerFor(Deployment.class)).thenReturn(mockedDeploymentHandler);
-    when(mockedDeploymentHandler.get(any(), any())).thenReturn(createOpinionatedDeployment());
-  }
-
-  private void mockStatefulSetHandler() {
-    StatefulSetHandler mockedStatefulSetHandler = mock(StatefulSetHandler.class, RETURNS_DEEP_STUBS);
-    when(context.getHandlerHub().getHandlerFor(StatefulSet.class)).thenReturn(mockedStatefulSetHandler);
-    when(mockedStatefulSetHandler.get(any(), any())).thenReturn(createOpinionatedStatefulSet());
-  }
-
   private DeploymentBuilder createNewDeploymentBuilder() {
     return new DeploymentBuilder()
         .withNewSpec()
@@ -248,14 +224,6 @@ class ControllerViaPluginConfigurationEnricherTest {
         .endSpec();
   }
 
-  private Deployment createOpinionatedDeployment() {
-    return new DeploymentBuilder()
-        .withNewMetadata().withName("test-project").endMetadata()
-        .withNewSpec()
-        .endSpec()
-        .build();
-  }
-
   private StatefulSetBuilder createNewStatefulSetBuilder() {
     return new StatefulSetBuilder()
         .withNewSpec()
@@ -270,13 +238,5 @@ class ControllerViaPluginConfigurationEnricherTest {
         .endSpec()
         .endTemplate()
         .endSpec();
-  }
-
-  private StatefulSet createOpinionatedStatefulSet() {
-    return new StatefulSetBuilder()
-        .withNewMetadata().withName("test-project").endMetadata()
-        .withNewSpec()
-        .endSpec()
-        .build();
   }
 }

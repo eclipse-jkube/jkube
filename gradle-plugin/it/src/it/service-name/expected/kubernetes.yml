@@ -1,0 +1,76 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+    labels:
+      app: service-name
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: customized-name
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: service-name
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+    labels:
+      app: service-name
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: service-name
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: service-name
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+    template:
+      metadata:
+        annotations:
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
+        labels:
+          app: service-name
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+        name: service-name
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: repository/service-name:latest
+          imagePullPolicy: IfNotPresent
+          name: repository-service-name
+          securityContext:
+            privileged: false

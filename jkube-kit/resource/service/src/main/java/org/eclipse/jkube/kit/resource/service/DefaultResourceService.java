@@ -40,6 +40,7 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.listResourceFragments;
+import static org.eclipse.jkube.kit.config.resource.GroupArtifactVersion.sanitize;
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.interpolateTemplateVariables;
 import static org.eclipse.jkube.kit.resource.service.WriteUtil.writeResourcesIndividualAndComposite;
 
@@ -139,7 +140,7 @@ public class DefaultResourceService implements ResourceService {
 
   private KubernetesListBuilder readResourceFragments(File[] resourceFiles) throws IOException {
     return KubernetesResourceFragments.readResourceFragmentsFrom(
-        JKubeProjectUtil.createDefaultResourceName(resourceServiceConfig.getProject().getArtifactId()),
+        JKubeProjectUtil.createDefaultResourceName(sanitize(resourceServiceConfig.getProject().getArtifactId())),
         resourceFiles);
   }
 

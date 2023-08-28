@@ -26,22 +26,23 @@ repositories {
 }
 
 def extensionConfig = {
-    offline = true
-    enricher {
-        config {
-            'jkube-controller' {
-                schedule = '*/2 * * * *'
-            }
-        }
+  offline = true
+  images {
+    image {
+      name = 'repository/service-name:latest'
+      build {
+        from = 'quay.io/jkube/jkube-java'
+        ports = ['8080']
+      }
     }
-    images {
-        image {
-            name = 'repository/controller:latest'
-            build {
-                from = 'quay.io/jkube/jkube-java'
-            }
-        }
+  }
+  enricher {
+    config {
+      'jkube-service' {
+        name = 'customized-name'
+      }
     }
+  }
 }
 
 kubernetes(extensionConfig)

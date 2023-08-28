@@ -13,6 +13,11 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
 public class GroupArtifactVersion {
 
     private static final String PREFIX = "s";
@@ -20,24 +25,6 @@ public class GroupArtifactVersion {
     private final String groupId;
     private final String artifactId;
     private final String version;
-
-    public GroupArtifactVersion(String groupId, String artifactId, String version) {
-        this.groupId = groupId;
-        this.artifactId = artifactId;
-        this.version = version;
-    }
-
-    public String getGroupId() {
-        return groupId;
-    }
-
-    public String getArtifactId() {
-        return artifactId;
-    }
-
-    public String getVersion() {
-        return version;
-    }
 
     public boolean isSnapshot() {
         return getVersion() != null && getVersion().endsWith("SNAPSHOT");
@@ -50,11 +37,14 @@ public class GroupArtifactVersion {
      * @return Sanitized Kubernetes name.
      */
     public String getSanitizedArtifactId() {
-        if (this.artifactId != null && !this.artifactId.isEmpty() && Character.isDigit(this.artifactId.charAt(0))) {
-            return PREFIX + this.artifactId;
-        }
+        return sanitize(getArtifactId());
+    }
 
-        return this.artifactId;
+    public static String sanitize(String coordinate) {
+        if (coordinate != null && !coordinate.isEmpty() && Character.isDigit(coordinate.charAt(0))) {
+            return PREFIX + coordinate;
+        }
+        return coordinate;
     }
 }
 

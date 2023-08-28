@@ -23,14 +23,17 @@ import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-class DefaultControllerIT {
+class ControllerIT {
+
+  private static final String TEST_PROJECT = "controller";
+
   @RegisterExtension
-  private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
+  protected final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
   void k8sResourceTask_whenRun_generatesK8sManifestWithDeployment() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject("controller")
+    final BuildResult result = gradleRunner.withITProject(TEST_PROJECT)
         .withArguments("k8sResource", "--stacktrace")
         .build();
     // Then
@@ -46,7 +49,7 @@ class DefaultControllerIT {
   @Test
   void ocResourceTask_whenRun_generatesOpenShiftManifestWithDeploymentConfig() throws IOException, ParseException {
     // When
-    final BuildResult result = gradleRunner.withITProject("controller")
+    final BuildResult result = gradleRunner.withITProject(TEST_PROJECT)
         .withArguments("ocResource", "--stacktrace")
         .build();
     // Then
