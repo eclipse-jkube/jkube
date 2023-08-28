@@ -87,7 +87,7 @@ public class KubernetesResourceFragmentsTest {
       KubernetesResourceFragments.updateKindFilenameMappings(mappingConfigs);
       // Then
       assertThat(getNameWithSuffix("the-foo-tab", "FooTab")).isEqualTo("the-foo-tab-ft");
-      assertThat(readResourceFragmentsFrom("app", fooTabYaml).buildItems())
+      assertThat(readResourceFragmentsFrom(fooTabYaml).buildItems())
         .singleElement()
         .hasFieldOrPropertyWithValue("kind", "FooTab");
     }
@@ -135,7 +135,7 @@ public class KubernetesResourceFragmentsTest {
     void withValidDirectory_shouldReadAllFragments() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "pong", new File(fragmentsDir, "complete-directory")
+        new File(fragmentsDir, "complete-directory")
           .listFiles());
       // Then
       assertThat(result.build().getItems())
@@ -159,7 +159,7 @@ public class KubernetesResourceFragmentsTest {
       ));
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "pong", new File(fragmentsDir, "complete-directory-custom-mappings")
+        new File(fragmentsDir, "complete-directory-custom-mappings")
           .listFiles());
       // Then
       assertThat(result.build().getItems())
@@ -187,8 +187,7 @@ public class KubernetesResourceFragmentsTest {
         Files.write(resourceDir.resolve("named-cm.yaml"), "field: value".getBytes()).toFile().getAbsoluteFile()
       };
       // When
-      final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "pong", resourceFiles);
+      final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(resourceFiles);
       // Then
       assertThat(result.buildItems()).hasSize(2)
         .extracting("additionalProperties.field")
@@ -199,7 +198,7 @@ public class KubernetesResourceFragmentsTest {
     void withYamlFileAndVersionKindNameFromFile_shouldReturnValidResource() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "simple-rc.yaml"));
+        new File(fragmentsDir, "simple-rc.yaml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
@@ -214,7 +213,7 @@ public class KubernetesResourceFragmentsTest {
     void withJsonFileAndVersionKindNameFromFile_shouldReturnValidResource() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "simple-rc.json"));
+        new File(fragmentsDir, "simple-rc.json"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
@@ -229,7 +228,7 @@ public class KubernetesResourceFragmentsTest {
     void withEmptyFileAndNameAndKindInFileName_shouldReturnEmptyResource() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "empty-file-svc.yml"));
+        new File(fragmentsDir, "empty-file-svc.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
@@ -246,7 +245,7 @@ public class KubernetesResourceFragmentsTest {
       final File resource = new File(fragmentsDir, "simple-rc.txt");
       // When & Then
       assertThatIllegalArgumentException()
-        .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom("app", resource))
+        .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom(resource))
         .withMessage("Resource file name 'simple-rc.txt' does not match pattern <name>-<type>.(yaml|yml|json)");
 
     }
@@ -258,7 +257,7 @@ public class KubernetesResourceFragmentsTest {
       final File resource = new File(fragmentsDir, "contains_no_kind.yml");
       // When & Then
       assertThatIllegalArgumentException()
-        .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom("app", resource))
+        .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom(resource))
         .withMessageStartingWith("No type given as part of the file name (e.g. 'app-rc.yml') and no 'kind' defined in resource descriptor contains_no_kind.yml");
     }
 
@@ -269,7 +268,7 @@ public class KubernetesResourceFragmentsTest {
       final File resource = new File(fragmentsDir, "invalid-metadata-pod.yaml");
       // When & Then
       assertThatIllegalArgumentException()
-        .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom("app", resource))
+        .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom(resource))
         .withMessageStartingWith("Metadata is expected to be a Map, not a");
     }
 
@@ -280,7 +279,7 @@ public class KubernetesResourceFragmentsTest {
       final File resource = new File(fragmentsDir, "I-Dont-EXIST.yaml");
       // When & Then
       assertThatIOException()
-        .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom("app", resource))
+        .isThrownBy(() -> KubernetesResourceFragments.readResourceFragmentsFrom(resource))
         .withMessageContaining("I-Dont-EXIST.yaml")
         .isInstanceOf(NoSuchFileException.class);
     }
@@ -290,7 +289,7 @@ public class KubernetesResourceFragmentsTest {
     void withNameInFieldAndFilename_shouldBeNamedFromField() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "named-svc.yaml"));
+        new File(fragmentsDir, "named-svc.yaml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
@@ -305,7 +304,7 @@ public class KubernetesResourceFragmentsTest {
     void withNameInField_shouldBeamedFromField() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "rc.yml"));
+        new File(fragmentsDir, "rc.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
@@ -320,14 +319,14 @@ public class KubernetesResourceFragmentsTest {
     void withNoNameInFieldAndNoNameInFilename_shouldBeNamedFromDefaultName() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "default-app", new File(fragmentsDir, "svc.yml"));
+        new File(fragmentsDir, "svc.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
         .isInstanceOf(Service.class)
         .hasFieldOrPropertyWithValue("apiVersion", "v1")
         .hasFieldOrPropertyWithValue("kind", "Service")
-        .hasFieldOrPropertyWithValue("metadata.name", "default-app");
+        .hasFieldOrPropertyWithValue("metadata.name", null);
     }
 
     @Test
@@ -335,7 +334,7 @@ public class KubernetesResourceFragmentsTest {
     void withKindInFieldAndNotInFilename_shouldGetKindFromValue() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "contains_kind.yml"));
+        new File(fragmentsDir, "contains_kind.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
@@ -349,14 +348,14 @@ public class KubernetesResourceFragmentsTest {
     void withKindFromFilename_shouldGetKindFromFilename() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "job.yml"));
+        new File(fragmentsDir, "job.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
         .isInstanceOf(Job.class)
         .hasFieldOrPropertyWithValue("apiVersion", "batch/v1")
         .hasFieldOrPropertyWithValue("kind", "Job")
-        .hasFieldOrPropertyWithValue("metadata.name", "app");
+        .hasFieldOrPropertyWithValue("metadata.name", null);
     }
 
     @Test
@@ -364,7 +363,7 @@ public class KubernetesResourceFragmentsTest {
     void withKindInFieldAndInFilename_shouldGetKindFromField() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "override-kind-pod.yml"));
+        new File(fragmentsDir, "override-kind-pod.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
@@ -378,7 +377,7 @@ public class KubernetesResourceFragmentsTest {
     void withValueInKindAndFilenameWithDashes_shouldGetKindFromValue() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "file-name-with-dashes-kind-in-field.yml"));
+        new File(fragmentsDir, "file-name-with-dashes-kind-in-field.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
@@ -392,7 +391,7 @@ public class KubernetesResourceFragmentsTest {
     void withNetworkV1Ingress_shouldLoadNetworkV1Ingress() throws IOException {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "network-v1-ingress.yml"));
+        new File(fragmentsDir, "network-v1-ingress.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()
@@ -407,7 +406,7 @@ public class KubernetesResourceFragmentsTest {
     void withNetworkPolicyV1_shouldLoadV1NetworkPolicy() throws Exception {
       // When
       final KubernetesListBuilder result = KubernetesResourceFragments.readResourceFragmentsFrom(
-        "app", new File(fragmentsDir, "networking-v1-np.yml"));
+        new File(fragmentsDir, "networking-v1-np.yml"));
       // Then
       assertThat(result.buildItems())
         .singleElement()

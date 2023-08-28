@@ -1,0 +1,67 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      app.openshift.io/vcs-ref: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+      app.openshift.io/vcs-uri: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+    labels:
+      app: controller-name-fragment
+      provider: jkube
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: customized-name
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      app: controller-name-fragment
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+    strategy:
+      rollingParams:
+        timeoutSeconds: 3600
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          app.openshift.io/vcs-ref: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
+          app.openshift.io/vcs-uri: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
+        labels:
+          app: controller-name-fragment
+          provider: jkube
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+      spec:
+        containers:
+        - env:
+          - name: ADDITIONAL_VARIABLE
+            value: additional-value
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          image: repository/controller-name-fragment:latest
+          imagePullPolicy: IfNotPresent
+          name: repository-controller-name-fragment
+          securityContext:
+            privileged: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - repository-controller-name-fragment
+        from:
+          kind: ImageStreamTag
+          name: controller-name-fragment:latest
+      type: ImageChange

@@ -125,16 +125,13 @@ public class DefaultServiceEnricher extends BaseEnricher {
 
     @Override
     public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-
         final ResourceConfig xmlConfig = getConfiguration().getResource();
         if (Optional.ofNullable(xmlConfig).map(ResourceConfig::getServices).map(c -> !c.isEmpty()).orElse(false)) {
             // Add Services configured via XML
             addServices(builder, xmlConfig.getServices());
-
         } else {
             final Service defaultService = getDefaultService();
-
-            if (hasServices(builder)) {
+            if (shouldMergeDefaultServiceWithExistentService(builder, defaultService)) {
                 mergeInDefaultServiceParameters(builder, defaultService);
             } else {
                 addDefaultService(builder, defaultService);
@@ -235,23 +232,27 @@ public class DefaultServiceEnricher extends BaseEnricher {
         return builder.build();
     }
 
-    private boolean hasServices(KubernetesListBuilder builder) {
+    /**
+     * We consider an existent Service fragment as mergeable with the opinionated service
+     * if it has the same name (default name), or if it has no name at all.
+     */
+    private boolean shouldMergeDefaultServiceWithExistentService(KubernetesListBuilder builder, Service defaultService) {
+        if (defaultService == null) {
+            return false;
+        }
         final AtomicBoolean hasService = new AtomicBoolean(false);
         builder.accept(new TypedVisitor<ServiceBuilder>() {
             @Override
             public void visit(ServiceBuilder element) {
-                if (hasControllerMatchedService(element)) {
+                if (
+                  element.buildMetadata().getName() == null ||
+                  Objects.equals(defaultService.getMetadata().getName(), element.buildMetadata().getName())
+                ) {
                     hasService.set(true);
                 }
             }
         });
         return hasService.get();
-    }
-
-    private boolean hasControllerMatchedService(ServiceBuilder serviceBuilder) {
-        String defaultName = JKubeProjectUtil.createDefaultResourceName(getContext().getGav().getSanitizedArtifactId());
-        String svcName = KubernetesHelper.getName(serviceBuilder.buildMetadata());
-        return defaultName.equals(svcName);
     }
 
     private void mergeInDefaultServiceParameters(KubernetesListBuilder builder, final Service defaultService) {
@@ -261,8 +262,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
                 // Only update single service matching the default service's name
                 String defaultServiceName = getDefaultServiceName(defaultService);
 
-                ObjectMeta serviceMetadata = ensureServiceMetadata(service, defaultService);
-                String serviceName = ensureServiceName(serviceMetadata, service, defaultServiceName);
+                String serviceName = ensureServiceName(service, defaultServiceName);
 
                 if (defaultService != null && defaultServiceName != null && defaultServiceName.equals(serviceName)) {
                     addMissingServiceParts(service, defaultService);
@@ -566,22 +566,12 @@ public class DefaultServiceEnricher extends BaseEnricher {
         }
     }
 
-    private String ensureServiceName(ObjectMeta serviceMetadata, ServiceBuilder service, String defaultServiceName) {
-        String serviceName = KubernetesHelper.getName(serviceMetadata);
-        if (StringUtils.isBlank(serviceName)) {
-            service.buildMetadata().setName(defaultServiceName);
-            serviceName = KubernetesHelper.getName(service.buildMetadata());
+    private String ensureServiceName(ServiceBuilder service, String defaultServiceName) {
+        if (StringUtils.isBlank(KubernetesHelper.getName(service.buildMetadata()))) {
+            service.editOrNewMetadata().withName(defaultServiceName).endMetadata();
         }
-        return serviceName;
+        return KubernetesHelper.getName(service.buildMetadata());
     }
-
-    private ObjectMeta ensureServiceMetadata(ServiceBuilder service, Service defaultService) {
-        if (!service.hasMetadata() && defaultService != null) {
-            service.withNewMetadataLike(defaultService.getMetadata()).endMetadata();
-        }
-        return service.buildMetadata();
-    }
-
 
     private List<ServicePort> addMissingDefaultPorts(List<ServicePort> ports, Service defaultService) {
 

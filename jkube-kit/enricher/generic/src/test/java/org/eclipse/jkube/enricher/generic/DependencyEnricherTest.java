@@ -86,9 +86,7 @@ class DependencyEnricherTest {
          * Our override file also contains a ConfigMap item with name jenkins, load it while
          * loading Kubernetes resources.
          */
-        return KubernetesResourceFragments.readResourceFragmentsFrom(
-                "the-project",
-                resourceList.toArray(new File[0]));
+        return KubernetesResourceFragments.readResourceFragmentsFrom(resourceList.toArray(new File[0]));
     }
 
     private boolean checkUniqueResources(List<HasMetadata> resourceList) {
