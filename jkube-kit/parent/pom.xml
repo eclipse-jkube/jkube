@@ -62,7 +62,7 @@
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
     <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
-    <version.ow2.asm>9.4</version.ow2.asm>
+    <version.ow2.asm>9.5</version.ow2.asm>
 
     <!-- =======================================================  -->
     <version.image.jkube-images>0.0.19</version.image.jkube-images>
