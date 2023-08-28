@@ -87,18 +87,17 @@ public class KubernetesResourceFragments {
    * Read all Kubernetes resource fragments from a directory and create a {@link KubernetesListBuilder} which
    * can be adapted later.
    *
-   * @param defaultName the default name to use when none is given
    * @param resourceFiles files to add.
    * @return the list builder
    * @throws IOException in case file is not found
    */
-  public static KubernetesListBuilder readResourceFragmentsFrom(String defaultName, File... resourceFiles) throws IOException {
+  public static KubernetesListBuilder readResourceFragmentsFrom(File... resourceFiles) throws IOException {
     final KubernetesListBuilder builder = new KubernetesListBuilder();
     if (resourceFiles != null) {
       for (File file : resourceFiles) {
         if (EXCLUDED_RESOURCE_FILENAME_SUFFIXES.stream()
           .noneMatch(s -> file.getName().toLowerCase(Locale.ROOT).endsWith(s))) {
-          builder.addToItems(getResource(file, defaultName));
+          builder.addToItems(getResource(file));
         }
       }
     }
@@ -116,18 +115,17 @@ public class KubernetesResourceFragments {
    * </ul>
    *
    * @param file file to read.
-   * @param appName resource name specifying resources belonging to this application
    * @return HasMetadata object for resource
    * @throws IOException in case file loading is failed
    */
-  private static HasMetadata getResource(File file, String appName) throws IOException {
+  private static HasMetadata getResource(File file) throws IOException {
     final Map<String, Object> fragment = Optional.ofNullable(Serialization.unmarshal(file, new TypeReference<Map<String, Object>>() {}))
       .orElse(new HashMap<>());
     if (StringUtils.isBlank((String) fragment.get("apiVersion")) ||
       StringUtils.isBlank((String) fragment.get("kind")) ||
       StringUtils.isBlank((String) getOrInitMetadata(fragment).get("name"))) {
       // Fragment is incomplete let's enrich the missing parts
-      enrichFragment(fragment, file, appName);
+      enrichFragment(fragment, file);
     }
     try {
       return Serialization.convertValue(fragment, HasMetadata.class);
@@ -137,7 +135,7 @@ public class KubernetesResourceFragments {
   }
 
   // Read fragment and add default values
-  private static void enrichFragment(Map<String, Object> fragment, File file, String defaultName) {
+  private static void enrichFragment(Map<String, Object> fragment, File file) {
     final Map<String, Object> metadata = getOrInitMetadata(fragment);
 
     // Infer values
@@ -165,8 +163,9 @@ public class KubernetesResourceFragments {
     }
 
     // Name
-    metadata.putIfAbsent("name", StringUtils.isNotBlank(nameFromFile) && !nameFromFileIsKind ?
-      nameFromFile : defaultName);
+    if (StringUtils.isNotBlank(nameFromFile) && !nameFromFileIsKind) {
+      metadata.putIfAbsent("name", nameFromFile);
+    }
 
     // ApiVersion
     final String apiVersion;

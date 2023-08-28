@@ -37,14 +37,10 @@ public class GroupArtifactVersion {
      * @return Sanitized Kubernetes name.
      */
     public String getSanitizedArtifactId() {
-        return sanitize(getArtifactId());
-    }
-
-    public static String sanitize(String coordinate) {
-        if (coordinate != null && !coordinate.isEmpty() && Character.isDigit(coordinate.charAt(0))) {
-            return PREFIX + coordinate;
+        if (getArtifactId() != null && !getArtifactId().isEmpty() && Character.isDigit(getArtifactId().charAt(0))) {
+            return PREFIX + getArtifactId();
         }
-        return coordinate;
+        return getArtifactId();
     }
 }
 

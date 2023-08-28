@@ -35,6 +35,8 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.enricher.api.ServiceExposer;
 
+import java.util.Objects;
+
 import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeMetadata;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeSimpleFields;
@@ -187,14 +189,15 @@ public class RouteEnricher extends BaseEnricher implements ServiceExposer {
 
     static int getRouteIndexWithName(final KubernetesListBuilder listBuilder, final String name) {
         int routeInListIndex = -1;
-        for (int index = 0; index < listBuilder.buildItems().size(); index++) {
-            HasMetadata item = listBuilder.buildItems().get(index);
+        int index = 0;
+        for (HasMetadata item : listBuilder.buildItems()) {
             if (item != null &&
-                    item.getMetadata() != null &&
-                    item.getMetadata().getName().equals(name) &&
-                    item instanceof Route) {
+              item.getMetadata() != null &&
+              Objects.equals(item.getMetadata().getName(), name) &&
+              item instanceof Route) {
                 routeInListIndex = index;
             }
+            index++;
         }
         return routeInListIndex;
     }

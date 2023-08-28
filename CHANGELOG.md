@@ -37,6 +37,7 @@ Usage:
 * Fix #2301: Add compatibility with SemVer versions
 * Fix #2302 Bump Kubernetes Client version to 6.8.0
 * Fix #2324: Update SpringBootConfigurationHelper for Spring Boot 3.x
+* Fix #2350: Enrichers with NAME configuration override fragments with default names
 
 ### 1.13.1 (2023-06-16)
 * Fix #2212: Bump Kubernetes Client version to 6.7.2 (fixes issues when trace-logging OpenShift builds -regression in 6.7.1-)
