@@ -46,6 +46,16 @@ public abstract class AbstractImageBuildService implements BuildService {
     void process(ImageConfiguration imageConfiguration) throws JKubeServiceException;
   }
 
+  protected String getHintFromException(Exception ex) {
+    String message = "Error while trying to push the image: " + ex.getMessage();
+    if(ex.getMessage().contains("denied") || ex.getMessage().contains("unauthorized")) {
+      message += "\nPossible issues: invalid credentials or incorrect image name or registry." +
+                 "\nHint: Check your credentials." +
+                 "\nHint: Image name can be modified with the jkube.generator.name property";
+    }
+    return message;
+  }
+
   private void processImage(ImageConfigurationProcessor imageConfigurationConsumer, String skipMessage, ImageConfiguration... imageConfigurations) throws JKubeServiceException {
     if (imageConfigurations != null) {
       for (ImageConfiguration imageConfiguration : imageConfigurations) {
