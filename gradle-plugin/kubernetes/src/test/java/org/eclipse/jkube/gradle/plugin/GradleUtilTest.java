@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDomainObjectException;
@@ -46,6 +47,7 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.PluginContainer;
@@ -92,6 +94,8 @@ class GradleUtilTest {
     when(project.getBuildDir()).thenReturn(Files.createDirectory(folder.resolve("build")).toFile());
     when(project.getPlugins()).thenReturn(new DefaultPluginContainer(null, null, null));
     when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(javaPlugin);
+    when(project.getGradle().getStartParameter().getTaskNames()).thenReturn(Collections.emptyList());
+    when(project.getGradle().getStartParameter().getSystemPropertiesArgs()).thenReturn(Collections.emptyMap());
   }
 
   @Test
@@ -367,6 +371,24 @@ class GradleUtilTest {
     final boolean result = canBeResolved(c);
     // Then
     assertThat(result).isTrue();
+  }
+
+  @Test
+  void extractCommandExecutionArgs_whenPropertiesAndGoalsConfigured_thenAddToCommandExecutionArgs() {
+    // Given
+    Gradle mockedGradle = mock(Gradle.class);
+    StartParameter mockedStartParameter = mock(StartParameter.class);
+    when(project.getGradle()).thenReturn(mockedGradle);
+    when(mockedGradle.getStartParameter()).thenReturn(mockedStartParameter);
+    when(mockedStartParameter.getSystemPropertiesArgs()).thenReturn(Collections.singletonMap("org.example.foo", "bar"));
+    when(mockedStartParameter.getTaskNames()).thenReturn(Collections.singletonList("someTask"));
+
+    // When
+    final JavaProject result = convertGradleProject(project);
+
+    // Then
+    assertThat(result.getCommandExecutionArgs())
+        .contains("someTask", "-Dorg.example.foo=bar");
   }
 
   private static Function<String[], Configuration> configurationDependencyMock() {

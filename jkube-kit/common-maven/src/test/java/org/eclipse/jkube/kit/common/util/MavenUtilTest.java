@@ -92,6 +92,7 @@ class MavenUtilTest {
     assertThat(mavenProject.getCompileClasspathElements()).first().isEqualTo("./target");
     assertThat(project.getProperties()).contains(entry("foo", "bar"));
     assertThat(project.getUrl()).isEqualTo("https://projects.eclipse.org/projects/ecd.jkube");
+    assertThat(project.getCommandExecutionArgs()).contains("-Duser.maven.home=/home/user/.m2");
     assertThat(project.getMaintainers()).isEqualTo(
             Collections.singletonList(org.eclipse.jkube.kit.common.Maintainer.builder()
                     .name("Dev1")
@@ -156,6 +157,24 @@ class MavenUtilTest {
     assertThat(plugins.get(1).getVersion()).isEqualTo("0.1.0");
     assertThat(plugins.get(1).getExecutions()).hasSize(3);
     assertThat(plugins.get(1).getExecutions()).isEqualTo(Arrays.asList("resource", "build", "helm"));
+  }
+
+  @Test
+  void convertMavenProjectToJKubeProject_whenActiveProfilesAndPropertiesPresent_thenJavaProjectCommandExecutionArgsNotEmpty() throws DependencyResolutionRequiredException {
+    // Given
+    MavenSession mavenSession = getMavenSession();
+    Properties userProperties = new Properties();
+    userProperties.put("org.example.foo", "true");
+    mavenSession.getRequest().setGoals(Collections.singletonList("some:goal"));
+    mavenSession.getRequest().setActiveProfiles(Collections.singletonList("test"));
+    mavenSession.getRequest().setUserProperties(userProperties);
+
+    // When
+    JavaProject javaProject = MavenUtil.convertMavenProjectToJKubeProject(mavenProject, mavenSession);
+
+    // Then
+    assertThat(javaProject.getCommandExecutionArgs())
+        .contains("some:goal", "-Ptest", "-Dorg.example.foo=true");
   }
 
   private MavenProject getMavenProject() {

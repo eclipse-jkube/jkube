@@ -34,6 +34,7 @@ import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.Configuration;
@@ -92,6 +93,7 @@ public class GradleUtil {
 //        .scmUrl(gradleProject.)
         .artifact(artifact)
         .buildPackageDirectory(artifact != null ? artifact.getParentFile() : null)
+        .commandExecutionArgs(extractCommandExecutionArgs(gradleProject))
         .build();
   }
 
@@ -220,5 +222,22 @@ public class GradleUtil {
 
   private static boolean isJavaArtifact(File artifact) {
     return artifact.getName().toLowerCase(Locale.ROOT).matches(".+?\\.(jar|war|ear)");
+  }
+
+  private static Collection<String> extractCommandExecutionArgs(Project gradleProject) {
+    List<String> args = new ArrayList<>();
+    if (gradleProject.getGradle().getStartParameter() != null) {
+      StartParameter startParameter = gradleProject.getGradle().getStartParameter();
+      if (!startParameter.getTaskNames().isEmpty()) {
+        args.addAll(startParameter.getTaskNames());
+      }
+      if (!startParameter.getSystemPropertiesArgs().isEmpty()) {
+        Map<String, String> systemPropertiesArgs = gradleProject.getGradle().getStartParameter().getSystemPropertiesArgs();
+        for (Map.Entry<String, String> arg : systemPropertiesArgs.entrySet()) {
+          args.add(String.format("-D%s=%s", arg.getKey(), arg.getValue()));
+        }
+      }
+    }
+    return args;
   }
 }

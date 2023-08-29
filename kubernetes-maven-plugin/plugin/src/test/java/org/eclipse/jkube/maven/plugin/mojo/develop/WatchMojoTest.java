@@ -86,6 +86,7 @@ class WatchMojoTest {
     when(mavenProject.getDevelopers()).thenReturn(Collections.emptyList());
     when(mavenProject.getBuild().getDirectory()).thenReturn(targetDir.getAbsolutePath());
     when(mavenProject.getBuild().getOutputDirectory()).thenReturn(targetDir.getAbsolutePath());
+    when(mavenProject.getActiveProfiles()).thenReturn(Collections.emptyList());
     mavenSettings = mock(Settings.class);
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
     // @formatter:off

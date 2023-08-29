@@ -244,6 +244,13 @@ public class JavaProject implements Serializable {
   private List<Maintainer> maintainers;
 
   /**
+   * Command line arguments current build process
+   * @param commandExecutionArgs commandline arguments to current
+   * @return command line arguments
+   */
+  private List<String> commandExecutionArgs;
+
+  /**
    * Returns true if the project is a Maven project with a snapshot version.
    *
    * @return true if the project is a Maven project with a snapshot version, false otherwise.
@@ -261,7 +268,7 @@ public class JavaProject implements Serializable {
       String site, String description, String organizationName, String documentationUrl,
       String buildFinalName, File artifact, String packaging, String issueManagementSystem, String issueManagementUrl,
       String url, String scmUrl, String scmTag,
-      @Singular List<Maintainer> maintainers) {
+      @Singular List<Maintainer> maintainers, @Singular List<String> commandExecutionArgs) {
 
     this.name = name;
     this.groupId = groupId;
@@ -290,6 +297,7 @@ public class JavaProject implements Serializable {
     this.scmTag = scmTag;
     this.buildPackageDirectory = buildPackageDirectory;
     this.maintainers = maintainers;
+    this.commandExecutionArgs = commandExecutionArgs;
   }
 }
 

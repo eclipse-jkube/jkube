@@ -188,6 +188,7 @@ public class MavenUtil {
             if (mavenSession.getExecutionProperties() != null) {
                 properties.putAll(mavenSession.getExecutionProperties());
             }
+            builder.commandExecutionArgs(getCommandExecutionArgs(mavenSession));
         }
 
         builder.name(mavenProject.getName())
@@ -278,6 +279,24 @@ public class MavenUtil {
             return artifact.getFile();
         }
         return null;
+    }
+
+    private static List<String> getCommandExecutionArgs(MavenSession mavenSession) {
+        List<String> args = new ArrayList<>();
+        if (mavenSession.getRequest().getGoals() != null) {
+            args.addAll(mavenSession.getGoals());
+        }
+        if (mavenSession.getRequest().getUserProperties() != null) {
+            Properties userProperties = mavenSession.getUserProperties();
+            for (Object key : userProperties.entrySet()) {
+                args.add(String.format("-D%s", key));
+            }
+        }
+        if (mavenSession.getRequest().getActiveProfiles() != null && !mavenSession.getRequest().getActiveProfiles().isEmpty()) {
+            List<String> activeProfiles = mavenSession.getRequest().getActiveProfiles();
+            args.add(String.format("-P%s", String.join(",", activeProfiles)));
+        }
+        return args;
     }
 }
 

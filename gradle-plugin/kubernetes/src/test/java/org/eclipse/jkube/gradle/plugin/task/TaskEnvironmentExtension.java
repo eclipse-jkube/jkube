@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -61,6 +62,8 @@ public class TaskEnvironmentExtension implements BeforeEachCallback, AfterEachCa
 
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
     when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(mock(JavaPluginConvention.class));
+    when(project.getGradle().getStartParameter().getTaskNames()).thenReturn(Collections.emptyList());
+    when(project.getGradle().getStartParameter().getSystemPropertiesArgs()).thenReturn(Collections.emptyMap());
     defaultTaskMockedConstruction = mockConstruction(DefaultTask.class, (mock, ctx) -> {
       when(mock.getProject()).thenReturn(project);
       when(mock.getLogger()).thenReturn(logger);
