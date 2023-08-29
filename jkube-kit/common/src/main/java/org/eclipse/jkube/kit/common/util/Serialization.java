@@ -23,10 +23,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 public class Serialization {
@@ -94,6 +96,10 @@ public class Serialization {
 
   public static <T> T unmarshal(String string, Class<T> type) {
     return KUBERNETES_SERIALIZATION.unmarshal(string, type);
+  }
+
+  public static <T> T unmarshal(String string, TypeReference<T> type) {
+    return unmarshal(new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8)), type);
   }
 
   public static <T> T merge(T original, T overrides) throws IOException {

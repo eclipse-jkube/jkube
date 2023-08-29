@@ -22,19 +22,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.Arguments;
@@ -56,26 +53,14 @@ import com.google.cloud.tools.jib.api.buildplan.FilePermissions;
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
 import com.google.cloud.tools.jib.api.buildplan.Port;
 import com.google.cloud.tools.jib.event.events.ProgressEvent;
-import com.google.cloud.tools.jib.event.progress.ProgressEventHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 
-import static com.google.cloud.tools.jib.api.LayerConfiguration.DEFAULT_FILE_PERMISSIONS_PROVIDER;
-import static org.fusesource.jansi.Ansi.ansi;
+import static com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer.DEFAULT_FILE_PERMISSIONS_PROVIDER;
 
 public class JibServiceUtil {
-    /**
-     * Line above progress bar.
-     */
-    private static final String HEADER = "Executing tasks:";
-
-    /**
-     * Maximum number of bars in the progress display.
-     */
-    private static final int PROGRESS_BAR_COUNT = 30;
-    public static final String JIB_LOG_PREFIX = "JIB> ";
 
     private JibServiceUtil() {
     }
@@ -91,7 +76,7 @@ public class JibServiceUtil {
      * @param logger kit logger
      * @throws InterruptedException in case thread is interrupted
      */
-    public static void buildContainer(JibContainerBuilder jibContainerBuilder, TarImage image, KitLogger logger)
+    public static void buildContainer(JibContainerBuilder jibContainerBuilder, TarImage image, JibLogger logger)
             throws InterruptedException {
 
         final ExecutorService jibBuildExecutor = Executors.newCachedThreadPool();
@@ -100,12 +85,11 @@ public class JibServiceUtil {
             jibContainerBuilder.containerize(Containerizer.to(image)
                 .setAllowInsecureRegistries(true)
                 .setExecutorService(jibBuildExecutor)
-                .addEventHandler(LogEvent.class, log(logger))
-                .addEventHandler(ProgressEvent.class, new ProgressEventHandler(logUpdate())));
-            logUpdateFinished();
+                .addEventHandler(LogEvent.class, logger)
+                .addEventHandler(ProgressEvent.class, logger.progressEventHandler()));
+            logger.updateFinished();
         } catch (CacheDirectoryCreationException | IOException | ExecutionException | RegistryException ex) {
-            logger.error("Unable to build the image tarball: ", ex);
-            throw new IllegalStateException(ex);
+            throw new IllegalStateException("Unable to build the image tarball: " + ex.getMessage(), ex);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw ex;
@@ -117,8 +101,9 @@ public class JibServiceUtil {
 
     public static JibContainerBuilder containerFromImageConfiguration(
         ImageConfiguration imageConfiguration, String pullRegistry, Credential pullRegistryCredential) throws InvalidImageReferenceException {
-        final JibContainerBuilder containerBuilder = Jib.from(getRegistryImage(getBaseImage(imageConfiguration, pullRegistry), pullRegistryCredential))
-                .setFormat(ImageFormat.Docker);
+        final JibContainerBuilder containerBuilder = Jib
+          .from(toRegistryImage(getBaseImage(imageConfiguration, pullRegistry), pullRegistryCredential))
+          .setFormat(ImageFormat.Docker);
         return populateContainerBuilderFromImageConfiguration(containerBuilder, imageConfiguration);
     }
 
@@ -140,33 +125,25 @@ public class JibServiceUtil {
      * @param tarArchive         tar archive built during build goal
      * @param log                Logger
      */
-    public static void jibPush(ImageConfiguration imageConfiguration, Credential pushCredentials, File tarArchive, KitLogger log) {
+    public static void jibPush(ImageConfiguration imageConfiguration, Credential pushCredentials, File tarArchive, JibLogger log) {
         String imageName = getFullImageName(imageConfiguration, null);
         List<String> additionalTags = imageConfiguration.getBuildConfiguration().getTags();
         try {
-            log.info("Pushing image: %s", imageName);
             pushImage(TarImage.at(tarArchive.toPath()), additionalTags, imageName, pushCredentials, log);
-        } catch (IllegalStateException e) {
-            log.error("Exception occurred while pushing the image: %s", imageConfiguration.getName());
-            throw new IllegalStateException(e.getMessage(), e);
         } catch (InterruptedException e) {
-            log.error("Thread interrupted", e);
             Thread.currentThread().interrupt();
+            throw new IllegalStateException("Thread Interrupted", e);
         }
     }
 
-    private static void pushImage(TarImage baseImage, List<String> additionalTags, String targetImageName, Credential credential, KitLogger logger)
-            throws InterruptedException {
+    private static void pushImage(TarImage baseImage, List<String> additionalTags, String targetImageName, Credential credential, JibLogger logger)
+        throws InterruptedException {
 
         final ExecutorService jibBuildExecutor = Executors.newCachedThreadPool();
         try {
-            submitPushToJib(baseImage, getRegistryImage(targetImageName, credential), additionalTags, jibBuildExecutor, logger);
+            submitPushToJib(baseImage, toRegistryImage(targetImageName, credential), additionalTags, jibBuildExecutor, logger);
         } catch (RegistryException | CacheDirectoryCreationException | InvalidImageReferenceException | IOException | ExecutionException e) {
-            logger.error("Exception occurred while pushing the image: %s, %s", targetImageName, e.getMessage());
-            throw new IllegalStateException(e.getMessage(), e);
-        } catch (InterruptedException ex) {
-            logger.error("Thread interrupted", ex);
-            throw ex;
+            throw new IllegalStateException("Exception occurred while pushing the image: " + targetImageName + ", " + e.getMessage(), e);
         } finally {
             jibBuildExecutor.shutdown();
             jibBuildExecutor.awaitTermination(JIB_EXECUTOR_SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -208,63 +185,32 @@ public class JibServiceUtil {
         return containerBuilder;
     }
 
-    static Set<String> getAllImageTags(List<String> tags, String imageName) {
-        ImageName tempImage = new ImageName(imageName);
-        Set<String> tagSet = tags.stream().filter(Objects::nonNull).collect(Collectors.toSet());
-        if (!tempImage.getTag().isEmpty()) {
-            tagSet.add(tempImage.getTag());
-        }
-        return tagSet;
+    private static void submitPushToJib(TarImage baseImage, RegistryImage targetImage, List<String> additionalTags, ExecutorService jibBuildExecutor, JibLogger logger) throws InterruptedException, ExecutionException, RegistryException, CacheDirectoryCreationException, IOException {
+        Jib
+          .from(baseImage)
+          .setCreationTime(Instant.now())
+          .containerize(createJibContainerizer(targetImage, additionalTags, jibBuildExecutor, logger));
+        logger.updateFinished();
     }
 
-    private static void submitPushToJib(TarImage baseImage, RegistryImage targetImage, List<String> additionalTags, ExecutorService jibBuildExecutor, KitLogger logger) throws InterruptedException, ExecutionException, RegistryException, CacheDirectoryCreationException, IOException {
-        Jib.from(baseImage).setCreationTime(Instant.now()).containerize(createJibContainerizer(targetImage, additionalTags, jibBuildExecutor, logger));
-        logUpdateFinished();
-    }
-
-    private static Containerizer createJibContainerizer(RegistryImage targetImage, List<String> additionalTags, ExecutorService jibBuildExecutor, KitLogger logger) {
+    private static Containerizer createJibContainerizer(RegistryImage targetImage, List<String> additionalTags, ExecutorService jibBuildExecutor, JibLogger logger) {
         Containerizer containerizer = Containerizer.to(targetImage)
             .setAllowInsecureRegistries(true)
             .setExecutorService(jibBuildExecutor)
-            .addEventHandler(LogEvent.class, log(logger))
-            .addEventHandler(ProgressEvent.class, new ProgressEventHandler(logUpdate()));
+            .addEventHandler(LogEvent.class, logger)
+            .addEventHandler(ProgressEvent.class, logger.progressEventHandler());
         if (additionalTags != null) {
             additionalTags.forEach(containerizer::withAdditionalTag);
         }
         return containerizer;
     }
 
-    private static RegistryImage getRegistryImage(String targetImage, Credential credential) throws InvalidImageReferenceException {
-        RegistryImage registryImage = RegistryImage.named(targetImage);
+    private static RegistryImage toRegistryImage(String imageReference, Credential credential) throws InvalidImageReferenceException {
+        RegistryImage registryImage = RegistryImage.named(imageReference);
         if (credential != null && !credential.getUsername().isEmpty() && !credential.getPassword().isEmpty()) {
             registryImage.addCredential(credential.getUsername(), credential.getPassword());
         }
         return registryImage;
-    }
-
-    private static Consumer<LogEvent> log(KitLogger logger) {
-        return le -> {
-            if (le.getLevel() != LogEvent.Level.DEBUG || logger.isVerboseEnabled() || logger.isDebugEnabled()) {
-                System.out.println(ansi().cursorUpLine(1).eraseLine().a(JIB_LOG_PREFIX)
-                        .a(StringUtils.rightPad(le.getMessage(), 120)).a("\n"));
-            }
-        };
-    }
-
-    private static Consumer<ProgressEventHandler.Update> logUpdate() {
-        return update -> {
-            final List<String> progressDisplay =
-                    generateProgressDisplay(update.getProgress(), update.getUnfinishedLeafTasks());
-            if (progressDisplay.size() > 2 && progressDisplay.stream().allMatch(Objects::nonNull)) {
-                final String progressBar = progressDisplay.get(1);
-                final String task = progressDisplay.get(2);
-                System.out.println(ansi().cursorUpLine(1).eraseLine().a(JIB_LOG_PREFIX).a(progressBar).a(" ").a(task));
-            }
-        };
-    }
-
-    private static void logUpdateFinished() {
-        System.out.println(JIB_LOG_PREFIX + generateProgressBar(1.0F));
     }
 
     public static String getBaseImage(ImageConfiguration imageConfiguration, String optionalRegistry) {
@@ -303,48 +249,4 @@ public class JibServiceUtil {
         return fileEntriesLayers;
     }
 
-    /**
-     * Generates a progress display.
-     *
-     * Taken from https://github.com/GoogleContainerTools/jib/blob/master/jib-plugins-common/src/main/java/com/google/cloud/tools/jib/plugins/common/logging/ProgressDisplayGenerator.java#L47
-     *
-     * @param progress the overall progress, with {@code 1.0} meaning fully complete
-     * @param unfinishedLeafTasks the unfinished leaf tasks
-     * @return the progress display as a list of lines
-     */
-    private static List<String> generateProgressDisplay(double progress, List<String> unfinishedLeafTasks) {
-        List<String> lines = new ArrayList<>();
-
-        lines.add(HEADER);
-        lines.add(generateProgressBar(progress));
-        for (String task : unfinishedLeafTasks) {
-            lines.add("> " + task);
-        }
-
-        return lines;
-    }
-
-    /**
-     * Generates the progress bar line.
-     *
-     * Taken from https://github.com/GoogleContainerTools/jib/blob/master/jib-plugins-common/src/main/java/com/google/cloud/tools/jib/plugins/common/logging/ProgressDisplayGenerator.java#L66
-     *
-     * @param progress the overall progress, with {@code 1.0} meaning fully complete
-     * @return the progress bar line
-     */
-    private static String generateProgressBar(double progress) {
-        StringBuilder progressBar = new StringBuilder();
-        progressBar.append('[');
-
-        int barsToDisplay = (int) Math.round(PROGRESS_BAR_COUNT * progress);
-        for (int barIndex = 0; barIndex < PROGRESS_BAR_COUNT; barIndex++) {
-            progressBar.append(barIndex < barsToDisplay ? '=' : ' ');
-        }
-
-        return progressBar
-                .append(']')
-                .append(String.format(" %.1f", progress * 100))
-                .append("% complete")
-                .toString();
-    }
 }

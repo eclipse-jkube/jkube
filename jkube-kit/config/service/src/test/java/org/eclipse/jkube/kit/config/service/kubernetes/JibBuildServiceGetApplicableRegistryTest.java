@@ -39,7 +39,7 @@ class JibBuildServiceGetApplicableRegistryTest {
     RegistryConfig registryConfig = RegistryConfig.builder().build();
 
     // When
-    String pullRegistry = JibBuildService.getApplicableRegistry(false, imageConfiguration, registryConfig);
+    String pullRegistry = JibBuildService.getPullRegistry(imageConfiguration, registryConfig);
 
     // Then
     assertThat(pullRegistry).isEqualTo(expectedPullRegistry);
@@ -59,7 +59,7 @@ class JibBuildServiceGetApplicableRegistryTest {
     RegistryConfig registryConfig = RegistryConfig.builder().registry("quay.io").build();
 
     // When
-    String pullRegistry = JibBuildService.getApplicableRegistry(false, imageConfiguration, registryConfig);
+    String pullRegistry = JibBuildService.getPullRegistry(imageConfiguration, registryConfig);
 
     // Then
     assertThat(pullRegistry).isEqualTo(expectedPullRegistry);
@@ -77,7 +77,7 @@ class JibBuildServiceGetApplicableRegistryTest {
     RegistryConfig registryConfig = RegistryConfig.builder().registry("quay.io").build();
 
     // When
-    String pullRegistry = JibBuildService.getApplicableRegistry(false, imageConfiguration, registryConfig);
+    String pullRegistry = JibBuildService.getPullRegistry(imageConfiguration, registryConfig);
 
     // Then
     assertThat(pullRegistry).isEqualTo(expectedPullRegistry);
@@ -101,7 +101,7 @@ class JibBuildServiceGetApplicableRegistryTest {
     RegistryConfig registryConfig = RegistryConfig.builder().build();
 
     // When
-    String pullRegistry = JibBuildService.getApplicableRegistry(true, imageConfiguration, registryConfig);
+    String pullRegistry = JibBuildService.getPushRegistry(imageConfiguration, registryConfig);
 
     // Then
     assertThat(pullRegistry).isEqualTo(expectedPushRegistry);
@@ -121,7 +121,7 @@ class JibBuildServiceGetApplicableRegistryTest {
     RegistryConfig registryConfig = RegistryConfig.builder().registry("quay.io").build();
 
     // When
-    String pullRegistry = JibBuildService.getApplicableRegistry(true, imageConfiguration, registryConfig);
+    String pullRegistry = JibBuildService.getPushRegistry(imageConfiguration, registryConfig);
 
     // Then
     assertThat(pullRegistry).isEqualTo(expectedPushRegistry);
@@ -141,7 +141,7 @@ class JibBuildServiceGetApplicableRegistryTest {
     RegistryConfig registryConfig = RegistryConfig.builder().build();
 
     // When
-    String pullRegistry = JibBuildService.getApplicableRegistry(true, imageConfiguration, registryConfig);
+    String pullRegistry = JibBuildService.getPushRegistry(imageConfiguration, registryConfig);
 
     // Then
     assertThat(pullRegistry).isEqualTo(expectedPushRegistry);
@@ -159,7 +159,7 @@ class JibBuildServiceGetApplicableRegistryTest {
     RegistryConfig registryConfig = RegistryConfig.builder().build();
 
     // When
-    String pullRegistry = JibBuildService.getApplicableRegistry(true, imageConfiguration, registryConfig);
+    String pullRegistry = JibBuildService.getPushRegistry(imageConfiguration, registryConfig);
 
     // Then
     assertThat(pullRegistry).isEqualTo(expectedPushRegistry);
@@ -177,7 +177,7 @@ class JibBuildServiceGetApplicableRegistryTest {
     RegistryConfig registryConfig = RegistryConfig.builder().registry("quay.io").build();
 
     // When
-    String pullRegistry = JibBuildService.getApplicableRegistry(true, imageConfiguration, registryConfig);
+    String pullRegistry = JibBuildService.getPushRegistry(imageConfiguration, registryConfig);
 
     // Then
     assertThat(pullRegistry).isEqualTo(expectedPushRegistry);

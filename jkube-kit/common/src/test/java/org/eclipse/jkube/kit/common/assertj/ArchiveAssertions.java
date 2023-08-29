@@ -14,11 +14,13 @@
 package org.eclipse.jkube.kit.common.assertj;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -26,6 +28,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.apache.commons.io.IOUtils;
+import org.assertj.core.api.AbstractByteArrayAssert;
 import org.assertj.core.api.AbstractFileAssert;
 import org.assertj.core.api.AbstractListAssert;
 import org.assertj.core.api.InputStreamAssert;
@@ -95,6 +98,22 @@ public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
   public AbstractListAssert<ListAssert<TarArchiveEntry>, List<? extends TarArchiveEntry>, TarArchiveEntry, ObjectAssert<TarArchiveEntry>> entries()
       throws IOException {
     return org.assertj.core.api.Assertions.assertThat(loadEntries());
+  }
+
+  public AbstractByteArrayAssert<?> entry(String name) throws IOException {
+    final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    final AtomicBoolean found = new AtomicBoolean(false);
+    processArchive(actual, (entry, tis) -> {
+      if (entry.getName().equals(name)) {
+        found.set(true);
+        IOUtils.copy(tis, baos);
+      }
+    });
+    if (!found.get()) {
+      throw failures.failure(info, new BasicErrorMessageFactory("%nExpecting archive <%s>%n to contain entry with name:%n <%s>%n",
+        actual.getName(), name));
+    }
+    return org.assertj.core.api.Assertions.assertThat(baos.toByteArray());
   }
 
   public AbstractListAssert<ListAssert<String>, List<? extends String>, String, ObjectAssert<String>> fileTree()

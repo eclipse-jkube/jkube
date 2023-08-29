@@ -68,7 +68,7 @@ public class JKubeServiceHub implements Closeable {
     private LazyBuilder<JKubeServiceHub, KubernetesClient> kubernetesClientLazyBuilder;
     private final boolean offline;
 
-    @Builder
+    @Builder(toBuilder = true)
     public JKubeServiceHub(
             ClusterAccess clusterAccess, RuntimeMode platformMode, KitLogger log,
             DockerServiceHub dockerServiceHub, JKubeConfiguration configuration,

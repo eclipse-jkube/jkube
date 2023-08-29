@@ -21,7 +21,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
@@ -69,11 +68,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JibServiceUtilTest {
-    private KitLogger kitLogger;
+    private JibLogger jibLogger;
 
     @BeforeEach
     void setUp() {
-        kitLogger = new KitLogger.SilentLogger();
+        jibLogger = new JibLogger(new KitLogger.SilentLogger());
     }
 
     @Test
@@ -112,19 +111,6 @@ class JibServiceUtilTest {
             verify(jibContainerBuilder, times(1)).setFormat(ImageFormat.Docker);
         }
 
-    }
-
-    @Test
-    void testAppendOriginalImageNameTagIfApplicable() {
-        // Given
-        List<String> imageTagList = Arrays.asList("0.0.1", "0.0.1-SNAPSHOT");
-        // When
-        Set<String> result = JibServiceUtil.getAllImageTags(imageTagList, "test-project");
-        // Then
-        assertThat(result)
-            .isNotNull()
-            .hasSize(3)
-            .containsExactlyInAnyOrder("0.0.1-SNAPSHOT", "0.0.1", "latest");
     }
 
     @Test
@@ -206,7 +192,7 @@ class JibServiceUtilTest {
             containerizerMockedStatic.when(() -> Containerizer.to(tarImage)).thenReturn(containerizer);
 
             // When
-            JibServiceUtil.buildContainer(jibContainerBuilder, tarImage, kitLogger);
+            JibServiceUtil.buildContainer(jibContainerBuilder, tarImage, jibLogger);
 
             // Then
             verify(containerizer).setAllowInsecureRegistries(true);
@@ -228,7 +214,7 @@ class JibServiceUtilTest {
 
             // When
             assertThatIllegalStateException()
-                .isThrownBy(() -> JibServiceUtil.buildContainer(jibContainerBuilder, tarImage, kitLogger))
+                .isThrownBy(() -> JibServiceUtil.buildContainer(jibContainerBuilder, tarImage, jibLogger))
                 .withMessageContaining("Unable to pull base image");
 
             // Then
@@ -255,8 +241,8 @@ class JibServiceUtilTest {
 
             // When + Then
             assertThatIllegalStateException()
-                .isThrownBy(() -> JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, kitLogger))
-                .withMessage("Unauthorized");
+                .isThrownBy(() -> JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, jibLogger))
+                .withMessage("Exception occurred while pushing the image: test/test-project:latest, Unauthorized");
         }
     }
 
@@ -274,7 +260,7 @@ class JibServiceUtilTest {
             File tarArchive = new File("docker-build.tar");
 
             // When
-            JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, kitLogger);
+            JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, jibLogger);
 
             // Then
             verify(containerizer, times(0)).withAdditionalTag(anyString());
@@ -301,7 +287,7 @@ class JibServiceUtilTest {
             File tarArchive = new File("docker-build.tar");
 
             // When
-            JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, kitLogger);
+            JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, jibLogger);
 
             // Then
             verify(containerizer).withAdditionalTag("t1");
