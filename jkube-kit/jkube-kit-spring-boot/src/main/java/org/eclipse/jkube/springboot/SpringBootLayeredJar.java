@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.springboot;
 
+import lombok.Getter;
 import org.eclipse.jkube.kit.common.ExternalCommand;
 import org.eclipse.jkube.kit.common.KitLogger;
 
@@ -21,11 +22,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SpringBootLayeredJarExecUtils {
-  private SpringBootLayeredJarExecUtils() { }
+public class SpringBootLayeredJar {
 
-  public static List<String> listLayers(KitLogger kitLogger, File layeredJar) {
-    LayerListCommand layerListCommand = new LayerListCommand(kitLogger, layeredJar);
+  private final File layeredJar;
+  private final KitLogger kitLogger;
+
+  public SpringBootLayeredJar(File layeredJar, KitLogger kitLogger) {
+    this.layeredJar = layeredJar;
+    this.kitLogger = kitLogger;
+  }
+
+  public List<String> listLayers() {
+    final LayerListCommand layerListCommand = new LayerListCommand(kitLogger, layeredJar);
     try {
       layerListCommand.execute();
       return layerListCommand.getLayers();
@@ -34,10 +42,9 @@ public class SpringBootLayeredJarExecUtils {
     }
   }
 
-  public static void extractLayers(KitLogger kitLogger, File extractionDir, File layeredJar) {
-    LayerExtractorCommand layerExtractorCommand = new LayerExtractorCommand(kitLogger, extractionDir, layeredJar);
+  public void extractLayers(File extractionDir) {
     try {
-      layerExtractorCommand.execute();
+      new LayerExtractorCommand(kitLogger, extractionDir, layeredJar).execute();
     } catch (IOException ioException) {
       throw new IllegalStateException("Failure in extracting spring boot jar layers", ioException);
     }
@@ -57,12 +64,14 @@ public class SpringBootLayeredJarExecUtils {
   }
 
   private static class LayerListCommand extends ExternalCommand {
-    private final List<String> layers;
     private final File layeredJar;
+    @Getter
+    private final List<String> layers;
+
     protected LayerListCommand(KitLogger log, File layeredJar) {
       super(log);
-      layers = new ArrayList<>();
       this.layeredJar = layeredJar;
+      layers = new ArrayList<>();
     }
 
     @Override
@@ -75,8 +84,5 @@ public class SpringBootLayeredJarExecUtils {
       layers.add(line);
     }
 
-    public List<String> getLayers() {
-      return layers;
-    }
   }
 }

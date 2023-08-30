@@ -63,7 +63,7 @@ public interface SpringBootNestedGenerator {
   static SpringBootNestedGenerator from(GeneratorContext generatorContext, GeneratorConfig generatorConfig, FatJarDetector.Result fatJarDetectorResult) {
     if (fatJarDetectorResult != null && fatJarDetectorResult.getArchiveFile() != null &&
         isLayeredJar(fatJarDetectorResult.getArchiveFile())) {
-      return new LayeredJarGenerator(generatorContext, generatorConfig, fatJarDetectorResult);
+      return new LayeredJarGenerator(generatorContext, generatorConfig, fatJarDetectorResult.getArchiveFile());
     }
     return new FatJarGenerator(generatorContext, generatorConfig);
   }
