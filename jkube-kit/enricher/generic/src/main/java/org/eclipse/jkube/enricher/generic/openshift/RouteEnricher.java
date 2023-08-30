@@ -108,11 +108,10 @@ public class RouteEnricher extends BaseEnricher implements ServiceExposer {
                     getConfig(Config.TLS_INSECURE_EDGE_TERMINATION_POLICY, "Allow"),
                     isRouteWithTLS());
             if (opinionatedRoute != null) {
-                int routeFromFragmentIndex = getRouteIndexWithName(listBuilder, serviceName);
-                if (routeFromFragmentIndex >= 0) { // Merge fragment with Opinionated Route
-                    Route routeFragment = (Route) listBuilder.buildItems().get(routeFromFragmentIndex);
-                    Route mergedRoute = mergeRoute(routeFragment, opinionatedRoute);
-                    removeItemFromKubernetesBuilder(listBuilder, listBuilder.buildItems().get(routeFromFragmentIndex));
+                final Route mergeableRouteFragment = getMergeableFragment(listBuilder, serviceName);
+                if (mergeableRouteFragment != null) { // Merge fragment with Opinionated Route
+                    removeItemFromKubernetesBuilder(listBuilder, mergeableRouteFragment);
+                    Route mergedRoute = mergeRoute(mergeableRouteFragment, opinionatedRoute);
                     listBuilder.addToItems(mergedRoute);
                 } else { // No fragment provided. Use Opinionated Route.
                     listBuilder.addToItems(opinionatedRoute);
@@ -159,6 +158,7 @@ public class RouteEnricher extends BaseEnricher implements ServiceExposer {
         }
 
         mergeMetadata(routeFromFragment, opinionatedRoute);
+        routeFromFragment.getMetadata().setName(opinionatedRoute.getMetadata().getName());
 
         // Merge spec
         if (routeFromFragment.getSpec() != null) {
@@ -187,19 +187,25 @@ public class RouteEnricher extends BaseEnricher implements ServiceExposer {
         return fragmentSpec;
     }
 
-    static int getRouteIndexWithName(final KubernetesListBuilder listBuilder, final String name) {
-        int routeInListIndex = -1;
-        int index = 0;
+    /**
+     * Returns a fragment of a Route to be merged with the opinionated defaults
+     * (user provides partial Route).
+     * Or null if no Route is found or non is to be merged.
+     *
+     * We want to merge Routes which either have no name, or have the same name as the opinionated default.
+     */
+    static Route getMergeableFragment(final KubernetesListBuilder listBuilder, final String name) {
         for (HasMetadata item : listBuilder.buildItems()) {
-            if (item != null &&
-              item.getMetadata() != null &&
-              Objects.equals(item.getMetadata().getName(), name) &&
-              item instanceof Route) {
-                routeInListIndex = index;
+            if (item instanceof Route) {
+                if (item.getMetadata() == null ||
+                  item.getMetadata().getName() == null ||
+                  Objects.equals(item.getMetadata().getName(), name)
+                ) {
+                    return (Route) item;
+                }
             }
-            index++;
         }
-        return routeInListIndex;
+        return null;
     }
 
     private static void handleTlsTermination(RouteBuilder routeBuilder, String tlsTermination, String edgeTerminationPolicy, boolean isRouteWithTLS) {
