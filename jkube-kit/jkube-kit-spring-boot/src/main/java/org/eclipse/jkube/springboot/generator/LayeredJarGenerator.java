@@ -15,11 +15,11 @@ package org.eclipse.jkube.springboot.generator;
 
 import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.springboot.SpringBootLayeredJar;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,38 +29,37 @@ import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
-import static org.eclipse.jkube.springboot.SpringBootLayeredJarExecUtils.extractLayers;
-import static org.eclipse.jkube.springboot.SpringBootLayeredJarExecUtils.listLayers;
 
 public class LayeredJarGenerator extends AbstractSpringBootNestedGenerator {
-  private final FatJarDetector.Result fatJarDetectorResult;
-  public LayeredJarGenerator(GeneratorContext generatorContext, GeneratorConfig generatorConfig, FatJarDetector.Result result) {
+
+  private static final String MAIN_CLASS = "org.springframework.boot.loader.JarLauncher";
+  private final SpringBootLayeredJar springBootLayeredJar;
+
+  public LayeredJarGenerator(GeneratorContext generatorContext, GeneratorConfig generatorConfig, File layeredJar) {
     super(generatorContext, generatorConfig);
-    fatJarDetectorResult = result;
+    springBootLayeredJar = new SpringBootLayeredJar(layeredJar, getLogger());
   }
 
   @Override
   public Arguments getBuildEntryPoint() {
     return Arguments.builder()
-        .exec(Arrays.asList("java", "org.springframework.boot.loader.JarLauncher"))
+        .exec(Arrays.asList("java", MAIN_CLASS))
         .build();
   }
 
   @Override
   public Map<String, String> getEnv() {
-    return Collections.singletonMap("JAVA_MAIN_CLASS", "org.springframework.boot.loader.JarLauncher");
+    return Collections.singletonMap("JAVA_MAIN_CLASS", MAIN_CLASS);
   }
 
   @Override
   public AssemblyConfiguration createAssemblyConfiguration(List<AssemblyFileSet> defaultFileSets) {
     getLogger().info("Spring Boot layered jar detected");
-
-    List<String> layerNames = listLayers(getLogger(), fatJarDetectorResult.getArchiveFile());
-    List<Assembly> layerAssemblies = new ArrayList<>();
+    final List<Assembly> layerAssemblies = new ArrayList<>();
     layerAssemblies.add(Assembly.builder().id("jkube-includes").fileSets(defaultFileSets).build());
-    extractLayers(getLogger(), getProject().getBuildPackageDirectory(), fatJarDetectorResult.getArchiveFile());
+    springBootLayeredJar.extractLayers(getProject().getBuildPackageDirectory());
 
-    for (String springBootLayer : layerNames) {
+    for (String springBootLayer : springBootLayeredJar.listLayers()) {
       File layerDir = new File(getProject().getBuildPackageDirectory(), springBootLayer);
       layerAssemblies.add(Assembly.builder()
               .id(springBootLayer)

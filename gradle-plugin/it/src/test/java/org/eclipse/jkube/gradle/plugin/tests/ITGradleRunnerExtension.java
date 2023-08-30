@@ -86,10 +86,6 @@ public class ITGradleRunnerExtension implements BeforeEachCallback, AfterEachCal
     return resolveFile("build", "classes", "java", "main", "META-INF", "jkube", "openshift");
   }
 
-  public File resolveDefaultDockerfile(String imageNamespace, String imageName, String imageTag) {
-    return resolveFile("build", "docker", imageNamespace, imageName, imageTag, "build", "Dockerfile");
-  }
-
   public BuildResult build() {
     return gradleRunner.build();
   }

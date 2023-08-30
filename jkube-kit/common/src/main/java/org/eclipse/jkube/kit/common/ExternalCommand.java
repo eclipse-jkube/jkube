@@ -32,7 +32,6 @@ import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author roland
- * @since 14/09/16
  */
 public abstract class ExternalCommand {
     protected final KitLogger log;
