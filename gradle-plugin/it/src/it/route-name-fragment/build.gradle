@@ -28,10 +28,17 @@ openshift {
     offline = true
     images {
         image {
-            name = 'repository/route:latest'
+            name = 'repository/route-name-fragment:latest'
             build {
                 from = 'quay.io/jkube/jkube-java'
                 ports = ['8080']
+            }
+        }
+    }
+    enricher {
+        config {
+            'jkube-service' {
+                name = 'customized-name'
             }
         }
     }

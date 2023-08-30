@@ -125,9 +125,8 @@ public class KubernetesResourceUtil {
     }
 
     public static void removeItemFromKubernetesBuilder(KubernetesListBuilder builder, HasMetadata item) {
-        List<HasMetadata> items = builder.buildItems();
-        List<HasMetadata> newListItems = new ArrayList<>();
-        for(HasMetadata listItem : items) {
+        final List<HasMetadata> newListItems = new ArrayList<>();
+        for(HasMetadata listItem : builder.buildItems()) {
             if(!listItem.equals(item)) {
                 newListItems.add(listItem);
             }
@@ -678,29 +677,34 @@ public class KubernetesResourceUtil {
         return resource1OrCopy;
     }
 
-    private static void mergeMetadata(PodTemplateSpec item1, PodTemplateSpec item2) {
-        if (item1 != null && item2 != null) {
-            ObjectMeta metadata1 = item1.getMetadata();
-            ObjectMeta metadata2 = item2.getMetadata();
-            if (metadata1 == null) {
-                item1.setMetadata(metadata2);
-            } else if (metadata2 != null) {
-                metadata1.setAnnotations(mergeMapsAndRemoveEmptyStrings(metadata2.getAnnotations(), metadata1.getAnnotations()));
-                metadata1.setLabels(mergeMapsAndRemoveEmptyStrings(metadata2.getLabels(), metadata1.getLabels()));
+    private static void mergeMetadata(PodTemplateSpec target, PodTemplateSpec source) {
+        if (target != null && source != null) {
+            final ObjectMeta targetMeta = target.getMetadata();
+            final ObjectMeta sourceMeta = source.getMetadata();
+            if (targetMeta == null) {
+                target.setMetadata(sourceMeta);
+            } else if (sourceMeta != null) {
+                mergeMetadata(targetMeta, sourceMeta);
             }
         }
     }
 
-    public static void mergeMetadata(HasMetadata item1, HasMetadata item2) {
-        if (item1 != null && item2 != null) {
-            ObjectMeta metadata1 = item1.getMetadata();
-            ObjectMeta metadata2 = item2.getMetadata();
-            if (metadata1 == null) {
-                item1.setMetadata(metadata2);
-            } else if (metadata2 != null) {
-                metadata1.setAnnotations(mergeMapsAndRemoveEmptyStrings(metadata2.getAnnotations(), metadata1.getAnnotations()));
-                metadata1.setLabels(mergeMapsAndRemoveEmptyStrings(metadata2.getLabels(), metadata1.getLabels()));
+    public static void mergeMetadata(HasMetadata target, HasMetadata source) {
+        if (target != null && source != null) {
+            final ObjectMeta targetMeta = target.getMetadata();
+            final ObjectMeta sourceMeta = source.getMetadata();
+            if (targetMeta == null) {
+                target.setMetadata(sourceMeta);
+            } else if (sourceMeta != null) {
+                mergeMetadata(targetMeta, sourceMeta);
             }
+        }
+    }
+
+    public static void mergeMetadata(ObjectMeta target, ObjectMeta source) {
+        if (target != null && source != null) {
+            target.setAnnotations(mergeMapsAndRemoveEmptyStrings(source.getAnnotations(), target.getAnnotations()));
+            target.setLabels(mergeMapsAndRemoveEmptyStrings(source.getLabels(), target.getLabels()));
         }
     }
 
