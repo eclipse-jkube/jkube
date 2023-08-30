@@ -31,13 +31,11 @@ pipeline {
       unsuccessful {
           emailext subject: '[JKube] SNAPSHOT deployment: Failure $BUILD_STATUS $PROJECT_NAME #$BUILD_NUMBER',
             body: '''Check console output at $BUILD_URL to view the results.''',
-            recipientProviders: [recipients()],
             to: jKubeInfraEmail
       }
       fixed {
           emailext subject: '[JKube] SNAPSHOT deployment: Bach to normal $BUILD_STATUS $PROJECT_NAME #$BUILD_NUMBER',
             body: '''Check console output at $BUILD_URL to view the results.''',
-            recipientProviders: [recipients()],
             to: jKubeInfraEmail
       }
   }
