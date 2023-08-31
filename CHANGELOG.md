@@ -20,6 +20,8 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.15-SNAPSHOT
+
 ### 1.14.0 (2023-08-31)
 * Fix #1674: SpringBootGenerator utilizes the layered jar if present and use it as Docker layers
 * Fix #1713: Add HelidonHealthCheckEnricher to add Kubernetes health checks for Helidon applications
