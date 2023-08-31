@@ -21,7 +21,7 @@
 
   <artifactId>eclipse-jkube-sample-custom-enricher-parent</artifactId>
   <groupId>org.eclipse.jkube.quickstarts.kit</groupId>
-  <version>1.14-SNAPSHOT</version>
+  <version>1.14.0</version>
   <packaging>pom</packaging>
 
   <parent>
