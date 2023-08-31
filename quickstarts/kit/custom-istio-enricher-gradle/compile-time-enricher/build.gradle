@@ -17,7 +17,7 @@ plugins {
 }
 
 dependencies {
-    implementation 'org.eclipse.jkube:jkube-kit-enricher-api:1.13.1'
+    implementation 'org.eclipse.jkube:jkube-kit-enricher-api:1.14.0'
 }
 
 publishing {

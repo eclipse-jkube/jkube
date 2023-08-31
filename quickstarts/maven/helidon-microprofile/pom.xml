@@ -26,7 +26,7 @@
     </parent>
     <groupId>org.eclipse.jkube.quickstarts.maven.helidon</groupId>
     <artifactId>helidon-microprofile</artifactId>
-    <version>1.14-SNAPSHOT</version>
+    <version>1.14.0</version>
 
     <properties>
         <jkube.version>${project.version}</jkube.version>

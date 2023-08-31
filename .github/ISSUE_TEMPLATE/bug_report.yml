@@ -46,6 +46,7 @@ body:
       description: Eclipse JKube version (can be found in pom.xml dependency or build.gradle implementation section)
       options:
         - "SNAPSHOT"
+        - "1.14.0"
         - "1.13.1"
         - "1.13.0"
         - "1.12.0"
