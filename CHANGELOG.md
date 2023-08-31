@@ -29,6 +29,7 @@ Usage:
 * Fix #1929: Docker Image Name parsing fix
 * Fix #1946: Initial support for Gitpod
 * Fix #1985: Update outdated methods in Spring Boot CRD Maven Quickstart
+* Fix #2091: Support for pushing Helm charts to OCI registries
 * Fix #2116: Remove user field from ImageName class
 * Fix #2219: Kind/Filename mappings include optional apiVersion configuration
 * Fix #2224: Quarkus native base image read from properties (configurable)
@@ -38,7 +39,7 @@ Usage:
 * Fix #2293: JibServiceUtil pushes separate images for additional tags specified in build configuration
 * Fix #2299: Gradle v8.x compatibility
 * Fix #2301: Add compatibility with SemVer versions
-* Fix #2302 Bump Kubernetes Client version to 6.8.0
+* Fix #2302: Bump Kubernetes Client version to 6.8.0
 * Fix #2324: Update SpringBootConfigurationHelper for Spring Boot 3.x
 * Fix #2350: Enrichers with NAME configuration override fragments with default names
 * Fix #2353: Add condition and alias to HelmDependency model
