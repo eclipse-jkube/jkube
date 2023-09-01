@@ -215,16 +215,10 @@ public class jrelease {
 
     }
 
-    private static String retrieveCurrentVersionFromPomFile() {
-        String currentVersion = "1.14-SNAPSHOT";
-        try {
-            MavenXpp3Reader reader = new MavenXpp3Reader();
-            Model model = reader.read(new FileReader("pom.xml"));
-            currentVersion = model.getVersion();
-        } catch (Exception e) {
-            // just use the default version
-        }
-        return currentVersion;
+    private static String retrieveCurrentVersionFromPomFile() throws Exception {
+        MavenXpp3Reader reader = new MavenXpp3Reader();
+        Model model = reader.read(new FileReader("pom.xml"));
+        return model.getVersion();
     }
 
     private static void print(String cmd) {
