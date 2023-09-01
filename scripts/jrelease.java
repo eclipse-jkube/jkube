@@ -48,17 +48,16 @@ public class jrelease {
         String currentVersion = retrieveCurrentVersionFromPomFile();
         print("Current version is @|bold,green " + currentVersion + "|@\n");
 
-        // guess the next maven release version from the current version
-        String nextReleaseVersion = guessNextReleaseVersion(currentVersion);
         // prompt the user for the release version
-        nextReleaseVersion = promptWithSuggestion("Enter the release version to use", nextReleaseVersion);
+        String nextReleaseVersion = promptWithSuggestion(
+                "Enter the release version to use",
+                guessNextReleaseVersion(currentVersion));
         print("Chosen release version is @|bold,green " + nextReleaseVersion + "|@");
 
-        // guess the next X.Y-SNAPSHOT version from the next release version by
-        // incrementing the minor version
-        String nextSnapshotVersion = guessNextSnapshotVersion(nextReleaseVersion);
         // prompt the user for the next snapshot version
-        nextSnapshotVersion = promptWithSuggestion("Enter the next snapshot version to use", nextSnapshotVersion);
+        String nextSnapshotVersion = promptWithSuggestion(
+                "Enter the next snapshot version to use",
+                guessNextSnapshotVersion(nextReleaseVersion));
         print("Chosen next snapshot version is @|bold,green " + nextSnapshotVersion + "|@");
 
         // display the git remotes
@@ -67,10 +66,8 @@ public class jrelease {
 
         // choose the git remote to use as a main repository
         String gitUpstreamRemote = promptWithSuggestion("Enter the git remote to use as the upstream", "origin");
-
         // choose the git remote to use as a fork repository
         String gitForkRemote = promptWithSuggestion("Enter the git remote to use as a fork", "fork");
-
         // choose the branch name to use for the release
         String releaseBranchName = promptWithSuggestion("Enter the branch name to use for the release", "release/"
                 + nextReleaseVersion);
@@ -84,45 +81,40 @@ public class jrelease {
         executeStep("git --no-pager log -n 5 --pretty=oneline --abbrev-commit --graph --decorate");
 
         // 2. Set release version
-        // ./scripts/release.sh setReleaseVersion 1.13.1
         // Make sure project.build.outputTimestamp property gets updated
         printStep(2, "Set release version");
         executeStep("./scripts/release.sh setReleaseVersion " + nextReleaseVersion);
 
         // 3. Update Quickstarts version
-        // ./scripts/quickstarts.sh version
         printStep(3, "Update Quickstarts version");
         executeStep("./scripts/quickstarts.sh version");
 
-        // 4. Replace ### 1.13-SNAPSHOT with ### 1.13.0 (2023-06-14) in CHANGELOG.md
-        // get the current snapshot version
+        // 4. Replace ### x.y-SNAPSHOT with ### x.y.z (yyyy-MM-dd) in CHANGELOG.md
         printStep(4, "Replace ### x.x-SNAPSHOT with ### x.y.z (202x-xx-xx) in CHANGELOG.md");
         String changelogNewReleaseHeader = "### " + nextReleaseVersion + " ("
                 + new SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date()) + ")";
         executeStep("sed -i 's/### " + currentVersion + "/" + changelogNewReleaseHeader + "/g' CHANGELOG.md");
 
-        // 5. Update bug templates to add versions:
-        // .github/ISSUE_TEMPLATE/bug_report.yml
-        printStep(5, "Update bug templates .github/ISSUE_TEMPLATE/bug_report.yml to add versions");
+        // 5. Update bug template .github/ISSUE_TEMPLATE/bug_report.yml to add versions:
+        printStep(5, "Update bug template .github/ISSUE_TEMPLATE/bug_report.yml to add versions");
         executeStep("sed -E '/(- )\"SNAPSHOT\".*/{p;s//\\1\""
                 + nextReleaseVersion
                 + "\"/}' -i .github/ISSUE_TEMPLATE/bug_report.yml");
 
-        // 6. Send a message to Gitter channel `Starting release process for v1.13.1`
+        // 6. Send a message to Gitter channel `Starting release process for vx.y.z`
         printStep(6, "Send a message to Gitter channel `Starting release process for v" + nextReleaseVersion + "`");
         print("Press enter to continue");
         System.in.read();
 
-        // 7. Git add and Commit ‘[RELEASE] Updated project version to 1.13.1’
+        // 7. Git add and Commit ‘[RELEASE] Updated project version to x.y.z’
         printStep(7, "Git add and Commit ‘[RELEASE] Updated project version to " + nextReleaseVersion + "’");
         executeStep("git add . && git commit -m \"[RELEASE] Updated project version to " + nextReleaseVersion + "\"");
 
         // 8. Set snapshot version
-        // ./scripts/release.sh setReleaseVersion 1.14-SNAPSHOT
         printStep(8, "Set snapshot version");
         executeStep("./scripts/release.sh setReleaseVersion " + nextSnapshotVersion);
 
-        // 9. Add ### 1.14-SNAPSHOT line to CHANGELOG.md
+        // 9. Add ### x.y+1-SNAPSHOT line to CHANGELOG.md
         printStep(9, "Add ### " + nextSnapshotVersion + " line to CHANGELOG.md");
         executeStep("sed -E '/" + escape(changelogNewReleaseHeader) + "/{s//### " + nextSnapshotVersion
                 + "\\n\\n\\0/}' -i CHANGELOG.md");
@@ -152,57 +144,34 @@ public class jrelease {
 
         // 13. https://ci.eclipse.org/jkube
         printStep(13, "https://ci.eclipse.org/jkube");
-        // - Run build simplified-maven-central-release with tag as RELEASE_TAG build
-        // parameter
         print("- Run build https://ci.eclipse.org/jkube/job/ReleasePipelines/job/simplified-maven-central-release/ with tag v"
                 + nextReleaseVersion + " as RELEASE_TAG build parameter");
         print("Press enter to continue");
         System.in.read();
-
-        // - Run simplified-downloads-eclipse-release with tag as RELEASE_TAG build
-        // parameter -> check https://download.eclipse.org/jkube/
-        // https://ci.eclipse.org/jkube/job/simplified-maven-central-release/
         print("- Run https://ci.eclipse.org/jkube/job/ReleasePipelines/job/simplified-downloads-eclipse-release/ with tag v"
                 + nextReleaseVersion + " as RELEASE_TAG build parameter");
         print("Press enter to continue");
         System.in.read();
 
-        // 14. Wait for maven central (check
-        // https://repo1.maven.org/maven2/org/eclipse/jkube/kubernetes-maven-plugin-doc/
-        // )
+        // 14. Wait for maven central
         printStep(14, "Wait for maven central, check");
         print("- Check https://download.eclipse.org/jkube/");
         print("- Check https://repo1.maven.org/maven2/org/eclipse/jkube/kubernetes-maven-plugin-doc/");
         print("Press enter to continue");
         System.in.read();
 
-        // 15. Create GitHub release from previously pushed tag to upstream, enable
-        // `discussions`
-        // Add changelog
-        // ./scripts/changelog.sh extract 1.13.1
+        // 15. Create GitHub release
         printStep(15, "Create GitHub release from previously pushed tag to upstream, enable `discussions`");
         print("Add changelog this to the release description:");
         executeInteractiveCommand("bash", "-c", "./scripts/changelog.sh extract " + nextReleaseVersion);
 
-        // 16. Tag new release in https://github.com/jkubeio/jkube-website (keep empty
-        // title/description)
+        // 16. Tag new release in https://github.com/jkubeio/jkube-website
         printStep(16, "Tag new release in https://github.com/jkubeio/jkube-website (keep empty title/description)");
         print("Press enter to continue");
         System.in.read();
 
         // 17. Publish tweet in jkubeio profile
         printStep(17, "Publish tweet in jkubeio profile");
-        // print the message to tweet:
-        // 🔥 @ECDTools #JKube new release 🚀
-        // 📦 v1.14.0
-        // ✨ Helidon support
-        // ✨ several improvements for helm
-        // ✨ CustomResource fragment improvements
-        // 🐞 Many bug fixes & improvements
-        //
-        // 📢 Please help us spread the word & share your experience @jkubeio
-        //
-        // https://github.com/eclipse/jkube/releases/tag/v1.14.0
         print("🔥 @ECDTools #JKube new release 🚀");
         print("📦 v" + nextReleaseVersion);
         print("✨ new feat");
@@ -233,13 +202,12 @@ public class jrelease {
         print("Press enter to continue");
         System.in.read();
 
-        // 19. Publish release in https://projects.eclipse.org/projects/ecd.jkube
+        // 19. Publish release
         printStep(19, "Publish release in https://projects.eclipse.org/projects/ecd.jkube");
         print("Press enter to continue");
         System.in.read();
 
-        // 20. Run the Gradle verification test:
-        // https://github.com/jkubeio/jkube-integration-tests/actions/workflows/smoke-tests.yml
+        // 20. Run the Gradle verification test
         printStep(20,
                 "Run the Gradle verification test: https://github.com/jkubeio/jkube-integration-tests/actions/workflows/smoke-tests.yml");
         print("Press enter to continue");
