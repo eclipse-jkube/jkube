@@ -29,7 +29,6 @@ import java.util.HashMap;
 
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 import de.codeshelf.consoleui.prompt.ConsolePrompt;
 import de.codeshelf.consoleui.prompt.InputResult;
@@ -42,7 +41,7 @@ import picocli.CommandLine;
 
 public class jrelease {
 
-    public static void main(String... args) throws InterruptedException, IOException, XmlPullParserException {
+    public static void main(String... args) throws Exception {
 
         print("Welcome to @|green JKube release|@ script");
 
