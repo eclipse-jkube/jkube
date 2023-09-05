@@ -164,6 +164,8 @@ public class jrelease {
         printStep(15, "Create GitHub release from previously pushed tag to upstream, enable `discussions`");
         print("Add changelog this to the release description:");
         executeInteractiveCommand("bash", "-c", "./scripts/changelog.sh extract " + nextReleaseVersion);
+        print("Press enter to continue");
+        System.in.read();
 
         // 16. Tag new release in https://github.com/jkubeio/jkube-website
         printStep(16, "Tag new release in https://github.com/jkubeio/jkube-website (keep empty title/description)");
