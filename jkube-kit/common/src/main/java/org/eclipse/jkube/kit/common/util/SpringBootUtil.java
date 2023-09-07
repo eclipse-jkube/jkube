@@ -139,7 +139,7 @@ public class SpringBootUtil {
         return JKubeProjectUtil.getPlugin(project, "org.graalvm.buildtools.native", "org.graalvm.buildtools.native.gradle.plugin");
     }
 
-    public static File getNativeArtifactFile(JavaProject project) {
+    public static File findNativeArtifactFile(JavaProject project) {
         for (String location : new String[] {"", "native/nativeCompile/"}) {
             File nativeArtifactDir = new File(project.getBuildDirectory(), location);
             File[] nativeExecutableArtifacts = nativeArtifactDir.listFiles(f -> f.isFile() && f.canExecute());

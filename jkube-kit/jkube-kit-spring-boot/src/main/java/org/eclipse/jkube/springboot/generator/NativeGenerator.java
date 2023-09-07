@@ -23,7 +23,10 @@ import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 
@@ -36,7 +39,6 @@ public class NativeGenerator extends AbstractSpringBootNestedGenerator {
     this.nativeBinary = nativeBinary;
     fromSelector = new FromSelector.Default(generatorContext, "springboot-native");
   }
-
 
   @Override
   public String getFrom() {
@@ -68,6 +70,11 @@ public class NativeGenerator extends AbstractSpringBootNestedGenerator {
   @Override
   public String getTargetDir() {
     return "/";
+  }
+
+  @Override
+  public Map<String, String> getEnv(Function<Boolean, Map<String, String>> javaExecEnvSupplier, boolean prePackagePhase) {
+    return Collections.emptyMap();
   }
 
   @Override

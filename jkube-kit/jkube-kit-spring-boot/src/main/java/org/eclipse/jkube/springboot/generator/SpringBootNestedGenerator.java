@@ -21,7 +21,6 @@ import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -29,7 +28,9 @@ import static org.eclipse.jkube.generator.javaexec.JavaExecGenerator.JOLOKIA_POR
 import static org.eclipse.jkube.generator.javaexec.JavaExecGenerator.PROMETHEUS_PORT_DEFAULT;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.isLayeredJar;
 import java.io.File;
-import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getNativeArtifactFile;
+import java.util.function.Function;
+
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.findNativeArtifactFile;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getNativePlugin;
 
 public interface SpringBootNestedGenerator {
@@ -59,13 +60,11 @@ public interface SpringBootNestedGenerator {
 
   String getTargetDir();
 
-  default Map<String, String> getEnv() {
-    return Collections.emptyMap();
-  }
+  Map<String, String> getEnv(Function<Boolean, Map<String, String>> javaExecEnvSupplier, boolean prePackagePhase);
 
   static SpringBootNestedGenerator from(GeneratorContext generatorContext, GeneratorConfig generatorConfig, FatJarDetector.Result fatJarDetectorResult) {
     if (getNativePlugin(generatorContext.getProject()) != null) {
-      File nativeBinary = getNativeArtifactFile(generatorContext.getProject());
+      File nativeBinary = findNativeArtifactFile(generatorContext.getProject());
       if (nativeBinary != null) {
         return new NativeGenerator(generatorContext, generatorConfig, nativeBinary);
       }

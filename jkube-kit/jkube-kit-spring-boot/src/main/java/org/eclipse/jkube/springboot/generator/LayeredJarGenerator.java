@@ -24,9 +24,9 @@ import org.eclipse.jkube.springboot.SpringBootLayeredJar;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 
@@ -48,8 +48,10 @@ public class LayeredJarGenerator extends AbstractSpringBootNestedGenerator {
   }
 
   @Override
-  public Map<String, String> getEnv() {
-    return Collections.singletonMap("JAVA_MAIN_CLASS", MAIN_CLASS);
+  public Map<String, String> getEnv(Function<Boolean, Map<String, String>> javaExecEnvSupplier, boolean prePackagePhase) {
+    final Map<String, String> res = super.getEnv(javaExecEnvSupplier, prePackagePhase);
+    res.put("JAVA_MAIN_CLASS", MAIN_CLASS);
+    return res;
   }
 
   @Override

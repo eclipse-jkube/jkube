@@ -337,7 +337,7 @@ class SpringBootUtilTest {
     }
 
     @Test
-    void getNativeArtifactFile_whenNativeExecutableNotFound_thenReturnNull(@TempDir File temporaryFolder) throws IOException {
+    void findNativeArtifactFile_whenNativeExecutableNotFound_thenReturnNull(@TempDir File temporaryFolder) throws IOException {
         // Given
         JavaProject javaProject = JavaProject.builder()
             .artifactId("sample")
@@ -349,14 +349,14 @@ class SpringBootUtilTest {
             .build();
 
         // When
-        File nativeArtifactFound = SpringBootUtil.getNativeArtifactFile(javaProject);
+        File nativeArtifactFound = SpringBootUtil.findNativeArtifactFile(javaProject);
 
         // Then
         assertThat(nativeArtifactFound).isNull();
     }
 
     @Test
-    void getNativeArtifactFile_whenNativeExecutableInStandardMavenBuildDirectory_thenReturnNativeArtifact(@TempDir File temporaryFolder) throws IOException {
+    void findNativeArtifactFile_whenNativeExecutableInStandardMavenBuildDirectory_thenReturnNativeArtifact(@TempDir File temporaryFolder) throws IOException {
         // Given
         File nativeArtifactFile = Files.createFile(temporaryFolder.toPath().resolve("sample")).toFile();
         assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
@@ -370,14 +370,14 @@ class SpringBootUtilTest {
             .build();
 
         // When
-        File nativeArtifactFound = SpringBootUtil.getNativeArtifactFile(javaProject);
+        File nativeArtifactFound = SpringBootUtil.findNativeArtifactFile(javaProject);
 
         // Then
         assertThat(nativeArtifactFound).hasName("sample");
     }
 
     @Test
-    void getNativeArtifactFile_whenMoreThanOneNativeExecutableInStandardMavenBuildDirectory_thenThrowException(@TempDir File temporaryFolder) throws IOException {
+    void findNativeArtifactFile_whenMoreThanOneNativeExecutableInStandardMavenBuildDirectory_thenThrowException(@TempDir File temporaryFolder) throws IOException {
         // Given
         File nativeArtifactFile = Files.createFile(temporaryFolder.toPath().resolve("sample")).toFile();
         assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
@@ -394,12 +394,12 @@ class SpringBootUtilTest {
 
         // When + Then
         assertThatIllegalStateException()
-            .isThrownBy(() -> SpringBootUtil.getNativeArtifactFile(javaProject))
+            .isThrownBy(() -> SpringBootUtil.findNativeArtifactFile(javaProject))
             .withMessage("More than one native executable file found in " + temporaryFolder.getAbsolutePath());
     }
 
     @Test
-    void getNativeArtifactFile_whenNativeExecutableInStandardMavenBuildDirectoryAndImageNameOverridden_thenReturnNativeArtifact(@TempDir File temporaryFolder) throws IOException {
+    void findNativeArtifactFile_whenNativeExecutableInStandardMavenBuildDirectoryAndImageNameOverridden_thenReturnNativeArtifact(@TempDir File temporaryFolder) throws IOException {
         // Given
         File nativeArtifactFile = Files.createFile(temporaryFolder.toPath().resolve("custom-native-name")).toFile();
         assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
@@ -413,14 +413,14 @@ class SpringBootUtilTest {
             .build();
 
         // When
-        File nativeArtifactFound = SpringBootUtil.getNativeArtifactFile(javaProject);
+        File nativeArtifactFound = SpringBootUtil.findNativeArtifactFile(javaProject);
 
         // Then
         assertThat(nativeArtifactFound).hasName("custom-native-name");
     }
 
     @Test
-    void getNativeArtifactFile_whenNativeExecutableInStandardGradleNativeDirectory_thenReturnNativeArtifact(@TempDir File temporaryFolder) throws IOException {
+    void findNativeArtifactFile_whenNativeExecutableInStandardGradleNativeDirectory_thenReturnNativeArtifact(@TempDir File temporaryFolder) throws IOException {
         // Given
         Files.createDirectories(temporaryFolder.toPath().resolve("native").resolve("nativeCompile"));
         File nativeArtifactFile = Files.createFile(temporaryFolder.toPath().resolve("native").resolve("nativeCompile").resolve("sample")).toFile();
@@ -435,7 +435,7 @@ class SpringBootUtilTest {
             .build();
 
         // When
-        File nativeArtifactFound = SpringBootUtil.getNativeArtifactFile(javaProject);
+        File nativeArtifactFound = SpringBootUtil.findNativeArtifactFile(javaProject);
 
         // Then
         assertThat(nativeArtifactFound).hasName("sample");
