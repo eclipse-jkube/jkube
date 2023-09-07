@@ -84,19 +84,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     @Override
     protected Map<String, String> getEnv(boolean prePackagePhase) {
-        Map<String, String> res = super.getEnv(prePackagePhase);
-        if (getContext().getGeneratorMode() == GeneratorMode.WATCH) {
-            // adding dev tools token to env variables to prevent override during recompile
-            final String secret = SpringBootUtil.getSpringBootApplicationProperties(
-                    SpringBootUtil.getSpringBootActiveProfile(getProject()),
-                    JKubeProjectUtil.getClassLoader(getProject()))
-                .getProperty(SpringBootUtil.DEV_TOOLS_REMOTE_SECRET);
-            if (secret != null) {
-                res.put(SpringBootUtil.DEV_TOOLS_REMOTE_SECRET_ENV, secret);
-            }
-        }
-        res.putAll(nestedGenerator.getEnv());
-        return res;
+        return nestedGenerator.getEnv(ppp -> super.getEnv(ppp), prePackagePhase);
     }
 
     @Override

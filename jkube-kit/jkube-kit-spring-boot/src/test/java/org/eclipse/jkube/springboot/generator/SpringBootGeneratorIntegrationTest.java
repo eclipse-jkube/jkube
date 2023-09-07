@@ -52,13 +52,12 @@ class SpringBootGeneratorIntegrationTest {
   private File targetDir;
   private Properties properties;
   private GeneratorContext context;
-  private JavaProject javaProject;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
     properties = new Properties();
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-    javaProject = JavaProject.builder()
+    final JavaProject javaProject = JavaProject.builder()
         .baseDirectory(temporaryFolder.toFile())
         .buildDirectory(targetDir.getAbsoluteFile())
         .buildPackageDirectory(targetDir.getAbsoluteFile())
@@ -395,18 +394,27 @@ class SpringBootGeneratorIntegrationTest {
   @Nested
   @DisplayName("With Native artifact")
   class Native {
+
+    @BeforeEach
+    void nativeArtifact() throws IOException {
+      context = context.toBuilder()
+        .project(context.getProject().toBuilder()
+          .plugin(Plugin.builder().groupId("org.graalvm.buildtools").artifactId("native-maven-plugin").build())
+          .build()
+        )
+        .build();
+      File nativeArtifactFile = Files.createFile(targetDir.toPath().resolve("native-binary-artifact")).toFile();
+      assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
+    }
+
     @Test
-    @DisplayName("customize, in Kubernetes and native artifact, should create assembly")
-    void customize_inKubernetesAndNativeArtifact_shouldCreateNativeAssembly() throws IOException {
-      // Given
-      properties.put("jkube.generator.spring-boot.mainClass", "org.example.Foo");
-      withNativePluginAndArtifactInProject();
-
+    @DisplayName("creates assembly with native artifact")
+    void createAssembly() {
       // When
-      final List<ImageConfiguration> resultImages = new SpringBootGenerator(context).customize(new ArrayList<>(), false);
-
+      final List<ImageConfiguration> images = new SpringBootGenerator(context)
+        .customize(new ArrayList<>(), false);
       // Then
-      assertThat(resultImages)
+      assertThat(images)
           .isNotNull()
           .singleElement()
           .extracting(ImageConfiguration::getBuild)
@@ -421,73 +429,61 @@ class SpringBootGeneratorIntegrationTest {
               .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
               .hasFieldOrPropertyWithValue("fileMode", "0755")
               .extracting("includes").asList()
-              .containsExactly("sample"));
+              .containsExactly("native-binary-artifact"));
     }
 
     @Test
-    @DisplayName("customize, with native packaging, disables Jolokia port")
-    void customize_withNativePackaging_disablesJolokiaPort() throws IOException {
-      // Given
-      withNativePluginAndArtifactInProject();
-
+    @DisplayName("has image from based on UBI image")
+    void hasFrom() {
       // When
-      final List<ImageConfiguration> result = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
+      final List<ImageConfiguration> images = new SpringBootGenerator(context)
+        .customize(new ArrayList<>(), false);
       // Then
-      assertThat(result).singleElement()
+      assertThat(images)
+        .singleElement(InstanceOfAssertFactories.type(ImageConfiguration.class))
+        .extracting(ImageConfiguration::getBuild)
+        .extracting(BuildConfiguration::getFrom)
+        .asString()
+        .startsWith("registry.access.redhat.com/ubi8/ubi-minimal:");
+    }
+
+    @Test
+    @DisplayName("disables Jolokia port")
+    void disablesJolokiaPort() {
+      // When
+      final List<ImageConfiguration> images = new SpringBootGenerator(context)
+        .customize(new ArrayList<>(), false);
+      // Then
+      assertThat(images).singleElement()
           .extracting("buildConfiguration.env")
           .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
           .containsEntry("AB_JOLOKIA_OFF", "true");
     }
 
     @Test
-    @DisplayName("customize, with native packaging, disables Prometheus port")
-    void customize_withNativePackaging_disablesPrometheusPort() throws IOException {
-      // Given
-      withNativePluginAndArtifactInProject();
+    @DisplayName("disables Prometheus port")
+    void disablesPrometheusPort() {
       // When
-      final List<ImageConfiguration> result = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
+      final List<ImageConfiguration> images = new SpringBootGenerator(context)
+        .customize(new ArrayList<>(), false);
       // Then
-      assertThat(result).singleElement()
+      assertThat(images).singleElement()
           .extracting("buildConfiguration.env")
           .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
           .containsEntry("AB_PROMETHEUS_OFF", "true");
     }
 
-    @DisplayName("has image from based on standard native executable image")
-    @Test
-    void customize_withNativePackaging_from() throws IOException {
-      // Given
-      withNativePluginAndArtifactInProject();
-      // When
-      final List<ImageConfiguration> result = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
-      // Then
-      assertThat(result).singleElement()
-          .extracting("buildConfiguration.from").asString()
-          .startsWith("registry.access.redhat.com/ubi8/ubi-minimal:");
-    }
 
     @Test
-    @DisplayName("customize, with native packaging, should set workDir to root directory")
-    void customize_withNativePackaging_workDir() throws IOException {
-      // Given
-      withNativePluginAndArtifactInProject();
+    @DisplayName("sets workDir to root directory")
+    void setsWorkDir() {
       // When
-      final List<ImageConfiguration> result = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
+      final List<ImageConfiguration> result = new SpringBootGenerator(context)
+        .customize(new ArrayList<>(), false);
       // Then
       assertThat(result).singleElement()
           .extracting("buildConfiguration.workdir").asString()
           .startsWith("/");
     }
-  }
-
-  private void withNativePluginAndArtifactInProject() throws IOException {
-    javaProject = javaProject.toBuilder()
-        .plugin(Plugin.builder().groupId("org.graalvm.buildtools").artifactId("native-maven-plugin").build())
-        .build();
-    context = context.toBuilder()
-        .project(javaProject)
-        .build();
-    File nativeArtifactFile = Files.createFile(targetDir.toPath().resolve("sample")).toFile();
-    assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
   }
 }
