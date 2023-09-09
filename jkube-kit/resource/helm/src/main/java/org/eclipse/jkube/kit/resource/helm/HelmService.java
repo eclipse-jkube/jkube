@@ -65,7 +65,7 @@ import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.setAuthenticat
 public class HelmService {
 
   private static final String YAML_EXTENSION = ".yaml";
-  private static final String CHART_API_VERSION = "v1";
+  private static final String DEFAULT_CHART_API_VERSION = "v1";
   public static final String CHART_FILENAME = "Chart" + YAML_EXTENSION;
   private static final String VALUES_FILENAME = "values" + YAML_EXTENSION;
 
@@ -111,7 +111,7 @@ public class HelmService {
       logger.debug("Gathering parameters for placeholders");
       final List<HelmParameter> parameters = collectParameters(helmConfig);
       logger.debug("Generating values.yaml");
-      createValuesYaml(parameters, outputDir);
+      createValuesYaml(helmConfig, parameters, outputDir);
       logger.debug("Interpolating YAML Chart templates");
       interpolateChartTemplates(parameters, templatesDir);
       final File tarballFile = new File(tarballOutputDir, String.format("%s-%s%s.%s",
@@ -253,7 +253,7 @@ public class HelmService {
 
   private static Chart chartFromHelmConfig(HelmConfig helmConfig) {
     return Chart.builder()
-      .apiVersion(CHART_API_VERSION)
+      .apiVersion(Optional.ofNullable(helmConfig.getApiVersion()).orElse(DEFAULT_CHART_API_VERSION))
       .name(helmConfig.getChart())
       .version(helmConfig.getVersion())
       .description(helmConfig.getDescription())
@@ -349,12 +349,12 @@ public class HelmService {
     }
   }
 
-  private static void createValuesYaml(List<HelmParameter> helmParameters, File outputDir) throws IOException {
+  private static void createValuesYaml(HelmConfig helmConfig, List<HelmParameter> helmParameters, File outputDir) throws IOException {
     final Map<String, String> values = helmParameters.stream()
         .filter(hp -> hp.getParameter().getValue() != null)
         // Placeholders replaced by Go expressions don't need to be persisted in the values.yaml file
         .filter(hp -> !hp.getParameter().getValue().trim().matches(GOLANG_EXPRESSION_REGEX))
-        .collect(Collectors.toMap(HelmParameter::getHelmName, hp -> hp.getParameter().getValue()));
+        .collect(Collectors.toMap(hp -> hp.getHelmName(helmConfig.isPreserveParameterCase()), hp -> hp.getParameter().getValue()));
 
     File outputChartFile = new File(outputDir, VALUES_FILENAME);
     ResourceUtil.save(outputChartFile, getNestedMap(values), ResourceFileType.yaml);
