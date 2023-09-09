@@ -28,7 +28,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.RegistryConfig;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.Serialization;
@@ -102,6 +101,24 @@ class HelmServiceTest {
           .hasFieldOrPropertyWithValue("apiVersion", "v1")
           .hasFieldOrPropertyWithValue("name", "Chart Name")
           .hasFieldOrPropertyWithValue("version", "1337");
+    }
+  }
+
+  @Test
+  void createChartYaml_whenApiVersionProvied() throws Exception {
+    try (MockedStatic<ResourceUtil> resourceUtilMockedStatic = mockStatic(ResourceUtil.class)) {
+      File outputDir = Files.createTempDirectory("chart-output-api-version").toFile();
+      // Given
+      helmConfig.chart("Chart Name").version("1337").apiVersion("v2");
+      // When
+      helmService.createChartYaml(helmConfig.build(), outputDir);
+      // Then
+      ArgumentCaptor<Chart> argumentCaptor = ArgumentCaptor.forClass(Chart.class);
+      resourceUtilMockedStatic.verify(() -> ResourceUtil.save(notNull(), argumentCaptor.capture(), eq(ResourceFileType.yaml)));
+      assertThat(argumentCaptor.getValue())
+              .hasFieldOrPropertyWithValue("apiVersion", "v2")
+              .hasFieldOrPropertyWithValue("name", "Chart Name")
+              .hasFieldOrPropertyWithValue("version", "1337");
     }
   }
 

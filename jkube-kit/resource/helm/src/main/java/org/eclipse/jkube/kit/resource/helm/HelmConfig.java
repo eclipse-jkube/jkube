@@ -45,7 +45,7 @@ import java.util.stream.Stream;
 @Setter
 @EqualsAndHashCode
 public class HelmConfig {
-
+  private String apiVersion;
   private String chart;
   private String chartExtension;
   private String version;
@@ -63,6 +63,10 @@ public class HelmConfig {
    */
   private List<Template> parameterTemplates;
   private List<Parameter> parameters;
+  /**
+   * When enabled the casing in the parameter name will be preserved
+   */
+  private boolean preserveParameterCase;
 
   private List<HelmType> types;
   private String sourceDir;

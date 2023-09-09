@@ -48,6 +48,10 @@ This configuration section knows the following sub-elements in order to configur
 |===
 | Element | Description | Property
 
+| *apiVersion*
+| The apiVersion of Chart.yaml schema, defaults to v1.
+|
+
 | *chart*
 | The Chart name
 ifeval::["{plugin-type}" == "maven"]
@@ -166,6 +170,10 @@ Defaults to empty string.
 
   The parameters can also represent a Golang expression
 |
+
+| preserveParameterCase
+| A boolean toggling whether the parameter case is preserved when generating the Values.yaml file
+| Defaults to `false`
 
 |===
 
