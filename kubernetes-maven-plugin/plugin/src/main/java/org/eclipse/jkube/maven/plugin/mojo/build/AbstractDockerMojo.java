@@ -46,7 +46,6 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.build.RegistryAuthConfiguration;
-import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -544,9 +543,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
         return BuildServiceConfig.builder()
-                .buildRecreateMode(BuildRecreateMode.fromParameter(buildRecreate))
                 .jKubeBuildStrategy(getJKubeBuildStrategy())
-                .forcePull(forcePull)
                 .imagePullManager(ImagePullManager.createImagePullManager(imagePullPolicy, autoPull, project.getProperties()))
                 .buildDirectory(project.getBuild().getDirectory())
                 .resourceConfig(resources)

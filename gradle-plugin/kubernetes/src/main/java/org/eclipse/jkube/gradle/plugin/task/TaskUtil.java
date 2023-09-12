@@ -18,7 +18,6 @@ import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 
 import static org.eclipse.jkube.kit.build.service.docker.ImagePullManager.createImagePullManager;
@@ -36,9 +35,7 @@ public class TaskUtil {
         kubernetesExtension.javaProject.getProperties());
     return BuildServiceConfig.builder()
         .imagePullManager(imagePullManager)
-        .buildRecreateMode(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreateOrDefault()))
         .jKubeBuildStrategy(kubernetesExtension.getBuildStrategyOrDefault())
-        .forcePull(kubernetesExtension.getForcePullOrDefault())
         .buildDirectory(kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath());
   }
 

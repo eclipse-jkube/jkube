@@ -50,6 +50,13 @@ public class GeneratorContext {
     private Date buildTimestamp;
     private String sourceDirectory;
     private String filter;
+    private boolean openshiftForcePull;
+    private String openshiftS2iBuildNameSuffix;
+    private boolean openshiftS2iImageStreamLookupPolicyLocal;
+    private String openshiftPullSecret;
+    private String openshiftPushSecret;
+    private String openshiftBuildOutputKind;
+    private String openshiftBuildRecreate;
 
 
     public GeneratorMode getGeneratorMode() {

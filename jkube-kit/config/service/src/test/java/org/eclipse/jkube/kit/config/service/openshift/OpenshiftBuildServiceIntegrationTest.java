@@ -41,7 +41,6 @@ import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.ContainerResourcesConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -102,12 +101,6 @@ class OpenshiftBuildServiceIntegrationTest {
 
   private BuildServiceConfig.BuildServiceConfigBuilder defaultConfig;
 
-  private BuildServiceConfig.BuildServiceConfigBuilder defaultConfigSecret;
-
-  private BuildServiceConfig.BuildServiceConfigBuilder dockerImageConfigSecret;
-
-  private BuildServiceConfig.BuildServiceConfigBuilder dockerImageConfig;
-
   private ResourceConfig resourceConfig;
 
   @BeforeEach
@@ -148,24 +141,15 @@ class OpenshiftBuildServiceIntegrationTest {
         .name(projectName)
         .build(BuildConfiguration.builder()
             .from(projectName)
+            .openshiftS2iBuildNameSuffix("-s2i-suffix2")
+            .openshiftBuildRecreateMode("none")
             .build()
         ).build();
 
     defaultConfig = BuildServiceConfig.builder()
         .buildDirectory(baseDir)
-        .buildRecreateMode(BuildRecreateMode.none)
-        .s2iBuildNameSuffix("-s2i-suffix2")
         .resourceConfig(resourceConfig)
         .jKubeBuildStrategy(JKubeBuildStrategy.s2i);
-
-    defaultConfigSecret = defaultConfig.build().toBuilder().openshiftPullSecret("pullsecret-fabric8");
-
-    dockerImageConfig = defaultConfig.build().toBuilder().buildOutputKind("DockerImage");
-
-    dockerImageConfigSecret = defaultConfig.build().toBuilder()
-        .openshiftPullSecret("pullsecret-fabric8")
-        .openshiftPushSecret("pushsecret-fabric8")
-        .buildOutputKind("DockerImage");
   }
 
   @AfterEach
@@ -205,7 +189,7 @@ class OpenshiftBuildServiceIntegrationTest {
     // Given
     final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
-    image.setBuild(BuildConfiguration.builder()
+    image.setBuild(image.getBuild().toBuilder()
         .from(projectName)
         .assembly(AssemblyConfiguration.builder()
             .layer(Assembly.builder().id("one").build())
@@ -258,9 +242,12 @@ class OpenshiftBuildServiceIntegrationTest {
 
   @Test
   void successfulBuildNoS2iSuffix() throws Exception {
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.s2iBuildNameSuffix(null).build());
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder().openshiftS2iBuildNameSuffix(null).build())
+        .build();
+    BuildServiceConfig buildServiceConfig = withBuildServiceConfig(defaultConfig.build());
     final WebServerEventCollector collector = prepareMockServer(
-        config, true, false, false, false);
+        buildServiceConfig, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -274,10 +261,13 @@ class OpenshiftBuildServiceIntegrationTest {
 
   @Test
   void dockerBuild() throws Exception {
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftS2iBuildNameSuffix("-docker")
+            .build())
+        .build();
     final BuildServiceConfig dockerConfig = withBuildServiceConfig(BuildServiceConfig.builder()
         .buildDirectory(baseDir)
-        .buildRecreateMode(BuildRecreateMode.none)
-        .s2iBuildNameSuffix("-docker")
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(resourceConfig).build());
     final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
@@ -295,11 +285,12 @@ class OpenshiftBuildServiceIntegrationTest {
   void dockerBuildWithMultiComponentImageName() throws Exception {
     final BuildServiceConfig dockerConfig = withBuildServiceConfig(BuildServiceConfig.builder()
         .buildDirectory(baseDir)
-        .buildRecreateMode(BuildRecreateMode.none)
-        .s2iBuildNameSuffix("-docker")
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(resourceConfig).build());
-    image.setName("docker.io/registry/component1/component2/name:tag");
+    image = image.toBuilder()
+        .name("docker.io/registry/component1/component2/name:tag")
+        .build(image.getBuild().toBuilder().openshiftS2iBuildNameSuffix("-docker").build())
+        .build();
     final WebServerEventCollector collector = prepareMockServer("component1-component2-name",
         dockerConfig, true, false, false, false);
 
@@ -316,10 +307,12 @@ class OpenshiftBuildServiceIntegrationTest {
   void dockerBuildNoS2iSuffix() throws Exception {
     final BuildServiceConfig dockerConfig = withBuildServiceConfig(BuildServiceConfig.builder()
         .buildDirectory(baseDir)
-        .buildRecreateMode(BuildRecreateMode.none)
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(resourceConfig)
         .build());
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder().openshiftS2iBuildNameSuffix(null).build())
+        .build();
     final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
@@ -335,26 +328,25 @@ class OpenshiftBuildServiceIntegrationTest {
   void dockerBuildFromExt() throws Exception {
     final BuildServiceConfig dockerConfig = withBuildServiceConfig(BuildServiceConfig.builder()
         .buildDirectory(baseDir)
-        .buildRecreateMode(BuildRecreateMode.none)
-        .s2iBuildNameSuffix("-docker")
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(resourceConfig)
         .build());
-    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
-
-    OpenshiftBuildService service = new OpenshiftBuildService(jKubeServiceHub);
     Map<String,String> fromExt = ImmutableMap.of("name", "app:1.2-1",
         "kind", "ImageStreamTag",
         "namespace", "my-project");
-    ImageConfiguration fromExtImage = ImageConfiguration.builder()
+    image = ImageConfiguration.builder()
         .name(projectName)
         .build(BuildConfiguration.builder()
             .fromExt(fromExt)
             .nocache(Boolean.TRUE)
+            .openshiftS2iBuildNameSuffix("-docker")
             .build()
         ).build();
+    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
 
-    service.build(fromExtImage);
+    OpenshiftBuildService service = new OpenshiftBuildService(jKubeServiceHub);
+
+    service.build(image);
 
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
@@ -365,7 +357,12 @@ class OpenshiftBuildServiceIntegrationTest {
 
   @Test
   void successfulBuildSecret() throws Exception {
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfigSecret.build());
+    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftPullSecret("pullsecret-fabric8")
+            .build())
+        .build();
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
@@ -429,7 +426,13 @@ class OpenshiftBuildServiceIntegrationTest {
 
   @Test
   void successfulDockerImageOutputBuild() throws Exception {
-    final BuildServiceConfig config = withBuildServiceConfig(dockerImageConfig.build());
+    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
+    image = image.toBuilder()
+        .build(image.getBuild()
+            .toBuilder()
+            .openshiftBuildOutputKind("DockerImage")
+            .build())
+        .build();
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
@@ -445,7 +448,14 @@ class OpenshiftBuildServiceIntegrationTest {
 
   @Test
   void successfulDockerImageOutputBuildSecret() throws Exception {
-    final BuildServiceConfig config = withBuildServiceConfig(dockerImageConfigSecret.build());
+    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftPullSecret("pullsecret-fabric8")
+            .openshiftPushSecret("pushsecret-fabric8")
+            .openshiftBuildOutputKind("DockerImage")
+            .build())
+        .build();
     final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
@@ -484,11 +494,11 @@ class OpenshiftBuildServiceIntegrationTest {
 
     final long buildDelay = 50L;
     final String s2iBuildNameSuffix = Optional
-        .ofNullable(config.getS2iBuildNameSuffix())
+        .ofNullable(image.getBuild().getOpenshiftS2iBuildNameSuffix())
         .orElseGet(() -> config.getJKubeBuildStrategy() == JKubeBuildStrategy.s2i ?
             "-s2i" : "");
 
-    final String buildOutputKind = Optional.ofNullable(config.getBuildOutputKind()).orElse("ImageStreamTag");
+    final String buildOutputKind = Optional.ofNullable(image.getBuild().getOpenshiftBuildOutputKind()).orElse("ImageStreamTag");
 
     BuildConfig bc = new BuildConfigBuilder()
         .withNewMetadata()
@@ -504,7 +514,7 @@ class OpenshiftBuildServiceIntegrationTest {
         .build();
 
     BuildConfig bcSecret = null;
-    if (config.getOpenshiftPullSecret() != null) {
+    if (image.getBuild().getOpenshiftPullSecret() != null) {
       bcSecret = new BuildConfigBuilder()
           .withNewMetadata()
           .withName(resourceName + s2iBuildNameSuffix + "pullSecret")
@@ -512,10 +522,10 @@ class OpenshiftBuildServiceIntegrationTest {
           .withNewSpec()
           .withStrategy(new BuildStrategyBuilder().withType("Docker")
               .withNewDockerStrategy()
-              .withNewPullSecret(config.getOpenshiftPullSecret())
+              .withNewPullSecret(image.getBuild().getOpenshiftPullSecret())
               .endDockerStrategy().build())
           .withNewOutput()
-          .withNewPushSecret().withName(config.getOpenshiftPushSecret()).endPushSecret()
+          .withNewPushSecret().withName(image.getBuild().getOpenshiftPushSecret()).endPushSecret()
           .withNewTo().withKind(buildOutputKind).endTo()
           .endOutput()
           .endSpec()

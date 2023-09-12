@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.api.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.JKubeException;
@@ -59,6 +60,8 @@ public class DefaultGeneratorManager implements GeneratorManager {
     for (ImageConfiguration imageConfiguration : filteredImages) {
       imageConfiguration.setName(imageNameFormatter.format(imageConfiguration.getName()));
       if (imageConfiguration.getBuild() != null) {
+        BuildConfiguration updatedBuildConfig = mergeGlobalConfigParamsWithSingleImageBuildConfig(imageConfiguration.getBuild());
+        imageConfiguration.setBuild(updatedBuildConfig);
         imageConfiguration.getBuild().initAndValidate();
       }
       final BuildConfiguration buildConfiguration = imageConfiguration.getBuildConfiguration();
@@ -131,5 +134,32 @@ public class DefaultGeneratorManager implements GeneratorManager {
     }
     final List<Generator> generators = pluginFactory.createServiceObjects(SERVICE_PATHS);
     return genCtx.getConfig().prepareProcessors(generators, "generator");
+  }
+
+  private BuildConfiguration mergeGlobalConfigParamsWithSingleImageBuildConfig(BuildConfiguration build) {
+    BuildConfiguration.BuildConfigurationBuilder buildConfigBuilder = build.toBuilder();
+    if (!build.isOpenshiftForcePull() && genCtx.isOpenshiftForcePull()) {
+      buildConfigBuilder.openshiftForcePull(true);
+    }
+    if (StringUtils.isBlank(build.getOpenshiftS2iBuildNameSuffix()) &&
+        StringUtils.isNotBlank(genCtx.getOpenshiftS2iBuildNameSuffix())) {
+      buildConfigBuilder.openshiftS2iBuildNameSuffix(genCtx.getOpenshiftS2iBuildNameSuffix());
+    }
+    if (!build.isOpenshiftS2iImageStreamLookupPolicyLocal() && genCtx.isOpenshiftS2iImageStreamLookupPolicyLocal()) {
+      buildConfigBuilder.openshiftS2iImageStreamLookupPolicyLocal(true);
+    }
+    if (StringUtils.isBlank(build.getOpenshiftPullSecret()) && StringUtils.isNotBlank(genCtx.getOpenshiftPullSecret())) {
+      buildConfigBuilder.openshiftPullSecret(genCtx.getOpenshiftPullSecret());
+    }
+    if (StringUtils.isBlank(build.getOpenshiftPushSecret()) && StringUtils.isNotBlank(genCtx.getOpenshiftPushSecret())) {
+      buildConfigBuilder.openshiftPushSecret(genCtx.getOpenshiftPushSecret());
+    }
+    if (StringUtils.isBlank(build.getOpenshiftBuildOutputKind()) && StringUtils.isNotBlank(genCtx.getOpenshiftBuildOutputKind())) {
+      buildConfigBuilder.openshiftBuildOutputKind(genCtx.getOpenshiftBuildOutputKind());
+    }
+    if (StringUtils.isBlank(build.getOpenshiftBuildRecreateMode()) && StringUtils.isNotBlank(genCtx.getOpenshiftBuildRecreate())) {
+      buildConfigBuilder.openshiftBuildRecreateMode(genCtx.getOpenshiftBuildRecreate());
+    }
+    return buildConfigBuilder.build();
   }
 }

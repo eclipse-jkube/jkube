@@ -22,7 +22,6 @@ import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import java.io.File;
@@ -36,21 +35,13 @@ import java.io.File;
 @Getter
 @EqualsAndHashCode
 public class BuildServiceConfig {
-
-    private BuildRecreateMode buildRecreateMode;
     private JKubeBuildStrategy jKubeBuildStrategy;
-    private boolean forcePull;
-    private String s2iBuildNameSuffix;
-    private String openshiftPullSecret;
-    private String openshiftPushSecret;
     private Task<KubernetesListBuilder> enricherTask;
     private String buildDirectory;
     private Attacher attacher;
     private ImagePullManager imagePullManager;
-    private boolean s2iImageStreamLookupPolicyLocal;
     private ResourceConfig resourceConfig;
     private File resourceDir;
-    private String buildOutputKind;
 
     public void attachArtifact(String classifier, File destFile) {
         if (attacher != null) {

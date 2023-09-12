@@ -335,6 +335,71 @@ public class BuildConfiguration implements Serializable {
    */
   private String buildpacksBuilderImage;
 
+  /**
+   * While creating a BuildConfig, By default, if the builder image specified in the
+   * build configuration is available locally on the node, that image will be used.
+   * <p>
+   * ForcePull to override the local image and refresh it from the registry to which the image stream points.
+   * <p>
+   * This field is applicable in case of <code>s2i</code> build strategy
+   */
+  private boolean openshiftForcePull;
+
+  /**
+   * The S2I binary builder BuildConfig name suffix appended to the image name to avoid
+   * clashing with the underlying BuildConfig for the Jenkins pipeline
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private String openshiftS2iBuildNameSuffix;
+
+  /**
+   * Allow the ImageStream used in the S2I binary build to be used in standard
+   * Kubernetes resources such as Deployment or StatefulSet.
+   * <p>
+   * This field is only applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private boolean openshiftS2iImageStreamLookupPolicyLocal;
+
+  /**
+   * The name of pullSecret to be used to pull the base image in case pulling from a protected
+   * registry which requires authentication.
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private String openshiftPullSecret;
+
+  /**
+   * The name of pushSecret to be used to push the final image in case pushing from a protected
+   * registry which requires authentication.
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private String openshiftPushSecret;
+
+  /**
+   * Allow specifying in which registry to push the container image at the end of the build.
+   * If the output kind is ImageStreamTag, then the image will be pushed to the internal OpenShift registry.
+   * If the output is of type DockerImage, then the name of the output reference will be used as a Docker push specification.
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private String openshiftBuildOutputKind;
+
+  /**
+   * How the OpenShift resource objects associated with the build should be treated when they already exist
+
+   * <code>buildConfig</code> or <code>bc</code> : Only the BuildConfig is recreated
+   * <code>all</code> or <code>is</code> : Only the ImageStream is recreated
+   * <code>all</code> : Both, BuildConfig and ImageStream are recreated
+   * <code>none</code> : Neither BuildConfig nor ImageStream is recreated
+   * The default is <code>none</code>. If you provide the property without value then <code>all</code> is assumed, so everything gets recreated.
+   *
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private String openshiftBuildRecreateMode;
+
   public boolean isDockerFileMode() {
     return dockerFile != null || contextDir != null;
   }
