@@ -66,6 +66,7 @@ class HelmServiceIT {
   @Test
   void generateHelmChartsTest() throws Exception {
     // Given
+    helmConfig.setApiVersion("v1");
     helmConfig.setChart("ITChart");
     helmConfig.setVersion("1.33.7");
     helmConfig.setTypes(Arrays.asList(HelmConfig.HelmType.OPENSHIFT, HelmConfig.HelmType.KUBERNETES));

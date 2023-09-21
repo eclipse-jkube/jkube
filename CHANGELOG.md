@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.15-SNAPSHOT
 * Fix #2138: Support for Spring Boot Native Image
+* Fix #2369: Helm chart apiVersion can be configured
 * Fix #2356: Add optional toggle to preserve HelmParameter case in Values.yaml
 
 ### 1.14.0 (2023-08-31)

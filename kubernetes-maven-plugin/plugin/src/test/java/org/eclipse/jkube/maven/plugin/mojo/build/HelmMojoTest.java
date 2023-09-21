@@ -100,6 +100,7 @@ class HelmMojoTest {
       helmMojo.execute();
       // Then
       assertThat(helmMojo.helm).isNotNull()
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
           .hasFieldOrPropertyWithValue("chart", "artifact-id")
           .hasFieldOrPropertyWithValue("chartExtension", "tar.gz")
           .hasFieldOrPropertyWithValue("version", "1337")

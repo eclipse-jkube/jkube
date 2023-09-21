@@ -50,7 +50,7 @@ This configuration section knows the following sub-elements in order to configur
 
 | *apiVersion*
 | The apiVersion of Chart.yaml schema, defaults to v1.
-|
+| `jkube.helm.apiVersion`
 
 | *chart*
 | The Chart name
