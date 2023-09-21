@@ -65,7 +65,6 @@ import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.setAuthenticat
 public class HelmService {
 
   private static final String YAML_EXTENSION = ".yaml";
-  private static final String DEFAULT_CHART_API_VERSION = "v1";
   public static final String CHART_FILENAME = "Chart" + YAML_EXTENSION;
   private static final String VALUES_FILENAME = "values" + YAML_EXTENSION;
 
@@ -253,7 +252,7 @@ public class HelmService {
 
   private static Chart chartFromHelmConfig(HelmConfig helmConfig) {
     return Chart.builder()
-      .apiVersion(Optional.ofNullable(helmConfig.getApiVersion()).orElse(DEFAULT_CHART_API_VERSION))
+      .apiVersion(helmConfig.getApiVersion())
       .name(helmConfig.getChart())
       .version(helmConfig.getVersion())
       .description(helmConfig.getDescription())

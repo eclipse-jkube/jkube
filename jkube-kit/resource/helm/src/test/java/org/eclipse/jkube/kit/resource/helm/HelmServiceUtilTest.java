@@ -77,6 +77,7 @@ class HelmServiceUtilTest {
     // Then
     assertThat(result)
       .isNotNull()
+      .hasFieldOrPropertyWithValue("apiVersion", "v1")
       .hasFieldOrPropertyWithValue("chart", "artifact-id")
       .hasFieldOrPropertyWithValue("chartExtension", "tar.gz")
       .hasFieldOrPropertyWithValue("version", "1337")
@@ -98,6 +99,7 @@ class HelmServiceUtilTest {
   void initHelmConfig_withOriginalConfig_shouldInitConfigWithoutOverriding() throws IOException {
     // Given
     final HelmConfig original = HelmConfig.builder()
+        .apiVersion("v1337")
         .chart("Original Name")
         .version("313373")
         .sources(Collections.emptyList())
@@ -112,6 +114,7 @@ class HelmServiceUtilTest {
     // Then
     assertThat(result)
       .isNotNull()
+      .hasFieldOrPropertyWithValue("apiVersion", "v1337")
       .hasFieldOrPropertyWithValue("chart", "Original Name")
       .hasFieldOrPropertyWithValue("chartExtension", "tar.gz")
       .hasFieldOrPropertyWithValue("version", "313373")

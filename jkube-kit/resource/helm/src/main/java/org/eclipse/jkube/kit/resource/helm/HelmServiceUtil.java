@@ -45,6 +45,9 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getProperty;
 
 public class HelmServiceUtil {
+
+  private static final String PROPERTY_API_VERSION = "jkube.helm.apiVersion";
+  private static final String DEFAULT_API_VERSION = "v1";
   private static final String PROPERTY_ICON = "jkube.helm.icon";
   private static final String PROPERTY_TYPE = "jkube.helm.type";
   private static final String PROPERTY_CHART = "jkube.helm.chart";
@@ -76,6 +79,7 @@ public class HelmServiceUtil {
     if (original == null) {
       original = new HelmConfig();
     }
+    original.setApiVersion(resolveFromPropertyOrDefault(PROPERTY_API_VERSION, project, original::getApiVersion, DEFAULT_API_VERSION));
     original.setChart(resolveFromPropertyOrDefault(PROPERTY_CHART, project, original::getChart, project.getArtifactId()));
     original.setChartExtension(resolveFromPropertyOrDefault(PROPERTY_CHART_EXTENSION, project, original::getChartExtension, DEFAULT_CHART_EXTENSION));
     original.setVersion(resolveFromPropertyOrDefault(PROPERTY_VERSION, project, original::getVersion, project.getVersion()));
