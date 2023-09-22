@@ -15,9 +15,11 @@ package org.eclipse.jkube.kit.resource.helm;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import io.fabric8.openshift.api.model.Parameter;
+import lombok.Getter;
 
 public class HelmParameter {
 
+  @Getter
   private final Parameter parameter;
 
   @JsonCreator
@@ -25,18 +27,7 @@ public class HelmParameter {
     this.parameter = parameter;
   }
 
-  public Parameter getParameter() {
-    return parameter;
-  }
-  
   public String getHelmName() {
-    return parameter.getName().toLowerCase();
-  }
-
-  public String getHelmName(final boolean preserveCase) {
-    if(preserveCase) {
-      return parameter.getName();
-    }
-    return getHelmName();
+    return parameter.getName();
   }
 }

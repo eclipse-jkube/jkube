@@ -171,10 +171,6 @@ Defaults to empty string.
   The parameters can also represent a Golang expression
 |
 
-| preserveParameterCase
-| A boolean toggling whether the parameter case is preserved when generating the Values.yaml file
-| Defaults to `false`
-
 |===
 
 [[helm-maintainers]]

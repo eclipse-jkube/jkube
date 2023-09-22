@@ -29,7 +29,7 @@ items:
   metadata:
     annotations:
       jkube/it: This is a test
-      helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
+      helm-variable: {{ required "A valid .Values.GLOBAL_TEMPLATE_ENV_VAR entry required!" .Values.GLOBAL_TEMPLATE_ENV_VAR | default "This is a sample" }}
       escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
       helm-golang-expression: {{ .Values.unused_value | upper | quote }}
     labels:
@@ -53,7 +53,7 @@ items:
   metadata:
     annotations:
       jkube/it: This is a test
-      helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
+      helm-variable: {{ required "A valid .Values.GLOBAL_TEMPLATE_ENV_VAR entry required!" .Values.GLOBAL_TEMPLATE_ENV_VAR | default "This is a sample" }}
       escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
       annotation-from-config: {{ .Chart.Name | upper }}
       annotation-from-config/dotted: {{ .Chart.Name }}
@@ -74,7 +74,7 @@ items:
       metadata:
         annotations:
           jkube/it: This is a test
-          helm-variable: {{ required "A valid .Values.global_template_env_var entry required!" .Values.global_template_env_var | default "This is a sample" }}
+          helm-variable: {{ required "A valid .Values.GLOBAL_TEMPLATE_ENV_VAR entry required!" .Values.GLOBAL_TEMPLATE_ENV_VAR | default "This is a sample" }}
           escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
         labels:
           app: test

@@ -63,11 +63,6 @@ public class HelmConfig {
    */
   private List<Template> parameterTemplates;
   private List<Parameter> parameters;
-  /**
-   * When enabled the casing in the parameter name will be preserved
-   */
-  private boolean preserveParameterCase;
-
   private List<HelmType> types;
   private String sourceDir;
   private String outputDir;

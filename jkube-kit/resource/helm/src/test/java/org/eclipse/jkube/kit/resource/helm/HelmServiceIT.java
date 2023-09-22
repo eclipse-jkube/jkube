@@ -127,10 +127,9 @@ class HelmServiceIT {
   }
 
   @Test
-  void generateHelmChartsTest_withParameterCasePreserved() throws Exception {
+  void generateHelmChartsTest_preserveParameterCase() throws Exception {
     // Given
     helmConfig.setTypes(Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
-    helmConfig.setPreserveParameterCase(true);
     helmConfig.setParameters(Collections.singletonList(new ParameterBuilder().withName("testCamelCase").withValue("testValue").build()));
     // When
     helmService.generateHelmCharts(helmConfig);
