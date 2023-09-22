@@ -35,7 +35,7 @@ public class KubernetesHelmPushTask extends AbstractJKubeTask {
     }
     try {
       HelmConfig helm = initHelmConfig(kubernetesExtension.getDefaultHelmType(), kubernetesExtension.javaProject,
-        kubernetesExtension.getKubernetesManifestOrDefault(), kubernetesExtension.getKubernetesTemplateOrDefault(),
+        kubernetesExtension.getKubernetesTemplateOrDefault(),
         kubernetesExtension.helm).build();
       helm = initHelmPushConfig(helm, kubernetesExtension.javaProject);
       jKubeServiceHub.getHelmService().uploadHelmChart(helm);

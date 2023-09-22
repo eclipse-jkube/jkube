@@ -58,6 +58,7 @@ import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.DEFAULT_FILTER;
 import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.interpolate;
 import static org.eclipse.jkube.kit.common.util.MapUtil.getNestedMap;
 import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
+import static org.eclipse.jkube.kit.common.util.YamlUtil.listYamls;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.isRepositoryValid;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.selectHelmRepository;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.setAuthentication;
@@ -201,16 +202,6 @@ public class HelmService {
     return outputDir;
   }
 
-  public static boolean isYaml(File file) {
-    return file.getName().toLowerCase().matches(".*?\\.ya?ml$");
-  }
-
-  public static List<File> listYamls(File directory) {
-    return Stream.of(Optional.ofNullable(directory.listFiles()).orElse(new File[0]))
-        .filter(File::isFile)
-        .filter(HelmService::isYaml)
-        .collect(Collectors.toList());
-  }
 
   public static boolean containsYamlFiles(File directory) {
     return !listYamls(directory).isEmpty();
@@ -246,7 +237,7 @@ public class HelmService {
     final Chart chartFromFragment = createChartFromFragment(resourceServiceConfig, jKubeConfiguration.getProperties());
     final Chart mergedChart = Serialization.merge(chartFromHelmConfig, chartFromFragment);
 
-    File outputChartFile = new File(outputDir, CHART_FILENAME);
+    final File outputChartFile = new File(outputDir, CHART_FILENAME);
     ResourceUtil.save(outputChartFile, mergedChart, ResourceFileType.yaml);
   }
 
@@ -355,8 +346,8 @@ public class HelmService {
         .filter(hp -> !hp.getParameter().getValue().trim().matches(GOLANG_EXPRESSION_REGEX))
         .collect(Collectors.toMap(HelmParameter::getHelmName, hp -> hp.getParameter().getValue()));
 
-    File outputChartFile = new File(outputDir, VALUES_FILENAME);
-    ResourceUtil.save(outputChartFile, getNestedMap(values), ResourceFileType.yaml);
+    final File outputValuesFile = new File(outputDir, VALUES_FILENAME);
+    ResourceUtil.save(outputValuesFile, getNestedMap(values), ResourceFileType.yaml);
   }
 
   private static List<HelmParameter> collectParameters(HelmConfig helmConfig) {

@@ -40,7 +40,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class HelmServiceUtilTest {
 
-  private File manifest;
   private File templateDir;
   private JavaProject javaProject;
 
@@ -48,9 +47,6 @@ class HelmServiceUtilTest {
   void setUp(@TempDir Path temporaryFolder) throws Exception {
     final File baseDir = Files.createDirectory(temporaryFolder.resolve("test-project")).toFile();
     final File buildDir = new File(baseDir, "target");
-    manifest = buildDir.toPath().resolve("classes").resolve("META-INF").resolve("jkube")
-        .resolve("kubernetes.yml").toFile();
-    FileUtils.forceMkdir(manifest.getParentFile());
     templateDir = new File(buildDir, "jkube");
     FileUtils.forceMkdir(templateDir);
     javaProject = JavaProject.builder()
@@ -72,7 +68,7 @@ class HelmServiceUtilTest {
   void initHelmConfig_withNoConfig_shouldInitConfigWithDefaultValues() throws IOException {
     // When
     final HelmConfig result = HelmServiceUtil
-        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, null)
+        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, templateDir, null)
         .build();
     // Then
     assertThat(result)
@@ -109,7 +105,7 @@ class HelmServiceUtilTest {
         .build();
     // When
     final HelmConfig result = HelmServiceUtil
-        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, original)
+        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, templateDir, original)
         .build();
     // Then
     assertThat(result)
@@ -132,7 +128,7 @@ class HelmServiceUtilTest {
     javaProject.getProperties().put("jkube.helm.type", "Openshift,KuBernetEs");
     // When
     final HelmConfig result = HelmServiceUtil
-        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, manifest, templateDir, null)
+        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, templateDir, null)
         .build();
     // Then
     assertThat(result)
@@ -210,9 +206,11 @@ class HelmServiceUtilTest {
       .withKind("Invented").withApiVersion("jkube.eclipse.org/v1alpha1")
       .withNewMetadata().addToAnnotations("jkube.io/iconUrl", "https://my-icon").endMetadata()
       .build();
-    Serialization.saveYaml(manifest, new KubernetesListBuilder().addToItems(inventedType).build());
+    final Path kubernetesManifests = Files.createDirectories(templateDir.toPath().resolve("kubernetes"));
+    Serialization.saveYaml(kubernetesManifests.resolve("manifest.yml").toFile(),
+      new KubernetesListBuilder().addToItems(inventedType).build());
     // When
-    String url = HelmServiceUtil.findIconURL(manifest);
+    String url = HelmServiceUtil.findIconURL(templateDir, Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
     // Then
     assertThat(url).isEqualTo("https://my-icon");
   }
@@ -220,6 +218,7 @@ class HelmServiceUtilTest {
   @Test
   void findOpenShiftParameterTemplatesFromProvidedFile() throws Exception {
     // Given
+    final File manifest = new File(templateDir, "manifest.yml");
     Serialization.saveYaml(manifest, new TemplateBuilder()
       .withNewMetadata().withName("template-from-manifest").endMetadata()
       .build());
@@ -242,6 +241,7 @@ class HelmServiceUtilTest {
   @Test
   void findOpenShiftParameterTemplatesFromProvidedFileAsList() throws Exception {
     // Given
+    final File manifest = new File(templateDir, "manifest.yml");
     Serialization.saveYaml(manifest, new KubernetesListBuilder()
       .addToItems(new TemplateBuilder()
         .withNewMetadata().withName("template-from-manifest-list").endMetadata()

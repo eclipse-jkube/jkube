@@ -24,6 +24,7 @@ Usage:
 * Fix #2138: Support for Spring Boot Native Image
 * Fix #2356: Helm values.yaml parameter names preserve case
 * Fix #2369: Helm chart apiVersion can be configured
+* Fix #2386: Helm icon inferred from annotations in independent resource files (not aggregated kubernetes/openshift.yaml) 
 
 ### 1.14.0 (2023-08-31)
 * Fix #1674: SpringBootGenerator utilizes the layered jar if present and use it as Docker layers

@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -21,6 +22,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.SortedMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,5 +95,15 @@ public class YamlUtil {
         return yamlAsStringList.iterator().next();
     }
 
+  public static boolean isYaml(File file) {
+    return file.getName().toLowerCase().matches(".*?\\.ya?ml$");
+  }
+
+  public static List<File> listYamls(File directory) {
+    return Stream.of(Optional.ofNullable(directory).map(File::listFiles).orElse(new File[0]))
+      .filter(File::isFile)
+      .filter(YamlUtil::isYaml)
+      .collect(Collectors.toList());
+  }
 }
 
