@@ -141,22 +141,12 @@ class HelmConfigTest {
   }
 
   @Test
-  void canEnableCasePreservation() throws IOException {
-    // Given
-    HelmConfig helmConfig = new HelmConfig();
-    helmConfig.setPreserveParameterCase(true);
-
-    // Then
-    assertThat(helmConfig.isPreserveParameterCase()).isTrue();
-  }
-
-  @Test
   void canSetApiVersion() {
     // Given
     HelmConfig helmConfig = new HelmConfig();
     helmConfig.setApiVersion("v2");
 
-    helmConfig.setGeneratedChartListeners(Arrays.asList((helmConfig1, type, chartFile) -> {
+    helmConfig.setGeneratedChartListeners(Collections.singletonList((helmConfig1, type, chartFile) -> {
     }));
 
     // Then
@@ -171,6 +161,7 @@ class HelmConfigTest {
     file.deleteOnExit();
 
     HelmConfig helmConfig = new HelmConfig();
+    helmConfig.setApiVersion("v2");
     helmConfig.setVersion("version");
     helmConfig.setSecurity("security");
     helmConfig.setChart("chart");
@@ -195,8 +186,7 @@ class HelmConfigTest {
     helmConfig.setGeneratedChartListeners(Arrays.asList((helmConfig1, type, chartFile) -> {
     }));
     // Then
-    assertThat(helmConfig.getApiVersion()).isNull();
-    assertThat(helmConfig.isPreserveParameterCase()).isFalse();
+    assertThat(helmConfig.getApiVersion()).isEqualTo("v2");;
     assertThat(helmConfig.getVersion()).isEqualTo("version");
     assertThat(helmConfig.getSecurity()).isEqualTo("security");
     assertThat(helmConfig.getChart()).isEqualTo("chart");

@@ -16,6 +16,6 @@ deployment:
   replicas: "1"
   limits:
     memory: 512Mi
-global_template_env_var: This is a sample
+GLOBAL_TEMPLATE_ENV_VAR: This is a sample
 unused_value: the-value
 requests_memory: 256Mi
