@@ -93,6 +93,7 @@ class WatchMojoTest {
       project = mavenProject;
       settings = mavenSettings;
       kubernetesManifest = kubernetesManifestFile;
+      resourceDir = temporaryFolder.resolve("src").resolve("main").resolve("jkube").toFile().getAbsoluteFile();
       imageConfigResolver = new ImageConfigResolver();
       buildStrategy = JKubeBuildStrategy.jib;
       setPluginContext(new HashMap<>());

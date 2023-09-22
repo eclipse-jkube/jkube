@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -43,6 +44,7 @@ import java.util.stream.Stream;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getProperty;
+import static org.eclipse.jkube.kit.common.util.YamlUtil.listYamls;
 
 public class HelmServiceUtil {
 
@@ -73,8 +75,7 @@ public class HelmServiceUtil {
   private HelmServiceUtil() { }
 
   public static HelmConfig.HelmConfigBuilder initHelmConfig(
-      HelmConfig.HelmType defaultHelmType, JavaProject project, File manifest, File template, HelmConfig original)
-      throws IOException {
+      HelmConfig.HelmType defaultHelmType, JavaProject project, File template, HelmConfig original) throws IOException {
 
     if (original == null) {
       original = new HelmConfig();
@@ -94,7 +95,6 @@ public class HelmServiceUtil {
           .map(m -> new Maintainer(m.getName(), m.getEmail()))
           .collect(Collectors.toList()));
     }
-    original.setIcon(resolveFromPropertyOrDefault(PROPERTY_ICON, project, original::getIcon, findIconURL(manifest)));
     original.setAdditionalFiles(getAdditionalFiles(original, project));
     if (original.getParameterTemplates() == null) {
       original.setParameterTemplates(findTemplates(template));
@@ -105,6 +105,8 @@ public class HelmServiceUtil {
         String.format("%s/META-INF/jkube/", project.getOutputDirectory())));
     original.setOutputDir(resolveFromPropertyOrDefault(PROPERTY_OUTPUT_DIR, project, original::getOutputDir,
         String.format("%s/jkube/helm/%s", project.getBuildDirectory(), original.getChart())));
+    original.setIcon(resolveFromPropertyOrDefault(PROPERTY_ICON, project, original::getIcon,
+        findIconURL(new File(original.getSourceDir()), original.getTypes())));
     original.setTarFileClassifier(resolveFromPropertyOrDefault(PROPERTY_TARBALL_CLASSIFIER, project, original::getTarFileClassifier, EMPTY));
     original.setTarballOutputDir(resolveFromPropertyOrDefault(PROPERTY_TARBALL_OUTPUT_DIR, project, original::getTarballOutputDir,
         original.getOutputDir()));
@@ -183,22 +185,36 @@ public class HelmServiceUtil {
       .map(files -> files[0]);
   }
 
-  static String findIconURL(File manifest) {
+  static String findIconURL(File directory, Collection<HelmConfig.HelmType> types) {
     String answer = null;
-    if (manifest != null && manifest.isFile()) {
-      KubernetesResource dto;
-      try {
-        dto = Serialization.unmarshal(manifest);
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to load kubernetes YAML " + manifest + ". " + e, e);
+    for (HelmConfig.HelmType type : types) {
+      for (File yaml : listYamls(new File(directory, type.getSourceDir()))) {
+        KubernetesResource dto;
+        try {
+          dto = Serialization.unmarshal(yaml);
+        } catch (IOException e) {
+          throw new IllegalStateException("Failed to load kubernetes YAML " + yaml + ". " + e, e);
+        }
+        if (dto instanceof HasMetadata) {
+          answer = getJKubeIconUrlFromAnnotations(KubernetesHelper.getOrCreateAnnotations((HasMetadata) dto));
+        } else if (StringUtils.isBlank(answer) && dto instanceof KubernetesList) {
+          answer = extractIconUrlAnnotationFromKubernetesList((KubernetesList) dto);
+        }
       }
-      if (dto instanceof HasMetadata) {
-        Map<String, String> annotations = KubernetesHelper.getOrCreateAnnotations((HasMetadata) dto);
-        answer = getJKubeIconUrlFromAnnotations(annotations);
-      }
-      answer = extractIconUrlAnnotationFromKubernetesList(answer, dto);
     }
     return answer;
+  }
+
+  private static String extractIconUrlAnnotationFromKubernetesList(KubernetesList list) {
+    if (list.getItems() != null) {
+      for (HasMetadata item : list.getItems()) {
+        final String url = getJKubeIconUrlFromAnnotations(KubernetesHelper.getOrCreateAnnotations(item));
+        if (StringUtils.isNotBlank(url)) {
+          return url;
+        }
+      }
+    }
+    return null;
   }
 
   static List<Template> findTemplates(File templateDir) throws IOException {
@@ -276,22 +292,6 @@ public class HelmServiceUtil {
     }
   }
 
-  private static String extractIconUrlAnnotationFromKubernetesList(String answer, KubernetesResource dto) {
-    if (StringUtils.isBlank(answer) && dto instanceof KubernetesList) {
-      KubernetesList list = (KubernetesList) dto;
-      List<HasMetadata> items = list.getItems();
-      if (items != null) {
-        for (HasMetadata item : items) {
-          Map<String, String> annotations = KubernetesHelper.getOrCreateAnnotations(item);
-          answer = getJKubeIconUrlFromAnnotations(annotations);
-          if (StringUtils.isNotBlank(answer)) {
-            break;
-          }
-        }
-      }
-    }
-    return answer;
-  }
 
   private static String getJKubeIconUrlFromAnnotations(Map<String, String> annotations) {
     if (annotations.containsKey(JKubeAnnotations.ICON_URL.value(true))) {

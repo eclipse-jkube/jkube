@@ -101,7 +101,7 @@ public class ResourceUtil {
             for (String environment : environments) {
                 resourceDirs.add(new File(resourceDir, environment.trim()));
             }
-        } else if (StringUtils.isBlank(environmentAsCommaSeparateStr)) {
+        } else if (resourceDir != null && StringUtils.isBlank(environmentAsCommaSeparateStr)) {
             resourceDirs.add(resourceDir);
         }
         return resourceDirs;

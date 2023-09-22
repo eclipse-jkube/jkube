@@ -37,7 +37,7 @@ public class KubernetesHelmTask extends AbstractJKubeTask {
         logManifestNotFoundWarning(manifest);
       }
       HelmConfig helm = initHelmConfig(kubernetesExtension.getDefaultHelmType(), kubernetesExtension.javaProject,
-      kubernetesExtension.getKubernetesManifestOrDefault(), kubernetesExtension.getKubernetesTemplateOrDefault(),
+      kubernetesExtension.getKubernetesTemplateOrDefault(),
         kubernetesExtension.helm).build();
       jKubeServiceHub.getHelmService().generateHelmCharts(helm);
     } catch (IOException exception) {

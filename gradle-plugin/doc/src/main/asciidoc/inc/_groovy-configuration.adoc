@@ -199,7 +199,7 @@ ifeval::["{task-prefix}" == "k8s"]
 | `jkube.kubernetesManifest`
 
 | *kubernetesTemplate*
-| File or directory containing the Kubernetes YAML files to be included as Chart templates.
+| File or directory containing YAML files with OpenShift Template resources to be used as Helm parameters.
 
 Defaults to `${basedir}/build/classes/java/main/META-INF/jkube/kubernetes`
 | `jkube.kubernetesTemplate`

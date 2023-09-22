@@ -35,7 +35,7 @@ import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig
 public class HelmMojo extends AbstractJKubeMojo {
 
   @Component
-  private MavenProjectHelper projectHelper;
+  MavenProjectHelper projectHelper;
 
   /**
    * The generated kubernetes YAML file
@@ -44,7 +44,11 @@ public class HelmMojo extends AbstractJKubeMojo {
   File kubernetesManifest;
 
   /**
-   * The generated kubernetes YAML file
+   * One of:
+   * <ul>
+   *  <li>A directory containing OpenShift Templates to use as Helm parameters.</li>
+   *  <li>A file containing a Kubernetes List with OpenShift Template entries to be used as Helm parameters.</li>
+   * </ul>
    */
   @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
   File kubernetesTemplate;
@@ -55,11 +59,11 @@ public class HelmMojo extends AbstractJKubeMojo {
   @Override
   public void executeInternal() throws MojoExecutionException {
     try {
-      File manifest = getKubernetesManifest();
+      final File manifest = getKubernetesManifest();
       if (manifest == null || !manifest.isFile()) {
         logManifestNotFoundWarning(manifest);
       }
-      helm = initHelmConfig(getDefaultHelmType(), javaProject, getKubernetesManifest(), getKubernetesTemplate(), helm)
+      helm = initHelmConfig(getDefaultHelmType(), javaProject, getKubernetesTemplate(), helm)
           .generatedChartListeners(Collections.singletonList((helmConfig, type, chartFile) -> projectHelper
               .attachArtifact(project, helmConfig.getChartExtension(), type.getClassifier(), chartFile)))
           .build();
