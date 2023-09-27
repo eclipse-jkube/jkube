@@ -91,7 +91,7 @@ class HelmServiceTest {
   }
 
   @Test
-  void createChartYaml() throws IOException {
+  void generateHelmCharts() throws IOException {
     // Given
     helmConfig.types(Collections.singletonList(HelmType.KUBERNETES));
     helmConfig.apiVersion("v1337").chart("Chart Name").version("1337");
@@ -110,32 +110,31 @@ class HelmServiceTest {
   }
 
   @Test
-  void createChartYaml_whenInvalidChartYamlFragmentProvided_thenThrowException(@TempDir File outputDir) {
+  void generateHelmCharts_whenInvalidChartYamlFragmentProvided_thenThrowException() {
     // Given
-    File fragmentsDir = new File(Objects.requireNonNull(getClass().getResource("/invalid-helm-fragments")).getFile());
-    jKubeConfiguration = jKubeConfiguration.toBuilder()
-      .project(JavaProject.builder().properties(new Properties()).build())
+    helmConfig.types(Collections.singletonList(HelmType.KUBERNETES));
+    resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
+      new File(Objects.requireNonNull(getClass().getResource("/invalid-helm-fragments")).getFile())))
       .build();
-    resourceServiceConfig = ResourceServiceConfig.builder()
-      .resourceDirs(Collections.singletonList(fragmentsDir)).build();
     // When + Then
     assertThatIllegalArgumentException()
       .isThrownBy(() ->
-        new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger()).createChartYaml(helmConfig.build(), outputDir))
+        new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger()).generateHelmCharts(helmConfig.build()))
       .withMessageContaining("Failure in parsing Helm Chart fragment: ");
   }
 
   @Test
-  void createChartYaml_whenValidChartYamlFragmentProvided_thenMergeFragmentChart(@TempDir File outputDir) throws Exception {
+  void generateHelmCharts_whenValidChartYamlFragmentProvided_thenMergeFragmentChart() throws Exception {
     // Given
-    File fragmentsDir = new File(Objects.requireNonNull(getClass().getResource("/valid-helm-fragments")).getFile());
+    helmConfig.types(Collections.singletonList(HelmType.KUBERNETES));
     Properties properties = new Properties();
     properties.put("chart.name", "name-from-fragment");
     jKubeConfiguration = jKubeConfiguration.toBuilder()
       .project(JavaProject.builder().properties(properties).build())
       .build();
-    resourceServiceConfig = ResourceServiceConfig.builder()
-      .resourceDirs(Collections.singletonList(fragmentsDir)).build();
+    resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
+        new File(Objects.requireNonNull(getClass().getResource("/valid-helm-fragments")).getFile())))
+      .build();
     helmConfig
       .apiVersion("v1")
       .chart("Chart Name")
@@ -150,9 +149,9 @@ class HelmServiceTest {
       .dependencies(Collections.singletonList(HelmDependency.builder().name("dependency-from-config").build()));
     // When
     new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
-      .createChartYaml(helmConfig.build(), outputDir);
+      .generateHelmCharts(helmConfig.build());
     // Then
-    final Map<?, ?> savedChart = Serialization.unmarshal(new File(outputDir, "Chart.yaml"), Map.class);
+    final Map<?, ?> savedChart = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("Chart.yaml").toFile(), Map.class);
     assertThat(savedChart)
       .hasFieldOrPropertyWithValue("apiVersion", "v1")
       .hasFieldOrPropertyWithValue("name", "name-from-fragment")

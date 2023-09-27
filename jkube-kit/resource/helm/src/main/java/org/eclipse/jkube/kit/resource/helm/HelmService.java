@@ -232,7 +232,7 @@ public class HelmService {
     }
   }
 
-  void createChartYaml(HelmConfig helmConfig, File outputDir) throws IOException {
+  private void createChartYaml(HelmConfig helmConfig, File outputDir) throws IOException {
     final Chart chartFromHelmConfig = chartFromHelmConfig(helmConfig);
     final Chart chartFromFragment = createChartFromFragment(resourceServiceConfig, jKubeConfiguration.getProperties());
     final Chart mergedChart = Serialization.merge(chartFromHelmConfig, chartFromFragment);
