@@ -15,6 +15,9 @@ package org.eclipse.jkube.generator.api.support;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -256,7 +259,7 @@ public abstract class BaseGenerator implements Generator {
         String docURL = project.getDocumentationUrl();
         Map<String, String> labels = new HashMap<>();
 
-        labels.put(BuildLabelAnnotations.BUILD_DATE.value(), LocalDateTime.now().toString());
+        labels.put(BuildLabelAnnotations.BUILD_DATE.value(), LocalDateTime.now().format(DateTimeFormatter.ISO_DATE));
         labels.put(BuildLabelAnnotations.NAME.value(), project.getName());
         labels.put(BuildLabelAnnotations.DESCRIPTION.value(), project.getDescription());
         if (docURL != null) {

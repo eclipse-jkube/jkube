@@ -14,6 +14,7 @@
 package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,15 +25,19 @@ import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 class JavaExecGeneratorTest {
@@ -46,6 +51,7 @@ class JavaExecGeneratorTest {
     generatorContext = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
     properties = new Properties();
     plugins = new ArrayList<>();
+    when(generatorContext.getProject().getVersion()).thenReturn("0.0.1");
     when(generatorContext.getProject().getProperties()).thenReturn(properties);
     when(generatorContext.getProject().getPlugins()).thenReturn(plugins);
   }
@@ -118,6 +124,49 @@ class JavaExecGeneratorTest {
               tuple(new File("src/main/jkube-includes/bin"), Collections.emptyList()),
               tuple(new File(""), Collections.singletonList("fat.jar"))
           );
+    }
+  }
+
+  @Test
+  void customize_whenInvoked_shouldAddLabelsToBuildConfiguration() {
+    // Given
+    properties.put("jkube.generator.java-exec.mainClass", "org.example.Foo");
+    JavaExecGenerator javaExecGenerator = new JavaExecGenerator(generatorContext);
+    List<ImageConfiguration> result = new ArrayList<>();
+
+    // When
+    result = javaExecGenerator.customize(result, false);
+
+    // Then
+    assertThat(result)
+        .singleElement(InstanceOfAssertFactories.type(ImageConfiguration.class))
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .extracting(BuildConfiguration::getLabels)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsKeys("org.label-schema.build-date", "org.label-schema.description", "org.label-schema.version",
+            "org.label-schema.schema-version", "org.label-schema.build-date", "org.label-schema.name");
+  }
+
+  @Test
+  void customize_whenInvoked_shouldNotAddBuildTimestampToBuildDateLabel() {
+    LocalDateTime localDateTime = LocalDateTime.of(2023, 9, 27, 3, 14);
+    try (MockedStatic<LocalDateTime> localDateMockedStatic = mockStatic(LocalDateTime.class)) {
+      localDateMockedStatic.when(LocalDateTime::now).thenReturn(localDateTime);
+      // Given
+      properties.put("jkube.generator.java-exec.mainClass", "org.example.Foo");
+      JavaExecGenerator javaExecGenerator = new JavaExecGenerator(generatorContext);
+      List<ImageConfiguration> result = new ArrayList<>();
+
+      // When
+      result = javaExecGenerator.customize(result, false);
+
+      // Then
+      assertThat(result)
+          .singleElement(InstanceOfAssertFactories.type(ImageConfiguration.class))
+          .extracting(ImageConfiguration::getBuildConfiguration)
+          .extracting(BuildConfiguration::getLabels)
+          .asInstanceOf(InstanceOfAssertFactories.MAP)
+          .containsEntry("org.label-schema.build-date", "2023-09-27");
     }
   }
 }
