@@ -62,7 +62,7 @@ public class HelmConfig {
    * the values.yaml file.
    */
   private List<Template> parameterTemplates;
-  private List<Parameter> parameters;
+  private List<HelmParameter> parameters;
   private List<HelmType> types;
   private String sourceDir;
   private String outputDir;

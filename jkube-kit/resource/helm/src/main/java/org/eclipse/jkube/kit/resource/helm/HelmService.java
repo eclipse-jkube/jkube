@@ -27,7 +27,6 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -43,10 +42,8 @@ import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments;
 
-import com.google.common.collect.Streams;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
-import io.fabric8.openshift.api.model.Parameter;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.io.FileUtils;
@@ -71,7 +68,6 @@ public class HelmService {
 
   private static final String CHART_FRAGMENT_REGEX = "^chart\\.helm\\.(?<ext>yaml|yml|json)$";
   public static final Pattern CHART_FRAGMENT_PATTERN = Pattern.compile(CHART_FRAGMENT_REGEX, Pattern.CASE_INSENSITIVE);
-  private static final String GOLANG_EXPRESSION_REGEX = "\\{\\{.+}}";
 
   private final JKubeConfiguration jKubeConfiguration;
   private final ResourceServiceConfig resourceServiceConfig;
@@ -258,7 +254,7 @@ public class HelmService {
   }
 
   private static Chart createChartFromFragment(ResourceServiceConfig resourceServiceConfig, Properties properties) {
-    File helmChartFragment = resolveChartYamlFileFromFragmentsDir(resourceServiceConfig);
+    File helmChartFragment = resolveHelmFragment(CHART_FRAGMENT_PATTERN, resourceServiceConfig);
     if (helmChartFragment != null && helmChartFragment.exists()) {
       try {
         String interpolatedFragmentContent = interpolate(helmChartFragment, properties, DEFAULT_FILTER);
@@ -270,12 +266,12 @@ public class HelmService {
     return null;
   }
 
-  private static File resolveChartYamlFileFromFragmentsDir(ResourceServiceConfig resourceServiceConfig) {
+  private static File resolveHelmFragment(Pattern filePattern, ResourceServiceConfig resourceServiceConfig) {
     final List<File> fragmentDirs = resourceServiceConfig.getResourceDirs();
     if (fragmentDirs != null) {
       for (File fragmentDir : fragmentDirs) {
         if (fragmentDir.exists() && fragmentDir.isDirectory()) {
-          final File[] fragments = fragmentDir.listFiles((dir, name) -> CHART_FRAGMENT_PATTERN.matcher(name).matches());
+          final File[] fragments = fragmentDir.listFiles((dir, name) -> filePattern.matcher(name).matches());
           if (fragments != null && fragments.length > 0) {
             return fragments[0];
           }
@@ -292,33 +288,18 @@ public class HelmService {
   }
 
   private static String interpolateTemplateWithHelmParameter(String template, HelmParameter parameter) {
-    String name = parameter.getParameter().getName();
+    final String name = parameter.getName();
     final String from = "$" + name;
     final String braceEnclosedFrom = "${" + name + "}";
     final String quotedBraceEnclosedFrom = "\"" + braceEnclosedFrom + "\"";
     String answer = template;
-    final String to = expression(parameter);
+    final String to = parameter.toExpression();
     answer = answer.replace(quotedBraceEnclosedFrom, to);
     answer = answer.replace(braceEnclosedFrom, to);
     answer = answer.replace(from, to);
     return answer;
   }
 
-  private static String expression(HelmParameter parameter) {
-    final String value = Optional.ofNullable(parameter.getParameter().getValue()).map(StringUtils::trimToEmpty).orElse("");
-    if (value.matches(GOLANG_EXPRESSION_REGEX)) {
-      return value;
-    }
-    String defaultExpression = "";
-    String required = "";
-    if (StringUtils.isNotBlank(value)) {
-      defaultExpression = " | default \"" + value + "\"";
-    }
-    if (Boolean.TRUE.equals(parameter.getParameter().getRequired())) {
-      required = "required \"A valid .Values." + parameter.getHelmName() + " entry required!\" ";
-    }
-    return "{{ " + required + ".Values." + parameter.getHelmName() + defaultExpression + " }}";
-  }
 
   private static void interpolateTemplateParameterExpressionsWithHelmExpressions(File file, List<HelmParameter> helmParameters) throws IOException {
     final String originalTemplate = FileUtils.readFileToString(file, Charset.defaultCharset());
@@ -340,11 +321,11 @@ public class HelmService {
   }
 
   private static void createValuesYaml(List<HelmParameter> helmParameters, File outputDir) throws IOException {
-    final Map<String, String> values = helmParameters.stream()
-        .filter(hp -> hp.getParameter().getValue() != null)
+    final Map<String, Object> values = helmParameters.stream()
+        .filter(hp -> hp.getValue() != null)
         // Placeholders replaced by Go expressions don't need to be persisted in the values.yaml file
-        .filter(hp -> !hp.getParameter().getValue().trim().matches(GOLANG_EXPRESSION_REGEX))
-        .collect(Collectors.toMap(HelmParameter::getHelmName, hp -> hp.getParameter().getValue()));
+        .filter(hp -> !hp.isGolangExpression())
+        .collect(Collectors.toMap(HelmParameter::getName, HelmParameter::getValue));
 
     final File outputValuesFile = new File(outputDir, VALUES_FILENAME);
     ResourceUtil.save(outputValuesFile, getNestedMap(values), ResourceFileType.yaml);
@@ -352,14 +333,18 @@ public class HelmService {
 
   private static List<HelmParameter> collectParameters(HelmConfig helmConfig) {
     final List<HelmParameter> parameters = new ArrayList<>();
-    final Stream<Parameter> fromYaml = Optional.ofNullable(helmConfig.getParameterTemplates())
-        .orElse(Collections.emptyList()).stream()
-        .map(Template::getParameters).flatMap(List::stream);
-    final Stream<Parameter> fromConfig = Optional.ofNullable(helmConfig.getParameters())
-        .orElse(Collections.emptyList()).stream();
-    Streams.concat(fromYaml, fromConfig).map(HelmParameter::new).forEach(parameters::add);
-    parameters.stream().filter(p -> p.getParameter().getName() == null).findAny().ifPresent(p -> {
-      throw new IllegalArgumentException("Helm parameters must be declared with a valid name: " + p.getParameter().toString());
+    if (helmConfig.getParameterTemplates() != null) {
+      helmConfig.getParameterTemplates().stream()
+          .map(Template::getParameters).flatMap(List::stream)
+          .map(p -> HelmParameter.builder()
+            .name(p.getName()).required(Boolean.TRUE.equals(p.getRequired())).value(p.getValue()).build())
+          .forEach(parameters::add);
+    }
+    if (helmConfig.getParameters() != null && !helmConfig.getParameters().isEmpty()) {
+      parameters.addAll(helmConfig.getParameters());
+    }
+    parameters.stream().filter(p -> p.getName() == null).findAny().ifPresent(p -> {
+      throw new IllegalArgumentException("Helm parameters must be declared with a valid name: " + p);
     });
     return parameters;
   }

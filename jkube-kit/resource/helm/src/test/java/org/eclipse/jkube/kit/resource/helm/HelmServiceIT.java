@@ -31,7 +31,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 
-import io.fabric8.openshift.api.model.ParameterBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.util.Serialization;
@@ -77,8 +76,8 @@ class HelmServiceIT {
         Serialization.unmarshal(HelmServiceIT.class.getResource("/it/sources/global-template.yml"), Template.class)
     ));
     helmConfig.setParameters(Arrays.asList(
-        new ParameterBuilder().withName("annotation_from_config").withValue("{{ .Chart.Name | upper }}").build(),
-        new ParameterBuilder().withName("annotation.from.config.dotted").withValue("{{ .Chart.Name }}").build()));
+        HelmParameter.builder().name("annotation_from_config").value("{{ .Chart.Name | upper }}").build(),
+        HelmParameter.builder().name("annotation.from.config.dotted").value("{{ .Chart.Name }}").build()));
     final AtomicInteger generatedChartCount = new AtomicInteger(0);
     helmConfig.setGeneratedChartListeners(Collections.singletonList(
         (helmConfig1, type, chartFile) -> generatedChartCount.incrementAndGet()));
@@ -117,8 +116,8 @@ class HelmServiceIT {
   void generateHelmChartsTest_withInvalidParameters_throwsException() {
     // Given
     helmConfig.setTypes(Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
-    helmConfig.setParameters(Collections.singletonList(new ParameterBuilder()
-        .withValue("{{ .Chart.Name | upper }}").build()));
+    helmConfig.setParameters(Collections.singletonList(HelmParameter.builder()
+        .value("{{ .Chart.Name | upper }}").build()));
     // When
     final IllegalArgumentException result = assertThrows(IllegalArgumentException.class, () ->
         helmService.generateHelmCharts(helmConfig));
@@ -130,7 +129,7 @@ class HelmServiceIT {
   void generateHelmChartsTest_preserveParameterCase() throws Exception {
     // Given
     helmConfig.setTypes(Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
-    helmConfig.setParameters(Collections.singletonList(new ParameterBuilder().withName("testCamelCase").withValue("testValue").build()));
+    helmConfig.setParameters(Collections.singletonList(HelmParameter.builder().name("testCamelCase").value("testValue").build()));
     // When
     helmService.generateHelmCharts(helmConfig);
     // Then

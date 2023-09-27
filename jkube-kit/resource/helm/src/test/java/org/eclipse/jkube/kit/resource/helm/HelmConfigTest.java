@@ -20,7 +20,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
-import io.fabric8.openshift.api.model.ParameterBuilder;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 
@@ -128,7 +127,7 @@ class HelmConfigTest {
         .hasFieldOrPropertyWithValue("stableRepository", new HelmRepository())
         .hasFieldOrPropertyWithValue("tarballOutputDir", "./tar-output")
         .hasFieldOrPropertyWithValue("parameterTemplates", Collections.singletonList(new Template()))
-        .hasFieldOrPropertyWithValue("parameters", Collections.singletonList(new ParameterBuilder().withName("key").build()))
+        .hasFieldOrPropertyWithValue("parameters", Collections.singletonList(HelmParameter.builder().name("key").build()))
         .hasFieldOrPropertyWithValue("description", "The description")
         .hasFieldOrPropertyWithValue("home", "e.t.")
         .hasFieldOrPropertyWithValue("icon", "Warhol")

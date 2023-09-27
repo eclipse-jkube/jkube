@@ -13,21 +13,49 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import io.fabric8.openshift.api.model.Parameter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.apache.commons.lang3.StringUtils;
 
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@EqualsAndHashCode
+@ToString
 public class HelmParameter {
 
-  @Getter
-  private final Parameter parameter;
+  private static final String GOLANG_EXPRESSION_REGEX = "\\{\\{.+}}";
 
-  @JsonCreator
-  public HelmParameter(Parameter parameter) {
-    this.parameter = parameter;
+  private boolean required;
+  private String name;
+  private String value;
+
+  boolean isGolangExpression() {
+    return value != null && value.trim().matches(GOLANG_EXPRESSION_REGEX);
   }
 
-  public String getHelmName() {
-    return parameter.getName();
+  String toExpression() {
+    if (isGolangExpression()) {
+      return StringUtils.trimToEmpty(getValue());
+    }
+    final String defaultValue = StringUtils.trimToEmpty(getValue());
+    final String defaultExpression;
+    if (StringUtils.isNotBlank(defaultValue)) {
+      defaultExpression = " | default \"" + defaultValue + "\"";
+    } else {
+      defaultExpression = "";
+    }
+    final String requiredExpression;
+    if (isRequired()) {
+      requiredExpression = "required \"A valid .Values." + getName() + " entry required!\" ";
+    } else {
+      requiredExpression = "";
+    }
+    return "{{ " + requiredExpression + ".Values." + getName() + defaultExpression + " }}";
   }
 }
