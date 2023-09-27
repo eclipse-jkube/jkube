@@ -15,7 +15,10 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -149,6 +152,23 @@ class FileUtilTest {
     relativeFile = getRelativePath(folder,
         new File(folder.getAbsolutePath() + File.separator + "foo" + File.separator + "fileInFoo1"));
     assertThat(relativeFile.getPath()).isEqualTo("foo" + File.separator + "fileInFoo1");
+  }
+
+  @Test
+  void copy_whenFileCopied_shouldPreserveLastModifiedTimestamp() throws IOException {
+    // Given
+    File sourceFile = new File(folder, "source");
+    Files.write(sourceFile.toPath(), "testdata".getBytes(StandardCharsets.UTF_8));
+    long originalTimestamp = new Date().getTime() - 10;
+    assertThat(sourceFile.setLastModified(originalTimestamp)).isTrue();
+    Path targetFilePath = folder.toPath().resolve("target");
+
+    // When
+    FileUtil.copy(sourceFile.toPath(), targetFilePath);
+
+    // Then
+    assertThat(targetFilePath.toFile()).hasSameTextualContentAs(sourceFile);
+    assertThat(targetFilePath.toFile().lastModified()).isEqualTo(originalTimestamp);
   }
 
   private void prepareDirectory() throws IOException {
