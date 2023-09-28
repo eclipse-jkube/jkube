@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.15-SNAPSHOT
 * Fix #2138: Support for Spring Boot Native Image
+* Fix #2200: Support for Helm `values.yaml` fragments
 * Fix #2356: Helm values.yaml parameter names preserve case
 * Fix #2369: Helm chart apiVersion can be configured
 * Fix #2386: Helm icon inferred from annotations in independent resource files (not aggregated kubernetes/openshift.yaml) 

@@ -1,0 +1,4 @@
+---
+replicaCount: "1"
+deployment:
+  imagePullPolicy: "Always"

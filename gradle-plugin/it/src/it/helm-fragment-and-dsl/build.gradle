@@ -32,6 +32,7 @@ def extensionConfig = {
             name = 'repository/helm-dsl:latest'
             build {
                 from = 'repository/from:latest'
+                ports = [8080]
             }
         }
     }
@@ -53,6 +54,13 @@ def extensionConfig = {
                            url = 'https://example.com/user1'
                        }]
         icon = 'https://example.com/icon-is-overridden'
+        parameters = [{
+                          name = 'replicaCount'
+                          value = 1
+                      }, {
+                          name = 'imagePullPolicy'
+                          value = '{{ .Values.deployment.imagePullPolicy }}'
+                      }]
     }
 }
 
