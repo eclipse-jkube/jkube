@@ -34,19 +34,37 @@ class HelmIT {
     "helm-properties",
     "helm-zero-config"
   })
-  void k8sResourceHelmFromFragment_whenRun_generatesK8sManifestsAndHelmChart(String projectName) throws Exception {
+  void k8sResourceHelmFromFragment_whenRun_generatesHelmChart(String projectName) throws Exception {
     // When
     final BuildResult result = gradleRunner.withITProject(projectName)
       .withArguments("clean", "k8sResource", "k8sHelm").build();
     // Then
-    ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesHelmMetadataFile(projectName),
-        gradleRunner.resolveFile("expected", "Chart.yaml"));
+    ResourceVerify.verifyResourceDescriptors(
+      gradleRunner.resolveFile("build", "jkube", "helm", projectName, "kubernetes", "Chart.yaml"),
+      gradleRunner.resolveFile("expected", "Chart.yaml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Using resource templates from")
-        .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
         .contains("validating")
         .contains(String.format("Creating Helm Chart \"%s\" for Kubernetes", projectName));
+  }
+
+  @ParameterizedTest(name = "k8sResource k8sHelm with {0}")
+  @ValueSource(strings = {
+    "helm-dsl",
+    "helm-fragment",
+    "helm-fragment-and-dsl",
+    "helm-properties",
+    "helm-zero-config"
+  })
+  void k8sResourceHelmFromFragment_whenRun_generatesHelmValues(String projectName) throws Exception {
+    // When
+    final BuildResult result = gradleRunner.withITProject(projectName)
+      .withArguments("clean", "k8sResource", "k8sHelm").build();
+    // Then
+    ResourceVerify.verifyResourceDescriptors(
+      gradleRunner.resolveFile("build", "jkube", "helm", projectName, "kubernetes", "values.yaml"),
+      gradleRunner.resolveFile("expected", "values.yaml"));
   }
 
   @ParameterizedTest(name = "ocResource ocHelm with {0}")
@@ -57,16 +75,16 @@ class HelmIT {
     "helm-properties",
     "helm-zero-config"
   })
-  void ocResourceHelmFromFragment_whenRun_generatesOpenShiftManifestsAndHelmChart(String projectName) throws Exception {
+  void ocResourceHelmFromFragment_whenRun_generatesHelmChart(String projectName) throws Exception {
     // When
     final BuildResult result = gradleRunner.withITProject(projectName)
       .withArguments("clean", "ocResource", "ocHelm").build();
     // Then
-    ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftHelmMetadataFile(projectName),
-        gradleRunner.resolveFile("expected", "Chart.yaml"));
+    ResourceVerify.verifyResourceDescriptors(
+      gradleRunner.resolveFile("build", "jkube", "helm", projectName, "openshift", "Chart.yaml"),
+      gradleRunner.resolveFile("expected", "Chart.yaml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Using resource templates from")
-        .contains("Adding a default Deployment")
         .contains("Adding revision history limit to 2")
         .contains("validating")
         .contains(String.format("Creating Helm Chart \"%s\" for OpenShift", projectName));

@@ -1,0 +1,12 @@
+replicaCount: 1
+
+image:
+  repository: nginx
+
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: "true"
+  tls: []
