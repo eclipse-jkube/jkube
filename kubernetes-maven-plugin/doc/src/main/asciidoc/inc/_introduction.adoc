@@ -352,6 +352,7 @@ An extract of the plugin configuration is shown below:
 
 The XML resource configuration is based on plain Kubernetes resource objects. When targeting OpenShift, Kubernetes resource descriptors will be automatically converted to their OpenShift counterparts, e.g. a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] will be converted to an OpenShift https://docs.openshift.com/container-platform/4.1/applications/deployments/what-deployments-are.html#deployments-and-deploymentconfigs_what-deployments-are[DeploymentConfig].
 
+[[introduction-examples-resource-fragments]]
 === Resource Fragments
 
 The third configuration option is to use an external configuration in form of YAML resource descriptors which are located in the  `src/main/jkube` directory. Each resource gets its own file, which contains a skeleton of a resource descriptor. The plugin will pick up the resource, enrich it and then combine all to a single `kubernetes.yml` and `openshift.yml` file. Within these descriptor files you are can freely use any Kubernetes feature.
