@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 class KubernetesResourceTaskTest {
 
   @RegisterExtension
-  private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
+  public final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   @BeforeEach
   void setUp() throws IOException {
@@ -73,7 +73,7 @@ class KubernetesResourceTaskTest {
     // When
     resourceTask.runTask();
     // Then
-    assertThat(taskEnvironment.getRoot().toPath().resolve("build").resolve("jkube"))
+    assertThat(taskEnvironment.getRoot().toPath().resolve("build").resolve("jkube-temp"))
         .exists()
         .satisfies(p -> assertThat(p.resolve("configmap.yml")).hasContent("key: value"))
         .satisfies(p -> assertThat(p.resolve("second-configmap.yml"))

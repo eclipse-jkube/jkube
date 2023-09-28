@@ -44,7 +44,7 @@ endif::[]
 | `jkube.skipHealthCheck`
 
 | *workDir*
-| The JKube working directory. Defaults to `${project.build.directory}/jkube`.
+| The JKube working directory. Defaults to `${project.build.directory}/jkube-temp`.
 | `jkube.workDir`
 
 | *environment*
