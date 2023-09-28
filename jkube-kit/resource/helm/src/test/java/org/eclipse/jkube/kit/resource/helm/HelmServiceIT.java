@@ -77,7 +77,8 @@ class HelmServiceIT {
     ));
     helmConfig.setParameters(Arrays.asList(
         HelmParameter.builder().name("annotation_from_config").value("{{ .Chart.Name | upper }}").build(),
-        HelmParameter.builder().name("annotation.from.config.dotted").value("{{ .Chart.Name }}").build()));
+        HelmParameter.builder().name("annotation.from.config.dotted").value("{{ .Chart.Name }}").build(),
+        HelmParameter.builder().name("deployment.replicas").value(1).build()));
     final AtomicInteger generatedChartCount = new AtomicInteger(0);
     helmConfig.setGeneratedChartListeners(Collections.singletonList(
         (helmConfig1, type, chartFile) -> generatedChartCount.incrementAndGet()));

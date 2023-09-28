@@ -13,7 +13,7 @@
 #
 
 deployment:
-  replicas: "1"
+  replicas: 1
   limits:
     memory: 512Mi
 GLOBAL_TEMPLATE_ENV_VAR: This is a sample
