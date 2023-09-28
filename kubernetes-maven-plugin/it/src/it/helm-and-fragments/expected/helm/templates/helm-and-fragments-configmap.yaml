@@ -12,5 +12,5 @@ metadata:
     group: org.eclipse.jkube
   name: helm-and-fragments
 data:
-  value_from_config: {{ .Values.a_value_with_a_default | default "The default" }}
+  value_from_config: {{ .Values.a_value_with_a_default }}
   chart_name: {{ .Chart.Name }}

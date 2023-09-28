@@ -27,6 +27,7 @@ Usage:
 * Fix #2369: Helm chart apiVersion can be configured
 * Fix #2386: Helm icon inferred from annotations in independent resource files (not aggregated kubernetes/openshift.yaml)
 * Fix #2397: Default JKube work directory (`jkube.workDir`) changed from `${project.build.directory}/jkube` to `${project.build.directory}/jkube-temp`
+* Fix #2399: Helm no longer generates default function; broadens support for different value types
 
 ### 1.14.0 (2023-08-31)
 * Fix #1674: SpringBootGenerator utilizes the layered jar if present and use it as Docker layers

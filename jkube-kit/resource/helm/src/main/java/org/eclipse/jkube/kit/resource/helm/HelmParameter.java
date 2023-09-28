@@ -33,22 +33,20 @@ public class HelmParameter {
 
   private boolean required;
   private String name;
-  private String value;
+  private Object value;
+
+  boolean isString() {
+    return value instanceof String;
+  }
 
   boolean isGolangExpression() {
-    return value != null && value.trim().matches(GOLANG_EXPRESSION_REGEX);
+    return isString() && ((String) value).trim().matches(GOLANG_EXPRESSION_REGEX);
   }
 
   String toExpression() {
+    // Golang expressions are placed directly on the template, they won't be added to the values.yaml file
     if (isGolangExpression()) {
-      return StringUtils.trimToEmpty(getValue());
-    }
-    final String defaultValue = StringUtils.trimToEmpty(getValue());
-    final String defaultExpression;
-    if (StringUtils.isNotBlank(defaultValue)) {
-      defaultExpression = " | default \"" + defaultValue + "\"";
-    } else {
-      defaultExpression = "";
+      return StringUtils.trimToEmpty(getValue().toString());
     }
     final String requiredExpression;
     if (isRequired()) {
@@ -56,6 +54,6 @@ public class HelmParameter {
     } else {
       requiredExpression = "";
     }
-    return "{{ " + requiredExpression + ".Values." + getName() + defaultExpression + " }}";
+    return "{{ " + requiredExpression + ".Values." + getName() + " }}";
   }
 }
