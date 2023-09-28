@@ -25,7 +25,8 @@ Usage:
 * Fix #2200: Support for Helm `values.yaml` fragments
 * Fix #2356: Helm values.yaml parameter names preserve case
 * Fix #2369: Helm chart apiVersion can be configured
-* Fix #2386: Helm icon inferred from annotations in independent resource files (not aggregated kubernetes/openshift.yaml) 
+* Fix #2386: Helm icon inferred from annotations in independent resource files (not aggregated kubernetes/openshift.yaml)
+* Fix #2397: Default JKube work directory (`jkube.workDir`) changed from `${project.build.directory}/jkube` to `${project.build.directory}/jkube-temp`
 
 ### 1.14.0 (2023-08-31)
 * Fix #1674: SpringBootGenerator utilizes the layered jar if present and use it as Docker layers

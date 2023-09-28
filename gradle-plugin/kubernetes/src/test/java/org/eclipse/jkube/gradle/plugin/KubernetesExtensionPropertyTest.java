@@ -102,7 +102,7 @@ class KubernetesExtensionPropertyTest {
         arguments("getResourceSourceDirectoryOrDefault", BASE.toPath().resolve(Paths.get("src", "main", "jkube")).toFile()),
         arguments("getResourceTargetDirectoryOrDefault", new File(BASE, "build").toPath().resolve(Paths.get("META-INF", "jkube")).toFile()),
         arguments("getResourceEnvironmentOrNull", null),
-        arguments("getWorkDirectoryOrDefault", new File(BASE, "build").toPath().resolve(Paths.get("jkube")).toFile()),
+        arguments("getWorkDirectoryOrDefault", new File(BASE, "build").toPath().resolve(Paths.get("jkube-temp")).toFile()),
         arguments("getProfileOrNull", null),
         arguments("getNamespaceOrNull", null),
         arguments("getBuildStrategyOrDefault", JKubeBuildStrategy.docker),

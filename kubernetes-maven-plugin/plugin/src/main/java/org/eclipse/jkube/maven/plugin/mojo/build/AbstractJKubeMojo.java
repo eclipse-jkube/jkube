@@ -100,9 +100,9 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     protected Settings settings;
 
     /**
-     * The jkube working directory
+     * The JKube working directory
      */
-    @Parameter(property = "jkube.workDir", defaultValue = "${project.build.directory}/jkube")
+    @Parameter(property = "jkube.workDir", defaultValue = "${project.build.directory}/jkube-temp")
     protected File workDir;
 
     @Parameter(property = "jkube.namespace")

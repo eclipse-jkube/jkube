@@ -67,7 +67,7 @@ class HelmMojoPluginTest {
 
   static Stream<Arguments> parametersData() {
     return Stream.of(
-      Arguments.of("workDir", "jkube.workDir", File.class, "${project.build.directory}/jkube"),
+      Arguments.of("workDir", "jkube.workDir", File.class, "${project.build.directory}/jkube-temp"),
       Arguments.of("resourceDir", "jkube.resourceDir", File.class, "${basedir}/src/main/jkube"),
       Arguments.of("environment", "jkube.environment", String.class, ""),
       Arguments.of("targetDir", "jkube.targetDir", File.class, "${project.build.outputDirectory}/META-INF/jkube"),

@@ -117,7 +117,7 @@ public abstract class KubernetesExtension {
   private static final Path DEFAULT_JSON_LOG_DIR = Paths.get("jkube","applyJson");
   private static final Path DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src", "main", "jkube");
   private static final Path DEFAULT_RESOURCE_TARGET_DIR = Paths.get("META-INF", "jkube");
-  private static final Path DEFAULT_WORK_DIR = Paths.get("jkube");
+  private static final Path DEFAULT_WORK_DIR = Paths.get("jkube-temp");
 
   public transient JavaProject javaProject;
 
