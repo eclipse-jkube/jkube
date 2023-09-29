@@ -118,3 +118,5 @@ endif::[]
 | `jkube.skip.apply`
 
 |===
+
+include::{kitdoc-path}/inc/apply/_cluster_access_configuration.adoc[]

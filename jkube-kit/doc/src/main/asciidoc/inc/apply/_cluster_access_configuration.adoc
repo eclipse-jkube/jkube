@@ -1,0 +1,106 @@
+
+[[cluster-access-configuration]]
+=== {cluster} Access Configuration
+
+You can configure parameters to define how the plugin connects to the {cluster} cluster instead of relying on default parameters.
+
+ifeval::["{plugin-type}" == "maven"]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<configuration>
+  <access>
+    <username></username>
+    <password></password>
+    <masterUrl></masterUrl>
+    <apiVersion></apiVersion>
+  </access>
+</configuration>
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,groovy,subs="attributes+"]
+----
+kubernetes {
+  access {
+    username = ""
+    password = ""
+    masterUrl = ""
+    apiVersion = ""
+  }
+}
+----
+endif::[]
+
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *username*
+| Username on which to operate.
+| `jkube.username`
+
+| *password*
+| Password on which to operate.
+| `jkube.password`
+
+| *namespace*
+| Namespace on which to operate.
+| `jkube.namespace`
+
+| *masterUrl*
+| Master URL on which to operate.
+| `jkube.masterUrl`
+
+| *apiVersion*
+| Api version on which to operate.
+| `jkube.apiVersion`
+
+| *caCertFile*
+| CaCert File on which to operate.
+| `jkube.caCertFile`
+
+| *caCertData*
+| CaCert Data on which to operate.
+| `jkube.caCertData`
+
+| *clientCertFile*
+| Client Cert File on which to operate.
+| `jkube.clientCertFile`
+
+| *clientCertData*
+| Client Cert Data on which to operate.
+| `jkube.clientCertData`
+
+| *clientKeyFile*
+| Client Key File on which to operate.
+| `jkube.clientKeyFile`
+
+| *clientKeyData*
+| Client Key Data on which to operate.
+| `jkube.clientKeyData`
+
+| *clientKeyAlgo*
+| Client Key Algorithm on which to operate.
+| `jkube.clientKeyAlgo`
+
+| *clientKeyPassphrase*
+| Client Key Passphrase on which to operate.
+| `jkube.clientKeyPassphrase`
+
+| *trustStoreFile*
+| Trust Store File on which to operate.
+| `jkube.trustStoreFile`
+
+| *trustStorePassphrase*
+| Trust Store Passphrase on which to operate.
+| `jkube.trustStorePassphrase`
+
+| *keyStoreFile*
+| Key Store File on which to operate.
+| `jkube.keyStoreFile`
+
+| *keyStorePassphrase*
+| Key Store Passphrase on which to operate.
+| `jkube.keyStorePassphrase`
+|===
