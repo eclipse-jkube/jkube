@@ -13,7 +13,7 @@
   <<authentication, Authentication>> for how to do security.
 |
 
-| *access*
+| <<cluster-access-configuration, *access*>>
 | Group of configuration parameters to connect to Kubernetes/OpenShift cluster.
 |
 
@@ -479,6 +479,7 @@ if set to `true`.
 | `jkube.workDir`
 |====
 
+include::{kitdoc-path}/inc/apply/_cluster_access_configuration.adoc[]
 
 == Image Configuration
 
