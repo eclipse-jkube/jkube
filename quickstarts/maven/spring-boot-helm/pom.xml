@@ -21,12 +21,12 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.2.7.RELEASE</version>
+    <version>2.5.3</version>
   </parent>
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>spring-boot-helm</artifactId>
-  <version>1.14.0</version>
+  <version>1.15-SNAPSHOT</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Spring Boot - Helm</name>
   <packaging>jar</packaging>
 
@@ -39,8 +39,20 @@
     <jkube.version>${project.version}</jkube.version>
   </properties>
 
-  <dependencies>
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 
+  <dependencies>
     <!-- Boot generator  -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -51,17 +63,66 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
-
   </dependencies>
 
   <build>
     <plugins>
-
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
+      <plugin>
+        <groupId>org.eclipse.jkube</groupId>
+        <artifactId>kubernetes-maven-plugin</artifactId>
+        <version>${jkube.version}</version>
+        <configuration>
+          <resources>
+            <labels>
+              <all>
+                <testProject>spring-boot-with-yaml-label-for-all</testProject>
+              </all>
+            </labels>
+          </resources>
+          <helm>
+<!--            <chart>This is a Test</chart>-->
+            <parameters>
+              <parameter>
+                <name>deployment.replicas</name>
+                <value>{{ .Values.deployment.replicas }}</value>
+              </parameter>
+              <parameter>
+                <name>deployment.annotations</name>
+                <value>
+                  {{- toYaml .Values.common.annotations | nindent 4 }}
+                  {{- toYaml .Values.deployment.annotations | nindent 4 }}
+                </value>
+              </parameter>
+              <parameter>
+                <name>service.annotations</name>
+                <value>
+                  {{- toYaml .Values.common.annotations | nindent 4 }}
+                  {{- toYaml .Values.service.annotations | nindent 4 }}
+                </value>
+              </parameter>
+              <parameter>
+                <name>helm_namespace</name>
+                <value>{{ .Release.Namespace }}</value>
+              </parameter>
+            </parameters>
+          </helm>
+        </configuration>
 
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>resource</goal>
+              <goal>build</goal>
+              <goal>helm</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -72,113 +133,12 @@
         <helm_namespace>default</helm_namespace>
         <golang_expression>n/a development</golang_expression>
         <golang_expression_scalar>n/a development</golang_expression_scalar>
-        <replicas>1</replicas>
-        <limits_memory/>
-        <requests_memory/>
+        <deployment.replicas>1</deployment.replicas>
+        <deployment.annotations>jkube.helm.sh/environment: dev&#10;    jkube.helm.sh/other: value</deployment.annotations>
+        <deployment.resources.limits_memory/>
+        <deployment.resources.requests_memory/>
+        <service.annotations>api.service.kubernetes.io/path: /dev</service.annotations>
       </properties>
-    </profile>
-    <profile>
-      <id>kubernetes</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>${jkube.version}</version>
-
-            <configuration>
-              <resources>
-                <labels>
-                  <all>
-                    <testProject>spring-boot-with-yaml-label-for-all</testProject>
-                  </all>
-                </labels>
-              </resources>
-              <generator>
-                <config>
-                  <spring-boot>
-                    <color>always</color>
-                  </spring-boot>
-                </config>
-              </generator>
-<!--              <helm>-->
-<!--                <chart>This is a Test</chart>-->
-<!--                <type>kubernetes</type>-->
-<!--                <icon>This is the icon</icon>-->
-<!--                <sources>-->
-<!--                  <source>https://different.source/yaml.yml</source>-->
-<!--                </sources>-->
-<!--                <maintainers>-->
-<!--                  <maintainer>-->
-<!--                    <name>John</name>-->
-<!--                    <email>john.doe@example.com</email>-->
-<!--                  </maintainer>-->
-<!--                </maintainers>-->
-<!--                <parameters>-->
-<!--                  <parameter>-->
-<!--                    <name>chart_name</name>-->
-<!--                    <value>{{ .Chart.Name }}</value>-->
-<!--                  </parameter>-->
-<!--                </parameters>-->
-<!--              </helm>-->
-            </configuration>
-
-            <executions>
-              <execution>
-                <phase>package</phase>
-                <goals>
-                  <goal>resource</goal>
-                  <goal>build</goal>
-                  <goal>helm</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>openshift</id>
-      <properties>
-        <jkube.build.switchToDeployment>true</jkube.build.switchToDeployment>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>openshift-maven-plugin</artifactId>
-            <version>${jkube.version}</version>
-
-            <configuration>
-              <resources>
-                <labels>
-                  <all>
-                    <testProject>spring-boot-with-yaml-label-for-all</testProject>
-                  </all>
-                </labels>
-              </resources>
-              <generator>
-                <config>
-                  <spring-boot>
-                    <color>always</color>
-                  </spring-boot>Open Shift Maven Plugin
-                </config>
-              </generator>
-            </configuration>
-
-            <executions>
-              <execution>
-                <phase>package</phase>
-                <goals>
-                  <goal>resource</goal>
-                  <goal>build</goal>
-                  <goal>helm</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
     </profile>
   </profiles>
 

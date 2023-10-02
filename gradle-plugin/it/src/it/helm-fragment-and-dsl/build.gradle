@@ -55,6 +55,9 @@ def extensionConfig = {
                        }]
         icon = 'https://example.com/icon-is-overridden'
         parameters = [{
+                        name = 'annotations'
+                        value = '{{- toYaml .Values.annotations | nindent 4 }}'
+                      }, {
                           name = 'replicaCount'
                           value = 1
                       }, {

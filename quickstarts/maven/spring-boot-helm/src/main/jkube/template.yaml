@@ -14,14 +14,10 @@
 
 kind: Template
 parameters:
-  - name: limits_memory
+  - name: deployment.resources.limits_memory
     value: "512Mi"
-  - name: requests_memory
+  - name: deployment.resources.requests_memory
     value: "256Mi"
-  - name: replicas
-  - name: helm_namespace
-    value: |
-        {{ .Release.Namespace }}
   - name: i_should_be_quoted
     value: I need quotes
   - name: golang_expression

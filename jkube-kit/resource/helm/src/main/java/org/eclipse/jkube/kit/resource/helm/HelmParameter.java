@@ -21,6 +21,8 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.stream.Stream;
+
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
@@ -40,7 +42,9 @@ public class HelmParameter {
   }
 
   boolean isGolangExpression() {
-    return isString() && ((String) value).trim().matches(GOLANG_EXPRESSION_REGEX);
+    return isString() && Stream.of(value.toString().split("\r?\n"))
+        .filter(StringUtils::isNotBlank)
+        .allMatch(s -> s.trim().matches(GOLANG_EXPRESSION_REGEX));
   }
 
   String toExpression() {

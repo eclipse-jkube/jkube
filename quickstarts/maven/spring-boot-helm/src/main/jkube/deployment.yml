@@ -20,13 +20,15 @@ metadata:
     hystrix.cluster: default
     version: ${project.version}
   annotations:
-    jkube.helm.sh/expression-example: ${golang_expression}
-    jkube.helm.sh/expression-example-scalar: ${golang_expression_scalar}
+    ${deployment.annotations}
 spec:
-  replicas: ${replicas}
+  replicas: ${deployment.replicas}
   template:
     metadata:
       namespace: ${helm_namespace}
+      annotations:
+        jkube.helm.sh/expression-example: ${golang_expression}
+        jkube.helm.sh/expression-example-scalar: ${golang_expression_scalar}
       labels:
         project: ${project.artifactId}
         hystrix.enabled: true
@@ -36,6 +38,6 @@ spec:
       containers:
         - resources:
             limits:
-              memory: ${limits_memory}
+              memory: ${deployment.resources.limits_memory}
             requests:
-              memory: ${requests_memory}
+              memory: ${deployment.resources.requests_memory}
