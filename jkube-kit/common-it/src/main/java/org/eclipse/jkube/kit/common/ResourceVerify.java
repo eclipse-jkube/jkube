@@ -87,7 +87,7 @@ public class ResourceVerify {
     return JsonPath.parse(json, Configuration.builder().options(REQUIRE_PROPERTIES).build()).read(path);
   }
 
-  private static String readFile(File path) throws IOException {
+  public static String readFile(File path) throws IOException {
     return new String(FileCopyUtils.copyToByteArray(Files.newInputStream(path.toPath())), Charset.defaultCharset());
   }
 

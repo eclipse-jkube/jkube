@@ -12,5 +12,9 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+annotations:
+  example.org/one: one
+  example.org/two: two
+
 deployment:
   imagePullPolicy: Always

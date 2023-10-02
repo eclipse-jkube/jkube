@@ -12,12 +12,22 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-metadata:
+common:
   annotations:
-    ${annotations}
-spec:
-  replicas: ${replicaCount}
-  template:
-    spec:
-      containers:
-        - imagePullPolicy: ${imagePullPolicy}
+    example.org/one: one
+    example.org/two: two
+    example.org/env: prod
+
+deployment:
+  annotations:
+    example.org/kind: Deployment
+  hostAliases:
+    - ip: 1.1.1.1
+      hostnames:
+        - one.example.com
+    - ip: 1.1.1.2
+      hostnames:
+        - two.example.com
+service:
+  annotations:
+    example.org/kind: Service

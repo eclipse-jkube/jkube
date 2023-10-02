@@ -15,5 +15,4 @@
 metadata:
   annotations:
     ${service.annotations}
-spec:
-  type: NodePort
+

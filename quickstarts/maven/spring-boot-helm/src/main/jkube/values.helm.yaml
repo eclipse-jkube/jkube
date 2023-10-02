@@ -12,8 +12,14 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-metadata:
+common:
   annotations:
-    ${service.annotations}
-spec:
-  type: NodePort
+    jkube.helm.sh/common: annotation
+deployment:
+  replicas: 1
+  annotations:
+    jkube.helm.sh/annotation-1: value-1
+    jkube.helm.sh/annotation-2: value-2
+service:
+  annotations:
+    api.service.kubernetes.io/path: /prod
