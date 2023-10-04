@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -38,9 +40,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Answers.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class WebAppGeneratorTest {
 
@@ -48,21 +47,22 @@ class WebAppGeneratorTest {
   Path temporaryFolder;
 
   private GeneratorContext generatorContext;
-  private Plugin plugin;
 
   @BeforeEach
   void setUp() {
-    generatorContext = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
-    plugin = mock(Plugin.class);
+    generatorContext = GeneratorContext.builder()
+      .logger(new KitLogger.SilentLogger())
+      .project(JavaProject.builder().build())
+      .build();
   }
 
   @Test
   void isApplicable_withMavenWarPlugin_shouldReturnTrue() {
     // Given
-    when(plugin.getGroupId()).thenReturn("org.apache.maven.plugins");
-    when(plugin.getArtifactId()).thenReturn("maven-war-plugin");
-    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
-
+    generatorContext.getProject().setPlugins(Collections.singletonList(Plugin.builder()
+      .groupId("org.apache.maven.plugins")
+      .artifactId("maven-war-plugin")
+      .build()));
     // When
     final boolean result = new WebAppGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
@@ -72,8 +72,7 @@ class WebAppGeneratorTest {
   @Test
   void isApplicable_withGradleWarPlugin_shouldReturnTrue() {
     // Given
-    when(generatorContext.getProject().getGradlePlugins()).thenReturn(Collections.singletonList("org.gradle.api.plugins.WarPlugin"));
-
+    generatorContext.getProject().setGradlePlugins(Collections.singletonList("org.gradle.api.plugins.WarPlugin"));
     // When
     final boolean result = new WebAppGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
@@ -89,10 +88,11 @@ class WebAppGeneratorTest {
       // Given
       final Properties projectProperties = new Properties();
       projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
-      when(generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
-      when(generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.s2i);
-      when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
-
+      generatorContext = generatorContext.toBuilder()
+        .runtimeMode(RuntimeMode.OPENSHIFT)
+        .strategy(JKubeBuildStrategy.s2i)
+        .build();
+      generatorContext.getProject().setProperties(projectProperties);
       // When & Then
       assertThatIllegalArgumentException()
           .isThrownBy(() -> new WebAppGenerator(generatorContext).customize(Collections.emptyList(), false))
@@ -103,21 +103,17 @@ class WebAppGeneratorTest {
     @DisplayName("with default handler, should add image configuration")
     void withDefaultHandler_shouldAddImageConfiguration() throws IOException {
       // Given
-      final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
       final Path buildDirectory = Files.createDirectory(temporaryFolder.resolve("build"));
       Files.createFile(buildDirectory.resolve("artifact.war"));
-
-      when(generatorContext.getProject().getBuildDirectory()).thenReturn(buildDirectory.toFile());
-      when(generatorContext.getProject().getBuildFinalName()).thenReturn("artifact");
-      when(generatorContext.getProject().getPackaging()).thenReturn("war");
-      when(generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
-
+      generatorContext.getProject().setBuildDirectory(buildDirectory.toFile());
+      generatorContext.getProject().setBuildFinalName("artifact");
+      generatorContext.getProject().setPackaging("war");
+      generatorContext.getProject().setVersion("1.33.7-SNAPSHOT");
       // When
       final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
-          .customize(originalImageConfigurations, false);
+          .customize(new ArrayList<>(), false);
       // Then
       assertThat(result)
-          .isSameAs(originalImageConfigurations)
           .singleElement()
           .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
           .hasFieldOrPropertyWithValue("alias", "webapp")
@@ -138,7 +134,6 @@ class WebAppGeneratorTest {
     @DisplayName("with overridden properties, should add image configuration")
     void withOverriddenProperties_shouldAddImageConfiguration() throws IOException {
       // Given
-      final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
       final Path buildDirectory = Files.createDirectory(temporaryFolder.resolve("build"));
       Files.createFile(buildDirectory.resolve("artifact.war"));
       final Properties projectProperties = new Properties();
@@ -150,19 +145,20 @@ class WebAppGeneratorTest {
       projectProperties.put("jkube.generator.webapp.supportsS2iBuild", "true");
       projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
 
-      when(generatorContext.getProject().getBuildDirectory()).thenReturn(buildDirectory.toFile());
-      when(generatorContext.getProject().getBuildFinalName()).thenReturn("artifact");
-      when(generatorContext.getProject().getPackaging()).thenReturn("war");
-      when(generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
-      when(generatorContext.getRuntimeMode()).thenReturn(RuntimeMode.OPENSHIFT);
-      when(generatorContext.getStrategy()).thenReturn(JKubeBuildStrategy.s2i);
-      when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
+      generatorContext = generatorContext.toBuilder()
+        .runtimeMode(RuntimeMode.OPENSHIFT)
+        .strategy(JKubeBuildStrategy.s2i)
+        .build();
+      generatorContext.getProject().setBuildDirectory(buildDirectory.toFile());
+      generatorContext.getProject().setBuildFinalName("artifact");
+      generatorContext.getProject().setPackaging("war");
+      generatorContext.getProject().setVersion("1.33.7-SNAPSHOT");
+      generatorContext.getProject().setProperties(projectProperties);
       // When
       final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
-          .customize(originalImageConfigurations, false);
+          .customize(new ArrayList<>(), false);
       // Then
       assertThat(result)
-          .isSameAs(originalImageConfigurations)
           .singleElement()
           .hasFieldOrPropertyWithValue("name", "%a:%l")
           .hasFieldOrPropertyWithValue("alias", "webapp")
@@ -189,11 +185,11 @@ class WebAppGeneratorTest {
       projectProperties.put("jkube.generator.webapp.targetDir", "/usr/local/tomcat/webapps");
       projectProperties.put("jkube.generator.webapp.from", "tomcat:jdk11-openjdk-slim");
 
-      when(generatorContext.getProject().getBuildDirectory()).thenReturn(buildDirectory.toFile());
-      when(generatorContext.getProject().getBuildFinalName()).thenReturn("artifact");
-      when(generatorContext.getProject().getPackaging()).thenReturn("war");
-      when(generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
-      when(generatorContext.getProject().getProperties()).thenReturn(projectProperties);
+      generatorContext.getProject().setBuildDirectory(buildDirectory.toFile());
+      generatorContext.getProject().setBuildFinalName("artifact");
+      generatorContext.getProject().setPackaging("war");
+      generatorContext.getProject().setVersion("1.33.7-SNAPSHOT");
+      generatorContext.getProject().setProperties(projectProperties);
       // When
       final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
           .customize(originalImageConfigurations, false);

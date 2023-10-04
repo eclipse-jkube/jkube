@@ -25,20 +25,17 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -55,13 +52,14 @@ class JavaExecGeneratorMainClassDeterminationTest {
     private ProcessorConfig processorConfig;
     @BeforeEach
     public void setUp() {
-        log = mock(KitLogger.class);
-        project = mock(JavaProject.class);
+        log = new KitLogger.SilentLogger();
+        project = JavaProject.builder()
+          .version("1.33.7-SNAPSHOT")
+          .outputDirectory(new File("/the/output/directory"))
+          .build();
         fatJarDetector = mock(FatJarDetector.class);
         fatJarDetectorResult = mock(FatJarDetector.Result.class);
         processorConfig = new ProcessorConfig();
-        when(project.getVersion()).thenReturn("1.33.7-SNAPSHOT");
-        when(project.getOutputDirectory()).thenReturn(new File("/the/output/directory"));
     }
 
 
@@ -104,9 +102,8 @@ class JavaExecGeneratorMainClassDeterminationTest {
     void testMainClassDeterminationFromDetectionOnNonFatJar() {
         try (MockedConstruction<MainClassDetector> mainClassDetectorMockedConstruction = mockConstruction(MainClassDetector.class,
             (mock, ctx) -> when(mock.getMainClass()).thenReturn("the.detected.MainClass"))) {
-            File baseDir = new File("test-dir");
             processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheNonFatJarImageName"));
-            when(project.getBaseDirectory()).thenReturn(baseDir);
+            project.setBaseDirectory(new File("test-dir"));
             when(fatJarDetector.scan()).thenReturn(null);
             final GeneratorContext generatorContext = GeneratorContext.builder()
                 .project(project)
@@ -135,19 +132,17 @@ class JavaExecGeneratorMainClassDeterminationTest {
      *
      */
     @Test
-    void testMainClassDeterminationFromFatJar() {
+    void testMainClassDeterminationFromFatJar(@TempDir File baseDirectory) {
         try (MockedConstruction<FatJarDetector> fatJarDetector = mockConstruction(FatJarDetector.class,
                  (mock, ctx) -> {
                      File fatJarArchive = new File("fat.jar");
                      when(fatJarDetectorResult.getArchiveFile()).thenReturn(fatJarArchive);
                      when(mock.scan()).thenReturn(fatJarDetectorResult);
                  });
-             MockedStatic<FileUtil> fileUtilMockedStatic = mockStatic(FileUtil.class)) {
-            File baseDir = mock(File.class);
+        ) {
             processorConfig.getConfig().put("java-exec", Collections.singletonMap("name", "TheFatJarImageName"));
-            when(project.getBaseDirectory()).thenReturn(baseDir);
-            when(project.getBuildPackageDirectory()).thenReturn(baseDir);
-            fileUtilMockedStatic.when(() -> FileUtil.getRelativePath(any(File.class), any(File.class))).thenReturn(baseDir);
+            project.setBaseDirectory(baseDirectory);
+            project.setBuildPackageDirectory(baseDirectory);
             final GeneratorContext generatorContext = GeneratorContext.builder()
                     .project(project)
                     .config(processorConfig)
@@ -155,12 +150,11 @@ class JavaExecGeneratorMainClassDeterminationTest {
                     .logger(log)
                     .build();
 
-            JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
 
-            List<ImageConfiguration> customized = generator.customize(new ArrayList<>(), false);
+            final List<ImageConfiguration> result = new JavaExecGenerator(generatorContext).customize(new ArrayList<>(), false);
 
             assertThat(fatJarDetector.constructed()).hasSize(1);
-            assertThat(customized).singleElement()
+            assertThat(result).singleElement()
                     .hasFieldOrPropertyWithValue("name", "TheFatJarImageName")
                     .extracting(ImageConfiguration::getBuildConfiguration)
                     .extracting(BuildConfiguration::getEnv)
