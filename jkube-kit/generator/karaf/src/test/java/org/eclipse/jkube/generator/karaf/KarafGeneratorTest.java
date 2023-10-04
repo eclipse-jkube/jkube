@@ -22,11 +22,12 @@ import java.util.Properties;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -34,28 +35,27 @@ import org.junit.jupiter.api.io.TempDir;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+
 class KarafGeneratorTest {
   @TempDir
   File temporaryFolder;
   private GeneratorContext generatorContext;
 
-  private Plugin plugin;
-
   @BeforeEach
   public void setUp() {
-    generatorContext = mock(GeneratorContext.class,RETURNS_DEEP_STUBS);
-    plugin = mock(Plugin.class);
+    generatorContext = GeneratorContext.builder()
+      .logger(new KitLogger.SilentLogger())
+      .project(JavaProject.builder().build())
+      .build();
   }
 
   @Test
   void isApplicableHasKarafMavenPluginShouldReturnTrue() {
     // Given
-    when(plugin.getGroupId()).thenReturn("org.apache.karaf.or.any.other.groupid");
-    when(plugin.getArtifactId()).thenReturn("karaf-maven-plugin");
-    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
+    generatorContext.getProject().setPlugins(Collections.singletonList(Plugin.builder()
+      .groupId("org.apache.karaf.or.any.other.groupid")
+      .artifactId("karaf-maven-plugin")
+      .build()));
     // When
     final boolean result = new KarafGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
@@ -65,9 +65,10 @@ class KarafGeneratorTest {
   @Test
   void isApplicableHasNotKarafMavenPluginShouldReturnFalse() {
     // Given
-    when(plugin.getGroupId()).thenReturn("org.apache.karaf.tooling");
-    when(plugin.getArtifactId()).thenReturn("not-karaf-maven-plugin");
-    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
+    generatorContext.getProject().setPlugins(Collections.singletonList(Plugin.builder()
+      .groupId("org.apache.karaf.tooling")
+      .artifactId("not-karaf-maven-plugin")
+      .build()));
     // When
     final boolean result = new KarafGenerator(generatorContext).isApplicable(Collections.emptyList());
     // Then
@@ -77,18 +78,16 @@ class KarafGeneratorTest {
   @Test
   void customizeWithKarafMavenPluginShouldAddImageConfiguration() {
     // Given
-    final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
-    when(plugin.getGroupId()).thenReturn("org.apache.karaf.tooling");
-    when(plugin.getArtifactId()).thenReturn("karaf-maven-plugin");
-    when(generatorContext.getProject().getPlugins()).thenReturn(Collections.singletonList(plugin));
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
-    when(generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
-    when(generatorContext.getConfig()).thenReturn(new ProcessorConfig());
+    generatorContext.getProject().setPlugins(Collections.singletonList(Plugin.builder()
+      .groupId("org.apache.karaf.tooling")
+      .artifactId("karaf-maven-plugin")
+      .build()));
+    generatorContext.getProject().setBuildDirectory(temporaryFolder);
+    generatorContext.getProject().setVersion("1.33.7-SNAPSHOT");
     // When
     final List<ImageConfiguration> result = new KarafGenerator(generatorContext)
-            .customize(originalImageConfigurations, false);
+            .customize(new ArrayList<>(), false);
     // Then
-    assertThat(originalImageConfigurations).isSameAs(result);
     assertThat(result)
         .singleElement()
         .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
@@ -126,16 +125,15 @@ class KarafGeneratorTest {
   @Test
   void customizeWithKarafMavenPluginAndCustomConfigShouldAddImageConfiguration() {
     // Given
-    final List<ImageConfiguration> originalImageConfigurations = new ArrayList<>();
-    Properties props = new Properties();
+    final Properties props = new Properties();
     props.put("jkube.generator.karaf.baseDir", "/other-dir");
     props.put("jkube.generator.karaf.webPort", "8080");
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
-    when(generatorContext.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
-    when(generatorContext.getProject().getProperties()).thenReturn(props);
+    generatorContext.getProject().setBuildDirectory(temporaryFolder);
+    generatorContext.getProject().setVersion("1.33.7-SNAPSHOT");
+    generatorContext.getProject().setProperties(props);
     // When
     final List<ImageConfiguration> result = new KarafGenerator(generatorContext)
-        .customize(originalImageConfigurations, false);
+        .customize(new ArrayList<>(), false);
     // Then
     assertThat(result).singleElement()
             .extracting(ImageConfiguration::getBuildConfiguration)

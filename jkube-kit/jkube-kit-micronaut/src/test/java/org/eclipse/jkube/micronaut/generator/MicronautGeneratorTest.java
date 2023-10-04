@@ -20,17 +20,17 @@ import java.util.List;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class MicronautGeneratorTest {
 
@@ -39,11 +39,15 @@ class MicronautGeneratorTest {
 
   @BeforeEach
   void setUp() {
-    ctx = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
     final Properties projectProperties = new Properties();
     projectProperties.put("jkube.generator.micronaut.mainClass", "com.example.Main");
-    when(ctx.getProject().getProperties()).thenReturn(projectProperties);
-    when(ctx.getProject().getVersion()).thenReturn("1.33.7-SNAPSHOT");
+    ctx = GeneratorContext.builder()
+      .logger(new KitLogger.SilentLogger())
+      .project(JavaProject.builder()
+        .version("1.33.7-SNAPSHOT")
+        .properties(projectProperties)
+        .build())
+      .build();
     micronautGenerator = new MicronautGenerator(ctx);
   }
 
@@ -58,7 +62,7 @@ class MicronautGeneratorTest {
   @Test
   void isApplicableWithMavenPlugin() {
     // Given
-    when(ctx.getProject().getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
+    ctx.getProject().setPlugins(Collections.singletonList(Plugin.builder()
         .groupId("io.micronaut.build")
         .artifactId("micronaut-maven-plugin")
         .build()
@@ -72,7 +76,7 @@ class MicronautGeneratorTest {
   @Test
   void isApplicableWithGradlePlugin() {
     // Given
-    when(ctx.getProject().getPlugins()).thenReturn(Collections.singletonList(Plugin.builder()
+    ctx.getProject().setPlugins(Collections.singletonList(Plugin.builder()
         .groupId("io.micronaut.application")
         .artifactId("io.micronaut.application.gradle.plugin")
         .build()
@@ -84,10 +88,10 @@ class MicronautGeneratorTest {
   }
 
   @Test
-  void customize_webPortIsFirst() {
+  void customize_webPortIsFirst(@TempDir File outputDirectory) {
     // Given
-    when(ctx.getProject().getCompileClassPathElements()).thenReturn(Collections.emptyList());
-    when(ctx.getProject().getOutputDirectory()).thenReturn(new File("MOCK"));
+    ctx.getProject().setCompileClassPathElements(Collections.emptyList());
+    ctx.getProject().setOutputDirectory(outputDirectory);
 
     // When
     final List<ImageConfiguration> result = micronautGenerator.customize(new ArrayList<>(), false);

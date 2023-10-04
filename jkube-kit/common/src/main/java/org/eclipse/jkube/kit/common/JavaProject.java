@@ -21,6 +21,7 @@ import lombok.Singular;
 
 import java.io.File;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -174,6 +175,7 @@ public class JavaProject implements Serializable {
    * @return The project's documentation URL.
    */
   private String documentationUrl;
+  private LocalDate buildDate;
   /**
    * Filename (excluding the extension, and with no path information) that the produced project artifact will be called.
    *
@@ -258,7 +260,7 @@ public class JavaProject implements Serializable {
       File outputDirectory, File baseDirectory, File buildDirectory, File buildPackageDirectory,
       Properties properties, @Singular List<String> compileClassPathElements, @Singular List<Dependency> dependencies,
       List<Dependency> dependenciesWithTransitive, @Singular List<Plugin> plugins, @Singular List<String> gradlePlugins,
-      String site, String description, String organizationName, String documentationUrl,
+      String site, String description, String organizationName, String documentationUrl, LocalDate buildDate,
       String buildFinalName, File artifact, String packaging, String issueManagementSystem, String issueManagementUrl,
       String url, String scmUrl, String scmTag,
       @Singular List<Maintainer> maintainers) {
@@ -280,6 +282,7 @@ public class JavaProject implements Serializable {
     this.description = description;
     this.organizationName = organizationName;
     this.documentationUrl = documentationUrl;
+    this.buildDate = Optional.ofNullable(buildDate).orElse(LocalDate.now());
     this.buildFinalName = buildFinalName;
     this.artifact = artifact;
     this.packaging = packaging;

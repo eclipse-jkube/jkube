@@ -31,19 +31,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author roland
  */
-
-@SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
+@SuppressWarnings({"unused"})
 class JavaRunGeneratorTest {
-  GeneratorContext ctx;
+  private GeneratorContext ctx;
   @BeforeEach
   public void setUp() {
-    ctx = mock(GeneratorContext.class);
+    ctx = GeneratorContext.builder()
+      .build();
   }
   @Test
   void fromSelector() throws IOException {
@@ -59,8 +57,7 @@ class JavaRunGeneratorTest {
 
     for (TestCase tc : testCases) {
       prepareExpectation(tc);
-      final GeneratorContext context = ctx;
-      FromSelector selector = new FromSelector.Default(context, "java");
+      FromSelector selector = new FromSelector.Default(ctx, "java");
       String from = selector.getFrom();
       assertThat(from).isEqualTo(imageProps.getProperty(tc.expectedFrom));
     }
@@ -73,8 +70,10 @@ class JavaRunGeneratorTest {
           Plugin.builder().groupId("org.eclipse.jkube").artifactId("openshift-maven-plugin")
               .version(testCase.version).configuration(Collections.emptyMap()).build()));
     }
-    when(ctx.getRuntimeMode()).thenReturn(testCase.mode);
-    when(ctx.getStrategy()).thenReturn(testCase.strategy);
+    ctx = ctx.toBuilder()
+      .runtimeMode(testCase.mode)
+      .strategy(testCase.strategy)
+      .build();
   }
 
   private Properties getDefaultImageProps() throws IOException {

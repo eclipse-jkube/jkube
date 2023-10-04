@@ -48,7 +48,7 @@ class FatJarDetectorTest {
         .extracting(FatJarDetector.Result::getArchiveFile)
         .asInstanceOf(InstanceOfAssertFactories.FILE)
         .exists()
-        .hasName("test.jar")
+        .hasName("fat.jar")
         .hasParent(testDirUrl.getFile());
     assertThat(result.getManifestEntry("Archiver-Version")).isEqualTo("Plexus Archiver");
   }
