@@ -194,7 +194,7 @@ class HelmServiceUtilTest {
     config.setChart("This value will be overridden");
     // When
     String value = HelmServiceUtil.resolveFromPropertyOrDefault(
-      "jkube.helm.property", javaProject, config::getChart, "default is ignored");
+      "jkube.helm.property", javaProject, config::getChart, () -> "default is ignored");
     // Then
     assertThat(value).isEqualTo("Overrides Current Value");
   }

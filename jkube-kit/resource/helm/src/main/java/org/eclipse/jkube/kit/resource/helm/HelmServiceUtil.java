@@ -77,40 +77,38 @@ public class HelmServiceUtil {
   public static HelmConfig.HelmConfigBuilder initHelmConfig(
       HelmConfig.HelmType defaultHelmType, JavaProject project, File template, HelmConfig original) throws IOException {
 
-    if (original == null) {
-      original = new HelmConfig();
+    final HelmConfig helmConfig = original == null ? new HelmConfig() : original;
+    helmConfig.setApiVersion(resolveFromPropertyOrDefault(PROPERTY_API_VERSION, project, helmConfig::getApiVersion, () -> DEFAULT_API_VERSION));
+    helmConfig.setChart(resolveFromPropertyOrDefault(PROPERTY_CHART, project, helmConfig::getChart, project::getArtifactId));
+    helmConfig.setChartExtension(resolveFromPropertyOrDefault(PROPERTY_CHART_EXTENSION, project, helmConfig::getChartExtension, () -> DEFAULT_CHART_EXTENSION));
+    helmConfig.setVersion(resolveFromPropertyOrDefault(PROPERTY_VERSION, project, helmConfig::getVersion, project::getVersion));
+    helmConfig.setDescription(resolveFromPropertyOrDefault(PROPERTY_DESCRIPTION, project, helmConfig::getDescription, project::getDescription));
+    helmConfig.setHome(resolveFromPropertyOrDefault(PROPERTY_HOME, project, helmConfig::getHome, project::getUrl));
+    if (helmConfig.getSources() == null) {
+      helmConfig.setSources(project.getScmUrl() != null ? Collections.singletonList(project.getScmUrl()) : Collections.emptyList());
     }
-    original.setApiVersion(resolveFromPropertyOrDefault(PROPERTY_API_VERSION, project, original::getApiVersion, DEFAULT_API_VERSION));
-    original.setChart(resolveFromPropertyOrDefault(PROPERTY_CHART, project, original::getChart, project.getArtifactId()));
-    original.setChartExtension(resolveFromPropertyOrDefault(PROPERTY_CHART_EXTENSION, project, original::getChartExtension, DEFAULT_CHART_EXTENSION));
-    original.setVersion(resolveFromPropertyOrDefault(PROPERTY_VERSION, project, original::getVersion, project.getVersion()));
-    original.setDescription(resolveFromPropertyOrDefault(PROPERTY_DESCRIPTION, project, original::getDescription, project.getDescription()));
-    original.setHome(resolveFromPropertyOrDefault(PROPERTY_HOME, project, original::getHome, project.getUrl()));
-    if (original.getSources() == null) {
-      original.setSources(project.getScmUrl() != null ? Collections.singletonList(project.getScmUrl()) : Collections.emptyList());
-    }
-    if (original.getMaintainers() == null && project.getMaintainers() != null) {
-      original.setMaintainers(project.getMaintainers().stream()
+    if (helmConfig.getMaintainers() == null && project.getMaintainers() != null) {
+      helmConfig.setMaintainers(project.getMaintainers().stream()
           .filter(m -> StringUtils.isNotBlank(m.getName()) || StringUtils.isNotBlank(m.getEmail()))
           .map(m -> new Maintainer(m.getName(), m.getEmail()))
           .collect(Collectors.toList()));
     }
-    original.setAdditionalFiles(getAdditionalFiles(original, project));
-    if (original.getParameterTemplates() == null) {
-      original.setParameterTemplates(findTemplates(template));
+    helmConfig.setAdditionalFiles(getAdditionalFiles(helmConfig, project));
+    if (helmConfig.getParameterTemplates() == null) {
+      helmConfig.setParameterTemplates(findTemplates(template));
     }
-    original.setTypes(resolveHelmTypes(defaultHelmType, project));
+    helmConfig.setTypes(resolveHelmTypes(defaultHelmType, project));
 
-    original.setSourceDir(resolveFromPropertyOrDefault(PROPERTY_SOURCE_DIR, project, original::getSourceDir,
-        String.format("%s/META-INF/jkube/", project.getOutputDirectory())));
-    original.setOutputDir(resolveFromPropertyOrDefault(PROPERTY_OUTPUT_DIR, project, original::getOutputDir,
-        String.format("%s/jkube/helm/%s", project.getBuildDirectory(), original.getChart())));
-    original.setIcon(resolveFromPropertyOrDefault(PROPERTY_ICON, project, original::getIcon,
-        findIconURL(new File(original.getSourceDir()), original.getTypes())));
-    original.setTarFileClassifier(resolveFromPropertyOrDefault(PROPERTY_TARBALL_CLASSIFIER, project, original::getTarFileClassifier, EMPTY));
-    original.setTarballOutputDir(resolveFromPropertyOrDefault(PROPERTY_TARBALL_OUTPUT_DIR, project, original::getTarballOutputDir,
-        original.getOutputDir()));
-    return original.toBuilder();
+    helmConfig.setSourceDir(resolveFromPropertyOrDefault(PROPERTY_SOURCE_DIR, project, helmConfig::getSourceDir,
+        () -> String.format("%s/META-INF/jkube/", project.getOutputDirectory())));
+    helmConfig.setOutputDir(resolveFromPropertyOrDefault(PROPERTY_OUTPUT_DIR, project, helmConfig::getOutputDir,
+      () -> String.format("%s/jkube/helm/%s", project.getBuildDirectory(), helmConfig.getChart())));
+    helmConfig.setIcon(resolveFromPropertyOrDefault(PROPERTY_ICON, project, helmConfig::getIcon,
+        () -> findIconURL(new File(helmConfig.getSourceDir()), helmConfig.getTypes())));
+    helmConfig.setTarFileClassifier(resolveFromPropertyOrDefault(PROPERTY_TARBALL_CLASSIFIER, project, helmConfig::getTarFileClassifier, () -> EMPTY));
+    helmConfig.setTarballOutputDir(resolveFromPropertyOrDefault(PROPERTY_TARBALL_OUTPUT_DIR, project, helmConfig::getTarballOutputDir,
+        helmConfig::getOutputDir));
+    return helmConfig.toBuilder();
   }
 
   public static HelmConfig initHelmPushConfig(HelmConfig helmConfig, JavaProject project) {
@@ -121,7 +119,7 @@ public class HelmServiceUtil {
     helmConfig.setStableRepository(initHelmRepository(helmConfig.getStableRepository(), project, STABLE_REPOSITORY));
     helmConfig.setSnapshotRepository(initHelmRepository(helmConfig.getSnapshotRepository(), project, SNAPSHOT_REPOSITORY));
 
-    helmConfig.setSecurity(resolveFromPropertyOrDefault(PROPERTY_SECURITY, project, helmConfig::getSecurity, DEFAULT_SECURITY));
+    helmConfig.setSecurity(resolveFromPropertyOrDefault(PROPERTY_SECURITY, project, helmConfig::getSecurity, () -> DEFAULT_SECURITY));
     return helmConfig;
   }
 
@@ -157,12 +155,12 @@ public class HelmServiceUtil {
     return helmTypes;
   }
 
-  static String resolveFromPropertyOrDefault(String property, JavaProject project, Supplier<String> getter, String defaultValue) {
+  static String resolveFromPropertyOrDefault(String property, JavaProject project, Supplier<String> getter, Supplier<String> defaultValue) {
     return Optional.ofNullable(getProperty(property, project))
       .filter(StringUtils::isNotBlank)
       .orElse(Optional.ofNullable(getter.get())
         .filter(StringUtils::isNotBlank)
-        .orElse(defaultValue));
+        .orElseGet(defaultValue == null ? () -> null : defaultValue));
   }
 
   static List<File> getAdditionalFiles(HelmConfig helm, JavaProject project) {
