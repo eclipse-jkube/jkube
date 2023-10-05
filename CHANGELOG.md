@@ -25,6 +25,7 @@ Usage:
 * Fix #2200: Support for Helm `values.yaml` fragments
 * Fix #2356: Helm values.yaml parameter names preserve case
 * Fix #2369: Helm chart apiVersion can be configured
+* Fix #2379: Do not flatten image assembly layers in case of OpenShift Docker build strategy. 
 * Fix #2386: Helm icon inferred from annotations in independent resource files (not aggregated kubernetes/openshift.yaml)
 * Fix #2397: Default JKube work directory (`jkube.workDir`) changed from `${project.build.directory}/jkube` to `${project.build.directory}/jkube-temp`
 * Fix #2393: Remove timestamp from `org.label-schema.build-date` LABEL to utilize docker cache
