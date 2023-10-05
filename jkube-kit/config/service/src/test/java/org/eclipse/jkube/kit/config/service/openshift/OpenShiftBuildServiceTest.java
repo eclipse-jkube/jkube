@@ -15,10 +15,15 @@ package org.eclipse.jkube.kit.config.service.openshift;
 
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -56,6 +61,11 @@ class OpenShiftBuildServiceTest {
     final OpenShiftClient oc = mock(OpenShiftClient.class);
     when(jKubeServiceHub.getClient()).thenReturn(oc);
     when(jKubeServiceHub.getClusterAccess().createDefaultClient()).thenReturn(oc);
+    when(jKubeServiceHub.getConfiguration()).thenReturn(JKubeConfiguration.builder()
+        .project(JavaProject.builder()
+            .buildFinalName("test-project")
+            .build())
+        .build());
     when(oc.adapt(OpenShiftClient.class)).thenReturn(oc);
     //  @formatter:off
     imageConfiguration = ImageConfiguration.builder()
@@ -153,5 +163,62 @@ class OpenShiftBuildServiceTest {
     // Then
     assertThat(applicableImageConfig)
         .hasFieldOrPropertyWithValue("name", "foo/bar:latest");
+  }
+
+  @Test
+  void getApplicableImageConfiguration_withMultipleLayersAndBuildOutputKindDockerImage_shouldNotFlattenLayers() {
+    // Given
+    imageConfiguration = createMultiLayerImageConfiguration();
+    when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(BuildServiceConfig.builder()
+        .jKubeBuildStrategy(JKubeBuildStrategy.docker)
+        .build());
+    OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
+
+    // When
+    ImageConfiguration applicableImageConfig = openshiftBuildService.getApplicableImageConfiguration(imageConfiguration, RegistryConfig.builder().build());
+
+    // Then
+    assertThat(applicableImageConfig)
+        .extracting(ImageConfiguration::getBuild)
+        .extracting(BuildConfiguration::getAssembly)
+        .extracting(AssemblyConfiguration::getLayers)
+        .asList()
+        .hasSize(2);
+  }
+
+  @Test
+  void getApplicableImageConfiguration_withMultipleLayersAndBuildOutputKindImageStreamTag_shouldFlattenLayers() {
+    // Given
+    imageConfiguration = createMultiLayerImageConfiguration();
+    when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(BuildServiceConfig.builder()
+        .jKubeBuildStrategy(JKubeBuildStrategy.s2i)
+        .build());
+    OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
+
+    // When
+    ImageConfiguration applicableImageConfig = openshiftBuildService.getApplicableImageConfiguration(imageConfiguration, RegistryConfig.builder().build());
+
+    // Then
+    assertThat(applicableImageConfig)
+        .extracting(ImageConfiguration::getBuild)
+        .extracting(BuildConfiguration::getAssembly)
+        .extracting(AssemblyConfiguration::getLayers)
+        .asList()
+        .hasSize(1);
+  }
+
+  private ImageConfiguration createMultiLayerImageConfiguration() {
+    return imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+            .assembly(AssemblyConfiguration.builder()
+                .layer(Assembly.builder()
+                    .id("layer1")
+                    .build())
+                .layer(Assembly.builder()
+                    .id("layer2")
+                    .build())
+                .build())
+            .build())
+        .build();
   }
 }

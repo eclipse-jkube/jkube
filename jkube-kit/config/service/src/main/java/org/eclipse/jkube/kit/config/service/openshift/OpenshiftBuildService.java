@@ -38,6 +38,7 @@ import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -229,7 +230,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
     ImageConfiguration getApplicableImageConfiguration(ImageConfiguration imageConfig, RegistryConfig registryConfig) {
         final ImageConfiguration.ImageConfigurationBuilder applicableImageConfigBuilder = imageConfig.toBuilder();
         if (imageConfig.getBuildConfiguration() != null && !imageConfig.getBuildConfiguration().isDockerFileMode()
-            && imageConfig.getBuildConfiguration().getAssembly() != null) {
+            && imageConfig.getBuildConfiguration().getAssembly() != null && buildServiceConfig.getJKubeBuildStrategy() != null && buildServiceConfig.getJKubeBuildStrategy().equals(JKubeBuildStrategy.s2i)) {
             applicableImageConfigBuilder.build(imageConfig.getBuild().toBuilder().assembly(
                     imageConfig.getBuildConfiguration().getAssembly().getFlattenedClone(jKubeServiceHub.getConfiguration()))
                 .build());
