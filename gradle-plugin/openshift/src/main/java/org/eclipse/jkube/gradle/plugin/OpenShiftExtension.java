@@ -88,6 +88,10 @@ public abstract class OpenShiftExtension extends KubernetesExtension {
     return getOrDefaultString("jkube.build.pullSecret", this::getOpenshiftPullSecret, DEFAULT_OPENSHIFT_PULLSECRET);
   }
 
+  public String getOpenshiftPushSecretOrDefault() {
+    return getOrDefaultString("jkube.build.pushSecret", this::getOpenshiftPushSecret, null);
+  }
+
   public String getS2iBuildNameSuffixOrDefault() {
     return getOrDefaultString("jkube.s2i.buildNameSuffix", this::getS2iBuildNameSuffix, DEFAULT_S2I_BUILDNAME_SUFFIX);
   }

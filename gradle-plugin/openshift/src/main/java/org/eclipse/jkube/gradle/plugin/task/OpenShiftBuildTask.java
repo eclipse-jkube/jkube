@@ -34,7 +34,7 @@ public class OpenShiftBuildTask extends KubernetesBuildTask implements OpenShift
         .openshiftPullSecret(getOpenShiftExtension().getOpenshiftPullSecretOrDefault())
         .s2iBuildNameSuffix(getOpenShiftExtension().getS2iBuildNameSuffixOrDefault())
         .s2iImageStreamLookupPolicyLocal(getOpenShiftExtension().getS2iImageStreamLookupPolicyLocalOrDefault())
-        .openshiftPushSecret(getOpenShiftExtension().getOpenshiftPushSecret().getOrNull())
+        .openshiftPushSecret(getOpenShiftExtension().getOpenshiftPushSecretOrDefault())
         .resourceConfig(getOpenShiftExtension().resources)
         .buildOutputKind(getOpenShiftExtension().getBuildOutputKindOrDefault())
         .enricherTask(e -> {
