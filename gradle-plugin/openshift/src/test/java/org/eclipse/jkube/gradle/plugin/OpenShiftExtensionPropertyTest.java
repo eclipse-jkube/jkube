@@ -56,6 +56,7 @@ class OpenShiftExtensionPropertyTest {
     return Stream.of(
         arguments("getBuildStrategyOrDefault", JKubeBuildStrategy.s2i),
         arguments("getOpenshiftPullSecretOrDefault", "pullsecret-jkube"),
+        arguments("getOpenshiftPushSecretOrDefault", null),
         arguments("getS2iBuildNameSuffixOrDefault", "-s2i"),
         arguments("getS2iImageStreamLookupPolicyLocalOrDefault", true),
         arguments("getBuildOutputKindOrDefault", "ImageStreamTag"),
@@ -82,8 +83,8 @@ class OpenShiftExtensionPropertyTest {
     return Stream.of(
         arguments("getBuildStrategyOrDefault", "jkube.build.strategy", "jib", JKubeBuildStrategy.jib),
         arguments("getBuildStrategyOrDefault", "jkube.build.strategy", "docker", JKubeBuildStrategy.docker),
-        arguments("getOpenshiftPullSecretOrDefault", "jkube.build.pullSecret", "pullsecret-other", "pullsecret-other",
-            "pullsecret-jkube"),
+        arguments("getOpenshiftPullSecretOrDefault", "jkube.build.pullSecret", "pullsecret-other", "pullsecret-other"),
+        arguments("getOpenshiftPushSecretOrDefault", "jkube.build.pushSecret", "pushsecret-other", "pushsecret-other"),
         arguments("getS2iBuildNameSuffixOrDefault", "jkube.s2i.buildNameSuffix", "-other", "-other"),
         arguments("getS2iImageStreamLookupPolicyLocalOrDefault", "jkube.s2i.imageStreamLookupPolicyLocal", "false", false),
         arguments("getBuildOutputKindOrDefault", "jkube.build.buildOutput.kind", "DockerImage", "DockerImage"),
