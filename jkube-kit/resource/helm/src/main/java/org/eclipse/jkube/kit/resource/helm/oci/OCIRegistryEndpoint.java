@@ -22,6 +22,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 public class OCIRegistryEndpoint {
 
   private static final Map<String, String> PROTOCOL_MAPPER = new HashMap<>();
@@ -51,6 +53,14 @@ public class OCIRegistryEndpoint {
 
   public String getManifestUrl(Chart chart) {
     return String.format("%s/%s/manifests/%s", apiV2Url, chart.getName(), chart.getVersion());
+  }
+
+  public String getOCIRegistryHost() {
+    final StringBuilder hostBuilder = new StringBuilder(baseUrl.getHost());
+    if (baseUrl.getPort() > 0 && baseUrl.getPort() != 80 && baseUrl.getPort() != 443) {
+      hostBuilder.append(":").append(baseUrl.getPort());
+    }
+    return hostBuilder.toString();
   }
 
   public URI getBaseUrl() {

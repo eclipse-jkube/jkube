@@ -125,7 +125,7 @@ public class OCIRegistryClient {
 
   private HttpRequest.Builder newRequest() {
     return httpClient.newHttpRequestBuilder()
-      .header("Host", ociRegistryEndpoint.getBaseUrl().getHost() + ":" + ociRegistryEndpoint.getBaseUrl().getPort())
+      .header("Host", ociRegistryEndpoint.getOCIRegistryHost())
       .header("User-Agent", USER_AGENT);
   }
 
