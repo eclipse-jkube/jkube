@@ -17,6 +17,8 @@ import org.eclipse.jkube.kit.resource.helm.Chart;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.net.URI;
 
@@ -80,5 +82,23 @@ class OCIRegistryEndpointTest {
       OCIManifestLayer.builder().digest("sha256:7ed393daf1ffc94803c08ffcbecb798fa58e786bebffbab02da5458f68d0ecb0").build());
     assertThat(result)
         .isEqualTo("https://r.example.com/v2/myuser/test-chart/blobs/sha256:7ed393daf1ffc94803c08ffcbecb798fa58e786bebffbab02da5458f68d0ecb0");
+  }
+
+  @ParameterizedTest(name = "getOCIRegistryHost with url {0} should return {1}")
+  @CsvSource({
+      "http://localhost:5000/myuser,localhost:5000",
+      "https://r.example.com/myuser,r.example.com",
+      "https://r.example.com:443/myuser,r.example.com",
+      "http://r.example.com:80/myuser,r.example.com"
+  })
+  void getOCIRegistryHost_whenBaseUrlContainsHostAndPort_thenReturnHostWithPort(String url, String expectedHost) {
+    // Given
+    this.registryEndpoint = new OCIRegistryEndpoint(HelmRepository.builder().url(url).build());
+
+    // When
+    String host = registryEndpoint.getOCIRegistryHost();
+
+    // Then
+    assertThat(host).isEqualTo(expectedHost);
   }
 }
