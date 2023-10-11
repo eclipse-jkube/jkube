@@ -34,6 +34,7 @@ Usage:
 * Fix #2400: Helm supports complex values in `values.yaml` fragments (such as annotations or arrays)
 * Fix #2414: OpenShift Gradle Plugin picks up `jkube.build.pushSecret` property
 * Fix #2417: Don't pass Invalid port in host headers for Helm OCI push
+* Fix #2419: Fix `Fabric8HttpUtil.extractAuthenticationChallengeIntoMap` www-authenticate header parsing logic
 * Fix #2425: Bump JKube Base images to 0.0.20
 
 _**Note**_:
