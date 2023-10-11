@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -92,8 +93,11 @@ public class OCIRegistryInterceptor implements Interceptor {
   }
 
   private String submitHttpRequestForAuthenticationChallenge(HttpResponse<?> response) throws IOException {
-    Map<String, String> authChallengeHeader = extractAuthenticationChallengeIntoMap(response);
-    String authenticationUrl = authChallengeHeader.get("Bearer realm");
+    Map<String, String> authChallengeHeader = extractAuthenticationChallengeIntoMap(response).stream()
+        .filter(c -> c.get("scheme").equals("Bearer"))
+        .findFirst()
+        .orElse(Collections.emptyMap());
+    String authenticationUrl = authChallengeHeader.get("realm");
     String scope = authChallengeHeader.get("scope");
     if (!scope.contains("push")) {
       scope += ",push";

@@ -13,16 +13,16 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import io.fabric8.kubernetes.client.http.HttpResponse;
-import org.apache.commons.lang3.StringUtils;
-
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import static org.apache.commons.lang3.StringUtils.strip;
+import io.fabric8.kubernetes.client.http.HttpResponse;
+
+import static org.eclipse.jkube.kit.common.util.okhttp.HttpHeaders.parseWwwAuthenticateChallengeHeaders;
 
 public class Fabric8HttpUtil {
   private static final String WWW_AUTHENTICATE = "WWW-Authenticate";
@@ -30,28 +30,14 @@ public class Fabric8HttpUtil {
   private Fabric8HttpUtil() { }
 
   /**
-   * Parse WWW-Authenticate Header as map
+   * Parse WWW-Authenticate Header challenges as map
    *
    * @param response Http Response of a particular request
-   * @return map containing various components of header as key value pairs
+   * @return list of maps containing various authentication challenges which each authentication challenge as map
    */
-  public static Map<String, String> extractAuthenticationChallengeIntoMap(HttpResponse<?> response) {
-    Map<String, String> result = new HashMap<>();
-    String wwwAuthenticateHeader = response.header(WWW_AUTHENTICATE);
-    if (StringUtils.isNotBlank(wwwAuthenticateHeader)) {
-      String[] wwwAuthenticateHeaders = wwwAuthenticateHeader.split(",");
-      for (String challenge : wwwAuthenticateHeaders) {
-        if (challenge.contains("=")) {
-          String[] challengeParts = challenge.split("=");
-          if (challengeParts.length == 2) {
-            result.put(challengeParts[0], strip(challengeParts[1], "\""));
-          }
-        }
-      }
-    }
-    return result;
+  public static List<Map<String, String>> extractAuthenticationChallengeIntoMap(HttpResponse<?> response) throws IOException {
+    return parseWwwAuthenticateChallengeHeaders(response.header(WWW_AUTHENTICATE));
   }
-
 
   /**
    * Create Form Data String from map
