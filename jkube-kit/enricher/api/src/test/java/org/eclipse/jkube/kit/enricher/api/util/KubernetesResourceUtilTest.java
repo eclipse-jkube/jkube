@@ -46,22 +46,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.net.URL;
 import java.net.UnknownHostException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.addNewConfigMapEntriesToExistingConfigMap;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createConfigMapEntry;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createNewInitContainersFromConfig;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.handleKubernetesClientException;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isContainerImage;
@@ -201,92 +195,6 @@ class KubernetesResourceUtilTest {
             tuple("sidecar2", "busybox")
         );
   }
-
-  @Test
-  void createConfigMapEntry_whenKeyAndPathProvided_thenShouldCreateEntryWithFileContents() throws IOException {
-    // Given
-    URL fileUrl = getClass().getResource("/kubernetes-resource-util/configmap-directory/test.properties");
-    assertThat(fileUrl).isNotNull();
-
-    // When
-    Map.Entry<String, String> entry = createConfigMapEntry("custom-key", Paths.get(fileUrl.getFile()));
-
-    // Then
-    assertThat(entry)
-        .satisfies(e -> assertThat(e.getKey()).isEqualTo("custom-key"))
-        .satisfies(e -> assertThat(e.getValue()).isEqualTo("db.url=jdbc:mysql://localhost:3306/sample_db"));
-  }
-
-  @Test
-  void createConfigMapEntry_whenBinaryFileProvided_thenShouldCreateEntryWithFileContents() throws IOException {
-    // Given
-    URL fileUrl = getClass().getResource("/kubernetes-resource-util/test.bin");
-    assertThat(fileUrl).isNotNull();
-
-    // When
-    Map.Entry<String, String> entry = createConfigMapEntry("custom-key", Paths.get(fileUrl.getFile()));
-
-    // Then
-    assertThat(entry)
-        .satisfies(e -> assertThat(e.getKey()).isEqualTo("custom-key"))
-        .satisfies(e -> assertThat(e.getValue()).isEqualTo("wA=="));
-  }
-
-  @Test
-  void addNewConfigMapEntriesToExistingConfigMap_whenFileProvided_thenShouldCreateConfigMapWithFile() throws IOException {
-    // Given
-    URL fileUrl = getClass().getResource("/kubernetes-resource-util/configmap-directory/test.properties");
-    assertThat(fileUrl).isNotNull();
-    ConfigMapBuilder configMapBuilder = new ConfigMapBuilder();
-
-    // When
-    addNewConfigMapEntriesToExistingConfigMap(configMapBuilder, "custom-key", Paths.get(fileUrl.getFile()));
-
-    // Then
-    assertThat(configMapBuilder.build())
-        .asInstanceOf(InstanceOfAssertFactories.type(ConfigMap.class))
-        .extracting(ConfigMap::getData)
-        .asInstanceOf(InstanceOfAssertFactories.MAP)
-        .containsEntry("custom-key", "db.url=jdbc:mysql://localhost:3306/sample_db");
-  }
-
-  @Test
-  void addNewConfigMapEntriesToExistingConfigMap_whenBinaryFileProvided_thenShouldCreateConfigMapWithBinaryContent() throws IOException {
-    // Given
-    URL fileUrl = getClass().getResource("/kubernetes-resource-util/test.bin");
-    assertThat(fileUrl).isNotNull();
-    ConfigMapBuilder configMapBuilder = new ConfigMapBuilder();
-
-    // When
-    addNewConfigMapEntriesToExistingConfigMap(configMapBuilder, "custom-key", Paths.get(fileUrl.getFile()));
-
-    // Then
-    assertThat(configMapBuilder.build())
-        .asInstanceOf(InstanceOfAssertFactories.type(ConfigMap.class))
-        .extracting(ConfigMap::getBinaryData)
-        .asInstanceOf(InstanceOfAssertFactories.MAP)
-        .containsEntry("custom-key", "wA==");
-  }
-
-    @Test
-  void addNewConfigMapEntriesToExistingConfigMap_whenDirectoryProvided_thenShouldCreateConfigMapWithFilesInDir() throws IOException {
-      // Given
-      URL fileUrl = getClass().getResource("/kubernetes-resource-util/configmap-directory");
-      assertThat(fileUrl).isNotNull();
-      ConfigMapBuilder configMapBuilder = new ConfigMapBuilder();
-
-      // When
-      addNewConfigMapEntriesToExistingConfigMap(configMapBuilder, "custom-key", Paths.get(fileUrl.getFile()));
-
-      // Then
-      assertThat(configMapBuilder.build())
-          .asInstanceOf(InstanceOfAssertFactories.type(ConfigMap.class))
-          .extracting(ConfigMap::getData)
-          .asInstanceOf(InstanceOfAssertFactories.MAP)
-          .containsEntry("test.properties", "db.url=jdbc:mysql://localhost:3306/sample_db")
-          .containsEntry("prod.properties", "db.url=jdbc:mysql://prod.example.com:3306/sample_db");
-  }
-
 
   @Test
   void removeItemFromKubernetesBuilder_whenInvoked_shouldRemoveItem() {

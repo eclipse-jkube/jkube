@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.15-SNAPSHOT
 * Fix #2138: Support for Spring Boot Native Image
+* Fix #2186: Reuse ` io.fabric8.kubernetes.client.utils.KubernetesResourceUtil` ConfigMap utils methods
 * Fix #2200: Support for Helm `values.yaml` fragments
 * Fix #2356: Helm values.yaml parameter names preserve case
 * Fix #2369: Helm chart apiVersion can be configured

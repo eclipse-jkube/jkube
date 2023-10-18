@@ -13,10 +13,6 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.addNewConfigMapEntriesToExistingConfigMap;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.addNewEntryToExistingConfigMap;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createConfigMapEntry;
-
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.nio.file.Path;
@@ -33,6 +29,8 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+
+import static io.fabric8.kubernetes.client.utils.KubernetesResourceUtil.addEntriesFromDirOrFileToConfigMap;
 
 public class ConfigMapEnricher extends BaseEnricher {
 
@@ -80,7 +78,7 @@ public class ConfigMapEnricher extends BaseEnricher {
 
             if (key.startsWith(PREFIX_ANNOTATION) || key.startsWith(CONFIGMAP_PREFIX_ANNOTATION)) {
                 Path filePath = Paths.get(entry.getValue());
-                addNewConfigMapEntriesToExistingConfigMap(configMapBuilder, getOutput(key), filePath);
+                addEntriesFromDirOrFileToConfigMap(configMapBuilder, getOutput(key), filePath);
                 it.remove();
             }
         }
@@ -134,8 +132,7 @@ public class ConfigMapEnricher extends BaseEnricher {
                     if (name == null) {
                         name = filePath.getFileName().toString();
                     }
-                    Map.Entry<String, String> fileEntry = createConfigMapEntry(name, filePath);
-                    addNewEntryToExistingConfigMap(configMapBuilder, fileEntry, filePath);
+                    addEntriesFromDirOrFileToConfigMap(configMapBuilder, name, filePath);
                 }
             }
         }
