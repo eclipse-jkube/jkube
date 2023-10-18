@@ -28,6 +28,7 @@ import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -146,6 +147,26 @@ public class ServiceDiscoveryEnricher extends BaseEnricher {
         if (camelContextXmlFile.exists()) {
             try {
                 DocumentBuilderFactory df = DocumentBuilderFactory.newInstance();
+                String FEATURE = null;
+                try {
+                    FEATURE = "http://xml.org/sax/features/external-parameter-entities";
+                    df.setFeature(FEATURE, false);
+
+                    FEATURE = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+                    df.setFeature(FEATURE, false);
+
+                    FEATURE = "http://xml.org/sax/features/external-general-entities";
+                    df.setFeature(FEATURE, false);
+
+                    df.setXIncludeAware(false);
+                    df.setExpandEntityReferences(false);
+
+                    df.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
+                } catch (ParserConfigurationException e) {
+                    throw new IllegalStateException("The feature '"
+                    + FEATURE + "' is not supported by your XML processor.", e);
+                }
                 df.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
                 df.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
                 Document doc = df.newDocumentBuilder().parse(camelContextXmlFile);

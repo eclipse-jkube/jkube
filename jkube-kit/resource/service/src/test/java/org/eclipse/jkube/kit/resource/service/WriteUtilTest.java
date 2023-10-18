@@ -63,7 +63,7 @@ class WriteUtilTest {
   @Test
   void writeResource() throws IOException {
     // Given
-    final File baton = File.createTempFile("junit", "ext", temporaryFolder);
+    final File baton = Files.createTempFile(temporaryFolder.toPath(), "junit", "ext").toFile();
     mockResourceUtilSave(baton);
     // When
     final File result = WriteUtil.writeResource(null, null, null);

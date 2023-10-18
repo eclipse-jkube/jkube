@@ -21,6 +21,7 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Files;
+import java.security.SecureRandom;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +43,7 @@ import static org.apache.commons.io.IOUtils.EOF;
  */
 public class IoUtil {
 
-    private static final Random RANDOM = new Random();
+    private static final Random RANDOM = new SecureRandom();
 
     private IoUtil() { }
 

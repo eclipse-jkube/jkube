@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.build.api.helper;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -143,7 +144,7 @@ public class PathTestUtil {
      */
     public static File createTmpFile(String nameHint, TMP_FILE_PRESERVE_MODE preserveMode) {
         try {
-            File tmpFile = File.createTempFile(nameHint, ".tmp");
+            File tmpFile = Files.createTempFile(nameHint, ".tmp").toFile();
             assertThat(tmpFile).isAbsolute();
             if (preserveMode != null) {
                 switch (preserveMode) {

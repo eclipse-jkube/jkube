@@ -78,7 +78,7 @@ class WatchMojoTest {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       when(mock.getNamespace()).thenReturn("namespace-from-config");
     });
-    kubernetesManifestFile =  File.createTempFile("kubernetes", ".yml", srcDir);
+    kubernetesManifestFile =  Files.createTempFile(srcDir.toPath(), "kubernetes", ".yml").toFile();
     mavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
     when(mavenProject.getProperties()).thenReturn(new Properties());
     when(mavenProject.getCompileClasspathElements()).thenReturn(Collections.emptyList());

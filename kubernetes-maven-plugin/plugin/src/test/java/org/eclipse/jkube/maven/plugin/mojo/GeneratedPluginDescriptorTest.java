@@ -20,8 +20,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.w3c.dom.Document;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 import java.io.File;
@@ -69,6 +71,26 @@ class GeneratedPluginDescriptorTest {
 
   private String getField(File xmlFile, String expression) throws Exception {
     final DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      String FEATURE = null;
+      try {
+          FEATURE = "http://xml.org/sax/features/external-parameter-entities";
+          factory.setFeature(FEATURE, false);
+
+          FEATURE = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+          factory.setFeature(FEATURE, false);
+
+          FEATURE = "http://xml.org/sax/features/external-general-entities";
+          factory.setFeature(FEATURE, false);
+
+          factory.setXIncludeAware(false);
+          factory.setExpandEntityReferences(false);
+
+          factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
+      } catch (ParserConfigurationException e) {
+          throw new IllegalStateException("The feature '"
+          + FEATURE + "' is not supported by your XML processor.", e);
+      }
     final DocumentBuilder builder = factory.newDocumentBuilder();
     try (final FileInputStream fis = new FileInputStream(xmlFile)) {
       final Document pom = builder.parse(fis);

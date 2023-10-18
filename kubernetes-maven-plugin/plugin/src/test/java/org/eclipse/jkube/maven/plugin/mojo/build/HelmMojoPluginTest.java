@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
@@ -41,6 +42,26 @@ class HelmMojoPluginTest {
   @BeforeEach
   void setUp() throws Exception {
     final DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+      String FEATURE = null;
+      try {
+          FEATURE = "http://xml.org/sax/features/external-parameter-entities";
+          domFactory.setFeature(FEATURE, false);
+
+          FEATURE = "http://apache.org/xml/features/nonvalidating/load-external-dtd";
+          domFactory.setFeature(FEATURE, false);
+
+          FEATURE = "http://xml.org/sax/features/external-general-entities";
+          domFactory.setFeature(FEATURE, false);
+
+          domFactory.setXIncludeAware(false);
+          domFactory.setExpandEntityReferences(false);
+
+          domFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+
+      } catch (ParserConfigurationException e) {
+          throw new IllegalStateException("The feature '"
+          + FEATURE + "' is not supported by your XML processor.", e);
+      }
     domFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
     xPath = XPathFactory.newInstance().newXPath();
     mavenPluginXml = domFactory.newDocumentBuilder()
