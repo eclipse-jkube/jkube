@@ -33,7 +33,8 @@ Usage:
 * Fix #2399: Helm no longer generates default function; broadens support for different value types
 * Fix #2400: Helm supports complex values in `values.yaml` fragments (such as annotations or arrays)
 * Fix #2414: OpenShift Gradle Plugin picks up `jkube.build.pushSecret` property
-* Fix #2417: Don't pass Invalid port in host headers for Helm OCI push 
+* Fix #2417: Don't pass Invalid port in host headers for Helm OCI push
+* Fix #2425: Bump JKube Base images to 0.0.20
 
 _**Note**_:
 - Container Images generated using jkube opinionated defaults no longer contain full timestamp in `org.label-schema.build-date` label. The label contains the build date in the format `yyyy-MM-dd`.
