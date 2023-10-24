@@ -70,7 +70,7 @@ class KubernetesSshServiceForwarderTest {
   }
 
   @Test
-  @DisplayName("deploys Pod with image: quay.io/jkube/jkube-remote-dev:0.0.19")
+  @DisplayName("deploys Pod with image: quay.io/jkube/jkube-remote-dev:0.0.20")
   void deployPodWithImage() {
     // When
     executorService.submit(kubernetesSshServiceForwarder);
@@ -86,7 +86,7 @@ class KubernetesSshServiceForwarderTest {
       .extracting(PodSpec::getContainers)
       .asList()
       .singleElement()
-      .hasFieldOrPropertyWithValue("image", "quay.io/jkube/jkube-remote-dev:0.0.19");
+      .hasFieldOrPropertyWithValue("image", "quay.io/jkube/jkube-remote-dev:0.0.20");
   }
   @Test
   @DisplayName("deploys Pod with port definitions")
