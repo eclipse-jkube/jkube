@@ -74,8 +74,8 @@ import static org.eclipse.jkube.kit.common.util.KubernetesHelper.hasAccessForAct
 class KubernetesHelperTest {
 
     private KitLogger logger;
-    private KubernetesMockServer mockServer;
-    private KubernetesClient mockClient;
+    KubernetesMockServer mockServer;
+    KubernetesClient mockClient;
 
     @BeforeEach
     public void setUp() throws Exception {
