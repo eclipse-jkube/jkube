@@ -79,7 +79,7 @@ class PortForwardServiceTest {
 
         mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=mykey%3Dmyvalue").andReturn(200, pods1).always();
         mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods").andReturn(200, pods1).always();
-        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=mykey%3Dmyvalue&allowWatchBookmarks=true&watch=true")
+        mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?allowWatchBookmarks=true&labelSelector=mykey%3Dmyvalue&watch=true")
                 .andUpgradeToWebSocket().open()
                 .waitFor(1000)
                 .andEmit(new WatchEvent(pod1, "MODIFIED"))
