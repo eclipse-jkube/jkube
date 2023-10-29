@@ -22,6 +22,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.net.ServerSocket;
 
@@ -90,23 +92,36 @@ class RemoteDevelopmentServiceTest {
       .debug("Starting port forwarder...");
   }
 
-  @Test
+  @ParameterizedTest
+  @CsvSource({
+    "remote-host, 1234, true",   // Local port is available
+    "remote-host, 1234, false"   // Local port is not available
+  })
   @DisplayName("start initiates if LocalPort for remote service are available")
-  void startInitsIfLocalPortAvailable() {
+  void startInitsIfLocalPortAvailable(String hostname, int port, boolean isLocalPortAvailable) {
     RemoteService remoteService = RemoteService.builder()
-        .hostname("remote-host").localPort(IoUtil.getFreeRandomPort()).port(1234).build();
+        .hostname(hostname)
+        .localPort(isLocalPortAvailable ? IoUtil.getFreeRandomPort() : 1234)
+        .port(port)
+        .build();
     remoteDevelopmentService = new RemoteDevelopmentService(
       logger, kubernetesClient, RemoteDevelopmentConfig.builder().remoteService(remoteService).build());
 
-    // When
     remoteDevelopmentService.start();
 
-    // Then
-    verify(logger, timeout(1000L).times(1))
-      .debug("Local port '%s' for remote service '%s:%s' is available",
-        remoteService.getLocalPort(),remoteService.getHostname(),remoteService.getPort());
-    verify(logger,  timeout(1000L).times(1))
-      .debug("Creating or replacing Kubernetes services for exposed ports from local environment");
+    if (isLocalPortAvailable) {
+      verify(logger, timeout(1000L).times(1))
+        .debug("Local port '%s' for remote service '%s:%s' is available",
+          remoteService.getLocalPort(), remoteService.getHostname(), remoteService.getPort());
+      verify(logger,  timeout(1000L).times(1))
+        .debug("Creating or replacing Kubernetes services for exposed ports from local environment");
+    } else {
+      verify(logger, timeout(1000L).times(0))
+        .debug("Local port '%s' for remote service '%s:%s' is available",
+          remoteService.getLocalPort(), remoteService.getHostname(), remoteService.getPort());
+      verify(logger, timeout(1000L).times(0))
+        .debug("Creating or replacing Kubernetes services for exposed ports from local environment");
+    }
   }
 
   @Test
