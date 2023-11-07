@@ -444,7 +444,7 @@ class SpringBootGeneratorIntegrationTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getFrom)
         .asString()
-        .startsWith("registry.access.redhat.com/ubi8/ubi-minimal:");
+        .startsWith("registry.access.redhat.com/ubi9/ubi-minimal:");
     }
 
     @Test

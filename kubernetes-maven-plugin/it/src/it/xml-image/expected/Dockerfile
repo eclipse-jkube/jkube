@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.8-860
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.3
 ENV JAVA_OPTIONS=-Xmx256m
 LABEL MAINTAINER="JKube testing team"
 EXPOSE 8080

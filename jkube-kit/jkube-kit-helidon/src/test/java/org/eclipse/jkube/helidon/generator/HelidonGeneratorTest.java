@@ -157,8 +157,8 @@ class HelidonGeneratorTest {
 
   static Stream<Arguments> customize_withNativePackaging_fromData() {
     return Stream.of(
-      Arguments.of(RuntimeMode.KUBERNETES, "registry.access.redhat.com/ubi8/ubi-minimal:"),
-      Arguments.of(RuntimeMode.OPENSHIFT, "registry.access.redhat.com/ubi8/ubi-minimal:")
+      Arguments.of(RuntimeMode.KUBERNETES, "registry.access.redhat.com/ubi9/ubi-minimal:"),
+      Arguments.of(RuntimeMode.OPENSHIFT, "registry.access.redhat.com/ubi9/ubi-minimal:")
     );
   }
 

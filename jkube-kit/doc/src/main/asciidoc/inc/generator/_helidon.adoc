@@ -16,8 +16,8 @@ The base images chosen are the following, however, these can be overridden using
 | | Docker Build | S2I Build
 
 | *Native*
-| `registry.access.redhat.com/ubi8/ubi-minimal:8.7`
-| `registry.access.redhat.com/ubi8/ubi-minimal:8.7`
+| `registry.access.redhat.com/ubi9/ubi-minimal:9.3`
+| `registry.access.redhat.com/ubi9/ubi-minimal:9.3`
 
 | *Normal Build*
 | `quay.io/jkube/jkube-java`
