@@ -36,6 +36,7 @@ Usage:
 * Fix #2417: Don't pass Invalid port in host headers for Helm OCI push
 * Fix #2419: Fix `Fabric8HttpUtil.extractAuthenticationChallengeIntoMap` www-authenticate header parsing logic
 * Fix #2425: Bump JKube Base images to 0.0.20
+* Fix #2433: Bump default native base image to `registry.access.redhat.com/ubi9/ubi-minimal:9.3`
 
 _**Note**_:
 - Container Images generated using jkube opinionated defaults no longer contain full timestamp in `org.label-schema.build-date` label. The label contains the build date in the format `yyyy-MM-dd`.
