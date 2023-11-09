@@ -16,6 +16,7 @@ package org.eclipse.jkube.springboot.generator;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.GeneratorMode;
+import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
@@ -36,6 +37,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -314,14 +316,17 @@ class SpringBootGeneratorIntegrationTest {
   @DisplayName("With layered jar")
   class LayeredJar {
 
-    @Test
-    @DisplayName("should create assembly layers matching layered jar layers")
-    void shouldCreateAssemblyLayers() throws IOException {
-      // Given
+    @BeforeEach
+    void layeredJar() throws IOException {
       Files.copy(
         Objects.requireNonNull(SpringBootGeneratorIntegrationTest.class.getResourceAsStream("/generator-integration-test/layered-jar.jar")),
         targetDir.toPath().resolve("layered.jar")
       );
+    }
+
+    @Test
+    @DisplayName("should create assembly layers matching layered jar layers")
+    void shouldCreateAssemblyLayers() {
       // When
       final List<ImageConfiguration> images = new SpringBootGenerator(context).customize(new ArrayList<>(), false);
       // Then
@@ -388,6 +393,19 @@ class SpringBootGeneratorIntegrationTest {
               .build())
             .build()
         );
+    }
+
+    @Test
+    @DisplayName("should not customize entrypoint")
+    void shouldNotCustomizeEntrypoint() {
+      // When
+      final List<ImageConfiguration> images = new SpringBootGenerator(context).customize(new ArrayList<>(), false);
+      // Then
+      assertThat(images)
+        .isNotNull()
+        .singleElement()
+        .extracting(ImageConfiguration::getBuild)
+        .returns(null, BuildConfiguration::getEntryPoint);
     }
   }
 
@@ -484,6 +502,20 @@ class SpringBootGeneratorIntegrationTest {
       assertThat(result).singleElement()
           .extracting("buildConfiguration.workdir").asString()
           .startsWith("/");
+    }
+
+    @Test
+    @DisplayName("has entrypoint pointing to native binary")
+    void hasCustomEntrypoint() {
+      // When
+      final List<ImageConfiguration> images = new SpringBootGenerator(context).customize(new ArrayList<>(), false);
+      // Then
+      assertThat(images)
+        .isNotNull()
+        .singleElement()
+        .extracting(ImageConfiguration::getBuild)
+        .extracting(BuildConfiguration::getEntryPoint)
+        .returns(Collections.singletonList("./native-binary-artifact"), Arguments::asStrings);
     }
   }
 }
