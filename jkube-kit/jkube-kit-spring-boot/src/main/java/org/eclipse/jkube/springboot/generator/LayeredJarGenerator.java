@@ -15,7 +15,6 @@ package org.eclipse.jkube.springboot.generator;
 
 import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
@@ -23,7 +22,6 @@ import org.eclipse.jkube.springboot.SpringBootLayeredJar;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -38,13 +36,6 @@ public class LayeredJarGenerator extends AbstractSpringBootNestedGenerator {
   public LayeredJarGenerator(GeneratorContext generatorContext, GeneratorConfig generatorConfig, File layeredJar) {
     super(generatorContext, generatorConfig);
     springBootLayeredJar = new SpringBootLayeredJar(layeredJar, getLogger());
-  }
-
-  @Override
-  public Arguments getBuildEntryPoint() {
-    return Arguments.builder()
-        .exec(Arrays.asList("java", MAIN_CLASS))
-        .build();
   }
 
   @Override

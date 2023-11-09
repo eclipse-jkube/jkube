@@ -45,8 +45,7 @@ class SpringBootIT {
       .contains("COPY /dependencies/deployments /deployments/")
       .contains("COPY /spring-boot-loader/deployments /deployments/")
       .contains("COPY /application/deployments /deployments/")
-      .contains("WORKDIR /deployments")
-      .contains("ENTRYPOINT [\"java\",\"org.springframework.boot.loader.JarLauncher\"]");
+      .contains("WORKDIR /deployments");
     assertThat(result).extracting(BuildResult::getOutput).asString()
       .contains("Running generator spring-boot")
       .contains("Spring Boot layered jar detected")
