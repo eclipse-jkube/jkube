@@ -14,7 +14,7 @@
 plugins {
     id 'java'
     id 'war'
-    id 'org.eclipse.jkube.kubernetes' version '1.14.0'
+    id 'org.eclipse.jkube.kubernetes' version '1.15.0'
 }
 
 repositories {
