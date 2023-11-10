@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.15-SNAPSHOT
+### 1.15.0 (2023-11-10)
 * Fix #2138: Support for Spring Boot Native Image
 * Fix #2186: Reuse ` io.fabric8.kubernetes.client.utils.KubernetesResourceUtil` ConfigMap utils methods
 * Fix #2200: Support for Helm `values.yaml` fragments

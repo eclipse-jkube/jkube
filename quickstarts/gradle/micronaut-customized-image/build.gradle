@@ -14,7 +14,7 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
     id("io.micronaut.application") version "1.5.4"
-    id("org.eclipse.jkube.kubernetes") version "1.14.0"
+    id("org.eclipse.jkube.kubernetes") version "1.15.0"
 }
 
 version = "1.5.1"

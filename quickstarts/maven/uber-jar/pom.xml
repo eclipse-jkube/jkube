@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>uberjar</artifactId>
-  <version>1.14.0</version>
+  <version>1.15.0</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Uber Jar</name>
   <packaging>jar</packaging>
 
