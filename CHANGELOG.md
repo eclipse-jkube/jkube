@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.16-SNAPSHOT
+* Fix #1690: Base images based on ubi9
 
 ### 1.15.0 (2023-11-10)
 * Fix #2138: Support for Spring Boot Native Image
