@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.resource.helm;
 
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -46,23 +47,33 @@ public class Chart {
   @JsonProperty
   private String name;
   @JsonProperty
+  private String version;
+  @JsonProperty
+  private String kubeVersion;
+  @JsonProperty
+  private String description;
+  @JsonProperty
+  private String type;
+  @JsonProperty
+  private List<String> keywords;
+  @JsonProperty
   private String home;
   @JsonProperty
   private List<String> sources;
   @JsonProperty
-  private String version;
-  @JsonProperty
-  private String description;
-  @JsonProperty
-  private List<String> keywords;
+  private List<HelmDependency> dependencies;
   @JsonProperty
   private List<Maintainer> maintainers;
   @JsonProperty
-  private String engine;
-  @JsonProperty
   private String icon;
   @JsonProperty
-  private List<HelmDependency> dependencies;
+  private String appVersion;
+  @JsonProperty
+  private Boolean deprecated;
+  @JsonProperty
+  private Map<String, String> annotations;
+  @JsonProperty
+  private String engine;
 
   @Override
   public String toString() {
