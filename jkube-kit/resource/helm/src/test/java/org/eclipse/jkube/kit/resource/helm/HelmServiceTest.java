@@ -175,7 +175,9 @@ class HelmServiceTest {
       .hasFieldOrPropertyWithValue("keywords", Collections.singletonList("fragment"))
       .hasFieldOrPropertyWithValue("sources", Collections.singletonList("https://source.example.com"))
       .hasFieldOrPropertyWithValue("maintainers", Collections.singletonList(Collections.singletonMap("name", "maintainer-from-config")))
-      .hasFieldOrPropertyWithValue("dependencies", Collections.singletonList(Collections.singletonMap("name", "dependency-from-config")));
+      .hasFieldOrPropertyWithValue("dependencies", Collections.singletonList(Collections.singletonMap("name", "dependency-from-config")))
+      .extracting("annotations").asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+      .containsOnly(entry("example.com/jkube", "norad"));
   }
 
   @Test

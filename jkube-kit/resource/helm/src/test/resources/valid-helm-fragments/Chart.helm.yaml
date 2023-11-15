@@ -2,3 +2,5 @@ name: ${chart.name}
 version: version-from-fragment
 keywords:
   - fragment
+annotations:
+  example.com/jkube: norad

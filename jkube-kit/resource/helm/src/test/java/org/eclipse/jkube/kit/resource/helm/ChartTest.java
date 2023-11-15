@@ -14,13 +14,17 @@
 package org.eclipse.jkube.kit.resource.helm;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.Maintainer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 class ChartTest {
 
@@ -60,19 +64,43 @@ class ChartTest {
   void builder() {
     // Given
     final Chart.ChartBuilder builder = Chart.builder()
-        .name("chart")
-        .home("e.t.")
-        .version("1337")
-        .sources(Arrays.asList("source-1", "source-2"));
+      .apiVersion("v2")
+      .name("chart")
+      .version("1337")
+      .kubeVersion(">= 1.13.0 < 1.15.0")
+      .description("chart-description")
+      .type("application")
+      .keywords(Arrays.asList("keyword-1", "keyword-2"))
+      .home("e.t.")
+      .sources(Arrays.asList("source-1", "source-2"))
+      .dependencies(Collections.singletonList(HelmDependency.builder().name("dep-1").build()))
+      .maintainers(Collections.singletonList(Maintainer.builder().name("maintainer-1").build()))
+      .icon("https://example.com/icon.png")
+      .appVersion("1.33.7")
+      .deprecated(false)
+      .annotations(Collections.singletonMap("com.example/annotation", "value-1"));
     // When
     final Chart result = builder.build();
     // Then
     assertThat(result)
-        .hasFieldOrPropertyWithValue("name", "chart")
-        .hasFieldOrPropertyWithValue("home", "e.t.")
-        .hasFieldOrPropertyWithValue("version", "1337")
-        .hasToString("Chart{name='chart', home='e.t.', version='1337'}")
-        .extracting("sources").asList().containsExactly("source-1", "source-2");
+      .hasFieldOrPropertyWithValue("apiVersion", "v2")
+      .hasFieldOrPropertyWithValue("name", "chart")
+      .hasFieldOrPropertyWithValue("version", "1337")
+      .hasFieldOrPropertyWithValue("kubeVersion", ">= 1.13.0 < 1.15.0")
+      .hasFieldOrPropertyWithValue("description", "chart-description")
+      .hasFieldOrPropertyWithValue("type", "application")
+      .hasFieldOrPropertyWithValue("keywords", Arrays.asList("keyword-1", "keyword-2"))
+      .hasFieldOrPropertyWithValue("home", "e.t.")
+      .hasFieldOrPropertyWithValue("sources", Arrays.asList("source-1", "source-2"))
+      .hasFieldOrPropertyWithValue("dependencies", Collections.singletonList(HelmDependency.builder().name("dep-1").build()))
+      .hasFieldOrPropertyWithValue("maintainers", Collections.singletonList(Maintainer.builder().name("maintainer-1").build()))
+      .hasFieldOrPropertyWithValue("icon", "https://example.com/icon.png")
+      .hasFieldOrPropertyWithValue("appVersion", "1.33.7")
+      .hasFieldOrPropertyWithValue("deprecated", false)
+      .hasToString("Chart{name='chart', home='e.t.', version='1337'}")
+      .isEqualTo(result.toBuilder().build())
+      .extracting("annotations").asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+      .containsOnly(entry("com.example/annotation", "value-1"));
   }
 
   @Test
