@@ -494,7 +494,7 @@ class QuarkusGeneratorTest {
       // When & Then
       assertThatIllegalStateException()
         .isThrownBy(() -> qg.customize(configs, false))
-        .withMessageContaining("The quarkus-app directory required in Quarkus Fast Jar mode was not found");
+        .withMessageContaining("The quarkus-app directory required in Quarkus Fast Jar mode was not found. HINT: try to compile and package your application prior to running the container image build task.");
     }
   }
 

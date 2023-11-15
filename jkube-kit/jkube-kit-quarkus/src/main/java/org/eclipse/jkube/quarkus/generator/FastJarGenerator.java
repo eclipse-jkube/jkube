@@ -34,7 +34,7 @@ public class FastJarGenerator extends AbstractQuarkusNestedGenerator {
     final JavaProject project = getProject();
     final File quarkusAppDirectory = new File(project.getBuildDirectory(), "quarkus-app");
     if (!quarkusAppDirectory.exists()) {
-      throw new IllegalStateException("The quarkus-app directory required in Quarkus Fast Jar mode was not found");
+      throw new IllegalStateException("The quarkus-app directory required in Quarkus Fast Jar mode was not found. HINT: try to compile and package your application prior to running the container image build task.");
     }
     AssemblyFileSet.AssemblyFileSetBuilder libFileSet = createFileSet()
       .directory(FileUtil.getRelativePath(project.getBaseDirectory(), quarkusAppDirectory))
