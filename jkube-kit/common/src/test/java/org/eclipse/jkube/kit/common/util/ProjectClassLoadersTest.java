@@ -13,14 +13,13 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.net.URLClassLoader;
-import java.util.Arrays;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,61 +29,58 @@ class ProjectClassLoadersTest {
 
     @BeforeEach
     void setUp(@TempDir File temporaryFolder) throws Exception {
-        File applicationProp =  new File(getClass().getResource("/util/spring-boot-application.properties").getPath());
-        File targetFolder = new File(temporaryFolder, "target");
-        File classesInTarget = new File(targetFolder, "classes");
-        File applicationPropertiesInsideTarget = new File(classesInTarget, "application.properties");
-        FileUtils.copyFile(applicationProp, applicationPropertiesInsideTarget);
-        compileClassLoader = ClassUtil.createClassLoader(Arrays.asList(classesInTarget.getAbsolutePath(), applicationProp.getAbsolutePath()), classesInTarget.getAbsolutePath());
+        File classesInTarget = new File(new File(temporaryFolder, "target"), "classes");
+        FileUtil.createDirectory(classesInTarget);
+        compileClassLoader = ClassUtil.createClassLoader(Collections.singletonList(classesInTarget.getAbsolutePath()));
     }
 
     @Test
-    void testIsClassInCompileClasspathWhenTrue() {
+    void isClassInCompileClasspathWhenTrue() {
         //Given
         boolean all = true;
         ProjectClassLoaders obj = new ProjectClassLoaders(compileClassLoader);
 
         //When
-        boolean result  =  obj.isClassInCompileClasspath(all);
+        boolean result = obj.isClassInCompileClasspath(all);
 
         //Then
         assertThat(result).isTrue();
     }
 
     @Test
-    void testIsClassInCompileClasspathWhenFalse() {
+    void isClassInCompileClasspathWhenFalse() {
         //Given
         boolean all = false;
         ProjectClassLoaders obj = new ProjectClassLoaders(compileClassLoader);
 
         //When
-        boolean result  =  obj.isClassInCompileClasspath(all,"ProjectClassLoadersTest","UserConfigurationCompare");
+        boolean result = obj.isClassInCompileClasspath(all,"ProjectClassLoadersTest", "UserConfigurationCompare");
 
         //Then
         assertThat(result).isFalse();
     }
 
     @Test
-    void testIsClassInCompileClasspathWhenHasAllClassesTrue() {
+    void isClassInCompileClasspathWhenHasAllClassesTrue() {
         //Given
         boolean all = true;
         ProjectClassLoaders obj = new ProjectClassLoaders(compileClassLoader);
 
         //When
-        boolean result  =  obj.isClassInCompileClasspath(all,"ProjectClassLoadersTest","UserConfigurationCompare");
+        boolean result = obj.isClassInCompileClasspath(all,"ProjectClassLoadersTest", "UserConfigurationCompare");
 
         //Then
         assertThat(result).isFalse();
     }
 
     @Test
-    void testIsClassInCompileClasspathWhenHasAllClassesFalse() {
+    void isClassInCompileClasspathWhenHasAllClassesFalse() {
         //Given
         boolean all = false;
         ProjectClassLoaders obj = new ProjectClassLoaders(compileClassLoader);
 
         //When
-        boolean result  =  obj.isClassInCompileClasspath(all);
+        boolean result = obj.isClassInCompileClasspath(all);
 
         //Then
         assertThat(result).isFalse();

@@ -53,13 +53,12 @@ class SpringBootWatcherIntegrationTest {
   Path project;
   KubernetesClient kubernetesClient;
   private WatcherContext watcherContext;
-  private File applicationProperties;
+  private Path target;
   private Deployment deployment;
 
   @BeforeEach
   void setUp() throws IOException {
-    final Path target = Files.createDirectory(project.resolve("target"));
-    applicationProperties = target.resolve("application.properties").toFile();
+    target = Files.createDirectory(project.resolve("target"));
     deployment = new DeploymentBuilder()
       .withNewSpec()
       .withNewSelector().addToMatchLabels("app", "spring-boot-test").endSelector()
@@ -121,7 +120,8 @@ class SpringBootWatcherIntegrationTest {
   @Test
   void withAllRequirementsShouldStartWatcherProcess() throws Exception {
     final Runtime runtime = mock(Runtime.class, RETURNS_DEEP_STUBS);
-    FileUtils.write(applicationProperties, "spring.devtools.remote.secret=this-is-a-test", StandardCharsets.UTF_8);
+    target.resolve("spring-boot-devtools.jar").toFile().createNewFile();
+    FileUtils.write(target.resolve("application.properties").toFile(), "spring.devtools.remote.secret=this-is-a-test", StandardCharsets.UTF_8);
     new SpringBootWatcher(runtime, watcherContext)
       .watch(Collections.emptyList(), null, Collections.singletonList(deployment), PlatformMode.kubernetes);
     verify(runtime).exec(ArgumentMatchers.<String[]>argThat(command -> command.length == 6

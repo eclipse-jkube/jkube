@@ -180,8 +180,8 @@ public class SpringBootDevtoolsUtils {
     return fatJarDetectResult.getArchiveFile();
   }
 
-  private static File getSpringBootDevToolsJar(JavaProject project) {
-    String version = SpringBootUtil.getSpringBootDevToolsVersion(project)
+  public static File getSpringBootDevToolsJar(JavaProject project) {
+    String version = SpringBootUtil.getSpringBootVersion(project)
         .orElseThrow(() -> new IllegalStateException("Unable to find the spring-boot version"));
     final File devToolsJar = JKubeProjectUtil.resolveArtifact(project, SPRING_BOOT_GROUP_ID, SPRING_BOOT_DEVTOOLS_ARTIFACT_ID, version, "jar");
     if (!devToolsJar.exists()) {
