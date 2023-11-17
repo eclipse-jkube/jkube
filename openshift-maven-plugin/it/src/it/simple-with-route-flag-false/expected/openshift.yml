@@ -22,7 +22,7 @@ items:
     annotations:
       jkube.eclipse.org/git-commit: "@ignore@"
       prometheus.io/port: "9779"
-      jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
+      jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/jkube-maven-sample-zero-config
       jkube.eclipse.org/git-branch: "@ignore@"
       prometheus.io/scrape: "true"
       jkube.eclipse.org/scm-tag: HEAD
@@ -49,7 +49,7 @@ items:
       jkube.eclipse.org/git-commit: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
       jkube.eclipse.org/scm-tag: HEAD
-      jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
+      jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/jkube-maven-sample-zero-config
     labels:
       app: jkube-maven-sample-zero-config
       provider: jkube
@@ -71,7 +71,7 @@ items:
       metadata:
         annotations:
           jkube.eclipse.org/git-commit: "@ignore@"
-          jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/spring-boot-starter-parent/jkube-maven-sample-zero-config
+          jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/jkube-maven-sample-zero-config
           jkube.eclipse.org/git-branch: "@ignore@"
           jkube.eclipse.org/scm-tag: HEAD
         labels:
