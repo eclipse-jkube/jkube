@@ -54,41 +54,17 @@ class SpringBootUtilTest {
     }
 
     @Test
-    void testGetSpringBootApplicationProperties(@TempDir File temporaryFolder) throws IOException {
+    void getSpringBootApplicationPropertiesLoadsStandardProperties(@TempDir File tempDir) throws IOException {
         //Given
-        File applicationProp =  new File(Objects.requireNonNull(getClass().getResource("/util/spring-boot-application.properties")).getPath());
-        String springActiveProfile = null;
-        File targetFolder = new File(temporaryFolder, "target");
-        File classesInTarget = new File(targetFolder, "classes");
-        boolean isTargetClassesCreated = classesInTarget.mkdirs();
-        File applicationPropertiesInsideTarget = new File(classesInTarget, "application.properties");
-        FileUtils.copyFile(applicationProp, applicationPropertiesInsideTarget);
-        URLClassLoader urlClassLoader = ClassUtil.createClassLoader(Arrays.asList(classesInTarget.getAbsolutePath(), applicationProp.getAbsolutePath()), classesInTarget.getAbsolutePath());
-
+        URLClassLoader cl = createClassLoader(tempDir, "/util/springboot/spring-boot-application.properties");
         //When
-        Properties result =  SpringBootUtil.getSpringBootApplicationProperties(springActiveProfile ,urlClassLoader);
-
+        Properties result =  SpringBootUtil.getSpringBootApplicationProperties(cl);
         //Then
-        assertThat(isTargetClassesCreated).isTrue();
         assertThat(result).containsOnly(
                 entry("spring.application.name", "demoservice"),
                 entry("server.port", "9090")
         );
     }
-
-    @Test
-    void testGetSpringBootDevToolsVersion() {
-        //Given
-        Dependency p = Dependency.builder().groupId("org.springframework.boot").version("1.6.3").build();
-        when(mavenProject.getDependencies()).thenReturn(Collections.singletonList(p));
-
-        //when
-        Optional<String> result = SpringBootUtil.getSpringBootDevToolsVersion(mavenProject);
-
-        //Then
-        assertThat(result).isPresent().contains("1.6.3");
-    }
-
 
     @Test
     void testGetSpringBootVersion() {
@@ -168,18 +144,21 @@ class SpringBootUtilTest {
     }
 
     @Test
-    void testMultipleProfilesParsing() {
-        Properties props = SpringBootUtil.getPropertiesFromApplicationYamlResource(null, getClass().getResource("/util/springboot/test-application-with-multiple-profiles.yml"));
-
+    void getSpringBootApplicationProperties_withMultipleProfilesAndDefault(@TempDir File tempDir) throws IOException {
+        URLClassLoader cl = createClassLoader(tempDir, "/util/springboot/test-application-with-multiple-profiles.yml");
+        Properties props = SpringBootUtil.getSpringBootApplicationProperties(cl);
         assertThat(props).isNotEmpty()
             .contains(
                 entry("spring.application.name", "spring-boot-k8-recipes"),
                 entry("management.endpoints.enabled-by-default", "false"),
                 entry("management.endpoint.health.enabled", "true"))
             .doesNotContainEntry("cloud.kubernetes.reload.enabled", null);
+    }
 
-        props = SpringBootUtil.getPropertiesFromApplicationYamlResource("kubernetes", getClass().getResource("/util/springboot/test-application-with-multiple-profiles.yml"));
-
+    @Test
+    void getSpringBootApplicationProperties_withMultipleProfilesAndSpecificProfile(@TempDir File tempDir) throws IOException {
+        URLClassLoader cl = createClassLoader(tempDir, "/util/springboot/test-application-with-multiple-profiles.yml");
+        Properties props = SpringBootUtil.getSpringBootApplicationProperties("kubernetes", cl);
         assertThat(props)
             .containsEntry("cloud.kubernetes.reload.enabled", "true")
             .doesNotContain(
@@ -439,5 +418,15 @@ class SpringBootUtilTest {
 
         // Then
         assertThat(nativeArtifactFound).hasName("sample");
+    }
+
+    private URLClassLoader createClassLoader(File temporaryFolder, String resource) throws IOException {
+        File applicationProp =  new File(Objects.requireNonNull(SpringBootUtilTest.class.getResource(resource)).getPath());
+        File classesInTarget = new File(new File(temporaryFolder, "target"), "classes");
+        FileUtil.createDirectory(classesInTarget);
+        File applicationPropertiesInsideTarget = new File(classesInTarget, "application." +
+          applicationProp.getName().substring(applicationProp.getName().lastIndexOf(".") + 1));
+        FileUtils.copyFile(applicationProp, applicationPropertiesInsideTarget);
+        return ClassUtil.createClassLoader(Arrays.asList(classesInTarget.getAbsolutePath(), applicationProp.getAbsolutePath()));
     }
 }
