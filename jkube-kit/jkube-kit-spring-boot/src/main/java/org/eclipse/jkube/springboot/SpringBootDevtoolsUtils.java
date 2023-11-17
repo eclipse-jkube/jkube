@@ -17,6 +17,7 @@ import com.google.common.base.Strings;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 
@@ -66,10 +67,15 @@ public class SpringBootDevtoolsUtils {
 
   private static void appendSecretTokenToFile(JavaProject project, String path, String token) {
     File file = new File(project.getBaseDirectory(), path);
-    boolean dirCreated = file.getParentFile().mkdirs();
-    if (!dirCreated) {
+    try {
+      FileUtil.createDirectory(file.getParentFile());
+    } catch (IOException ioException) {
       throw new IllegalStateException("Failure in creating directory " + file.getParentFile().getAbsolutePath());
     }
+    writeRemoteSecretToFile(file, token);
+  }
+
+  private static void writeRemoteSecretToFile(File file, String token) {
     String text = String.format("%s" +
             "# Remote secret added by jkube-kit-plugin\n" +
             "%s=%s\n",
