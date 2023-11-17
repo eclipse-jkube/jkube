@@ -162,18 +162,25 @@ public class jrelease {
 
         // 15. Create GitHub release
         printStep(15, "Create GitHub release from previously pushed tag to upstream, enable `discussions`");
-        print("Add changelog this to the release description:");
+        print("Add this changelog to the release description:");
         executeInteractiveCommand("bash", "-c", "./scripts/changelog.sh extract " + nextReleaseVersion);
         print("Press enter to continue");
         System.in.read();
 
-        // 16. Tag new release in https://github.com/jkubeio/jkube-website
-        printStep(16, "Tag new release in https://github.com/jkubeio/jkube-website (keep empty title/description)");
+        // 16. Send email to mailing lists (internal AND public)
+        printStep(16, "Send email to mailing lists (internal AND public)");
+        print("Add this changelog to the mail");
+        executeInteractiveCommand("bash", "-c", "./scripts/changelog.sh emailTemplate " + nextReleaseVersion);
         print("Press enter to continue");
         System.in.read();
 
-        // 17. Publish tweet in jkubeio profile
-        printStep(17, "Publish tweet in jkubeio profile");
+        // 17. Tag new release in https://github.com/jkubeio/jkube-website
+        printStep(17, "Tag new release in https://github.com/jkubeio/jkube-website (keep empty title/description)");
+        print("Press enter to continue");
+        System.in.read();
+
+        // 18. Publish tweet in jkubeio profile
+        printStep(18, "Publish tweet in jkubeio profile");
         print("🔥 @ECDTools #JKube new release 🚀");
         print("📦 v" + nextReleaseVersion);
         print("✨ new feat");
@@ -188,8 +195,8 @@ public class jrelease {
         print("Press enter to continue");
         System.in.read();
 
-        // 18. Announce the release in Gitter
-        printStep(18, "Announce the release in Gitter");
+        // 19. Announce the release in Gitter
+        printStep(19, "Announce the release in Gitter");
         print("🔥 Eclipse JKube new release 🚀");
         print("📦 v" + nextReleaseVersion);
         print("✨ new feat");
@@ -204,13 +211,13 @@ public class jrelease {
         print("Press enter to continue");
         System.in.read();
 
-        // 19. Publish release
-        printStep(19, "Publish release in https://projects.eclipse.org/projects/ecd.jkube");
+        // 20. Publish release
+        printStep(20, "Publish release in https://projects.eclipse.org/projects/ecd.jkube");
         print("Press enter to continue");
         System.in.read();
 
-        // 20. Run the Gradle verification test
-        printStep(20,
+        // 21. Run the Gradle verification test
+        printStep(21,
                 "Run the Gradle verification test: https://github.com/jkubeio/jkube-integration-tests/actions/workflows/smoke-tests.yml");
         print("Press enter to continue");
         System.in.read();
