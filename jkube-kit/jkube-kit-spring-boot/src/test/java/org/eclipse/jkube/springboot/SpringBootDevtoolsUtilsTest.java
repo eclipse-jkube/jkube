@@ -53,7 +53,7 @@ class SpringBootDevtoolsUtilsTest {
   }
 
   @Test
-  void ensureSpringDevToolSecretToken_whenNoTokenFound_thenAppendTokenAndThrowException() throws IOException {
+  void ensureSpringDevToolSecretToken_whenNoTokenFound_thenAppendToken() throws IOException {
     // Given
     JavaProject javaProject = createSpringBootJavaProject();
 
@@ -61,17 +61,21 @@ class SpringBootDevtoolsUtilsTest {
     boolean result = SpringBootDevtoolsUtils.ensureSpringDevToolSecretToken(javaProject);
 
     // Then
-    assertThat(result).isFalse();
-    Path srcApplicationProperties = temporaryFolder.toPath()
-        .resolve("src").resolve("main").resolve("resources").resolve("application.properties");
-    Path targetApplicationProperties = temporaryFolder.toPath()
-        .resolve("target").resolve("classes").resolve("application.properties");
-    assertThat(new String(Files.readAllBytes(srcApplicationProperties)))
-        .contains("# Remote secret added by jkube-kit-plugin")
-        .contains("spring.devtools.remote.secret=");
-    assertThat(new String(Files.readAllBytes(targetApplicationProperties)))
-        .contains("# Remote secret added by jkube-kit-plugin")
-        .contains("spring.devtools.remote.secret=");
+    thenSpringBootDevtoolsTokenAddedToProject(result);
+  }
+
+  @Test
+  void ensureSpringDevToolSecretToken_whenNoTokenFoundButTargetDirAlreadyExists_thenAppendToken() throws IOException {
+    // Given
+    JavaProject javaProject = createSpringBootJavaProject();
+    Files.createDirectory(temporaryFolder.toPath().resolve("target"));
+    Files.createDirectory(temporaryFolder.toPath().resolve("target").resolve("classes"));
+
+    // When
+    boolean result = SpringBootDevtoolsUtils.ensureSpringDevToolSecretToken(javaProject);
+
+    // Then
+    thenSpringBootDevtoolsTokenAddedToProject(result);
   }
 
   @Test
@@ -198,5 +202,19 @@ class SpringBootDevtoolsUtilsTest {
     manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "org.example.Foo");
     JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile.toPath()), manifest);
     jarOutputStream.closeEntry();
+  }
+
+  private void thenSpringBootDevtoolsTokenAddedToProject(boolean result) throws IOException {
+    assertThat(result).isFalse();
+    Path srcApplicationProperties = temporaryFolder.toPath()
+        .resolve("src").resolve("main").resolve("resources").resolve("application.properties");
+    Path targetApplicationProperties = temporaryFolder.toPath()
+        .resolve("target").resolve("classes").resolve("application.properties");
+    assertThat(new String(Files.readAllBytes(srcApplicationProperties)))
+        .contains("# Remote secret added by jkube-kit-plugin")
+        .contains("spring.devtools.remote.secret=");
+    assertThat(new String(Files.readAllBytes(targetApplicationProperties)))
+        .contains("# Remote secret added by jkube-kit-plugin")
+        .contains("spring.devtools.remote.secret=");
   }
 }
