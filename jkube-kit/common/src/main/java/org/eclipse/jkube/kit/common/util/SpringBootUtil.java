@@ -41,6 +41,10 @@ public class SpringBootUtil {
     public static final String DEV_TOOLS_REMOTE_SECRET = "spring.devtools.remote.secret";
     public static final String DEV_TOOLS_REMOTE_SECRET_ENV = "SPRING_DEVTOOLS_REMOTE_SECRET";
 
+    private static final String PLACEHOLDER_PREFIX = "${";
+    private static final String PLACEHOLDER_SUFFIX = "}";
+    private static final String VALUE_SEPARATOR = ":";
+
     private SpringBootUtil() {}
 
     /**
@@ -68,7 +72,8 @@ public class SpringBootUtil {
 
         Properties props = YamlUtil.getPropertiesFromYamlResource(springActiveProfile, ymlResource);
         props.putAll(getPropertiesFromResource(propertiesResource));
-        return props;
+        return new SpringBootPropertyPlaceholderHelper(PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX, VALUE_SEPARATOR, true)
+        .replaceAllPlaceholders(props);
     }
 
     /**

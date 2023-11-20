@@ -1,0 +1,89 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: spring-boot-properties
+  spec:
+    ports:
+    - name: irdmi
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+    selector:
+      app: spring-boot-properties
+      provider: jkube
+      group: org.eclipse.jkube.integration.tests.gradle
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    labels:
+      provider: jkube
+      app: spring-boot-properties
+      version: "@ignore@"
+      group: org.eclipse.jkube.integration.tests.gradle
+    name: spring-boot-properties
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: spring-boot-properties
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+    template:
+      metadata:
+        labels:
+          provider: jkube
+          app: spring-boot-properties
+          version: "@ignore@"
+          group: org.eclipse.jkube.integration.tests.gradle
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          image: "@matches('gradle/spring-boot-properties:.*$')@"
+          imagePullPolicy: IfNotPresent
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8008
+              scheme: HTTP
+            initialDelaySeconds: 180
+          name: spring-boot
+          ports:
+          - containerPort: 8000
+            name: irdmi
+            protocol: TCP
+          - containerPort: 9779
+            name: prometheus
+            protocol: TCP
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8008
+              scheme: HTTP
+            initialDelaySeconds: 10
+          securityContext:
+            privileged: false
