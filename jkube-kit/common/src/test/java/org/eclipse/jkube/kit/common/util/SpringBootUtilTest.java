@@ -39,8 +39,6 @@ import java.util.jar.Manifest;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
@@ -50,7 +48,9 @@ class SpringBootUtilTest {
 
     @BeforeEach
     public void setUp() {
-        mavenProject = mock(JavaProject.class);
+        mavenProject = JavaProject.builder()
+          .properties(new Properties())
+          .build();
     }
 
     @Test
@@ -67,10 +67,11 @@ class SpringBootUtilTest {
     }
 
     @Test
-    void testGetSpringBootVersion() {
+    void getSpringBootVersion() {
         //Given
-        Dependency p = Dependency.builder().groupId("org.springframework.boot").version("1.6.3").build();
-        when(mavenProject.getDependencies()).thenReturn(Collections.singletonList(p));
+        mavenProject = mavenProject.toBuilder()
+          .dependency(Dependency.builder().groupId("org.springframework.boot").version("1.6.3").build())
+          .build();
 
         //when
         Optional<String> result = SpringBootUtil.getSpringBootVersion(mavenProject);
@@ -80,11 +81,9 @@ class SpringBootUtilTest {
     }
 
     @Test
-    void testGetSpringBootActiveProfileWhenNotNull() {
+    void getSpringBootActiveProfileWhenNotNull() {
         //Given
-        Properties p = new Properties();
-        p.put("spring.profiles.active","spring-boot");
-        when(mavenProject.getProperties()).thenReturn(p);
+        mavenProject.getProperties().put("spring.profiles.active","spring-boot");
 
         // When
         String result = SpringBootUtil.getSpringBootActiveProfile(mavenProject);
@@ -420,7 +419,7 @@ class SpringBootUtilTest {
         assertThat(nativeArtifactFound).hasName("sample");
     }
 
-    private URLClassLoader createClassLoader(File temporaryFolder, String resource) throws IOException {
+    static URLClassLoader createClassLoader(File temporaryFolder, String resource) throws IOException {
         File applicationProp =  new File(Objects.requireNonNull(SpringBootUtilTest.class.getResource(resource)).getPath());
         File classesInTarget = new File(new File(temporaryFolder, "target"), "classes");
         FileUtil.createDirectory(classesInTarget);
