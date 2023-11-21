@@ -101,7 +101,6 @@ public class KarafGenerator extends BaseGenerator {
 
 
   private AssemblyConfiguration createDefaultAssembly() {
-    checkAndWarnIfProjectHasNotBeenBuilt();
     return AssemblyConfiguration.builder()
         .targetDir(getConfig(Config.BASE_DIR))
         .name("deployments")

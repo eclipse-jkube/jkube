@@ -42,7 +42,6 @@ public class HelidonGenerator extends JavaExecGenerator {
 
   @Override
   protected AssemblyConfiguration createAssembly() {
-    checkAndWarnIfProjectHasNotBeenBuilt();
     return nestedGenerator.createAssemblyConfiguration();
   }
 

@@ -24,6 +24,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.Arguments;
+import org.eclipse.jkube.kit.common.util.ArtifactUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
@@ -193,7 +194,6 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     protected AssemblyConfiguration createAssembly() {
-        checkAndWarnIfProjectHasNotBeenBuilt();
         final AssemblyConfiguration.AssemblyConfigurationBuilder builder = AssemblyConfiguration.builder();
         builder.name("deployments");
         builder.targetDir(getConfig(Config.TARGET_DIR));
@@ -206,6 +206,7 @@ public class JavaExecGenerator extends BaseGenerator {
         final List<AssemblyFileSet> fileSets = new ArrayList<>(addAdditionalFiles());
         final FatJarDetector.Result fatJar = detectFatJar();
         if (isFatJar() && fatJar != null) {
+            ArtifactUtil.warnStaleArtifact(getContext().getLogger(), fatJar.getArchiveFile());
             fileSets.add(getOutputDirectoryFileSet(fatJar, getProject()));
         } else {
             log.warn("No fat Jar detected, make sure your image assembly configuration contains all the required" +

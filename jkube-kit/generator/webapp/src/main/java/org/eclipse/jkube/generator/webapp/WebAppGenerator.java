@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.util.ArtifactUtil;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Configs;
@@ -185,9 +186,9 @@ public class WebAppGenerator extends BaseGenerator {
   }
 
   private AssemblyConfiguration createAssembly(AppServerHandler handler) {
-    checkAndWarnIfProjectHasNotBeenBuilt();
     final File sourceFile = Objects.requireNonNull(JKubeProjectUtil.getFinalOutputArtifact(getProject()),
         "Final output artifact file was not detected. The project may have not been built. HINT: try to compile and package your application prior to running the container image build task.");
+    ArtifactUtil.warnStaleArtifact(getContext().getLogger(), sourceFile);
     final String targetFilename;
     final String extension = FilenameUtils.getExtension(sourceFile.getName());
     final String path = getConfig(Config.PATH);

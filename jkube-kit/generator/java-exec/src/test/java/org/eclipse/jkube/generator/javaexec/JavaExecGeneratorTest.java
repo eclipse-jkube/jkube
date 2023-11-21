@@ -58,160 +58,21 @@ class JavaExecGeneratorTest {
   Path temporaryFolder;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws IOException {
     properties = new Properties();
+    final File targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     project = JavaProject.builder()
       .properties(properties)
+      .baseDirectory(temporaryFolder.toFile())
+      .buildDirectory(targetDir)
+      .buildPackageDirectory(targetDir)
+      .outputDirectory(targetDir)
       .version("0.0.1")
       .build();
     generatorContext = GeneratorContext.builder()
-      .logger(new KitLogger.SilentLogger())
+      .logger(spy(new KitLogger.SilentLogger()))
       .project(project)
       .build();
-  }
-
-  @Test
-  @DisplayName("Warn if final output artifact is missing")
-  void warnIfMissingFinalOutputArtifact() throws IOException {
-    KitLogger testLogger = spy(new KitLogger.SilentLogger());
-    File targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-    project = JavaProject.builder()
-        .baseDirectory(targetDir)
-        .buildDirectory(targetDir.getAbsoluteFile())
-        .buildPackageDirectory(targetDir.getAbsoluteFile())
-        .outputDirectory(targetDir)
-        .buildFinalName("sample")
-        .packaging("jar")
-        .build();
-    generatorContext = GeneratorContext.builder()
-        .project(project)
-        .logger(testLogger)
-        .build();
-
-    // Given, When
-    new JavaExecGenerator(generatorContext).createAssembly();
-
-    // Then
-    verify(generatorContext.getLogger())
-        .error("java-exec: Final output artifact file was not detected. The project may have not been built." +
-            " HINT: try to compile and package your application prior to running the container image build task.");
-  }
-
-  @Test
-  @DisplayName("No warnings or errors if the final output artifact is present")
-  void noWarnOrErrorIfFinalOutPutArtifactPresent() throws IOException {
-    try (MockedConstruction<FatJarDetector> fatJarDetector = mockConstruction(FatJarDetector.class,
-        (mock, ctx) -> {
-          FatJarDetector.Result mockedResult = mock(FatJarDetector.Result.class);
-          when(mockedResult.getArchiveFile()).thenReturn(new File("fat.jar"));
-          when(mock.scan()).thenReturn(mockedResult);
-        })) {
-      // @Todo: move these initializations to setup method when replacing mocks with real objects
-      KitLogger testLogger = spy(new KitLogger.SilentLogger());
-      File targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-      project = JavaProject.builder()
-          .baseDirectory(targetDir)
-          .buildDirectory(targetDir.getAbsoluteFile())
-          .buildPackageDirectory(targetDir.getAbsoluteFile())
-          .outputDirectory(targetDir)
-          .buildFinalName("sample")
-          .packaging("jar")
-          .build();
-      generatorContext = GeneratorContext.builder()
-          .project(project)
-          .logger(testLogger)
-          .build();
-
-      // Given
-      Files.createFile(targetDir.toPath().resolve("sample.jar"));
-      JavaExecGenerator testGenerator = new JavaExecGenerator(generatorContext);
-
-      // When
-      testGenerator.createAssembly();
-
-      // Then
-      verify(generatorContext.getLogger(), times(0)).info(anyString());
-      verify(generatorContext.getLogger(), times(0)).error(anyString());
-    }
-  }
-
-  @Test
-  @DisplayName("Warn if the final output artifact is same as previous")
-  void warnIfFinalArtifactSameAsPrevious() throws IOException {
-    try (MockedConstruction<FatJarDetector> fatJarDetector = mockConstruction(FatJarDetector.class,
-        (mock, ctx) -> {
-          FatJarDetector.Result mockedResult = mock(FatJarDetector.Result.class);
-          when(mockedResult.getArchiveFile()).thenReturn(new File("fat.jar"));
-          when(mock.scan()).thenReturn(mockedResult);
-        })) {
-      // @Todo: move these initializations to setup method when replacing mocks with real objects
-      KitLogger testLogger = spy(new KitLogger.SilentLogger());
-      File targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-      project = JavaProject.builder()
-          .properties(properties)
-          .baseDirectory(targetDir)
-          .buildDirectory(targetDir.getAbsoluteFile())
-          .buildPackageDirectory(targetDir.getAbsoluteFile())
-          .outputDirectory(targetDir).buildFinalName("sample")
-          .packaging("jar")
-          .build();
-      generatorContext = GeneratorContext.builder()
-          .project(project)
-          .logger(testLogger)
-          .build();
-
-      // Given
-      Files.createFile(targetDir.toPath().resolve("sample.jar"));
-      JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
-
-      // When
-      generator.createAssembly();
-      generator.createAssembly(); // calling twice to simulate that the final output artifacts were not changed
-
-      // Then
-      verify(generatorContext.getLogger())
-          .info("java-exec: Final output artifact is the same as previous build. " +
-              "HINT: You might have forgotten to compile and package your application after making changes.");
-    }
-  }
-
-  @Test
-  @DisplayName("No warn or error if the final output artifact is present and different from previous")
-  void noWarnOrErrorIfFinalOutputNotSameAsPrevious() throws IOException {
-    try (MockedConstruction<FatJarDetector> fatJarDetector = mockConstruction(FatJarDetector.class,
-        (mock, ctx) -> {
-          FatJarDetector.Result mockedResult = mock(FatJarDetector.Result.class);
-          when(mockedResult.getArchiveFile()).thenReturn(new File("fat.jar"));
-          when(mock.scan()).thenReturn(mockedResult);
-        })) {
-      File targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-      // Given
-      project = JavaProject.builder()
-          .properties(properties)
-          .baseDirectory(targetDir)
-          .buildDirectory(targetDir.getAbsoluteFile())
-          .buildPackageDirectory(targetDir.getAbsoluteFile())
-          .outputDirectory(targetDir).buildFinalName("sample")
-          .packaging("jar")
-          .build();
-      generatorContext = GeneratorContext.builder()
-          .logger(spy(new KitLogger.SilentLogger()))
-          .project(project)
-          .build();
-
-      // Given
-      Files.createFile(targetDir.toPath().resolve("sample.jar"));
-      JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
-
-      // When (This simulates that final output artifacts were changed)
-      generator.createAssembly();
-      Files.delete(targetDir.toPath().resolve("sample.jar"));
-      Files.createFile(targetDir.toPath().resolve("sample.jar"));
-
-      // Then
-      verify(generatorContext.getLogger(), times(0)).info(anyString());
-      verify(generatorContext.getLogger(), times(0)).error(anyString());
-    }
   }
 
   @Test
@@ -281,6 +142,43 @@ class JavaExecGeneratorTest {
             tuple(new File("src/main/jkube-includes/bin"), Collections.emptyList()),
             tuple(new File("fatjar-simple"), Collections.singletonList("fat.jar"))
         );
+  }
+
+
+  @Test
+  @DisplayName("createAssembly, logs info if the final output artifact is same as previous")
+  void createAssembly_logsFinalArtifactSameAsPrevious() throws IOException {
+    final Path fatJar = Files.createFile(project.getBuildDirectory().toPath().resolve("fat.jar"));
+    try (MockedConstruction<FatJarDetector> fatJarDetector = mockConstruction(FatJarDetector.class,
+      (mock, ctx) -> {
+        FatJarDetector.Result mockedResult = mock(FatJarDetector.Result.class);
+        when(mockedResult.getArchiveFile()).thenReturn(fatJar.toFile());
+        when(mock.scan()).thenReturn(mockedResult);
+      })) {
+      JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
+      generator.createAssembly();
+      generator.createAssembly(); // calling twice to simulate that the final output artifacts were not changed
+      // Then
+      verify(generatorContext.getLogger())
+        .info("Final output artifact file was not rebuilt since last build. " +
+          "HINT: try to compile and package your application prior to running the container image build task.");
+    }
+  }
+
+  @Test
+  @DisplayName("createAssembly, doesn't log info if artifact is recently built")
+  void createAssembly_doesntLogWarnings() throws IOException {
+    final Path fatJar = Files.createFile(project.getBuildDirectory().toPath().resolve("fat.jar"));
+    try (MockedConstruction<FatJarDetector> fatJarDetector = mockConstruction(FatJarDetector.class,
+      (mock, ctx) -> {
+        FatJarDetector.Result mockedResult = mock(FatJarDetector.Result.class);
+        when(mockedResult.getArchiveFile()).thenReturn(fatJar.toFile());
+        when(mock.scan()).thenReturn(mockedResult);
+      })) {
+      new JavaExecGenerator(generatorContext).createAssembly();
+      verify(generatorContext.getLogger(), times(0)).info(anyString());
+      verify(generatorContext.getLogger(), times(0)).warn(anyString());
+    }
   }
 
   @Test
