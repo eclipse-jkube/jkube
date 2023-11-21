@@ -13,12 +13,8 @@
  */
 package org.eclipse.jkube.generator.api.support;
 
-import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,7 +31,6 @@ import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.common.util.GitUtil;
-import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -48,9 +43,6 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
-
-import static org.eclipse.jkube.kit.common.util.ArtifactUtil.retrievePreviousArtifactLastModifiedTime;
-import static org.eclipse.jkube.kit.common.util.ArtifactUtil.saveCurrentArtifactLastModifiedTime;
 
 /**
  * @author roland
@@ -298,35 +290,4 @@ public abstract class BaseGenerator implements Generator {
         }
     }
 
-    public void checkAndWarnIfProjectHasNotBeenBuilt() {
-      File finalOutputArtifact = null;
-      try {
-        finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(getProject());
-        if (finalOutputArtifact == null) {
-          log.error(
-              "Final output artifact file was not detected. The project may have not been built. " +
-                  "HINT: try to compile and package your application prior to running the container image build task.");
-          return;
-        }
-        long currentLastModifiedTime = finalOutputArtifact.lastModified();
-        long previousLastModifiedTime = retrievePreviousArtifactLastModifiedTime(getProject().getBuildDirectory().toPath());
-        boolean isCurrentFinalArtifactSameAsPrevious = currentLastModifiedTime == previousLastModifiedTime;
-
-        if (isCurrentFinalArtifactSameAsPrevious) {
-          log.info(
-              "Final output artifact is the same as previous build. " +
-                  "HINT: You might have forgotten to compile and package your application after making changes.");
-        }
-      } catch (Exception e) {
-          log.debug("Failed to check if final output artifact is the same as previous build. ", e);
-      } finally {
-          if (finalOutputArtifact != null) {
-            try {
-              saveCurrentArtifactLastModifiedTime(getProject().getBuildDirectory().toPath(), finalOutputArtifact);
-            } catch (IOException e) {
-                log.debug("Failed to save the last modified time of the final output artifact. ", e);
-            }
-          }
-      }
-    }
 }

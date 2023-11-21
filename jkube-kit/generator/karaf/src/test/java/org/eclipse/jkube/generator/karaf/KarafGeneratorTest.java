@@ -14,8 +14,6 @@
 package org.eclipse.jkube.generator.karaf;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -31,17 +29,12 @@ import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class KarafGeneratorTest {
   @TempDir
@@ -55,136 +48,6 @@ class KarafGeneratorTest {
       .project(JavaProject.builder().build())
       .build();
   }
-
-  @Test
-  @DisplayName("Warn if final output artifact is missing")
-  void warnIfMissingFinalOutputArtifact() throws IOException {
-    // @Todo: move these initializations to setup method when replacing mocks with real objects
-    KitLogger testLogger = spy(new KitLogger.SilentLogger());
-    File targetDir = Files.createDirectory(temporaryFolder.toPath().resolve("target")).toFile();
-    JavaProject project = JavaProject.builder()
-            .baseDirectory(targetDir)
-            .buildDirectory(targetDir.getAbsoluteFile())
-            .buildPackageDirectory(targetDir.getAbsoluteFile())
-            .outputDirectory(targetDir)
-            .buildFinalName("sample")
-            .version("1.0.0-SNAPSHOT")
-            .packaging("jar")
-            .build();
-    generatorContext = GeneratorContext.builder()
-            .project(project)
-            .logger(testLogger)
-            .build();
-
-    // Given, When
-    new KarafGenerator(generatorContext).customize(new ArrayList<>(), false);
-
-    // Then
-    verify(generatorContext.getLogger())
-            .error("karaf: Final output artifact file was not detected. The project may have not been built." +
-                   " HINT: try to compile and package your application prior to running the container image build task.");
-  }
-
-  @Test
-  @DisplayName("No warnings or errors if the final output artifact is present")
-  void noWarnOrErrorIfFinalOutPutArtifactPresent() throws IOException {
-    // @Todo: move these initializations to setup method when replacing mocks with real objects
-    KitLogger testLogger = spy(new KitLogger.SilentLogger());
-    File targetDir = Files.createDirectory(temporaryFolder.toPath().resolve("target")).toFile();
-    JavaProject project = JavaProject.builder()
-            .baseDirectory(targetDir)
-            .buildDirectory(targetDir.getAbsoluteFile())
-            .buildPackageDirectory(targetDir.getAbsoluteFile())
-            .outputDirectory(targetDir)
-            .buildFinalName("sample")
-            .version("1.0.0-SNAPSHOT")
-            .packaging("jar")
-            .build();
-    generatorContext = GeneratorContext.builder()
-            .project(project)
-            .logger(testLogger)
-            .build();
-
-    // Given
-    Files.createFile(targetDir.toPath().resolve("sample.jar"));
-    KarafGenerator testGenerator = new KarafGenerator(generatorContext);
-
-    // When
-    testGenerator.customize(new ArrayList<>(), false);
-
-    // Then
-    verify(generatorContext.getLogger(), times(0)).info(anyString());
-    verify(generatorContext.getLogger(), times(0)).error(anyString());
-  }
-
-  @Test
-  @DisplayName("Warn if the final output artifact is same as previous")
-  void warnIfFinalArtifactSameAsPrevious() throws IOException {
-    // @Todo: move these initializations to setup method when replacing mocks with real objects
-    KitLogger testLogger = spy(new KitLogger.SilentLogger());
-    File targetDir = Files.createDirectory(temporaryFolder.toPath().resolve("target")).toFile();
-    JavaProject project = JavaProject.builder()
-            .baseDirectory(targetDir)
-            .buildDirectory(targetDir.getAbsoluteFile())
-            .buildPackageDirectory(targetDir.getAbsoluteFile())
-            .outputDirectory(targetDir)
-            .buildFinalName("sample")
-            .version("1.0.0-SNAPSHOT")
-            .packaging("jar")
-            .build();
-    generatorContext = GeneratorContext.builder()
-            .project(project)
-            .logger(testLogger)
-            .build();
-
-    // Given
-    Files.createFile(targetDir.toPath().resolve("sample.jar"));
-    KarafGenerator generator = new KarafGenerator(generatorContext);
-
-    // When
-    generator.customize(new ArrayList<>(), false);
-    generator.customize(new ArrayList<>(), false); // calling twice to simulate that the final output artifacts were not changed
-
-    // Then
-    verify(generatorContext.getLogger())
-            .info("karaf: Final output artifact is the same as previous build. " +
-                  "HINT: You might have forgotten to compile and package your application after making changes.");
-  }
-
-  @Test
-  @DisplayName("No warn or error if the final output artifact is present and different from previous")
-  void noWarnOrErrorIfFinalOutputNotSameAsPrevious() throws IOException {
-    // @Todo: move these initializations to setup method when replacing mocks with real objects
-    KitLogger testLogger = spy(new KitLogger.SilentLogger());
-    File targetDir = Files.createDirectory(temporaryFolder.toPath().resolve("target")).toFile();
-    JavaProject project = JavaProject.builder()
-            .baseDirectory(targetDir)
-            .buildDirectory(targetDir.getAbsoluteFile())
-            .buildPackageDirectory(targetDir.getAbsoluteFile())
-            .outputDirectory(targetDir)
-            .buildFinalName("sample")
-            .version("1.0.0-SNAPSHOT")
-            .packaging("jar")
-            .build();
-    generatorContext = GeneratorContext.builder()
-            .project(project)
-            .logger(testLogger)
-            .build();
-
-    // Given
-    Files.createFile(targetDir.toPath().resolve("sample.jar"));
-    KarafGenerator generator = new KarafGenerator(generatorContext);
-
-    // When (This simulates that final output artifacts were changed)
-    generator.customize(new ArrayList<>(), false);
-    Files.delete(targetDir.toPath().resolve("sample.jar"));
-    Files.createFile(targetDir.toPath().resolve("sample.jar"));
-
-    // Then
-    verify(generatorContext.getLogger(), times(0)).info(anyString());
-    verify(generatorContext.getLogger(), times(0)).error(anyString());
-  }
-
 
   @Test
   void isApplicableHasKarafMavenPluginShouldReturnTrue() {
