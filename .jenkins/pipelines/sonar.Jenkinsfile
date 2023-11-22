@@ -5,7 +5,7 @@ pipeline {
   tools {
     maven 'apache-maven-latest'
     // https://wiki.eclipse.org/Jenkins#JDK
-    jdk 'temurin-jdk11-latest'
+    jdk 'temurin-jdk17-latest'
   }
   options {
     disableConcurrentBuilds(abortPrevious: true)
