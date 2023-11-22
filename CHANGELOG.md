@@ -24,6 +24,7 @@ Usage:
 * Fix #1690: Base images based on ubi9
 * Fix #2390: support for all missing Chart.yaml fields
 * Fix #2444: Add support for Spring Boot application properties placeholders
+* Fix #2456: Add utility class to decompress archive files
 
 ### 1.15.0 (2023-11-10)
 * Fix #2138: Support for Spring Boot Native Image
