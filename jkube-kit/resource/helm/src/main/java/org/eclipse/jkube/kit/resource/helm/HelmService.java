@@ -248,6 +248,7 @@ public class HelmService {
       .sources(helmConfig.getSources())
       .maintainers(helmConfig.getMaintainers())
       .icon(helmConfig.getIcon())
+      .appVersion(helmConfig.getAppVersion())
       .keywords(helmConfig.getKeywords())
       .engine(helmConfig.getEngine())
       .dependencies(helmConfig.getDependencies())

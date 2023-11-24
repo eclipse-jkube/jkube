@@ -51,6 +51,7 @@ public class HelmServiceUtil {
   private static final String PROPERTY_API_VERSION = "jkube.helm.apiVersion";
   private static final String DEFAULT_API_VERSION = "v1";
   private static final String PROPERTY_ICON = "jkube.helm.icon";
+  private static final String PROPERTY_APP_VERSION = "jkube.helm.appVersion";
   private static final String PROPERTY_TYPE = "jkube.helm.type";
   private static final String PROPERTY_CHART = "jkube.helm.chart";
   private static final String PROPERTY_CHART_EXTENSION = "jkube.helm.chartExtension";
@@ -105,6 +106,7 @@ public class HelmServiceUtil {
       () -> String.format("%s/jkube/helm/%s", project.getBuildDirectory(), helmConfig.getChart())));
     helmConfig.setIcon(resolveFromPropertyOrDefault(PROPERTY_ICON, project, helmConfig::getIcon,
         () -> findIconURL(new File(helmConfig.getSourceDir()), helmConfig.getTypes())));
+    helmConfig.setAppVersion(resolveFromPropertyOrDefault(PROPERTY_APP_VERSION, project, helmConfig::getAppVersion, project::getVersion));
     helmConfig.setTarFileClassifier(resolveFromPropertyOrDefault(PROPERTY_TARBALL_CLASSIFIER, project, helmConfig::getTarFileClassifier, () -> EMPTY));
     helmConfig.setTarballOutputDir(resolveFromPropertyOrDefault(PROPERTY_TARBALL_OUTPUT_DIR, project, helmConfig::getTarballOutputDir,
         helmConfig::getOutputDir));

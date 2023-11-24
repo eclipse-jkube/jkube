@@ -101,9 +101,16 @@ endif::[]
 |
 
 | *icon*
-| The Chart URL to an SVG or PNG image to be used as an icon , default is extracted from the kubernetes manifest
+| The Chart URL to an SVG or PNG image to be used as an icon, default is extracted from the kubernetes manifest
 (`kubernetes.yml`) `jkube.eclipse.org/iconUrl` annotation if not provided.
 | `jkube.helm.icon`
+
+| *appVersion*
+| The version of the application that Chart contains
+ifeval::["{plugin-type}" == "maven"]
+, defaults to `${project.version}` if not provided.
+endif::[]
+| `jkube.helm.appVersion`
 
 | *keywords*
 | Comma separated list of keywords to add to the chart.

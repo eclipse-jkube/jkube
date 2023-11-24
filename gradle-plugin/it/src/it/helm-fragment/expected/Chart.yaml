@@ -14,6 +14,7 @@ maintainers:
   email: maintainer@example.com
   url: https://example.com/user1
 icon: https://example.com/icon1
+appVersion: 0.0.1-SNAPSHOT
 dependencies:
 - name: dependency-via-fragment
   version: 0.0.1
