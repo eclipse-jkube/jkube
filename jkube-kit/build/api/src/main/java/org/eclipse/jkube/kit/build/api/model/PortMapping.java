@@ -17,17 +17,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,12 +44,6 @@ public class PortMapping {
     // ports map (container port -> host port)
     private final Map<String, Integer> containerPortToHostPort = new HashMap<>();
 
-    // resolved dynamic properties
-    private final Properties dynamicProperties = new Properties();
-
-    // Mapping between property name and host ip (ip filled in after container creation)
-    private final Map<String, String> hostIpVariableMap = new HashMap<>();
-
     // Mapping between property name and host port (port filled in after container creation)
     private final Map<String, Integer> hostPortVariableMap = new HashMap<>();
 
@@ -74,7 +63,7 @@ public class PortMapping {
      * <li>The "host_ip" part is optional. If not given, the all interfaces are used</li>
      * <li>If "host_port" is non numeric it is taken as a variable name. If this variable is given as value in
      * variables, this number is used as host port. If no numeric value is given, it is considered to be filled with the
-     * real, dynamically created port value when {@link #updateProperties(Map)} is called</li>
+     * real, dynamically created port value when #updateProperties(Map) is called</li>
      * </ul>
      *
      * @param portMappings a list of configuration strings where each string hast the format
@@ -87,85 +76,6 @@ public class PortMapping {
 
         for (String portMapping : portMappings) {
             parsePortMapping(portMapping);
-        }
-    }
-
-    /**
-     * Check whether property needs updates for dynamically obtained host ports and ip adresses.
-     *
-     * @return true if any property are used which need to be filled in, false otherwise
-     */
-    public boolean needsPropertiesUpdate() {
-        return !specToHostPortVariableMap.isEmpty() || !specToHostIpVariableMap.isEmpty();
-    }
-
-    /**
-     * @return Set of all mapped container ports
-     */
-    public Set<String> getContainerPorts() {
-        return containerPortToHostPort.keySet();
-    }
-
-    /**
-     * Update variable-to-port mappings with dynamically obtained ports and host ips.
-     * This should only be called once after this dynamically allocated parts has been be obtained.
-     *
-     * @param dockerObtainedDynamicBindings keys are the container ports, values are the dynamically mapped host ports and host ips.
-     */
-    public void updateProperties(Map<String, Container.PortBinding> dockerObtainedDynamicBindings) {
-        for (Map.Entry<String, Container.PortBinding> entry : dockerObtainedDynamicBindings.entrySet()) {
-            String variable = entry.getKey();
-            Container.PortBinding portBinding = entry.getValue();
-
-            if (portBinding != null) {
-                update(hostPortVariableMap, specToHostPortVariableMap.get(variable), portBinding.getHostPort());
-
-                String hostIp = portBinding.getHostIp();
-
-                // Use the docker host if binding is on all interfaces
-                if ("0.0.0.0".equals(hostIp)) {
-                    hostIp = projProperties.getProperty("docker.host.address");
-                }
-
-                update(hostIpVariableMap, specToHostIpVariableMap.get(variable), hostIp);
-            }
-        }
-
-        updateDynamicProperties(hostPortVariableMap);
-        updateDynamicProperties(hostIpVariableMap);
-    }
-
-    /**
-     * Create a JSON specification which can be used to in a Docker API request as the 'PortBindings' part
-     * for creating container.
-     *
-     * @return 'PortBindings' object or null if no port mappings are used.
-     */
-    public JsonObject toDockerPortBindingsJson() {
-        Map<String, Integer> portMap = getContainerPortToHostPortMap();
-        if (!portMap.isEmpty()) {
-            JsonObject portBindings = new JsonObject();
-            Map<String, String> bindToMap = getBindToHostMap();
-
-            for (Map.Entry<String, Integer> entry : portMap.entrySet()) {
-                String containerPortSpec = entry.getKey();
-                Integer hostPort = entry.getValue();
-
-                JsonObject o = new JsonObject();
-                o.addProperty("HostPort", hostPort != null ? hostPort.toString() : "");
-
-                if (bindToMap.containsKey(containerPortSpec)) {
-                    o.addProperty("HostIp", bindToMap.get(containerPortSpec));
-                }
-
-                JsonArray array = new JsonArray();
-                array.add(o);
-
-                portBindings.add(containerPortSpec, array);
-            }
-            return portBindings;
-        } else {
-            return null;
         }
     }
 
@@ -225,20 +135,6 @@ public class PortMapping {
         return containerPortToHostPort;
     }
 
-    // visible for testing
-    Map<String, String> getHostIpVariableMap() {
-        return hostIpVariableMap;
-    }
-
-    // visible for testing
-    Map<String, Integer> getHostPortVariableMap() {
-        return hostPortVariableMap;
-    }
-
-    // visible for testing
-    Map<String, Integer> getPortsMap() {
-        return containerPortToHostPort;
-    }
 
     private IllegalArgumentException createInvalidMappingError(String mapping, Exception exp) {
         return new IllegalArgumentException("\nInvalid port mapping '" + mapping + "'\n" +
@@ -361,65 +257,5 @@ public class PortMapping {
         }
     }
 
-    private <T> void update(Map<String, T> map, String key, T value) {
-        if (key != null) {
-            map.put(key, value);
-        }
-    }
-
-    private void updateDynamicProperties(Map<String, ?> dynamicPorts) {
-        for (Map.Entry<String, ?> entry : dynamicPorts.entrySet()) {
-            String entryKey = entry.getKey();
-            String val = entry.getValue().toString();
-
-            projProperties.setProperty(entryKey, val);
-            dynamicProperties.setProperty(entryKey, val);
-        }
-    }
-
-
-    public static class PropertyWriteHelper {
-
-        private final Properties globalExport;
-
-        private final String globalFile;
-        private final Map<String, Properties> toExport;
-
-        public PropertyWriteHelper(String globalFile) {
-            this.globalFile = globalFile;
-
-            this.toExport = new HashMap<>();
-            this.globalExport = new Properties();
-        }
-
-        public void add(PortMapping portMapping, String portPropertyFile) {
-            if (portPropertyFile != null) {
-                toExport.put(portPropertyFile, portMapping.dynamicProperties);
-            } else if (globalFile != null) {
-                globalExport.putAll(portMapping.dynamicProperties);
-            }
-        }
-
-        public void write() throws IOException {
-            for (Map.Entry<String, Properties> entry : toExport.entrySet()) {
-                Properties props = entry.getValue();
-                writeProperties(props, entry.getKey());
-                globalExport.putAll(props);
-            }
-
-            if (globalFile != null && !globalExport.isEmpty()) {
-                writeProperties(globalExport, globalFile);
-            }
-        }
-
-        private void writeProperties(Properties props, String file) throws IOException {
-            File propFile = new File(file);
-            try (OutputStream os = new FileOutputStream(propFile)) {
-                props.store(os, "Docker ports");
-            } catch (IOException e) {
-                throw new IOException("Cannot write properties to " + file + ": " + e, e);
-            }
-        }
-    }
 }
 

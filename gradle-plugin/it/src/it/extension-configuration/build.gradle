@@ -61,14 +61,7 @@ kubernetes {
     kubernetesTemplate = file('build/META-INF/jkube/kubernetes')
     watchMode = 'copy'
     watchInterval = 1000
-    watchKeepRunning = true
     watchPostExec = 'ls -lt'
-    watchAutoCreateCustomNetworks = true
-    watchKeepContainer = true
-    watchRemoveVolumes = true
-    watchContainerNamePattern = '%g-%l'
-    watchFollow = true
-    watchShowLogs = 'true'
     access {
         namespace = 'default'
     }

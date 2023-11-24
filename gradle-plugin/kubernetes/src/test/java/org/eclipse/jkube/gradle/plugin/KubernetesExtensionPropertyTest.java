@@ -17,7 +17,6 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.common.JavaProject;
 
 import org.eclipse.jkube.kit.common.ResourceFileType;
@@ -117,14 +116,7 @@ class KubernetesExtensionPropertyTest {
         arguments("getKubernetesTemplateOrDefault", new File(BASE, "build").toPath().resolve(Paths.get("META-INF", "jkube", "kubernetes")).toFile()),
         arguments("getWatchModeOrDefault", WatchMode.both),
         arguments("getWatchIntervalOrDefault", 5000),
-        arguments("getWatchKeepRunningOrDefault", false),
-        arguments("getWatchPostExecOrNull", null),
-        arguments("getWatchAutoCreateCustomNetworksOrDefault", false),
-        arguments("getWatchKeepContainerOrDefault", false),
-        arguments("getWatchRemoveVolumesOrDefault", false),
-        arguments("getWatchContainerNamePatternOrDefault", ContainerNamingUtil.DEFAULT_CONTAINER_NAME_PATTERN),
-        arguments("getWatchFollowOrDefault", false),
-        arguments("getWatchShowLogsOrNull", null));
+        arguments("getWatchPostExecOrNull", null));
   }
 
   @ParameterizedTest(name = "{index}: {0} with property ''{1}={2}'' returns ''{3}''")
@@ -213,13 +205,6 @@ class KubernetesExtensionPropertyTest {
             Paths.get("META-INF", "jkube", "other").toFile()),
         arguments("getWatchModeOrDefault", "jkube.watch.mode", "copy", WatchMode.copy),
         arguments("getWatchIntervalOrDefault", "jkube.watch.interval", "10000", 10000),
-        arguments("getWatchKeepRunningOrDefault", "jkube.watch.keepRunning", "true", true),
-        arguments("getWatchPostExecOrNull", "jkube.watch.postExec", "ls -lt", "ls -lt"),
-        arguments("getWatchAutoCreateCustomNetworksOrDefault", "jkube.watch.autoCreateCustomNetworks", "true", true),
-        arguments("getWatchKeepContainerOrDefault", "jkube.watch.keepContainer", "true", true),
-        arguments("getWatchRemoveVolumesOrDefault", "jkube.watch.removeVolumes", "true", true),
-        arguments("getWatchContainerNamePatternOrDefault", "jkube.watch.containerNamePattern", "%n-%g", "%n-%g"),
-        arguments("getWatchFollowOrDefault", "jkube.watch.follow", "true", true),
-        arguments("getWatchShowLogsOrNull", "jkube.watch.showLogs", "true", "true"));
+        arguments("getWatchPostExecOrNull", "jkube.watch.postExec", "ls -lt", "ls -lt"));
   }
 }

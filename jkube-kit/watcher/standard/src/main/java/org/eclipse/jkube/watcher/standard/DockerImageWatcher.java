@@ -104,7 +104,7 @@ public class DockerImageWatcher extends BaseWatcher {
 
         DockerServiceHub hub = getContext().getJKubeServiceHub().getDockerServiceHub();
         try {
-            hub.getWatchService().watch(watchContext, getContext().getBuildContext(), configs);
+            hub.getWatchService().watch(watchContext, configs);
         } catch (Exception ex) {
             throw new RuntimeException("Error while watching", ex);
         }

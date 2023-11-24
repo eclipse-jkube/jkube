@@ -190,9 +190,6 @@ public class ConfigHelper {
             if (imageConfiguration.getBuild() != null) {
                 imageConfiguration.getBuild().initAndValidate();
             }
-            if (imageConfiguration.getRun() != null) {
-                imageConfiguration.getRun().initAndValidate();
-            }
             printDockerfileInfoIfDockerfileMode(imageConfiguration, log, jKubeConfiguration);
         }
 

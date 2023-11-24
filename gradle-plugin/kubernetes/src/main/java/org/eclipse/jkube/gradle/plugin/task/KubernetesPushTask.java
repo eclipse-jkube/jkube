@@ -33,8 +33,7 @@ public class KubernetesPushTask extends AbstractJKubeTask {
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
     return super.initJKubeServiceHubBuilder()
-        .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, TaskUtil.initDockerAccess(kubernetesExtension, kitLogger),
-            logOutputSpecFactory))
+        .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, TaskUtil.initDockerAccess(kubernetesExtension, kitLogger)))
         .buildServiceConfig(buildServiceConfigBuilder().build());
   }
 
