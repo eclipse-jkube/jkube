@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.resource.helm;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.fabric8.openshift.api.model.Parameter;
 import io.fabric8.openshift.api.model.Template;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -22,7 +21,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.Singular;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.Maintainer;
 
@@ -54,6 +52,7 @@ public class HelmConfig {
   private List<String> sources;
   private List<Maintainer> maintainers;
   private String icon;
+  private String appVersion;
   private List<String> keywords;
   private String engine;
   private List<File> additionalFiles;

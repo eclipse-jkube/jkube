@@ -99,6 +99,7 @@ class HelmMojoTest {
       .hasFieldOrPropertyWithValue("description", "A description from Maven")
       .hasFieldOrPropertyWithValue("home", "https://project.url")
       .hasFieldOrPropertyWithValue("icon", null)
+      .hasFieldOrPropertyWithValue("appVersion", "1337")
       .hasFieldOrPropertyWithValue("sourceDir", projectDir.resolve("target")
         .resolve("classes").resolve("META-INF").resolve("jkube") + File.separator)
       .hasFieldOrPropertyWithValue("outputDir", projectDir.resolve("target")

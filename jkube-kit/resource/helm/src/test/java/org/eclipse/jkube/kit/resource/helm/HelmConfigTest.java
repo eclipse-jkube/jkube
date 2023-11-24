@@ -102,6 +102,7 @@ class HelmConfigTest {
         "\"description\":\"The description\"," +
         "\"home\":\"e.t.\"," +
         "\"icon\":\"Warhol\"," +
+        "\"appVersion\":\"1.33.7\"," +
         "\"maintainers\":[{}]," +
         "\"sources\":[\"source\"]," +
         "\"engine\":\"V8\"," +
@@ -131,6 +132,7 @@ class HelmConfigTest {
         .hasFieldOrPropertyWithValue("description", "The description")
         .hasFieldOrPropertyWithValue("home", "e.t.")
         .hasFieldOrPropertyWithValue("icon", "Warhol")
+        .hasFieldOrPropertyWithValue("appVersion", "1.33.7")
         .hasFieldOrPropertyWithValue("maintainers", Collections.singletonList(new Maintainer()))
         .hasFieldOrPropertyWithValue("sources", Collections.singletonList("source"))
         .hasFieldOrPropertyWithValue("engine", "V8")
@@ -177,6 +179,7 @@ class HelmConfigTest {
     helmConfig.setDescription("description");
     helmConfig.setHome("home");
     helmConfig.setIcon("icon");
+    helmConfig.setAppVersion("1.33.7");
     helmConfig.setMaintainers(Collections.singletonList(new Maintainer()));
     helmConfig.setSources(Collections.singletonList("source"));
     helmConfig.setEngine("engine");
@@ -201,6 +204,7 @@ class HelmConfigTest {
     assertThat(helmConfig.getDescription()).isEqualTo("description");
     assertThat(helmConfig.getHome()).isEqualTo("home");
     assertThat(helmConfig.getIcon()).isEqualTo("icon");
+    assertThat(helmConfig.getAppVersion()).isEqualTo("1.33.7");
     assertThat(helmConfig.getMaintainers()).isNotEmpty();
     assertThat(helmConfig.getSources().get(0)).isEqualTo("source");
     assertThat(helmConfig.getEngine()).isEqualTo("engine");
@@ -226,6 +230,7 @@ class HelmConfigTest {
         .description("description")
         .home("e.t.")
         .icon("Warhol")
+        .appVersion("1.33.7")
         .maintainers(Collections.singletonList(new Maintainer()))
         .sources(Arrays.asList("source-1", "source-2"))
         .engine("V8")

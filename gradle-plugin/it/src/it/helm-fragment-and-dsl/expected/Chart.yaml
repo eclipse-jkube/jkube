@@ -13,6 +13,7 @@ maintainers:
   email: maintainer@example.com
   url: https://example.com/user1
 icon: https://example.com/icon-from-fragment-overrides-dsl
+appVersion: 0.0.1-SNAPSHOT
 dependencies:
 - name: dependency-via-groovy-dsl-config
   version: 0.0.1
