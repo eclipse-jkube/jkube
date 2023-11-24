@@ -33,14 +33,18 @@ import java.util.Optional;
 public class WatchImageConfiguration implements Serializable {
 
   private static final long serialVersionUID = -8837447095092135706L;
+  private static final int DEFAULT_INTERVAL = 5000;
 
+  /**
+   * Interval in milliseconds to check/poll for changes
+   */
   private Integer interval;
   private WatchMode mode;
   private String postGoal;
   private String postExec;
 
   public int getInterval() {
-    return interval != null ? interval : 5000;
+    return interval != null ? interval : DEFAULT_INTERVAL;
   }
 
   public Integer getIntervalRaw() {

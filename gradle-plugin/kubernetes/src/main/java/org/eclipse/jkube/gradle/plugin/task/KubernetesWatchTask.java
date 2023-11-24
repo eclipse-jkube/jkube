@@ -19,7 +19,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
@@ -48,8 +47,7 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
   @Override
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
     return super.initJKubeServiceHubBuilder()
-        .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, TaskUtil.initDockerAccess(kubernetesExtension, kitLogger),
-            logOutputSpecFactory))
+        .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, TaskUtil.initDockerAccess(kubernetesExtension, kitLogger)))
         .buildServiceConfig(TaskUtil.buildServiceConfigBuilder(kubernetesExtension).build());
   }
 
@@ -103,19 +101,10 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
         .watchInterval(kubernetesExtension.getWatchIntervalOrDefault())
         .watchMode(kubernetesExtension.getWatchModeOrDefault())
         .watchPostExec(kubernetesExtension.getWatchPostExecOrNull())
-        .autoCreateCustomNetworks(kubernetesExtension.getWatchAutoCreateCustomNetworksOrDefault())
-        .keepContainer(kubernetesExtension.getWatchKeepContainerOrDefault())
-        .keepRunning(kubernetesExtension.getWatchKeepRunningOrDefault())
-        .removeVolumes(kubernetesExtension.getWatchRemoveVolumesOrDefault())
-        .containerNamePattern(kubernetesExtension.getWatchContainerNamePatternOrDefault())
         .buildTimestamp(getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(), DOCKER_BUILD_TIMESTAMP))
         .gavLabel(new GavLabel(kubernetesExtension.javaProject.getGroupId(), kubernetesExtension.javaProject.getArtifactId(), kubernetesExtension.javaProject.getVersion()))
         .buildContext(jKubeServiceHub.getConfiguration())
-        .follow(kubernetesExtension.getWatchFollowOrDefault())
-        .showLogs(kubernetesExtension.getWatchShowLogsOrNull())
-        .logOutputSpecFactory(logOutputSpecFactory)
         .hub(hub)
-        .dispatcher(new LogDispatcher(hub.getDockerAccess()))
         .build();
   }
 }

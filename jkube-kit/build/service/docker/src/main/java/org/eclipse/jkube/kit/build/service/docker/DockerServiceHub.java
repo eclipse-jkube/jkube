@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.build.service.docker;
 
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
@@ -23,57 +22,42 @@ import org.eclipse.jkube.kit.common.KitLogger;
  * Mojos for calling to the docker backend. The docker backend (DAO) is injected from the outside.
  *
  * @author roland
- * @since 01/12/15
  */
 public class DockerServiceHub {
 
     private final DockerAccess dockerAccess;
-
-    private final QueryService queryService;
-    private final RunService runService;
     private final RegistryService registryService;
     private final BuildService buildService;
     private final ArchiveService archiveService;
-    private final VolumeService volumeService;
     private final WatchService watchService;
-    private final WaitService waitService;
 
     public static DockerServiceHub newInstance(KitLogger kitLogger) {
         return newInstance(kitLogger,
-            new DockerAccessFactory().createDockerAccess(DockerAccessFactory.DockerAccessContext.getDefault(kitLogger)),
-            new LogOutputSpecFactory(true, true)
+            new DockerAccessFactory().createDockerAccess(DockerAccessFactory.DockerAccessContext.getDefault(kitLogger))
         );
     }
 
-    public static DockerServiceHub newInstance(KitLogger kitLogger, DockerAccess dockerAccess, LogOutputSpecFactory logOutputSpecFactory) {
-      return new DockerServiceHub(dockerAccess, ContainerTracker.getInstance(), AssemblyManager.getInstance(), kitLogger,
-          logOutputSpecFactory);
+    public static DockerServiceHub newInstance(KitLogger kitLogger, DockerAccess dockerAccess) {
+      return new DockerServiceHub(dockerAccess,  AssemblyManager.getInstance(), kitLogger);
     }
 
-    DockerServiceHub(DockerAccess dockerAccess, ContainerTracker containerTracker,
+    DockerServiceHub(DockerAccess dockerAccess,
                      AssemblyManager assemblyManager,
-                     KitLogger logger, LogOutputSpecFactory logSpecFactory) {
+                     KitLogger logger) {
 
         this.dockerAccess = dockerAccess;
 
         archiveService = new ArchiveService(assemblyManager, logger);
 
         if (dockerAccess != null) {
-            queryService = new QueryService(dockerAccess);
+            final QueryService queryService = new QueryService(dockerAccess);
             registryService = new RegistryService(dockerAccess, queryService, logger);
-            runService = new RunService(dockerAccess, queryService, containerTracker, logSpecFactory, logger);
             buildService = new BuildService(dockerAccess, queryService, registryService, archiveService, logger);
-            volumeService = new VolumeService(dockerAccess);
-            watchService = new WatchService(archiveService, buildService, queryService, runService, logger);
-            waitService = new WaitService(dockerAccess, queryService, logger);
+            watchService = new WatchService(archiveService, buildService, logger);
         } else {
-            queryService = null;
             registryService = null;
-            runService = null;
             buildService = null;
-            volumeService = null;
             watchService = null;
-            waitService = null;
         }
     }
 
@@ -97,44 +81,13 @@ public class DockerServiceHub {
     }
 
     /**
-     * Get the query service for obtaining information about containers and images
-     *
-     * @return query service
-     */
-    public QueryService getQueryService() {
-        checkDockerAccessInitialization();
-        return queryService;
-    }
-
-    /**
      * Get the registry service to push/pull images
      *
-     * @return query service
+     * @return registry service
      */
     public RegistryService getRegistryService() {
         checkDockerAccessInitialization();
         return registryService;
-    }
-
-
-    /**
-     * The run service is responsible for creating and starting up containers
-     *
-     * @return the run service
-     */
-    public RunService getRunService() {
-        checkDockerAccessInitialization();
-        return runService;
-    }
-
-    /**
-     * The volume service is responsible for creating volumes
-     *
-     * @return the run service
-     */
-    public VolumeService getVolumeService() {
-        checkDockerAccessInitialization();
-        return volumeService;
     }
 
     /**
@@ -148,18 +101,7 @@ public class DockerServiceHub {
     }
 
     /**
-     * The wait service is responsible on waiting on container based on several
-     * conditions
-     *
-     * @return the wait service
-     */
-    public WaitService getWaitService() {
-        checkDockerAccessInitialization();
-        return waitService;
-    }
-
-    /**
-     * Serivce for creating archives
+     * Service for creating archives
      *
      * @return the archive service
      */

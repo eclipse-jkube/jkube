@@ -25,8 +25,6 @@ import java.util.Properties;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.RunImageConfiguration;
-import org.eclipse.jkube.kit.config.image.UlimitConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.CleanupMode;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,14 +65,6 @@ class PropertyConfigHandlerTest {
     }
 
     @Test
-    void testSkipRun() {
-        assertThat(resolveExternalImageConfig(getSkipTestData(ConfigKey.SKIP_RUN, false)).getRunConfiguration().skip()).isFalse();
-        assertThat(resolveExternalImageConfig(getSkipTestData(ConfigKey.SKIP_RUN, true)).getRunConfiguration().skip()).isTrue();
-
-        assertThat(resolveExternalImageConfig(mergeArrays(getBaseTestData(), new String[] {k(ConfigKey.NAME), "image"})).getRunConfiguration().skip()).isFalse();
-    }
-
-    @Test
     void testType() {
         assertThat(configHandler.getType()).isNotNull();
     }
@@ -86,10 +76,6 @@ class PropertyConfigHandlerTest {
                 .build(BuildConfiguration.builder()
                         .ports(Collections.singletonList("1234"))
                         .addCacheFrom("foo/bar:latest")
-                        .build()
-                )
-                .run(RunImageConfiguration.builder()
-                        .ports(Collections.singletonList("jolokia.port:1234"))
                         .build()
                 )
                 .build();
@@ -104,11 +90,6 @@ class PropertyConfigHandlerTest {
                         "docker.from", "busybox"
                 ));
         assertThat(configs).singleElement()
-            .satisfies(config -> assertThat(config)
-                .extracting(ImageConfiguration::getRunConfiguration)
-                .extracting(RunImageConfiguration::getPorts)
-                .asList()
-                .containsExactly("9090", "0.0.0.0:80:80", "jolokia.port:1234"))
             .satisfies(config -> assertThat(config)
                 .extracting(ImageConfiguration::getBuildConfiguration)
                 .extracting(BuildConfiguration::getPorts)
@@ -268,20 +249,14 @@ class PropertyConfigHandlerTest {
 
         assertThat(configs).hasSize(1);
         ImageConfiguration calcConfig = configs.get(0);
-        for (Map env : new Map[] { calcConfig.getBuildConfiguration().getEnv(),
-                calcConfig.getRunConfiguration().getEnv()}) {
-          assertThat(env).hasSize(2)
-              .contains(
-                  entry("HOME", "/tmp"),
-                  entry("root.dir", "/bla"));
-        }
-        for (Map labels : new Map[] { calcConfig.getBuildConfiguration().getLabels(),
-                calcConfig.getRunConfiguration().getLabels()}) {
-          assertThat(labels).hasSize(3)
-              .contains(
-                  entry("version", "1.0.0"),
-                  entry("blub.bla.foobar", "yep"));
-        }
+      assertThat(calcConfig.getBuildConfiguration().getEnv()).hasSize(2)
+          .contains(
+              entry("HOME", "/tmp"),
+              entry("root.dir", "/bla"));
+      assertThat(calcConfig.getBuildConfiguration().getLabels()).hasSize(3)
+          .contains(
+              entry("version", "1.0.0"),
+              entry("blub.bla.foobar", "yep"));
     }
 
 
@@ -296,18 +271,11 @@ class PropertyConfigHandlerTest {
                })));
 
         assertThat(configs).singleElement()
-            .satisfies(config -> assertThat(config)
-                .extracting(ImageConfiguration::getBuildConfiguration)
-                .extracting(BuildConfiguration::getEnv)
-                .asInstanceOf(InstanceOfAssertFactories.MAP)
-                .hasSize(1)
-                .containsEntry("HOME", "/tmp"))
-            .satisfies(config -> assertThat(config)
-                .extracting(ImageConfiguration::getRunConfiguration)
-                .extracting(RunImageConfiguration::getEnv)
-                .asInstanceOf(InstanceOfAssertFactories.MAP)
-                .hasSize(1)
-                .containsEntry("root.dir", "/bla"));
+            .extracting(ImageConfiguration::getBuildConfiguration)
+            .extracting(BuildConfiguration::getEnv)
+            .asInstanceOf(InstanceOfAssertFactories.MAP)
+            .hasSize(1)
+            .containsEntry("HOME", "/tmp");
     }
 
     @Test
@@ -420,7 +388,6 @@ class PropertyConfigHandlerTest {
         ImageConfiguration resolved = resolveExternalImageConfig(mergeArrays(getBaseTestData(), getTestData()));
 
         validateBuildConfiguration(resolved.getBuildConfiguration());
-        validateRunConfiguration(resolved.getRunConfiguration());
         //validateWaitConfiguraion(resolved.getRunConfiguration().getWaitConfiguration());
     }
 
@@ -505,69 +472,6 @@ class PropertyConfigHandlerTest {
 
     private void validateBuildOptions(Map<String,String> buildOptions) {
         assertThat(buildOptions).containsEntry("shmsize", "2147483648");
-    }
-
-    protected void validateRunConfiguration(RunImageConfiguration runConfig) {
-        assertThat(runConfig)
-                .returns(a("/foo", "/tmp:/tmp"), c -> c.getVolumeConfiguration().getBind())
-                .returns(a("CAP"), RunImageConfiguration::getCapAdd)
-                .returns(a("CAP"), RunImageConfiguration::getCapDrop)
-                .returns(a("seccomp=unconfined"), RunImageConfiguration::getSecurityOpts)
-                .returns("command.sh", c -> c.getCmd().getShell())
-                .returns(a("8.8.8.8"), RunImageConfiguration::getDns)
-                .returns("host", c -> c.getNetworkingConfig().getStandardMode(null))
-                .returns(a("example.com"), RunImageConfiguration::getDnsSearch)
-                .returns("domain.com", RunImageConfiguration::getDomainname)
-                .returns("entrypoint.sh", c -> c.getEntrypoint().getShell())
-                .returns(a("localhost:127.0.0.1"), RunImageConfiguration::getExtraHosts)
-                .returns("subdomain", RunImageConfiguration::getHostname)
-                .returns(a("redis"), RunImageConfiguration::getLinks)
-                .returns(1L, RunImageConfiguration::getMemory)
-                .returns(1L, RunImageConfiguration::getMemorySwap)
-                .returns(1000000000L, RunImageConfiguration::getCpus)
-                .returns(1L, RunImageConfiguration::getCpuShares)
-                .returns("0,1", RunImageConfiguration::getCpuSet)
-                .returns("/tmp/envProps.txt", RunImageConfiguration::getEnvPropertyFile)
-                .returns("/tmp/props.txt", RunImageConfiguration::getPortPropertyFile)
-                .returns("8081:8080", c -> c.getPorts().get(0))
-                .returns(true, RunImageConfiguration::getPrivileged)
-                .returns("tomcat", RunImageConfiguration::getUser)
-                .returns(a("from"), c -> c.getVolumeConfiguration().getFrom())
-                .returns("foo", RunImageConfiguration::getWorkingDir)
-                .returns(4, c -> c.getUlimits().size())
-                .returns("/var/lib/mysql:10m", c -> c.getTmpfs().get(0))
-                .returns("Never", RunImageConfiguration::getImagePullPolicy)
-                .returns(true, RunImageConfiguration::getReadOnly)
-                .returns(true, RunImageConfiguration::getAutoRemove)
-                .returns("on-failure", c -> c.getRestartPolicy().getName())
-                .returns(1, c -> c.getRestartPolicy().getRetry())
-                .returns("http://foo.com", c -> c.getWait().getUrl())
-                .returns("pattern", c -> c.getWait().getLog())
-                .returns("post_start_command", c -> c.getWait().getExec().getPostStart())
-                .returns("pre_stop_command", c -> c.getWait().getExec().getPreStop())
-                .returns(true, c -> c.getWait().getExec().isBreakOnError())
-                .returns(5, c -> c.getWait().getTime())
-                .returns(true, c -> c.getWait().getHealthy())
-                .returns(0, c -> c.getWait().getExit())
-                .returns("green", c -> c.getLog().getColor())
-                .returns(true, c -> c.getLog().isEnabled())
-                .returns("SRV",  c -> c.getLog().getPrefix())
-                .returns("iso8601", c -> c.getLog().getDate())
-                .returns("json", c -> c.getLog().getDriver().getName())
-                .returns(2, c -> c.getLog().getDriver().getOpts().size())
-                .returns("1024", c -> c.getLog().getDriver().getOpts().get("max-size"))
-                .returns("10", c -> c.getLog().getDriver().getOpts().get("max-file"));
-
-        assertThat(runConfig.getUlimits()).isNotNull();
-        assertUlimitEquals(ulimit(10,10),runConfig.getUlimits().get(0));
-        assertUlimitEquals(ulimit(null,-1),runConfig.getUlimits().get(1));
-        assertUlimitEquals(ulimit(1024,null),runConfig.getUlimits().get(2));
-        assertUlimitEquals(ulimit(2048,null),runConfig.getUlimits().get(3));
-        validateEnv(runConfig.getEnv());
-    }
-
-    private UlimitConfig ulimit(Integer hard, Integer soft) {
-        return new UlimitConfig("memlock", hard, soft);
     }
 
     private Properties props(String ... args) {
@@ -663,13 +567,6 @@ class PropertyConfigHandlerTest {
 
     private String k(ConfigKey from) {
         return from.asPropertyKey();
-    }
-
-    private void assertUlimitEquals(UlimitConfig expected, UlimitConfig actual){
-        assertThat(actual)
-                .hasFieldOrPropertyWithValue("name", expected.getName())
-                .hasFieldOrPropertyWithValue("soft", expected.getSoft())
-                .hasFieldOrPropertyWithValue("hard", expected.getHard());
     }
 
     private List<String> a(String ... args) {

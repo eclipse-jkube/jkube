@@ -19,8 +19,6 @@ import java.util.Date;
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.build.service.docker.helper.Task;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
@@ -45,25 +43,16 @@ public class WatchContext implements Serializable {
   private JKubeConfiguration buildContext;
   private WatchMode watchMode;
   private int watchInterval;
-  private boolean keepRunning;
   private String watchPostExec;
   private GavLabel gavLabel;
-  private boolean keepContainer;
-  private boolean removeVolumes;
-  private boolean autoCreateCustomNetworks;
 
   private transient Task<ImageConfiguration> imageCustomizer;
   private transient Task<WatchService.ImageWatcher> containerRestarter;
   private transient ExecTask containerCommandExecutor;
   private transient CopyFilesTask containerCopyTask;
   private transient DockerServiceHub hub;
-  private transient LogOutputSpecFactory logOutputSpecFactory;
-  private transient LogDispatcher dispatcher;
   private transient Runnable postGoalTask;
 
-  private boolean follow;
-  private String showLogs;
   private Date buildTimestamp;
-  private String containerNamePattern;
 
 }

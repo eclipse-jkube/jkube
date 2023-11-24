@@ -32,14 +32,11 @@ import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogDispatcher;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
-import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
@@ -317,8 +314,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected KitLogger log;
 
-    protected LogOutputSpecFactory logOutputSpecFactory;
-
     // Access for creating OpenShift binary builds
     protected ClusterAccess clusterAccess;
 
@@ -339,45 +334,17 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(property = "jkube.watch.interval", defaultValue = "5000")
     protected int watchInterval;
 
-    @Parameter(property = "jkube.watch.keepRunning", defaultValue = "false")
-    protected boolean keepRunning;
-
     @Parameter(property = "jkube.watch.postGoal")
     protected String watchPostGoal;
 
     @Parameter(property = "jkube.watch.postExec")
     protected String watchPostExec;
 
-    // Whether to keep the containers afters stopping (start/watch/stop)
-    @Parameter(property = "jkube.watch.keepContainer", defaultValue = "false")
-    protected boolean keepContainer;
-
-    // Whether to remove volumes when removing the container (start/watch/stop)
-    @Parameter(property = "jkube.watch.removeVolumes", defaultValue = "false")
-    protected boolean removeVolumes;
-
-    @Parameter(property = "jkube.watch.follow", defaultValue = "false")
-    protected boolean watchFollow;
-
-    @Parameter(property = "jkube.watch.showLogs")
-    protected String watchShowLogs;
-    /**
-     * Naming pattern for how to name containers when started
-     */
-    @Parameter(property = "jkube.watch.containerNamePattern")
-    protected String containerNamePattern = ContainerNamingUtil.DEFAULT_CONTAINER_NAME_PATTERN;
-
     /**
      * Namespace to use when accessing Kubernetes or OpenShift
      */
     @Parameter(property = "jkube.namespace")
     protected String namespace;
-
-    /**
-     * Whether to create the customs networks (user-defined bridge networks) before starting automatically
-     */
-    @Parameter(property = "jkube.watch.autoCreateCustomNetworks", defaultValue = "false")
-    protected boolean autoCreateCustomNetworks;
 
     @Parameter(property = "jkube.offline", defaultValue = "false")
     protected boolean offline;
@@ -410,7 +377,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected void init() {
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
-        logOutputSpecFactory = new LogOutputSpecFactory(useColorForLogging(), logStdout, logDate);
         authConfigFactory = new AuthConfigFactory(log);
         imageConfigResolver.setLog(log);
         clusterAccess = new ClusterAccess(initClusterConfiguration());
@@ -438,7 +404,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                     .configuration(initJKubeConfiguration())
                     .clusterAccess(clusterAccess)
                     .platformMode(getConfiguredRuntimeMode())
-                    .dockerServiceHub(DockerServiceHub.newInstance(log, dockerAccess, logOutputSpecFactory))
+                    .dockerServiceHub(DockerServiceHub.newInstance(log, dockerAccess))
                     .buildServiceConfig(buildServiceConfigBuilder().build())
                     .offline(offline)
                     .build();
@@ -681,15 +647,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected GavLabel getGavLabel() {
         // Label used for this run
         return new GavLabel(project.getGroupId(), project.getArtifactId(), project.getVersion());
-    }
-
-    protected LogDispatcher getLogDispatcher(DockerServiceHub hub) {
-        LogDispatcher dispatcher = (LogDispatcher) getPluginContext().get(CONTEXT_KEY_LOG_DISPATCHER);
-        if (dispatcher == null) {
-            dispatcher = new LogDispatcher(hub.getDockerAccess());
-            getPluginContext().put(CONTEXT_KEY_LOG_DISPATCHER, dispatcher);
-        }
-        return dispatcher;
     }
 
 }

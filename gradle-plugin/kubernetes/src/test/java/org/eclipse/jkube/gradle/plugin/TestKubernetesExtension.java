@@ -339,11 +339,6 @@ public class TestKubernetesExtension extends KubernetesExtension {
   }
 
   @Override
-  public Property<Boolean> getWatchKeepRunning() {
-    return property(Boolean.class);
-  }
-
-  @Override
   public Property<Boolean> getSkipBuild() {
     return property(Boolean.class);
   }
@@ -355,36 +350,6 @@ public class TestKubernetesExtension extends KubernetesExtension {
 
   @Override
   public Property<String> getWatchPostExec() {
-    return property(String.class);
-  }
-
-  @Override
-  public Property<Boolean> getWatchAutoCreateCustomNetworks() {
-    return property(Boolean.class);
-  }
-
-  @Override
-  public Property<Boolean> getWatchKeepContainer() {
-    return property(Boolean.class);
-  }
-
-  @Override
-  public Property<Boolean> getWatchRemoveVolumes() {
-    return property(Boolean.class);
-  }
-
-  @Override
-  public Property<Boolean> getWatchFollow() {
-    return property(Boolean.class);
-  }
-
-  @Override
-  public Property<String> getWatchShowLogs() {
-    return property(String.class);
-  }
-
-  @Override
-  public Property<String> getWatchContainerNamePattern() {
     return property(String.class);
   }
 

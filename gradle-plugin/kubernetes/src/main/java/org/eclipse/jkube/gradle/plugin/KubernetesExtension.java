@@ -24,7 +24,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.ContainerNamingUtil;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
@@ -241,23 +240,9 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Boolean> getSkipBuild();
 
-  public abstract Property<Boolean> getWatchKeepRunning();
-
   public abstract Property<Integer> getWatchInterval();
 
   public abstract Property<String> getWatchPostExec();
-
-  public abstract Property<Boolean> getWatchAutoCreateCustomNetworks();
-
-  public abstract Property<Boolean> getWatchKeepContainer();
-
-  public abstract Property<Boolean> getWatchRemoveVolumes();
-
-  public abstract Property<Boolean> getWatchFollow();
-
-  public abstract Property<String> getWatchShowLogs();
-
-  public abstract Property<String> getWatchContainerNamePattern();
 
   public WatchMode watchMode;
 
@@ -692,36 +677,8 @@ public abstract class KubernetesExtension {
     return getOrDefaultInteger("jkube.watch.interval", this::getWatchInterval, 5000);
   }
 
-  public boolean getWatchKeepRunningOrDefault() {
-    return getOrDefaultBoolean("jkube.watch.keepRunning", this::getWatchKeepRunning, false);
-  }
-
   public String getWatchPostExecOrNull() {
     return getOrDefaultString("jkube.watch.postExec", this::getWatchPostExec, null);
-  }
-
-  public boolean getWatchAutoCreateCustomNetworksOrDefault() {
-    return getOrDefaultBoolean("jkube.watch.autoCreateCustomNetworks", this::getWatchAutoCreateCustomNetworks, false);
-  }
-
-  public boolean getWatchKeepContainerOrDefault() {
-    return getOrDefaultBoolean("jkube.watch.keepContainer", this::getWatchKeepContainer, false);
-  }
-
-  public boolean getWatchRemoveVolumesOrDefault() {
-    return getOrDefaultBoolean("jkube.watch.removeVolumes", this::getWatchRemoveVolumes, false);
-  }
-
-  public String getWatchContainerNamePatternOrDefault() {
-    return getOrDefaultString("jkube.watch.containerNamePattern", this::getWatchContainerNamePattern, ContainerNamingUtil.DEFAULT_CONTAINER_NAME_PATTERN);
-  }
-
-  public boolean getWatchFollowOrDefault() {
-    return getOrDefaultBoolean("jkube.watch.follow", this::getWatchFollow, false);
-  }
-
-  public String getWatchShowLogsOrNull() {
-    return getOrDefaultString("jkube.watch.showLogs", this::getWatchShowLogs, null);
   }
 
   protected boolean getOrDefaultBoolean(String property, Supplier<Property<Boolean>> dslGetter, boolean defaultValue) {

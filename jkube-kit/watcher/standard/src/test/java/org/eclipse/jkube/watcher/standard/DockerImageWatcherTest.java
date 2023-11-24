@@ -81,7 +81,7 @@ class DockerImageWatcherTest {
     // When
     dockerImageWatcher.watch(null, null, null, null);
     // Then
-    verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any());
+    verify(watchService).watch(watchContextArgumentCaptor.capture(), any());
     assertThat(watchContextArgumentCaptor.getValue())
         .isNotNull()
         .extracting("imageCustomizer","containerRestarter","containerCommandExecutor","containerCopyTask")
@@ -94,7 +94,7 @@ class DockerImageWatcherTest {
       // Given
       ArgumentCaptor<WatchContext>watchContextArgumentCaptor=ArgumentCaptor.forClass(WatchContext.class);
       dockerImageWatcher.watch(null,null,null,null);
-      verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any());
+      verify(watchService).watch(watchContextArgumentCaptor.capture(), any());
       final ExecTask execTask=watchContextArgumentCaptor.getValue().getContainerCommandExecutor();
       //When
       execTask.exec("thecommand");
@@ -110,7 +110,7 @@ class DockerImageWatcherTest {
       // Given
       ArgumentCaptor<WatchContext> watchContextArgumentCaptor = ArgumentCaptor.forClass(WatchContext.class);
       dockerImageWatcher.watch(null,null,null,null);
-      verify(watchService).watch(watchContextArgumentCaptor.capture(),any(),any());
+      verify(watchService).watch(watchContextArgumentCaptor.capture(), any());
       final CopyFilesTask copyFilesTask = watchContextArgumentCaptor.getValue().getContainerCopyTask();
       // When
       copyFilesTask.copy(null);

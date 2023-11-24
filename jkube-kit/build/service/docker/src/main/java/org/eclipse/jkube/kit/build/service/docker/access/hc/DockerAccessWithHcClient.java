@@ -17,30 +17,16 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.eclipse.jkube.kit.build.api.model.Container;
-import org.eclipse.jkube.kit.build.api.model.ContainerDetails;
-import org.eclipse.jkube.kit.build.api.model.ContainersListElement;
-import org.eclipse.jkube.kit.build.api.model.ExecDetails;
-import org.eclipse.jkube.kit.build.api.model.Network;
-import org.eclipse.jkube.kit.build.api.model.NetworkCreateConfig;
-import org.eclipse.jkube.kit.build.api.model.NetworksListElement;
-import org.eclipse.jkube.kit.build.api.model.VolumeCreateConfig;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
-import org.eclipse.jkube.kit.build.service.docker.access.ContainerCreateConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
@@ -51,18 +37,10 @@ import org.eclipse.jkube.kit.build.service.docker.access.hc.http.HttpClientBuild
 import org.eclipse.jkube.kit.build.service.docker.access.hc.unix.UnixSocketClientBuilder;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.util.ClientBuilder;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.win.NamedPipeClientBuilder;
-import org.eclipse.jkube.kit.build.service.docker.access.log.DefaultLogCallback;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogCallback;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogGetHandle;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpec;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogRequestor;
-import org.eclipse.jkube.kit.build.service.docker.helper.Timestamp;
 import org.eclipse.jkube.kit.common.JsonFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
-import org.eclipse.jkube.kit.common.Arguments;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.HttpResponseException;
@@ -73,8 +51,6 @@ import org.apache.http.client.methods.HttpGet;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_INTERNAL_ERROR;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
-import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
-import static java.net.HttpURLConnection.HTTP_NO_CONTENT;
 import static java.net.HttpURLConnection.HTTP_OK;
 
 /**
@@ -145,121 +121,6 @@ public class DockerAccessWithHcClient implements DockerAccess {
         this.log = log;
     }
 
-    /** {@inheritDoc} */
-    @Override
-    public String getServerApiVersion() throws DockerAccessException {
-        try {
-            String url = urlBuilder.version();
-            String response = delegate.get(url, 200);
-            JsonObject info = JsonFactory.newJsonObject(response);
-            return info.get("ApiVersion").getAsString();
-        } catch (Exception e) {
-            throw new DockerAccessException(e, "Cannot extract API version from server %s", urlBuilder.getBaseUrl());
-        }
-    }
-
-    @Override
-    public void startExecContainer(String containerId, LogOutputSpec outputSpec) throws DockerAccessException {
-        try {
-            String url = urlBuilder.startExecContainer(containerId);
-            JsonObject request = new JsonObject();
-            request.addProperty("Detach", false);
-            request.addProperty("Tty", true);
-
-            delegate.post(url, request.toString(), createExecResponseHandler(outputSpec), HTTP_OK);
-        } catch (Exception e) {
-            throw new DockerAccessException(e, "Unable to start container id [%s]", containerId);
-        }
-    }
-
-    private ResponseHandler<Object> createExecResponseHandler(LogOutputSpec outputSpec) {
-        final LogCallback callback = new DefaultLogCallback(outputSpec);
-        return response -> {
-            try (InputStream stream = response.getEntity().getContent();
-                 LineNumberReader reader = new LineNumberReader(new InputStreamReader(stream))) {
-                String line;
-                try {
-                    callback.open();
-                    while ( (line = reader.readLine()) != null) {
-                        callback.log(1, new Timestamp(), line);
-                    }
-                } catch (LogCallback.DoneException e) {
-                    // Ok, we stop here ...
-                } finally {
-                    callback.close();
-                }
-            }
-            return null;
-        };
-    }
-
-    @Override
-    public String createExecContainer(String containerId, Arguments arguments) throws DockerAccessException {
-        String url = urlBuilder.createExecContainer(containerId);
-        JsonObject request = new JsonObject();
-        request.addProperty("Tty", true);
-        request.addProperty("AttachStdin", false);
-        request.addProperty("AttachStdout", true);
-        request.addProperty("AttachStderr", true);
-        request.add("Cmd", JsonFactory.newJsonArray(arguments.getExec()));
-
-        String execJsonRequest = request.toString();
-        try {
-            String response = delegate.post(url, execJsonRequest, new ApacheHttpClientDelegate.BodyResponseHandler(), HTTP_CREATED);
-            JsonObject json = JsonFactory.newJsonObject(response);
-            if (json.has("Warnings")) {
-                logWarnings(json);
-            }
-
-            return json.get("Id").getAsString();
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to exec [%s] on container [%s]", request.toString(),
-                    containerId);
-        }
-
-    }
-
-    @Override
-    public String createContainer(ContainerCreateConfig containerConfig, String containerName)
-            throws DockerAccessException {
-        String createJson = containerConfig.toJson();
-        log.debug("Container create config: %s", createJson);
-
-        try {
-            String url = urlBuilder.createContainer(containerName);
-            String response =
-                    delegate.post(url, createJson, new ApacheHttpClientDelegate.BodyResponseHandler(), HTTP_CREATED);
-            JsonObject json = JsonFactory.newJsonObject(response);
-            logWarnings(json);
-
-            // only need first 12 to id a container
-            return json.get("Id").getAsString().substring(0, 12);
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to create container for [%s]",
-                    containerConfig.getImageName());
-        }
-    }
-
-    @Override
-    public void startContainer(String containerId) throws DockerAccessException {
-        try {
-            String url = urlBuilder.startContainer(containerId);
-            delegate.post(url, HTTP_NO_CONTENT, HTTP_OK);
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to start container id [%s]", containerId);
-        }
-    }
-
-    @Override
-    public void stopContainer(String containerId, int killWait) throws DockerAccessException {
-        try {
-            String url = urlBuilder.stopContainer(containerId, killWait);
-            delegate.post(url, HTTP_NO_CONTENT, HTTP_NOT_MODIFIED);
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to stop container id [%s]", containerId);
-        }
-    }
-
     @Override
     public void buildImage(String image, File dockerArchive, BuildOptions options) throws DockerAccessException {
         try {
@@ -267,98 +128,6 @@ public class DockerAccessWithHcClient implements DockerAccess {
             delegate.post(url, dockerArchive, createBuildResponseHandler(), HTTP_OK);
         } catch (IOException e) {
             throw new DockerAccessException(e, "Unable to build image [%s]", image);
-        }
-    }
-
-    @Override
-    public void copyArchive(String containerId, File archive, String targetPath)
-            throws DockerAccessException {
-        try {
-            String url = urlBuilder.copyArchive(containerId, targetPath);
-            delegate.put(url, archive, HTTP_OK);
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to copy archive %s to container [%s] with path %s",
-                    archive.toPath(), containerId, targetPath);
-        }
-    }
-
-    @Override
-    public void getLogSync(String containerId, LogCallback callback) {
-        LogRequestor extractor = new LogRequestor(delegate.getHttpClient(), urlBuilder, containerId, callback);
-        extractor.fetchLogs();
-    }
-
-    @Override
-    public LogGetHandle getLogAsync(String containerId, LogCallback callback) {
-        LogRequestor extractor = new LogRequestor(delegate.createBasicClient(), urlBuilder, containerId, callback);
-        extractor.start();
-        return extractor;
-    }
-
-    @Override
-    public List<Container> getContainersForImage(String image, boolean all) throws DockerAccessException {
-        String url;
-        String serverApiVersion = getServerApiVersion();
-        if (EnvUtil.greaterOrEqualsVersion(serverApiVersion, "1.23")) {
-            // For Docker >= 1.11 we can use a new filter when listing containers
-            url = urlBuilder.listContainers(all, "ancestor",image);
-        } else {
-            // For older versions (< Docker 1.11) we need to iterate over the containers.
-            url = urlBuilder.listContainers(all);
-        }
-
-        try {
-            String response = delegate.get(url, HTTP_OK);
-            JsonArray array = JsonFactory.newJsonArray(response);
-            List<Container> containers = new ArrayList<>();
-
-            for (int i = 0; i < array.size(); i++) {
-                JsonObject element = array.get(i).getAsJsonObject();
-                if (image.equals(element.get("Image").getAsString())) {
-                    containers.add(new ContainersListElement(element));
-                }
-            }
-            return containers;
-        } catch (IOException e) {
-            throw new DockerAccessException(e.getMessage());
-        }
-    }
-
-    @Override
-    public ContainerDetails getContainer(String containerIdOrName) throws DockerAccessException {
-        ApacheHttpClientDelegate.HttpBodyAndStatus response = inspectContainer(containerIdOrName);
-        if (response.getStatusCode() == HTTP_NOT_FOUND) {
-            return null;
-        } else {
-            return new ContainerDetails(JsonFactory.newJsonObject(response.getBody()));
-        }
-    }
-
-    @Override
-    public ExecDetails getExecContainer(String containerIdOrName) throws DockerAccessException {
-        ApacheHttpClientDelegate.HttpBodyAndStatus response = inspectExecContainer(containerIdOrName);
-        if (response.getStatusCode() == HTTP_NOT_FOUND) {
-            return null;
-        } else {
-            return new ExecDetails(JsonFactory.newJsonObject(response.getBody()));
-        }
-    }
-
-    private ApacheHttpClientDelegate.HttpBodyAndStatus inspectContainer(String containerIdOrName) throws DockerAccessException {
-        try {
-            String url = urlBuilder.inspectContainer(containerIdOrName);
-            return delegate.get(url, new ApacheHttpClientDelegate.BodyAndStatusResponseHandler(), HTTP_OK, HTTP_NOT_FOUND);
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to retrieve container name for [%s]", containerIdOrName);
-        }
-    }
-
-    private ApacheHttpClientDelegate.HttpBodyAndStatus inspectExecContainer(String containerIdOrName) throws DockerAccessException {
-        try {
-            String url = urlBuilder.inspectExecContainer(containerIdOrName);
-            return delegate.get(url, new ApacheHttpClientDelegate.BodyAndStatusResponseHandler(), HTTP_OK, HTTP_NOT_FOUND);
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to retrieve container name for [%s]", containerIdOrName);
         }
     }
 
@@ -388,17 +157,6 @@ public class DockerAccessWithHcClient implements DockerAccess {
             return delegate.get(url, new ApacheHttpClientDelegate.BodyAndStatusResponseHandler(), HTTP_OK, HTTP_NOT_FOUND);
         } catch (IOException e) {
             throw new DockerAccessException(e, "Unable to inspect image [%s]", name);
-        }
-    }
-
-    @Override
-    public void removeContainer(String containerId, boolean removeVolumes)
-            throws DockerAccessException {
-        try {
-            String url = urlBuilder.removeContainer(containerId, removeVolumes);
-            delegate.delete(url, HTTP_NO_CONTENT);
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to remove container [%s]", containerId);
         }
     }
 
@@ -494,98 +252,6 @@ public class DockerAccessWithHcClient implements DockerAccess {
         }
     }
 
-    @Override
-    public List<Network> listNetworks() throws DockerAccessException {
-        String url = urlBuilder.listNetworks();
-
-        try {
-            String response = delegate.get(url, HTTP_OK);
-            JsonArray array = JsonFactory.newJsonArray(response);
-            List<Network> networks = new ArrayList<>(array.size());
-
-            for (int i = 0; i < array.size(); i++) {
-                networks.add(new NetworksListElement(array.get(i).getAsJsonObject()));
-            }
-
-            return networks;
-        } catch (IOException e) {
-            throw new DockerAccessException(e.getMessage());
-        }
-    }
-
-    @Override
-    public String createNetwork(NetworkCreateConfig networkConfig)
-            throws DockerAccessException {
-        String createJson = networkConfig.toJson();
-        log.debug("Network create config: " + createJson);
-        try {
-            String url = urlBuilder.createNetwork();
-            String response =
-                    delegate.post(url, createJson, new ApacheHttpClientDelegate.BodyResponseHandler(), HTTP_CREATED);
-            log.debug(response);
-            JsonObject json = JsonFactory.newJsonObject(response);
-            if (json.has("Warnings")) {
-                logWarnings(json);
-            }
-
-            // only need first 12 to id a container
-            return json.get("Id").getAsString().substring(0, 12);
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to create network for [%s]",
-                    networkConfig.getName());
-        }
-    }
-
-    @Override
-    public boolean removeNetwork(String networkId)
-            throws DockerAccessException {
-        try {
-            String url = urlBuilder.removeNetwork(networkId);
-            int status = delegate.delete(url, HTTP_OK, HTTP_NO_CONTENT, HTTP_NOT_FOUND);
-            return status == HTTP_OK || status == HTTP_NO_CONTENT;
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to remove network [%s]", networkId);
-        }
-    }
-
-    @Override
-    public String createVolume(VolumeCreateConfig containerConfig)
-            throws DockerAccessException
-    {
-        String createJson = containerConfig.toJson();
-        log.debug("Volume create config: %s", createJson);
-
-        try
-        {
-            String url = urlBuilder.createVolume();
-            String response =
-                    delegate.post(url,
-                            createJson,
-                            new ApacheHttpClientDelegate.BodyResponseHandler(),
-                            HTTP_CREATED);
-            JsonObject json = JsonFactory.newJsonObject(response);
-            logWarnings(json);
-
-            return json.get("Name").getAsString();
-        }
-        catch (IOException e)
-        {
-            throw new DockerAccessException(e, "Unable to create volume for [%s]",
-                    containerConfig.getName());
-        }
-    }
-
-    @Override
-    public void removeVolume(String name) throws DockerAccessException {
-        try {
-            String url = urlBuilder.removeVolume(name);
-            delegate.delete(url, HTTP_NO_CONTENT, HTTP_NOT_FOUND);
-        } catch (IOException e) {
-            throw new DockerAccessException(e, "Unable to remove volume [%s]", name);
-        }
-    }
-
-
     // ---------------
     // Lifecycle methods not needed here
     @Override
@@ -670,18 +336,6 @@ public class DockerAccessWithHcClient implements DockerAccess {
     }
 
     // ===========================================================================================================
-
-    private void logWarnings(JsonObject body) {
-        if (body.has("Warnings")) {
-            JsonElement warningsObj = body.get("Warnings");
-            if (!warningsObj.isJsonNull()) {
-                JsonArray warnings = (JsonArray) warningsObj;
-                for (int i = 0; i < warnings.size(); i++) {
-                    log.warn(warnings.get(i).getAsString());
-                }
-            }
-        }
-    }
 
     // Callback for processing response chunks
     private void logRemoveResponse(JsonArray logElements) {

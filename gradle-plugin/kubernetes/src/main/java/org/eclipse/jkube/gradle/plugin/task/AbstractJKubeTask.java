@@ -27,7 +27,6 @@ import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
 import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
-import org.eclipse.jkube.kit.build.service.docker.access.log.LogOutputSpecFactory;
 import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -60,7 +59,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected final KubernetesExtension kubernetesExtension;
   protected KitLogger kitLogger;
-  protected LogOutputSpecFactory logOutputSpecFactory;
   protected ClusterAccess clusterAccess;
   protected JKubeServiceHub jKubeServiceHub;
   protected static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
@@ -84,8 +82,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   private void init() {
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
     kitLogger = createLogger(null);
-    logOutputSpecFactory = new LogOutputSpecFactory(isAnsiEnabled(), kubernetesExtension.getLogStdoutOrDefault(),
-        kubernetesExtension.getLogDateOrNull());
     clusterAccess = new ClusterAccess(initClusterConfiguration());
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);

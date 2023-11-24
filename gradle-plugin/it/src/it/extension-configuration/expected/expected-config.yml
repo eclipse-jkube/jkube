@@ -33,14 +33,7 @@ pushretries: 5
 kubernetestemplate: "@endsWith('extension-configuration/build/META-INF/jkube/kubernetes')@"
 watchMode: "copy"
 watchinterval: 1000
-watchkeeprunning: true
 watchpostexec: "ls -lt"
-watchautocreatecustomnetworks: true
-watchkeepcontainer: true
-watchremovevolumes: true
-watchcontainernamepattern: "%g-%l"
-watchfollow: true
-watchshowlogs: "true"
 access:
   namespace: "default"
 enricher:
@@ -79,12 +72,6 @@ images:
     dockerFileFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
     dockerFileMode: true
     contextDirRaw: "@endsWith('extension-configuration/src/main/context-dir')@"
-  runConfiguration:
-    restartPolicy:
-      retry: 0
-    networkingConfig:
-      standardNetwork: false
-    default: true
   buildConfiguration:
     contextDir: "@endsWith('extension-configuration/src/main/context-dir')@"
     dockerFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
