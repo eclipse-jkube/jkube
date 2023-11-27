@@ -33,6 +33,7 @@ import io.fabric8.kubernetes.client.utils.HttpClientUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import static org.apache.commons.io.IOUtils.EOF;
+import static org.eclipse.jkube.kit.common.archive.ArchiveDecompressor.extractArchive;
 
 /**
  *
@@ -54,14 +55,11 @@ public class IoUtil {
      * @throws IOException IO Exception
      */
     public static void download(KitLogger log, URL downloadUrl, File target) throws IOException {
-        log.progressStart();
-        try (HttpClient client = HttpClientUtils.createHttpClient(Config.empty()).newBuilder().build()) {
-            final HttpResponse<InputStream> response = client.sendAsync(
-                client.newHttpRequestBuilder().timeout(30, TimeUnit.MINUTES).url(downloadUrl).build(), InputStream.class)
-                .get();
-            final int length = Integer.parseInt(response.headers(StandardHttpHeaders.CONTENT_LENGTH)
-                .stream().findAny().orElse("-1"));
+        download(downloadUrl, response -> {
             try (OutputStream out = Files.newOutputStream(target.toPath()); InputStream is = response.body()) {
+                log.progressStart();
+                final int length = Integer.parseInt(response.headers(StandardHttpHeaders.CONTENT_LENGTH)
+                    .stream().findAny().orElse("-1"));
                 final byte[] buffer = new byte[8192];
                 long readBytes = 0;
                 int len;
@@ -70,14 +68,41 @@ public class IoUtil {
                     log.progressUpdate(target.getName(), "Downloading", getProgressBar(readBytes, length));
                     out.write(buffer, 0, len);
                 }
+            } finally {
+                log.progressFinished();
             }
+        });
+    }
+
+    /**
+     * Download and extract a binary file packaged in an archive.
+     *
+     * @param downloadUrl download URL to archive containing binary file
+     * @param target target directory where this archive would be extracted to
+     * @throws IOException in case of error while downloading or extracting archive
+     */
+    public static void downloadArchive(URL downloadUrl, File target) throws IOException {
+        download(downloadUrl, response -> {
+            try (InputStream is = response.body()) {
+                extractArchive(is, target);
+            }
+        });
+    }
+
+    private static void download(URL downloadUrl, HttpResponseConsumer<InputStream> responseConsumer) throws IOException {
+        try (HttpClient httpClient = HttpClientUtils.getHttpClientFactory().newBuilder(Config.empty()).build()) {
+            final HttpResponse<InputStream> response = httpClient.sendAsync(
+                    httpClient.newHttpRequestBuilder().timeout(30, TimeUnit.MINUTES).url(downloadUrl).build(), InputStream.class)
+                .get();
+            if (!response.isSuccessful()) {
+                throw new IOException("Got (" + response.code() + ") while downloading from URL " + downloadUrl);
+            }
+            responseConsumer.consume(response);
         }  catch(InterruptedException ex) {
             Thread.currentThread().interrupt();
             throw new IOException("Download interrupted", ex);
-        } catch (IOException | ExecutionException e) {
-            throw new IOException("Failed to download URL " + downloadUrl + " to  " + target + ": " + e, e);
-        } finally {
-            log.progressFinished();
+        } catch (ExecutionException e) {
+            throw new IOException("Failed to download from URL " + downloadUrl, e);
         }
     }
 
@@ -153,5 +178,10 @@ public class IoUtil {
         }
 
         return ret.toString();
+    }
+
+    @FunctionalInterface
+    private interface HttpResponseConsumer<T> {
+        void consume(HttpResponse<T> httpResponse) throws IOException;
     }
 }
