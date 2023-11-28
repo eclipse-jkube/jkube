@@ -14,14 +14,12 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.jar.JarFile;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -122,14 +120,6 @@ public class SpringBootUtil {
             .map(Plugin::getExecutions)
             .map(e -> e.contains("repackage"))
             .orElse(false);
-    }
-
-    public static boolean isLayeredJar(File fatJar) {
-        try (JarFile jarFile = new JarFile(fatJar)) {
-            return jarFile.getEntry("BOOT-INF/layers.idx") != null;
-        } catch (IOException ioException) {
-            throw new IllegalStateException("Failure in inspecting fat jar for layers.idx file", ioException);
-        }
     }
 
     public static Plugin getNativePlugin(JavaProject project) {

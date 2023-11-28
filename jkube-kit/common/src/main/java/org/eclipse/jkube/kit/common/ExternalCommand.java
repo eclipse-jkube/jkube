@@ -45,9 +45,9 @@ public abstract class ExternalCommand {
         this(log, null);
     }
 
-    protected ExternalCommand(KitLogger log, File dir) {
+    protected ExternalCommand(KitLogger log, File workDir) {
         this.log = log;
-        this.workDir = dir;
+        this.workDir = workDir;
     }
 
     public void execute() throws IOException {
@@ -72,10 +72,8 @@ public abstract class ExternalCommand {
             end();
         }
         if (statusCode != 0) {
-            throw new IOException(String.format("Process '%s' exited with status %d",
-                                                getCommandAsString(), statusCode));
+            throw new IOException(String.format("Process '%s' exited with status %d", getCommandAsString(), statusCode));
         }
-
     }
 
     // Hooks for logging ...
