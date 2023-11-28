@@ -45,7 +45,6 @@ import org.eclipse.jkube.kit.config.service.PortForwardService;
 import org.eclipse.jkube.watcher.api.BaseWatcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
-import com.google.common.io.Closeables;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import org.apache.commons.lang3.StringUtils;
@@ -197,8 +196,7 @@ public class SpringBootWatcher extends BaseWatcher {
         Thread printer = new Thread() {
             @Override
             public void run() {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-                try {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         if (outputEnabled.get()) {
@@ -213,8 +211,6 @@ public class SpringBootWatcher extends BaseWatcher {
                     if (outputEnabled.get()) {
                         logger.error("Failed to process " + (error ? "stderr" : "stdout") + " from spring-remote process: " + e);
                     }
-                } finally {
-                    Closeables.closeQuietly(reader);
                 }
             }
         };

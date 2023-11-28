@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.springboot;
 
-import com.google.common.base.Strings;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.FileUtil;
@@ -49,7 +49,7 @@ public class SpringBootDevtoolsUtils {
         SpringBootUtil.getSpringBootActiveProfile(project),
         JKubeProjectUtil.getClassLoader(project));
     String remoteSecret = properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
-    if (Strings.isNullOrEmpty(remoteSecret)) {
+    if (StringUtils.isBlank(remoteSecret)) {
       addSecretTokenToApplicationProperties(project);
       return false;
     }
