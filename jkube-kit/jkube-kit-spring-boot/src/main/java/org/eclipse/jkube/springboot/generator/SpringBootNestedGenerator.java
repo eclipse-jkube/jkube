@@ -20,13 +20,13 @@ import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.springboot.SpringBootLayeredJar;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.eclipse.jkube.generator.javaexec.JavaExecGenerator.JOLOKIA_PORT_DEFAULT;
 import static org.eclipse.jkube.generator.javaexec.JavaExecGenerator.PROMETHEUS_PORT_DEFAULT;
-import static org.eclipse.jkube.kit.common.util.SpringBootUtil.isLayeredJar;
 import java.io.File;
 import java.util.function.Function;
 
@@ -70,7 +70,7 @@ public interface SpringBootNestedGenerator {
       }
     }
     if (fatJarDetectorResult != null && fatJarDetectorResult.getArchiveFile() != null &&
-        isLayeredJar(fatJarDetectorResult.getArchiveFile())) {
+        new SpringBootLayeredJar(fatJarDetectorResult.getArchiveFile(), generatorContext.getLogger()).isLayeredJar()) {
       return new LayeredJarGenerator(generatorContext, generatorConfig, fatJarDetectorResult.getArchiveFile());
     }
     return new FatJarGenerator(generatorContext, generatorConfig);

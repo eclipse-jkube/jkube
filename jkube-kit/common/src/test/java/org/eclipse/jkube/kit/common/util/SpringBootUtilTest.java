@@ -32,10 +32,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.jar.Attributes;
-import java.util.jar.JarEntry;
-import java.util.jar.JarOutputStream;
-import java.util.jar.Manifest;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -247,32 +243,6 @@ class SpringBootUtilTest {
 
         // Then
         assertThat(result).isFalse();
-    }
-
-    @Test
-    void isLayeredJar_whenInvalidFile_thenThrowException() {
-        // When + Then
-        assertThatIllegalStateException()
-            .isThrownBy(() -> SpringBootUtil.isLayeredJar(new File("i-dont-exist.jar")))
-            .withMessage("Failure in inspecting fat jar for layers.idx file");
-    }
-
-    @Test
-    void isLayeredJar_whenJarContainsLayers_thenReturnTrue(@TempDir File temporaryFolder) throws IOException {
-        // Given
-        File jarFile = new File(temporaryFolder, "fat.jar");
-        Manifest manifest = new Manifest();
-        manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
-        manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "org.example.Foo");
-        try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile.toPath()), manifest)) {
-            jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/layers.idx"));
-        }
-
-        // When
-        boolean result = SpringBootUtil.isLayeredJar(jarFile);
-
-        // Then
-        assertThat(result).isTrue();
     }
 
     @Test

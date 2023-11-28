@@ -30,7 +30,6 @@ import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 
 public class LayeredJarGenerator extends AbstractSpringBootNestedGenerator {
 
-  private static final String MAIN_CLASS = "org.springframework.boot.loader.JarLauncher";
   private final SpringBootLayeredJar springBootLayeredJar;
 
   public LayeredJarGenerator(GeneratorContext generatorContext, GeneratorConfig generatorConfig, File layeredJar) {
@@ -41,7 +40,7 @@ public class LayeredJarGenerator extends AbstractSpringBootNestedGenerator {
   @Override
   public Map<String, String> getEnv(Function<Boolean, Map<String, String>> javaExecEnvSupplier, boolean prePackagePhase) {
     final Map<String, String> res = super.getEnv(javaExecEnvSupplier, prePackagePhase);
-    res.put("JAVA_MAIN_CLASS", MAIN_CLASS);
+    res.put("JAVA_MAIN_CLASS", springBootLayeredJar.getMainClass());
     return res;
   }
 

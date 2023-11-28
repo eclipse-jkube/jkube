@@ -28,6 +28,7 @@ Usage:
 * Fix #2456: Add utility class to decompress archive files
 * Fix #2472: Support for Helm Chart.yaml appVersion field defaulting to project version
 * Fix #2474: Remove Docker-related classes providing  unused functionality
+* Fix #2477: Support for Spring Boot 3.2.0 (and newer) layered jar format
 
 ### 1.15.0 (2023-11-10)
 * Fix #2138: Support for Spring Boot Native Image
