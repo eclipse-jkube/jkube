@@ -13,9 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.net.UrlEscapers;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
@@ -33,13 +32,14 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.eclipse.jkube.kit.common.util.Serialization;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +51,6 @@ import static org.eclipse.jkube.kit.build.api.helper.KubernetesConfigAuthUtil.re
  * Factory for creating docker specific authentication configuration
  *
  * @author roland
- * @since 29.07.14
  */
 public class AuthConfigFactory {
 
@@ -322,16 +321,15 @@ public class AuthConfigFactory {
                 }
 
                 // read instance role
-                try (Reader r = new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8)) {
-                    JsonObject securityCredentials = new Gson().fromJson(r, JsonObject.class);
+                final Map<String, Object> securityCredentials = Serialization.unmarshal(response.getEntity().getContent(),
+                  new TypeReference<Map<String, Object>>() {});
 
-                    String user = securityCredentials.getAsJsonPrimitive("AccessKeyId").getAsString();
-                    String password = securityCredentials.getAsJsonPrimitive("SecretAccessKey").getAsString();
-                    String token = securityCredentials.getAsJsonPrimitive("Token").getAsString();
+                String user = securityCredentials.getOrDefault("AccessKeyId", "").toString();
+                String password = securityCredentials.getOrDefault("SecretAccessKey", "").toString();
+                String token = securityCredentials.getOrDefault("Token", "").toString();
 
-                    log.debug("Received temporary access key %s...", user.substring(0, 8));
-                    return new AuthConfig(user, password, "none", token);
-                }
+                log.debug("Received temporary access key %s...", user.substring(0, 8));
+                return new AuthConfig(user, password, "none", token);
             }
         }
     }
@@ -411,39 +409,37 @@ public class AuthConfigFactory {
     }
 
     protected static AuthConfig getAuthConfigFromDockerConfig(String registry, KitLogger log) throws IOException {
-        JsonObject dockerConfig = DockerFileUtil.readDockerConfig();
+        final Map<String, Object> dockerConfig = DockerFileUtil.readDockerConfig();
         if (dockerConfig == null) {
             return null;
         }
         String registryToLookup = registry != null ? registry : DOCKER_LOGIN_DEFAULT_REGISTRY;
 
-        if (dockerConfig.has("credHelpers") || dockerConfig.has("credsStore")) {
-            if (dockerConfig.has("credHelpers")) {
-                final JsonObject credHelpers = dockerConfig.getAsJsonObject("credHelpers");
-                if (credHelpers.has(registryToLookup)) {
-                    return extractAuthConfigFromCredentialsHelper(registryToLookup, credHelpers.get(registryToLookup).getAsString(), log);
-                }
-            }
-            if (dockerConfig.has("credsStore")) {
-                return extractAuthConfigFromCredentialsHelper(registryToLookup, dockerConfig.get("credsStore").getAsString(), log);
+        if (dockerConfig.containsKey("credHelpers")) {
+            final Map<String, Object> credHelpers = (Map<String, Object>) dockerConfig.get("credHelpers");
+            if (credHelpers.containsKey(registryToLookup)) {
+                return extractAuthConfigFromCredentialsHelper(registryToLookup, credHelpers.get(registryToLookup).toString(), log);
             }
         }
+        if (dockerConfig.containsKey("credsStore")) {
+            return extractAuthConfigFromCredentialsHelper(registryToLookup, dockerConfig.get("credsStore").toString(), log);
+        }
 
-        if (dockerConfig.has("auths")) {
-            return extractAuthConfigFromAuths(registryToLookup, dockerConfig.getAsJsonObject("auths"));
+        if (dockerConfig.containsKey("auths")) {
+            return extractAuthConfigFromAuths(registryToLookup, (Map<String, Object>) dockerConfig.get("auths"));
         }
 
         return null;
     }
 
-    private static AuthConfig extractAuthConfigFromAuths(String registryToLookup, JsonObject auths) {
-        JsonObject credentials = getCredentialsNode(auths,registryToLookup);
-        if (credentials == null || !credentials.has("auth")) {
+    private static AuthConfig extractAuthConfigFromAuths(String registryToLookup, Map<String, Object> auths) {
+        final Map<String, Object> credentials = getCredentialsNode(auths, registryToLookup);
+        if (credentials == null || !credentials.containsKey("auth")) {
             return null;
         }
-        String auth = credentials.get("auth").getAsString();
-        String email = credentials.has(AUTH_EMAIL) ? credentials.get(AUTH_EMAIL).getAsString() : null;
-        return AuthConfig.fromCredentialsEncoded(auth,email);
+        String auth = credentials.get("auth").toString();
+        String email = credentials.containsKey(AUTH_EMAIL) ? credentials.get(AUTH_EMAIL).toString() : null;
+        return AuthConfig.fromCredentialsEncoded(auth, email);
     }
 
     private static AuthConfig extractAuthConfigFromCredentialsHelper(String registryToLookup, String credConfig, KitLogger log) throws IOException {
@@ -455,15 +451,15 @@ public class AuthConfigFactory {
         return credentialHelper.getAuthConfig(registryToLookup);
     }
 
-    private static JsonObject getCredentialsNode(JsonObject auths,String registryToLookup) {
-        if (auths.has(registryToLookup)) {
-            return auths.getAsJsonObject(registryToLookup);
+    private static Map<String, Object> getCredentialsNode(Map<String, Object> auths, String registryToLookup) {
+        if (auths.containsKey(registryToLookup)) {
+            return (Map<String, Object>) auths.get(registryToLookup);
         }
         String registryWithScheme = EnvUtil.ensureRegistryHttpUrl(registryToLookup);
-        if (auths.has(registryWithScheme)) {
-            return auths.getAsJsonObject(registryWithScheme);
+        if (auths.containsKey(registryWithScheme)) {
+            return (Map<String, Object>) auths.get(registryWithScheme);
         }
-        return null;
+        return Collections.emptyMap();
     }
 
     // if the local credentials don't contain user and password & is not a EC2 instance,
@@ -497,21 +493,20 @@ public class AuthConfigFactory {
             }
 
             // read instance role
-            try (Reader r = new InputStreamReader(response.getEntity().getContent(), StandardCharsets.UTF_8)) {
-                JsonObject securityCredentials = new Gson().fromJson(r, JsonObject.class);
+            final Map<String, Object> securityCredentials = Serialization.unmarshal(response.getEntity().getContent(),
+              new TypeReference<Map<String, Object>>() {});
 
-                String user = securityCredentials.getAsJsonPrimitive("AccessKeyId").getAsString();
-                String password = securityCredentials.getAsJsonPrimitive("SecretAccessKey").getAsString();
-                String token = securityCredentials.getAsJsonPrimitive("Token").getAsString();
+            String user = securityCredentials.getOrDefault("AccessKeyId", "").toString();
+            String password = securityCredentials.getOrDefault("SecretAccessKey", "").toString();
+            String token = securityCredentials.getOrDefault("Token", "").toString();
 
-                log.debug("Received temporary access key %s...", user.substring(0, 8));
-                return AuthConfig.builder()
-                        .username(user)
-                        .password(password)
-                        .email("none")
-                        .auth(token)
-                        .build();
-            }
+            log.debug("Received temporary access key %s...", user.substring(0, 8));
+            return AuthConfig.builder()
+                    .username(user)
+                    .password(password)
+                    .email("none")
+                    .auth(token)
+                    .build();
         }
     }
 

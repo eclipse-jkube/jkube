@@ -318,6 +318,31 @@ class EnvUtilTest {
     }
 
     @Test
+    void getUserHome_fromProperty() {
+        final String original = System.getProperty("user.home");
+        try {
+            System.setProperty("user.home", "/home/a-user");
+            assertThat(EnvUtil.getUserHome()).isEqualTo(new File("/home/a-user"));
+        } finally {
+            System.setProperty("user.home", original);
+        }
+    }
+
+    @Test
+    void getUserHome_fromEnvironment() {
+        final String original = System.getProperty("user.home");
+        try {
+            System.clearProperty("user.home");
+            final Map<String, String> env = Collections.singletonMap("HOME", "/home/a-user");
+            EnvUtil.overrideEnvGetter(env::get);
+            assertThat(EnvUtil.getUserHome()).isEqualTo(new File("/home/a-user"));
+        } finally {
+            System.setProperty("user.home", original);
+            EnvUtil.overrideEnvGetter(System::getenv);
+        }
+    }
+
+    @Test
     void testSystemPropertyRead() {
         System.setProperty("testProperty", "testPropertyValue");
         try {

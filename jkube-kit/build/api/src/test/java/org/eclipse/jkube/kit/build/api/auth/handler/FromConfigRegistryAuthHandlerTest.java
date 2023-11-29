@@ -14,23 +14,24 @@
 package org.eclipse.jkube.kit.build.api.auth.handler;
 
 import java.util.Base64;
+import java.util.Map;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuth;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.common.KitLogger;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.entry;
 
 /**
  * @author roland
- * @since 23.10.18
  */
 class FromConfigRegistryAuthHandlerTest {
 
@@ -87,13 +88,15 @@ class FromConfigRegistryAuthHandlerTest {
   }
 
   private void verifyAuthConfig(AuthConfig config, String username, String password, String email) {
-    JsonObject params = new Gson().fromJson(new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())),
-        JsonObject.class);
-    assertThat(params)
-        .returns(username, j -> j.get("username").getAsString())
-        .returns(password, j -> j.get("password").getAsString());
+    final Map<String, String> params = Serialization.unmarshal(
+      new String(Base64.getDecoder().decode(config.toHeaderValue(log).getBytes())),
+      new TypeReference<Map<String, String>>() {});
+    assertThat(params).contains(
+      entry("username", username),
+      entry("password", password)
+    );
     if (email != null) {
-      assertThat(params.get("email").getAsString()).isEqualTo(email);
+      assertThat(params).containsEntry("email", email);
     }
   }
 

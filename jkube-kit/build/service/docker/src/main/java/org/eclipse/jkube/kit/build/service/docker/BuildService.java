@@ -23,8 +23,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.LinkedList;
 
-import com.google.gson.JsonObject;
-
 import com.google.common.collect.ImmutableMap;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -214,17 +212,17 @@ public class BuildService {
     }
 
     private Map<String, String> addBuildArgsFromDockerConfig() {
-        JsonObject dockerConfig = DockerFileUtil.readDockerConfig();
+        final Map<String, Object> dockerConfig = DockerFileUtil.readDockerConfig();
         if (dockerConfig == null) {
             return Collections.emptyMap();
         }
 
         // add proxies
         Map<String, String> buildArgs = new HashMap<>();
-        if (dockerConfig.has("proxies")) {
-            JsonObject proxies = dockerConfig.getAsJsonObject("proxies");
-            if (proxies.has("default")) {
-                JsonObject defaultProxyObj = proxies.getAsJsonObject("default");
+        if (dockerConfig.containsKey("proxies")) {
+            final Map<String, Object> proxies = (Map<String, Object>) dockerConfig.get("proxies");
+            if (proxies.containsKey("default")) {
+                final Map<String, String> defaultProxyObj = (Map<String, String>) proxies.get("default");
                 String[] proxyMapping = new String[] {
                         "httpProxy", "http_proxy",
                         "httpsProxy", "https_proxy",
@@ -233,8 +231,8 @@ public class BuildService {
                 };
 
                 for(int index = 0; index < proxyMapping.length; index += 2) {
-                    if (defaultProxyObj.has(proxyMapping[index])) {
-                        buildArgs.put(ARG_PREFIX + proxyMapping[index+1], defaultProxyObj.get(proxyMapping[index]).getAsString());
+                    if (defaultProxyObj.containsKey(proxyMapping[index])) {
+                        buildArgs.put(ARG_PREFIX + proxyMapping[index+1], defaultProxyObj.get(proxyMapping[index]));
                     }
                 }
             }

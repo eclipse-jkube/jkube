@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.common.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
@@ -113,6 +114,10 @@ public class Serialization {
 
   public static String asJson(Object object) {
     return KUBERNETES_SERIALIZATION.asJson(object);
+  }
+
+  public static ObjectWriter jsonWriter() {
+    return JSON_MAPPER.writer();
   }
 
   public static String asYaml(Object object) {

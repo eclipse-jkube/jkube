@@ -14,16 +14,17 @@
 package org.eclipse.jkube.kit.build.api.auth;
 
 import java.util.Base64;
+import java.util.Map;
 
-import com.google.gson.JsonObject;
-import org.eclipse.jkube.kit.common.JsonFactory;
+import com.fasterxml.jackson.core.type.TypeReference;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 /**
  * @author roland
- * @since 30.07.14
  */
 class RegistryAuthTest {
 
@@ -53,11 +54,13 @@ class RegistryAuthTest {
 
         String header = new String(Base64.getDecoder().decode(config.toHeaderValue()));
 
-        JsonObject data = JsonFactory.newJsonObject(header);
-        assertThat(data)
-            .returns("roland", d -> d.get("username").getAsString())
-            .returns("#>secrets??", d -> d.get("password").getAsString())
-            .returns("roland@jolokia.org", d -> d.get("email").getAsString())
-            .returns(false, d -> d.has("auth"));
+        final Map<String, Object> result = Serialization.unmarshal(header, new TypeReference<Map<String, Object>>() {
+        });
+        assertThat(result)
+          .containsOnly(
+            entry("username", "roland"),
+            entry("password", "#>secrets??"),
+            entry("email", "roland@jolokia.org")
+          );
     }
 }

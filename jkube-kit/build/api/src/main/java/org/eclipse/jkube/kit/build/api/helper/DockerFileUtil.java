@@ -15,12 +15,11 @@ package org.eclipse.jkube.kit.build.api.helper;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -32,18 +31,20 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.eclipse.jkube.kit.common.JKubeFileInterpolator;
+import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import org.apache.commons.lang3.StringUtils;
+
+import static org.eclipse.jkube.kit.common.util.EnvUtil.getEnv;
+import static org.eclipse.jkube.kit.common.util.EnvUtil.getUserHome;
 
 /**
  * Utility class for dealing with dockerfiles
  * @author roland
- * @since 21/01/16
  */
 public class DockerFileUtil {
     private static final String ARG_PATTERN_REGEX = "\\$([\\w|\\-\\.]+)|\\$\\{([\\w\\-|\\.]+)\\}";
@@ -131,19 +132,6 @@ public class DockerFileUtil {
       return JKubeFileInterpolator.interpolate(dockerFile, properties, filter);
     }
 
-    private static Reader getFileReaderFromDir(File file) {
-        if (file.exists() && file.length() != 0) {
-            try {
-                return new FileReader(file);
-            } catch (FileNotFoundException e) {
-                // Shouldn't happen. Nevertheless ...
-                throw new IllegalStateException("Cannot find " + file,e);
-            }
-        } else {
-            return null;
-        }
-    }
-
     /**
      * Helper method for extractArgs(exposed for test)
      *
@@ -186,13 +174,22 @@ public class DockerFileUtil {
         return args;
     }
 
-    public static JsonObject readDockerConfig() {
-        String dockerConfig = System.getenv("DOCKER_CONFIG");
-
-        Reader reader = dockerConfig == null
-                ? getFileReaderFromDir(new File(getHomeDir(),".docker/config.json"))
-                : getFileReaderFromDir(new File(dockerConfig,"config.json"));
-        return reader != null ? new Gson().fromJson(reader, JsonObject.class) : null;
+    public static Map<String, Object> readDockerConfig() {
+        final String dockerConfigDirectory = getEnv("DOCKER_CONFIG");
+        final File dockerConfig;
+        if (StringUtils.isNotBlank(dockerConfigDirectory)) {
+            dockerConfig = new File(dockerConfigDirectory,"config.json");
+        } else {
+            dockerConfig = new File(getUserHome(),".docker/config.json");
+        }
+        if (!dockerConfig.exists() || !dockerConfig.isFile()) {
+            return Collections.emptyMap();
+        }
+        try {
+            return Serialization.unmarshal(dockerConfig, new TypeReference<Map<String, Object>>() {});
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot read docker config from " + dockerConfig.getAbsolutePath(), e);
+        }
     }
 
     public static boolean isSimpleDockerFileMode(File projectBaseDirectory) {
@@ -229,14 +226,6 @@ public class DockerFileUtil {
                 .ports(extractPorts(dockerfile))
                 .build();
         return image.toBuilder().build(buildConfig).build();
-    }
-
-    private static File getHomeDir() {
-        String homeDir = System.getProperty("user.home");
-        if (homeDir == null) {
-            homeDir = System.getenv("HOME");
-        }
-        return new File(homeDir);
     }
 
     private static void updateMapWithArgValue(Map<String, String> result, Map<String, String> args, String argString) {
