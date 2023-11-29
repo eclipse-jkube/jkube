@@ -34,6 +34,7 @@ import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -59,9 +60,18 @@ public class EnvUtil {
     private static final String WHITESPACE = " ";
     private static final String COMMA_WHITESPACE = COMMA + WHITESPACE;
 
+    private static UnaryOperator<String> envGetter = System::getenv;
+
     private EnvUtil() {
     }
 
+    /**
+     * Don't use in production code. Only for testing purposes.
+     * @param getter
+     */
+    public static void overrideEnvGetter(UnaryOperator<String> getter) {
+        envGetter = getter;
+    }
     // Convert docker host URL to an HTTP(s) URL
     public static String convertTcpToHttpUrl(String connect) {
         String protocol = connect.contains(":" + DOCKER_HTTP_PORT) ? "http:" : "https:";
@@ -381,7 +391,7 @@ public class EnvUtil {
             }
         }
         // Check environment as last resort
-        return System.getenv("DOCKER_REGISTRY");
+        return getEnv("DOCKER_REGISTRY");
     }
 
     // sometimes registries might be specified with https? schema, sometimes not
@@ -446,12 +456,33 @@ public class EnvUtil {
         return System.getProperty("os.name").toLowerCase().contains("windows");
     }
 
+    /**
+     * Return a {@link File} pointing to the user's home directory.
+     * @return the user home directory.
+     */
+    public static File getUserHome() {
+        String homeDir = System.getProperty("user.home");
+        if (homeDir == null) {
+            homeDir = getEnv("HOME");
+        }
+        return new File(homeDir);
+    }
+
+    /**
+     * Return the value of the given environment variable or null if it is not set.
+     * @param variableName name of the environment variable.
+     * @return the value of the environment variable or null if it is not set.
+     */
+    public static String getEnv(String variableName) {
+        return envGetter.apply(variableName);
+    }
+
     public static String getEnvVarOrSystemProperty(String varName, String defaultValue) {
         return getEnvVarOrSystemProperty(varName, varName, defaultValue);
     }
 
     public static String getEnvVarOrSystemProperty(String envVarName, String systemProperty, String defaultValue) {
-        String ret = System.getenv(envVarName);
+        String ret = getEnv(envVarName);
         if (StringUtils.isNotBlank(ret)){
             return ret;
         }

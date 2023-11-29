@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.build.service.docker.auth;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,9 +37,11 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.bootstrap.HttpServer;
 import org.apache.http.impl.bootstrap.ServerBootstrap;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -160,21 +164,19 @@ class AuthConfigFactoryTest {
     }
 
     @Test
-    void getAuthConfigFromDockerConfig() throws IOException {
+    void getAuthConfigFromDockerConfig(@TempDir Path dockerConfig) throws IOException {
         // Given
-        JsonObject dockerConfig = new JsonObject();
-        JsonObject auths = new JsonObject();
-        JsonObject creds = new JsonObject();
-        creds.addProperty("auth", "dGVzdHVzZXI6dGVzdHBhc3M=");
-        auths.add("https://index.docker.io/v1/", creds);
-        dockerConfig.add("auths", auths);
-        try (MockedStatic<DockerFileUtil> mockStatic = Mockito.mockStatic(DockerFileUtil.class)) {
-            mockStatic.when(DockerFileUtil::readDockerConfig).thenReturn(dockerConfig);
+        Files.write(dockerConfig.resolve("config.json"),
+          "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"dGVzdHVzZXI6dGVzdHBhc3M=\"}}}".getBytes());
+        final Map<String, String> env = Collections.singletonMap("DOCKER_CONFIG", dockerConfig.toFile().getAbsolutePath());
+        try {
+            EnvUtil.overrideEnvGetter(env::get);
             // When
             AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromDockerConfig("https://index.docker.io/v1/", log);
-
             // Then
             assertAuthConfig(authConfig, "testuser", "testpass");
+        } finally {
+            EnvUtil.overrideEnvGetter(System::getenv);
         }
     }
 

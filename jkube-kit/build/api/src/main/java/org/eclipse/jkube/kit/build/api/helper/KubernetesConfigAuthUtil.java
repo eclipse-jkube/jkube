@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.getUserHome;
+
 public class KubernetesConfigAuthUtil {
 
   private static final String KUBECONFIG_ENV = "KUBECONFIG";
@@ -97,7 +99,7 @@ public class KubernetesConfigAuthUtil {
   private static Map<String, Object> readKubeConfig()  {
     String kubeConfig = System.getenv(KUBECONFIG_ENV);
     final File applicableFile = kubeConfig == null ?
-        getHomeDir().toPath().resolve(KUBECONFIG_FILE).toFile() : new File(kubeConfig);
+        getUserHome().toPath().resolve(KUBECONFIG_FILE).toFile() : new File(kubeConfig);
     if (applicableFile.exists()) {
       try {
         return Serialization.unmarshal(applicableFile, new TypeReference<Map<String, Object>>() {});
@@ -106,10 +108,5 @@ public class KubernetesConfigAuthUtil {
       }
     }
     return Collections.emptyMap();
-  }
-
-  private static File getHomeDir() {
-    String homeDir = System.getProperty("user.home") != null ? System.getProperty("user.home") : System.getenv("HOME");
-    return new File(homeDir);
   }
 }

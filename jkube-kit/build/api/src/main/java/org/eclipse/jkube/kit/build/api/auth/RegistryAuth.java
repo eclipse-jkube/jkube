@@ -15,11 +15,15 @@ package org.eclipse.jkube.kit.build.api.auth;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.eclipse.jkube.kit.common.util.Serialization;
 
 /**
  * Configuration object holding auth information for
@@ -71,12 +75,18 @@ public class RegistryAuth {
     }
 
     private String createAuthEncoded() {
-        JsonObject ret = new JsonObject();
+        final Map<String, String> ret = new LinkedHashMap<>();
         putNonNull(ret, USERNAME, username);
         putNonNull(ret, PASSWORD, password);
         putNonNull(ret, EMAIL, email);
         putNonNull(ret, AUTH, auth);
-        return encodeBase64ChunkedURLSafeString(ret.toString().getBytes(StandardCharsets.UTF_8));
+        try {
+            final byte[] bytes = Serialization.jsonWriter().without(SerializationFeature.INDENT_OUTPUT)
+              .writeValueAsBytes(ret);
+            return encodeBase64ChunkedURLSafeString(bytes);
+        } catch(JsonProcessingException e) {
+            throw new IllegalArgumentException("Cannot encode auth config", e);
+        }
     }
 
     /**
@@ -92,9 +102,9 @@ public class RegistryAuth {
                      .replace('/', '_');
     }
 
-    private void putNonNull(JsonObject ret, String key, String value) {
+    private void putNonNull(Map<String, String> ret, String key, String value) {
         if (value != null) {
-            ret.addProperty(key,value);
+            ret.put(key,value);
         }
     }
 }

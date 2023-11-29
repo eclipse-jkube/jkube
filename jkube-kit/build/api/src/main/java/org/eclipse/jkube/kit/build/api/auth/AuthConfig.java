@@ -13,15 +13,17 @@
  */
 package org.eclipse.jkube.kit.build.api.auth;
 
-import com.google.gson.JsonObject;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.Serialization;
 
-import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
@@ -61,7 +63,7 @@ public class AuthConfig {
   }
 
   public String toHeaderValue(KitLogger logger) {
-    JsonObject ret = new JsonObject();
+    final Map<String, String> ret = new LinkedHashMap<>();
     if(StringUtils.isNotBlank(identityToken)) {
       putNonNull(ret, "identityToken", identityToken);
       if (StringUtils.isNotBlank(username)) {
@@ -73,8 +75,13 @@ public class AuthConfig {
       putNonNull(ret, "email", email);
       putNonNull(ret, "auth", auth);
     }
-
-    return encodeBase64ChunkedURLSafeString(ret.toString().getBytes(StandardCharsets.UTF_8));
+    try {
+      final byte[] bytes = Serialization.jsonWriter().without(SerializationFeature.INDENT_OUTPUT)
+        .writeValueAsBytes(ret);
+      return encodeBase64ChunkedURLSafeString(bytes);
+    } catch(JsonProcessingException e) {
+      throw new IllegalArgumentException("Cannot encode auth config", e);
+    }
   }
 
   public static AuthConfig fromMap(Map<String, String> params) {
@@ -126,9 +133,9 @@ public class AuthConfig {
         .replace('/', '_');
   }
 
-  private void putNonNull(JsonObject ret, String key, String value) {
+  private void putNonNull(Map<String, String> ret, String key, String value) {
     if (value != null) {
-      ret.addProperty(key,value);
+      ret.put(key,value);
     }
   }
 

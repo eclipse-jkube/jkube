@@ -14,10 +14,12 @@
 package org.eclipse.jkube.kit.build.api.helper;
 
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,6 +42,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -266,6 +270,60 @@ class DockerFileUtilTest {
     @Test
     void findAllArgs_fromInvalidArg_shouldBeEmpty() {
         assertThat(DockerFileUtil.findAllArgs("${invalidArg")).isEmpty();
+    }
+
+    @Test
+    void readDockerConfig_fromUserDir(@TempDir Path home) throws IOException {
+        final String original = System.getProperty("user.home");
+        try {
+            // Given
+            System.setProperty("user.home", home.toFile().getAbsolutePath());
+            Files.createDirectories(home.resolve(".docker"));
+            Files.write(home.resolve(".docker").resolve("config.json"),
+              "{\"credsStore\": \"secretservice\"}".getBytes());
+            // When
+            final Map<String, Object> config = DockerFileUtil.readDockerConfig();
+            // Then
+            assertThat(config).containsOnly(entry("credsStore", "secretservice"));
+        } finally {
+            System.setProperty("user.home", original);
+        }
+
+    }
+
+    @Test
+    void readDockerConfig_fromEnvVariable(@TempDir Path dockerConfig) throws IOException {
+        final String original = System.getProperty("user.home");
+        try {
+            // Given
+            final Map<String, String> env = Collections.singletonMap("DOCKER_CONFIG", dockerConfig.toFile().getAbsolutePath());
+            EnvUtil.overrideEnvGetter(env::get);
+            System.clearProperty("user.home");
+            Files.write(dockerConfig.resolve("config.json"),
+              "{\"credsStore\": \"secretservice\"}".getBytes());
+            // When
+            final Map<String, Object> config = DockerFileUtil.readDockerConfig();
+            // Then
+            assertThat(config).containsOnly(entry("credsStore", "secretservice"));
+        } finally {
+            System.setProperty("user.home", original);
+            EnvUtil.overrideEnvGetter(System::getenv);
+        }
+    }
+    @Test
+    void readDockerConfig_fromMissing(@TempDir Path home) {
+        final String original = System.getProperty("user.home");
+        try {
+            // Given
+            System.setProperty("user.home", home.toFile().getAbsolutePath());
+            // When
+            final Map<String, Object> config = DockerFileUtil.readDockerConfig();
+            // Then
+            assertThat(config).isEmpty();
+        } finally {
+            System.setProperty("user.home", original);
+        }
+
     }
 
     @Test
