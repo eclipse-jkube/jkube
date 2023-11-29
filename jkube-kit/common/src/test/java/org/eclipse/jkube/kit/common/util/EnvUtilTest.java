@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -33,6 +34,7 @@ import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -417,5 +419,75 @@ class EnvUtilTest {
                 Arguments.arguments("Greater or Equal version when equal", "4.0.2", "4.0.2", true),
                 Arguments.arguments("Greater or Equal version when false", "3.1.1.0", "4.0.2", false)
         );
+    }
+
+    @ParameterizedTest(name = "when os.arch = {0}, then return {1}")
+    @CsvSource({
+        "aarch64,aarch64",
+        "amd64,amd64",
+        "x86,x86"
+    })
+    void isProcessorArchitectureARM_whenSystemPropertyProvided_thenReturnExpectedResult(String osArchPropertyValue, String result) {
+        try {
+            // Given
+            Map<String, String> propMap = Collections.singletonMap("os.arch", osArchPropertyValue);
+            EnvUtil.overridePropertyGetter(propMap::get);
+
+            // When + Then
+            assertThat(EnvUtil.getProcessorArchitecture()).isEqualTo(result);
+        } finally {
+            EnvUtil.overridePropertyGetter(System::getProperty);
+        }
+    }
+
+    @ParameterizedTest(name = "when os.name = {0}, then return {1}")
+    @CsvSource({
+        "Mac OS X,true",
+        "Windows 8.1,false",
+        "Linux,false"
+    })
+    void isMacOs_whenSystemPropertyProvided_thenReturnExpectedResult(String osArchPropertyValue, boolean result) {
+        try {
+            // Given
+            Map<String, String> propMap = Collections.singletonMap("os.name", osArchPropertyValue);
+            EnvUtil.overridePropertyGetter(propMap::get);
+
+            // When + Then
+            assertThat(EnvUtil.isMacOs()).isEqualTo(result);
+        } finally {
+            EnvUtil.overridePropertyGetter(System::getProperty);
+        }
+    }
+
+    @Test
+    @EnabledOnOs({OS.LINUX,OS.MAC})
+    void findBinaryFileInUserPath_whenFilePresentInPath_thenReturnFile(@TempDir File temporaryFolder) throws IOException {
+        try {
+            // Given
+            File binaryFile = new File(temporaryFolder, "foo");
+            Files.createFile(binaryFile.toPath());
+            Map<String, String> envMap = Collections.singletonMap("PATH", "/usr/local/bin" + File.pathSeparator + temporaryFolder.getAbsolutePath());
+            EnvUtil.overrideEnvGetter(envMap::get);
+
+            // When + Then
+            assertThat(EnvUtil.findBinaryFileInUserPath("foo")).isEqualTo(binaryFile);
+        } finally {
+            EnvUtil.overrideEnvGetter(System::getenv);
+        }
+    }
+
+    @Test
+    @EnabledOnOs({OS.LINUX,OS.MAC})
+    void findBinaryFileInUserPath_whenFileNotFound_thenReturnNull(@TempDir File temporaryFolder) {
+        try {
+            // Given
+            Map<String, String> envMap = Collections.singletonMap("PATH", "/usr/local/bin" + File.pathSeparator + temporaryFolder.getAbsolutePath());
+            EnvUtil.overrideEnvGetter(envMap::get);
+
+            // When + Then
+            assertThat(EnvUtil.findBinaryFileInUserPath("foo")).isNull();
+        } finally {
+            EnvUtil.overrideEnvGetter(System::getenv);
+        }
     }
 }

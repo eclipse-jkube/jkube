@@ -1,0 +1,10 @@
+#!/bin/bash
+printVersion () {
+  echo "0.32.1+git-b14250b.build-5241"
+}
+
+if [ "$1" = "--version" ]; then
+  printVersion
+else
+  echo "$@"
+fi
