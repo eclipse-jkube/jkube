@@ -12,6 +12,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
+## n.b. this approach to define Helm template parameters is deprecated, please consider using XML or Gradle DSL configuration instead
 kind: Template
 parameters:
   - name: deployment.resources.limits_memory
