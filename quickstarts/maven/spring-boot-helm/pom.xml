@@ -21,7 +21,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.5.3</version>
+    <version>3.1.3</version>
   </parent>
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
@@ -75,53 +75,6 @@
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>kubernetes-maven-plugin</artifactId>
         <version>${jkube.version}</version>
-        <configuration>
-          <resources>
-            <labels>
-              <all>
-                <testProject>spring-boot-with-yaml-label-for-all</testProject>
-              </all>
-            </labels>
-          </resources>
-          <helm>
-<!--            <chart>This is a Test</chart>-->
-            <parameters>
-              <parameter>
-                <name>deployment.replicas</name>
-                <value>{{ .Values.deployment.replicas }}</value>
-              </parameter>
-              <parameter>
-                <name>deployment.annotations</name>
-                <value>
-                  {{- toYaml .Values.common.annotations | nindent 4 }}
-                  {{- toYaml .Values.deployment.annotations | nindent 4 }}
-                </value>
-              </parameter>
-              <parameter>
-                <name>service.annotations</name>
-                <value>
-                  {{- toYaml .Values.common.annotations | nindent 4 }}
-                  {{- toYaml .Values.service.annotations | nindent 4 }}
-                </value>
-              </parameter>
-              <parameter>
-                <name>helm_namespace</name>
-                <value>{{ .Release.Namespace }}</value>
-              </parameter>
-            </parameters>
-          </helm>
-        </configuration>
-
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>resource</goal>
-              <goal>build</goal>
-              <goal>helm</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
@@ -129,6 +82,9 @@
   <profiles>
     <profile>
       <id>dev</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
       <properties>
         <helm_namespace>default</helm_namespace>
         <golang_expression>n/a development</golang_expression>
@@ -137,8 +93,53 @@
         <deployment.annotations>jkube.helm.sh/environment: dev&#10;    jkube.helm.sh/other: value</deployment.annotations>
         <deployment.resources.limits_memory/>
         <deployment.resources.requests_memory/>
+        <service.spec.type>NodePort</service.spec.type>
         <service.annotations>api.service.kubernetes.io/path: /dev</service.annotations>
       </properties>
+    </profile>
+    <profile>
+      <id>prod</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>kubernetes-maven-plugin</artifactId>
+            <version>${jkube.version}</version>
+            <configuration>
+              <helm>
+                <parameters>
+                  <parameter>
+                    <name>deployment.replicas</name>
+                    <value>{{ .Values.deployment.replicas }}</value>
+                  </parameter>
+                  <parameter>
+                    <name>deployment.annotations</name>
+                    <value>
+                      {{- toYaml .Values.common.annotations | nindent 4 }}
+                      {{- toYaml .Values.deployment.annotations | nindent 4 }}
+                    </value>
+                  </parameter>
+                  <parameter>
+                    <name>service.annotations</name>
+                    <value>
+                      {{- toYaml .Values.common.annotations | nindent 4 }}
+                      {{- toYaml .Values.service.annotations | nindent 4 }}
+                    </value>
+                  </parameter>
+                  <parameter>
+                    <name>service.spec.type</name>
+                    <value>{{ ((.Values.service).spec).type | default "ClusterIP"  }}</value>
+                  </parameter>
+                  <parameter>
+                    <name>helm_namespace</name>
+                    <value>{{ .Release.Namespace }}</value>
+                  </parameter>
+                </parameters>
+              </helm>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 

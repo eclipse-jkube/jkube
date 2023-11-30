@@ -16,7 +16,7 @@ common:
   annotations:
     jkube.helm.sh/common: annotation
 deployment:
-  replicas: 1
+  replicas: 2
   annotations:
     jkube.helm.sh/annotation-1: value-1
     jkube.helm.sh/annotation-2: value-2
