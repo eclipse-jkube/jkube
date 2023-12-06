@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -20,9 +21,16 @@ import java.io.File;
 import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIOException;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 class ExternalCommandTest {
-  private final KitLogger kitLogger = new KitLogger.SilentLogger();
+  private KitLogger kitLogger;
+
+  @BeforeEach
+  void setUp() {
+    kitLogger = spy(new KitLogger.SilentLogger());
+  }
 
   @Test
   void execute_whenCommandCompletedSuccessfully_thenPrintResult() throws IOException {
@@ -48,6 +56,36 @@ class ExternalCommandTest {
   }
 
   @Test
+  void execute_whenCommandFailed_thenLoggerError() {
+    // Given
+    TestCommand testCommand = new TestCommand(kitLogger, new String[] {"java", "idontexist"});
+
+    // When + Then
+    assertThatIOException()
+        .isThrownBy(testCommand::execute)
+        .withMessage("Process 'java idontexist' exited with status 1");
+    verify(kitLogger).warn("Error: Could not find or load main class idontexist");
+  }
+
+  @Test
+  void execute_whenCommandFailedButProcessErrorOverridden_thenErrorNotBlank() {
+    // Given
+    final StringBuilder errorBuilder = new StringBuilder();
+    TestCommand overriddenProcessErrorTestCommand = new TestCommand(kitLogger, new String[] {"java", "idontexist"}, null) {
+      @Override
+      protected void processError(String errorLine) {
+        errorBuilder.append(errorLine);
+      }
+    };
+
+    // When + Then
+    assertThatIOException()
+        .isThrownBy(overriddenProcessErrorTestCommand::execute)
+        .withMessage("Process 'java idontexist' exited with status 1");
+    assertThat(errorBuilder.toString()).contains("Error: Could not find or load main class idontexist");
+  }
+
+  @Test
   void execute_whenWorkDirProvided_thenUseWorkDir(@TempDir File temporaryFolder) throws IOException {
     // Given
     TestCommand testCommand = new TestCommand(kitLogger, new String[] {"touch", "foo"}, temporaryFolder);
@@ -58,7 +96,6 @@ class ExternalCommandTest {
     // Then
     assertThat(new File(temporaryFolder, "foo")).exists();
   }
-
 
   private static class TestCommand extends ExternalCommand {
     private String result;
@@ -79,7 +116,7 @@ class ExternalCommandTest {
 
     @Override
     protected void processLine(String line) {
-        result = line;
+      result = line;
     }
 
     public String getResult() {
