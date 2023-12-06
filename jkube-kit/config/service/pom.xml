@@ -43,6 +43,10 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-build-service-buildpacks</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-helm</artifactId>
         </dependency>
         <dependency>
