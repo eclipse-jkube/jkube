@@ -27,6 +27,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -128,18 +129,12 @@ public abstract class ExternalCommand {
     protected abstract String[] getArgs();
 
     private void outputStreamPump(final InputStream inputStream) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            for (; ; ) {
-                String line = reader.readLine();
-                if (line == null) {
-                    break;
-                }
-                processLine(line);
-            }
+        try {
+            readInputStream(inputStream, this::processLine);
         } catch (IOException e) {
             throw new IOException(String.format("Failed to read process '%s' output: %s",
-                                                getCommandAsString(),
-                                                e.getMessage()), e);
+                getCommandAsString(),
+                e.getMessage()), e);
         }
     }
 
@@ -149,21 +144,31 @@ public abstract class ExternalCommand {
 
     private Future<IOException> startStreamPump(final InputStream errorStream) {
         return executor.submit(() -> {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream))) {
-                for (; ; ) {
-                    String line = reader.readLine();
-                    if (line == null) {
-                        break;
-                    }
-                    synchronized (log) {
-                        log.warn(line);
-                    }
-                }
+            try {
+                readInputStream(errorStream, this::processError);
                 return null;
             } catch (IOException e) {
                 return e;
             }
         });
+    }
+
+    private void readInputStream(final InputStream inputStream, Consumer<String> lineConsumer) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            for (; ; ) {
+                String line = reader.readLine();
+                if (line == null) {
+                    break;
+                }
+                lineConsumer.accept(line);
+            }
+        }
+    }
+
+    protected void processError(String line) {
+        synchronized (log) {
+            log.warn(line);
+        }
     }
 
     private void stopStreamPump(Future<IOException> future) throws IOException {
