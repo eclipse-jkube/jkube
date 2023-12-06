@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.service.buildpacks;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
+import org.eclipse.jkube.kit.common.util.PropertiesUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +51,10 @@ public class BuildPackCliDownloader {
   private final String packCliVersion;
   private final Properties packProperties;
   private final File jKubeUserHomeDir;
+
+  public BuildPackCliDownloader(KitLogger kitLogger) {
+    this(kitLogger, PropertiesUtil.getPropertiesFromResource(BuildPackCliDownloader.class.getResource("/META-INF/jkube/pack-cli.properties")));
+  }
 
   public BuildPackCliDownloader(KitLogger kitLogger, Properties packProperties) {
     this.kitLogger = kitLogger;

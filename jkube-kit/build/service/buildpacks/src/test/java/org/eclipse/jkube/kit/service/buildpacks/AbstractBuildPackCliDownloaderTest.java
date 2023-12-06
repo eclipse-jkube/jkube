@@ -55,7 +55,7 @@ abstract class AbstractBuildPackCliDownloaderTest {
   abstract String getProcessorArchitecture();
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     kitLogger = spy(new KitLogger.SilentLogger());
     Map<String, String> overriddenSystemProperties = new HashMap<>();
     Map<String, String> overriddenEnvironmentVariables = new HashMap<>();
