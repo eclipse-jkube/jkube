@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import static org.eclipse.jkube.kit.common.util.AsyncUtil.async;
-import static org.eclipse.jkube.kit.common.util.IoUtil.getFreeRandomPort;
 
 public class TestHttpStaticServer implements Closeable {
 
@@ -53,8 +52,7 @@ public class TestHttpStaticServer implements Closeable {
 
   private static Callable<HttpServer> startServer(File staticDirectory) {
     return () -> {
-      final int port = getFreeRandomPort();
-      final HttpServer ret = HttpServer.create(new InetSocketAddress(port), 0);
+      final HttpServer ret = HttpServer.create(new InetSocketAddress(0), 0);
       ret.createContext("/", exchange -> {
         final String path = exchange.getRequestURI().getPath();
         final File file = new File(staticDirectory, path).getCanonicalFile();
