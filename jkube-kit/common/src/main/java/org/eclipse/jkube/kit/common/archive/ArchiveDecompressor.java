@@ -92,7 +92,7 @@ public class ArchiveDecompressor {
       ArchiveEntry entry;
       while ((entry = ais.getNextEntry()) != null) {
         final File extractTo = new File(targetDirectory, fileName(entry.getName()));
-        if (extractTo.getCanonicalPath().startsWith(targetDirectory.getCanonicalPath())) {
+        if (extractTo.getCanonicalFile().toPath().startsWith(targetDirectory.getCanonicalFile().toPath())) {
           if (entry.isDirectory()) {
             FileUtil.createDirectory(extractTo);
           } else {
