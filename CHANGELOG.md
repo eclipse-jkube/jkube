@@ -24,6 +24,7 @@ Usage:
 * Fix #2257: Provide guidance when the final project packaged file is not found in Quarkus projeicts
 * Fix #1690: Base images based on ubi9
 * Fix #2070: build goals/tasks log warning if user forgets to run package/build goal/task
+* Fix #2389: Helm `values.yaml` sorted alphabetically
 * Fix #2390: support for all missing Chart.yaml fields
 * Fix #2391: Automatically add `values.schema.json` file if detected
 * Fix #2444: Add support for Spring Boot application properties placeholders
