@@ -25,6 +25,7 @@ Usage:
 * Fix #1690: Base images based on ubi9
 * Fix #2070: build goals/tasks log warning if user forgets to run package/build goal/task
 * Fix #2390: support for all missing Chart.yaml fields
+* Fix #2391: Automatically add `values.schema.json` file if detected
 * Fix #2444: Add support for Spring Boot application properties placeholders
 * Fix #2456: Add utility class to decompress archive files
 * Fix #2472: Support for Helm Chart.yaml appVersion field defaulting to project version

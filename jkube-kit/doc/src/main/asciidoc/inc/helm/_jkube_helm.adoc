@@ -121,7 +121,7 @@ endif::[]
 |
 
 | *additionalFiles*
-| The list of additional files to be included in the Chart archive. Any file named `README` or `LICENSE` will *always*
+| The list of additional files to be included in the Chart archive. Any file named `README` or `LICENSE` or `values.schema.json` will *always*
 be included by default.
 |
 
