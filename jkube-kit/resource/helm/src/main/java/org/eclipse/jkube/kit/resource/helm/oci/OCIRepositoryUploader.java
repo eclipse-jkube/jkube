@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.resource.helm.oci;
 import io.fabric8.kubernetes.client.http.HttpClient;
 import io.fabric8.kubernetes.client.utils.HttpClientUtils;
 import org.eclipse.jkube.kit.common.util.Serialization;
+import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
 import org.eclipse.jkube.kit.resource.helm.Chart;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
@@ -46,6 +47,7 @@ public class OCIRepositoryUploader implements HelmUploader {
       .build()
     ) {
       final Chart chart = readGeneratedChartYamlFile(file);
+      validateChartName(chart);
       final byte[] chartYamlBytes = Serialization.asJson(chart).getBytes(StandardCharsets.UTF_8);
       final OCIRegistryClient oci = new OCIRegistryClient(repository, httpClient);
       final OCIManifestLayer chartConfig = oci.uploadBlobIfNotUploadedYet(chart, new ByteArrayInputStream(chartYamlBytes));
@@ -60,5 +62,13 @@ public class OCIRepositoryUploader implements HelmUploader {
       return Serialization.unmarshal(chartMetadataFile, Chart.class);
     }
     throw new IllegalStateException("Could not find Chart.yaml file in " + chartArchive.getParentFile());
+  }
+
+  private static void validateChartName(Chart chart) {
+    try {
+      new ImageName(chart.getName());
+    } catch (IllegalArgumentException illegalArgumentException) {
+      throw new IllegalArgumentException("Chart name " + chart.getName() + " is invalid for uploading to OCI registry", illegalArgumentException);
+    }
   }
 }
