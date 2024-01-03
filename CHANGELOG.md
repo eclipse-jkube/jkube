@@ -24,6 +24,7 @@ Usage:
 * Fix #2257: Provide guidance when the final project packaged file is not found in Quarkus projeicts
 * Fix #1690: Base images based on ubi9
 * Fix #2070: build goals/tasks log warning if user forgets to run package/build goal/task
+* Fix #2381: Container Images based on Java 21 (Java-exec, Tomcat, Jetty, Karaf)
 * Fix #2389: Helm `values.yaml` sorted alphabetically
 * Fix #2390: support for all missing Chart.yaml fields
 * Fix #2391: Automatically add `values.schema.json` file if detected
@@ -32,6 +33,7 @@ Usage:
 * Fix #2472: Support for Helm Chart.yaml appVersion field defaulting to project version
 * Fix #2474: Remove Docker-related classes providing  unused functionality
 * Fix #2477: Support for Spring Boot 3.2.0 (and newer) layered jar format
+* Fix #2503: Container Images Jolokia agent bumped to 2.0.0
 
 ### 1.15.0 (2023-11-10)
 * Fix #2138: Support for Spring Boot Native Image
