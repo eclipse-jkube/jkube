@@ -129,7 +129,7 @@ class DockerFileUtilTest {
     @Test
     void createSimpleDockerfileConfig() throws IOException {
         // Given
-        File dockerFile = File.createTempFile("Dockerfile", "-test");
+        File dockerFile = Files.createTempFile("Dockerfile", "-test").toFile();
         // When
         ImageConfiguration imageConfiguration1 = DockerFileUtil.createSimpleDockerfileConfig(dockerFile, null);
         ImageConfiguration imageConfiguration2 = DockerFileUtil.createSimpleDockerfileConfig(dockerFile, "someImage:0.0.1");
@@ -152,7 +152,7 @@ class DockerFileUtilTest {
         ImageConfiguration imageConfiguration = ImageConfiguration.builder()
                 .name("test-image")
                 .build();
-        File dockerFile = File.createTempFile("Dockerfile", "-test");
+        File dockerFile = Files.createTempFile("Dockerfile", "-test").toFile();
 
         // When
         ImageConfiguration result = DockerFileUtil.addSimpleDockerfileConfig(imageConfiguration, dockerFile);

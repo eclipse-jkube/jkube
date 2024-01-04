@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,12 +42,12 @@ class JKubeTarArchiverTest {
       + "nested.file.long";
 
   @TempDir
-  File temporaryFolder;
+  Path temporaryFolder;
   private File toCompress;
 
   @BeforeEach
   public void prepareDirectory() throws IOException {
-    toCompress = Files.createDirectory(temporaryFolder.toPath().resolve("toCompress")).toFile();
+    toCompress = Files.createDirectory(temporaryFolder.resolve("toCompress")).toFile();
     final File nestedDir = toCompress.toPath().resolve("nested").resolve("directory").toFile();
     FileUtils.forceMkdir(nestedDir);
     final File nestedFile = nestedDir.toPath().resolve(LONG_FILE_NAME).toFile();
@@ -58,7 +59,7 @@ class JKubeTarArchiverTest {
   @Test
   void createTarBallOfDirectory_defaultCompression_createsTar() throws Exception {
     // Given
-    final File outputFile = File.createTempFile("target", "noExtension", temporaryFolder);
+    final File outputFile = Files.createTempFile(temporaryFolder, "target", "noExtension").toFile();
     // When
     final File result = JKubeTarArchiver.createTarBallOfDirectory(outputFile, toCompress, ArchiveCompression.none);
     // Then
@@ -77,7 +78,7 @@ class JKubeTarArchiverTest {
   @Test
   void createTarBallOfDirectory_gzipCompression_createsTar() throws Exception {
     // Given
-    final File outputFile = File.createTempFile("target", "tar.gzip", temporaryFolder);
+    final File outputFile = Files.createTempFile(temporaryFolder, "target", "tar.gzip").toFile();
     // When
     final File result = JKubeTarArchiver.createTarBallOfDirectory(outputFile, toCompress, ArchiveCompression.gzip);
     // Then
@@ -96,7 +97,7 @@ class JKubeTarArchiverTest {
   @Test
   void createTarBallOfDirectory_bzip2Compression_createsTar() throws Exception {
     // Given
-    final File outputFile = File.createTempFile("target", "tar.bz2", temporaryFolder);
+    final File outputFile = Files.createTempFile(temporaryFolder, "target", "tar.bz2").toFile();
     // When
     final File result = JKubeTarArchiver.createTarBallOfDirectory(outputFile, toCompress, ArchiveCompression.bzip2);
     // Then
@@ -115,7 +116,7 @@ class JKubeTarArchiverTest {
   @Test
   void createTarBallOfDirectory_defaultCompressionWithEntryCustomizer_createsCustomizedTar() throws Exception {
     // Given
-    final File outputFile = File.createTempFile("target", "tar", temporaryFolder);
+    final File outputFile = Files.createTempFile(temporaryFolder, "target", "tar").toFile();
     final Consumer<TarArchiveEntry> prependDirectory = tae ->  tae.setName("directory/" + tae.getName());
     // When
     final File result = JKubeTarArchiver.createTarBall(outputFile, toCompress,
@@ -137,7 +138,7 @@ class JKubeTarArchiverTest {
   @Test
   void createTarBallOfDirectory_defaultCompressionWithTarCustomizer_createsCustomizedTar() throws Exception {
     // Given
-    final File outputFile = File.createTempFile("target", "tar", temporaryFolder);
+    final File outputFile = Files.createTempFile(temporaryFolder, "target", "tar").toFile();
     final Consumer<TarArchiveOutputStream> truncateFilenames = tae ->  tae.setLongFileMode(TarArchiveOutputStream.LONGFILE_TRUNCATE);
     // When
     final File result = JKubeTarArchiver.createTarBall(outputFile, toCompress,
@@ -160,7 +161,7 @@ class JKubeTarArchiverTest {
   void createTarBallOfDirectory_defaultCompression_createsTarWithCorrectEntrySizeAndModeForDirectories() throws Exception {
     // Given
     final int defaultDirMode = Integer.parseInt("040755", 8); // 16877
-    final File outputFile = File.createTempFile("target", "noExtension", temporaryFolder);
+    final File outputFile = Files.createTempFile(temporaryFolder, "target", "noExtension").toFile();
     // When
     final File result = JKubeTarArchiver.createTarBallOfDirectory(outputFile, toCompress, ArchiveCompression.none);
     // Then
@@ -181,7 +182,7 @@ class JKubeTarArchiverTest {
   void createTarBallOfDirectory_defaultCompression_createsTarWithCorrectEntrySizeAndModeForFiles() throws Exception {
     // Given
     final int defaultFileMode = Integer.parseInt("0100644", 8); // 33188
-    final File outputFile = File.createTempFile("target", "noExtension", temporaryFolder);
+    final File outputFile = Files.createTempFile(temporaryFolder, "target", "noExtension").toFile();
     // When
     final File result = JKubeTarArchiver.createTarBallOfDirectory(outputFile, toCompress, ArchiveCompression.none);
     // Then
@@ -202,7 +203,7 @@ class JKubeTarArchiverTest {
   void createTarBall_defaultCompressionWithFileModes_createsTarWithCorrectEntrySizeAndModeForFiles() throws Exception {
     // Given
     final int defaultDirMode = Integer.parseInt("040755", 8); // 16877
-    final File outputFile = File.createTempFile("target", "noExtension", temporaryFolder);
+    final File outputFile = Files.createTempFile(temporaryFolder, "target", "noExtension").toFile();
     Map<File, String> fileModeMap = new HashMap<>();
     fileModeMap.put(new File(toCompress, "nested"), "040755");
     fileModeMap.put(new File(toCompress, "nested/directory"), "040755");

@@ -100,7 +100,7 @@ public class SpringBootDevtoolsUtils {
   }
 
   private static void copyFilesToFatJar(List<File> libs, List<File> classes, File target) throws IOException {
-    File tmpZip = File.createTempFile(target.getName(), null);
+    File tmpZip = Files.createTempFile(target.getName(), null).toFile();
     Files.delete(tmpZip.toPath());
 
     // Using Apache commons rename, because renameTo has issues across file systems

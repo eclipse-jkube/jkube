@@ -15,6 +15,8 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -56,7 +58,7 @@ class LogMojoTest {
   private LogMojo logMojo;
 
   @BeforeEach
-  void setUp(@TempDir File temporaryFolder) throws IOException {
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
     jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
         withSettings().defaultAnswer(RETURNS_DEEP_STUBS), (mock, context) -> {
           final OpenShiftClient oc = mock(OpenShiftClient.class, RETURNS_DEEP_STUBS);
@@ -65,7 +67,7 @@ class LogMojoTest {
         });
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class);
     podLogServiceMockedConstruction = mockConstruction(PodLogService.class);
-    kubernetesManifestFile = File.createTempFile("kubernetes", ".yml", temporaryFolder);
+    kubernetesManifestFile = Files.createTempFile(temporaryFolder, "kubernetes", ".yml").toFile();
     mavenProject = mock(MavenProject.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
     // @formatter:off

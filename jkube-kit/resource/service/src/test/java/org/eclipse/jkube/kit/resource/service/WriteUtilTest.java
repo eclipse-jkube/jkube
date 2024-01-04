@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.resource.service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -42,7 +43,7 @@ import static org.mockito.Mockito.times;
 class WriteUtilTest {
 
   @TempDir
-  File temporaryFolder;
+  Path temporaryFolder;
   private KitLogger log;
   private MockedStatic<ResourceUtil> resourceUtil;
 
@@ -54,7 +55,7 @@ class WriteUtilTest {
     log = new KitLogger.SilentLogger();
     resourceUtil = mockStatic(ResourceUtil.class);
     klb = new KubernetesListBuilder();
-    resourceFileBase = temporaryFolder;
+    resourceFileBase = temporaryFolder.toFile();
   }
   @AfterEach
   public void close() {
@@ -63,7 +64,7 @@ class WriteUtilTest {
   @Test
   void writeResource() throws IOException {
     // Given
-    final File baton = File.createTempFile("junit", "ext", temporaryFolder);
+    final File baton = Files.createTempFile(temporaryFolder, "junit", "ext").toFile();
     mockResourceUtilSave(baton);
     // When
     final File result = WriteUtil.writeResource(null, null, null);
@@ -75,7 +76,7 @@ class WriteUtilTest {
   void writeResourceThrowsException() throws IOException {
     // Given
     final File resource =
-            Files.createDirectory(temporaryFolder.toPath().resolve("resource-base")).toFile();
+            Files.createDirectory(temporaryFolder.resolve("resource-base")).toFile();
     resourceUtil.when(() -> ResourceUtil.save(any(), isNull(), isNull())).thenThrow(new IOException("Message"));
 
     // When
