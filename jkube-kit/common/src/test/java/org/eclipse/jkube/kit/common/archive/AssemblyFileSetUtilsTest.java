@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.common.archive;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -37,14 +38,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class AssemblyFileSetUtilsTest {
 
   @TempDir
-  File temp;
+  Path temp;
 
   @Test
   void calculateFilePermissionsFileWithNoFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().build();
-    final File sourceFile = File.createTempFile("source-file", "txt", temp);
-    final File aFile = File.createTempFile("just-a-file", "txt", temp);
+    final File sourceFile = Files.createTempFile(temp, "source-file", "txt").toFile();
+    final File aFile = Files.createTempFile(temp, "just-a-file", "txt").toFile();
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceFile, aFile, afs);
     // Then
@@ -55,8 +56,8 @@ class AssemblyFileSetUtilsTest {
   void calculateFilePermissionsFileWithFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().fileMode("0777").build();
-    final File sourceFile = File.createTempFile("source-file", "txt", temp);
-    final File aFile = File.createTempFile("just-a-file", "txt", temp);
+    final File sourceFile = Files.createTempFile(temp, "source-file", "txt").toFile();
+    final File aFile = Files.createTempFile(temp, "just-a-file", "txt").toFile();
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceFile, aFile, afs);
     // Then
@@ -67,8 +68,8 @@ class AssemblyFileSetUtilsTest {
   void calculateFilePermissionsDirectoryWithNoDirectoryMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().build();
-    final File sourceDirectory = temp.toPath().resolve("source-directory").toFile();
-    final File aDirectory = Files.createDirectories(temp.toPath().resolve("just-a-directory")).toFile();
+    final File sourceDirectory = temp.resolve("source-directory").toFile();
+    final File aDirectory = Files.createDirectories(temp.resolve("just-a-directory")).toFile();
     // When
     final List<AssemblyFileEntry> result = calculateFilePermissions(sourceDirectory, aDirectory, afs);
     // Then
@@ -79,12 +80,12 @@ class AssemblyFileSetUtilsTest {
   void calculateFilePermissionsDirectoryWithDirectoryMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().directoryMode("040777").build();
-    final File sourceDirectory = new File(temp, "source-directory");
+    final File sourceDirectory = new File(temp.toFile(), "source-directory");
     final File sourceSubdirectory = new File(sourceDirectory, "subdirectory");
     FileUtils.forceMkdir(sourceSubdirectory);
     final File sourceFile = new File(sourceDirectory, "file.txt");
     assertThat(sourceFile.createNewFile()).isTrue();
-    final File aDirectory = new File(temp, "just-a-directory");
+    final File aDirectory = new File(temp.toFile(), "just-a-directory");
     final File aSubdirectory = new File(aDirectory, "subdirectory");
     FileUtils.forceMkdir(aSubdirectory);
     final File aFile = new File(aDirectory, "file.txt");
@@ -103,10 +104,10 @@ class AssemblyFileSetUtilsTest {
   void calculateFilePermissionsDirectoryAndNestedDirectoryWithDirectoryAndFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().directoryMode("040775").fileMode("0755").build();
-    final File sourceDirectory = new File(temp, "source-directory");
+    final File sourceDirectory = new File(temp.toFile(), "source-directory");
     final File sourceSubdirectory = new File(sourceDirectory, "subdirectory");
     FileUtils.forceMkdir(sourceSubdirectory);
-    final File aDirectory = new File(temp, "just-a-directory");
+    final File aDirectory = new File(temp.toFile(), "just-a-directory");
     final File aSubdirectory = new File(aDirectory, "subdirectory");
     FileUtils.forceMkdir(aSubdirectory);
     // When
@@ -122,12 +123,12 @@ class AssemblyFileSetUtilsTest {
   void calculateFilePermissionsDirectoryAndNestedDirectoryAndFileWithDirectoryAndFileMode() throws Exception {
     // Given
     final AssemblyFileSet afs = AssemblyFileSet.builder().directoryMode("040755").fileMode("0755").build();
-    final File sourceDirectory = new File(temp, "source-directory");
+    final File sourceDirectory = new File(temp.toFile(), "source-directory");
     final File sourceSubdirectory = new File(sourceDirectory, "subdirectory");
     FileUtils.forceMkdir(sourceSubdirectory);
     final File sourceFile = new File(sourceDirectory, "file.txt");
     assertThat(sourceFile.createNewFile()).isTrue();
-    final File aDirectory = new File(temp, "just-a-directory");
+    final File aDirectory = new File(temp.toFile(), "just-a-directory");
     final File aSubdirectory = new File(aDirectory, "subdirectory");
     FileUtils.forceMkdir(aSubdirectory);
     final File aFile = new File(aDirectory, "file.txt");

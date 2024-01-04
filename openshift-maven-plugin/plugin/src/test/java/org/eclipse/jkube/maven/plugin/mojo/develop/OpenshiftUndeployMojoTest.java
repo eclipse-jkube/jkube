@@ -22,6 +22,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,11 +39,11 @@ class OpenshiftUndeployMojoTest {
   private OpenshiftUndeployMojo undeployMojo;
 
   @BeforeEach
-  void setUp(@TempDir File temporaryFolder) throws IOException {
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
     mockServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
-    kubernetesManifestFile = File.createTempFile("junit", "ext", temporaryFolder);
-    openShiftManifestFile = File.createTempFile("junit", "ext", temporaryFolder);
-    openShiftISManifestFile = File.createTempFile("junit", "ext", temporaryFolder);
+    kubernetesManifestFile = Files.createTempFile(temporaryFolder, "junit", "ext").toFile();
+    openShiftManifestFile = Files.createTempFile(temporaryFolder, "junit", "ext").toFile();
+    openShiftISManifestFile = Files.createTempFile(temporaryFolder, "junit", "ext").toFile();
     // @formatter:off
     undeployMojo = new OpenshiftUndeployMojo() {{
       kubernetesManifest = kubernetesManifestFile;

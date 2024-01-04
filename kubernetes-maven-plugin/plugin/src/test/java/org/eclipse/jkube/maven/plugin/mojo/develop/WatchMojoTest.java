@@ -62,7 +62,7 @@ class WatchMojoTest {
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws Exception {
-    final File srcDir = Files.createDirectory(temporaryFolder.resolve("src")).toFile();
+    final Path srcDir = Files.createDirectory(temporaryFolder.resolve("src"));
     final File targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
       withSettings().defaultAnswer(RETURNS_DEEP_STUBS), (mock, context) -> {
@@ -78,7 +78,7 @@ class WatchMojoTest {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       when(mock.getNamespace()).thenReturn("namespace-from-config");
     });
-    kubernetesManifestFile =  File.createTempFile("kubernetes", ".yml", srcDir);
+    kubernetesManifestFile =  Files.createTempFile(srcDir, "kubernetes", ".yml").toFile();
     mavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
     when(mavenProject.getProperties()).thenReturn(new Properties());
     when(mavenProject.getCompileClasspathElements()).thenReturn(Collections.emptyList());

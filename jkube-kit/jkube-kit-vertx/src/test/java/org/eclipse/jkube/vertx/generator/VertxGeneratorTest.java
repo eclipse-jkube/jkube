@@ -15,6 +15,8 @@ package org.eclipse.jkube.vertx.generator;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -47,11 +49,11 @@ class VertxGeneratorTest {
   private Dependency core;
 
   @BeforeEach
-  void init(@TempDir File folder) throws IOException {
+  void init(@TempDir Path folder) throws IOException {
     dropwizard = Dependency.builder().groupId("io.vertx").artifactId("vertx-dropwizard-metrics").version("3.4.2")
-        .type("jar").scope("compile").file(File.createTempFile("vertx-dropwizard-metrics", ".jar", folder)).build();
+        .type("jar").scope("compile").file(Files.createTempFile(folder, "vertx-dropwizard-metrics", ".jar").toFile()).build();
     core = Dependency.builder().groupId("io.vertx").artifactId("vertx-core").version("3.4.2").type("jar")
-        .scope("compile").file(File.createTempFile("vertx-core", ".jar", folder)).build();
+        .scope("compile").file(Files.createTempFile(folder, "vertx-core", ".jar").toFile()).build();
     project = mock(JavaProject.class, RETURNS_DEEP_STUBS);
     KitLogger logger = mock(KitLogger.class, RETURNS_DEEP_STUBS);
     context = GeneratorContext.builder()
