@@ -10,6 +10,10 @@ items:
       jkube.eclipse.org/git-commit: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
     labels:
+      app.kubernetes.io/managed-by: jkube
+      app.kubernetes.io/name: expose
+      app.kubernetes.io/version: "@ignore@"
+      app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
       app: expose
       provider: jkube
       version: "@ignore@"
@@ -20,6 +24,9 @@ items:
     revisionHistoryLimit: 2
     selector:
       matchLabels:
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/name: expose
+        app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
         app: expose
         provider: jkube
         group: org.eclipse.jkube.integration.tests.gradle
@@ -30,6 +37,10 @@ items:
           jkube.eclipse.org/git-commit: "@ignore@"
           jkube.eclipse.org/git-branch: "@ignore@"
         labels:
+          app.kubernetes.io/managed-by: jkube
+          app.kubernetes.io/name: expose
+          app.kubernetes.io/version: "@ignore@"
+          app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
           app: expose
           provider: jkube
           version: "@ignore@"
