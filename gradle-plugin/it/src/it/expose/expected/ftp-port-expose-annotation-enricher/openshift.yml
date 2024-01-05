@@ -12,6 +12,10 @@ items:
       jkube.eclipse.org/git-commit: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
     labels:
+      app.kubernetes.io/managed-by: jkube
+      app.kubernetes.io/name: expose
+      app.kubernetes.io/version: "@ignore@"
+      app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
       expose: "true"
       app: expose
       provider: jkube
@@ -25,6 +29,9 @@ items:
         protocol: TCP
         targetPort: 21
     selector:
+      app.kubernetes.io/managed-by: jkube
+      app.kubernetes.io/name: expose
+      app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
       app: expose
       provider: jkube
       group: org.eclipse.jkube.integration.tests.gradle
@@ -38,6 +45,10 @@ items:
       jkube.eclipse.org/git-commit: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
     labels:
+      app.kubernetes.io/managed-by: jkube
+      app.kubernetes.io/name: expose
+      app.kubernetes.io/version: "@ignore@"
+      app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
       app: expose
       provider: jkube
       version: "@ignore@"
@@ -47,6 +58,9 @@ items:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
+      app.kubernetes.io/managed-by: jkube
+      app.kubernetes.io/name: expose
+      app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
       app: expose
       provider: jkube
       group: org.eclipse.jkube.integration.tests.gradle
@@ -63,6 +77,10 @@ items:
           jkube.eclipse.org/git-commit: "@ignore@"
           jkube.eclipse.org/git-branch: "@ignore@"
         labels:
+          app.kubernetes.io/managed-by: jkube
+          app.kubernetes.io/name: expose
+          app.kubernetes.io/version: "@ignore@"
+          app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
           app: expose
           provider: jkube
           version: "@ignore@"
@@ -104,6 +122,10 @@ items:
       jkube.eclipse.org/git-commit: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
     labels:
+      app.kubernetes.io/managed-by: jkube
+      app.kubernetes.io/name: expose
+      app.kubernetes.io/version: "@ignore@"
+      app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
       expose: "true"
       app: expose
       provider: jkube

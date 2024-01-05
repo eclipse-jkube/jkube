@@ -28,6 +28,10 @@ items:
       provider: jkube
       version: "@ignore@"
       group: org.eclipse.jkube
+      app.kubernetes.io/name: jkube-maven-sample-dependency-resources-dependent
+      app.kubernetes.io/version: "@ignore@"
+      app.kubernetes.io/managed-by: jkube
+      app.kubernetes.io/part-of: org.eclipse.jkube
     name: example
   spec:
     replicas: 1337
@@ -37,6 +41,9 @@ items:
         app: jkube-maven-sample-dependency-resources-dependent
         provider: jkube
         group: org.eclipse.jkube
+        app.kubernetes.io/name: jkube-maven-sample-dependency-resources-dependent
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/part-of: org.eclipse.jkube
     template:
       metadata:
         annotations:
@@ -48,6 +55,10 @@ items:
           provider: jkube
           version: "@ignore@"
           group: org.eclipse.jkube
+          app.kubernetes.io/name: jkube-maven-sample-dependency-resources-dependent
+          app.kubernetes.io/version: "@ignore@"
+          app.kubernetes.io/managed-by: jkube
+          app.kubernetes.io/part-of: org.eclipse.jkube
       spec:
         containers:
         - env:

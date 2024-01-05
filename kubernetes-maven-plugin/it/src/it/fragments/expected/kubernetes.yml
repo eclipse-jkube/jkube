@@ -26,6 +26,10 @@ items:
         provider: jkube
         version: "@ignore@"
         group: org.eclipse.jkube
+        app.kubernetes.io/name: fragments
+        app.kubernetes.io/version: "@ignore@"
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/part-of: org.eclipse.jkube
       name: ribbon
   - apiVersion: v1
     kind: ConfigMap
@@ -35,6 +39,10 @@ items:
         provider: jkube
         version: "@ignore@"
         group: org.eclipse.jkube
+        app.kubernetes.io/name: fragments
+        app.kubernetes.io/version: "@ignore@"
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/part-of: org.eclipse.jkube
       name: config-map
     data:
       application.properties: |-
@@ -48,6 +56,10 @@ items:
         provider: jkube
         version: "@ignore@"
         group: org.eclipse.jkube
+        app.kubernetes.io/name: fragments
+        app.kubernetes.io/version: "@ignore@"
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/part-of: org.eclipse.jkube
       name: custom.resource.example.com
   - apiVersion: custom.resource.example.com/v1
     kind: Example
@@ -57,6 +69,10 @@ items:
         provider: jkube
         version: "@ignore@"
         group: org.eclipse.jkube
+        app.kubernetes.io/name: fragments
+        app.kubernetes.io/version: "@ignore@"
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/part-of: org.eclipse.jkube
       name: custom-resource
       namespace: code
     spec:
