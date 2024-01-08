@@ -42,6 +42,7 @@ public class Serialization {
   static {
     for (ObjectMapper mapper : new ObjectMapper[]{JSON_MAPPER, YAML_MAPPER}) {
       mapper.enable(SerializationFeature.INDENT_OUTPUT)
+        .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS)
         .disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS)
         .disable(SerializationFeature.WRITE_NULL_MAP_VALUES);
     }

@@ -172,6 +172,7 @@ public class HelmServiceUtil {
     }
     firstProjectFile("README", project).ifPresent(additionalFiles::add);
     firstProjectFile("LICENSE", project).ifPresent(additionalFiles::add);
+    firstProjectFile("values.schema.json", project).ifPresent(additionalFiles::add);
     return additionalFiles;
   }
 

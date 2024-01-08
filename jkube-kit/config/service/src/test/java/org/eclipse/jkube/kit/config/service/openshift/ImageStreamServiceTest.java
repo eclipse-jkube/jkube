@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.config.service.openshift;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -65,13 +67,13 @@ class ImageStreamServiceTest {
     }
 
     @Test
-    void simple(@TempDir File temporaryFolder) throws Exception {
+    void simple(@TempDir Path temporaryFolder) throws Exception {
         ImageStreamService service = new ImageStreamService(client, "default", log);
 
         final ImageStream lookedUpIs = lookupImageStream("ab12cd");
         setupClientMock(lookedUpIs,"default", "test");
         ImageName name = new ImageName("test:1.0");
-        File target = File.createTempFile("ImageStreamServiceTest",".yml", temporaryFolder);
+        File target = Files.createTempFile(temporaryFolder, "ImageStreamServiceTest", ".yml").toFile();
         service.appendImageStreamResource(name, target);
         assertThat(target).exists();
 

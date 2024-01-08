@@ -42,16 +42,17 @@ class HelmServiceUtilTest {
 
   private File templateDir;
   private JavaProject javaProject;
+  private File projectBaseDir;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws Exception {
-    final File baseDir = Files.createDirectory(temporaryFolder.resolve("test-project")).toFile();
-    final File buildDir = new File(baseDir, "target");
+    projectBaseDir = Files.createDirectory(temporaryFolder.resolve("test-project")).toFile();
+    final File buildDir = new File(projectBaseDir, "target");
     templateDir = new File(buildDir, "jkube");
     FileUtils.forceMkdir(templateDir);
     javaProject = JavaProject.builder()
         .properties(new Properties())
-        .baseDirectory(baseDir)
+        .baseDirectory(projectBaseDir)
         .outputDirectory(new File(buildDir, "classes"))
         .buildDirectory(buildDir)
         .artifactId("artifact-id")
@@ -139,6 +140,23 @@ class HelmServiceUtilTest {
           HelmConfig.HelmType.KUBERNETES,
           HelmConfig.HelmType.OPENSHIFT
       );
+  }
+
+  @Test
+  void initHelmConfig_whenValuesSchemaJsonPresentInProjectBaseDir_thenAddToHelmConfig() throws IOException {
+    // Given
+    File valuesSchemaJson = new File(projectBaseDir, "values.schema.json");
+    Files.createFile(valuesSchemaJson.toPath());
+    Files.write(valuesSchemaJson.toPath(), "{\"$schema\": \"https://json-schema.org/draft-07/schema#\"}".getBytes());
+
+    // When
+    final HelmConfig result = HelmServiceUtil
+        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, templateDir, null)
+        .build();
+
+    // Then
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("additionalFiles", Collections.singletonList(valuesSchemaJson));
   }
 
   @Test

@@ -214,6 +214,47 @@ class HelmServiceTest {
   }
 
   @Test
+  void generateHelmCharts_whenInvoked_thenGeneratedValuesYamlInAlphabeticalOrder() throws IOException {
+    // Given
+    Path unsortedValuesYaml = helmSourceDirectory.resolve("values.helm.yaml");
+    Files.write(unsortedValuesYaml, ("root:\n" +
+        "  ingress:\n" +
+        "    className: \"IngressClass\"\n" +
+        "    annotations:\n" +
+        "      tls-acme: \"true\"\n" +
+        "      ingress.class: nginx\n" +
+        "    enabled: false\n" +
+        "  country-codes:\n" +
+        "    countries:\n" +
+        "      spain: \"+34\"\n" +
+        "      france: \"+33\"\n" +
+        "      india: \"+91\"").getBytes());
+    resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(helmSourceDirectory.toFile())).build();
+    helmConfig.types(Collections.singletonList(HelmType.KUBERNETES));
+
+    // When
+    new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
+        .generateHelmCharts(helmConfig.build());
+
+    // Then
+    File generatedValuesYaml = helmOutputDirectory.resolve("kubernetes").resolve("values.yaml").toFile();
+    assertThat(new String(Files.readAllBytes(generatedValuesYaml.toPath())))
+        .isEqualTo("---\n" +
+            "root:\n" +
+            "  country-codes:\n" +
+            "    countries:\n" +
+            "      france: \"+33\"\n" +
+            "      india: \"+91\"\n" +
+            "      spain: \"+34\"\n" +
+            "  ingress:\n" +
+            "    annotations:\n" +
+            "      ingress.class: nginx\n" +
+            "      tls-acme: \"true\"\n" +
+            "    className: IngressClass\n" +
+            "    enabled: false\n");
+  }
+
+  @Test
   void createChartYamlWithDependencies() throws Exception {
     // Given
     helmConfig.types(Collections.singletonList(HelmType.KUBERNETES));
