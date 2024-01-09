@@ -60,7 +60,6 @@ class IoUtilTest {
         try (ServerSocket ss = new ServerSocket(port2)) {
             assertThat(ss).isNotNull();
         }
-        assertThat(port2 > port).isTrue();
         assertThat(port2).isGreaterThan(port);
     }
 
