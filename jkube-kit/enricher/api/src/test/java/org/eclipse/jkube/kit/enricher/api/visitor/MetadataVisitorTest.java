@@ -351,7 +351,7 @@ class MetadataVisitorTest {
   }
 
   @Test
-  public void metadataVisit_whenMultilineAnnotationProvided_shouldAddTrailingNewline() {
+  void metadataVisit_whenMultilineAnnotationProvided_shouldAddTrailingNewline() {
     // Given
     Properties allProps = new Properties();
     final ObjectMetaBuilder db = new ObjectMetaBuilder();
