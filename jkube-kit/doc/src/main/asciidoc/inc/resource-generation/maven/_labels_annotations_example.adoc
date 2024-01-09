@@ -35,7 +35,15 @@
       </labels>
 
       <annotations> <!--8-->
-         <!-- ... -->
+        <deployment> <!--9-->
+          <my>deployment</my>
+        </deployment>
+        <service>
+          <property> <!--10-->
+            <name>cloud.google.com/neg</name>
+            <value>{"ingress":true}</value>
+          </property>
+        </service>
       </annotations>
     </resource>
   </configuration>
@@ -48,4 +56,6 @@
 <5> `<replicaSet>` labels are for replica set and replication controller
 <6> `<pod>` holds labels for pod specifications in replication controller, replica sets and deployments
 <7> `<deployment>` is for labels on deployments (kubernetes) and deployment configs (openshift)
-<8> The subelements are also available for specifying annotations.
+<8> The subelements are also available for specifying annotations
+<9> An annotation for a deployment. The key equals the tag and the value its child element
+<10> Instead of a self defined tag, the tag `<property>` can be used to handle complex cases. This case shows the usage to handle special characters that aren't possible in xml-tags
