@@ -35,6 +35,7 @@ Usage:
 * Fix #2474: Remove Docker-related classes providing  unused functionality
 * Fix #2477: Support for Spring Boot 3.2.0 (and newer) layered jar format
 * Fix #2503: Container Images Jolokia agent bumped to 2.0.0
+* Fix #2532: Bump version.kubernetes-client from 6.9.2 to 6.10.0
 
 ### 1.15.0 (2023-11-10)
 * Fix #2138: Support for Spring Boot Native Image
