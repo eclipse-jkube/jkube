@@ -153,6 +153,8 @@ ifeval::["{plugin-type}" == "maven"]
 
 endif::[]
 
+| <<jkube-well-known-labels>>
+| Add https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels[Kubernetes Recommended Well Known labels].
 |===
 
 [[enrichers-generic]]
@@ -223,6 +225,8 @@ include::enricher/serviceaccount/_jkube_serviceaccount.adoc[]
 include::enricher/triggers-annotation/_jkube_triggers_annotation.adoc[]
 
 include::enricher/volume-permission/_jkube_volume_permission.adoc[]
+
+include::enricher/well-known-labels/_jkube_well_known_labels.adoc[]
 
 // TODO: At the moment only enrichers listed above have been tested and documented with gradle plugins. Adding the
 // rest of enrichers only in case of maven. We can slowly refactor these to support both maven and gradle configurations.

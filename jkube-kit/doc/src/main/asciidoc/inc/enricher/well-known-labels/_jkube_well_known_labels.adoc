@@ -1,0 +1,69 @@
+
+[[jkube-well-known-labels]]
+==== jkube-well-known-labels
+
+Enricher that adds https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels[Well Known Labels] recommended by Kubernetes.
+
+The `jkube-well-known-labels` enricher supports the following configuration options:
+
+[cols="1,6,1"]
+|===
+| Option | Description | Property
+
+|
+| Add Kubernetes Well Known labels to generated resources.
+
+Defaults to `true`
+| `jkube.kubernetes.well-known-labels`
+
+| *enabled*
+| Enable this flag to turn on addition of Kubernetes Well Known labels.
+
+  Defaults to `true`.
+| `jkube.enricher.jkube-well-known-labels.enabled`
+
+| *name*
+| The name of the application (`app.kubernetes.io/name`).
+
+ifeval::["{plugin-type}" == "maven"]
+Defaults to the Maven `project.artifactId` property.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Defaults to the Gradle Project `name` property.
+endif::[]
+| `jkube.enricher.jkube-well-known-labels.name`
+
+| *version*
+| The current version of the application (`app.kubernetes.io/version`).
+
+ifeval::["{plugin-type}" == "maven"]
+Defaults to the Maven `project.version` property.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Defaults to the Gradle Project `version` property.
+endif::[]
+| `jkube.enricher.jkube-well-known-labels.version`
+
+| *component*
+| The component within the architecture (`app.kubernetes.io/component`).
+| `jkube.enricher.jkube-well-known-labels.component`
+
+| *partOf*
+| The name of a higher level application this one is part of (`app.kubernetes.io/part-of`).
+
+ifeval::["{plugin-type}" == "maven"]
+Defaults to the Maven `project.groupId` property.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Defaults to the Gradle Project `group` property.
+endif::[]
+| `jkube.enricher.jkube-well-known-labels.partOf`
+
+| *managedBy*
+| The tool being used to manage the operation of an application (`app.kubernetes.io/managed-by`).
+
+Defaults to `jkube`
+| `jkube.enricher.jkube-well-known-labels.managedBy`
+|===
+
+The Well Known Labels which are already specified in the input fragments are not overridden by the enricher.
