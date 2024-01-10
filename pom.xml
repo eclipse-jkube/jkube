@@ -103,7 +103,7 @@
     <version.jacoco>0.8.10</version.jacoco>
     <version.json-smart>2.5.0</version.json-smart> <!-- Transitive dependency  required by citrus -->
     <version.junit5>5.10.0</version.junit5>
-    <version.kubernetes-client>6.9.2</version.kubernetes-client>
+    <version.kubernetes-client>6.10.0</version.kubernetes-client>
     <version.license-maven-plugin>4.2</version.license-maven-plugin>
     <version.lombok>1.18.28</version.lombok>
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
