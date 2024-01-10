@@ -17,6 +17,7 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,8 +31,7 @@ class RegistryConfigTest {
   @Test
   void rawDeserialization() throws IOException {
     // Given
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(MapperFeature.USE_ANNOTATIONS, false);
+    final ObjectMapper mapper = JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
     // When
     final RegistryConfig result = mapper.readValue(
         RegistryConfigTest.class.getResourceAsStream("/registry-config.json"),
