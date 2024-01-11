@@ -180,59 +180,81 @@ public class ImageStreamService {
         return tag;
     }
 
+    // Method to find the SHA of the latest tag in an ImageStream
     private String findTagSha(OpenShiftClient client, String imageStreamName, String namespace) {
         ImageStream currentImageStream = null;
 
         for (int i = 0; i < imageStreamTagRetries; i++) {
             if (i > 0) {
                 log.info("Retrying to find tag on ImageStream %s", imageStreamName);
-                try {
-                    Thread.sleep(imageStreamTagRetryTimeoutInMillis);
-                } catch (InterruptedException e) {
-                    log.debug("interrupted", e);
-                    Thread.currentThread().interrupt();
-                }
+                sleepThread();
             }
+
             currentImageStream = client.imageStreams().inNamespace(namespace).withName(imageStreamName).get();
-            if (currentImageStream == null) {
-                continue;
-            }
-            ImageStreamStatus status = currentImageStream.getStatus();
-            if (status == null) {
-                continue;
-            }
-            List<NamedTagEventList> tags = status.getTags();
-            if (tags == null || tags.isEmpty()) {
-                continue;
-            }
+            if (currentImageStream != null) {
+                TagEvent latestTag = findLatestTag(currentImageStream);
 
-            // Iterate all imagestream tags and get the latest one by 'created' attribute
-            TagEvent latestTag = null;
-
-            TAG_EVENT_LIST:
-            for (NamedTagEventList list : tags) {
-                List<TagEvent> items = list.getItems();
-                if (items == null || items.isEmpty()) {
-                    continue TAG_EVENT_LIST;
+                if (latestTag != null && StringUtils.isNotBlank(latestTag.getImage())) {
+                    String image = latestTag.getImage();
+                    log.info("Found tag on ImageStream " + imageStreamName + " tag: " + image);
+                    return image;
                 }
-
-                for (TagEvent tag : items) {
-                    latestTag = latestTag == null ? tag : newerTag(tag, latestTag);
-                }
-            }
-
-            if (latestTag != null && StringUtils.isNotBlank(latestTag.getImage())) {
-                String image = latestTag.getImage();
-                log.info("Found tag on ImageStream " + imageStreamName + " tag: " + image);
-                return image;
             }
         }
+        // Handle the case when no image is found after all retries:
+        throw handleNoImageFoundException(currentImageStream, imageStreamName);
+    }
 
-        // No image found, even after several retries:
+    // Method to sleep the current thread for a given amount of time
+    private void sleepThread() {
+        try {
+            Thread.sleep(imageStreamTagRetryTimeoutInMillis);
+        } catch (InterruptedException e) {
+            log.debug("interrupted", e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    // Method to find the latest TagEvent from an ImageStream
+    private TagEvent findLatestTag(ImageStream currentImageStream) {
+        ImageStreamStatus status = currentImageStream.getStatus();
+        if (status != null) {
+            List<NamedTagEventList> tags = status.getTags();
+            if (tags != null && !tags.isEmpty()) {
+                return getLatestTagFromEventLists(tags);
+            }
+        }
+        return null;
+    }
+
+    // Method to iterate over NamedTagEventList and find the latest TagEvent
+    private TagEvent getLatestTagFromEventLists(List<NamedTagEventList> tags) {
+        TagEvent latestTag = null;
+        for (NamedTagEventList list : tags) {
+            latestTag = updateLatestTagFromList(latestTag, list);
+        }
+        return latestTag;
+    }
+
+    // Method to find the latest TagEvent from a NamedTagEventList
+    private TagEvent updateLatestTagFromList(TagEvent latestTag, NamedTagEventList list) {
+        List<TagEvent> items = list.getItems();
+        if (items != null && !items.isEmpty()) {
+            for (TagEvent tag : items) {
+                // Update the latest tag
+                latestTag = latestTag == null ? tag : newerTag(tag, latestTag);
+            }
+        }
+        //
+        return latestTag;
+    }
+
+    // Method to handle cases where no image is found
+    private IllegalStateException handleNoImageFoundException(ImageStream currentImageStream, String imageStreamName) {
         if (currentImageStream == null) {
-            throw new IllegalStateException("Could not find a current ImageStream with name " + imageStreamName + " in namespace " + namespace);
+            return new IllegalStateException("Could not find a current ImageStream with name " + imageStreamName + " in namespace " + namespace);
         } else {
-            throw new IllegalStateException("Could not find a tag in the ImageStream " + imageStreamName);
+            return new IllegalStateException("Could not find a tag in the ImageStream " + imageStreamName);
         }
     }
 
