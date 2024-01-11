@@ -29,7 +29,7 @@ class IngressConfigTest {
   @Test
   void rawDeserialization() throws IOException {
     // Given
-      final ObjectMapper mapper = JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
+    final ObjectMapper mapper = JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
     // When
     final IngressConfig result = mapper.readValue(
         IngressConfigTest.class.getResourceAsStream("/ingress-config.json"),
