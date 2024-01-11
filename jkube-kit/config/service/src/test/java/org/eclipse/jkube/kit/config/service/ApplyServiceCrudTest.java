@@ -80,7 +80,7 @@ class ApplyServiceCrudTest {
       .platformMode(RuntimeMode.KUBERNETES)
       .clusterAccess(new ClusterAccess(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build()))
       .build();
-    applyService = new ApplyService(serviceHub);
+    applyService = serviceHub.getApplyService();
     applyService.setNamespace("default");
     kubernetesMockServer.expect()
       .get()

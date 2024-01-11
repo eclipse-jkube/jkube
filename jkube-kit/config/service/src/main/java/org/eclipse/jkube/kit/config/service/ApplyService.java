@@ -104,7 +104,7 @@ public class ApplyService {
     // This map is to track projects created.
     private static final Set<String> projectsCreated = new HashSet<>();
 
-    public ApplyService(JKubeServiceHub serviceHub) {
+    ApplyService(JKubeServiceHub serviceHub) {
         this.kubernetesClient = serviceHub.getClient();
         this.log = serviceHub.getLog();
         this.patchService = new PatchService(kubernetesClient);
