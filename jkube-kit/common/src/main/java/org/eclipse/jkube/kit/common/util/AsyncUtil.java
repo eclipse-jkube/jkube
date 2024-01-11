@@ -78,6 +78,17 @@ public class AsyncUtil {
     }
   }
 
+  public static <T> T get(CompletableFuture<T> completableFuture) {
+    try {
+      return completableFuture.get();
+    } catch (ExecutionException e) {
+      throw new IllegalStateException(e);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IllegalStateException(e);
+    }
+  }
+
   @FunctionalInterface
   public interface ThrowingFunction<T, R> {
     R apply(T t) throws Exception;
