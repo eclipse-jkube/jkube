@@ -32,6 +32,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.AsyncUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
@@ -65,7 +67,6 @@ public class PodLogService {
     private Watch podWatcher;
     private LogWatch logWatcher;
     private final Map<String, Pod> addedPods = new ConcurrentHashMap<>();
-    private final CountDownLatch terminateLatch = new CountDownLatch(1);
     private String watchingPodName;
     private CountDownLatch logWatchTerminateLatch;
 
@@ -157,9 +158,10 @@ public class PodLogService {
                 }
             }
         }
+        final CompletableFuture<Void> logsRetrieved = new CompletableFuture<>();
         // we may have missed the ADDED event so lets simulate one
         if (latestPod != null) {
-            onPod(Watcher.Action.ADDED, latestPod, kc, ctrlCMessage, followLog);
+            onPod(logsRetrieved, Watcher.Action.ADDED, latestPod, kc, ctrlCMessage, followLog);
         }
         if (!watchAddedPodsOnly && !runningPod) {
             log.warn("No pod is running yet. Are you sure you deployed your app using Eclipse JKube apply/deploy mechanism?");
@@ -168,7 +170,7 @@ public class PodLogService {
         podWatcher = pods.watch(new Watcher<Pod>() {
             @Override
             public void eventReceived(Action action, Pod pod) {
-                onPod(action, pod, kc, ctrlCMessage, followLog);
+                onPod(logsRetrieved, action, pod, kc, ctrlCMessage, followLog);
             }
 
             @Override
@@ -177,18 +179,12 @@ public class PodLogService {
             }
         });
 
-        if (waitInCurrentThread) {
-            while (terminateLatch.getCount() > 0) {
-                try {
-                    terminateLatch.await();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
+        if (waitInCurrentThread && !logsRetrieved.isDone()) {
+            AsyncUtil.get(logsRetrieved);
         }
     }
 
-    private void onPod(Watcher.Action action, Pod pod, NamespacedKubernetesClient kubernetes, String ctrlCMessage, boolean followLog) {
+    private void onPod(CompletableFuture<Void> logsRetrieved, Watcher.Action action, Pod pod, NamespacedKubernetesClient kubernetes, String ctrlCMessage, boolean followLog) {
         String name = KubernetesHelper.getName(pod);
         if (action.equals(Watcher.Action.DELETED)) {
             addedPods.remove(name);
@@ -211,11 +207,11 @@ public class PodLogService {
         }
 
         if (watchPod != null && KubernetesHelper.isPodRunning(watchPod)) {
-            watchLogOfPodName(kubernetes, ctrlCMessage, followLog, watchPod, KubernetesHelper.getName(watchPod));
+            watchLogOfPodName(logsRetrieved, kubernetes, ctrlCMessage, followLog, watchPod, KubernetesHelper.getName(watchPod));
         }
     }
 
-    private void watchLogOfPodName(NamespacedKubernetesClient kubernetes, String ctrlCMessage, boolean followLog, Pod pod, String name) {
+    private void watchLogOfPodName(CompletableFuture<Void> logsRetrieved, NamespacedKubernetesClient kubernetes, String ctrlCMessage, boolean followLog, Pod pod, String name) {
         if (watchingPodName == null || !watchingPodName.equals(name)) {
             if (logWatcher != null) {
                 log.info("Closing log watcher for %s as now watching %s", watchingPodName, name);
@@ -250,7 +246,7 @@ public class PodLogService {
                         log.info("[[s]]%s", line);
                     }
                 }
-                terminateLatch.countDown();
+                logsRetrieved.complete(null);
             }
         }
     }
