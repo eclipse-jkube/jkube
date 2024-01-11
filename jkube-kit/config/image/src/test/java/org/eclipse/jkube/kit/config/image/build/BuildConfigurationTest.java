@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Stream;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.assertj.core.api.Assertions;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 
@@ -234,8 +235,7 @@ class BuildConfigurationTest {
   @Test
   void rawDeserialization() throws IOException {
     // Given
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(MapperFeature.USE_ANNOTATIONS, false);
+    final ObjectMapper mapper = JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
     // When
     final BuildConfiguration result = mapper.readValue(
         BuildConfigurationTest.class.getResourceAsStream("/build-configuration.json"),

@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.config.resource;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -28,8 +29,7 @@ class IngressConfigTest {
   @Test
   void rawDeserialization() throws IOException {
     // Given
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(MapperFeature.USE_ANNOTATIONS, false);
+      final ObjectMapper mapper = JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
     // When
     final IngressConfig result = mapper.readValue(
         IngressConfigTest.class.getResourceAsStream("/ingress-config.json"),
