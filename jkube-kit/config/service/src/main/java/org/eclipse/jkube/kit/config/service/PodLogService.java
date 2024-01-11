@@ -282,7 +282,12 @@ public class PodLogService {
         context.getNewPodLog().info("Press Ctrl-C to " + ctrlCMessage);
         context.getNewPodLog().info("");
 
-        KubernetesHelper.printLogsAsync(logWatcher, failureMessage, this.logWatchTerminateLatch, log);
+        KubernetesHelper.printLogsAsync(logWatcher, line -> log.info("[[s]]%s", line))
+          .whenComplete((v, t) -> {
+              if (t != null) {
+                  log.error("%s: %s", failureMessage, t);
+              }
+          });
     }
 
     private String containerNameMessage(String containerName) {

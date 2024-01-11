@@ -34,11 +34,11 @@ public class AsyncUtil {
     public static final ExecutorService INSTANCE = Executors.newCachedThreadPool();
   }
 
-  public static <T> CompletableFuture<T> async(Callable<T> callable) {
+  public static <T> CompletableFuture<T> async(ThrowingFunction<CompletableFuture<T>, T> function) {
     final CompletableFuture<T> future = new CompletableFuture<>();
     CompletableFuture.runAsync(() -> {
       try {
-        future.complete(callable.call());
+        future.complete(function.apply(future));
       } catch (Exception ex) {
         future.completeExceptionally(ex);
       }
@@ -49,6 +49,10 @@ public class AsyncUtil {
       }
     });
     return future;
+  }
+
+  public static <T> CompletableFuture<T> async(Callable<T> callable) {
+    return async(f -> callable.call());
   }
 
   public static <T> Function<Predicate<T>, CompletableFuture<T>> await(Supplier<T> supplier) {
@@ -72,5 +76,10 @@ public class AsyncUtil {
     } catch (TimeoutException e) {
       throw new IllegalStateException("Failure while waiting to get future ", e);
     }
+  }
+
+  @FunctionalInterface
+  public interface ThrowingFunction<T, R> {
+    R apply(T t) throws Exception;
   }
 }

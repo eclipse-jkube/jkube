@@ -14,12 +14,10 @@
 package org.eclipse.jkube.kit.common.util;
 
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,7 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -45,6 +44,8 @@ import io.fabric8.kubernetes.api.model.authorization.v1.ResourceAttributesBuilde
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.Container;
@@ -88,6 +89,8 @@ import io.fabric8.openshift.api.model.Build;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.apache.commons.lang3.StringUtils;
+
+import static org.eclipse.jkube.kit.common.util.AsyncUtil.async;
 
 
 public class KubernetesHelper {
@@ -383,32 +386,23 @@ public class KubernetesHelper {
         return null;
     }
 
-    public static void printLogsAsync(LogWatch logWatcher, final String failureMessage, final CountDownLatch terminateLatch, final KitLogger log) {
-        final InputStream in = logWatcher.getOutput();
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-                    while (true) {
-                        String line = reader.readLine();
-                        if (line == null) {
-                            return;
-                        }
-                        if (terminateLatch.getCount() <= 0L) {
-                            return;
-                        }
-                        log.info("[[s]]%s", line);
-                    }
-                } catch (IOException e) {
-                    // Check again the latch which could be already count down to zero in between
-                    // so that an IO exception occurs on read
-                    if (terminateLatch.getCount() > 0L) {
-                        log.error("%s : %s", failureMessage, e);
-                    }
-                }
-            }
-        };
-        thread.start();
+    public static CompletableFuture<Void> printLogsAsync(LogWatch logWatcher, Consumer<String> lineConsumer) {
+      final LineIterator it = IOUtils.lineIterator(logWatcher.getOutput(), StandardCharsets.UTF_8);
+      return async(cf -> {
+        while (it.hasNext()) {
+          final String line = it.nextLine();
+          if (line == null) {
+            cf.complete(null);
+          } else {
+            lineConsumer.accept(line);
+          }
+          // Can be completed internally or externally
+          if (cf.isDone()) {
+            return null;
+          }
+        }
+        return null;
+      });
     }
 
     public static String getBuildStatusReason(Build build) {
