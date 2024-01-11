@@ -86,7 +86,7 @@ class ApplyServiceTest {
         .platformMode(RuntimeMode.KUBERNETES)
         .clusterAccess(new ClusterAccess(ClusterConfiguration.from(client.getConfiguration()).build()))
         .build();
-      applyService = new ApplyService(serviceHub);
+      applyService = serviceHub.getApplyService();
       applyService.setNamespace("default");
       // In OpenShift
       mockServer.expect()

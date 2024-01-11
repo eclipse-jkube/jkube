@@ -92,9 +92,8 @@ class DebugServiceTest {
       .clusterAccess(new ClusterAccess(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build()))
       .build();
     singleThreadExecutor = Executors.newSingleThreadExecutor();
-    final ApplyService applyService = new ApplyService(serviceHub);
-    applyService.setNamespace(kubernetesClient.getNamespace());
-    debugService = new DebugService(logger, kubernetesClient, new PortForwardService(logger), applyService);
+    serviceHub.getApplyService().setNamespace(kubernetesClient.getNamespace());
+    debugService = new DebugService(logger, kubernetesClient, new PortForwardService(logger), serviceHub.getApplyService());
   }
 
   @AfterEach
