@@ -36,6 +36,7 @@ import org.eclipse.jkube.kit.common.util.AsyncUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -145,8 +146,8 @@ public class PodLogService {
                     if (KubernetesHelper.isPodRunning(pod) || KubernetesHelper.isPodWaiting(pod)) {
                         if (latestPod == null || KubernetesHelper.isNewerResource(pod, latestPod)) {
                             if (ignorePodsOlderThan != null) {
-                                Date podCreateTime = KubernetesHelper.getCreationTimestamp(pod);
-                                if (podCreateTime != null && podCreateTime.compareTo(ignorePodsOlderThan) > 0) {
+                                Instant podCreateTime = KubernetesHelper.getCreationTimestamp(pod);
+                                if (podCreateTime != null && Date.from(podCreateTime).compareTo(ignorePodsOlderThan) > 0) {
                                     latestPod = pod;
                                 }
                             } else {
