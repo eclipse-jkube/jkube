@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,6 +48,7 @@ class PodLogServiceTest {
   KubernetesMockServer kubernetesMockServer;
   KubernetesClient kubernetesClient;
   private KitLogger log;
+  private KitLogger oldPodLog;
   private KitLogger newPodLog;
 
   private PodLogService.PodLogServiceContext podLogServiceContext;
@@ -56,10 +58,11 @@ class PodLogServiceTest {
   @BeforeEach
   void setUp() {
     log = spy(new KitLogger.SilentLogger());
+    oldPodLog = spy(new KitLogger.SilentLogger());
     newPodLog = spy(new KitLogger.SilentLogger());
     podLogServiceContext = PodLogService.PodLogServiceContext.builder()
       .log(log)
-      .oldPodLog(new KitLogger.SilentLogger())
+      .oldPodLog(oldPodLog)
       .newPodLog(newPodLog)
       .build();
     // Create a Deployment to use as the source of the Selector
@@ -146,6 +149,83 @@ class PodLogServiceTest {
   }
 
   @Test
+  @DisplayName("With Pod running, should log status update")
+  void podRunningShouldLogStatusUpdates() {
+    // Given
+    kubernetesClient.resource(runningPod).createOr(NonDeletingOperation::update);
+    // When
+    new PodLogService(podLogServiceContext)
+      .tailAppPodsLogs(kubernetesClient, null, entities, false, null, true, null, false);
+    // Then
+    verify(newPodLog, timeout(1000)).info("%s status: %s%s", "the-pod", "Running ", "");
+  }
+
+  @Test
+  @DisplayName("With Pod running and deletion, should log status update")
+  void podRunningAndDeletionShouldLogStatusUpdates() {
+    // Given
+    kubernetesClient.resource(runningPod).createOr(NonDeletingOperation::update);
+    new PodLogService(podLogServiceContext)
+      .tailAppPodsLogs(kubernetesClient, null, entities, false, null, true, null, false);
+    verify(newPodLog, timeout(1000)).info("%s status: %s%s", "the-pod", "Running ", "");
+    // When
+    kubernetesClient.resource(runningPod).delete();
+    // Then
+    verify(oldPodLog, timeout(1000)).info("%s status: %s%s", "the-pod", "Running ", ": Pod Deleted");
+  }
+
+
+  @Test
+  @DisplayName("With Pod running and deletion, should close previous watch")
+  @Disabled("This is a bug with the current implementation")
+  // TODO fix bug
+  void podRunningAndDeletionShouldClosePreviousWatch() {
+    // Given
+    kubernetesClient.resource(runningPod).createOr(NonDeletingOperation::update);
+    new PodLogService(podLogServiceContext)
+      .tailAppPodsLogs(kubernetesClient, null, entities, false, null, true, null, false);
+    verify(newPodLog, timeout(1000)).info("%s status: %s%s", "the-pod", "Running ", "");
+    // When
+    kubernetesClient.resource(runningPod).delete();
+    // Then
+    verify(log, timeout(1000)).info("Closing log watcher for %s as now watching %s", "the-pod", "new-pod");
+  }
+
+  @Test
+  @DisplayName("With Pod running and addition, should log status update of new Pod")
+  void podRunningAndAdditionShouldLogStatusUpdates() {
+    // Given
+    kubernetesClient.resource(runningPod).createOr(NonDeletingOperation::update);
+    new PodLogService(podLogServiceContext)
+      .tailAppPodsLogs(kubernetesClient, null, entities, false, null, true, null, false);
+    verify(newPodLog, timeout(1000)).info("Tailing log of pod: the-pod");
+    // When
+    kubernetesClient.resource(new PodBuilder(runningPod).editMetadata()
+        .withName("new-pod")
+        .endMetadata().build())
+      .createOr(NonDeletingOperation::update);
+    // Then
+    verify(newPodLog, timeout(1000)).info("%s status: %s%s", "new-pod", "Running ", "");
+  }
+
+  @Test
+  @DisplayName("With Pod running and addition, should log status update of new Pod")
+  void podPendingAndThenRunningShouldLogStatusUpdates() {
+    // Given
+    kubernetesClient.resource(new PodBuilder(runningPod).editStatus().withPhase("Pending").endStatus().build()).createOr(NonDeletingOperation::update);
+    new PodLogService(podLogServiceContext)
+      .tailAppPodsLogs(kubernetesClient, null, entities, false, null, true, null, false);
+    verify(newPodLog, timeout(1000)).info("%s status: %s%s", "the-pod", "Pending ", "");
+    // When
+    kubernetesClient.pods().withName("the-pod")
+      .edit(p -> new PodBuilder(p).editStatus().withPhase("Running").endStatus().build());
+    // Then
+    verify(newPodLog, timeout(1000)).info("%s status: %s%s", "the-pod", "Running ", "");
+    // Finally (prevents Client from being closed before completing the log execution)
+    verify(newPodLog, timeout(1000)).info("Tailing log of pod: the-pod");
+  }
+
+  @Test
   @DisplayName("With Pod running, should log container logs")
   void podRunningShouldLogContainerLogs() {
     // Given
@@ -204,7 +284,7 @@ class PodLogServiceTest {
 
   @Test
   @DisplayName("With Pod running and deleted, should close previous watcher")
-  void podRunningAndDeletedShouldLogContainerLogs() {
+  void podRunningAndDeletedShouldClosePreviousWatcher() {
     // Given
     kubernetesClient.resource(runningPod).createOr(NonDeletingOperation::update);
     kubernetesMockServer.expect()
@@ -226,6 +306,25 @@ class PodLogServiceTest {
       .createOr(NonDeletingOperation::update);
     // Then
     verify(log, timeout(1000)).info("Closing log watcher for %s as now watching %s", null, "new-pod");
+    // Finally (prevents Client from being closed before completing the log execution)
+    verify(newPodLog, timeout(1000)).info("Tailing log of pod: new-pod");
+  }
+
+  @Test
+  @DisplayName("With Pod running and addition, should close previous watch")
+  void podRunningAndAdditionShouldClosePreviousWatch() {
+    // Given
+    kubernetesClient.resource(runningPod).createOr(NonDeletingOperation::update);
+    new PodLogService(podLogServiceContext)
+      .tailAppPodsLogs(kubernetesClient, null, entities, false, null, true, null, false);
+    verify(newPodLog, timeout(1000)).info("Tailing log of pod: the-pod");
+    // When
+    kubernetesClient.resource(new PodBuilder(runningPod).editMetadata()
+        .withName("new-pod")
+        .endMetadata().build())
+      .createOr(NonDeletingOperation::update);
+    // Then
+    verify(log, timeout(1000)).info("Closing log watcher for %s as now watching %s", "the-pod", "new-pod");
   }
 
 }
