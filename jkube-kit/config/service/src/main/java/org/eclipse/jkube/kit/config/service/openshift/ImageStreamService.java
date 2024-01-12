@@ -202,7 +202,7 @@ public class ImageStreamService {
             }
         }
         // Handle the case when no image is found after all retries:
-        throw handleNoImageFoundException(currentImageStream, imageStreamName);
+        throw new IllegalStateException(generateImageStreamErrorMessage(currentImageStream, imageStreamName));
     }
 
     // Method to sleep the current thread for a given amount of time
@@ -250,11 +250,11 @@ public class ImageStreamService {
     }
 
     // Method to handle cases where no image is found
-    private IllegalStateException handleNoImageFoundException(ImageStream currentImageStream, String imageStreamName) {
+    private String generateImageStreamErrorMessage(ImageStream currentImageStream, String imageStreamName) {
         if (currentImageStream == null) {
-            return new IllegalStateException("Could not find a current ImageStream with name " + imageStreamName + " in namespace " + namespace);
+            return "Could not find a current ImageStream with name " + imageStreamName + " in namespace " + namespace;
         } else {
-            return new IllegalStateException("Could not find a tag in the ImageStream " + imageStreamName);
+            return "Could not find a tag in the ImageStream " + imageStreamName;
         }
     }
 
