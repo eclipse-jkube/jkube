@@ -15,15 +15,19 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
@@ -479,6 +483,24 @@ class KubernetesHelperTest {
           Arguments.of(new KubernetesList(), "List"),
           Arguments.of(new RawExtension(), "RawExtension"),
           Arguments.of(null, null)
+        );
+    }
+
+    @ParameterizedTest(name = "{index}: {0} returns {1}")
+    @MethodSource("getCreationTimestampTestCases")
+    void getCreationTimestamp(String timestamp, LocalDateTime expectedDate) {
+        final ConfigMap cm = new ConfigMapBuilder().withNewMetadata().withCreationTimestamp(timestamp).endMetadata()
+          .build();
+        assertThat(KubernetesHelper.getCreationTimestamp(cm))
+          .isEqualTo(expectedDate.atZone(ZoneOffset.UTC).toInstant());
+    }
+
+    static Stream<Arguments> getCreationTimestampTestCases() {
+        return Stream.of(
+          Arguments.of("1955-11-12T06:38:00Z", LocalDateTime.of(1955, 11, 12, 6, 38)),
+          Arguments.of("1955-11-12T06:38:00+01", LocalDateTime.of(1955, 11, 12,  5, 38)),
+          Arguments.of("1955-11-12T06:38:00.123456789Z", LocalDateTime.of(1955, 11, 12, 6, 38, 0, 123456789)),
+          Arguments.of("1955-11-12T06:38:00.625Z", LocalDateTime.of(1955, 11, 12, 6, 38, 0, 625))
         );
     }
 
