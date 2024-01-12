@@ -177,8 +177,6 @@ class PodLogServiceTest {
 
   @Test
   @DisplayName("With Pod running and deletion, should close previous watch")
-  @Disabled("This is a bug with the current implementation")
-  // TODO fix bug
   void podRunningAndDeletionShouldClosePreviousWatch() {
     // Given
     kubernetesClient.resource(runningPod).createOr(NonDeletingOperation::update);
@@ -188,7 +186,7 @@ class PodLogServiceTest {
     // When
     kubernetesClient.resource(runningPod).delete();
     // Then
-    verify(log, timeout(1000)).info("Closing log watcher for %s as now watching %s", "the-pod", "new-pod");
+    verify(log, timeout(1000)).info("Closing log watcher for %s (Deleted)", "the-pod");
   }
 
   @Test
@@ -245,7 +243,7 @@ class PodLogServiceTest {
   }
 
   @Test
-  @DisplayName("With Pod running and no follow, should log container logs synchronously")
+  @DisplayName("With Pod running and no follow, should log container logs")
   void podRunningWithNoFollowShouldLogContainerLogs() {
     // Given
     kubernetesClient.resource(runningPod).createOr(NonDeletingOperation::update);
@@ -258,9 +256,9 @@ class PodLogServiceTest {
     new PodLogService(podLogServiceContext)
       .tailAppPodsLogs(kubernetesClient, null, entities, false, null, false, null, false);
     // Then
-    verify(log).info("[[s]]%s", "The");
-    verify(log).info("[[s]]%s", "Application");
-    verify(log).info("[[s]]%s", "Logs");
+    verify(log, timeout(1000)).info("[[s]]%s", "The");
+    verify(log, timeout(1000)).info("[[s]]%s", "Application");
+    verify(log, timeout(1000)).info("[[s]]%s", "Logs");
   }
 
   @Test
@@ -305,7 +303,7 @@ class PodLogServiceTest {
     kubernetesClient.resource(new PodBuilder(runningPod).editMetadata().withName("new-pod").endMetadata().build())
       .createOr(NonDeletingOperation::update);
     // Then
-    verify(log, timeout(1000)).info("Closing log watcher for %s as now watching %s", null, "new-pod");
+    verify(log, timeout(1000)).info("Closing log watcher for %s (Deleted)", "the-pod");
     // Finally (prevents Client from being closed before completing the log execution)
     verify(newPodLog, timeout(1000)).info("Tailing log of pod: new-pod");
   }
