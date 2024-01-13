@@ -14,19 +14,16 @@
 package org.eclipse.jkube.kit.common.util;
 
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.UnknownHostException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -35,7 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -45,6 +43,8 @@ import io.fabric8.kubernetes.api.model.authorization.v1.ResourceAttributesBuilde
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.LineIterator;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.Container;
@@ -89,9 +89,11 @@ import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigSpec;
 import org.apache.commons.lang3.StringUtils;
 
+import static org.eclipse.jkube.kit.common.util.AsyncUtil.async;
+
 
 public class KubernetesHelper {
-    protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
+    protected static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.n]X");
     private static final String FILENAME_PATTERN_REGEX = "^(?<name>.*?)(-(?<type>[^-]+))?\\.(?<ext>yaml|yml|json)$";
     private static final String PROFILES_PATTERN_REGEX = "^profiles?\\.ya?ml$";
     public static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
@@ -383,32 +385,23 @@ public class KubernetesHelper {
         return null;
     }
 
-    public static void printLogsAsync(LogWatch logWatcher, final String failureMessage, final CountDownLatch terminateLatch, final KitLogger log) {
-        final InputStream in = logWatcher.getOutput();
-        Thread thread = new Thread() {
-            @Override
-            public void run() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-                    while (true) {
-                        String line = reader.readLine();
-                        if (line == null) {
-                            return;
-                        }
-                        if (terminateLatch.getCount() <= 0L) {
-                            return;
-                        }
-                        log.info("[[s]]%s", line);
-                    }
-                } catch (IOException e) {
-                    // Check again the latch which could be already count down to zero in between
-                    // so that an IO exception occurs on read
-                    if (terminateLatch.getCount() > 0L) {
-                        log.error("%s : %s", failureMessage, e);
-                    }
-                }
-            }
-        };
-        thread.start();
+    public static CompletableFuture<Void> printLogsAsync(LogWatch logWatcher, Consumer<String> lineConsumer) {
+      final LineIterator it = IOUtils.lineIterator(logWatcher.getOutput(), StandardCharsets.UTF_8);
+      return async(cf -> {
+        while (it.hasNext()) {
+          final String line = it.nextLine();
+          if (line == null) {
+            cf.complete(null);
+          } else {
+            lineConsumer.accept(line);
+          }
+          // Can be completed internally or externally
+          if (cf.isDone()) {
+            return null;
+          }
+        }
+        return null;
+      });
     }
 
     public static String getBuildStatusReason(Build build) {
@@ -550,12 +543,12 @@ public class KubernetesHelper {
     }
 
     public static boolean isNewerResource(HasMetadata newer, HasMetadata older) {
-        Date t1 = getCreationTimestamp(newer);
-        Date t2 = getCreationTimestamp(older);
+        Instant t1 = getCreationTimestamp(newer);
+      Instant t2 = getCreationTimestamp(older);
         return t1 != null && (t2 == null || t1.compareTo(t2) > 0);
     }
 
-    public static Date getCreationTimestamp(HasMetadata hasMetadata) {
+    public static Instant getCreationTimestamp(HasMetadata hasMetadata) {
         ObjectMeta metadata = hasMetadata.getMetadata();
         if (metadata != null) {
             return parseTimestamp(metadata.getCreationTimestamp());
@@ -563,19 +556,15 @@ public class KubernetesHelper {
         return null;
     }
 
-    private static Date parseTimestamp(String text) {
+    private static Instant parseTimestamp(String text) {
         if (StringUtils.isBlank(text)) {
             return null;
         }
         return parseDate(text);
     }
 
-    public static Date parseDate(String text) {
-        try {
-            return new SimpleDateFormat(DATE_TIME_FORMAT).parse(text);
-        } catch (ParseException e) {
-            return null;
-        }
+    public static Instant parseDate(String text) {
+          return Instant.from(DATE_TIME_FORMATTER.parse(text));
     }
 
     public static Pod getNewestPod(Collection<Pod> pods) {
@@ -584,8 +573,8 @@ public class KubernetesHelper {
         }
         List<Pod> sortedPods = new ArrayList<>(pods);
         sortedPods.sort((p1, p2) -> {
-            Date t1 = getCreationTimestamp(p1);
-            Date t2 = getCreationTimestamp(p2);
+          Instant t1 = getCreationTimestamp(p1);
+          Instant t2 = getCreationTimestamp(p2);
             if (t1 != null) {
                 if (t2 == null) {
                     return 1;

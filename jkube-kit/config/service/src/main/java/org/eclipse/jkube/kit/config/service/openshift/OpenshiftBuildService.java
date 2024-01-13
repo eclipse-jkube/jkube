@@ -467,8 +467,12 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         waitUntilPodIsReady(buildName + "-build", 120, log);
         log.info("Waiting for build " + buildName + " to complete...");
         try (LogWatch logWatch = client.pods().inNamespace(applicableOpenShiftNamespace).withName(buildName + "-build").watchLog()) {
-            KubernetesHelper.printLogsAsync(logWatch,
-                    "Failed to tail build log", logTerminateLatch, log);
+            KubernetesHelper.printLogsAsync(logWatch, line -> log.info("[[s]]%s", line))
+              .whenComplete((v, t) -> {
+                  if (t != null) {
+                      log.error("Failed to tail build log: %s", t);
+                  }
+              });
             Watcher<Build> buildWatcher = getBuildWatcher(latch, buildName, buildHolder);
             try (Watch watcher = client.builds().inNamespace(applicableOpenShiftNamespace).withName(buildName).watch(buildWatcher)) {
                 // Check if the build is already finished to avoid waiting indefinitely

@@ -13,42 +13,34 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.WatcherException;
 import io.fabric8.kubernetes.client.dsl.FilterWatchListDeletable;
-import io.fabric8.kubernetes.client.dsl.LogWatch;
 import io.fabric8.kubernetes.client.dsl.PodResource;
+import io.fabric8.kubernetes.client.informers.SharedIndexInformer;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.AsyncUtil;
+import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.withSelector;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.deleteEntities;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.deleteOpenShiftEntities;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusDescription;
-import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusMessagePostfix;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.resizeApp;
 
 /**
@@ -62,12 +54,7 @@ public class PodLogService {
     private final PodLogServiceContext context;
     private final KitLogger log;
 
-    private Watch podWatcher;
-    private LogWatch logWatcher;
-    private final Map<String, Pod> addedPods = new ConcurrentHashMap<>();
-    private final CountDownLatch terminateLatch = new CountDownLatch(1);
-    private String watchingPodName;
-    private CountDownLatch logWatchTerminateLatch;
+    private SharedIndexInformer<Pod> podInformer;
 
     public PodLogService(PodLogServiceContext context) {
         this.context = context;
@@ -87,14 +74,9 @@ public class PodLogService {
         LabelSelector selector = KubernetesHelper.extractPodLabelSelector(entities);
 
         if (selector != null || StringUtils.isNotBlank(context.getPodName())) {
-            String ctrlCMessage = "stop tailing the log";
             if (StringUtils.isNotBlank(onExitOperation)) {
                 final String onExitOperationLower = onExitOperation.toLowerCase().trim();
-                if (onExitOperationLower.equals(OPERATION_UNDEPLOY)) {
-                    ctrlCMessage = "undeploy the app";
-                } else if (onExitOperationLower.equals(OPERATION_STOP)) {
-                    ctrlCMessage = "scale down the app and stop tailing the log";
-                } else {
+                if (!onExitOperationLower.equals(OPERATION_UNDEPLOY) && !onExitOperationLower.equals(OPERATION_STOP)) {
                     log.warn("Unknown on-exit command: `%s`", onExitOperationLower);
                 }
                 resizeApp(nsKubernetesClient, entities, 1, log);
@@ -111,20 +93,19 @@ public class PodLogService {
                             log.info("Stopping the app:");
                             resizeApp(nsKubernetesClient, entities, 0, log);
                         }
-                        if (podWatcher != null) {
-                            podWatcher.close();
+                        if (podInformer != null) {
+                            podInformer.close();
                         }
-                        closeLogWatcher();
                     }
                 });
             }
-            waitAndLogPods(nsKubernetesClient, selector, watchAddedPodsOnly, ctrlCMessage, followLog, ignorePodsOlderThan, waitInCurrentThread);
+            waitAndLogPods(nsKubernetesClient, selector, watchAddedPodsOnly, onExitOperation, followLog, ignorePodsOlderThan, waitInCurrentThread);
         } else {
             log.warn("No selector detected and no Pod name specified, cannot watch Pods!");
         }
     }
 
-    private void waitAndLogPods(final NamespacedKubernetesClient kc, LabelSelector selector, final boolean watchAddedPodsOnly, final String ctrlCMessage, final boolean
+    private void waitAndLogPods(final NamespacedKubernetesClient kc, LabelSelector selector, final boolean watchAddedPodsOnly, String onExitOperation, final boolean
             followLog, Date ignorePodsOlderThan, boolean waitInCurrentThread) {
         final FilterWatchListDeletable<Pod, PodList, PodResource> pods;
         if (StringUtils.isNotBlank(context.getPodName())) {
@@ -144,8 +125,8 @@ public class PodLogService {
                     if (KubernetesHelper.isPodRunning(pod) || KubernetesHelper.isPodWaiting(pod)) {
                         if (latestPod == null || KubernetesHelper.isNewerResource(pod, latestPod)) {
                             if (ignorePodsOlderThan != null) {
-                                Date podCreateTime = KubernetesHelper.getCreationTimestamp(pod);
-                                if (podCreateTime != null && podCreateTime.compareTo(ignorePodsOlderThan) > 0) {
+                                Instant podCreateTime = KubernetesHelper.getCreationTimestamp(pod);
+                                if (podCreateTime != null && Date.from(podCreateTime).compareTo(ignorePodsOlderThan) > 0) {
                                     latestPod = pod;
                                 }
                             } else {
@@ -157,139 +138,16 @@ public class PodLogService {
                 }
             }
         }
-        // we may have missed the ADDED event so lets simulate one
-        if (latestPod != null) {
-            onPod(Watcher.Action.ADDED, latestPod, kc, ctrlCMessage, followLog);
-        }
         if (!watchAddedPodsOnly && !runningPod) {
             log.warn("No pod is running yet. Are you sure you deployed your app using Eclipse JKube apply/deploy mechanism?");
             log.warn("Or did you undeploy it? If so try running the Eclipse JKube apply/deploy tasks again.");
         }
-        podWatcher = pods.watch(new Watcher<Pod>() {
-            @Override
-            public void eventReceived(Action action, Pod pod) {
-                onPod(action, pod, kc, ctrlCMessage, followLog);
-            }
-
-            @Override
-            public void onClose(WatcherException e) {
-                // ignore
-            }
-        });
-
-        if (waitInCurrentThread) {
-            while (terminateLatch.getCount() > 0) {
-                try {
-                    terminateLatch.await();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
+        final PodLogEventHandler podLogEventHandler = new PodLogEventHandler(context, kc, onExitOperation, followLog);
+        podInformer = pods.inform(podLogEventHandler);
+        podInformer.stopped().whenComplete((v, t) -> podLogEventHandler.close());
+        if (waitInCurrentThread && !podLogEventHandler.getLogsRetrieved().isDone()) {
+            AsyncUtil.get(podLogEventHandler.getLogsRetrieved());
         }
-    }
-
-    private void onPod(Watcher.Action action, Pod pod, NamespacedKubernetesClient kubernetes, String ctrlCMessage, boolean followLog) {
-        String name = KubernetesHelper.getName(pod);
-        if (action.equals(Watcher.Action.DELETED)) {
-            addedPods.remove(name);
-            if (Objects.equals(watchingPodName, name)) {
-                watchingPodName = null;
-                addedPods.remove(name);
-            }
-        } else {
-            if (action.equals(Watcher.Action.ADDED) || action.equals(Watcher.Action.MODIFIED)) {
-                addedPods.put(name, pod);
-            }
-        }
-
-        Pod watchPod = KubernetesHelper.getNewestPod(addedPods.values());
-        String newestPodName = KubernetesHelper.getName(watchPod);
-
-        KitLogger statusLog = Objects.equals(name, newestPodName) ? context.getNewPodLog() : context.getOldPodLog();
-        if (!action.equals(Watcher.Action.MODIFIED) || watchingPodName == null || !watchingPodName.equals(name)) {
-            statusLog.info("%s status: %s%s", name, getPodStatusDescription(pod), getPodStatusMessagePostfix(action));
-        }
-
-        if (watchPod != null && KubernetesHelper.isPodRunning(watchPod)) {
-            watchLogOfPodName(kubernetes, ctrlCMessage, followLog, watchPod, KubernetesHelper.getName(watchPod));
-        }
-    }
-
-    private void watchLogOfPodName(NamespacedKubernetesClient kubernetes, String ctrlCMessage, boolean followLog, Pod pod, String name) {
-        if (watchingPodName == null || !watchingPodName.equals(name)) {
-            if (logWatcher != null) {
-                log.info("Closing log watcher for %s as now watching %s", watchingPodName, name);
-                closeLogWatcher();
-            }
-            PodResource podResource = kubernetes.pods().withName(name);
-            List<Container> containers = KubernetesHelper.getContainers(pod);
-            String containerName = null;
-            if (followLog) {
-                watchingPodName = name;
-                logWatchTerminateLatch = new CountDownLatch(1);
-                if (containers.size() < 2) {
-                    logWatcher = podResource.watchLog();
-                } else {
-                    containerName = getLogContainerName(containers);
-                    logWatcher = podResource.inContainer(containerName).watchLog();
-                }
-                watchLog(logWatcher, name, "Failed to read log of pod " + name + ".", ctrlCMessage, containerName);
-            } else {
-                String logText;
-                if (containers.size() < 2) {
-                    logText = podResource.getLog();
-                } else {
-                    containerName = getLogContainerName(containers);
-                    logText = podResource.inContainer(containerName).getLog();
-                }
-                if (logText != null) {
-                    String[] lines = logText.split("\n");
-                    log.info("Log of pod: %s%s", name, containerNameMessage(containerName));
-                    log.info("");
-                    for (String line : lines) {
-                        log.info("[[s]]%s", line);
-                    }
-                }
-                terminateLatch.countDown();
-            }
-        }
-    }
-
-    private String getLogContainerName(List<Container> containers) {
-        if (StringUtils.isNotBlank(context.getLogContainerName())) {
-            for (Container container : containers) {
-                if (Objects.equals(context.getLogContainerName(), container.getName())) {
-                    return context.getLogContainerName();
-                }
-            }
-            log.error("log container name %s does not exist in pod!! Did you set the correct value for property 'jkube.log.container'", context.getLogContainerName());
-        }
-        return containers.get(0).getName();
-    }
-
-    private void closeLogWatcher() {
-        if (logWatcher != null) {
-            logWatcher.close();
-            logWatcher = null;
-        }
-        if (logWatchTerminateLatch != null) {
-            logWatchTerminateLatch.countDown();
-        }
-    }
-
-    private void watchLog(final LogWatch logWatcher, String podName, final String failureMessage, String ctrlCMessage, String containerName) {
-        context.getNewPodLog().info("Tailing log of pod: " + podName + containerNameMessage(containerName));
-        context.getNewPodLog().info("Press Ctrl-C to " + ctrlCMessage);
-        context.getNewPodLog().info("");
-
-        KubernetesHelper.printLogsAsync(logWatcher, failureMessage, this.logWatchTerminateLatch, log);
-    }
-
-    private String containerNameMessage(String containerName) {
-        if (StringUtils.isNotBlank(containerName)) {
-            return " container: " + containerName;
-        }
-        return "";
     }
 
     // =======================================
