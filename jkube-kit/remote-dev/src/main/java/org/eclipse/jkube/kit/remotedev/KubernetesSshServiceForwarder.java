@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.LocalPortForward;
+import io.fabric8.kubernetes.client.dsl.NonDeletingOperation;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import java.io.IOException;
@@ -110,7 +111,7 @@ class KubernetesSshServiceForwarder implements Callable<Void> {
         .addNewPort().withContainerPort(localService.getPort()).withProtocol("TCP").endPort()
         .endContainer().endSpec();
     }
-    return kubernetesClient.pods().resource(pod.build()).createOrReplace();
+    return kubernetesClient.pods().resource(pod.build()).createOr(NonDeletingOperation::update);
       // Using createOrReplace instead of SSA because MockServer doesn't support this PATCH
       // unless the resource already exists
       // .patch(PatchContext.of(PatchType.SERVER_SIDE_APPLY), pod.build());
