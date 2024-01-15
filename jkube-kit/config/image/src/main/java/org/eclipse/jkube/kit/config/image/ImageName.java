@@ -55,6 +55,8 @@ public class ImageName {
     // Digest
     private String digest;
 
+    private static final int REPO_NAME_MAX_LENGTH = 255;
+
     /**
      * Create an image name
      *
@@ -288,6 +290,10 @@ public class ImageName {
                         checks[i], value, checkPattern.pattern()));
             }
         }
+        if (repository.length() > REPO_NAME_MAX_LENGTH) {
+            errors.add(String.format("Repository name must not be more than %d characters", REPO_NAME_MAX_LENGTH));
+        }
+
         if (!errors.isEmpty()) {
             StringBuilder buf = new StringBuilder();
             buf.append(String.format("Given Docker name '%s' is invalid:%n", getFullName()));
