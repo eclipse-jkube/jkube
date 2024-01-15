@@ -20,6 +20,9 @@ items:
     kind: ServiceAccount
     metadata:
       annotations:
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
         maven: Noted
       labels:
         app: fragments
@@ -30,6 +33,10 @@ items:
   - apiVersion: v1
     kind: ConfigMap
     metadata:
+      annotations:
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: fragments
         provider: jkube
@@ -43,6 +50,10 @@ items:
   - apiVersion: apiextensions.k8s.io/v1
     kind: CustomResourceDefinition
     metadata:
+      annotations:
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: fragments
         provider: jkube
@@ -52,6 +63,10 @@ items:
   - apiVersion: custom.resource.example.com/v1
     kind: Example
     metadata:
+      annotations:
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: custom-resources
         provider: jkube

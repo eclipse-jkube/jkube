@@ -34,6 +34,7 @@ Usage:
 * Fix #2472: Support for Helm Chart.yaml appVersion field defaulting to project version
 * Fix #2474: Remove Docker-related classes providing  unused functionality
 * Fix #2477: Support for Spring Boot 3.2.0 (and newer) layered jar format
+* Fix #2500: `oc:build` does not add git annotations in Openshift Build resource
 * Fix #2503: Container Images Jolokia agent bumped to 2.0.0
 * Fix #2532: Bump version.kubernetes-client from 6.9.2 to 6.10.0
 

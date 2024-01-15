@@ -16,13 +16,16 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
+import io.fabric8.openshift.api.model.BuildConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.revwalk.RevCommit;
@@ -70,7 +73,7 @@ class GitEnricherTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        klb = new KubernetesListBuilder().withItems(new ServiceBuilder().build());
+        klb = new KubernetesListBuilder().withItems(new ServiceBuilder().withNewMetadata().endMetadata().build());
         properties = new Properties();
         context = JKubeEnricherContext.builder()
           .project(JavaProject.builder()
@@ -138,9 +141,9 @@ class GitEnricherTest {
 
     @Test
     @DisplayName("no .git repository found, then no git annotations added")
-    void create_whenNoGitRepositoryFound_thenNoAnnotationsAdded() {
+    void enrich_whenNoGitRepositoryFound_thenNoAnnotationsAdded() {
         // When
-        gitEnricher.create(PlatformMode.kubernetes, klb);
+        gitEnricher.enrich(PlatformMode.kubernetes, klb);
 
         // Then
         HasMetadata result = klb.buildFirstItem();
@@ -162,7 +165,7 @@ class GitEnricherTest {
             // Given
             FileUtil.createDirectory(new File(baseDirectory, ".git"));
             // When
-            gitEnricher.create(PlatformMode.kubernetes, klb);
+            gitEnricher.enrich(PlatformMode.kubernetes, klb);
             // Then
             HasMetadata result = klb.buildFirstItem();
             assertThat(result)
@@ -191,24 +194,29 @@ class GitEnricherTest {
         }
 
 
-        Stream<Arguments> controllerResources() {
+        Stream<Arguments> kubernetesResources() {
             return Stream.of(
-              arguments(new ServiceBuilder().build()),
-              arguments(new DeploymentBuilder().build()),
-              arguments(new DeploymentConfigBuilder().build()),
-              arguments(new ReplicaSetBuilder().build()),
-              arguments(new ReplicationControllerBuilder().build()),
-              arguments(new DaemonSetBuilder().build()),
-              arguments(new StatefulSetBuilder().build()),
-              arguments(new JobBuilder().build())
+              arguments(new ServiceBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new DeploymentBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new DeploymentConfigBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new ReplicaSetBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new ReplicationControllerBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new DaemonSetBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new StatefulSetBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new JobBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new SecretBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new ImageStreamBuilder().withNewMetadata().endMetadata().build()),
+              arguments(new BuildConfigBuilder().withNewMetadata().endMetadata().build())
             );
         }
 
         @ParameterizedTest(name = "Git annotations should be added to {0}")
-        @MethodSource("controllerResources")
-        void create_whenResourceProvided_thenAddGitAnnotations(HasMetadata h) throws Exception {
+        @MethodSource("kubernetesResources")
+        void enrich_whenResourceProvided_thenAddGitAnnotations(HasMetadata h) {
+            // Given
+            klb = new KubernetesListBuilder().addToItems(h);
             // When
-            gitEnricher.create(PlatformMode.kubernetes, klb);
+            gitEnricher.enrich(PlatformMode.kubernetes, klb);
             // Then
             HasMetadata result = klb.buildFirstItem();
             assertThat(result)
@@ -227,7 +235,7 @@ class GitEnricherTest {
             properties.put("jkube.remoteName", "upstream");
 
             // When
-            gitEnricher.create(PlatformMode.kubernetes, klb);
+            gitEnricher.enrich(PlatformMode.kubernetes, klb);
 
             // Then
             HasMetadata result = klb.buildFirstItem();
@@ -246,7 +254,7 @@ class GitEnricherTest {
             git.remoteRemove().setRemoteName("origin").call();
 
             // When
-            gitEnricher.create(PlatformMode.kubernetes, klb);
+            gitEnricher.enrich(PlatformMode.kubernetes, klb);
 
             // Then
             HasMetadata result = klb.buildFirstItem();
@@ -263,7 +271,7 @@ class GitEnricherTest {
         @DisplayName("OpenShift vcs-uri, vcs-ref annotations added in OpenShift Platform")
         void whenPlatformModeOpenShift_thenAddOpenShiftVcsAnnotations() {
             // When
-            gitEnricher.create(PlatformMode.openshift, klb);
+            gitEnricher.enrich(PlatformMode.openshift, klb);
 
             // Then
             HasMetadata result = klb.buildFirstItem();
@@ -286,3 +294,4 @@ class GitEnricherTest {
           .containsEntry("jkube.io/git-branch", GIT_BRANCH);
     }
 }
+
