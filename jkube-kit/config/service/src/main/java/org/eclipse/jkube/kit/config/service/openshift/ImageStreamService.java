@@ -58,11 +58,19 @@ public class ImageStreamService {
     private final OpenShiftClient client;
     private final String namespace;
     private final KitLogger log;
+    private final int imageStreamTagRetries;
+    private final long imageStreamTagRetryTimeoutInMillis;
 
     public ImageStreamService(OpenShiftClient client, String namespace, KitLogger log) {
+        this(client, namespace, log, IMAGE_STREAM_TAG_RETRIES, IMAGE_STREAM_TAG_RETRY_TIMEOUT_IN_MILLIS);
+    }
+
+    ImageStreamService(OpenShiftClient client, String namespace, KitLogger log, int tagRetries, long retryTimeoutInMillis) {
         this.client = client;
         this.namespace = namespace;
         this.log = log;
+        this.imageStreamTagRetries = tagRetries;
+        this.imageStreamTagRetryTimeoutInMillis = retryTimeoutInMillis;
     }
 
     /**
@@ -175,11 +183,11 @@ public class ImageStreamService {
     private String findTagSha(OpenShiftClient client, String imageStreamName, String namespace) {
         ImageStream currentImageStream = null;
 
-        for (int i = 0; i < IMAGE_STREAM_TAG_RETRIES; i++) {
+        for (int i = 0; i < imageStreamTagRetries; i++) {
             if (i > 0) {
                 log.info("Retrying to find tag on ImageStream %s", imageStreamName);
                 try {
-                    Thread.sleep(IMAGE_STREAM_TAG_RETRY_TIMEOUT_IN_MILLIS);
+                    Thread.sleep(imageStreamTagRetryTimeoutInMillis);
                 } catch (InterruptedException e) {
                     log.debug("interrupted", e);
                     Thread.currentThread().interrupt();

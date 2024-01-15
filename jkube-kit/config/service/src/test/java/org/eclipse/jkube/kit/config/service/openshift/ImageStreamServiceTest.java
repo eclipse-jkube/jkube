@@ -18,30 +18,36 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.TagEvent;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 /**
  * @author roland
@@ -49,9 +55,11 @@ import static org.mockito.Mockito.when;
  */
 
 @SuppressWarnings({"unchecked", "rawtypes", "unused"})
+@EnableKubernetesMockClient
 class ImageStreamServiceTest {
 
     private OpenShiftClient client;
+    private KubernetesMockServer server;
     private MixedOperation mixedOperation;
     private NonNamespaceOperation nonNamespaceOperation;
     private Resource resourceOp;
@@ -59,10 +67,6 @@ class ImageStreamServiceTest {
 
     @BeforeEach
     public void setUp() {
-        client = mock(OpenShiftClient.class);
-        mixedOperation = mock(MixedOperation.class);
-        nonNamespaceOperation = mock(NonNamespaceOperation.class);
-        resourceOp = mock(Resource.class);
         log = new KitLogger.SilentLogger();
     }
 
@@ -70,8 +74,10 @@ class ImageStreamServiceTest {
     void simple(@TempDir Path temporaryFolder) throws Exception {
         ImageStreamService service = new ImageStreamService(client, "default", log);
 
-        final ImageStream lookedUpIs = lookupImageStream("ab12cd");
-        setupClientMock(lookedUpIs,"default", "test");
+        final ImageStream lookedUpIs = lookupImageStream("ab12cd").build();
+        server.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/default/imagestreams/test")
+            .andReturn(HTTP_OK, lookedUpIs)
+            .once();
         ImageName name = new ImageName("test:1.0");
         File target = Files.createTempFile(temporaryFolder, "ImageStreamServiceTest", ".yml").toFile();
         service.appendImageStreamResource(name, target);
@@ -101,8 +107,10 @@ class ImageStreamServiceTest {
                 .containsEntry("namespace", "default");
 
         // Add a second image stream
-        ImageStream secondIs = lookupImageStream("secondIS");
-        setupClientMock(secondIs, "default", "second-test");
+        ImageStream secondIs = lookupImageStream("secondIS").build();
+        server.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/default/imagestreams/second-test")
+            .andReturn(HTTP_OK, secondIs)
+            .once();
         ImageName name2 = new ImageName("second-test:1.0");
         service.appendImageStreamResource(name2, target);
 
@@ -126,14 +134,8 @@ class ImageStreamServiceTest {
         return Serialization.unmarshal(target, Map.class);
     }
 
-    private void setupClientMock(final ImageStream lookedUpIs, final String namespace, final String name) {
-        when(client.imageStreams()).thenReturn(mixedOperation);
-        when(mixedOperation.inNamespace(namespace)).thenReturn(nonNamespaceOperation);
-        when(nonNamespaceOperation.withName(name)).thenReturn(resourceOp);
-        when(resourceOp.get()).thenReturn(lookedUpIs);
-    }
 
-    private ImageStream lookupImageStream(String sha) {
+    private ImageStreamBuilder lookupImageStream(String sha) {
         return new ImageStreamBuilder()
             .withNewStatus()
             .addNewTag()
@@ -141,8 +143,119 @@ class ImageStreamServiceTest {
             .withImage(sha)
             .endItem()
             .endTag()
-            .endStatus()
-            .build();
+            .endStatus();
+    }
+
+    @Test
+    @DisplayName("when ImageStream not found on OpenShift, then throw exception")
+    void appendImageStreamResource_whenImageStreamNotFound_thenThrowException(@TempDir File temporaryFolder) {
+        // Given
+        File imageStream = new File(temporaryFolder, "imagestream.yml");
+        ImageStreamService imageStreamService = new ImageStreamService(client, "default", log, 2, 0);
+
+        // When + Then
+        assertThatIllegalStateException()
+            .isThrownBy(() -> imageStreamService.appendImageStreamResource(new ImageName("foo:latest"), imageStream))
+            .withMessage("Could not find a current ImageStream with name foo in namespace default");
+    }
+
+    @Test
+    @DisplayName("when ImageStreamStatus from Api server has no tags, then throw exception")
+    void appendImageStreamResource_whenNoTagInImageStream_thenThrowException(@TempDir File temporaryFolder) {
+        // Given
+        File imageStream = new File(temporaryFolder, "imagestream.yml");
+        ImageStreamService service = new ImageStreamService(client, "default", log, 2, 0);
+        server.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/default/imagestreams/foo")
+            .andReturn(HTTP_OK, lookupImageStream(null)
+                .editStatus()
+                .withTags(Collections.emptyList())
+                .endStatus().build())
+            .times(2);
+
+        // When + Then
+        assertThatIllegalStateException()
+            .isThrownBy(() -> service.appendImageStreamResource(new ImageName("foo:latest"), imageStream))
+            .withMessage("Could not find a tag in the ImageStream foo");
+    }
+
+    @Test
+    @DisplayName("when ImageStream from Api server has no status, then throw exception")
+    void appendImageStreamResource_whenNoImageStreamStatus_thenThrowException(@TempDir File temporaryFolder) {
+        // Given
+        File imageStream = new File(temporaryFolder, "imagestream.yml");
+        ImageStreamService service = new ImageStreamService(client, "default", log, 2, 0);
+        server.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/default/imagestreams/foo")
+            .andReturn(HTTP_OK, lookupImageStream(null)
+                .withStatus(null)
+                .build())
+            .times(2);
+
+        // When + Then
+        assertThatIllegalStateException()
+            .isThrownBy(() -> service.appendImageStreamResource(new ImageName("foo:latest"), imageStream))
+            .withMessage("Could not find a tag in the ImageStream foo");
+    }
+
+    @Test
+    @DisplayName("multiple tags in image stream status, then add latest tag to ImageStream")
+    void appendImageStreamResource_whenMultipleTagsInImageStreamStatus_thenAddLatestOneToImageStream(@TempDir File temporaryFolder) throws IOException {
+        // Given
+        File imageStream = new File(temporaryFolder, "imagestream.yml");
+        ImageStreamService service = new ImageStreamService(client, "default", log, 1, 0);
+        server.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/default/imagestreams/foo")
+            .andReturn(HTTP_OK, lookupImageStream("t1").editStatus()
+                .addNewTag()
+                .withTag("t0")
+                .addNewItem()
+                .withImage("sha256:109de62d1f609a717ec433cc25ca5cf00941545c83a01fb31527771e1fab3fc5")
+                .withCreated("2017-09-03T10:15:09Z")
+                .endItem()
+                .endTag()
+                .addNewTag()
+                .withTag("t1")
+                .addNewItem()
+                .withImage("sha256:909de62d1f609a717ec433cc25ca5cf00941545c83a01fb31527771e1fab3fc5")
+                .withCreated("2017-09-02T10:15:09Z")
+                .endItem()
+                .endTag()
+                .addNewTag()
+                .withTag("t2")
+                .addNewItem()
+                .withImage("sha256:47463d94eb5c049b2d23b03a9530bf944f8f967a0fe79147dd6b9135bf7dd13d")
+                .endItem()
+                .endTag()
+                .addNewTag()
+                .withTag("t3")
+                .endTag()
+                .addNewTag()
+                .withTag("t4")
+                .addNewItem()
+                .withCreated("2017-invalid-date")
+                .endItem()
+                .endTag()
+                .endStatus()
+                .build())
+            .always();
+
+        // When
+        service.appendImageStreamResource(new ImageName("foo:latest"), imageStream);
+
+        // Then
+        KubernetesList kubernetesList = Serialization.unmarshal(imageStream, KubernetesList.class);
+        assertThat(kubernetesList)
+            .isNotNull()
+            .extracting(DefaultKubernetesResourceList::getItems)
+            .asList()
+            .element(0)
+            .asInstanceOf(InstanceOfAssertFactories.type(ImageStream.class))
+            .hasFieldOrPropertyWithValue("metadata.name", "foo")
+            .extracting("spec.tags")
+            .asList()
+            .element(0)
+            .hasFieldOrPropertyWithValue("name", "latest")
+            .hasFieldOrPropertyWithValue("from.kind", "ImageStreamImage")
+            .hasFieldOrPropertyWithValue("from.name", "foo@sha256:109de62d1f609a717ec433cc25ca5cf00941545c83a01fb31527771e1fab3fc5")
+            .hasFieldOrPropertyWithValue("from.namespace", "default");
     }
 
     @Test

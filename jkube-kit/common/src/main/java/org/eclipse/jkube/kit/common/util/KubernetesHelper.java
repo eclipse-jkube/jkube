@@ -18,13 +18,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -94,7 +93,7 @@ import static org.eclipse.jkube.kit.common.util.AsyncUtil.async;
 
 
 public class KubernetesHelper {
-    protected static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ssX";
+    protected static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss[.n]X");
     private static final String FILENAME_PATTERN_REGEX = "^(?<name>.*?)(-(?<type>[^-]+))?\\.(?<ext>yaml|yml|json)$";
     private static final String PROFILES_PATTERN_REGEX = "^profiles?\\.ya?ml$";
     public static final Pattern FILENAME_PATTERN = Pattern.compile(FILENAME_PATTERN_REGEX, Pattern.CASE_INSENSITIVE);
@@ -544,12 +543,12 @@ public class KubernetesHelper {
     }
 
     public static boolean isNewerResource(HasMetadata newer, HasMetadata older) {
-        Date t1 = getCreationTimestamp(newer);
-        Date t2 = getCreationTimestamp(older);
+        Instant t1 = getCreationTimestamp(newer);
+      Instant t2 = getCreationTimestamp(older);
         return t1 != null && (t2 == null || t1.compareTo(t2) > 0);
     }
 
-    public static Date getCreationTimestamp(HasMetadata hasMetadata) {
+    public static Instant getCreationTimestamp(HasMetadata hasMetadata) {
         ObjectMeta metadata = hasMetadata.getMetadata();
         if (metadata != null) {
             return parseTimestamp(metadata.getCreationTimestamp());
@@ -557,19 +556,15 @@ public class KubernetesHelper {
         return null;
     }
 
-    private static Date parseTimestamp(String text) {
+    private static Instant parseTimestamp(String text) {
         if (StringUtils.isBlank(text)) {
             return null;
         }
         return parseDate(text);
     }
 
-    public static Date parseDate(String text) {
-        try {
-            return new SimpleDateFormat(DATE_TIME_FORMAT).parse(text);
-        } catch (ParseException e) {
-            return null;
-        }
+    public static Instant parseDate(String text) {
+          return Instant.from(DATE_TIME_FORMATTER.parse(text));
     }
 
     public static Pod getNewestPod(Collection<Pod> pods) {
@@ -578,8 +573,8 @@ public class KubernetesHelper {
         }
         List<Pod> sortedPods = new ArrayList<>(pods);
         sortedPods.sort((p1, p2) -> {
-            Date t1 = getCreationTimestamp(p1);
-            Date t2 = getCreationTimestamp(p2);
+          Instant t1 = getCreationTimestamp(p1);
+          Instant t2 = getCreationTimestamp(p2);
             if (t1 != null) {
                 if (t2 == null) {
                     return 1;
