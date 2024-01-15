@@ -15,14 +15,7 @@ package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ReplicationControllerBuilder;
-import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
-import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
-import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
-import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.common.util.GitUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.OpenShiftAnnotations;
@@ -78,60 +71,11 @@ public class GitEnricher extends BaseEnricher {
     }
 
     @Override
-    public void create(PlatformMode platformMode, KubernetesListBuilder builder) {
-        builder.accept(new TypedVisitor<ServiceBuilder>() {
+    public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
+        builder.accept(new TypedVisitor<ObjectMetaBuilder>() {
             @Override
-            public void visit(ServiceBuilder serviceBuilder) {
-                serviceBuilder.editMetadata().addToAnnotations(getAnnotations(platformMode)).endMetadata();
-            }
-        });
-
-        builder.accept(new TypedVisitor<DeploymentBuilder>() {
-            @Override
-            public void visit(DeploymentBuilder builder) {
-                builder.editMetadata().addToAnnotations(getAnnotations(platformMode)).endMetadata();
-            }
-        });
-
-        builder.accept(new TypedVisitor<DeploymentConfigBuilder>() {
-            @Override
-            public void visit(DeploymentConfigBuilder builder) {
-                builder.editMetadata().addToAnnotations(getAnnotations(platformMode)).endMetadata();
-            }
-        });
-
-        builder.accept(new TypedVisitor<ReplicaSetBuilder>() {
-            @Override
-            public void visit(ReplicaSetBuilder builder) {
-                builder.editMetadata().addToAnnotations(getAnnotations(platformMode)).endMetadata();
-            }
-        });
-
-        builder.accept(new TypedVisitor<ReplicationControllerBuilder>() {
-            @Override
-            public void visit(ReplicationControllerBuilder builder) {
-                builder.editMetadata().addToAnnotations(getAnnotations(platformMode)).endMetadata();
-            }
-        });
-
-        builder.accept(new TypedVisitor<DaemonSetBuilder>() {
-            @Override
-            public void visit(DaemonSetBuilder builder) {
-                builder.editMetadata().addToAnnotations(getAnnotations(platformMode)).endMetadata();
-            }
-        });
-
-        builder.accept(new TypedVisitor<StatefulSetBuilder>() {
-            @Override
-            public void visit(StatefulSetBuilder builder) {
-                builder.editMetadata().addToAnnotations(getAnnotations(platformMode)).endMetadata();
-            }
-        });
-
-        builder.accept(new TypedVisitor<JobBuilder>() {
-            @Override
-            public void visit(JobBuilder builder) {
-                builder.editMetadata().addToAnnotations(getAnnotations(platformMode)).endMetadata();
+            public void visit(ObjectMetaBuilder objectMetaBuilder) {
+                objectMetaBuilder.addToAnnotations(getAnnotations(platformMode));
             }
         });
     }

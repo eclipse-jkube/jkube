@@ -73,6 +73,9 @@ items:
   metadata:
     annotations:
       image.openshift.io/triggers: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
     labels:
       env: dev
       role: web
@@ -84,6 +87,10 @@ items:
         role: web
     template:
       metadata:
+        annotations:
+          jkube.eclipse.org/git-branch: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
         labels:
           role: web
       spec:
