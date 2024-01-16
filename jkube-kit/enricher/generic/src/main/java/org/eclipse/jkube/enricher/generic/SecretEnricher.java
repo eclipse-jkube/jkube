@@ -27,6 +27,7 @@ import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.compiler.nodes.calc.IntegerDivRemNode;
 
 import java.util.*;
 
@@ -127,8 +128,7 @@ public abstract class SecretEnricher extends BaseEnricher {
 
     private List<SecretConfig> getSecretsFromXmlConfig() {
         ResourceConfig resourceConfig = getConfiguration().getResource();
-        return Optional.ofNullable(resourceConfig.getSecrets()).orElse(Collections.emptyList());
-
+        return Optional.ofNullable(resourceConfig).map(resourceConfig1 -> Optional.ofNullable(resourceConfig1.getSecrets()).orElse(Collections.emptyList())).orElse(Collections.emptyList());
     }
 
     private String getDockerIdFromAnnotation(Map<String, String> annotation) {
