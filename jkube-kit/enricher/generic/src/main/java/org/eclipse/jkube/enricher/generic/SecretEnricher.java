@@ -27,7 +27,7 @@ import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import org.apache.commons.lang3.StringUtils;
-import org.graalvm.compiler.nodes.calc.IntegerDivRemNode;
+
 
 import java.util.*;
 
