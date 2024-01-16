@@ -24,39 +24,36 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.JobBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.util.GitUtil;
+import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 import org.eclipse.jkube.kit.config.resource.OpenShiftAnnotations;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedStatic;
 
 import java.io.File;
-import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.Properties;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class GitEnricherTest {
 
@@ -65,34 +62,28 @@ class GitEnricherTest {
     private static final String GIT_COMMIT_ID = "058bed285de43aac80b5bf9433b9a3a9c3915e19";
     private JKubeEnricherContext context;
     private GitEnricher gitEnricher;
-    private MockedStatic<GitUtil> gitUtilMockedStatic;
     private Properties properties;
     private KubernetesListBuilder klb;
 
     @TempDir
-    private File temporaryFolder;
+    private File baseDirectory;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         klb = new KubernetesListBuilder().withItems(new ServiceBuilder().build());
         properties = new Properties();
         context = JKubeEnricherContext.builder()
-            .project(JavaProject.builder()
-                .groupId("org.example")
-                .artifactId("test-project")
-                .version("0.0.1")
-                .baseDirectory(temporaryFolder)
-                .properties(properties)
-                .build())
-            .log(spy(new KitLogger.SilentLogger()))
-            .build();
+          .project(JavaProject.builder()
+            .groupId("org.example")
+            .artifactId("test-project")
+            .version("0.0.1")
+            .baseDirectory(baseDirectory)
+            .properties(properties)
+            .build())
+          .log(spy(new KitLogger.SilentLogger()))
+          .build();
         gitEnricher = new GitEnricher(context);
-        gitUtilMockedStatic = mockStatic(GitUtil.class);
-    }
-
-    @AfterEach
-    void tearDown() {
-        gitUtilMockedStatic.close();
+        Files.createTempFile(baseDirectory.toPath(), "random", "txt");
     }
 
     @Test
@@ -118,7 +109,7 @@ class GitEnricherTest {
         // Then
         assertJkubeAnnotations(annotations);
         assertThat(annotations).containsEntry(OpenShiftAnnotations.VCS_REF.value(), GIT_BRANCH)
-            .containsEntry(OpenShiftAnnotations.VCS_URI.value(), GIT_REMOTE_URL);
+          .containsEntry(OpenShiftAnnotations.VCS_URI.value(), GIT_REMOTE_URL);
     }
 
     @Test
@@ -154,80 +145,85 @@ class GitEnricherTest {
         // Then
         HasMetadata result = klb.buildFirstItem();
         assertThat(result)
-            .extracting("metadata.annotations")
-            .asInstanceOf(InstanceOfAssertFactories.MAP)
-            .doesNotContainKey("jkube.eclipse.org/git-branch")
-            .doesNotContainKey("jkube.eclipse.org/git-commit")
-            .doesNotContainKey("jkube.eclipse.org/git-url");
-    }
-
-    static Stream<Arguments> controllerResources() {
-        return Stream.of(
-            arguments(new ServiceBuilder().build()),
-            arguments(new DeploymentBuilder().build()),
-            arguments(new DeploymentConfigBuilder().build()),
-            arguments(new ReplicaSetBuilder().build()),
-            arguments(new ReplicationControllerBuilder().build()),
-            arguments(new DaemonSetBuilder().build()),
-            arguments(new StatefulSetBuilder().build()),
-            arguments(new JobBuilder().build())
-        );
-    }
-
-    @ParameterizedTest(name = "Git annotations should be added to {0}")
-    @MethodSource("controllerResources")
-    void create_whenResourceProvided_thenAddGitAnnotations(HasMetadata h) throws IOException {
-        // Given
-        givenValidGitRepositoryExistsInProject("origin");
-        klb = new KubernetesListBuilder().withItems(h);
-
-        // When
-        gitEnricher.create(PlatformMode.kubernetes, klb);
-
-        // Then
-        HasMetadata result = klb.buildFirstItem();
-        assertThat(result)
-            .extracting("metadata.annotations")
-            .asInstanceOf(InstanceOfAssertFactories.MAP)
-            .containsEntry("jkube.eclipse.org/git-branch", "test-branch")
-            .containsEntry("jkube.eclipse.org/git-commit", "testcommitid")
-            .containsEntry("jkube.eclipse.org/git-url", "https://example.com/foo.git");
+          .extracting("metadata.annotations")
+          .asInstanceOf(InstanceOfAssertFactories.MAP)
+          .doesNotContainKey("jkube.eclipse.org/git-branch")
+          .doesNotContainKey("jkube.eclipse.org/git-commit")
+          .doesNotContainKey("jkube.eclipse.org/git-url");
     }
 
     @Nested
-    @DisplayName("given a valid .git repository exists")
-    class ValidGitRepositoryExists {
-        @BeforeEach
-        void setUp() throws IOException {
-            givenValidGitRepositoryExistsInProject("origin");
-        }
+    @DisplayName("given an invalid .git repository exists")
+    class InvalidGitRepositoryExists {
 
         @Test
-        @DisplayName("failed to extract git information, then no annotations added")
-        void whenFailedToExtractGitInformation_thenNoGitAnnotationsAdded() {
+        @DisplayName("With empty .git directory, then no annotations added")
+        void withEmptyGitDirectory_thenNoGitAnnotationsAdded() throws Exception {
             // Given
-            IOException expectedExceptionToBeThrown = new IOException("Failed to read git repository");
-            gitUtilMockedStatic.when(() -> GitUtil.getGitRepository(temporaryFolder)).thenThrow(expectedExceptionToBeThrown);
-
+            FileUtil.createDirectory(new File(baseDirectory, ".git"));
             // When
             gitEnricher.create(PlatformMode.kubernetes, klb);
-
             // Then
             HasMetadata result = klb.buildFirstItem();
             assertThat(result)
-                .extracting("metadata.annotations")
-                .asInstanceOf(InstanceOfAssertFactories.MAP)
-                .doesNotContainKey("jkube.eclipse.org/git-branch")
-                .doesNotContainKey("jkube.eclipse.org/git-commit")
-                .doesNotContainKey("jkube.eclipse.org/git-url");
-            verify(context.getLog()).error("jkube-git: Cannot extract Git information for adding to annotations: java.io.IOException: Failed to read git repository", expectedExceptionToBeThrown);
+              .extracting("metadata.annotations")
+              .asInstanceOf(InstanceOfAssertFactories.MAP)
+              .doesNotContainKey("jkube.eclipse.org/git-branch")
+              .doesNotContainKey("jkube.eclipse.org/git-commit")
+              .doesNotContainKey("jkube.eclipse.org/git-url");
+            verify(context.getLog()).warn("jkube-git: Could not detect any git remote");
+        }
+    }
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    @DisplayName("given a valid .git repository exists")
+    class ValidGitRepositoryExists {
+
+        private Git git;
+        private RevCommit commit;
+
+        @BeforeEach
+        void setUp() throws Exception {
+            git = Git.init().setDirectory(baseDirectory).setInitialBranch("test-branch").call();
+            git.add().addFilepattern(".").call();
+            git.remoteAdd().setName("origin").setUri(new URIish("https://example.com/origin.git")).call();
+            commit = git.commit().setMessage("Initial commit").call();
+        }
+
+
+        Stream<Arguments> controllerResources() {
+            return Stream.of(
+              arguments(new ServiceBuilder().build()),
+              arguments(new DeploymentBuilder().build()),
+              arguments(new DeploymentConfigBuilder().build()),
+              arguments(new ReplicaSetBuilder().build()),
+              arguments(new ReplicationControllerBuilder().build()),
+              arguments(new DaemonSetBuilder().build()),
+              arguments(new StatefulSetBuilder().build()),
+              arguments(new JobBuilder().build())
+            );
+        }
+
+        @ParameterizedTest(name = "Git annotations should be added to {0}")
+        @MethodSource("controllerResources")
+        void create_whenResourceProvided_thenAddGitAnnotations(HasMetadata h) throws Exception {
+            // When
+            gitEnricher.create(PlatformMode.kubernetes, klb);
+            // Then
+            HasMetadata result = klb.buildFirstItem();
+            assertThat(result)
+              .extracting("metadata.annotations")
+              .asInstanceOf(InstanceOfAssertFactories.MAP)
+              .containsEntry("jkube.eclipse.org/git-branch", "test-branch")
+              .containsEntry("jkube.eclipse.org/git-commit", commit.getName())
+              .containsEntry("jkube.eclipse.org/git-url", "https://example.com/origin.git");
         }
 
         @Test
         @DisplayName("jkube.remoteName=upstream, then fetch git-url from specified remote")
-        void whenGitRemotePropertySpecified_thenUseProvidedGitRemoteInAnnotations() throws IOException {
+        void whenGitRemotePropertySpecified_thenUseProvidedGitRemoteInAnnotations() throws Exception {
             // Given
-            givenValidGitRepositoryExistsInProject("upstream");
+            git.remoteAdd().setName("upstream").setUri(new URIish("https://example.com/upstream.git")).call();
             properties.put("jkube.remoteName", "upstream");
 
             // When
@@ -239,15 +235,15 @@ class GitEnricherTest {
                 .extracting("metadata.annotations")
                 .asInstanceOf(InstanceOfAssertFactories.MAP)
                 .containsEntry("jkube.eclipse.org/git-branch", "test-branch")
-                .containsEntry("jkube.eclipse.org/git-commit", "testcommitid")
-                .containsEntry("jkube.eclipse.org/git-url", "https://example.com/foo.git");
+                .containsEntry("jkube.eclipse.org/git-commit", commit.getName())
+                .containsEntry("jkube.eclipse.org/git-url", "https://example.com/upstream.git");
         }
 
         @Test
         @DisplayName("git remote not found, then do not add git-url annotation")
-        void whenRemoteNotFound_thenGitUrlAnnotationNotAdded() throws IOException {
+        void whenRemoteNotFound_thenGitUrlAnnotationNotAdded() throws Exception {
             // Given
-            givenValidGitRepositoryExistsInProject("test");
+            git.remoteRemove().setRemoteName("origin").call();
 
             // When
             gitEnricher.create(PlatformMode.kubernetes, klb);
@@ -258,7 +254,7 @@ class GitEnricherTest {
                 .extracting("metadata.annotations")
                 .asInstanceOf(InstanceOfAssertFactories.MAP)
                 .containsEntry("jkube.eclipse.org/git-branch", "test-branch")
-                .containsEntry("jkube.eclipse.org/git-commit", "testcommitid")
+                .containsEntry("jkube.eclipse.org/git-commit", commit.getName())
                 .doesNotContainKey("jkube.eclipse.org/git-url");
             verify(context.getLog()).warn("jkube-git: Could not detect any git remote");
         }
@@ -275,7 +271,7 @@ class GitEnricherTest {
                 .extracting("metadata.annotations")
                 .asInstanceOf(InstanceOfAssertFactories.MAP)
                 .containsEntry("app.openshift.io/vcs-ref", "test-branch")
-                .containsEntry("app.openshift.io/vcs-uri", "https://example.com/foo.git");
+                .containsEntry("app.openshift.io/vcs-uri", "https://example.com/origin.git");
         }
     }
 
@@ -288,16 +284,5 @@ class GitEnricherTest {
       assertThat(annotations)
           .containsEntry("jkube.io/git-url", GIT_REMOTE_URL)
           .containsEntry("jkube.io/git-branch", GIT_BRANCH);
-    }
-
-    private void givenValidGitRepositoryExistsInProject(String remoteName) throws IOException {
-        Repository gitRepository = mock(Repository.class);
-        StoredConfig storedConfig = mock(StoredConfig.class);
-        when(gitRepository.getBranch()).thenReturn("test-branch");
-        when(gitRepository.getConfig()).thenReturn(storedConfig);
-        when(storedConfig.getString("remote", remoteName, "url")).thenReturn("https://example.com/foo.git");
-        gitUtilMockedStatic.when(() -> GitUtil.findGitFolder(temporaryFolder)).thenReturn(new File(temporaryFolder, ".git"));
-        gitUtilMockedStatic.when(() -> GitUtil.getGitRepository(temporaryFolder)).thenReturn(gitRepository);
-        gitUtilMockedStatic.when(() -> GitUtil.getGitCommitId(gitRepository)).thenReturn("testcommitid");
     }
 }
