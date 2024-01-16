@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.resource.helm.oci;
 
+import org.eclipse.jkube.kit.common.util.Serialization;
+import org.eclipse.jkube.kit.resource.helm.Chart;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -22,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 
 class OCIRepositoryUploaderTest {
@@ -37,5 +40,18 @@ class OCIRepositoryUploaderTest {
         .isThrownBy(() -> new OCIRepositoryUploader().uploadSingle(chartFile, repository))
         .withMessageStartingWith("Could not find Chart.yaml file in ")
         .withMessageEndingWith("helm");
+  }
+
+  @Test
+  void withInvalidChartName_throwsException(@TempDir Path tempDir) throws IOException {
+    // Given
+    Chart chart = Chart.builder().name("-invalid-chart-name^").build();
+    File chartFile = tempDir.resolve("Chart.yaml").toFile();
+    Serialization.saveJson(chartFile, chart);
+    final HelmRepository repository = HelmRepository.builder().build();
+    // When + Then
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> new OCIRepositoryUploader().uploadSingle(chartFile, repository))
+        .withMessageStartingWith("Chart name -invalid-chart-name^ is invalid for uploading to OCI registry");
   }
 }
