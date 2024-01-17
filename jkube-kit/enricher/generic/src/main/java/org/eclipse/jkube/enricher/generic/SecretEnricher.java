@@ -130,8 +130,10 @@ public abstract class SecretEnricher extends BaseEnricher {
     }
 
     private List<SecretConfig> getSecretsFromXmlConfig() {
-        ResourceConfig resourceConfig = getConfiguration().getResource();
-        return Optional.ofNullable(resourceConfig).map(resourceConfig1 -> Optional.ofNullable(resourceConfig1.getSecrets()).orElse(Collections.emptyList())).orElse(Collections.emptyList());
+        return Optional.ofNullable(getConfiguration().getResource())
+                .map(rc -> Optional.ofNullable(rc.getSecrets())
+                        .orElse(Collections.emptyList()))
+                .orElse(Collections.emptyList());
     }
 
     private String getDockerIdFromAnnotation(Map<String, String> annotation) {
