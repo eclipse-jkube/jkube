@@ -44,10 +44,11 @@ abstract class AbstractBuildPackCliDownloaderTest {
   private KitLogger kitLogger;
   @TempDir
   private File temporaryFolder;
-  private File remoteDirectory;
   private File oldPackCliInJKubeDir;
   private TestHttpStaticServer server;
   private BuildPackCliDownloader buildPackCliDownloader;
+  private String serverBaseUrl;
+  private Properties packProperties;
 
   abstract String getApplicablePackBinary();
   abstract String getInvalidApplicablePackBinary();
@@ -66,9 +67,18 @@ abstract class AbstractBuildPackCliDownloaderTest {
     overriddenEnvironmentVariables.put("PATH", temporaryFolder.toPath().resolve("bin").toFile().getAbsolutePath());
     EnvUtil.overridePropertyGetter(overriddenSystemProperties::get);
     EnvUtil.overrideEnvGetter(overriddenEnvironmentVariables::get);
-    remoteDirectory = new File(Objects.requireNonNull(getClass().getResource("/artifacts")).getFile());
+    File remoteDirectory = new File(Objects.requireNonNull(getClass().getResource("/")).getFile());
     server = new TestHttpStaticServer(remoteDirectory);
-    buildPackCliDownloader = new BuildPackCliDownloader(kitLogger, createPackProperties(server));
+    serverBaseUrl = String.format("http://localhost:%d/", server.getPort());
+    packProperties = new Properties();
+    packProperties.put("version", TEST_PACK_VERSION);
+    packProperties.put("linux.artifact", serverBaseUrl + "artifacts/pack-v" + TEST_PACK_VERSION + "-linux.tgz");
+    packProperties.put("linux-arm64.artifact", serverBaseUrl +  "artifacts/pack-v" + TEST_PACK_VERSION + "-linux-arm64.tgz");
+    packProperties.put("macos.artifact", serverBaseUrl +  "artifacts/pack-v" + TEST_PACK_VERSION + "-macos.tgz");
+    packProperties.put("macos-arm64.artifact", serverBaseUrl +  "artifacts/pack-v" + TEST_PACK_VERSION + "-macos-arm64.tgz");
+    packProperties.put("windows.artifact", serverBaseUrl +  "artifacts/pack-v" + TEST_PACK_VERSION + "-windows.zip");
+    packProperties.put("windows.binary-extension", "bat");
+    buildPackCliDownloader = new BuildPackCliDownloader(kitLogger, packProperties);
   }
 
   @AfterEach
@@ -149,9 +159,11 @@ abstract class AbstractBuildPackCliDownloaderTest {
     class DownloadFails {
       @BeforeEach
       void setUp() {
-        remoteDirectory = new File(Objects.requireNonNull(getClass().getResource("/invalid-artifacts")).getFile());
-        server = new TestHttpStaticServer(remoteDirectory);
-        buildPackCliDownloader = new BuildPackCliDownloader(kitLogger, createPackProperties(server));
+        packProperties.put("linux.artifact", serverBaseUrl + "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-linux.tgz");
+        packProperties.put("linux-arm64.artifact", serverBaseUrl +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-linux-arm64.tgz");
+        packProperties.put("macos.artifact", serverBaseUrl +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-macos.tgz");
+        packProperties.put("macos-arm64.artifact", serverBaseUrl +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-macos-arm64.tgz");
+        packProperties.put("windows.artifact", serverBaseUrl +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-windows.zip");
       }
 
       @Test
@@ -217,19 +229,6 @@ abstract class AbstractBuildPackCliDownloaderTest {
         Files.copy(pack.toPath(), bin.toPath().resolve(pack.getName()), COPY_ATTRIBUTES);
       }
     }
-  }
-
-  private Properties createPackProperties(TestHttpStaticServer server) {
-    Properties packProperties = new Properties();
-    String baseUrl = String.format("http://localhost:%d/", server.getPort());
-    packProperties.put("version", TEST_PACK_VERSION);
-    packProperties.put("linux.artifact", baseUrl + "pack-v" + TEST_PACK_VERSION + "-linux.tgz");
-    packProperties.put("linux-arm64.artifact", baseUrl +  "pack-v" + TEST_PACK_VERSION + "-linux-arm64.tgz");
-    packProperties.put("macos.artifact", baseUrl +  "pack-v" + TEST_PACK_VERSION + "-macos.tgz");
-    packProperties.put("macos-arm64.artifact", baseUrl +  "pack-v" + TEST_PACK_VERSION + "-macos-arm64.tgz");
-    packProperties.put("windows.artifact", baseUrl +  "pack-v" + TEST_PACK_VERSION + "-windows.zip");
-    packProperties.put("windows.binary-extension", "bat");
-    return packProperties;
   }
 
   private void givenPackCliAlreadyDownloaded() throws IOException {
