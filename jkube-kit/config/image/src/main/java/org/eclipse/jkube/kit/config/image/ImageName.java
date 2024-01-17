@@ -274,6 +274,12 @@ public class ImageName {
         // Strip off user from repository name
         String user = inferUser();
         String image = user != null ? repository.substring(user.length() + 1) : repository;
+
+        // Additional validation for repository length
+        if (repository.length() > REPO_NAME_MAX_LENGTH) {
+            errors.add(String.format("Repository name must not be more than %d characters", REPO_NAME_MAX_LENGTH));
+        }
+
         Object[] checks = new Object[] {
                 "registry", DOMAIN_REGEXP, registry,
                 "image", IMAGE_NAME_REGEXP, image,
@@ -289,9 +295,6 @@ public class ImageName {
                 errors.add(String.format("%s part '%s' doesn't match allowed pattern '%s'",
                         checks[i], value, checkPattern.pattern()));
             }
-        }
-        if (repository.length() > REPO_NAME_MAX_LENGTH) {
-            errors.add(String.format("Repository name must not be more than %d characters", REPO_NAME_MAX_LENGTH));
         }
 
         if (!errors.isEmpty()) {
