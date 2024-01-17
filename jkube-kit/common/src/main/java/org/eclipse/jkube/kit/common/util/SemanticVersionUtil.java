@@ -31,6 +31,20 @@ public class SemanticVersionUtil {
     return false;
   }
 
+  /**
+   * Remove build metadata from provided version
+   *
+   * @param version version with full version+(build metadata) format
+   * @return string containing just the version
+   */
+  public static String removeBuildMetadata(String version) {
+    if (StringUtils.isNotBlank(version) && version.contains("+")) {
+      int indexOfBuildMetadataDelimiter = version.indexOf('+');
+      return version.substring(0, indexOfBuildMetadataDelimiter);
+    }
+    return version;
+  }
+
   private static int parseInt(String toParse) {
     try {
       return Integer.parseInt(toParse);

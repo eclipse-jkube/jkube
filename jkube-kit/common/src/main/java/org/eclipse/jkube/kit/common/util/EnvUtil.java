@@ -30,6 +30,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -61,6 +62,7 @@ public class EnvUtil {
     private static final String COMMA_WHITESPACE = COMMA + WHITESPACE;
 
     private static UnaryOperator<String> envGetter = System::getenv;
+    private static UnaryOperator<String> propertyGetter = System::getProperty;
 
     private EnvUtil() {
     }
@@ -72,6 +74,11 @@ public class EnvUtil {
     public static void overrideEnvGetter(UnaryOperator<String> getter) {
         envGetter = getter;
     }
+
+    public static void overridePropertyGetter(UnaryOperator<String> propsGetter) {
+        propertyGetter = propsGetter;
+    }
+
     // Convert docker host URL to an HTTP(s) URL
     public static String convertTcpToHttpUrl(String connect) {
         String protocol = connect.contains(":" + DOCKER_HTTP_PORT) ? "http:" : "https:";
@@ -453,7 +460,7 @@ public class EnvUtil {
     }
 
     public static boolean isWindows() {
-        return System.getProperty("os.name").toLowerCase().contains("windows");
+        return getProperty("os.name").toLowerCase().contains("windows");
     }
 
     /**
@@ -461,7 +468,7 @@ public class EnvUtil {
      * @return the user home directory.
      */
     public static File getUserHome() {
-        String homeDir = System.getProperty("user.home");
+        String homeDir = getProperty("user.home");
         if (homeDir == null) {
             homeDir = getEnv("HOME");
         }
@@ -477,6 +484,10 @@ public class EnvUtil {
         return envGetter.apply(variableName);
     }
 
+    public static String getProperty(String propertyName) {
+        return propertyGetter.apply(propertyName);
+    }
+
     public static String getEnvVarOrSystemProperty(String varName, String defaultValue) {
         return getEnvVarOrSystemProperty(varName, varName, defaultValue);
     }
@@ -486,9 +497,41 @@ public class EnvUtil {
         if (StringUtils.isNotBlank(ret)){
             return ret;
         }
-        return System.getProperty(systemProperty, defaultValue);
+        return Optional.ofNullable(getProperty(systemProperty)).orElse(defaultValue);
     }
 
+    /**
+     * Utility method to get underlying processor architecture
+     * @return String value containing architecture
+     */
+    public static String getProcessorArchitecture() {
+      return getProperty("os.arch");
+    }
+
+    /**
+     * Is underlying Operating System from Mac OS family.
+     *
+     * @return boolean value indicating whether Operating System is Mac or not.
+     */
+    public static boolean isMacOs() {
+        return getProperty("os.name").toLowerCase().contains("mac");
+    }
+
+    /**
+     * Find a binary in user's path
+     *
+     * @param binaryName name of file to find
+     * @return {@link File} containing binary's path, otherwise null.
+     */
+    public static File findBinaryFileInUserPath(String binaryName) {
+        String userPath = getEnv("PATH");
+        if (userPath != null) {
+            return Arrays.stream(userPath.split(File.pathSeparator))
+                .map(p -> new File(p, binaryName))
+                .filter(f -> f.isFile() && f.exists())
+                .findFirst()
+                .orElse(null);
+        }
+        return null;
+    }
 }
-
-
