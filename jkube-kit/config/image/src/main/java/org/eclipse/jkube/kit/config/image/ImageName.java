@@ -274,11 +274,6 @@ public class ImageName {
         String user = inferUser();
         String image = user != null ? repository.substring(user.length() + 1) : repository;
 
-        //Check repository name length
-        if (image.length() > 255) {
-            errors.add(String.format("Repository name '%s' exceeds the maximum allowed length of 255 characters.", image));
-        }
-
         Object[] checks = new Object[] {
                 "registry", DOMAIN_REGEXP, registry,
                 "image", IMAGE_NAME_REGEXP, image,
@@ -288,7 +283,6 @@ public class ImageName {
 
         };
 
-
         for (int i = 0; i < checks.length; i +=3) {
             String value = (String) checks[i + 2];
             Pattern checkPattern = (Pattern) checks[i + 1];
@@ -296,6 +290,14 @@ public class ImageName {
                     !checkPattern.matcher(value).matches()) {
                 errors.add(String.format("%s part '%s' doesn't match allowed pattern '%s'",
                         checks[i], value, checkPattern.pattern()));
+            }
+        }
+
+        // Additional validation for repository length
+        if (repository != null) {
+            int repositoryLength = repository.length();
+            if (repositoryLength > 255) {
+                errors.add(String.format("Repository name '%s' has a length of %d characters, which exceeds the maximum of 255 characters.", repository, repositoryLength));
             }
         }
 
@@ -362,5 +364,4 @@ public class ImageName {
     private static final Pattern TAG_REGEXP = Pattern.compile("^[\\w][\\w.-]{0,127}$");
 
     private static final Pattern DIGEST_REGEXP = Pattern.compile("^sha256:[a-z0-9]{32,}$");
-
 }
