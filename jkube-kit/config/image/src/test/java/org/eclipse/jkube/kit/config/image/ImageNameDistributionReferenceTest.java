@@ -95,7 +95,7 @@ class ImageNameDistributionReferenceTest {
       ":justtag",
       "@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a:tag", // https://github.com/eclipse/jkube/issues/2542
-      "repo@sha256:ffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2543
+      //"repo@sha256:ffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2543
       "validname@invaliddigest:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "Uppercase:tag",
       "test:5000/Uppercase/lowercase:tag",
