@@ -55,6 +55,8 @@ public class ImageName {
     // Digest
     private String digest;
 
+    private static final int REPO_NAME_MAX_LENGTH = 255;
+
 
     /**
      * Create an image name
@@ -293,11 +295,8 @@ public class ImageName {
             }
         }
 
-        // Additional validation for repository length
-        String fullNameWithoutTagAndDigest = getNameWithoutTag(null);
-        int fullNameLength = fullNameWithoutTagAndDigest.length();
-        if (repository != null && fullNameLength > 255) {
-            errors.add(String.format("Total image name '%s' has a length of %d characters, which exceeds the maximum of 255 characters.", fullNameWithoutTagAndDigest, fullNameLength));
+        if (repository.length() > REPO_NAME_MAX_LENGTH) {
+            errors.add(String.format("Repository name must not be more than %d characters", REPO_NAME_MAX_LENGTH));
         }
 
         if (!errors.isEmpty()) {
