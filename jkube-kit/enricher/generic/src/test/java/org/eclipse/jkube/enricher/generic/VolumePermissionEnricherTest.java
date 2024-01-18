@@ -16,6 +16,7 @@ package org.eclipse.jkube.enricher.generic;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaimBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplate;
 import io.fabric8.kubernetes.api.model.PodTemplateBuilder;
@@ -30,6 +31,7 @@ import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -105,10 +108,10 @@ class VolumePermissionEnricherTest {
     @Test
     void adapt() {
         final TestConfig[] data = new TestConfig[]{
-            new TestConfig("busybox",null, null),
-            new TestConfig("busybox1",null, null),
-            new TestConfig("busybox",null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA"),
-            new TestConfig("busybox",null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA", "volumeB")
+            new TestConfig("quay.io/quay/busybox",null, null),
+            new TestConfig("quay.io/quay/busybox","766", VolumePermissionEnricher.ENRICHER_NAME, "volumeA"),
+            new TestConfig("quay.io/quay/busybox",null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA"),
+            new TestConfig("quay.io/quay/busybox",null, VolumePermissionEnricher.ENRICHER_NAME, "volumeA", "volumeB")
         };
 
         for (final TestConfig tc : data) {
@@ -152,6 +155,64 @@ class VolumePermissionEnricherTest {
                 .hasFieldOrPropertyWithValue("resources.limits", Collections.emptyMap())
                 .hasFieldOrPropertyWithValue("resources.requests", Collections.emptyMap());
         }
+    }
+
+    @Test
+    @DisplayName("when volume mount for PersistentVolumeClaim not found in Container, then throw exception")
+    void enrich_whenVolumesMountForPVCNotFoundInContainer_thenThrowException() {
+        // Given
+        VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
+        KubernetesListBuilder klb = new KubernetesListBuilder().addToItems(createEmptyPodTemplate()
+                .editTemplate()
+                .editSpec()
+                .addNewContainer()
+                .withName("foo")
+                .addNewVolumeMount()
+                .withName("idontexist")
+                .withMountPath("/foo/idontexist")
+                .endVolumeMount()
+                .endContainer()
+                .addNewVolume()
+                .withName("vol1")
+                .withNewPersistentVolumeClaim()
+                .withClaimName("pvc1")
+                .endPersistentVolumeClaim()
+                .endVolume()
+                .endSpec()
+                .endTemplate()
+            .build());
+        klb.addToItems(new PersistentVolumeClaimBuilder().withNewMetadata().withName("pvc1").endMetadata().build());
+
+        // When + Then
+        assertThatIllegalArgumentException()
+            .isThrownBy(() -> enricher.enrich(PlatformMode.kubernetes, klb))
+            .withMessage("No matching volume mount found for volume vol1");
+    }
+
+    @Test
+    @DisplayName("when initContainer imageName provided via configuration, then use provided image")
+    void enrich_whenCustomInitContainerImageProvided_thenUseThatContainerImageInInitContainer() {
+        // Given
+        Properties properties = new Properties();
+        properties.put("jkube.enricher.jkube-volume-permission.imageName", "example.org/foo/bar:latest");
+        when(context.getProperties()).thenReturn(properties);
+        VolumePermissionEnricher enricher = new VolumePermissionEnricher(context);
+        PodTemplateBuilder podTemplateBuilder = createEmptyPodTemplate();
+        addVolume(podTemplateBuilder, "sample-vol");
+        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().withItems(podTemplateBuilder.build());
+
+        // When
+        enricher.enrich(PlatformMode.kubernetes, kubernetesListBuilder);
+
+        // Then
+        PodTemplate podTemplate = (PodTemplate) kubernetesListBuilder.buildFirstItem();
+        assertThat(podTemplate)
+            .extracting(PodTemplate::getTemplate)
+            .extracting(PodTemplateSpec::getSpec)
+            .extracting(PodSpec::getInitContainers)
+            .asList()
+            .singleElement(InstanceOfAssertFactories.type(Container.class))
+            .hasFieldOrPropertyWithValue("image", "example.org/foo/bar:latest");
     }
 
     @Test

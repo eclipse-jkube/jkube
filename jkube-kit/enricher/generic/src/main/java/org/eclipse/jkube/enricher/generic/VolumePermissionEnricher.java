@@ -53,7 +53,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
 
     @AllArgsConstructor
     enum Config implements Configs.Config {
-        IMAGE_NAME("imageName", "busybox"),
+        IMAGE_NAME("imageName", "quay.io/quay/busybox"),
         PERMISSION("permission", "777"),
         /**
          * @deprecated Use configuration field in PersistentVolumeClaimStorageClassEnricher
