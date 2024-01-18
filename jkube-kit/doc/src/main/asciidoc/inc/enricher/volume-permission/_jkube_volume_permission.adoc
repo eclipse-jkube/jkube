@@ -12,7 +12,7 @@ Enricher which fixes the permission of persistent volume mount with the help of 
 | *imageName*
 | Image name for PersistentVolume init container
 
-  Defaults to `busybox`.
+  Defaults to `quay.io/quay/busybox`.
 
 | `jkube.enricher.jkube-volume-permission.imageName`
 

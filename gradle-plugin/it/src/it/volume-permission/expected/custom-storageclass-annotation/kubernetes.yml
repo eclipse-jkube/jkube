@@ -104,7 +104,7 @@ items:
                 - chmod
                 - "777"
                 - /var/lib/registry
-              image: busybox
+              image: quay.io/quay/busybox
               imagePullPolicy: IfNotPresent
               name: jkube-volume-permission
               volumeMounts:

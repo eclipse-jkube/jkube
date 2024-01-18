@@ -29,6 +29,7 @@ Usage:
 * Fix #2389: Helm `values.yaml` sorted alphabetically
 * Fix #2390: support for all missing Chart.yaml fields
 * Fix #2391: Automatically add `values.schema.json` file if detected
+* Fix #2423: Change default VolumePermissionEnricher's initContainer image from `busybox` to `quay.io/quay/busybox`
 * Fix #2444: Add support for Spring Boot application properties placeholders
 * Fix #2456: Add utility class to decompress archive files
 * Fix #2472: Support for Helm Chart.yaml appVersion field defaulting to project version
