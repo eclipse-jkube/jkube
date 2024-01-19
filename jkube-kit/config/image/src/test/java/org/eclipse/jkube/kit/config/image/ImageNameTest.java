@@ -123,6 +123,22 @@ class ImageNameTest {
     @Test
     void testIllegalFormat() {
         assertThrows(IllegalArgumentException.class, () -> new ImageName(""));
+
+        // New test for too long repository name
+        String tooLongName = generateTooLongImageName();
+        assertThatIllegalArgumentException()
+            .as("Too long image name should fail")
+            .isThrownBy(() -> new ImageName(tooLongName))
+            .withMessageContaining("Repository name must not be more than 255 characters");
+    }
+
+    private String generateTooLongImageName() {
+        StringBuilder tooLongName = new StringBuilder();
+        int maxLength = 255 + 1; // exceeding the maximum length
+        for (int i = 0; i < maxLength; i++) {
+            tooLongName.append("a");
+        }
+        return tooLongName.toString();
     }
 
     @Test
