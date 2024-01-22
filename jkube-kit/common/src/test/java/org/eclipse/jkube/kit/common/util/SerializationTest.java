@@ -157,16 +157,16 @@ class SerializationTest {
     final String result = Serialization.asJson(source);
     // Then
     assertThat(result)
-      .isEqualTo("{\n" +
-        "  \"apiVersion\" : \"v1\",\n" +
-        "  \"kind\" : \"ConfigMap\",\n" +
-        "  \"metadata\" : {\n" +
-        "    \"name\" : \"test\"\n" +
-        "  },\n" +
-        "  \"data\" : {\n" +
-        "    \"key\" : \"value\"\n" +
-        "  }\n" +
-        "}");
+            .isEqualTo(String.format("{%n" +
+                    "  \"apiVersion\" : \"v1\",%n" +
+                    "  \"kind\" : \"ConfigMap\",%n" +
+                    "  \"metadata\" : {%n" +
+                    "    \"name\" : \"test\"%n" +
+                    "  },%n" +
+                    "  \"data\" : {%n" +
+                    "    \"key\" : \"value\"%n" +
+                    "  }%n" +
+                    "}"));
   }
 
   @Test
@@ -182,16 +182,16 @@ class SerializationTest {
     // Then
     assertThat(targetFile)
       .content()
-      .isEqualTo("{\n" +
-        "  \"apiVersion\" : \"v1\",\n" +
-        "  \"kind\" : \"ConfigMap\",\n" +
-        "  \"metadata\" : {\n" +
-        "    \"name\" : \"test\"\n" +
-        "  },\n" +
-        "  \"data\" : {\n" +
-        "    \"key\" : \"value\"\n" +
-        "  }\n" +
-        "}");
+            .isEqualTo(String.format("{%n" +
+                    "  \"apiVersion\" : \"v1\",%n" +
+                    "  \"kind\" : \"ConfigMap\",%n" +
+                    "  \"metadata\" : {%n" +
+                    "    \"name\" : \"test\"%n" +
+                    "  },%n" +
+                    "  \"data\" : {%n" +
+                    "    \"key\" : \"value\"%n" +
+                    "  }%n" +
+                    "}"));
   }
 
   @Test
