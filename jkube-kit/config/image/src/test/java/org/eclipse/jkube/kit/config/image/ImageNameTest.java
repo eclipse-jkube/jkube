@@ -126,6 +126,8 @@ class ImageNameTest {
     }
     @Test
     void shouldThrowExceptionOnTooLongImageName() {
+        assertThrows(IllegalArgumentException.class, () -> new ImageName(""));
+
         // New test for too long repository name
         String tooLongName = generateTooLongImageName();
         assertThatIllegalArgumentException()
