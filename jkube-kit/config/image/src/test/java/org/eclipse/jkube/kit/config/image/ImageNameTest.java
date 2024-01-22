@@ -12,7 +12,7 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 package org.eclipse.jkube.kit.config.image;
-
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -123,22 +123,23 @@ class ImageNameTest {
     @Test
     void testIllegalFormat() {
         assertThrows(IllegalArgumentException.class, () -> new ImageName(""));
-
+    }
+    @Test
+    void shouldThrowExceptionOnTooLongImageName() {
         // New test for too long repository name
         String tooLongName = generateTooLongImageName();
         assertThatIllegalArgumentException()
             .as("Too long image name should fail")
             .isThrownBy(() -> new ImageName(tooLongName))
             .withMessageContaining("Repository name must not be more than 255 characters");
+
     }
 
     private String generateTooLongImageName() {
-        StringBuilder tooLongName = new StringBuilder();
-        int maxLength = 255 + 1; // exceeding the maximum length
-        for (int i = 0; i < maxLength; i++) {
-            tooLongName.append("a");
-        }
-        return tooLongName.toString();
+        char repeatedChar = 'a';
+        int maxLength = 255 + 1;
+        String tooLongName = StringUtils.repeat(repeatedChar, maxLength);
+        return tooLongName;
     }
 
     @Test
