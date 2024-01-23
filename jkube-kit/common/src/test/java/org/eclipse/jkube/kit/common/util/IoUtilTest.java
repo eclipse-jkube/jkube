@@ -141,7 +141,7 @@ class IoUtilTest {
             FileAssertions.assertThat(temporaryFolder)
                 .exists()
                 .fileTree()
-                    .containsExactlyInAnyOrder("linux-amd64", separatorsToSystem("linux-amd64/foo"));
+                .containsExactlyInAnyOrder("linux-amd64", separatorsToSystem("linux-amd64/foo"));
         }
     }
 

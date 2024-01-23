@@ -67,7 +67,7 @@ class ArchiveDecompressorTest {
     FileAssertions.assertThat(tempDir)
         .exists()
         .fileTree()
-            .containsExactlyInAnyOrder(parentDir, separatorsToSystem(artifactParentDir), separatorsToSystem(artifact));
+        .containsExactlyInAnyOrder(parentDir, separatorsToSystem(artifactParentDir), separatorsToSystem(artifact));
   }
 
   @Test
