@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.SecretConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
@@ -130,9 +131,9 @@ public abstract class SecretEnricher extends BaseEnricher {
     }
 
     private List<SecretConfig> getSecretsFromXmlConfig() {
-        return Optional.ofNullable(getConfiguration().getResource())
-                .map(rc -> Optional.ofNullable(rc.getSecrets())
-                        .orElse(Collections.emptyList()))
+        return Optional.ofNullable(getConfiguration())
+                .map(Configuration::getResource)
+                .map(ResourceConfig::getSecrets)
                 .orElse(Collections.emptyList());
     }
 
