@@ -42,23 +42,24 @@ public class MapUtil {
     }
 
     /**
-     * Returns a new map with all the entries of map1 and any from map2 which don't override map1.
+     * Returns a new map with all the entries of first map with rest map entries which don't override map1.
      *
-     * Can handle either maps being null. Always returns a new mutable map
+     * Can handle either maps being null. Always returns a new mutable map.
      *
-     * @param map1 first hash map
-     * @param map2 second hash map
+     * <b>Note:</b> Be careful about the ordering of maps passed here. First map passed in the var args
+     * would always be given precedence over other maps in case there are colliding entries with same key values.
+     *
+     * @param maps var arg for maps
      * @param <K> first type
      * @param <V> second type
      * @return merged hash map
      */
-    public static <K,V> Map<K,V> mergeMaps(Map<K, V> map1, Map<K, V> map2) {
+    public static <K,V> Map<K,V> mergeMaps(Map<K, V> ...maps) {
         Map<K, V> answer = new HashMap<>();
-        if (map2 != null) {
-            answer.putAll(map2);
-        }
-        if (map1 != null) {
-            answer.putAll(map1);
+        for (int i = maps.length-1; i >= 0; i--) {
+            if (maps[i] != null) {
+                answer.putAll(maps[i]);
+            }
         }
         return answer;
 

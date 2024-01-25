@@ -1,0 +1,144 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      app.openshift.io/vcs-ref: "@ignore@"
+      app.openshift.io/vcs-uri: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+    labels:
+      app: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/component: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/name: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/version: via-resource-groovy-dsl-labels-service
+      group: via-resource-groovy-dsl-labels-service
+      provider: via-resource-groovy-dsl-labels-service
+      version: via-resource-groovy-dsl-labels-service
+    name: well-known-labels
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/component: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/name: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-service
+      group: via-resource-groovy-dsl-labels-service
+      provider: via-resource-groovy-dsl-labels-service
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      app.openshift.io/vcs-ref: "@ignore@"
+      app.openshift.io/vcs-uri: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+    labels:
+      app: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/component: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/name: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/version: via-resource-groovy-dsl-labels-all
+      group: via-resource-groovy-dsl-labels-all
+      provider: via-resource-groovy-dsl-labels-all
+      version: via-resource-groovy-dsl-labels-all
+    name: well-known-labels
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      app: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/component: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/name: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-all
+      group: via-resource-groovy-dsl-labels-all
+      provider: via-resource-groovy-dsl-labels-all
+    strategy:
+      rollingParams:
+        timeoutSeconds: 3600
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          app.openshift.io/vcs-ref: "@ignore@"
+          app.openshift.io/vcs-uri: "@ignore@"
+          jkube.eclipse.org/git-branch: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
+        labels:
+          app: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/component: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/name: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/version: via-resource-groovy-dsl-labels-all
+          group: via-resource-groovy-dsl-labels-all
+          provider: via-resource-groovy-dsl-labels-all
+          version: via-resource-groovy-dsl-labels-all
+        name: well-known-labels
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          image: repository/well-known-labels:latest
+          imagePullPolicy: IfNotPresent
+          name: repository-well-known-labels
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          securityContext:
+            privileged: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - repository-well-known-labels
+        from:
+          kind: ImageStreamTag
+          name: well-known-labels:latest
+      type: ImageChange
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      app.openshift.io/vcs-ref: "@ignore@"
+      app.openshift.io/vcs-uri: "@ignore@"
+      jkube.eclipse.org/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+    labels:
+      app: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/component: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/name: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/version: via-resource-groovy-dsl-labels-all
+      group: via-resource-groovy-dsl-labels-all
+      provider: via-resource-groovy-dsl-labels-all
+      version: via-resource-groovy-dsl-labels-all
+    name: well-known-labels
+  spec:
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: well-known-labels
