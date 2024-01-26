@@ -331,7 +331,7 @@ public class ImageName {
 
     // ---------------------------------------------------------------------
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L18
-    private static final String NAME_COMPONENT_REGEXP = "[a-z0-9]+(?:(?:(?:[._]|__|[-]*)[a-z0-9]+)+)?";
+    private static final String NAME_COMPONENT_REGEXP = "[a-zA-Z0-9]+(?:(?:(?:[._]|__|[-:]*)[a-zA-Z0-9]+)+)";
     private static final String IPV6_LITERAL = "(?:[a-fA-F0-9:]+)";
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L25
