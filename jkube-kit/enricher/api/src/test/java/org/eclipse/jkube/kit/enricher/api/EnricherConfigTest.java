@@ -33,7 +33,7 @@ class EnricherConfigTest {
     TYPE
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
+
   @Test
   void simple() {
     EnricherContext context = mock(EnricherContext.class,RETURNS_DEEP_STUBS);
