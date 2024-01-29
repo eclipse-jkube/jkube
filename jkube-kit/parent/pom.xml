@@ -36,7 +36,7 @@
 
     <version.bouncycastle.bcpkix>1.76</version.bouncycastle.bcpkix>
     <version.commons-codec>1.15</version.commons-codec>
-    <version.commons-compress>1.24.0</version.commons-compress>
+    <version.commons-compress>1.25.0</version.commons-compress> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
     <version.commons-lang3>3.13.0</version.commons-lang3>
     <version.commons-text>1.10.0</version.commons-text>
     <version.gson>2.10.1</version.gson>
@@ -127,6 +127,14 @@
     <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
 
     <jib-core.version>0.24.0</jib-core.version>
+
+    <pack.version>0.32.1</pack.version>
+    <pack.windows.binary-extension>exe</pack.windows.binary-extension>
+    <pack.linux.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-linux.tgz</pack.linux.artifact>
+    <pack.linux-arm64.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-linux-arm64.tgz</pack.linux-arm64.artifact>
+    <pack.macos.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-macos.tgz</pack.macos.artifact>
+    <pack.macos-arm64.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-macos-arm64.tgz</pack.macos-arm64.artifact>
+    <pack.windows.pack.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-windows.zip</pack.windows.pack.artifact>
   </properties>
 
   <dependencyManagement>

@@ -210,7 +210,7 @@ public class ResourceValidator {
 
     private static class ConstraintViolationImpl implements ConstraintViolation<ValidationMessage> {
 
-        private ValidationMessage errorMsg;
+        private final ValidationMessage errorMsg;
 
         public ConstraintViolationImpl(ValidationMessage errorMsg) {
             this.errorMsg = errorMsg;

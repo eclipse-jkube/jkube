@@ -109,3 +109,6 @@ org.eclipse.jkube.enricher.generic.PersistentVolumeClaimStorageClassEnricher
 
 # Enforces best practice and recommended security rules
 org.eclipse.jkube.enricher.generic.SecurityHardeningEnricher
+
+# Well Known Kubernetes App Labels
+org.eclipse.jkube.enricher.generic.WellKnownLabelsEnricher

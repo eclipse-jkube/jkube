@@ -28,6 +28,7 @@
       - jkube-image
       - jkube-portname
       - jkube-project-label
+      - jkube-well-known-labels
       - jkube-dependency
       - jkube-pod-annotations
       - jkube-git

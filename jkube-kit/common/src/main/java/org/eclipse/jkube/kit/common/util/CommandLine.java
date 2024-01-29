@@ -20,7 +20,7 @@ import java.util.StringTokenizer;
 
 // Inspired from org.apache.maven.shared.utils.cli.CommandLineUtils#translateCommandline()
 // including a fixed for quoting
-public class CommandLine implements Cloneable {
+public class CommandLine {
 
     private CommandLine() { }
 

@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.common.util;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.stream.Stream;
@@ -39,8 +40,18 @@ class SemanticVersionUtilTest {
             Arguments.arguments("With same major and minor version should return true", 1, 13, "1.13.7.Final", true),
             Arguments.arguments("With same major and smaller minor version should return true", 1, 12, "1.13.7.Final", true),
             Arguments.arguments("With smaller major and larger minor version should return true", 0, 12, "1.13.7.Final", true),
-            Arguments.arguments("With smaller major and incomplete version should return true", 0, 12, "1.Final", true)
+            Arguments.arguments("With smaller major and incomplete version should return true", 0, 12, "1.Final", true),
+            Arguments.arguments("With invalid version should return false", 2, 1, "two.one.seven.Final", false)
     );
+  }
+
+  @ParameterizedTest(name = "given {0} should return {1} without metadata")
+  @CsvSource({
+      "0.31.0+git-3a994bd.build-5086,0.31.0",
+      "24.0.7,24.0.7"
+  })
+  void removeBuildMetadata_whenSemanticVersionProvided_thenTrimMetadata(String semanticVersion, String expectedVersionWithoutMetadata) {
+    assertThat(SemanticVersionUtil.removeBuildMetadata(semanticVersion)).isEqualTo(expectedVersionWithoutMetadata);
   }
 
 }

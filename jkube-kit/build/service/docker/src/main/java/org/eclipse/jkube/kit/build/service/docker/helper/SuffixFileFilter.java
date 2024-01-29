@@ -24,7 +24,7 @@ public class SuffixFileFilter implements FilenameFilter {
 
     public static final FilenameFilter PEM_FILTER = new SuffixFileFilter(".pem");
 
-    private String suffix;
+    private final String suffix;
 
     public SuffixFileFilter(String suffix) {
         this.suffix = suffix;

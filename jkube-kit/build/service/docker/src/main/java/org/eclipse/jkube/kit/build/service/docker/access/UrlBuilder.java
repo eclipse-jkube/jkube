@@ -243,8 +243,8 @@ public final class UrlBuilder {
 
     private static class Builder {
 
-        private Map<String,String> queryParams = new HashMap<>();
-        private String url;
+        private final Map<String,String> queryParams = new HashMap<>();
+        private final String url;
 
         public Builder(String url) {
             this.url = url;
