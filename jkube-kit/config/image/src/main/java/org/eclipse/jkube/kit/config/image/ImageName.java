@@ -222,15 +222,26 @@ public class ImageName {
      * @return full name with original registry (if set) or optional registry (if not <code>null</code>).
      */
     public String getFullName(String optionalRegistry) {
-        String fullName = getNameWithoutTag(optionalRegistry);
-        if (digest != null) {
-            fullName = fullName + "@" + digest;
-        } else if (tag != null) {
-            fullName = fullName + ":" + tag;
-        } else {
-            fullName = fullName + ":latest"; // If both tag and digest are null, set the tag to "latest"
+        StringBuilder ret = new StringBuilder();
+
+        if (!isFullyQualifiedName() && isRegistryValidPathComponent() &&
+            StringUtils.isNotBlank(optionalRegistry) && !optionalRegistry.equals(registry)) {
+            ret.append(optionalRegistry).append("/").append(registry).append("/");
+        } else if (registry != null || optionalRegistry != null) {
+            ret.append(registry != null ? registry : optionalRegistry).append("/");
         }
-        return fullName;
+
+        ret.append(repository);
+
+        if (digest != null) {
+            ret.append("@").append(digest);
+        } else if (tag != null) {
+            ret.append(":").append(tag);
+        } else {
+            ret.append(":latest"); // If both tag and digest are null, set the tag to "latest"
+        }
+
+        return ret.toString();
     }
 
     /**
