@@ -56,7 +56,6 @@ public class ImageName {
     private String digest;
 
     private static final int REPO_NAME_MAX_LENGTH = 255;
-    
     /**
      * Create an image name
      *
