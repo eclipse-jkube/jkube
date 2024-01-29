@@ -226,7 +226,7 @@ public class ImageName {
         if (tag != null && digest == null) { // Include tag only if digest is null
             fullName = fullName +  ":" + tag;
         }
-        if(digest != null) {
+        if(digest != null && digest != null) { // Include digest only if tag is null
             fullName = fullName + "@" + digest;
         }
         return fullName;
