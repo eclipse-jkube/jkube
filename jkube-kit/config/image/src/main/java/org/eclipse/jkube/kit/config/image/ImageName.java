@@ -91,8 +91,11 @@ public class ImageName {
         if (!matcher.matches()) {
             throw new IllegalArgumentException(fullName + " is not a proper image name ([registry/][repo][:port]");
         }
-        // extract tag if it exists
-        tag = givenTag != null ? givenTag : matcher.group(2);
+        // Extract tag if it exists, but ignore it if digest is also provided
+        if (digest == null) {
+            tag = givenTag != null ? givenTag : matcher.group(2);
+        }
+
         String rest = matcher.group(1);
 
         // extract registry, repository, user
@@ -191,6 +194,10 @@ public class ImageName {
             ret.append(registry != null ? registry : optionalRegistry).append("/");
         }
         ret.append(repository);
+        // Include digest if it exists
+        if (digest != null) {
+            ret.append("@").append(digest);
+        }
         return ret.toString();
     }
 
