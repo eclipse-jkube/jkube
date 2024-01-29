@@ -223,7 +223,7 @@ public class ImageName {
      */
     public String getFullName(String optionalRegistry) {
         String fullName = getNameWithoutTag(optionalRegistry);
-        if (tag != null) {
+        if (tag != null && digest == null) { // Include tag only if digest is null
             fullName = fullName +  ":" + tag;
         }
         if(digest != null) {
