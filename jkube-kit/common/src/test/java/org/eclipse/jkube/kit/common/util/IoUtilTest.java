@@ -25,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -140,7 +141,7 @@ class IoUtilTest {
             FileAssertions.assertThat(temporaryFolder)
                 .exists()
                 .fileTree()
-                .containsExactlyInAnyOrder("linux-amd64", "linux-amd64/foo");
+                .containsExactlyInAnyOrder("linux-amd64", separatorsToSystem("linux-amd64/foo"));
         }
     }
 
