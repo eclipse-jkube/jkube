@@ -28,7 +28,6 @@ import io.fabric8.kubernetes.client.http.TestHttpResponse;
 import io.fabric8.kubernetes.client.utils.HttpClientUtils;
 import io.fabric8.mockwebserver.DefaultMockServer;
 import okhttp3.mockwebserver.RecordedRequest;
-import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -113,7 +112,7 @@ class OCIRegistryInterceptorTest {
         .once();
     String service = "localhost";
     String wwwHeader = createWwwHeader(authUrl, service);
-    Map<String, List<String>> unAuthorizedResponseHeaders = Collections.singletonMap(HttpHeaders.WWW_AUTHENTICATE, Collections.singletonList(wwwHeader));
+    Map<String, List<String>> unAuthorizedResponseHeaders = Collections.singletonMap("WWW-Authenticate", Collections.singletonList(wwwHeader));
     HttpRequest.Builder builder = mock(HttpRequest.Builder.class, Mockito.RETURNS_SELF);
     HttpResponse<byte[]> response = new TestHttpResponse<byte[]>(unAuthorizedResponseHeaders).withCode(HTTP_UNAUTHORIZED);
 
@@ -133,7 +132,7 @@ class OCIRegistryInterceptorTest {
         .once();
     String service = "localhost";
     String wwwHeader = createWwwHeader(authUrl, service);
-    Map<String, List<String>> unAuthorizedResponseHeaders = Collections.singletonMap(HttpHeaders.WWW_AUTHENTICATE, Collections.singletonList(wwwHeader));
+    Map<String, List<String>> unAuthorizedResponseHeaders = Collections.singletonMap("WWW-Authenticate", Collections.singletonList(wwwHeader));
     HttpRequest.Builder builder = mock(HttpRequest.Builder.class, Mockito.RETURNS_SELF);
     HttpResponse<byte[]> response = new TestHttpResponse<byte[]>(unAuthorizedResponseHeaders).withCode(HTTP_UNAUTHORIZED);
 
@@ -157,7 +156,7 @@ class OCIRegistryInterceptorTest {
         .once();
     String service = "localhost";
     String wwwHeader = createWwwHeader(authUrl, service);
-    Map<String, List<String>> unAuthorizedResponseHeaders = Collections.singletonMap(HttpHeaders.WWW_AUTHENTICATE, Collections.singletonList(wwwHeader));
+    Map<String, List<String>> unAuthorizedResponseHeaders = Collections.singletonMap("WWW-Authenticate", Collections.singletonList(wwwHeader));
     HttpRequest.Builder builder = mock(HttpRequest.Builder.class, Mockito.RETURNS_SELF);
     HttpResponse<byte[]> response = new TestHttpResponse<byte[]>(unAuthorizedResponseHeaders).withCode(HTTP_UNAUTHORIZED);
 
@@ -181,7 +180,7 @@ class OCIRegistryInterceptorTest {
         .once();
     String service = "localhost";
     String wwwHeader = createWwwHeader(authUrl, service);
-    Map<String, List<String>> unAuthorizedResponseHeaders = Collections.singletonMap(HttpHeaders.WWW_AUTHENTICATE, Collections.singletonList(wwwHeader));
+    Map<String, List<String>> unAuthorizedResponseHeaders = Collections.singletonMap("WWW-Authenticate", Collections.singletonList(wwwHeader));
     HttpRequest.Builder builder = mock(HttpRequest.Builder.class, Mockito.RETURNS_SELF);
     HttpResponse<byte[]> response = new TestHttpResponse<byte[]>(unAuthorizedResponseHeaders).withCode(HTTP_UNAUTHORIZED);
 
