@@ -20,8 +20,8 @@ import java.net.HttpURLConnection;
 import java.net.PasswordAuthentication;
 import java.net.URL;
 
+import io.fabric8.kubernetes.client.http.StandardHttpHeaders;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHeaders;
 
 public class HelmRepositoryConnectionUtils {
 
@@ -54,7 +54,7 @@ public class HelmRepositoryConnectionUtils {
     final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
     connection.setDoOutput(true);
     connection.setRequestMethod("POST");
-    connection.setRequestProperty(HttpHeaders.CONTENT_TYPE, "application/gzip");
+    connection.setRequestProperty(StandardHttpHeaders.CONTENT_TYPE, "application/gzip");
     verifyAndSetAuthentication(repository);
     return connection;
   }
