@@ -21,12 +21,12 @@
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
     <version>1.16-SNAPSHOT</version>
-    <relativePath>../../parent/pom.xml</relativePath>
+    <relativePath>../parent/pom.xml</relativePath>
   </parent>
 
-  <artifactId>jkube-kit-resource-helm</artifactId>
+  <artifactId>jkube-kit-helm</artifactId>
 
-  <name>JKube Kit :: Resource :: Helm</name>
+  <name>JKube Kit :: Helm</name>
 
   <dependencies>
 

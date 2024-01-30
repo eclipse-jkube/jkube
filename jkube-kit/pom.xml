@@ -51,8 +51,8 @@
       <module>enricher/generic</module>
       <module>enricher/specific</module>
       <module>profile</module>
+      <module>helm</module>
       <module>resource/service</module>
-      <module>resource/helm</module>
       <module>watcher/api</module>
       <module>watcher/standard</module>
       <module>remote-dev</module>
