@@ -43,7 +43,7 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-resource-helm</artifactId>
+            <artifactId>jkube-kit-helm</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
