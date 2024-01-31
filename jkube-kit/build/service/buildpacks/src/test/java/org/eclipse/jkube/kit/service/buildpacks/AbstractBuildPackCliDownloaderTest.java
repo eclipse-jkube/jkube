@@ -23,7 +23,7 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.KitLogger;
 
-import org.eclipse.jkube.kit.common.TestHttpStaticServer;
+import org.eclipse.jkube.kit.common.TestHttpBuildPacksArtifactsServer;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,9 +45,8 @@ abstract class AbstractBuildPackCliDownloaderTest {
   @TempDir
   private File temporaryFolder;
   private File oldPackCliInJKubeDir;
-  private TestHttpStaticServer server;
+  private TestHttpBuildPacksArtifactsServer server;
   private BuildPackCliDownloader buildPackCliDownloader;
-  private String serverBaseUrl;
   private Properties packProperties;
 
   abstract String getApplicablePackBinary();
@@ -67,16 +66,14 @@ abstract class AbstractBuildPackCliDownloaderTest {
     overriddenEnvironmentVariables.put("PATH", temporaryFolder.toPath().resolve("bin").toFile().getAbsolutePath());
     EnvUtil.overridePropertyGetter(overriddenSystemProperties::get);
     EnvUtil.overrideEnvGetter(overriddenEnvironmentVariables::get);
-    File remoteDirectory = new File(Objects.requireNonNull(getClass().getResource("/")).getFile());
-    server = new TestHttpStaticServer(remoteDirectory);
-    serverBaseUrl = String.format("http://localhost:%d/", server.getPort());
+    server = new TestHttpBuildPacksArtifactsServer();
     packProperties = new Properties();
     packProperties.put("version", TEST_PACK_VERSION);
-    packProperties.put("linux.artifact", serverBaseUrl + "artifacts/pack-v" + TEST_PACK_VERSION + "-linux.tgz");
-    packProperties.put("linux-arm64.artifact", serverBaseUrl +  "artifacts/pack-v" + TEST_PACK_VERSION + "-linux-arm64.tgz");
-    packProperties.put("macos.artifact", serverBaseUrl +  "artifacts/pack-v" + TEST_PACK_VERSION + "-macos.tgz");
-    packProperties.put("macos-arm64.artifact", serverBaseUrl +  "artifacts/pack-v" + TEST_PACK_VERSION + "-macos-arm64.tgz");
-    packProperties.put("windows.artifact", serverBaseUrl +  "artifacts/pack-v" + TEST_PACK_VERSION + "-windows.zip");
+    packProperties.put("linux.artifact", server.getLinuxArtifactUrl());
+    packProperties.put("linux-arm64.artifact", server.getLinuxArm64ArtifactUrl());
+    packProperties.put("macos.artifact", server.getMacosArtifactUrl());
+    packProperties.put("macos-arm64.artifact", server.getMacosArm64ArtifactUrl());
+    packProperties.put("windows.artifact", server.getWindowsArtifactUrl());
     packProperties.put("windows.binary-extension", "bat");
     buildPackCliDownloader = new BuildPackCliDownloader(kitLogger, packProperties);
   }
@@ -159,11 +156,11 @@ abstract class AbstractBuildPackCliDownloaderTest {
     class DownloadFails {
       @BeforeEach
       void setUp() {
-        packProperties.put("linux.artifact", serverBaseUrl + "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-linux.tgz");
-        packProperties.put("linux-arm64.artifact", serverBaseUrl +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-linux-arm64.tgz");
-        packProperties.put("macos.artifact", serverBaseUrl +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-macos.tgz");
-        packProperties.put("macos-arm64.artifact", serverBaseUrl +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-macos-arm64.tgz");
-        packProperties.put("windows.artifact", serverBaseUrl +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-windows.zip");
+        packProperties.put("linux.artifact", server.getBaseUrl() + "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-linux.tgz");
+        packProperties.put("linux-arm64.artifact", server.getBaseUrl() +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-linux-arm64.tgz");
+        packProperties.put("macos.artifact", server.getBaseUrl() +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-macos.tgz");
+        packProperties.put("macos-arm64.artifact", server.getBaseUrl() +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-macos-arm64.tgz");
+        packProperties.put("windows.artifact", server.getBaseUrl() +  "invalid-artifacts/pack-v" + TEST_PACK_VERSION + "-windows.zip");
       }
 
       @Test
