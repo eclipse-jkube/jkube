@@ -55,6 +55,8 @@ public class ImageName {
     // Digest
     private String digest;
 
+    private static final int REPO_NAME_MAX_LENGTH = 255;
+
     /**
      * Create an image name
      *
@@ -279,6 +281,11 @@ public class ImageName {
                 "tag", TAG_REGEXP, tag,
                 "digest", DIGEST_REGEXP, digest
         };
+
+        if (repository.length() > REPO_NAME_MAX_LENGTH) {
+            errors.add(String.format("Repository name must not be more than %d characters", REPO_NAME_MAX_LENGTH));
+        }
+
         for (int i = 0; i < checks.length; i +=3) {
             String value = (String) checks[i + 2];
             Pattern checkPattern = (Pattern) checks[i + 1];
