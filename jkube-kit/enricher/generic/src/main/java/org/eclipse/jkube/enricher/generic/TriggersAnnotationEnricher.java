@@ -72,9 +72,7 @@ public class TriggersAnnotationEnricher extends BaseEnricher {
 
     @Override
     public void enrich(PlatformMode platformMode, KubernetesListBuilder builder) {
-        if(platformMode != PlatformMode.openshift){
-            return;
-        }
+
         builder.accept(new TypedVisitor<StatefulSetBuilder>() {
             @Override
             public void visit(StatefulSetBuilder o) {
