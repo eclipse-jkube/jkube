@@ -27,10 +27,9 @@ import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class SecretEnricher extends BaseEnricher {
 
@@ -128,11 +127,10 @@ public abstract class SecretEnricher extends BaseEnricher {
     }
 
     private List<SecretConfig> getSecretsFromXmlConfig() {
-        ResourceConfig resourceConfig = getConfiguration().getResource();
-        if(resourceConfig != null && resourceConfig.getSecrets() != null) {
-            return resourceConfig.getSecrets();
-        }
-        return null;
+        return Optional.ofNullable(getConfiguration())
+                .map(Configuration::getResource)
+                .map(ResourceConfig::getSecrets)
+                .orElse(Collections.emptyList());
     }
 
     private String getDockerIdFromAnnotation(Map<String, String> annotation) {
