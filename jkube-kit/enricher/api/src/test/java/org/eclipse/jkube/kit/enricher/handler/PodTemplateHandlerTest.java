@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
 
 class PodTemplateHandlerTest {
 
@@ -68,8 +66,8 @@ class PodTemplateHandlerTest {
                 .registry("docker.io").build();
 
         images.add(imageConfiguration);
-        probeHandler = mock(ProbeHandler.class, RETURNS_DEEP_STUBS);
-        project = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+        probeHandler = new ProbeHandler();
+        project = JavaProject.builder().build();
         ContainerHandler containerHandler = getContainerHandler();
         podTemplateHandler = new PodTemplateHandler(containerHandler);
     }
