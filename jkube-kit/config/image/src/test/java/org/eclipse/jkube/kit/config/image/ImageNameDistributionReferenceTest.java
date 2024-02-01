@@ -72,14 +72,14 @@ class ImageNameDistributionReferenceTest {
       "192.168.0.1:8/debian",
       "192.168.0.2:25000/debian",
       "docker.io/1a3f5e7d9c1b3a5f7e9d1c3b5a7f9e1d3c5b7a9f1e3d5d7c9b1a3f5e7d9c1b3a",
-      //"[2001:db8::1]/repo", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8:1:2:3:4:5:6]/repo:tag", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::1]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::1]:5000/repo:tag", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::1]:5000/repo@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::1]:5000/repo:tag@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
-      //"[::1]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
+      "[2001:db8::1]/repo",
+      "[2001:db8:1:2:3:4:5:6]/repo:tag",
+      "[2001:db8::1]:5000/repo",
+      "[2001:db8::1]:5000/repo:tag",
+      "[2001:db8::1]:5000/repo@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "[2001:db8::1]:5000/repo:tag@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "[2001:db8::]:5000/repo",
+      "[::1]:5000/repo", 
   })
   void validNames(String name) {
     // Given
