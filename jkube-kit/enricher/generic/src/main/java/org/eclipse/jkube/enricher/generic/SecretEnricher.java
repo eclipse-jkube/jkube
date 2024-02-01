@@ -21,16 +21,19 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.eclipse.jkube.kit.common.util.Base64Util;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.model.Configuration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.SecretConfig;
 import org.eclipse.jkube.kit.enricher.api.BaseEnricher;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.util.SecretConstants;
 import org.apache.commons.lang3.StringUtils;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Collections;
+
 
 public abstract class SecretEnricher extends BaseEnricher {
 
@@ -76,7 +79,7 @@ public abstract class SecretEnricher extends BaseEnricher {
         log.verbose("Adding secrets resources from plugin configuration");
         List<SecretConfig> secrets = getSecretsFromXmlConfig();
         Map<String, Integer> secretToIndexMap = new HashMap<>();
-        if (secrets == null || secrets.isEmpty()) {
+        if (secrets.isEmpty()) {
             return;
         }
 
@@ -128,11 +131,10 @@ public abstract class SecretEnricher extends BaseEnricher {
     }
 
     private List<SecretConfig> getSecretsFromXmlConfig() {
-        ResourceConfig resourceConfig = getConfiguration().getResource();
-        if(resourceConfig != null && resourceConfig.getSecrets() != null) {
-            return resourceConfig.getSecrets();
-        }
-        return null;
+        return Optional.ofNullable(getConfiguration())
+                .map(Configuration::getResource)
+                .map(ResourceConfig::getSecrets)
+                .orElse(Collections.emptyList());
     }
 
     private String getDockerIdFromAnnotation(Map<String, String> annotation) {
