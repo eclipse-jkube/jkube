@@ -346,7 +346,7 @@ public class KubernetesResourceUtil {
         for (ContainerPort cp : ports) {
             String n1 = cp.getName();
             String n2 = port.getName();
-            if (n1 != null && n2 != null && n1.equals(n2)) {
+            if (n1 != null && n1.equals(n2)) {
                 return;
             }
             Integer p1 = cp.getContainerPort();
