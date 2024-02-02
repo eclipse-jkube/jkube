@@ -99,6 +99,7 @@
     <version.gradle-api-maven-plugin>0.0.3</version.gradle-api-maven-plugin>
     <version.groovy>3.0.19</version.groovy>
     <version.guava>31.1-jre</version.guava>
+    <version.helm-java>0.0.3</version.helm-java>
     <version.jackson>2.15.2</version.jackson>
     <version.jacoco>0.8.10</version.jacoco>
     <version.json-smart>2.5.0</version.json-smart> <!-- Transitive dependency  required by citrus -->

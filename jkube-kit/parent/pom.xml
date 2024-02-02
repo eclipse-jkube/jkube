@@ -395,6 +395,12 @@
       </dependency>
 
       <dependency>
+        <groupId>com.marcnuri.helm-java</groupId>
+        <artifactId>helm-java</artifactId>
+        <version>${version.helm-java}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
         <version>${version.commons-lang3}</version>
