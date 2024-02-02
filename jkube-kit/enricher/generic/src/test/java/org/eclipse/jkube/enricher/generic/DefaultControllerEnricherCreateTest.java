@@ -47,7 +47,7 @@ class DefaultControllerEnricherCreateTest {
   private KubernetesListBuilder klb;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     properties = new Properties();
     buildContext = JKubeEnricherContext.builder()
         .log(new KitLogger.SilentLogger())
