@@ -63,7 +63,7 @@ public class ImageName {
      * @param fullName The fullname of the image in Docker format.
      */
     public ImageName(String fullName) {
-        this(fullName,null);
+        this(fullName,null,null);
     }
 
     /**
@@ -73,7 +73,7 @@ public class ImageName {
      * @param fullName The fullname of the image in Docker format. I
      * @param givenTag tag to use. Can be null in which case the tag specified in fullName is used.
      */
-    public ImageName(String fullName, String givenTag) {
+    public ImageName(String fullName, String givenTag, String givenDigest) {
         if (fullName == null) {
             throw new NullPointerException("Image name must not be null");
         }
@@ -81,17 +81,30 @@ public class ImageName {
         // set digest to null as default
         digest = null;
         // check if digest is part of fullName, if so -> extract it
-        if(fullName.contains("@sha256")) { // Of it contains digest
+        if(fullName.contains("@sha256")) { // If it contains digest
             String[] digestParts = fullName.split("@");
             digest = digestParts[1];
             fullName = digestParts[0];
         }
 
-        // check for tag
+        // check for tag and digest
         Pattern tagPattern = Pattern.compile("^(.+?)(?::([^:/]+))?$");
         Matcher matcher = tagPattern.matcher(fullName);
         if (!matcher.matches()) {
             throw new IllegalArgumentException(fullName + " is not a proper image name ([registry/][repo][:port]");
+        }
+
+        // extract digest if it exists
+        if (fullName.contains("@sha256:")) {
+            String[] digestParts = fullName.split("@sha256:");
+            digest = givenDigest != null ? givenDigest : "sha256:" + digestParts[1];
+            fullName = digestParts[0];
+        } else {
+            // handle the case where no digest is provided, and the rest may include a colon
+            int colonIndex = fullName.lastIndexOf(':');
+            if (colonIndex != -1) {
+                fullName = fullName.substring(0, colonIndex);
+            }
         }
         // extract tag if it exists
         tag = givenTag != null ? givenTag : matcher.group(2);
