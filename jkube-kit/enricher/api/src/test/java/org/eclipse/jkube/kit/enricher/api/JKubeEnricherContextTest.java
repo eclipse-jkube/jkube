@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.enricher.api;
 
+import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
@@ -25,16 +26,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Answers.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class JKubeEnricherContextTest {
   @Test
@@ -170,40 +168,51 @@ class JKubeEnricherContextTest {
   @Test
   void getDependencies_whenTransitiveTrue_shouldGetTransitiveDeps() {
     // Given
-    JavaProject javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+    JavaProject javaProject = JavaProject.builder().groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build();
+    List<Dependency> deps = new ArrayList<>(javaProject.getDependencies());
+    deps.add(Dependency.builder()
+            .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build());
+
+    javaProject.setDependenciesWithTransitive(deps);
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
         .project(javaProject)
         .build();
 
     // When
-    jKubeEnricherContext.getDependencies(true);
+    List<Dependency> jKubeEnricherContextDependencies = jKubeEnricherContext.getDependencies(true);
+
 
     // Then
-    verify(javaProject, times(0)).getDependencies();
-    verify(javaProject, times(1)).getDependenciesWithTransitive();
+    assertThat(jKubeEnricherContextDependencies).hasSize(1);
   }
 
   @Test
   void getDependencies_whenTransitiveFalse_shouldGetDeps() {
     // Given
-    JavaProject javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+    JavaProject javaProject = JavaProject.builder().groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build();
+    List<Dependency> deps = new ArrayList<>(javaProject.getDependencies());
+    deps.add(Dependency.builder()
+            .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build());
+
+    javaProject.setDependenciesWithTransitive(deps);
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
         .project(javaProject)
         .build();
 
     // When
-    jKubeEnricherContext.getDependencies(false);
+    List<Dependency> jKubeEnricherContextDependencies = jKubeEnricherContext.getDependencies(false);
 
     // Then
-    verify(javaProject, times(1)).getDependencies();
-    verify(javaProject, times(0)).getDependenciesWithTransitive();
+    assertThat(jKubeEnricherContextDependencies).isEmpty();
   }
 
   @Test
   void hasPlugin_withNullGroup_shouldSearchPluginWithArtifactId() {
     try (MockedStatic<JKubeProjectUtil> jKubeProjectUtilMockedStatic = mockStatic(JKubeProjectUtil.class)) {
       // Given
-      JavaProject javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+      JavaProject javaProject = JavaProject.builder()
+              .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
+              .build();
       JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
           .project(javaProject)
           .build();
@@ -220,7 +229,9 @@ class JKubeEnricherContextTest {
   void hasPlugin_withGroup_shouldSearchPluginWithArtifactId() {
     try (MockedStatic<JKubeProjectUtil> jKubeProjectUtilMockedStatic = mockStatic(JKubeProjectUtil.class)) {
       // Given
-      JavaProject javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
+      JavaProject javaProject = JavaProject.builder()
+              .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
+              .build();
       JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
           .project(javaProject)
           .build();
@@ -238,9 +249,11 @@ class JKubeEnricherContextTest {
     try (MockedStatic<ClassUtil> classUtilMockedStatic = mockStatic(ClassUtil.class)) {
       // Given
       File targetDir = new File("target");
-      JavaProject javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
-      when(javaProject.getCompileClassPathElements()).thenReturn(Collections.singletonList("/test/foo.jar"));
-      when(javaProject.getOutputDirectory()).thenReturn(targetDir);
+      JavaProject javaProject = JavaProject.builder()
+              .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
+              .compileClassPathElements(Collections.singletonList("/test/foo.jar"))
+              .outputDirectory(targetDir)
+              .build();
       JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
           .project(javaProject)
           .build();
