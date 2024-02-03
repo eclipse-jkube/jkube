@@ -22,6 +22,7 @@ import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
@@ -35,6 +36,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
 
 class JKubeEnricherContextTest {
+
+  private JavaProject javaProject;
+
+  @BeforeEach
+  void setUp() {
+    javaProject = JavaProject.builder()
+            .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
+            .build();
+  }
+
   @Test
   void builder_whenInvoked_shouldConstructJKubeEnricherContext() {
     // Given + When
@@ -61,9 +72,7 @@ class JKubeEnricherContextTest {
   void getGav_whenInvoked_shouldReturnExpectedGroupArtifactVersion() {
     // Given + When
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(JavaProject.builder()
-            .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
-            .build())
+        .project(javaProject)
         .build();
 
     // Then
@@ -77,9 +86,7 @@ class JKubeEnricherContextTest {
   void getDockerJsonConfigString_whenNoServerPresent_shouldReturnBlankString() {
     // Given
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(JavaProject.builder()
-            .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
-            .build())
+        .project(javaProject)
         .build();
 
     // When
@@ -93,9 +100,7 @@ class JKubeEnricherContextTest {
   void getDockerJsonConfigString_whenServerPresent_shouldReturnDockerJsonString() {
     // Given
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(JavaProject.builder()
-            .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
-            .build())
+        .project(javaProject)
         .build();
 
     // When
@@ -117,10 +122,7 @@ class JKubeEnricherContextTest {
     Properties properties = new Properties();
     properties.put("key1", "value1");
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(JavaProject.builder()
-            .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
-            .properties(properties)
-            .build())
+        .project(javaProject.toBuilder().properties(properties).build())
         .build();
 
     // When
@@ -135,10 +137,7 @@ class JKubeEnricherContextTest {
     // Given
     Properties properties = new Properties();
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(JavaProject.builder()
-            .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
-            .properties(properties)
-            .build())
+        .project(javaProject.toBuilder().properties(properties).build())
         .build();
 
     // When
@@ -152,9 +151,7 @@ class JKubeEnricherContextTest {
   void getBuildStrategy_whenBuildStrategyPresent_shouldReturnBuildStrategy() {
     // Given
     JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(JavaProject.builder()
-            .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
-            .build())
+        .project(javaProject)
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .build();
 
@@ -168,7 +165,6 @@ class JKubeEnricherContextTest {
   @Test
   void getDependencies_whenTransitiveTrue_shouldGetTransitiveDeps() {
     // Given
-    JavaProject javaProject = JavaProject.builder().groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build();
     List<Dependency> deps = new ArrayList<>(javaProject.getDependencies());
     deps.add(Dependency.builder()
             .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build());
@@ -189,7 +185,6 @@ class JKubeEnricherContextTest {
   @Test
   void getDependencies_whenTransitiveFalse_shouldGetDeps() {
     // Given
-    JavaProject javaProject = JavaProject.builder().groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build();
     List<Dependency> deps = new ArrayList<>(javaProject.getDependencies());
     deps.add(Dependency.builder()
             .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build());
@@ -210,9 +205,6 @@ class JKubeEnricherContextTest {
   void hasPlugin_withNullGroup_shouldSearchPluginWithArtifactId() {
     try (MockedStatic<JKubeProjectUtil> jKubeProjectUtilMockedStatic = mockStatic(JKubeProjectUtil.class)) {
       // Given
-      JavaProject javaProject = JavaProject.builder()
-              .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
-              .build();
       JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
           .project(javaProject)
           .build();
@@ -229,9 +221,6 @@ class JKubeEnricherContextTest {
   void hasPlugin_withGroup_shouldSearchPluginWithArtifactId() {
     try (MockedStatic<JKubeProjectUtil> jKubeProjectUtilMockedStatic = mockStatic(JKubeProjectUtil.class)) {
       // Given
-      JavaProject javaProject = JavaProject.builder()
-              .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
-              .build();
       JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
           .project(javaProject)
           .build();
@@ -249,13 +238,11 @@ class JKubeEnricherContextTest {
     try (MockedStatic<ClassUtil> classUtilMockedStatic = mockStatic(ClassUtil.class)) {
       // Given
       File targetDir = new File("target");
-      JavaProject javaProject = JavaProject.builder()
-              .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
-              .compileClassPathElements(Collections.singletonList("/test/foo.jar"))
-              .outputDirectory(targetDir)
-              .build();
       JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-          .project(javaProject)
+          .project(javaProject.toBuilder()
+                  .compileClassPathElements(Collections.singletonList("/test/foo.jar"))
+                  .outputDirectory(targetDir)
+                  .build())
           .build();
 
       // When
