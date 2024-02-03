@@ -119,7 +119,7 @@ class DockerFileUtilTest {
         String result = DockerFileUtil.interpolate(givenDockerfile, properties, null);
 
         // Then
-        String[] lines = result.split("\n");
+        String[] lines = result.split(System.lineSeparator());
         assertThat(result).isNotNull();
         assertThat(lines).hasSize(2)
             .containsExactly("FROM openjdk:latest",
