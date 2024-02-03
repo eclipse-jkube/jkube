@@ -275,7 +275,7 @@ public class ImageName {
         String user = inferUser();
         String image = user != null ? repository.substring(user.length() + 1) : repository;
         Object[] checks = new Object[] {
-                "registry", DOMAIN_REGEXP, registry,
+                "registry", REGISTRY_REGEXP, registry,
                 "image", IMAGE_NAME_REGEXP, image,
                 "user", NAME_COMP_REGEXP, user,
                 "tag", TAG_REGEXP, tag,
@@ -323,7 +323,7 @@ public class ImageName {
     }
 
     private boolean isValidDomain(String str) {
-        return containsPeriodOrColon(str) && DOMAIN_REGEXP.matcher(str).matches();
+        return containsPeriodOrColon(str) && REGISTRY_REGEXP.matcher(str).matches();
     }
 
     private boolean isRegistryValidPathComponent() {
@@ -342,6 +342,8 @@ public class ImageName {
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L25
     private static final String DOMAIN_COMPONENT_REGEXP = "(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])";
+
+    //https://github.com/distribution/reference/blob/8507c7fcf0da9f570540c958ea7b972c30eeaeca/regexp.go#L91
     private static final String IPV6_ADDRESS_REGEXP = "\\[[a-fA-F0-9:]+\\]";
 
     // ==========================================================
@@ -352,9 +354,13 @@ public class ImageName {
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L53
     private static final Pattern IMAGE_NAME_REGEXP = Pattern.compile(NAME_COMPONENT_REGEXP + "(?:(?:/" + NAME_COMPONENT_REGEXP + ")+)?");
 
+    // https://github.com/distribution/reference/blob/8507c7fcf0da9f570540c958ea7b972c30eeaeca/regexp.go#L65
+    private static final String OPTIONAL_PORT_REGEXP = "(?::[0-9]+)?";
+    private static final String DOMAIN_NAME_REGEXP = DOMAIN_COMPONENT_REGEXP + "(?:\\." + DOMAIN_COMPONENT_REGEXP + ")*";
+    private static final String REGISTRY_HOST_REGEXP = "^(?:" + IPV6_ADDRESS_REGEXP + "|" + DOMAIN_NAME_REGEXP + ")";
+
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L31
-    private static final Pattern DOMAIN_REGEXP = Pattern.compile("^(?:" + IPV6_ADDRESS_REGEXP + "|" + DOMAIN_COMPONENT_REGEXP + "(?:\\." + DOMAIN_COMPONENT_REGEXP + ")*)" +
-        "(?::\\d+)?$");
+    private static final Pattern REGISTRY_REGEXP = Pattern.compile(REGISTRY_HOST_REGEXP + OPTIONAL_PORT_REGEXP);
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L37
     private static final Pattern TAG_REGEXP = Pattern.compile("^[\\w][\\w.-]{0,127}$");
