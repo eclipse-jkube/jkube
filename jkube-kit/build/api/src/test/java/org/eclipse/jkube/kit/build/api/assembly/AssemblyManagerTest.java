@@ -35,8 +35,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class AssemblyManagerTest {
 
@@ -53,8 +51,12 @@ class AssemblyManagerTest {
     assemblyManager = AssemblyManager.getInstance();
     targetDirectory = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     logger = spy(new KitLogger.SilentLogger());
-    configuration = mock(JKubeConfiguration.class);
-    project = mock(JavaProject.class);
+    project = JavaProject.builder()
+            .buildDirectory(targetDirectory)
+            .build();
+    configuration = JKubeConfiguration.builder()
+            .project(project)
+            .build();
   }
 
   @Test
@@ -69,9 +71,9 @@ class AssemblyManagerTest {
   void assemblyFiles() throws Exception {
     // Given
     final File buildDirs = Files.createDirectory(temporaryFolder.resolve("buildDirs")).toFile();
-      when(configuration.getProject()).thenReturn(project);
-      when(project.getBaseDirectory()).thenReturn(buildDirs);
-      when(project.getBuildDirectory()).thenReturn(targetDirectory);
+    configuration = configuration.toBuilder()
+            .project(project.toBuilder().baseDirectory(buildDirs).build())
+            .build();
     ImageConfiguration imageConfiguration = ImageConfiguration.builder()
         .name("testImage").build(createBuildConfig())
         .build();
