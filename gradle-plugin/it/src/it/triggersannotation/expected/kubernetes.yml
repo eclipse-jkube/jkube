@@ -9,14 +9,6 @@ items:
       jkube.eclipse.org/git-url: "@ignore@"
       jkube.eclipse.org/git-commit: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
-      image.openshift.io/triggers: |-
-        [ {
-          "from" : {
-            "kind" : "ImageStreamTag",
-            "name" : "triggersannotation:latest"
-          },
-          "fieldPath" : "spec.template.spec.containers[?(@.name==\"orgeclipsejkubeintegrationtestsgradle-triggersannotation\")].image"
-        } ]
     labels:
       app: triggersannotation
       provider: jkube

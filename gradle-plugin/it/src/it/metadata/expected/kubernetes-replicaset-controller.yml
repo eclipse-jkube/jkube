@@ -87,7 +87,6 @@ items:
         jkube.eclipse.org/git-commit: "@ignore@"
         keyinall: valueinall
         jkube.eclipse.org/git-branch: "@ignore@"
-        image.openshift.io/triggers: "@ignore@"
         multiline/config: |
           proxyMetadata:
            ISTIO_META_DNS_CAPTURE: "false"

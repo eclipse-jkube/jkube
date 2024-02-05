@@ -72,7 +72,6 @@ items:
   kind: ReplicaSet
   metadata:
     annotations:
-      image.openshift.io/triggers: "@ignore@"
       jkube.eclipse.org/git-branch: "@ignore@"
       jkube.eclipse.org/git-commit: "@ignore@"
       jkube.eclipse.org/git-url: "@ignore@"
