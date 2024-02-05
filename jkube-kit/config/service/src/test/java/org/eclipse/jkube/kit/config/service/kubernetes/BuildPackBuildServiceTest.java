@@ -45,9 +45,10 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 class BuildPackBuildServiceTest {
+
+  private static final String TEST_PACK_VERSION = "v0.32.1";
   private KitLogger kitLogger;
   private JKubeServiceHub jKubeServiceHub;
-  private static final String TEST_PACK_VERSION = "v0.32.1";
   private ImageConfiguration imageConfiguration;
   private BuildServiceConfig buildServiceConfig;
 
