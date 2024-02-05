@@ -37,6 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -72,6 +73,9 @@ public class HelmServiceUtil {
   protected static final String SNAPSHOT_REPOSITORY = "snapshotRepository";
   protected static final String PROPERTY_SECURITY =  "jkube.helm.security";
   protected static final String DEFAULT_SECURITY = "~/.m2/settings-security.xml";
+
+  protected static final String PROPERTY_HELM_LINT_STRICT = "jkube.helm.lint.strict";
+  protected static final String PROPERTY_HELM_LINT_QUIET = "jkube.helm.lint.quiet";
 
   private HelmServiceUtil() { }
 
@@ -110,6 +114,8 @@ public class HelmServiceUtil {
     helmConfig.setTarFileClassifier(resolveFromPropertyOrDefault(PROPERTY_TARBALL_CLASSIFIER, project, helmConfig::getTarFileClassifier, () -> EMPTY));
     helmConfig.setTarballOutputDir(resolveFromPropertyOrDefault(PROPERTY_TARBALL_OUTPUT_DIR, project, helmConfig::getTarballOutputDir,
         helmConfig::getOutputDir));
+    helmConfig.setLintStrict(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_LINT_STRICT, project, helmConfig::isLintStrict));
+    helmConfig.setLintQuiet(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_LINT_QUIET, project, helmConfig::isLintQuiet));
     return helmConfig.toBuilder();
   }
 
@@ -163,6 +169,13 @@ public class HelmServiceUtil {
       .orElse(Optional.ofNullable(getter.get())
         .filter(StringUtils::isNotBlank)
         .orElseGet(defaultValue == null ? () -> null : defaultValue));
+  }
+
+  static boolean resolveBooleanFromPropertyOrDefault(String property, JavaProject project, BooleanSupplier getter) {
+    return Optional.ofNullable(getProperty(property, project))
+      .filter(StringUtils::isNotBlank)
+      .map(Boolean::parseBoolean)
+      .orElse(getter.getAsBoolean());
   }
 
   static List<File> getAdditionalFiles(HelmConfig helm, JavaProject project) {
