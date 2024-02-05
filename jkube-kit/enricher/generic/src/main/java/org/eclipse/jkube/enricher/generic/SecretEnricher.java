@@ -78,7 +78,7 @@ public abstract class SecretEnricher extends BaseEnricher {
         log.verbose("Adding secrets resources from plugin configuration");
         List<SecretConfig> secrets = getSecretsFromXmlConfig();
         Map<String, Integer> secretToIndexMap = new HashMap<>();
-        if (secrets == null || secrets.isEmpty()) {
+        if (secrets.isEmpty()) {
             return;
         }
 
