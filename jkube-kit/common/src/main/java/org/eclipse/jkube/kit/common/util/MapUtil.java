@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.BiFunction;
 
 public class MapUtil {
@@ -54,7 +55,8 @@ public class MapUtil {
      * @param <V> second type
      * @return merged hash map
      */
-    public static <K,V> Map<K,V> mergeMaps(Map<K, V> ...maps) {
+    @SafeVarargs
+    public static <K,V> Map<K,V> mergeMaps(Map<K, V>... maps) {
         Map<K, V> answer = new HashMap<>();
         for (int i = maps.length-1; i >= 0; i--) {
             if (maps[i] != null) {
@@ -63,6 +65,25 @@ public class MapUtil {
         }
         return answer;
 
+    }
+
+    /**
+     * Returns a new map with all the entries the provided properties merged.
+     *
+     * The first arguments take precedence over the later ones.
+     * i.e. properties defined in the last argument will not override properties defined in the first argument.
+     *
+     * @param properties var arg for properties
+     * @return merged hash map
+     */
+    public static Map<String, String> mergeMaps(Properties... properties) {
+        Map<String, String> answer = new HashMap<>();
+        for (int i = properties.length-1; i >= 0; i--) {
+            if (properties[i] != null) {
+                answer.putAll(PropertiesUtil.toMap(properties[i]));
+            }
+        }
+        return answer;
     }
 
     /**
