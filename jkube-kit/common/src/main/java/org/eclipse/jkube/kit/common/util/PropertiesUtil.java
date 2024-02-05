@@ -18,6 +18,8 @@ import io.fabric8.kubernetes.client.utils.Utils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +43,18 @@ public class PropertiesUtil {
         ret.load(stream);
       } catch (IOException e) {
         throw new IllegalStateException("Error while reading resource from URL " + resource, e);
+      }
+    }
+    return ret;
+  }
+
+  public static Properties readProperties(Path properties) {
+    final Properties ret = new Properties();
+    if (properties != null && properties.toFile().exists() && properties.toFile().isFile()) {
+      try (InputStream stream = Files.newInputStream(properties)) {
+        ret.load(stream);
+      } catch (IOException e) {
+        throw new IllegalStateException("Error while reading properties from file " + properties, e);
       }
     }
     return ret;
