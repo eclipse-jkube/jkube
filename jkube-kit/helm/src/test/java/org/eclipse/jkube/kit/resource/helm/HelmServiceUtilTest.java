@@ -86,7 +86,9 @@ class HelmServiceUtilTest {
       .hasFieldOrPropertyWithValue("types", Collections.singletonList(HelmConfig.HelmType.KUBERNETES))
       .hasFieldOrPropertyWithValue("additionalFiles", Collections.emptyList())
       .hasFieldOrPropertyWithValue("parameterTemplates", Collections.emptyList())
-      .hasFieldOrProperty("icon");
+      .hasFieldOrProperty("icon")
+      .hasFieldOrPropertyWithValue("lintStrict", false)
+      .hasFieldOrPropertyWithValue("lintQuiet", false);
     assertThat(result.getSourceDir()).endsWith("target/classes/META-INF/jkube/");
     assertThat(result.getOutputDir()).endsWith("target/jkube/helm/artifact-id");
     assertThat(result.getTarballOutputDir()).endsWith("target/jkube/helm/artifact-id");
@@ -103,6 +105,8 @@ class HelmServiceUtilTest {
         .maintainers(Collections.emptyList())
         .sourceDir("sources")
         .outputDir("output")
+        .lintStrict(true)
+        .lintQuiet(true)
         .build();
     // When
     final HelmConfig result = HelmServiceUtil
@@ -120,7 +124,9 @@ class HelmServiceUtilTest {
       .hasFieldOrPropertyWithValue("sources", Collections.emptyList())
       .hasFieldOrPropertyWithValue("maintainers", Collections.emptyList())
       .hasFieldOrPropertyWithValue("sourceDir", "sources")
-      .hasFieldOrPropertyWithValue("outputDir", "output");
+      .hasFieldOrPropertyWithValue("outputDir", "output")
+      .hasFieldOrPropertyWithValue("lintStrict", true)
+      .hasFieldOrPropertyWithValue("lintQuiet", true);
   }
 
   @Test
@@ -140,6 +146,21 @@ class HelmServiceUtilTest {
           HelmConfig.HelmType.KUBERNETES,
           HelmConfig.HelmType.OPENSHIFT
       );
+  }
+
+  @Test
+  void initHelmConfig_withLintProperties_shouldInitConfigWithLintSettings() throws IOException {
+    // Given
+    javaProject.getProperties().put("jkube.helm.lint.strict", "True");
+    javaProject.getProperties().put("jkube.helm.lint.quiet", "trUe");
+    // When
+    final HelmConfig result = HelmServiceUtil
+        .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, templateDir, null)
+        .build();
+    // Then
+    assertThat(result)
+      .hasFieldOrPropertyWithValue("lintStrict", true)
+      .hasFieldOrPropertyWithValue("lintQuiet", true);
   }
 
   @Test
