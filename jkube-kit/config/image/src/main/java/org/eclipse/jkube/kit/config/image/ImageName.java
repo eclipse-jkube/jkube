@@ -63,7 +63,7 @@ public class ImageName {
      * @param fullName The fullname of the image in Docker format.
      */
     public ImageName(String fullName) {
-        this(fullName,null,null);
+        this(fullName,null);
     }
 
     /**
@@ -73,7 +73,7 @@ public class ImageName {
      * @param fullName The fullname of the image in Docker format. I
      * @param givenTag tag to use. Can be null in which case the tag specified in fullName is used.
      */
-    public ImageName(String fullName, String givenTag, String givenDigest) {
+    public ImageName(String fullName, String givenTag) {
         if (fullName == null) {
             throw new NullPointerException("Image name must not be null");
         }
@@ -81,33 +81,22 @@ public class ImageName {
         // set digest to null as default
         digest = null;
         // check if digest is part of fullName, if so -> extract it
-        if(fullName.contains("@sha256")) { // If it contains digest
+        if(fullName.contains("@sha256")) { // Of it contains digest
             String[] digestParts = fullName.split("@");
             digest = digestParts[1];
             fullName = digestParts[0];
         }
 
-        // check for tag and digest
+        // check for tag
         Pattern tagPattern = Pattern.compile("^(.+?)(?::([^:/]+))?$");
         Matcher matcher = tagPattern.matcher(fullName);
         if (!matcher.matches()) {
             throw new IllegalArgumentException(fullName + " is not a proper image name ([registry/][repo][:port]");
         }
-
-        // extract digest if it exists
-        if (fullName.contains("@sha256:")) {
-            String[] digestParts = fullName.split("@sha256:");
-            digest = givenDigest != null ? givenDigest : "sha256:" + digestParts[1];
-            fullName = digestParts[0];
-        } else {
-            // handle the case where no digest is provided, and the rest may include a colon
-            int colonIndex = fullName.lastIndexOf(':');
-            if (colonIndex != -1) {
-                fullName = fullName.substring(0, colonIndex);
-            }
+        // Extract tag if it exists, but ignore it if digest is also provided
+        if (digest == null) {
+            tag = givenTag != null ? givenTag : matcher.group(2);
         }
-        // extract tag if it exists
-        tag = givenTag != null ? givenTag : matcher.group(2);
         String rest = matcher.group(1);
 
         // extract registry, repository, user
@@ -206,6 +195,10 @@ public class ImageName {
             ret.append(registry != null ? registry : optionalRegistry).append("/");
         }
         ret.append(repository);
+        // Include digest if it exists
+        if (digest != null) {
+            ret.append("@").append(digest);
+        }
         return ret.toString();
     }
 
@@ -230,15 +223,28 @@ public class ImageName {
      * @return full name with original registry (if set) or optional registry (if not <code>null</code>).
      */
     public String getFullName(String optionalRegistry) {
-        String fullName = getNameWithoutTag(optionalRegistry);
-        if (tag != null) {
-            fullName = fullName +  ":" + tag;
+        StringBuilder ret = new StringBuilder();
+
+        if (!isFullyQualifiedName() && isRegistryValidPathComponent() &&
+            StringUtils.isNotBlank(optionalRegistry) && !optionalRegistry.equals(registry)) {
+            ret.append(optionalRegistry).append("/").append(registry).append("/");
+        } else if (registry != null || optionalRegistry != null) {
+            ret.append(registry != null ? registry : optionalRegistry).append("/");
         }
-        if(digest != null) {
-            fullName = fullName + "@" + digest;
+        ret.append(repository);
+
+        if (digest != null) {
+            ret.append("@").append(digest);
+        } else if (tag != null) {
+            ret.append(":").append(tag);
+        } else {
+            ret.append(":latest"); // If both tag and digest are null, set the tag to "latest"
         }
-        return fullName;
+        return ret.toString();
     }
+
+
+
 
     /**
      * Try to infer the user (or "project") part of the image name. This is usually the part after the registry
