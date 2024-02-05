@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -65,7 +64,7 @@ public class ProjectLabelEnricher extends AbstractLabelEnricher {
     }
 
     @Override
-    public Map<String, String> createLabels(boolean withoutVersion, Map<String, String> labelsViaResourceConfig) {
+    public Map<String, String> createLabels(boolean includeVersion, Map<String, String> labelsViaResourceConfig) {
         Map<String, String> ret = new HashMap<>();
 
         boolean enableProjectLabel = Configs.asBoolean(getConfig(Config.USE_PROJECT_LABEL));
@@ -78,7 +77,7 @@ public class ProjectLabelEnricher extends AbstractLabelEnricher {
 
         ret.putAll(addProjectLabelFromApplicableSource(Config.GROUP, "group", groupArtifactVersion.getGroupId(), labelsViaResourceConfig));
         ret.putAll(addProjectLabelFromApplicableSource(Config.PROVIDER, LABEL_PROVIDER, null, labelsViaResourceConfig));
-        if (!withoutVersion) {
+        if (includeVersion) {
             ret.putAll(addProjectLabelFromApplicableSource(Config.VERSION, "version", groupArtifactVersion.getVersion(), labelsViaResourceConfig));
         }
         return ret;

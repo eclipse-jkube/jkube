@@ -52,7 +52,7 @@ public class WellKnownLabelsEnricher extends AbstractLabelEnricher {
   }
 
   @Override
-  public Map<String, String> createLabels(boolean withoutVersion, Map<String, String> labelsViaResourceConfig) {
+  public Map<String, String> createLabels(boolean includeVersion, Map<String, String> labelsViaResourceConfig) {
     Map<String, String> ret = new HashMap<>();
     if (!shouldAddWellKnownLabels()) {
       return ret;
@@ -60,7 +60,7 @@ public class WellKnownLabelsEnricher extends AbstractLabelEnricher {
 
     final GroupArtifactVersion groupArtifactVersion = getContext().getGav();
     ret.putAll(addWellKnownLabelFromApplicableSource(Config.APP_NAME, "name", groupArtifactVersion.getArtifactId(), labelsViaResourceConfig));
-    if (!withoutVersion) {
+    if (includeVersion) {
       ret.putAll(addWellKnownLabelFromApplicableSource(Config.APP_VERSION, "version", groupArtifactVersion.getVersion(), labelsViaResourceConfig));
     }
     ret.putAll(addWellKnownLabelFromApplicableSource(Config.APP_PART_OF, "part-of", groupArtifactVersion.getGroupId(), labelsViaResourceConfig));
