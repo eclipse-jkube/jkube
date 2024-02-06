@@ -13,8 +13,12 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
+import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.TestHttpBuildPacksArtifactsServer;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -22,6 +26,7 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import org.junit.jupiter.api.AfterEach;
@@ -36,11 +41,18 @@ import org.junit.jupiter.params.provider.CsvSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -185,6 +197,51 @@ class BuildPackBuildServiceTest {
         // Then
         verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now");
       }
+    }
+  }
+
+  @Nested
+  @DisplayName("push single image")
+  class PushSingleImage {
+    private BuildPackBuildService buildPackBuildService;
+    private DockerAccess dockerAccess;
+
+    private RegistryConfig registryConfig;
+
+    @BeforeEach
+    void setUp() {
+      dockerAccess = mock(DockerAccess.class);
+      jKubeServiceHub = jKubeServiceHub.toBuilder()
+          .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, dockerAccess))
+          .build();
+      registryConfig = RegistryConfig.builder()
+          .registry("example.com")
+          .settings(Collections.emptyList())
+          .build();
+      buildPackBuildService = new BuildPackBuildService(jKubeServiceHub, new Properties());
+    }
+
+    @Test
+    @DisplayName("push successfully done via docker daemon")
+    void whenPushSuccessful_thenImagePushedViaDockerAccess() throws JKubeServiceException, DockerAccessException {
+      // When
+      buildPackBuildService.pushSingleImage(imageConfiguration, 0, registryConfig, true);
+
+      // Then
+      verify(dockerAccess).pushImage("foo/bar:latest", null, "example.com", 0);
+    }
+
+    @Test
+    @DisplayName("push failed, then throw exception")
+    void whenPushFailed_thenThrowException() throws DockerAccessException {
+      // Given
+      doThrow(new DockerAccessException("Push failure"))
+          .when(dockerAccess).pushImage(anyString(), any(), anyString(), anyInt());
+
+      // When + Then
+      assertThatExceptionOfType(JKubeServiceException.class)
+          .isThrownBy(() -> buildPackBuildService.pushSingleImage(imageConfiguration, 0, registryConfig, false))
+          .withMessage("Error while trying to push the image: Push failure");
     }
   }
 }
