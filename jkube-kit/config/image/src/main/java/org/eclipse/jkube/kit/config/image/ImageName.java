@@ -87,20 +87,28 @@ public class ImageName {
             fullName = digestParts[0];
         }
 
-        // check for tag
-        Pattern tagPattern = Pattern.compile("^(.+?)(?::([^:/]+))?$");
-        Matcher matcher = tagPattern.matcher(fullName);
-        if (!matcher.matches()) {
-            throw new IllegalArgumentException(fullName + " is not a proper image name ([registry/][repo][:port]");
+        // check for tag and digest
+        Pattern tagDigestPattern = Pattern.compile("^(.+?)(?::([^:/]+))?@(.+)$");
+        Matcher tagDigestMatcher = tagDigestPattern.matcher(fullName);
+        if (tagDigestMatcher.matches()) {
+            // extract digest and ignore tag
+            digest = tagDigestMatcher.group(3);
+            tag = null;
+            fullName = tagDigestMatcher.group(1);
+        } else {
+            // check for tag
+            Pattern tagPattern = Pattern.compile("^(.+?)(?::([^:/]+))?$");
+            Matcher tagMatcher = tagPattern.matcher(fullName);
+            if (!tagMatcher.matches()) {
+                throw new IllegalArgumentException(fullName + " is not a proper image name ([registry/][repo][:port]");
+            }
+            // extract tag if it exists
+            tag = givenTag != null ? givenTag : tagMatcher.group(2);
+            fullName = tagMatcher.group(1);
         }
-        // Extract tag if it exists, but ignore it if digest is also provided
-        if (digest == null) {
-            tag = givenTag != null ? givenTag : matcher.group(2);
-        }
-        String rest = matcher.group(1);
 
         // extract registry, repository, user
-        parseComponentsBeforeTag(rest);
+        parseComponentsBeforeTag(fullName);
 
         /*
          * set tag to latest if tag AND digest are null
@@ -195,10 +203,6 @@ public class ImageName {
             ret.append(registry != null ? registry : optionalRegistry).append("/");
         }
         ret.append(repository);
-        // Include digest if it exists
-        if (digest != null) {
-            ret.append("@").append(digest);
-        }
         return ret.toString();
     }
 
@@ -223,28 +227,15 @@ public class ImageName {
      * @return full name with original registry (if set) or optional registry (if not <code>null</code>).
      */
     public String getFullName(String optionalRegistry) {
-        StringBuilder ret = new StringBuilder();
-
-        if (!isFullyQualifiedName() && isRegistryValidPathComponent() &&
-            StringUtils.isNotBlank(optionalRegistry) && !optionalRegistry.equals(registry)) {
-            ret.append(optionalRegistry).append("/").append(registry).append("/");
-        } else if (registry != null || optionalRegistry != null) {
-            ret.append(registry != null ? registry : optionalRegistry).append("/");
+        String fullName = getNameWithoutTag(optionalRegistry);
+        if (tag != null) {
+            fullName = fullName +  ":" + tag;
         }
-        ret.append(repository);
-
-        if (digest != null) {
-            ret.append("@").append(digest);
-        } else if (tag != null) {
-            ret.append(":").append(tag);
-        } else {
-            ret.append(":latest"); // If both tag and digest are null, set the tag to "latest"
+        if(digest != null) {
+            fullName = fullName + "@" + digest;
         }
-        return ret.toString();
+        return fullName;
     }
-
-
-
 
     /**
      * Try to infer the user (or "project") part of the image name. This is usually the part after the registry
@@ -294,11 +285,11 @@ public class ImageName {
         String user = inferUser();
         String image = user != null ? repository.substring(user.length() + 1) : repository;
         Object[] checks = new Object[] {
-                "registry", DOMAIN_REGEXP, registry,
-                "image", IMAGE_NAME_REGEXP, image,
-                "user", NAME_COMP_REGEXP, user,
-                "tag", TAG_REGEXP, tag,
-                "digest", DIGEST_REGEXP, digest
+            "registry", DOMAIN_REGEXP, registry,
+            "image", IMAGE_NAME_REGEXP, image,
+            "user", NAME_COMP_REGEXP, user,
+            "tag", TAG_REGEXP, tag,
+            "digest", DIGEST_REGEXP, digest
         };
 
         if (repository.length() > REPO_NAME_MAX_LENGTH) {
@@ -309,9 +300,9 @@ public class ImageName {
             String value = (String) checks[i + 2];
             Pattern checkPattern = (Pattern) checks[i + 1];
             if (value != null &&
-                    !checkPattern.matcher(value).matches()) {
+                !checkPattern.matcher(value).matches()) {
                 errors.add(String.format("%s part '%s' doesn't match allowed pattern '%s'",
-                        checks[i], value, checkPattern.pattern()));
+                    checks[i], value, checkPattern.pattern()));
             }
         }
         if (!errors.isEmpty()) {
