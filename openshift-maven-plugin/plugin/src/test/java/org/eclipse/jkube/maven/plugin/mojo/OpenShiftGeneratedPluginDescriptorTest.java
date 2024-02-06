@@ -29,6 +29,7 @@ import java.net.URL;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 class OpenShiftGeneratedPluginDescriptorTest {
   private File pluginDescriptor;
@@ -40,23 +41,24 @@ class OpenShiftGeneratedPluginDescriptorTest {
     pluginDescriptor = new File(pluginDescriptorUrl.getFile());
   }
 
-  public static Stream<Arguments> data() {
+  static Stream<Arguments> data() {
     return Stream.of(
-        Arguments.of("build", "compile", "pre-integration-test"),
-        Arguments.of("resource", "compile", "process-resources"),
-        Arguments.of("apply", "compile+runtime", "install"),
-        Arguments.of("deploy", "compile+runtime", "validate"),
-        Arguments.of("watch", "compile+runtime", "package"),
-        Arguments.of("undeploy", "compile", "install"),
-        Arguments.of("debug", "compile+runtime", "package"),
-        Arguments.of("log", "compile+runtime", "validate"),
-        Arguments.of("push", "compile", "install"),
-        Arguments.of("helm", "", "pre-integration-test"),
-        Arguments.of("helm-push", "compile", "install")
+        arguments("build", "compile", "pre-integration-test"),
+        arguments("resource", "compile", "process-resources"),
+        arguments("apply", "compile+runtime", "install"),
+        arguments("deploy", "compile+runtime", "validate"),
+        arguments("watch", "compile+runtime", "package"),
+        arguments("undeploy", "compile", "install"),
+        arguments("debug", "compile+runtime", "package"),
+        arguments("log", "compile+runtime", "validate"),
+        arguments("push", "compile", "install"),
+        arguments("helm", "", "pre-integration-test"),
+        arguments("helm-push", "compile", "install"),
+        arguments("helm-lint", "compile", "integration-test")
     );
   }
 
-  @ParameterizedTest(name = "{0}, should have {1} requiresDependencyResolution and {2} phase")
+  @ParameterizedTest(name = "{index}: {0}, should have {1} requiresDependencyResolution and {2} phase")
   @MethodSource("data")
   void verifyPhaseAndRequiresDependencyResolution(String mojo, String expectedRequiresDependencyResolution, String expectedPhase) throws Exception {
     assertThat(getField(pluginDescriptor, "/plugin/mojos/mojo[goal='" + mojo + "']/requiresDependencyResolution"))
