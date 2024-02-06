@@ -14,15 +14,18 @@
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
+import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.service.buildpacks.BuildPackBuildOptions;
 import org.eclipse.jkube.kit.service.buildpacks.BuildPackCliDownloader;
@@ -40,6 +43,7 @@ public class BuildPackBuildService extends AbstractImageBuildService {
   private final BuildServiceConfig buildServiceConfig;
   private final KitLogger kitLogger;
   private final BuildPackCliDownloader buildPackCliDownloader;
+  private final DockerServiceHub dockerServiceHub;
 
   public BuildPackBuildService(JKubeServiceHub jKubeServiceHub) {
     this(jKubeServiceHub, null);
@@ -55,6 +59,7 @@ public class BuildPackBuildService extends AbstractImageBuildService {
     } else {
       this.buildPackCliDownloader = new BuildPackCliDownloader(kitLogger, packProperties);
     }
+    this.dockerServiceHub = jKubeServiceHub.getDockerServiceHub();
   }
 
   @Override
@@ -79,8 +84,12 @@ public class BuildPackBuildService extends AbstractImageBuildService {
   }
 
   @Override
-  protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) {
-    // NO OP
+  protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+    try {
+      dockerServiceHub.getRegistryService().pushImage(imageConfiguration, retries, registryConfig, skipTag);
+    } catch (IOException ex) {
+      throw new JKubeServiceException("Error while trying to push the image: " + ex.getMessage(), ex);
+    }
   }
 
   @Override
