@@ -26,6 +26,7 @@ import static org.mockito.Mockito.mock;
 public class TestOpenShiftExtension extends OpenShiftExtension {
 
   public Boolean isOffline;
+  public Boolean isUseColor;
   public String buildRecreate;
   public Boolean isForcePull;
   public Boolean isFailOnNoKubernetesJson;
@@ -42,7 +43,7 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
 
   @Override
   public Property<Boolean> getUseColor() {
-    return property(Boolean.class);
+    return property(Boolean.class).value(isUseColor);
   }
 
   @Override
