@@ -1,47 +1,4 @@
-[[jkubeBuild]]
-=== *{task-prefix}Build*
-
-This task is for building container images for your application.
-
-ifeval::["{task-prefix}" == "k8s"]
-[[build-kubernetes]]
-==== Kubernetes Build
-
-A normal Docker build is performed by default.For Kubernetes builds the {plugin} uses the Docker remote API so the URL of your Docker Daemon must be specified.The URL can be specified by the dockerHost or machine configuration, or by the `DOCKER_HOST` environment variable.
-
-The Docker remote API supports communication via SSL and authentication with certificates.The path to the certificates can be specified by the certPath or machine configuration, or by the `DOCKER_CERT_PATH` environment variable.
-
-If you don't have access to docker daemon, you can change build strategy using `buildStrategy` option in Groovy configuration like this:
-
-.Example of overriding default build strategy
-[source,groovy,subs="attributes+"]
-----
-{pluginExtension} {
-    buildStrategy = 'jib'
-}
-----
-
-These are the different options supported by `buildStrategy`:
-
-.JKube Build Strategies
-[cols="1,5"]
-|===
-| *buildStrategy* | *Description*
-| `docker`
-| Docker build with a binary source
-
-| `jib`
-| Deamonless container image creation using https://github.com/GoogleContainerTools/jib[JIB] build
-|===
-
-{plugin} by default tries to build up an opinionated <<config-image, Image Configuration>> by inspecting `build.gradle`.
-You can also provide your own <<dockerfile-scenario, Dockerfile>> or provide Custom ImageConfiguration via <<groovy-scenario-image, Groovy DSL configuration>>.
-endif::[]
-
-ifeval::["{task-prefix}" == "oc"]
-
 [[build-openshift]]
-==== OpenShift Build
 
 For the `openshift` mode, OpenShift specific
 https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html[builds] will be performed.
@@ -73,13 +30,27 @@ after the image creation.
 The https://docs.openshift.com/enterprise/latest/dev_guide/builds.html#defining-a-buildconfig[Build Config] and
 https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#image-streams[Image streams]
 can be managed by this plugin.
+ifeval::["{plugin-type}" == "maven"]
+If they do not exist, they will be automatically created by `{goal-prefix}:build`.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
 If they do not exist, they will be automatically created by `{task-prefix}Build`.
+endif::[]
+
 If they do already exist, they are reused, except when the `buildRecreate` configuration option (property `jkube.build.recreate`) is set to a value as described in <<global-configuration, Global Configuration>>.
 Also if the provided build strategy is different than the one defined in the existing build configuration, the Build Config is edited to reflect the new type (which in turn removes all build associated with the previous build).
 
+ifeval::["{plugin-type}" == "maven"]
+This image stream created can then be directly referenced from
+https://docs.openshift.com/enterprise/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[Deployment Configuration]
+objects created by <<jkube:resource, {goal-prefix}:resource>>.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
 This image stream created can then be directly referenced from
 https://docs.openshift.com/enterprise/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[Deployment Configuration]
 objects created by <<jkubeResource, {task-prefix}Resource>>.
+endif::[]
+
 By default, image streams are created with a local lookup policy, so that they can be used also by other resources such as Deployments or StatefulSets.
 This behavior can be turned off by setting the `jkube.s2i.imageStreamLookupPolicyLocal` property to `false` when building the project.
 
@@ -96,40 +67,28 @@ The configuration consists of two parts:
 
 Many of the options below are relevant for the <<build-kubernetes, Kubernetes Workflow>> or the <<build-openshift, OpenShift Workflow>> with Docker builds as they influence how the Docker image is build.
 
-For an S2I binary build, on the other hand, the most relevant section is the <<build-assembly, Assembly>> one because the build depends on which buider/base image is used and how it interprets the content of the uploaded `docker.tar`.
+For an S2I binary build, on the other hand, the most relevant section is the <<config-image-build-assembly, Assembly>> one because the build depends on which buider/base image is used and how it interprets the content of the uploaded `docker.tar`.
 
+ifeval::["{plugin-type}" == "maven"]
+[[setting-quota-openshift-build]]
+=== Setting Quotas for OpenShift Build
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
 [[setting-quota-openshift-build]]
 ==== Setting Quotas for OpenShift Build
+endif::[]
+
 
 You can also limit resource use by specifying resource limits as part of the build configuration.
-You can do this by providing `<openshiftBuildConfig>` field in `<resource>` configuration.
+You can do this by providing `openshiftBuildConfig` field in `resource` configuration.
 Below is an example on how to do this:
 
-.Example of OpenShift S2I Build resource/limit Configuration
-[source,groovy,subs="attributes+"]
-----
-{pluginExtension} {
-    resources {
-        openshiftBuildConfig {
-            requests { //<1>
-                cpu = '500m' //<2>
-                memory = '512Mi' //<3>
-            }
-            limits { //<4>
-                cpu = '1000m' //<5>
-                memory = '1Gi' //<6>
-            }
-        }
-    }
-}
-----
-
-<1> Request field which maps to created BuildConfig's `.spec.resources.requests`
-<2> Minimum CPU required by Build Pod
-<3> Minimum memory required by Build Pod
-<4> Limits field which maps to created BuildConfig's (`.spec.resources.limits`)
-<5> Maximum CPU required by Build Pod
-<6> Maximum memory required by Build Pod
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_oc_s2i_build_resource_limit.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_oc_s2i_build_resource_limit.adoc[]
+endif::[]
 
 It's also possible to provide a `buildconfig.yml` BuildConfig resource fragment in `src/main/jkube` directory like this:
 
@@ -145,8 +104,3 @@ spec:
       cpu: "500m"
       memory: "300Mi"
 ----
-endif::[]
-
-
-
-

@@ -1,7 +1,7 @@
 [[task-overview-build]]
 == Build And Deployment Tasks
 
-include::_jkube-build.adoc[]
+include::{kitdoc-path}/inc/build/_jkube-build.adoc[]
 
 include::_jkube-push.adoc[]
 

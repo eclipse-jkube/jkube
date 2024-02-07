@@ -94,7 +94,7 @@ target/*.jar  # <1>
 ====
 endif::[]
 
-Except for the <<build-assembly,assembly configuration>> all other configuration options are ignored for now.
+Except for the <<config-image-build-assembly,assembly configuration>> all other configuration options are ignored for now.
 
 [[simple-dockerfile-build]]
 .Simple Dockerfile build
@@ -126,7 +126,7 @@ If you specify a single character for `filter` then this delimiter is taken for 
 E.g a `filter='@'` triggers on parameters in the format `@...@`.
 Use something like this if you want to clearly separate from Docker builds args.
 This form of property replacement works for Dockerfile only.
-For replacing other data in other files targeted for the Docker image, please use the <<build-assembly,assembly configuration>> with filtering to make them available in the docker build context.
+For replacing other data in other files targeted for the Docker image, please use the <<config-image-build-assembly,assembly configuration>> with filtering to make them available in the docker build context.
 
 .Example
 The following example replaces all properties in the format `@property@` within the Dockerfile.

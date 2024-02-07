@@ -1,0 +1,26 @@
+
+.Example of OpenShift S2I Build resource/limit Configuration
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+    resources {
+        openshiftBuildConfig {
+            requests { //<1>
+                cpu = '500m' //<2>
+                memory = '512Mi' //<3>
+            }
+            limits { //<4>
+                cpu = '1000m' //<5>
+                memory = '1Gi' //<6>
+            }
+        }
+    }
+}
+----
+
+<1> Request field which maps to created BuildConfig's `.spec.resources.requests`
+<2> Minimum CPU required by Build Pod
+<3> Minimum memory required by Build Pod
+<4> Limits field which maps to created BuildConfig's (`.spec.resources.limits`)
+<5> Maximum CPU required by Build Pod
+<6> Maximum memory required by Build Pod
