@@ -38,6 +38,7 @@ import org.assertj.core.error.BasicErrorMessageFactory;
 import org.assertj.core.error.ShouldBeEmpty;
 import org.assertj.core.internal.Failures;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.error.ShouldBeEqualIgnoringCase.shouldBeEqual;
 
 public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
@@ -126,8 +127,8 @@ public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
     final List<String> actualEntries = new ArrayList<>();
     processArchive(actual, (entry, tis) -> {
       // Remove last separator for directory entries -> Required for fileTree assertion
-      actualEntries.add(entry.isDirectory() ?
-          entry.getName().substring(0, entry.getName().length() - 1) : entry.getName());
+      actualEntries.add(separatorsToSystem(entry.isDirectory() ?
+          entry.getName().substring(0, entry.getName().length() - 1) : entry.getName()));
       final File expected = new File(directory, entry.getName());
       if (!expected.exists()) {
         throw failures.failure(info, new BasicErrorMessageFactory("%nExpecting archive <%s>%nnot to contain entry:%n <%s>%n",
