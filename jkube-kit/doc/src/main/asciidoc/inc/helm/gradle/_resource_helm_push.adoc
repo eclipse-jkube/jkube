@@ -1,4 +1,0 @@
-[source, sh, subs="+attributes"]
-----
-gradle {task-prefix}Resource {task-prefix}Helm {task-prefix}HelmPush
-----

@@ -1,5 +1,0 @@
-
-[[jkubeHelm]]
-=== *{task-prefix}Helm*
-
-include::{kitdoc-path}/inc/helm/_jkube_helm.adoc[]
