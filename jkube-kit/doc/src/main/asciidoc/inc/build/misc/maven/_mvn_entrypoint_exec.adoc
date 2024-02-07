@@ -1,0 +1,12 @@
+.Example
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<entryPoint>
+   <!-- exec form  -->
+   <exec>
+     <arg>java</arg>
+     <arg>-jar</arg>
+     <arg>/opt/demo/server.jar</arg>
+   </exec>
+</entryPoint>
+----

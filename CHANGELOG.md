@@ -33,6 +33,7 @@ Usage:
 * Fix #2423: Change default VolumePermissionEnricher's initContainer image from `busybox` to `quay.io/quay/busybox`
 * Fix #2444: Add support for Spring Boot application properties placeholders
 * Fix #2456: Add utility class to decompress archive files
+* Fix #2465: Add support for `buildpacks` build strategy with opinionated defaults (Zero config)
 * Fix #2472: Support for Helm Chart.yaml appVersion field defaulting to project version
 * Fix #2474: Remove Docker-related classes providing  unused functionality
 * Fix #2477: Support for Spring Boot 3.2.0 (and newer) layered jar format

@@ -1,0 +1,16 @@
+.Example
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+  images {
+    image {
+      build {
+        env {
+          JAVA_HOME = '/opt/jdk8'
+          CATALINA_OPTS = '-Djava.security.egd=file:/dev/./urandom'
+        }
+      }
+    }
+  }
+}
+----

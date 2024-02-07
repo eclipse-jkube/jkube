@@ -1,0 +1,7 @@
+.Example of overriding default build strategy
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+    buildStrategy = 'jib'
+}
+----

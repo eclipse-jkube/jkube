@@ -1,0 +1,8 @@
+.Example
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<env>
+  <JAVA_HOME>/opt/jdk8</JAVA_HOME>
+  <CATALINA_OPTS>-Djava.security.egd=file:/dev/./urandom</CATALINA_OPTS>
+</env>
+----

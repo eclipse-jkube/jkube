@@ -1,0 +1,41 @@
+[[build-kubernetes]]
+
+A normal Docker build is performed by default.For Kubernetes builds the {plugin} uses the Docker remote API so the URL of your Docker Daemon must be specified.The URL can be specified by the dockerHost or machine configuration, or by the `DOCKER_HOST` environment variable.
+
+The Docker remote API supports communication via SSL and authentication with certificates.The path to the certificates can be specified by the certPath or machine configuration, or by the `DOCKER_CERT_PATH` environment variable.
+
+If you don't have access to docker daemon, you can change build strategy using `buildStrategy` option in {plugin-configuration-type} configuration like this:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_mvn_buildstrategy.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_gradle_buildstrategy.adoc[]
+endif::[]
+
+
+These are the different options supported by `buildStrategy`:
+
+.JKube Build Strategies
+[cols="1,5"]
+|===
+| *buildStrategy* | *Description*
+| `docker`
+| Docker build with a binary source
+
+| `buildpacks`
+| Docker build using https://buildpacks.io/[Cloud Native Buildpacks]
+
+| `jib`
+| Deamonless container image creation using https://github.com/GoogleContainerTools/jib[JIB] build
+|===
+
+ifeval::["{plugin-type}" == "maven"]
+{plugin} by default tries to build up an opinionated <<config-image, Image Configuration>> by inspecting `pom.xml`.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+{plugin} by default tries to build up an opinionated <<config-image, Image Configuration>> by inspecting `build.gradle`.
+endif::[]
+
+
+You can also provide your own <<dockerfile-scenario, Dockerfile>> or provide Custom ImageConfiguration via <<config-image-build, {plugin-type} configuration>>.

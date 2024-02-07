@@ -17,6 +17,14 @@ linking images together or for specifying it with the global *image* configurati
 | Registry to use for this image. If the `name` already contains a registry this takes precedence. See <<registry,Registry handling>> for more details.
 
 | <<config-image-build, *build*>>
-| Element which contains all the configuration aspects when doing a <<jkubeBuild, {task-prefix}Build>>. This element can be omitted if the image is only pulled from a registry e.g. as support for integration tests like database images.
+|
+ifeval::["{plugin-type}" == "maven"]
+Element which contains all the configuration aspects when doing a <<jkube:build, {goal-prefix}:build>>.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+Element which contains all the configuration aspects when doing a <<jkubeBuild, {task-prefix}Build>>.
+endif::[]
+
+This element can be omitted if the image is only pulled from a registry e.g. as support for integration tests like database images.
 
 |===
