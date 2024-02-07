@@ -38,18 +38,22 @@ import static org.mockito.Mockito.mockStatic;
 class JKubeEnricherContextTest {
 
   private JavaProject javaProject;
+  private JKubeEnricherContext jKubeEnricherContext;
 
   @BeforeEach
   void setUp() {
     javaProject = JavaProject.builder()
             .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1")
             .build();
+    jKubeEnricherContext = JKubeEnricherContext.builder()
+            .project(javaProject)
+            .build();
   }
 
   @Test
   void builder_whenInvoked_shouldConstructJKubeEnricherContext() {
     // Given + When
-    JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
+    jKubeEnricherContext = jKubeEnricherContext.toBuilder()
         .jKubeBuildStrategy(JKubeBuildStrategy.jib)
         .processingInstruction("foo", "bar")
         .image(ImageConfiguration.builder().name("foo:latest").build())
@@ -71,9 +75,6 @@ class JKubeEnricherContextTest {
   @Test
   void getGav_whenInvoked_shouldReturnExpectedGroupArtifactVersion() {
     // Given + When
-    JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(javaProject)
-        .build();
 
     // Then
     assertThat(jKubeEnricherContext.getGav())
@@ -85,9 +86,6 @@ class JKubeEnricherContextTest {
   @Test
   void getDockerJsonConfigString_whenNoServerPresent_shouldReturnBlankString() {
     // Given
-    JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-            .project(javaProject)
-            .build();
 
     // When
     String dockerConfigJson = jKubeEnricherContext.getDockerJsonConfigString(Collections.emptyList(), "server1");
@@ -99,9 +97,6 @@ class JKubeEnricherContextTest {
   @Test
   void getDockerJsonConfigString_whenServerPresent_shouldReturnDockerJsonString() {
     // Given
-    JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(javaProject)
-        .build();
 
     // When
     String dockerConfigJson = jKubeEnricherContext.getDockerJsonConfigString(Collections.singletonList(RegistryServerConfiguration.builder()
@@ -121,7 +116,7 @@ class JKubeEnricherContextTest {
     // Given
     Properties properties = new Properties();
     properties.put("key1", "value1");
-    JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
+    jKubeEnricherContext = jKubeEnricherContext.toBuilder()
             .project(javaProject.toBuilder().properties(properties).build())
             .build();
 
@@ -136,7 +131,7 @@ class JKubeEnricherContextTest {
   void getProperty_whenPropertyAbsent_shouldReturnNull() {
     // Given
     Properties properties = new Properties();
-    JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
+    jKubeEnricherContext = jKubeEnricherContext.toBuilder()
             .project(javaProject.toBuilder().properties(properties).build())
             .build();
 
@@ -150,8 +145,7 @@ class JKubeEnricherContextTest {
   @Test
   void getBuildStrategy_whenBuildStrategyPresent_shouldReturnBuildStrategy() {
     // Given
-    JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(javaProject)
+    jKubeEnricherContext = jKubeEnricherContext.toBuilder()
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .build();
 
@@ -170,9 +164,6 @@ class JKubeEnricherContextTest {
             .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build());
 
     javaProject.setDependenciesWithTransitive(deps);
-    JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(javaProject)
-        .build();
 
     // When
     List<Dependency> jKubeEnricherContextDependencies = jKubeEnricherContext.getDependencies(true);
@@ -190,9 +181,6 @@ class JKubeEnricherContextTest {
             .groupId("org.eclipse.jkube").artifactId("test-project").version("0.0.1").build());
 
     javaProject.setDependenciesWithTransitive(deps);
-    JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-        .project(javaProject)
-        .build();
 
     // When
     List<Dependency> jKubeEnricherContextDependencies = jKubeEnricherContext.getDependencies(false);
@@ -205,9 +193,6 @@ class JKubeEnricherContextTest {
   void hasPlugin_withNullGroup_shouldSearchPluginWithArtifactId() {
     try (MockedStatic<JKubeProjectUtil> jKubeProjectUtilMockedStatic = mockStatic(JKubeProjectUtil.class)) {
       // Given
-      JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-          .project(javaProject)
-          .build();
 
       // When
       jKubeEnricherContext.hasPlugin(null, "test-plugin");
@@ -221,9 +206,6 @@ class JKubeEnricherContextTest {
   void hasPlugin_withGroup_shouldSearchPluginWithArtifactId() {
     try (MockedStatic<JKubeProjectUtil> jKubeProjectUtilMockedStatic = mockStatic(JKubeProjectUtil.class)) {
       // Given
-      JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
-          .project(javaProject)
-          .build();
 
       // When
       jKubeEnricherContext.hasPlugin("org.test", "test-plugin");
@@ -238,7 +220,7 @@ class JKubeEnricherContextTest {
     try (MockedStatic<ClassUtil> classUtilMockedStatic = mockStatic(ClassUtil.class)) {
       // Given
       File targetDir = new File("target");
-      JKubeEnricherContext jKubeEnricherContext = JKubeEnricherContext.builder()
+      jKubeEnricherContext = jKubeEnricherContext.toBuilder()
           .project(javaProject.toBuilder()
                       .compileClassPathElements(Collections.singletonList("/test/foo.jar"))
                       .outputDirectory(targetDir)
