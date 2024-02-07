@@ -1,27 +1,22 @@
+ifeval::["{plugin-type}" == "maven"]
+[[jkube:helm-push]]
+== *{goal-prefix}:helm-push*
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[[jkubeHelmPush]]
+=== *{task-prefix}HelmPush*
+endif::[]
 
-This goal is for pushing
+This feature allows you to upload your Eclipse JKube-generated
 https://helm.sh/docs/topics/charts[Helm charts]
-in a remote repository [Artifactory, Chartmuseum, Nexus].
+to one of the supported repositories: Artifactory, Chartmuseum, Nexus, and OCI.
 
 ifeval::["{plugin-type}" == "maven"]
-To publish a Helm chart you simply call `{goal-prefix}:helm-push` goal on the command line:
-
-include::maven/_resource_helm_push.adoc[]
+include::maven/_mvn_helm_push.adoc[]
 endif::[]
 ifeval::["{plugin-type}" == "gradle"]
-To publish a Helm chart you simply call `{task-prefix}HelmPush` task on the command line:
-
-include::gradle/_resource_helm_push.adoc[]
+include::gradle/_gradle_helm_push.adoc[]
 endif::[]
-
-
-ifeval::["{plugin-type}" == "maven"]
-The `{goal-prefix}:resource` and the `{goal-prefix}:helm` goals are required to create the resource descriptors which are included in the Helm chart and the Helm chart itself.
-endif::[]
-ifeval::["{plugin-type}" == "gradle"]
-The `{task-prefix}Resource` and the `{task-prefix}Helm` tasks are required to create the resource descriptors which are included in the Helm chart and the Helm chart itself.
-endif::[]
-If you have already built the resource and create the chart, then you can omit these goals.
 
 The configuration is defined in a `helm` section within the plugin's configuration:
 
@@ -31,7 +26,6 @@ endif::[]
 ifeval::["{plugin-type}" == "gradle"]
 include::gradle/_example_helm_push_config.adoc[]
 endif::[]
-
 
 ifeval::["{plugin-type}" == "maven"]
 You can provide helm repository authentication credentials either via properties or using environment variables. It's also possible to specify credentials in maven settings as well. You just
@@ -96,7 +90,7 @@ This configuration section knows the following sub-elements in order to configur
 | `jkube.helm.stableRepository.password`
 
 | *type*
-| The type of the repository. One of ARTIFACTORY, NEXUS, CHARTMUSEUM
+| The type of the repository. One of ARTIFACTORY, NEXUS, CHARTMUSEUM, OCI
 | `jkube.helm.stableRepository.type`
 
 |

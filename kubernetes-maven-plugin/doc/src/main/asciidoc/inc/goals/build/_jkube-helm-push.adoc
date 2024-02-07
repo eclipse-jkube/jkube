@@ -1,5 +1,0 @@
-
-[[jkube:helm-push]]
-== *{goal-prefix}:helm-push*
-
-include::{kitdoc-path}/inc/helm/_jkube_helm_push.adoc[]

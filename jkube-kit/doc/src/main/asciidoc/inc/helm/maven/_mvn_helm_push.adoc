@@ -1,0 +1,10 @@
+To publish a Helm chart you need to invoke the `{goal-prefix}:helm-push` Maven goal on the command line:
+
+[source, sh, subs="+attributes"]
+----
+mvn {goal-prefix}:resource {goal-prefix}:helm {goal-prefix}:helm-push
+----
+
+[NOTE]
+The `{goal-prefix}:resource` and the `{goal-prefix}:helm` goals are required to create the resource descriptors which are included in the Helm chart and the Helm chart itself.
+If you have already built the resource and created the chart, then you can omit these goals.
