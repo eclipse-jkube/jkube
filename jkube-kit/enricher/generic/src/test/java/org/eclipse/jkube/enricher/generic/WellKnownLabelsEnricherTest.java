@@ -26,7 +26,9 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -46,11 +48,12 @@ class WellKnownLabelsEnricherTest {
   private WellKnownLabelsEnricher wellKnownLabelsEnricher;
   private Properties properties;
   private KubernetesListBuilder kubernetesListBuilder;
+  private JKubeEnricherContext context;
 
   @BeforeEach
   void setup() {
     properties = new Properties();
-    JKubeEnricherContext context = JKubeEnricherContext.builder()
+    context = JKubeEnricherContext.builder()
         .project(JavaProject.builder()
             .groupId("org.example")
             .artifactId("test-project")
@@ -137,6 +140,78 @@ class WellKnownLabelsEnricherTest {
           .containsEntry("app.kubernetes.io/managed-by", "already-present-managed-by")
           .containsEntry("app.kubernetes.io/name", "already-present-name")
           .containsEntry("app.kubernetes.io/version", "1.0.0-already-present");
+    }
+
+    @Test
+    @DisplayName("when labels configured via resource config's labels > all, then use configured labels")
+    void whenWellKnownLabelConfiguredViaResourceConfigLabelAll_thenUseLabelsViaResourceConfig() {
+      // Given
+      Properties allLabels = new Properties();
+      allLabels.put("app.kubernetes.io/part-of", "part-of-via-resource-config");
+      allLabels.put("app.kubernetes.io/component", "component-via-resource-config");
+      allLabels.put("app.kubernetes.io/managed-by", "managed-by-via-resource-config");
+      allLabels.put("app.kubernetes.io/name", "name-via-resource-config");
+      context = context.toBuilder()
+          .resources(ResourceConfig.builder()
+              .labels(MetaDataConfig.builder()
+                  .all(allLabels)
+                  .build())
+              .build())
+          .build();
+      wellKnownLabelsEnricher = new WellKnownLabelsEnricher(context);
+
+      // When
+      wellKnownLabelsEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+      // Then
+      Deployment deployment = (Deployment) kubernetesListBuilder.buildFirstItem();
+      assertThat(deployment)
+          .extracting("spec.selector.matchLabels")
+          .asInstanceOf(InstanceOfAssertFactories.MAP)
+          .containsEntry("app.kubernetes.io/part-of", "part-of-via-resource-config")
+          .containsEntry("app.kubernetes.io/component", "component-via-resource-config")
+          .containsEntry("app.kubernetes.io/managed-by", "managed-by-via-resource-config")
+          .containsEntry("app.kubernetes.io/name", "name-via-resource-config");
+    }
+
+    @Test
+    @DisplayName("when labels configured via resource config's labels > deployment, then use configured labels for Deployment only")
+    void whenWellKnownLabelConfiguredViaResourceConfigLabelForSpecificResource_thenUseLabelsViaResourceConfig() {
+      // Given
+      Properties deploymentLabels = new Properties();
+      deploymentLabels.put("app.kubernetes.io/part-of", "part-of-via-resource-config-labels-deployment");
+      deploymentLabels.put("app.kubernetes.io/component", "component-via-resource-config-labels-deployment");
+      deploymentLabels.put("app.kubernetes.io/managed-by", "managed-by-via-resource-config-labels-deployment");
+      deploymentLabels.put("app.kubernetes.io/name", "name-via-resource-config-labels-deployment");
+      context = context.toBuilder()
+          .resources(ResourceConfig.builder()
+              .labels(MetaDataConfig.builder()
+                  .deployment(deploymentLabels)
+                  .build())
+              .build())
+          .build();
+      kubernetesListBuilder.addToItems(new ServiceBuilder().build());
+      wellKnownLabelsEnricher = new WellKnownLabelsEnricher(context);
+
+      // When
+      wellKnownLabelsEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+      // Then
+      assertThat(kubernetesListBuilder.buildItems())
+          .hasSize(2)
+          .satisfies(items -> assertThat(items.get(0))
+              .extracting("spec.selector.matchLabels")
+              .asInstanceOf(InstanceOfAssertFactories.MAP)
+              .containsEntry("app.kubernetes.io/part-of", "part-of-via-resource-config-labels-deployment")
+              .containsEntry("app.kubernetes.io/component", "component-via-resource-config-labels-deployment")
+              .containsEntry("app.kubernetes.io/managed-by", "managed-by-via-resource-config-labels-deployment")
+              .containsEntry("app.kubernetes.io/name", "name-via-resource-config-labels-deployment"))
+          .satisfies(items -> assertThat(items.get(1))
+              .extracting("spec.selector")
+              .asInstanceOf(InstanceOfAssertFactories.MAP)
+              .containsEntry("app.kubernetes.io/part-of", "org.example")
+              .containsEntry("app.kubernetes.io/managed-by", "jkube")
+              .containsEntry("app.kubernetes.io/name", "test-project"));
     }
 
     @Test

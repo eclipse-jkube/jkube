@@ -71,6 +71,9 @@ public class HelmConfig {
   private HelmRepository stableRepository;
   private HelmRepository snapshotRepository;
   private String security;
+  private boolean lintStrict;
+  private boolean lintQuiet;
+
 
   @JsonProperty("dependencies")
   private List<HelmDependency> dependencies;

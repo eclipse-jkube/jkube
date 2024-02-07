@@ -16,6 +16,8 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +30,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.marcnuri.helm.Helm;
+import com.marcnuri.helm.LintCommand;
+import com.marcnuri.helm.LintResult;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
@@ -155,6 +161,34 @@ public class HelmService {
     }
   }
 
+  public void lint(HelmConfig helmConfig) {
+    for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
+      final Path helmPackage = resolveTarballFile(helmConfig, helmType);
+      logger.info("Linting %s %s", helmConfig.getChart(), helmConfig.getVersion());
+      logger.info("Using packaged file: %s", helmPackage.toFile().getAbsolutePath());
+      final LintCommand lintCommand = new Helm(helmPackage).lint();
+      if (helmConfig.isLintStrict()) {
+        lintCommand.strict();
+      }
+      if (helmConfig.isLintQuiet()) {
+        lintCommand.quiet();
+      }
+      final LintResult lintResult = lintCommand.call();
+      if (lintResult.isFailed()) {
+        for (String message : lintResult.getMessages()) {
+          // [[W]] see AnsiUtil.COLOR_MAP and computeEmphasisColor to understand the color guides
+          logger.error("[[W]]%s", message);
+        }
+        throw new JKubeException("Linting failed");
+      } else {
+        for (String message : lintResult.getMessages()) {
+          logger.info("[[W]]%s", message);
+        }
+        logger.info("Linting successful");
+      }
+    }
+  }
+
   private void uploadHelmChart(HelmConfig helmConfig, HelmRepository helmRepository)
       throws IOException, BadUploadException {
 
@@ -162,18 +196,17 @@ public class HelmService {
     for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
       logger.info("Uploading Helm Chart \"%s\" to %s", helmConfig.getChart(), helmRepository.getName());
       logger.debug("OutputDir: %s", helmConfig.getOutputDir());
-
-      final File tarballOutputDir =
-          new File(Objects.requireNonNull(helmConfig.getTarballOutputDir(),
-            "Tarball output directory is required"), helmType.getOutputDir());
-      final File tarballFile = new File(tarballOutputDir, String.format("%s-%s%s.%s",
-          helmConfig.getChart(), helmConfig.getVersion(), resolveHelmClassifier(helmConfig), helmConfig.getChartExtension()));
-
-      helmUploaderManager.getHelmUploader(helmRepository.getType()).uploadSingle(tarballFile, helmRepository);
+      helmUploaderManager.getHelmUploader(helmRepository.getType())
+        .uploadSingle(resolveTarballFile(helmConfig, helmType).toFile(), helmRepository);
       logger.info("Upload Successful");
     }
   }
 
+  private static Path resolveTarballFile(HelmConfig helmConfig, HelmConfig.HelmType helmType) {
+    return Paths.get(Objects.requireNonNull(helmConfig.getTarballOutputDir(), "Tarball output directory is required"))
+      .resolve(helmType.getOutputDir())
+      .resolve(String.format("%s-%s%s.%s", helmConfig.getChart(), helmConfig.getVersion(), resolveHelmClassifier(helmConfig), helmConfig.getChartExtension()));
+  }
 
   static File prepareSourceDir(HelmConfig helmConfig, HelmConfig.HelmType type) throws IOException {
     final File sourceDir = new File(helmConfig.getSourceDir(), type.getSourceDir());

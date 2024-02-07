@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.service.buildpacks;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.FileUtil;
+import org.eclipse.jkube.kit.common.util.PropertiesUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,10 +52,19 @@ public class BuildPackCliDownloader {
   private final Properties packProperties;
   private final File jKubeUserHomeDir;
 
+  public BuildPackCliDownloader(KitLogger kitLogger) {
+    this(kitLogger, null);
+  }
+
   public BuildPackCliDownloader(KitLogger kitLogger, Properties packProperties) {
     this.kitLogger = kitLogger;
-    this.packProperties = packProperties;
-    packCliVersion = (String) packProperties.get(PACK_DEFAULT_CLI_VERSION_PROPERTY);
+    if (packProperties != null) {
+      this.packProperties = packProperties;
+    } else {
+      this.packProperties = PropertiesUtil
+        .getPropertiesFromResource(BuildPackCliDownloader.class.getResource("/META-INF/jkube/pack-cli.properties"));
+    }
+    packCliVersion = this.packProperties.getProperty(PACK_DEFAULT_CLI_VERSION_PROPERTY);
     jKubeUserHomeDir = new File(getUserHome(), JKUBE_PACK_DIR);
   }
 

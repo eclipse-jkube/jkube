@@ -1,0 +1,103 @@
+---
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      jkube.eclipse.org/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+    labels:
+      app: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/component: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/name: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/version: via-resource-groovy-dsl-labels-service
+      group: via-resource-groovy-dsl-labels-service
+      provider: via-resource-groovy-dsl-labels-service
+      version: via-resource-groovy-dsl-labels-service
+    name: well-known-labels
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/component: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/name: via-resource-groovy-dsl-labels-service
+      app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-service
+      group: via-resource-groovy-dsl-labels-service
+      provider: via-resource-groovy-dsl-labels-service
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      jkube.eclipse.org/git-branch: "@ignore@"
+      jkube.eclipse.org/git-commit: "@ignore@"
+      jkube.eclipse.org/git-url: "@ignore@"
+    labels:
+      app: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/component: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/name: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-all
+      app.kubernetes.io/version: via-resource-groovy-dsl-labels-all
+      group: via-resource-groovy-dsl-labels-all
+      provider: via-resource-groovy-dsl-labels-all
+      version: via-resource-groovy-dsl-labels-all
+    name: well-known-labels
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 2
+    selector:
+      matchLabels:
+        app: via-resource-groovy-dsl-labels-all
+        app.kubernetes.io/component: via-resource-groovy-dsl-labels-all
+        app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-all
+        app.kubernetes.io/name: via-resource-groovy-dsl-labels-all
+        app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-all
+        group: via-resource-groovy-dsl-labels-all
+        provider: via-resource-groovy-dsl-labels-all
+    template:
+      metadata:
+        annotations:
+          jkube.eclipse.org/git-branch: "@ignore@"
+          jkube.eclipse.org/git-commit: "@ignore@"
+          jkube.eclipse.org/git-url: "@ignore@"
+        labels:
+          app: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/component: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/managed-by: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/name: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/part-of: via-resource-groovy-dsl-labels-all
+          app.kubernetes.io/version: via-resource-groovy-dsl-labels-all
+          group: via-resource-groovy-dsl-labels-all
+          provider: via-resource-groovy-dsl-labels-all
+          version: via-resource-groovy-dsl-labels-all
+        name: well-known-labels
+      spec:
+        containers:
+        - env:
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          image: repository/well-known-labels:latest
+          imagePullPolicy: IfNotPresent
+          name: repository-well-known-labels
+          ports:
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          securityContext:
+            privileged: false

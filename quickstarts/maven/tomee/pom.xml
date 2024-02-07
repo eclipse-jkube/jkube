@@ -158,11 +158,6 @@
 								</ports>
 								<cmd>java -jar maven/${project.artifactId}-exec.jar</cmd>
 							</build>
-							<run>
-								<ports>
-									<port>${tomee.port}:${tomee.port}</port>
-								</ports>
-							</run>
 						</image>
 					</images>
 				</configuration>

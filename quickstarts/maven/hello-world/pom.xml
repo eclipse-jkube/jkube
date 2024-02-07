@@ -78,11 +78,6 @@
                 <from>openjdk:latest</from>
                 <cmd>java -jar maven/${project.artifactId}-${project.version}.jar</cmd>
               </build>
-              <run>
-                <wait>
-                  <log>Hello World!</log>
-                </wait>
-              </run>
             </image>
           </images>
         </configuration>

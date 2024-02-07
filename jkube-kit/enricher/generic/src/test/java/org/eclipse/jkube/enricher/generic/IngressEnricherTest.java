@@ -59,7 +59,7 @@ class IngressEnricherTest {
     private KitLogger logger;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
         logger = spy(new KitLogger.SilentLogger());
         when(context.getLog()).thenReturn(logger);
