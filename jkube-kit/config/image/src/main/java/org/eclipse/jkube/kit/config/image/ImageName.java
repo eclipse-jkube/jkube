@@ -356,10 +356,14 @@ public class ImageName {
 
     // https://github.com/distribution/reference/blob/8507c7fcf0da9f570540c958ea7b972c30eeaeca/regexp.go#L65
     private static final String OPTIONAL_PORT_REGEXP = "(?::[0-9]+)?";
+
+    // https://github.com/distribution/reference/blob/8507c7fcf0da9f570540c958ea7b972c30eeaeca/regexp.go#L99
     private static final String DOMAIN_NAME_REGEXP = DOMAIN_COMPONENT_REGEXP + "(?:\\." + DOMAIN_COMPONENT_REGEXP + ")*";
+
+    // https://github.com/distribution/reference/blob/8507c7fcf0da9f570540c958ea7b972c30eeaeca/regexp.go#L106
     private static final String REGISTRY_HOST_REGEXP = "^(?:" + IPV6_ADDRESS_REGEXP + "|" + DOMAIN_NAME_REGEXP + ")";
 
-    // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L31
+    // https://github.com/distribution/reference/blob/8507c7fcf0da9f570540c958ea7b972c30eeaeca/regexp.go#L110
     private static final Pattern REGISTRY_REGEXP = Pattern.compile(REGISTRY_HOST_REGEXP + OPTIONAL_PORT_REGEXP);
 
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L37
