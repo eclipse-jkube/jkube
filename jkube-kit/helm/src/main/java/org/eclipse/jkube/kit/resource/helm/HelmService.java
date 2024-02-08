@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -124,8 +125,12 @@ public class HelmService {
       logger.debug("Creating Helm configuration Tarball: '%s'", tarballFile.getAbsolutePath());
       final Consumer<TarArchiveEntry> prependNameAsDirectory = tae ->
           tae.setName(String.format("%s/%s", helmConfig.getChart(), tae.getName()));
+      // outputDir might contain tarball already from previous run, filter out tarball file outputDir from recursive listing
+      List<File> helmTarballContents = FileUtil.listFilesAndDirsRecursivelyInDirectory(outputDir).stream()
+          .filter(f -> !f.equals(tarballFile))
+          .collect(Collectors.toList());
       JKubeTarArchiver.createTarBall(
-          tarballFile, outputDir, FileUtil.listFilesAndDirsRecursivelyInDirectory(outputDir), Collections.emptyMap(),
+          tarballFile, outputDir, helmTarballContents, Collections.emptyMap(),
           ArchiveCompression.fromFileName(tarballFile.getName()), null, prependNameAsDirectory);
       Optional.ofNullable(helmConfig.getGeneratedChartListeners()).orElse(Collections.emptyList())
           .forEach(listener -> listener.chartFileGenerated(helmConfig, helmType, tarballFile));
