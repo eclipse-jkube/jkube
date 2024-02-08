@@ -22,7 +22,10 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.TestHttpStaticServer;
 import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnJre;
+import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
@@ -64,7 +67,7 @@ class IoUtilTest {
         assertThat(port2).isGreaterThan(port);
     }
 
-    @Test
+    @RepeatedTest(500)
     void findOpenPortWithSmallAttemptsCount() throws IOException {
         int port = IoUtil.getFreeRandomPort(30000, 60000, 30);
         try (ServerSocket ss = new ServerSocket(port)) {
@@ -81,6 +84,7 @@ class IoUtilTest {
     }
 
     @Test
+    @DisabledOnJre(value = JRE.JAVA_8, disabledReason = "ServerSocket isn't throwing Bind exception for a port already in use on Eclipse CI with JDK8")
     void invokeExceptionWhenCouldntFindPort() throws IOException {
 
         // find an open port to occupy
