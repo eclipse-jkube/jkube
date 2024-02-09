@@ -73,9 +73,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     protected File kubernetesManifest;
 
     @Parameter(property = "jkube.namespace")
-    protected String namespace;
     @Parameter
-    protected ResourceConfig resources;
 
     /**
      * Watcher specific options. This is a generic prefix where the keys have the form
