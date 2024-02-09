@@ -31,6 +31,7 @@ ifeval::["{plugin-type}" == "maven"]
 You can provide helm repository authentication credentials either via properties or using environment variables. It's also possible to specify credentials in maven settings as well. You just
 need to add a server entry for your repo like this:
 
+[#helm-repository-authentication-credentials-in-settings-xml]
 .Helm Repository Authentication credentials in settings.xml
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
@@ -47,6 +48,19 @@ need to add a server entry for your repo like this:
   </servers>
 
 </settings>
+----
+
+If you have encrypted your password with a master password (as outlined in the http://maven.apache.org/guides/mini/guide-encryption.html[Maven Password Encryption guide]), make sure to configure the `security` setting:
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <helm>
+      <security>~/.m2/security-settings.xml</security>
+      ...
+    </helm>
+  </configuration>
+</plugin>
 ----
 endif::[]
 

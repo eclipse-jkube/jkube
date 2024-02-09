@@ -166,6 +166,12 @@ Defaults to empty string.
 | The Helm chart file extension (`tgz`, `tar.bz`, `tar.bzip2`, `tar.bz2`), default value is `tar.gz` if not provided.
 | `jkube.helm.chartExtension`
 
+ifeval::["{plugin-type}" == "maven"]
+| *security*
+| The Maven security dispatcher configuration file. If you use the default security dispatcher, you need to point this to the file containing your master password. If you followed the http://maven.apache.org/guides/mini/guide-encryption.html[Maven Password Encryption guide], this is `${user.home}/.m2/settings-security.xml`.
+|
+endif::[]
+
 | *<<helm-dependencies, dependencies>>*
 | The list of dependencies for this chart.
 |
