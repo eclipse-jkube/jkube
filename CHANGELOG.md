@@ -20,6 +20,8 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.17-SNAPSHOT
+
 ### 1.16.0 (2024-02-09)
 * Fix #1690: Base images based on ubi9
 * Fix #1700: Add [Kubernetes Well Known labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/) to generated resources
