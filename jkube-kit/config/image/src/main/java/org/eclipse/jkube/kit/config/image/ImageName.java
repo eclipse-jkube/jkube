@@ -52,6 +52,9 @@ public class ImageName {
     // Tag name
     private String tag;
 
+    // Hash length
+    private int hashLen;
+
     // Digest
     private String digest;
 
@@ -80,8 +83,22 @@ public class ImageName {
 
         // set digest to null as default
         digest = null;
+
+        String algo_reg = "@sha(\\d+):";
+
+        Pattern pattern = Pattern.compile(algo_reg);
+
+        // Create a Matcher object
+        Matcher matcher = pattern.matcher(fullName);
+        // Set Hash length
+        if (matcher.find()) {
+            String numberString = matcher.group(1);
+            hashLen = Integer.parseInt(numberString);
+        }
+        Pattern digestPattern = Pattern.compile("@sha(?:[1-9][0-9]*|0b[01]+|0x[0-9a-fA-F]+)?");
+        Matcher digestMatcher = digestPattern.matcher(fullName);
         // check if digest is part of fullName, if so -> extract it
-        if(fullName.contains("@sha256")) { // Of it contains digest
+        if(digestMatcher.find()) { // Of it contains digest
             String[] digestParts = fullName.split("@");
             digest = digestParts[1];
             fullName = digestParts[0];
@@ -89,7 +106,7 @@ public class ImageName {
 
         // check for tag
         Pattern tagPattern = Pattern.compile("^(.+?)(?::([^:/]+))?$");
-        Matcher matcher = tagPattern.matcher(fullName);
+        matcher = tagPattern.matcher(fullName);
         if (!matcher.matches()) {
             throw new IllegalArgumentException(fullName + " is not a proper image name ([registry/][repo][:port]");
         }
@@ -271,6 +288,7 @@ public class ImageName {
     // Validate parts and throw an IllegalArgumentException if a part is not valid
     private void doValidate() {
         List<String> errors = new ArrayList<>();
+        Pattern digestReg = Pattern.compile("^sha" + hashLen + ":[a-z0-9]{" + hashLen/8 + ",}$");
         // Strip off user from repository name
         String user = inferUser();
         String image = user != null ? repository.substring(user.length() + 1) : repository;
@@ -279,7 +297,7 @@ public class ImageName {
                 "image", IMAGE_NAME_REGEXP, image,
                 "user", NAME_COMP_REGEXP, user,
                 "tag", TAG_REGEXP, tag,
-                "digest", DIGEST_REGEXP, digest
+                "digest", digestReg, digest
         };
 
         if (repository.length() > REPO_NAME_MAX_LENGTH) {
