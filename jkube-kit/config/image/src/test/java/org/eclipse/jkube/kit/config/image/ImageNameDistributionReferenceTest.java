@@ -43,7 +43,7 @@ class ImageNameDistributionReferenceTest {
       "sub-dom1.foo.com/bar/baz/quux:some-long-tag",
       "b.gcr.io/test.example.com/my-app:test.example.com",
       "xn--n3h.com/myimage:xn--n3h.com",
-      "xn--7o8h.com/myimage:xn--7o8h.com@sha512:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2540
+      "xn--7o8h.com/myimage:xn--7o8h.com@sha512:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "foo_bar.com:8080",
       "foo/foo_bar.com:8080",
       "192.168.1.1",
