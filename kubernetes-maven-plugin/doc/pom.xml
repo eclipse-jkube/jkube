@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>kubernetes-maven-plugin-parent</artifactId>
-    <version>1.16-SNAPSHOT</version>
+    <version>1.16.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 

@@ -14,8 +14,8 @@
 plugins {
     id("com.github.johnrengelman.shadow") version "7.1.0"
     id("io.micronaut.application") version "3.0.2"
-    id("org.eclipse.jkube.kubernetes") version "1.15.0"
-    id("org.eclipse.jkube.openshift") version "1.15.0"
+    id("org.eclipse.jkube.kubernetes") version "1.16.0"
+    id("org.eclipse.jkube.openshift") version "1.16.0"
 }
 
 version = "0.1"

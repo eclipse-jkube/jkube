@@ -14,8 +14,8 @@
 plugins {
   id 'java'
   id 'application'
-  id 'org.eclipse.jkube.kubernetes' version '1.15.0'
-  id 'org.eclipse.jkube.openshift' version '1.15.0'
+  id 'org.eclipse.jkube.kubernetes' version '1.16.0'
+  id 'org.eclipse.jkube.openshift' version '1.16.0'
   id 'io.vertx.vertx-plugin' version '1.3.0'
 }
 
