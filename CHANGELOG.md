@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.16-SNAPSHOT
+### 1.16.0 (2024-02-09)
 * Fix #1690: Base images based on ubi9
 * Fix #1700: Add [Kubernetes Well Known labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/) to generated resources
 * Fix #2257: Provide guidance when the final project packaged file is not found in Quarkus projeicts

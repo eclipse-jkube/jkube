@@ -22,8 +22,8 @@ buildscript {
 }
 
 plugins {
-    id 'org.eclipse.jkube.kubernetes' version '1.15.0'
-    id 'org.eclipse.jkube.openshift' version '1.15.0'
+    id 'org.eclipse.jkube.kubernetes' version '1.16.0'
+    id 'org.eclipse.jkube.openshift' version '1.16.0'
     id 'java'
 }
 
