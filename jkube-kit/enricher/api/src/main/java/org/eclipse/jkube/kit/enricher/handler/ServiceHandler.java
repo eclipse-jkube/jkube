@@ -43,7 +43,7 @@ public class ServiceHandler {
             ServiceBuilder serviceBuilder = new ServiceBuilder()
                 .withNewMetadata()
                   .withName(service.getName())
-                  .withAnnotations(getAnnotations(service))
+                  .withAnnotations(new HashMap<>())
                   .withLabels(getLabels(service))
                 .endMetadata();
 
@@ -82,9 +82,6 @@ public class ServiceHandler {
         return ret;
     }
 
-    private Map<String, String> getAnnotations(ServiceConfig service) {
-        return new HashMap<>();
-    }
 
     private Map<String, String> getLabels(ServiceConfig service) {
         Map<String, String> labels = new HashMap<>();
