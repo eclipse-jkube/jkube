@@ -44,19 +44,6 @@ public class UndeployMojo extends AbstractJKubeMojo implements ManifestProvider 
   @Parameter(property = "jkube.kubernetesManifest", defaultValue = DEFAULT_KUBERNETES_MANIFEST)
   protected File kubernetesManifest;
 
-  /**
-   * Folder where to find project specific files
-   */
-  @Parameter(property = "jkube.resourceDir", defaultValue = "${basedir}/src/main/jkube")
-  protected File resourceDir;
-
-  /**
-   * Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the default one, jkube will look at src/main/jkube/dev
-   * Same applies for resourceDirOpenShiftOverride property.
-   */
-  @Parameter(property = "jkube.environment")
-  private String environment;
-
   @Parameter(property = "jkube.skip.undeploy", defaultValue = "false")
   protected boolean skipUndeploy;
 
