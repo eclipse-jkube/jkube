@@ -95,13 +95,13 @@ class ImageNameDistributionReferenceTest {
       ":justtag",
       "@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a:tag",
-      //"repo@sha256:ffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2543
+      "repo@sha256:fffffffffffffffffffffffffffffff",
       "validname@invaliddigest:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "Uppercase:tag",
       "test:5000/Uppercase/lowercase:tag",
       "aa/asdf$$^/aa",
-      //"[fe80::1%eth0]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
-      //"[fe80::1%@invalidzone]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
+      "[fe80::1%eth0]:5000/repo",
+      "[fe80::1%@invalidzone]:5000/repo",
   })
   void invalidNames(String name) {
     assertThatIllegalArgumentException().isThrownBy(() -> new ImageName(name));

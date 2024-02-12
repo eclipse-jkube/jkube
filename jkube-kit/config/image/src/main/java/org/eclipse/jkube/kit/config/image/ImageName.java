@@ -369,9 +369,9 @@ public class ImageName {
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L37
     private static final Pattern TAG_REGEXP = Pattern.compile("^[\\w][\\w.-]{0,127}$");
 
-    private static final Pattern DIGEST_256_REGEXP = Pattern.compile("^sha256:[a-z0-9]{32,}$");
+    private static final Pattern DIGEST_256_REGEXP = Pattern.compile("[A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*:[0-9a-fA-F]{32,}");
 
-    private static final Pattern DIGEST_512_REGEXP = Pattern.compile("^sha512:[a-z0-9]{64,}$");
+    private static final Pattern DIGEST_512_REGEXP = Pattern.compile("[A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*:[0-9a-fA-F]{64,}");
 
     private static final Pattern DIGEST_REGEXP = Pattern.compile("^(?:" + DIGEST_256_REGEXP + "|" + DIGEST_512_REGEXP + ")");
 }
