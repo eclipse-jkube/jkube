@@ -1,0 +1,43 @@
+ifeval::["{plugin-type}" == "maven"]
+[[jkube:helm-lint]]
+== *{goal-prefix}:helm-lint*
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[[jkubeHelmLint]]
+=== *{task-prefix}HelmLint*
+endif::[]
+
+This feature allows you to lint your Eclipse JKube-generated
+https://helm.sh/docs/topics/charts[Helm charts] and examine it for possible issues.
+
+It provides the same output as the https://helm.sh/docs/helm/helm_lint[`helm lint`] command.
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_mvn_helm_lint.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_gradle_helm_lint.adoc[]
+endif::[]
+
+.Helm lint configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *lintStrict*
+| Enable strict mode, fails on lint warnings.
+| `jkube.helm.lint.strict`
+
+| *lintQuiet*
+| Enable quiet mode, only shows warnings and errors.
+| `jkube.helm.lint.quiet`
+
+|===
+
+.Example Helm lint configuration
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_example_helm_lint_config.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_example_helm_lint_config.adoc[]
+endif::[]

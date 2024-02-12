@@ -1,0 +1,12 @@
+[source,groovy,subs="attributes+"]
+----
+assembly {
+    targetDir = "/deployments"
+    layers = [{
+        fileSets = [{
+            directory = file("${project.rootDir}/build/dependencies")
+            outputDirectory = "static"
+       }]
+    }]
+}
+----

@@ -1,0 +1,9 @@
+.Example
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<labels>
+   <com.example.label-with-value>foo</com.example.label-with-value>
+   <version>${project.version}</version>
+   <artifactId>${project.artifactId}</artifactId>
+</labels>
+----

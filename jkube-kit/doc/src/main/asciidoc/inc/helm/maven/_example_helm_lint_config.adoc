@@ -1,0 +1,11 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <helm>
+      <lintStrict>true</lintStrict>
+      <lintQuiet>true</lintQuiet>
+    </helm>
+  </configuration>
+</plugin>
+----

@@ -1,0 +1,17 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<assembly>
+  <!-- ... -->
+  <layers>
+    <layer>
+      <id>static-files</id>
+      <fileSets>
+        <fileSet>
+          <directory>src/static</directory>
+          <outputDirectory>static</outputDirectory>
+        </fileSet>
+      </fileSets>
+    </layer>
+  </layers>
+</assembly>
+----

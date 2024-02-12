@@ -36,6 +36,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -111,6 +112,28 @@ class HelmServiceIT {
             "ITChart/values.yaml");
     assertYamls();
     assertThat(generatedChartCount).hasValue(2);
+  }
+
+  @Test
+  @DisplayName("when chart generated subsequent runs, then tar archive generated in previous run not present in updated archive")
+  void generateHelmCharts_whenInvokedTwice_thenFinalChartTarballDoesNotContainPreviousGeneratedHelmChartTarballReference() throws IOException {
+    // Given
+    helmConfig.setChart("ITChart");
+    helmConfig.setVersion("1.33.7");
+    helmConfig.setChartExtension("tar.gz");
+    helmConfig.setTypes(Collections.singletonList(HelmConfig.HelmType.KUBERNETES));
+
+    // When
+    helmService.generateHelmCharts(helmConfig);
+    helmService.generateHelmCharts(helmConfig);
+
+    // Then
+    ArchiveAssertions.assertThat(new File(helmOutputDir, "kubernetes/ITChart-1.33.7.tar.gz"))
+        .exists().isNotEmpty().fileTree().containsExactlyInAnyOrder(
+            "ITChart/templates/",
+            "ITChart/templates/kubernetes.yaml",
+            "ITChart/Chart.yaml",
+            "ITChart/values.yaml");
   }
 
   @Test

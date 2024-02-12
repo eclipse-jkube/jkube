@@ -20,12 +20,12 @@
     <parent>
         <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
         <artifactId>plugin</artifactId>
-        <version>1.15.0</version>
+        <version>1.16.0</version>
     </parent>
 
     <artifactId>jkube-plugin</artifactId>
     <name>Eclipse JKube :: Quickstarts :: Maven :: Plugin :: JKube Plugin</name>
-  <version>1.15.0</version>
+  <version>1.16.0</version>
 
     <dependencies>
         <dependency>

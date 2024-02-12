@@ -1,0 +1,7 @@
+.Example of overriding default build strategy
+[source,xml,subs="attributes+"]
+----
+<configuration>
+  <buildStrategy>jib</buildStrategy>
+</configuration>
+----

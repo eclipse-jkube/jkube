@@ -21,35 +21,28 @@ An entry point or command can be specified in two alternative formats:
 | Shell form in which the whole line is given to `shell -c` for interpretation.
 
 | *exec*
-| List of arguments (with inner `<args>`) arguments which will be given to the `exec` call directly without any shell interpretation.
+| List of arguments (with inner `args`) arguments which will be given to the `exec` call directly without any shell interpretation.
 |===
 
 Either shell or params should be specified.
 
-.Example
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-<entryPoint>
-   <!-- shell form  -->
-   <shell>java -jar $HOME/server.jar</shell>
-</entryPoint>
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_mvn_entrypoint_shell.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_gradle_entrypoint_shell.adoc[]
+endif::[]
 
 or
 
-.Example
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-<entryPoint>
-   <!-- exec form  -->
-   <exec>
-     <arg>java</arg>
-     <arg>-jar</arg>
-     <arg>/opt/demo/server.jar</arg>
-   </exec>
-</entryPoint>
-----
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_mvn_entrypoint_exec.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_gradle_entrypoint_exec.adoc[]
+endif::[]
 
+ifeval::["{plugin-type}" == "maven"]
 This can be formulated also more dense with:
 
 .Example
@@ -72,3 +65,4 @@ or
 </entryPoint>
 ----
 
+endif::[]

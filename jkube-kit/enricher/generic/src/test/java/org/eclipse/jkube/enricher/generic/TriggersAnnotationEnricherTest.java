@@ -56,6 +56,57 @@ class TriggersAnnotationEnricherTest {
     }
 
     @Test
+    void testEnrichmentNotPerformedInNonOpenShiftMode() throws IOException {
+        KubernetesListBuilder builder = new KubernetesListBuilder()
+            .addToItems(new StatefulSetBuilder()
+                .withNewMetadata()
+                    .addToAnnotations("annkey", "annvalue")
+                .endMetadata()
+                .withNewSpec()
+                    .withNewTemplate()
+                        .withNewSpec()
+                            .withContainers(createContainers("c1", "is:latest"))
+                        .endSpec()
+                    .endTemplate()
+                .endSpec()
+                .build());
+
+        TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
+        enricher.enrich(PlatformMode.kubernetes, builder);
+
+        StatefulSet res = (StatefulSet) builder.build().getItems().get(0);
+        assertThat(res.getMetadata().getAnnotations())
+            .containsEntry("annkey", "annvalue")
+            .doesNotContainKey("image.openshift.io/triggers")
+            .hasSize(1); // Only the original annotation should be present
+    }
+
+    @Test
+    void testEnrichmentPerformedInOpenShiftMode() throws IOException {
+        KubernetesListBuilder builder = new KubernetesListBuilder()
+            .addToItems(new StatefulSetBuilder()
+                .withNewMetadata()
+                    .addToAnnotations("annkey", "annvalue")
+                .endMetadata()
+                .withNewSpec()
+                    .withNewTemplate()
+                        .withNewSpec()
+                            .withContainers(createContainers("c1", "is:latest"))
+                        .endSpec()
+                    .endTemplate()
+                .endSpec()
+                .build());
+
+        TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
+        enricher.enrich(PlatformMode.openshift, builder);
+
+        StatefulSet res = (StatefulSet) builder.build().getItems().get(0);
+        assertThat(res.getMetadata().getAnnotations())
+            .containsEntry("annkey", "annvalue") // Existing annotation should be preserved
+            .containsKey("image.openshift.io/triggers") // New annotation should be added
+            .hasSize(2); // Total number of annotations should be 2
+    }
+    @Test
     void statefulSetEnrichment() throws IOException {
 
         KubernetesListBuilder builder = new KubernetesListBuilder()
@@ -70,7 +121,7 @@ class TriggersAnnotationEnricherTest {
                     .build());
 
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
-        enricher.enrich(PlatformMode.kubernetes, builder);
+        enricher.enrich(PlatformMode.openshift, builder);
 
         StatefulSet res = (StatefulSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
@@ -102,7 +153,7 @@ class TriggersAnnotationEnricherTest {
             .build());
 
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
-        enricher.enrich(PlatformMode.kubernetes, builder);
+        enricher.enrich(PlatformMode.openshift, builder);
 
         ReplicaSet res = (ReplicaSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
@@ -138,7 +189,7 @@ class TriggersAnnotationEnricherTest {
                 .build());
 
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
-        enricher.enrich(PlatformMode.kubernetes, builder);
+        enricher.enrich(PlatformMode.openshift, builder);
 
         DaemonSet res = (DaemonSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
@@ -177,7 +228,7 @@ class TriggersAnnotationEnricherTest {
             .build());
 
         TriggersAnnotationEnricher enricher = new TriggersAnnotationEnricher(context);
-        enricher.enrich(PlatformMode.kubernetes, builder);
+        enricher.enrich(PlatformMode.openshift, builder);
 
         StatefulSet res = (StatefulSet) builder.build().getItems().get(0);
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
@@ -200,7 +251,6 @@ class TriggersAnnotationEnricherTest {
                 .containsKey("fieldPath")
             );
     }
-
     @Test
     void noEnrichment() {
 
@@ -227,7 +277,6 @@ class TriggersAnnotationEnricherTest {
         String triggers = res.getMetadata().getAnnotations().get("image.openshift.io/triggers");
         assertThat(triggers).isNull();
     }
-
 
     private List<Container> createContainers(String... nameImage) {
         assertThat(nameImage.length % 2).isZero();
