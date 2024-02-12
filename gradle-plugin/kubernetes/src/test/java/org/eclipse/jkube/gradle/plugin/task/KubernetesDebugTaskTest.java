@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import java.io.IOException;
 import java.util.Collections;
 
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
@@ -45,7 +44,7 @@ class KubernetesDebugTaskTest {
   private TestKubernetesExtension extension;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     debugServiceMockedConstruction = mockConstruction(DebugService.class);
     extension = new TestKubernetesExtension();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
