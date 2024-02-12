@@ -1,0 +1,10 @@
+To generate the Helm chart you need to invoke the`{goal-prefix}:helm` Maven goal on the command line:
+
+[source, sh, subs="+attributes"]
+----
+mvn {goal-prefix}:resource {goal-prefix}:helm
+----
+
+[NOTE]
+The `{goal-prefix}:resource` goal is required to create the resource descriptors that are included in the Helm chart.
+If you have already generated the resources in a previous step then you can omit this  goal.

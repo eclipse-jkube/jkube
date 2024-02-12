@@ -1,4 +1,0 @@
-[source, sh, subs="+attributes"]
-----
-mvn {goal-prefix}:resource {goal-prefix}:helm {goal-prefix}:helm-push
-----

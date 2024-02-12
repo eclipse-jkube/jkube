@@ -52,28 +52,31 @@ public class WellKnownLabelsEnricher extends AbstractLabelEnricher {
   }
 
   @Override
-  public Map<String, String> createLabels(boolean withoutVersion) {
+  public Map<String, String> createLabels(boolean includeVersion, Map<String, String> labelsViaResourceConfig) {
     Map<String, String> ret = new HashMap<>();
     if (!shouldAddWellKnownLabels()) {
       return ret;
     }
 
     final GroupArtifactVersion groupArtifactVersion = getContext().getGav();
-    ret.putAll(addWellKnownLabelFromConfig(Config.APP_NAME, "name", groupArtifactVersion.getArtifactId()));
-    if (!withoutVersion) {
-      ret.putAll(addWellKnownLabelFromConfig(Config.APP_VERSION, "version", groupArtifactVersion.getVersion()));
+    ret.putAll(addWellKnownLabelFromApplicableSource(Config.APP_NAME, "name", groupArtifactVersion.getArtifactId(), labelsViaResourceConfig));
+    if (includeVersion) {
+      ret.putAll(addWellKnownLabelFromApplicableSource(Config.APP_VERSION, "version", groupArtifactVersion.getVersion(), labelsViaResourceConfig));
     }
-    ret.putAll(addWellKnownLabelFromConfig(Config.APP_PART_OF, "part-of", groupArtifactVersion.getGroupId()));
-    ret.putAll(addWellKnownLabelFromConfig(Config.APP_MANAGED_BY, "managed-by", "jkube"));
-    ret.putAll(addWellKnownLabelFromConfig(Config.APP_COMPONENT, "component", null));
+    ret.putAll(addWellKnownLabelFromApplicableSource(Config.APP_PART_OF, "part-of", groupArtifactVersion.getGroupId(), labelsViaResourceConfig));
+    ret.putAll(addWellKnownLabelFromApplicableSource(Config.APP_MANAGED_BY, "managed-by", "jkube", labelsViaResourceConfig));
+    ret.putAll(addWellKnownLabelFromApplicableSource(Config.APP_COMPONENT, "component", null, labelsViaResourceConfig));
     return ret;
   }
 
-  private Map<String, String> addWellKnownLabelFromConfig(Configs.Config key, String labelKey, String defaultValue) {
+  private Map<String, String> addWellKnownLabelFromApplicableSource(Configs.Config key, String labelKey, String defaultValue, Map<String, String> labelsViaResourceConfig) {
     Map<String, String> entryMap = new HashMap<>();
-    String value = getConfig(key, defaultValue);
-    if (StringUtils.isNotBlank(value)) {
-      entryMap.put(KUBERNETES_APP_LABEL + labelKey, value);
+    String appLabel = KUBERNETES_APP_LABEL + labelKey;
+    String appLabelValueFromConfig = getConfig(key, defaultValue);
+    if (labelsViaResourceConfig.containsKey(appLabel)) {
+      entryMap.put(appLabel, labelsViaResourceConfig.get(appLabel));
+    } else if (StringUtils.isNotBlank(appLabelValueFromConfig)) {
+      entryMap.put(appLabel, appLabelValueFromConfig);
     }
     return entryMap;
   }

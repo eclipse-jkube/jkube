@@ -15,6 +15,7 @@ package org.eclipse.jkube.enricher.generic;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -50,7 +51,7 @@ public class ProjectLabelEnricher extends AbstractLabelEnricher {
         APP("app", null),
         GROUP("group", null),
         VERSION("version", null),
-        PROVIDER("provider", "jkube");
+        PROVIDER(LABEL_PROVIDER, "jkube");
 
         @Getter
         protected String key;
@@ -63,22 +64,31 @@ public class ProjectLabelEnricher extends AbstractLabelEnricher {
     }
 
     @Override
-    public Map<String, String> createLabels(boolean withoutVersion) {
+    public Map<String, String> createLabels(boolean includeVersion, Map<String, String> labelsViaResourceConfig) {
         Map<String, String> ret = new HashMap<>();
 
         boolean enableProjectLabel = Configs.asBoolean(getConfig(Config.USE_PROJECT_LABEL));
         final GroupArtifactVersion groupArtifactVersion = getContext().getGav();
         if (enableProjectLabel) {
-            ret.put("project", groupArtifactVersion.getArtifactId());
+            ret.putAll(addProjectLabelFromApplicableSource(null, "project", groupArtifactVersion.getArtifactId(), labelsViaResourceConfig));
         } else {
-            ret.put("app", getConfig(Config.APP, groupArtifactVersion.getArtifactId()));
+            ret.putAll(addProjectLabelFromApplicableSource(Config.APP, "app", groupArtifactVersion.getArtifactId(), labelsViaResourceConfig));
         }
 
-        ret.put("group", getConfig(Config.GROUP, groupArtifactVersion.getGroupId()));
-        ret.put(LABEL_PROVIDER, getConfig(Config.PROVIDER));
-        if (!withoutVersion) {
-            ret.put("version", getConfig(Config.VERSION, groupArtifactVersion.getVersion()));
+        ret.putAll(addProjectLabelFromApplicableSource(Config.GROUP, "group", groupArtifactVersion.getGroupId(), labelsViaResourceConfig));
+        ret.putAll(addProjectLabelFromApplicableSource(Config.PROVIDER, LABEL_PROVIDER, null, labelsViaResourceConfig));
+        if (includeVersion) {
+            ret.putAll(addProjectLabelFromApplicableSource(Config.VERSION, "version", groupArtifactVersion.getVersion(), labelsViaResourceConfig));
         }
         return ret;
+    }
+
+    private Map<String, String> addProjectLabelFromApplicableSource(Configs.Config key, String labelKey, String defaultValue, Map<String, String> labelsViaResourceConfig) {
+        Map<String, String> entryMap = new HashMap<>();
+        String appLabelValueFromConfig = Optional.ofNullable(key)
+            .map(k -> getConfig(k, defaultValue))
+            .orElse(defaultValue);
+        entryMap.put(labelKey, labelsViaResourceConfig.getOrDefault(labelKey, appLabelValueFromConfig));
+        return entryMap;
     }
 }

@@ -21,12 +21,12 @@
     <parent>
         <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
         <artifactId>javaee8-webprofile-liberty</artifactId>
-        <version>1.15.0</version>
+        <version>1.16.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>javaee8-webprofile-liberty-app-it</artifactId>
-    <version>1.15.0</version>
+    <version>1.16.0</version>
     <name>Eclipse JKube :: Quickstarts :: Maven :: JavaEE 8 WebProfile :: IT</name>
     <packaging>jar</packaging>
 

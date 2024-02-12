@@ -14,8 +14,8 @@
 plugins {
     id 'org.springframework.boot' version '2.5.4'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'org.eclipse.jkube.kubernetes' version '1.15.0'
-    id 'org.eclipse.jkube.openshift' version '1.15.0'
+    id 'org.eclipse.jkube.kubernetes' version '1.16.0'
+    id 'org.eclipse.jkube.openshift' version '1.16.0'
     id 'java'
 }
 

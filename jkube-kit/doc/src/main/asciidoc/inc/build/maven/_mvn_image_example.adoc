@@ -1,0 +1,21 @@
+.Example for <image>
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<configuration>
+  <!-- .... -->
+  <images>
+    <image> <!--1-->
+      <name>%g/jkube-build-demo:0.1</name> <!--2-->
+      <alias>service</alias> <!--3-->
+      <build>....</build> <!--4-->
+    </image>
+    <image>
+      ....
+    </image>
+  </images>
+</configuration>
+----
+<1> One or more `<image>` definitions
+<2> The Docker image name used when creating the image. Note that `%g` would be replaced by project group id.
+<3> An alias which can be used in other parts of the plugin to reference to this image. This alias must be unique.
+<4> A `<build>` section as described in <<build-configuration, Build Configuration>>

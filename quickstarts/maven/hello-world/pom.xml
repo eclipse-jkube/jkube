@@ -20,7 +20,7 @@
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>helloworld</artifactId>
-  <version>1.15.0</version>
+  <version>1.16.0</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Hello World</name>
   <packaging>jar</packaging>
 
@@ -78,11 +78,6 @@
                 <from>openjdk:latest</from>
                 <cmd>java -jar maven/${project.artifactId}-${project.version}.jar</cmd>
               </build>
-              <run>
-                <wait>
-                  <log>Hello World!</log>
-                </wait>
-              </run>
             </image>
           </images>
         </configuration>

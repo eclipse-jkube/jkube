@@ -1,0 +1,106 @@
+[[build-openshift]]
+
+For the `openshift` mode, OpenShift specific
+https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html[builds] will be performed.
+These are so called
+https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html[Binary Source]
+builds ("binary builds" in short), where the data specified with the <<build-configuration, build configuration>>  is sent directly to OpenShift as a binary archive.
+
+There are two kind of binary builds supported by this plugin, which can be selected with the `buildStrategy` configuration option (`jkube.build.strategy` property)
+
+.Build Strategies
+[cols="1,6"]
+|===
+| `buildStrategy` | Description
+
+| `s2i`
+| The https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image] (S2I) build strategy uses so called builder images for creating new application images from binary build data.
+The builder image to use is taken from the base image configuration specified with <<build-config-from, from>> in the image build configuration.
+See below for a list of builder images which can be used with this plugin.
+
+| `docker`
+| A https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#docker-build[Docker Build] is similar to a normal Docker build except that it is done by the OpenShift cluster and not by a Docker daemon.
+In addition this build pushes the generated image to the OpenShift internal registry so that it is accessbile in the whole cluster.
+|===
+
+Both build strategies update an
+https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#image-streams[Image Stream]
+after the image creation.
+
+The https://docs.openshift.com/enterprise/latest/dev_guide/builds.html#defining-a-buildconfig[Build Config] and
+https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#image-streams[Image streams]
+can be managed by this plugin.
+ifeval::["{plugin-type}" == "maven"]
+If they do not exist, they will be automatically created by `{goal-prefix}:build`.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+If they do not exist, they will be automatically created by `{task-prefix}Build`.
+endif::[]
+
+If they do already exist, they are reused, except when the `buildRecreate` configuration option (property `jkube.build.recreate`) is set to a value as described in <<global-configuration, Global Configuration>>.
+Also if the provided build strategy is different than the one defined in the existing build configuration, the Build Config is edited to reflect the new type (which in turn removes all build associated with the previous build).
+
+ifeval::["{plugin-type}" == "maven"]
+This image stream created can then be directly referenced from
+https://docs.openshift.com/enterprise/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[Deployment Configuration]
+objects created by <<jkube:resource, {goal-prefix}:resource>>.
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+This image stream created can then be directly referenced from
+https://docs.openshift.com/enterprise/latest/architecture/core_concepts/deployments.html#deployments-and-deployment-configurations[Deployment Configuration]
+objects created by <<jkubeResource, {task-prefix}Resource>>.
+endif::[]
+
+By default, image streams are created with a local lookup policy, so that they can be used also by other resources such as Deployments or StatefulSets.
+This behavior can be turned off by setting the `jkube.s2i.imageStreamLookupPolicyLocal` property to `false` when building the project.
+
+In order to be able to create these OpenShift resource objects access to an OpenShift installation is required.
+// TODO: Add when support is complete
+//The access parameters are described in <<access-configuration, Access Configuration>>.
+
+Regardless of which build mode is used, the images are configured in the same way.
+
+The configuration consists of two parts:
+
+* a global section which defines the overall behaviour of this plugin
+* and an `images` section which defines how the images should be build
+
+Many of the options below are relevant for the <<build-kubernetes, Kubernetes Workflow>> or the <<build-openshift, OpenShift Workflow>> with Docker builds as they influence how the Docker image is build.
+
+For an S2I binary build, on the other hand, the most relevant section is the <<config-image-build-assembly, Assembly>> one because the build depends on which buider/base image is used and how it interprets the content of the uploaded `docker.tar`.
+
+ifeval::["{plugin-type}" == "maven"]
+[[setting-quota-openshift-build]]
+=== Setting Quotas for OpenShift Build
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[[setting-quota-openshift-build]]
+==== Setting Quotas for OpenShift Build
+endif::[]
+
+
+You can also limit resource use by specifying resource limits as part of the build configuration.
+You can do this by providing `openshiftBuildConfig` field in `resource` configuration.
+Below is an example on how to do this:
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_oc_s2i_build_resource_limit.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_oc_s2i_build_resource_limit.adoc[]
+endif::[]
+
+It's also possible to provide a `buildconfig.yml` BuildConfig resource fragment in `src/main/jkube` directory like this:
+
+.BuildConfig fragment Example(`buildconfig.yml`)
+[source,yaml]
+----
+spec:
+  resources:
+    limits:
+      cpu: "600m"
+      memory: "512Mi"
+    requests:
+      cpu: "500m"
+      memory: "300Mi"
+----

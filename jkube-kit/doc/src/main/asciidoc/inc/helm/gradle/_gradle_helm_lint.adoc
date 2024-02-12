@@ -1,0 +1,10 @@
+To lint a Helm chart you need to invoke the `{task-prefix}HelmLint` Gradle task on the command line:
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Resource {task-prefix}Helm {task-prefix}HelmLint
+----
+
+[NOTE]
+The `{task-prefix}Resource` and the `{task-prefix}Helm` tasks are required to create the resource descriptors which are included in the Helm chart and the Helm chart itself.
+If you have already built the resource and created the chart, then you can omit these tasks.

@@ -1,0 +1,62 @@
+ifeval::["{plugin-type}" == "maven"]
+[[jkube:build]]
+== *{goal-prefix}:build*
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[[jkubeBuild]]
+=== *{task-prefix}Build*
+endif::[]
+
+This task is for building container images for your application.
+
+ifeval::["{task-prefix}" == "k8s"]
+include::_kubernetes-build.adoc[]
+endif::[]
+ifeval::["{goal-prefix}" == "k8s"]
+include::_kubernetes-build.adoc[]
+endif::[]
+
+ifeval::["{task-prefix}" == "oc"]
+include::_openshift-build.adoc[]
+endif::[]
+ifeval::["{goal-prefix}" == "oc"]
+include::_openshift-build.adoc[]
+endif::[]
+
+
+//TODO: Unify documentation structure for both maven and gradle plugins
+//      At the moment, we display build configuration sections in separate section from
+//      tasks for Gradle Plugins, but in case of Maven Plugins we show it in goal documentation.
+//      This section is duplicated in https://github.com/eclipse/jkube/blob/a616fe68e3d348f5f5c4f94844c50ba3ecb12ede/gradle-plugin/doc/src/main/asciidoc/inc/_groovy-configuration.adoc
+ifeval::["{plugin-type}" == "maven"]
+
+include::_build_configuration_options.adoc[]
+
+=== Image Configuration
+
+The configuration how images should be created a defined in a dedicated `images` sections. These are specified for
+each image within the `images` element of the configuration with one `image` element per image to use.
+
+The `image` element can contain the following sub elements:
+
+include::../image/_configuration.adoc[]
+
+The `build` section is mandatory and is explained in <<build-configuration, below>>.
+
+include::../image/_naming.adoc[]
+
+include::maven/_mvn_image_example.adoc[]
+
+include::_index.adoc[]
+
+[[misc-env]]
+=== Environment and Labels
+include::misc/_env.adoc[]
+
+[[misc-startup]]
+=== Startup Arguments
+include::misc/_startup.adoc[]
+
+INFO:: Startup arguments are not used in S2I builds
+endif::[]

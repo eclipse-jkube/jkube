@@ -1,0 +1,24 @@
+[[build-goal-configuration]]
+ifeval::["{plugin-type}" == "maven"]
+=== Configuration ({plugin-configuration-type})
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+==== Configuration ({plugin-configuration-type})
+endif::[]
+
+
+The following sections describe the usual configuration, which is similar to the build configuration used in the
+https://dmp.fabric8.io[docker-maven-plugin].
+
+In addition, a more automatic way for creating predefined build configuration can be performed with so called <<generators, Generators>>. Generators are very flexible and can be easily created. These are described in an extra <<generators, section>>. Note that if you're providing your own {plugin-configuration-type} image configuration, it would be given more precedence. Generators won't be used in case you're already using your own custom image configuration.
+
+Global configuration parameters specify overall behavior common for all images to build. Some of the configuration options are shared with other goals.
+
+.Global build configuration options
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+include::_build_configuration_option_entries.adoc[]
+
+|===

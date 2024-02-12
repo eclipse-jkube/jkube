@@ -1,0 +1,15 @@
+.Example
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{pluginExtension} {
+    images {
+        image {
+            build {
+                entryPoint {
+                    exec = ["java", "-jar", "/opt/demo/server.jar"]
+                }
+            }
+        }
+    }
+}
+----

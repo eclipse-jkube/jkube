@@ -13,32 +13,33 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.util.Map;
 import java.util.Properties;
 
+import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.config.resource.ResourceConfig;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test label generation.
@@ -49,14 +50,20 @@ class ProjectLabelEnricherTest {
 
   private Properties properties;
   private ProjectLabelEnricher projectLabelEnricher;
+  private JKubeEnricherContext context;
 
   @BeforeEach
   void setupExpectations() {
-    JKubeEnricherContext context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-    projectLabelEnricher = new ProjectLabelEnricher(context);
     properties = new Properties();
-    when(context.getProperties()).thenReturn(properties);
-    when(context.getGav()).thenReturn(new GroupArtifactVersion("groupId", "artifactId", "version"));
+    context = JKubeEnricherContext.builder()
+        .project(JavaProject.builder()
+            .properties(properties)
+            .groupId("groupId")
+            .artifactId("artifactId")
+            .version("version")
+            .build())
+        .build();
+    projectLabelEnricher = new ProjectLabelEnricher(context);
   }
 
   @Test
@@ -209,6 +216,77 @@ class ProjectLabelEnricherTest {
         .extracting(LabelSelector::getMatchLabels)
         .asInstanceOf(InstanceOfAssertFactories.MAP)
         .containsEntry("version", "0.0.1");
+  }
+
+  @Test
+  @DisplayName("when labels configured via resource config's labels > all, then use configured labels")
+  void create_whenProjectLabelConfiguredViaResourceConfigLabelAll_thenUseLabelsViaResourceConfig() {
+    // Given
+    Properties allLabels = new Properties();
+    allLabels.put("app", "app-via-resource-config");
+    allLabels.put("provider", "provider-via-resource-config");
+    allLabels.put("group", "group-via-resource-config");
+    context = context.toBuilder()
+        .resources(ResourceConfig.builder()
+            .labels(MetaDataConfig.builder()
+                .all(allLabels)
+                .build())
+            .build())
+        .build();
+    KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().withItems(new DeploymentBuilder().build());
+    projectLabelEnricher = new ProjectLabelEnricher(context);
+
+    // When
+    projectLabelEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+    // Then
+    Deployment deployment = (Deployment) kubernetesListBuilder.buildFirstItem();
+    assertThat(deployment)
+        .extracting("spec.selector.matchLabels")
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsEntry("app", "app-via-resource-config")
+        .containsEntry("provider", "provider-via-resource-config")
+        .containsEntry("group", "group-via-resource-config");
+  }
+
+  @Test
+  @DisplayName("when labels configured via resource config's labels > deployment, then use configured labels for Deployment only")
+  void create_whenProjectLabelConfiguredViaResourceConfigLabelForSpecificResource_thenUseLabelsViaResourceConfigForSpecificResourceOnly() {
+    // Given
+    Properties deploymentLabels = new Properties();
+    deploymentLabels.put("app", "app-via-resource-config-labels-deployment");
+    deploymentLabels.put("provider", "provider-via-resource-config-labels-deployment");
+    deploymentLabels.put("group", "group-via-resource-config-labels-deployment");
+    context = context.toBuilder()
+        .resources(ResourceConfig.builder()
+            .labels(MetaDataConfig.builder()
+                .deployment(deploymentLabels)
+                .build())
+            .build())
+        .build();
+    KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder()
+        .addToItems(new DeploymentBuilder().build())
+        .addToItems(new ServiceBuilder().build());
+    projectLabelEnricher = new ProjectLabelEnricher(context);
+
+    // When
+    projectLabelEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+    // Then
+    assertThat(kubernetesListBuilder.buildItems())
+        .hasSize(2)
+        .satisfies(items -> assertThat(items.get(0))
+            .extracting("spec.selector.matchLabels")
+            .asInstanceOf(InstanceOfAssertFactories.MAP)
+            .containsEntry("app", "app-via-resource-config-labels-deployment")
+            .containsEntry("provider", "provider-via-resource-config-labels-deployment")
+            .containsEntry("group", "group-via-resource-config-labels-deployment"))
+        .satisfies(items -> assertThat(items.get(1))
+            .extracting("spec.selector")
+            .asInstanceOf(InstanceOfAssertFactories.MAP)
+            .containsEntry("app", "artifactId")
+            .containsEntry("group", "groupId")
+            .containsEntry("provider", "jkube"));
   }
 
   @Nested
