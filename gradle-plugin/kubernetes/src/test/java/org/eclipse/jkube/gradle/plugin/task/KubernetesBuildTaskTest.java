@@ -56,7 +56,7 @@ class KubernetesBuildTaskTest {
   private boolean isBuildError;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     // Mock required for environments with no DOCKER available (don't remove)
     dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class,
       (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
