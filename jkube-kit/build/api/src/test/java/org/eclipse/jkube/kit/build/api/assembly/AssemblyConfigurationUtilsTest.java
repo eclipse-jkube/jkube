@@ -62,7 +62,7 @@ class AssemblyConfigurationUtilsTest {
   @Test
   void getAssemblyConfigurationOrCreateDefault_withConfiguration_shouldReturnConfiguration() {
     // Given
-    BuildConfiguration buildConfig = BuildConfiguration.builder()
+    buildConfig = buildConfig.toBuilder()
             .assembly(AssemblyConfiguration.builder()
                     .user("OtherUser")
                     .name("ImageName")
@@ -155,7 +155,7 @@ class AssemblyConfigurationUtilsTest {
   @Test
   void createDockerFileBuilder_withNoAssembly_shouldReturnTransformedContent() {
     // Given
-    final BuildConfiguration buildConfig = BuildConfiguration.builder()
+    buildConfig = buildConfig.toBuilder()
         .putEnv("ENV_VAR", "VALUE")
         .label("LABEL", "LABEL_VALUE")
         .port("8080")
@@ -183,7 +183,7 @@ class AssemblyConfigurationUtilsTest {
   @Test
   void createDockerFileBuilder_withAssemblyAndFiles_shouldReturnTransformedContent() {
     // Given
-    final BuildConfiguration buildConfig = BuildConfiguration.builder()
+    buildConfig = buildConfig.toBuilder()
         .putEnv("ENV_VAR", "VALUE")
         .label("LABEL", "LABEL_VALUE")
         .port("8080")
@@ -222,7 +222,7 @@ class AssemblyConfigurationUtilsTest {
   @Test
   void createDockerFileBuilder_withAssemblyAndFilesInSingleLayer_shouldReturnTransformedContent() {
     // Given
-    final BuildConfiguration buildConfig = BuildConfiguration.builder()
+    buildConfig = buildConfig.toBuilder()
         .user("1000")
         .maintainer("Alex")
         .build();
