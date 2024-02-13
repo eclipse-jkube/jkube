@@ -377,8 +377,6 @@ public class ImageName {
     private static final Pattern TAG_REGEXP = Pattern.compile("^[\\w][\\w.-]{0,127}$");
 
     private static final Pattern DIGEST_256_REGEXP = Pattern.compile("sha256:([0-9a-f]{64})");
-
     private static final Pattern DIGEST_512_REGEXP = Pattern.compile("sha512:([0-9a-f]{128})");
-
     private static final Pattern DIGEST_REGEXP = Pattern.compile("^(?:" + DIGEST_256_REGEXP + "|" + DIGEST_512_REGEXP + ")");
 }
