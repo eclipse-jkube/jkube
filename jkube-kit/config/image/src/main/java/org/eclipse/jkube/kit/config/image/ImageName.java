@@ -57,7 +57,9 @@ public class ImageName {
 
     private static final int REPO_NAME_MAX_LENGTH = 255;
 
-    private static final int MIN_DIGEST_LENGTH = 64;
+    private static final int MIN_SHA256_DIGEST_LENGTH = 64;
+
+    private static final int MIN_SHA512_DIGEST_LENGTH = 128;
 
     /**
      * Create an image name
@@ -111,9 +113,13 @@ public class ImageName {
             tag = "latest";
         }
 
-        // Validate the length of the digest
-        if (digest != null && digest.length() < MIN_DIGEST_LENGTH) {
-            throw new IllegalArgumentException("Length of the encoded digest does not match the expected value");
+        // Validate the length of the digest based on the algorithm used
+        if (digest != null) {
+            if (digest.startsWith("sha256:") && digest.length() < MIN_SHA256_DIGEST_LENGTH) {
+                throw new IllegalArgumentException("Length of the encoded SHA256 digest does not match the expected value");
+            } else if (digest.startsWith("sha512:") && digest.length() < MIN_SHA512_DIGEST_LENGTH) {
+                throw new IllegalArgumentException("Length of the encoded SHA512 digest does not match the expected value");
+            }
         }
 
         doValidate();
