@@ -81,7 +81,7 @@ public class ImageName {
         // set digest to null as default
         digest = null;
         // check if digest is part of fullName, if so -> extract it
-        if(fullName.contains("@sha256")) { // Of it contains digest
+        if(fullName.contains("@sha256") || fullName.contains("@sha512")) { // Of it contains digest
             String[] digestParts = fullName.split("@");
             digest = digestParts[1];
             fullName = digestParts[0];
@@ -369,5 +369,9 @@ public class ImageName {
     // https://github.com/docker/docker/blob/04da4041757370fb6f85510c8977c5a18ddae380/vendor/github.com/docker/distribution/reference/regexp.go#L37
     private static final Pattern TAG_REGEXP = Pattern.compile("^[\\w][\\w.-]{0,127}$");
 
-    private static final Pattern DIGEST_REGEXP = Pattern.compile("^sha256:[a-z0-9]{32,}$");
+    private static final Pattern DIGEST_256_REGEXP = Pattern.compile("sha256:([0-9a-f]{64})");
+
+    private static final Pattern DIGEST_512_REGEXP = Pattern.compile("sha512:([0-9a-f]{128})");
+
+    private static final Pattern DIGEST_REGEXP = Pattern.compile("^(?:" + DIGEST_256_REGEXP + "|" + DIGEST_512_REGEXP + ")");
 }

@@ -43,7 +43,7 @@ class ImageNameDistributionReferenceTest {
       "sub-dom1.foo.com/bar/baz/quux:some-long-tag",
       "b.gcr.io/test.example.com/my-app:test.example.com",
       "xn--n3h.com/myimage:xn--n3h.com",
-      //"xn--7o8h.com/myimage:xn--7o8h.com@sha512:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2540
+      "xn--7o8h.com/myimage:xn--7o8h.com@sha512:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "foo_bar.com:8080",
       "foo/foo_bar.com:8080",
       "192.168.1.1",
@@ -95,13 +95,13 @@ class ImageNameDistributionReferenceTest {
       ":justtag",
       "@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a:tag",
-      //"repo@sha256:ffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2543
+      "repo@sha256:fffffffffffffffffffffffffffffff",
       "validname@invaliddigest:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "Uppercase:tag",
       "test:5000/Uppercase/lowercase:tag",
       "aa/asdf$$^/aa",
-      //"[fe80::1%eth0]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
-      //"[fe80::1%@invalidzone]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
+      "[fe80::1%eth0]:5000/repo",
+      "[fe80::1%@invalidzone]:5000/repo",
   })
   void invalidNames(String name) {
     assertThatIllegalArgumentException().isThrownBy(() -> new ImageName(name));
