@@ -94,7 +94,7 @@ class WatchServiceTest {
         .project(JavaProject.builder()
           .baseDirectory(tempDir.toFile())
           .build())
-        .outputDirectory(Files.createDirectory(tempDir.resolve("target")).toFile().getAbsolutePath())
+        .outputDirectory(Files.createDirectory(tempDir.resolve("target")).toFile().getName())
         .build())
       .build();
   }
