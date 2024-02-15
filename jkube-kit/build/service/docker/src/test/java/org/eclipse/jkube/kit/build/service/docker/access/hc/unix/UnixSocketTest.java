@@ -53,42 +53,45 @@ class UnixSocketTest {
     @Test
     void shouldReturnValuesFromSocket() throws IOException {
         // GIVEN
-        UnixSocket unixSocket = new UnixSocket();
-        doReturn(KEEP_ALIVE).when(socket).getKeepAlive();
-        doReturn(SO_TIMEOUT).when(socket).getSoTimeout();
+        try (UnixSocket unixSocket = new UnixSocket()) {
+            doReturn(KEEP_ALIVE).when(socket).getKeepAlive();
+            doReturn(SO_TIMEOUT).when(socket).getSoTimeout();
 
-        // WHEN
-        boolean keepAlive = unixSocket.getKeepAlive();
-        int soTimeout = unixSocket.getSoTimeout();
+            // WHEN
+            boolean keepAlive = unixSocket.getKeepAlive();
+            int soTimeout = unixSocket.getSoTimeout();
 
-        // THEN
-        assertThat(keepAlive).isEqualTo(KEEP_ALIVE);
-        assertThat(soTimeout).isEqualTo(SO_TIMEOUT);
+            // THEN
+            assertThat(keepAlive).isEqualTo(KEEP_ALIVE);
+            assertThat(soTimeout).isEqualTo(SO_TIMEOUT);
+        }
     }
 
     @Test
     void shouldPassExceptionsFromSocket() throws IOException {
         // GIVEN
-        UnixSocket unixSocket = new UnixSocket();
-        doThrow(new SocketException()).when(socket).getKeepAlive();
-        doThrow(new SocketException()).when(socket).getSoTimeout();
+        try (UnixSocket unixSocket = new UnixSocket()) {
+            doThrow(new SocketException()).when(socket).getKeepAlive();
+            doThrow(new SocketException()).when(socket).getSoTimeout();
 
-        // WHEN & THEN
-        assertThatThrownBy(unixSocket::getKeepAlive).isInstanceOf(SocketException.class);
-        assertThatThrownBy(unixSocket::getSoTimeout).isInstanceOf(SocketException.class);
+            // WHEN & THEN
+            assertThatThrownBy(unixSocket::getKeepAlive).isInstanceOf(SocketException.class);
+            assertThatThrownBy(unixSocket::getSoTimeout).isInstanceOf(SocketException.class);
+        }
     }
 
     @Test
     void shouldForwardValuesToSocket() throws IOException {
         // GIVEN
-        UnixSocket unixSocket = new UnixSocket();
+        try (UnixSocket unixSocket = new UnixSocket()) {
 
-        // WHEN
-        unixSocket.setKeepAlive(KEEP_ALIVE);
-        unixSocket.setSoTimeout(SO_TIMEOUT);
+            // WHEN
+            unixSocket.setKeepAlive(KEEP_ALIVE);
+            unixSocket.setSoTimeout(SO_TIMEOUT);
 
-        // THEN
-        verify(socket).setKeepAlive(KEEP_ALIVE);
-        verify(socket).setSoTimeout(SO_TIMEOUT);
+            // THEN
+            verify(socket).setKeepAlive(KEEP_ALIVE);
+            verify(socket).setSoTimeout(SO_TIMEOUT);
+        }
     }
 }
