@@ -40,7 +40,7 @@ class KubernetesHelmTaskTest {
   private MockedConstruction<HelmService> helmServiceMockedConstruction;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     TestKubernetesExtension extension = new TestKubernetesExtension();
     extension.isUseColor = false;
     helmServiceMockedConstruction = mockConstruction(HelmService.class);
