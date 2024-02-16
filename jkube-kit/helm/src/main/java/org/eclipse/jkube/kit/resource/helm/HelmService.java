@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -63,7 +62,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.DEFAULT_FILTER;
 import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.interpolate;
 import static org.eclipse.jkube.kit.common.util.MapUtil.getNestedMap;
-import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.listYamls;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.isRepositoryValid;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.selectHelmRepository;
@@ -253,11 +251,7 @@ public class HelmService {
         splitAndSaveTemplate((Template) dto, templatesDir);
       } else {
         final String fileName = FileUtil.stripPostfix(FileUtil.stripPostfix(file.getName(), ".yml"), YAML_EXTENSION) + YAML_EXTENSION;
-        File targetFile = new File(templatesDir, fileName);
-        // lets escape any {{ or }} characters to avoid creating invalid templates
-        String text = FileUtils.readFileToString(file, Charset.defaultCharset());
-        text = escapeYamlTemplate(text);
-        FileUtils.write(targetFile, text, Charset.defaultCharset());
+        FileUtil.copy(file, new File(templatesDir, fileName));
       }
     }
   }

@@ -27,11 +27,14 @@ items:
 - apiVersion: v1
   kind: Service
   metadata:
+    {{ if .Values.addAnnotations }}
     annotations:
       jkube/it: This is a test
       helm-variable: {{ required "A valid .Values.GLOBAL_TEMPLATE_ENV_VAR entry required!" .Values.GLOBAL_TEMPLATE_ENV_VAR }}
-      escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
+      value-that-looks-like-helm-test: "{{ $The term 'helm' finds its roots in Old English }}"
+      value-that-is-a-helm-expression: {{ .Values.abandonShip }}
       helm-golang-expression: {{ .Values.unused_value | upper | quote }}
+      {{ end }}
     labels:
       app: test
       provider: jkube
@@ -51,12 +54,15 @@ items:
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
+    {{ if .Values.addAnnotations }}
     annotations:
       jkube/it: This is a test
       helm-variable: {{ required "A valid .Values.GLOBAL_TEMPLATE_ENV_VAR entry required!" .Values.GLOBAL_TEMPLATE_ENV_VAR }}
-      escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
+      value-that-looks-like-helm-test: "{{ $The term 'helm' finds its roots in Old English }}"
+      value-that-is-a-helm-expression: {{ .Values.abandonShip }}
       annotation-from-config: {{ .Chart.Name | upper }}
       annotation-from-config/dotted: {{ .Chart.Name }}
+      {{ end }}
     labels:
       app: test
       provider: jkube
@@ -72,10 +78,13 @@ items:
         group: org.eclipse.jkube.quickstarts.maven
     template:
       metadata:
+        {{ if .Values.addAnnotations }}
         annotations:
           jkube/it: This is a test
           helm-variable: {{ required "A valid .Values.GLOBAL_TEMPLATE_ENV_VAR entry required!" .Values.GLOBAL_TEMPLATE_ENV_VAR }}
-          escape-test: "{{"{{"}} {{"}}"}} should be escaped to prevent helm errors"
+          value-that-looks-like-helm-test: "{{ $The term 'helm' finds its roots in Old English }}"
+          value-that-is-a-helm-expression: {{ .Values.abandonShip }}
+          {{ end }}
         labels:
           app: test
           provider: jkube

@@ -24,14 +24,17 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 import io.fabric8.kubernetes.client.utils.KubernetesSerialization;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Collectors;
 
 public class Serialization {
 
@@ -97,20 +100,22 @@ public class Serialization {
     }
   }
 
-  public static <T> T unmarshal(InputStream is, Class<T> clazz) {
-    return KUBERNETES_SERIALIZATION.unmarshal(is, clazz);
+  public static <T> T unmarshal(final InputStream is, final Class<T> clazz) {
+    return unmarshal(inputStreamToString(is), clazz);
   }
 
-  public static <T> T unmarshal(InputStream is, TypeReference<T> type) {
-    return KUBERNETES_SERIALIZATION.unmarshal(is, type);
+  public static <T> T unmarshal(final InputStream is, final TypeReference<T> type) {
+    return unmarshal(inputStreamToString(is), type);
   }
 
   public static <T> T unmarshal(String string, Class<T> clazz) {
-    return KUBERNETES_SERIALIZATION.unmarshal(string, clazz);
+    final byte[] yaml = TemplateUtil.escapeYamlTemplate(string).getBytes(StandardCharsets.UTF_8);
+    return KUBERNETES_SERIALIZATION.unmarshal(new ByteArrayInputStream(yaml), clazz);
   }
 
-  public static <T> T unmarshal(String string, TypeReference<T> type) {
-    return unmarshal(new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8)), type);
+  public static <T> T unmarshal(final String string, final TypeReference<T> type) {
+    final byte[] yaml = TemplateUtil.escapeYamlTemplate(string).getBytes(StandardCharsets.UTF_8);
+    return KUBERNETES_SERIALIZATION.unmarshal(new ByteArrayInputStream(yaml), type);
   }
 
   public static <T> T merge(T original, T overrides) throws IOException {
@@ -131,7 +136,8 @@ public class Serialization {
   }
 
   public static String asYaml(Object object) {
-    return KUBERNETES_SERIALIZATION.asYaml(object);
+    final String yamlString = KUBERNETES_SERIALIZATION.asYaml(object);
+    return TemplateUtil.unescapeYamlTemplate(yamlString);
   }
 
   public static void saveJson(File resultFile, Object value) throws IOException {
@@ -139,6 +145,15 @@ public class Serialization {
   }
 
   public static void saveYaml(File resultFile, Object value) throws IOException {
-    YAML_MAPPER.writeValue(resultFile, value);
+    String yamlString = YAML_MAPPER.writeValueAsString(value);
+    yamlString = TemplateUtil.unescapeYamlTemplate(yamlString);
+    Files.write(resultFile.toPath(), yamlString.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static String inputStreamToString(final InputStream is) {
+    return new BufferedReader(
+        new InputStreamReader(is, StandardCharsets.UTF_8))
+            .lines()
+            .collect(Collectors.joining("\n"));
   }
 }
