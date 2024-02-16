@@ -119,13 +119,10 @@ public class KubernetesClientUtil {
 
     public static String getPodStatusMessagePostfix(Watcher.Action action) {
         String message = "";
-        switch (action) {
-            case DELETED:
-                message = ": Pod Deleted";
-                break;
-            case ERROR:
-                message = ": Error";
-                break;
+        if (action == Watcher.Action.DELETED) {
+            message = ": Pod Deleted";
+        } else if (action == Watcher.Action.ERROR) {
+            message = ": Error";
         }
         return message;
     }
