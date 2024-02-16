@@ -101,7 +101,7 @@ class HelmServiceTest {
     helmService.generateHelmCharts(helmConfig.build());
     // Then
     final Map<String, Object> chartYaml = Serialization.unmarshal(
-      helmOutputDirectory.resolve("kubernetes").resolve("Chart.yaml").toFile(),
+      helmOutputDirectory.resolve("kubernetes").resolve("Chart.yaml"),
       new TypeReference<Map<String, Object>>() {});
     assertThat(chartYaml)
       .contains(
@@ -164,7 +164,7 @@ class HelmServiceTest {
     new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
       .generateHelmCharts(helmConfig.build());
     // Then
-    final Map<?, ?> savedChart = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("Chart.yaml").toFile(), Map.class);
+    final Map<?, ?> savedChart = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("Chart.yaml"), Map.class);
     assertThat(savedChart)
       .hasFieldOrPropertyWithValue("apiVersion", "v1")
       .hasFieldOrPropertyWithValue("name", "name-from-fragment")
@@ -199,7 +199,7 @@ class HelmServiceTest {
     new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
       .generateHelmCharts(helmConfig.build());
     // Then
-    final Map<?, ?> savedValues = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("values.yaml").toFile(), Map.class);
+    final Map<?, ?> savedValues = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("values.yaml"), Map.class);
     assertThat(savedValues)
       .hasFieldOrPropertyWithValue("replaceableProperty", "the-value")
       .hasFieldOrPropertyWithValue("replicaCount", 1)
@@ -270,7 +270,7 @@ class HelmServiceTest {
     helmService.generateHelmCharts(helmConfig.build());
     // Then
     final Map<String, Object> chartYaml = Serialization.unmarshal(
-      helmOutputDirectory.resolve("kubernetes").resolve("Chart.yaml").toFile(),
+      helmOutputDirectory.resolve("kubernetes").resolve("Chart.yaml"),
       new TypeReference<Map<String, Object>>() {});
     assertThat(chartYaml)
       .contains(

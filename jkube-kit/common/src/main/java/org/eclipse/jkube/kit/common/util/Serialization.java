@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Serialization {
 
@@ -65,19 +66,28 @@ public class Serialization {
   }
 
   public static <T> T unmarshal(File file, Class<T> clazz) throws IOException {
-    try (InputStream fis = Files.newInputStream(file.toPath())) {
+    return unmarshal(file.toPath(), clazz);
+  }
+
+  public static <T> T unmarshal(File file, TypeReference<T> type) throws IOException {
+    return unmarshal(file.toPath(), type);
+  }
+
+  public static <T> T unmarshal(Path file, Class<T> clazz) throws IOException {
+    try (InputStream fis = Files.newInputStream(file)) {
       return unmarshal(fis, clazz);
     }
   }
 
-  public static <T> T unmarshal(File file, TypeReference<T> type) throws IOException {
-    try (InputStream fis = Files.newInputStream(file.toPath())) {
+  public static <T> T unmarshal(Path file, TypeReference<T> type) throws IOException {
+    try (InputStream fis = Files.newInputStream(file)) {
       return unmarshal(fis, type);
     }
   }
-  public static <T> T unmarshal(URL url, Class<T> type) throws IOException {
+
+  public static <T> T unmarshal(URL url, Class<T> clazz) throws IOException {
     try (InputStream is = url.openStream()){
-      return unmarshal(is, type);
+      return unmarshal(is, clazz);
     }
   }
 
@@ -95,8 +105,8 @@ public class Serialization {
     return KUBERNETES_SERIALIZATION.unmarshal(is, type);
   }
 
-  public static <T> T unmarshal(String string, Class<T> type) {
-    return KUBERNETES_SERIALIZATION.unmarshal(string, type);
+  public static <T> T unmarshal(String string, Class<T> clazz) {
+    return KUBERNETES_SERIALIZATION.unmarshal(string, clazz);
   }
 
   public static <T> T unmarshal(String string, TypeReference<T> type) {
