@@ -48,7 +48,7 @@ class DefaultMetadataEnricherTest {
   private KubernetesListBuilder klb;
 
   @BeforeEach
-  void setUp(){
+  void setUp() {
     JKubeEnricherContext buildContext = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     Configuration configuration = Configuration.builder()
         .resource(ResourceConfig.builder()
