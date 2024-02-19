@@ -43,7 +43,7 @@ class ImageNameORASReferenceTest {
       "localhost:5000/hello-world:v2@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
       "127.0.0.1:5000/hello-world:v2@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
       "[::1]:5000/hello-world:v1",
-      //"registry.example.com/hello-world:@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9", // https://github.com/eclipse/jkube/issues/2545
+      "registry.example.com/hello-world:@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9", // https://github.com/eclipse/jkube/issues/2545
   })
   void validImageNamesCompatibleWithAll(String name) {
     // Given + When
