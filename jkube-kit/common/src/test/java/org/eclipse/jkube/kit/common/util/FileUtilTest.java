@@ -161,6 +161,7 @@ class FileUtilTest {
     Files.write(sourceFile.toPath(), "testdata".getBytes(StandardCharsets.UTF_8));
     long originalTimestamp = new Date().getTime() - 10;
     assertThat(sourceFile.setLastModified(originalTimestamp)).isTrue();
+    originalTimestamp = sourceFile.lastModified(); // Update last modified, because different platforms have different precision.
     Path targetFilePath = folder.toPath().resolve("target");
 
     // When
