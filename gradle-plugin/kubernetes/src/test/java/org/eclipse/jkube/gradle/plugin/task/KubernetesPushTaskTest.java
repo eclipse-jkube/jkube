@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import java.io.IOException;
 import java.util.Collections;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
@@ -54,7 +53,7 @@ class KubernetesPushTaskTest {
   private KubernetesExtension extension;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     // Mock required for environments with no DOCKER available (don't remove)
     dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class,
         (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
