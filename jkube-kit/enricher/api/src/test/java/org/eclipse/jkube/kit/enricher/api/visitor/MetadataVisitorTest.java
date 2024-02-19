@@ -355,7 +355,7 @@ class MetadataVisitorTest {
     // Given
     Properties allProps = new Properties();
     final ObjectMetaBuilder db = new ObjectMetaBuilder();
-    allProps.put("multiline/config", "proxyMetadata:\n ISTIO_META_DNS_CAPTURE: \"false\"\nholdUntilProxyStarts: true");
+    allProps.put("multiline/config", String.format("proxyMetadata:%n ISTIO_META_DNS_CAPTURE: \"false\"%nholdUntilProxyStarts: true"));
     ResourceConfig rc = ResourceConfig.builder()
         .annotations(MetaDataConfig.builder()
             .all(allProps)
@@ -367,6 +367,6 @@ class MetadataVisitorTest {
 
     // Then
     assertThat(db.build().getAnnotations())
-        .containsOnly(entry("multiline/config", "proxyMetadata:\n ISTIO_META_DNS_CAPTURE: \"false\"\nholdUntilProxyStarts: true\n"));
+        .containsOnly(entry("multiline/config", String.format("proxyMetadata:%n ISTIO_META_DNS_CAPTURE: \"false\"%nholdUntilProxyStarts: true%n")));
   }
 }
