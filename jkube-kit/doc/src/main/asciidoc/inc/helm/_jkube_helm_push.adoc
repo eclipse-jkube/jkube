@@ -50,13 +50,13 @@ need to add a server entry for your repo like this:
 </settings>
 ----
 
-If you have encrypted your password with a master password (as outlined in the http://maven.apache.org/guides/mini/guide-encryption.html[Maven Password Encryption guide]), make sure to configure the `security` setting:
+If you have encrypted your password with a master password (as outlined in the http://maven.apache.org/guides/mini/guide-encryption.html[Maven Password Encryption guide]), your master password is encrypted somewhere in a file. By default this is `~/.m2/security-settings.xml`. If you've chosen another location, make sure to configure the `security` setting:
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
 <plugin>
   <configuration>
     <helm>
-      <security>~/.m2/security-settings.xml</security>
+      <security>~/work/.m2/work-security-settings.xml</security>
       ...
     </helm>
   </configuration>

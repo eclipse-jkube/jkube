@@ -168,7 +168,7 @@ Defaults to empty string.
 
 ifeval::["{plugin-type}" == "maven"]
 | *security*
-| The Maven security dispatcher configuration file. If you use the default security dispatcher, you need to point this to the file containing your master password. If you followed the http://maven.apache.org/guides/mini/guide-encryption.html[Maven Password Encryption guide], this is `${user.home}/.m2/settings-security.xml`.
+| The Maven security dispatcher configuration file. If you use the default security dispatcher, you need to point this to the file containing your master password. If you followed the http://maven.apache.org/guides/mini/guide-encryption.html[Maven Password Encryption guide], this is `${user.home}/.m2/settings-security.xml`, so that is what this setting defaults to when you do not set it explicitly.
 |
 endif::[]
 
