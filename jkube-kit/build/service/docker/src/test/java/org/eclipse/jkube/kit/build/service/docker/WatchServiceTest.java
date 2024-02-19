@@ -89,12 +89,13 @@ class WatchServiceTest {
         .postExec("ls -lt /deployments")
         .build())
       .build();
+    Path path = Files.createDirectory(tempDir.resolve("target"));
     watchContext = WatchContext.builder()
       .buildContext(JKubeConfiguration.builder()
         .project(JavaProject.builder()
           .baseDirectory(tempDir.toFile())
           .build())
-        .outputDirectory(Files.createDirectory(tempDir.resolve("target")).toFile().getAbsolutePath())
+        .outputDirectory("target")
         .build())
       .build();
   }
