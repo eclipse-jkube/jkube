@@ -35,7 +35,7 @@ class IngressEnricherBehavioralTest {
   private KubernetesListBuilder klb;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     context = JKubeEnricherContext.builder()
       .project(JavaProject.builder()
         .properties(new Properties())
