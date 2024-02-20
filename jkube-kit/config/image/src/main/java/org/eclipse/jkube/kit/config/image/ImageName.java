@@ -273,7 +273,7 @@ public class ImageName {
         List<String> errors = new ArrayList<>();
         // Strip off user from repository name
         String user = inferUser();
-        String image = user != null ? repository.substring(user.length() + 1) : repository;
+        String image = extractImageName(repository);
         Object[] checks = new Object[] {
                 "registry", REGISTRY_REGEXP, registry,
                 "image", IMAGE_NAME_REGEXP, image,
@@ -305,7 +305,6 @@ public class ImageName {
             throw new IllegalArgumentException(buf.toString());
         }
     }
-
     private void parseComponentsBeforeTag(String rest) {
         String[] parts = rest.split("\\s*/\\s*");
         if (parts.length == 1) {
@@ -319,6 +318,31 @@ public class ImageName {
                 registry = null;
                 repository = rest;
             }
+        }
+    }
+
+    private String extractImageName(String repository) {
+        int atIndex = repository.lastIndexOf('@');
+        int colonIndex = repository.lastIndexOf(':');
+
+        if (atIndex != -1 && (colonIndex == -1 || atIndex > colonIndex)) {
+            // Find the index of "sha256:" or "sha512:" after the "@" symbol
+            int sha256Index = repository.indexOf("sha256:", atIndex);
+            int sha512Index = repository.indexOf("sha512:", atIndex);
+
+            // Choose the minimum index among "sha256:" and "sha512:"
+            int digestStartIndex = Math.min(sha256Index != -1 ? sha256Index : Integer.MAX_VALUE,
+                sha512Index != -1 ? sha512Index : Integer.MAX_VALUE);
+
+            if (digestStartIndex != -1 && digestStartIndex < colonIndex) {
+                return repository.substring(0, atIndex);
+            }
+        }
+
+        if (colonIndex != -1) {
+            return repository.substring(0, colonIndex);
+        } else {
+            return repository;
         }
     }
 
