@@ -43,7 +43,6 @@ public class ServiceHandler {
             ServiceBuilder serviceBuilder = new ServiceBuilder()
                 .withNewMetadata()
                   .withName(service.getName())
-                  .withAnnotations(new HashMap<>())
                   .withLabels(getLabels(service))
                 .endMetadata();
 
