@@ -25,7 +25,7 @@ public class KubernetesHelmPushTask extends AbstractJKubeTask {
   @Inject
   public KubernetesHelmPushTask(Class<? extends KubernetesExtension> extensionClass) {
     super(extensionClass);
-    setDescription("Upload a helm chart to specified helm repository.");
+    setDescription("Upload a Helm chart to specified Helm repository.");
   }
 
   @Override
@@ -37,10 +37,10 @@ public class KubernetesHelmPushTask extends AbstractJKubeTask {
       HelmConfig helm = initHelmConfig(kubernetesExtension.getDefaultHelmType(), kubernetesExtension.javaProject,
         kubernetesExtension.getKubernetesTemplateOrDefault(),
         kubernetesExtension.helm).build();
-      helm = initHelmPushConfig(helm, kubernetesExtension.javaProject);
+      initHelmPushConfig(helm, kubernetesExtension.javaProject);
       jKubeServiceHub.getHelmService().uploadHelmChart(helm);
     } catch (Exception exp) {
-      kitLogger.error("Error performing helm push", exp);
+      kitLogger.error("Error performing Helm push", exp);
       throw new IllegalStateException(exp.getMessage(), exp);
     }
   }

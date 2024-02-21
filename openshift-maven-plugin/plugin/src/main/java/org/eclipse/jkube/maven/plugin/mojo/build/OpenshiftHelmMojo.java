@@ -25,7 +25,7 @@ import java.io.File;
 public class OpenshiftHelmMojo extends HelmMojo {
 
   /**
-   * The generated kubernetes YAML file
+   * The generated Kubernetes YAML file
    */
   @Parameter(property = "jkube.openshiftManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift.yml")
   private File openShiftManifest;
@@ -62,6 +62,6 @@ public class OpenshiftHelmMojo extends HelmMojo {
 
   @Override
   protected void logManifestNotFoundWarning(File manifest) {
-    getKitLogger().warn("No openshift manifest file has been generated yet by the oc:resource goal at: " + manifest);
+    getKitLogger().warn("No OpenShift manifest file has been generated yet by the oc:resource goal at: " + manifest);
   }
 }

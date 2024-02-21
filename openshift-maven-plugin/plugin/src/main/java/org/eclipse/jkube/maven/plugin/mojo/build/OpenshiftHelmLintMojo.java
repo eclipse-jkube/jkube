@@ -18,7 +18,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
-import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 import java.io.File;
 
@@ -26,21 +25,15 @@ import java.io.File;
 public class OpenshiftHelmLintMojo extends HelmLintMojo {
 
   /**
-   * The generated kubernetes YAML file
+   * One of:
+   * <ul>
+   *  <li>A directory containing OpenShift Templates to use as Helm parameters.</li>
+   *  <li>A file containing a Kubernetes List with OpenShift Template entries to be used as Helm parameters.</li>
+   * </ul>
    */
-  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift.yml")
-  private File openShiftManifest;
-
-  /**
-   * The generated kubernetes YAML file
-   */
-  @Parameter(property = "jkube.kubernetesManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift")
+  @Parameter(property = "jkube.openshiftTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift")
   private File openShiftTemplate;
 
-  @Override
-  protected File getKubernetesManifest() {
-    return openShiftManifest;
-  }
 
   @Override
   protected File getKubernetesTemplate() {
@@ -50,10 +43,5 @@ public class OpenshiftHelmLintMojo extends HelmLintMojo {
   @Override
   protected HelmConfig.HelmType getDefaultHelmType() {
     return HelmConfig.HelmType.OPENSHIFT;
-  }
-
-  @Override
-  protected String getLogPrefix() {
-    return OpenShift.DEFAULT_LOG_PREFIX;
   }
 }

@@ -154,22 +154,22 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        try {
-            init();
-            if (shouldSkip()) {
-                log.info("`%s` goal is skipped.", mojoExecution.getMojoDescriptor().getFullGoalName());
-                return;
-            }
-            executeInternal();
-        } catch (DependencyResolutionRequiredException e) {
-            throw new MojoFailureException(e.getMessage());
+        init();
+        if (shouldSkip()) {
+            log.info("`%s` goal is skipped.", mojoExecution.getMojoDescriptor().getFullGoalName());
+            return;
         }
+        executeInternal();
     }
 
-    protected void init() throws DependencyResolutionRequiredException {
+    protected void init() throws MojoFailureException {
         log = createLogger(null);
         clusterAccess = new ClusterAccess(initClusterConfiguration());
-        javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        try {
+          javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
+        } catch (DependencyResolutionRequiredException e) {
+          throw new MojoFailureException(e.getMessage());
+        }
         jkubeServiceHub = initJKubeServiceHubBuilder(javaProject).build();
         resources = updateResourceConfigNamespace(namespace, resources);
     }
