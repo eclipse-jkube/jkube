@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.common.util;
 
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -26,13 +27,26 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class JKubeProjectUtilTest {
 
   @TempDir
   File temporaryFolder;
+
+  private JavaProject project;
+
+  private File artifactFile;
+
+  private boolean artifactFileCreated;
+
+  private File finalOutputArtifact;
+
+  @BeforeEach
+  void setUp() throws IOException {
+    project = JavaProject.builder().build();
+    artifactFile = new File(temporaryFolder, "foo-test-1.0.0.jar");
+    artifactFileCreated = artifactFile.createNewFile();
+  }
 
   @Test
   void hasDependencyWithGroupIdWithNulls() {
@@ -45,8 +59,7 @@ class JKubeProjectUtilTest {
   @Test
   void hasDependencyWithGroupIdWithDependency() {
     // Given
-    final JavaProject project = mock(JavaProject.class);
-    when(project.getDependencies()).thenReturn(Arrays.asList(
+    project.setDependencies(Arrays.asList(
             Dependency.builder().groupId("io.dep").build(),
             Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
             Dependency.builder().groupId("io.other").artifactId("artifact").version("1.3.37").build()
@@ -60,12 +73,12 @@ class JKubeProjectUtilTest {
   @Test
   void hasDependencyWithGroupIdWithNoDependency() {
     // Given
-    final JavaProject project = mock(JavaProject.class);
-    when(project.getDependencies()).thenReturn(Arrays.asList(
+    project.toBuilder()
+            .dependencies(Arrays.asList(
             Dependency.builder().groupId("io.dep").build(),
             Dependency.builder().groupId("io.dep").artifactId("artifact").version("1.3.37").build(),
-            Dependency.builder().groupId("io.other").artifactId("artifact").version("1.3.37").build()
-    ));
+            Dependency.builder().groupId("io.other").artifactId("artifact").version("1.3.37").build()))
+            .build();
     // When
     final boolean result = JKubeProjectUtil.hasDependencyWithGroupId(project, "io.nothere");
     // Then
@@ -75,10 +88,10 @@ class JKubeProjectUtilTest {
   @Test
   void hasTransitiveDependency_whenGroupArtifactMatchesInProvidedDeps_shouldReturnTrue() {
     // Given
-    final JavaProject project = mock(JavaProject.class);
-    when(project.getDependenciesWithTransitive()).thenReturn(Collections.singletonList(
-        Dependency.builder().groupId("org.example").artifactId("artifact").version("1.3.37").build()
-    ));
+    project = project.toBuilder()
+            .dependenciesWithTransitive(Collections.singletonList(
+            Dependency.builder().groupId("org.example").artifactId("artifact").version("1.3.37").build()))
+            .build();
 
     // When
     final boolean result = JKubeProjectUtil.hasTransitiveDependency(project, "org.example", "artifact");
@@ -90,8 +103,6 @@ class JKubeProjectUtilTest {
   @Test
   void hasTransitiveDependency_whenGroupArtifactNoMatchInProvidedDeps_shouldReturnTrue() {
     // Given
-    final JavaProject project = mock(JavaProject.class);
-
     // When
     final boolean result = JKubeProjectUtil.hasTransitiveDependency(project, "org.example", "artifact");
 
@@ -102,10 +113,8 @@ class JKubeProjectUtilTest {
   @Test
   void getFinalOutputArtifact_withNothingProvided_returnsNull() {
     // Given
-    JavaProject javaProject = JavaProject.builder().build();
-
     // When
-    File finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(javaProject);
+    finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(project);
 
     // Then
     assertThat(finalOutputArtifact).isNull();
@@ -114,17 +123,15 @@ class JKubeProjectUtilTest {
   @Test
   void getFinalOutputArtifact_withProjectArtifactVersionPackagingBuildDir_returnsInferredArtifact() throws IOException {
     // Given
-    File artifactFile = new File(temporaryFolder, "foo-test-1.0.0.jar");
-    boolean artifactFileCreated = artifactFile.createNewFile();
-    JavaProject javaProject = JavaProject.builder()
-        .artifactId("foo-test")
-        .version("1.0.0")
-        .packaging("jar")
-        .buildDirectory(temporaryFolder)
-        .build();
+    project = project.toBuilder()
+            .artifactId("foo-test")
+            .version("1.0.0")
+            .packaging("jar")
+            .buildDirectory(temporaryFolder)
+            .build();
 
     // When
-    File finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(javaProject);
+    finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(project);
 
     // Then
     assertThat(artifactFileCreated).isTrue();
@@ -134,16 +141,16 @@ class JKubeProjectUtilTest {
   @Test
   void getFinalOutputArtifact_withBuildFinalNamePackagingBuildDir_returnsInferredArtifact() throws IOException {
     // Given
-    File artifactFile = new File(temporaryFolder, "foo-test-final.jar");
-    boolean artifactFileCreated = artifactFile.createNewFile();
-    JavaProject javaProject = JavaProject.builder()
-        .buildFinalName("foo-test-final")
-        .packaging("jar")
-        .buildDirectory(temporaryFolder)
-        .build();
+    File buildFinalArtifactFile = new File(temporaryFolder, "foo-test-final.jar");
+    boolean artifactFileCreated = buildFinalArtifactFile.createNewFile();
+    project = project.toBuilder()
+            .buildFinalName("foo-test-final")
+            .packaging("jar")
+            .buildDirectory(temporaryFolder)
+            .build();
 
     // When
-    File finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(javaProject);
+    finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(project);
 
     // Then
     assertThat(artifactFileCreated).isTrue();
@@ -153,11 +160,9 @@ class JKubeProjectUtilTest {
   @Test
   void getFinalOutputArtifact_withArtifactAndBuildFinalNameAndPackaging_returnsInferredArtifact() throws IOException {
     // Given
-    File artifactFile = new File(temporaryFolder, "foo-test-1.0.0.jar");
     File buildFinalArtifactFile = new File(temporaryFolder, "foo-test-final.jar");
     boolean buildFinalArtifactFileCreated = buildFinalArtifactFile.createNewFile();
-    boolean artifactFileCreated = artifactFile.createNewFile();
-    JavaProject javaProject = JavaProject.builder()
+    project = project.toBuilder()
         .artifact(artifactFile)
         .buildFinalName("foo-test-final")
         .packaging("jar")
@@ -165,7 +170,7 @@ class JKubeProjectUtilTest {
         .build();
 
     // When
-    File finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(javaProject);
+    finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(project);
 
     // Then
     assertThat(artifactFileCreated).isTrue();
@@ -176,16 +181,14 @@ class JKubeProjectUtilTest {
   @Test
   void getFinalOutputArtifact_withArtifactAndBuildFinalNameAndPackaging_returnsArtifactFromJavaProject() throws IOException {
     // Given
-    File artifactFile = new File(temporaryFolder, "foo-test-1.0.0.jar");
-    boolean artifactFileCreated = artifactFile.createNewFile();
-    JavaProject javaProject = JavaProject.builder()
+    project = project.toBuilder()
         .artifact(artifactFile)
         .buildFinalName("foo-test-final")
         .packaging("jar")
         .build();
 
     // When
-    File finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(javaProject);
+    finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(project);
 
     // Then
     assertThat(artifactFileCreated).isTrue();
@@ -198,10 +201,9 @@ class JKubeProjectUtilTest {
     try {
       System.setProperty("jkube.testProperty", "true");
       // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
-      JavaProject javaProject = JavaProject.builder().build();
 
       // When
-      String result = JKubeProjectUtil.getProperty("jkube.testProperty", javaProject);
+      String result = JKubeProjectUtil.getProperty("jkube.testProperty", project);
 
       // Then
       assertThat(result).isEqualTo("true");
@@ -215,10 +217,10 @@ class JKubeProjectUtilTest {
     // Given
     Properties properties = new Properties();
     properties.put("jkube.test.project.property", "true");
-    JavaProject javaProject = JavaProject.builder().properties(properties).build();
+    project = project.toBuilder().properties(properties).build();
 
     // When
-    String result = JKubeProjectUtil.getProperty("jkube.test.project.property", javaProject);
+    String result = JKubeProjectUtil.getProperty("jkube.test.project.property", project);
 
     // Then
     assertThat(result).isEqualTo("true");
@@ -227,32 +229,29 @@ class JKubeProjectUtilTest {
   @Test
   void resolveArtifact_whenArtifactPresent_shouldReturnArtifact() {
     // Given
-    File actualArtifact = new File(temporaryFolder, "test-artifact-0.0.1.jar");
-    JavaProject javaProject = JavaProject.builder()
+    project = project.toBuilder()
         .dependency(Dependency.builder()
             .groupId("org.example")
             .artifactId("test-artifact")
             .version("0.0.1")
             .type("jar")
-            .file(actualArtifact)
+            .file(artifactFile)
             .build())
         .build();
 
     // When
-    File resolvedArtifact = JKubeProjectUtil.resolveArtifact(javaProject, "org.example", "test-artifact", "0.0.1", "jar");
+    File resolvedArtifact = JKubeProjectUtil.resolveArtifact(project, "org.example", "test-artifact", "0.0.1", "jar");
 
     // Then
-    assertThat(resolvedArtifact).isNotNull().isEqualTo(actualArtifact);
+    assertThat(resolvedArtifact).isNotNull().isEqualTo(artifactFile);
   }
 
   @Test
   void resolveArtifact_whenNoArtifactPresent_shouldThrowException() {
     // Given
-    JavaProject javaProject = JavaProject.builder().build();
-
     // When
     IllegalStateException illegalStateException = assertThrows(IllegalStateException.class,
-        () -> JKubeProjectUtil.resolveArtifact(javaProject, "org.example", "test-artifact", "0.0.1", "jar"));
+        () -> JKubeProjectUtil.resolveArtifact(project, "org.example", "test-artifact", "0.0.1", "jar"));
 
     // Then
     assertThat(illegalStateException).hasMessage("Cannot find artifact test-artifact-0.0.1.jar within the resolved resources");
