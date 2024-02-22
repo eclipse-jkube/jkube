@@ -115,10 +115,14 @@ public class ImageName {
 
         // Validate the length of the digest based on the algorithm used
         if (digest != null) {
-            if (digest.startsWith("sha256:") && digest.length() < MIN_SHA256_DIGEST_LENGTH) {
-                throw new IllegalArgumentException("Length of the encoded SHA256 digest does not match the expected value");
-            } else if (digest.startsWith("sha512:") && digest.length() < MIN_SHA512_DIGEST_LENGTH) {
-                throw new IllegalArgumentException("Length of the encoded SHA512 digest does not match the expected value");
+            String encodedDigest = null;
+            if (digest.startsWith("sha256:")) {
+                encodedDigest = digest.substring("sha256:".length());
+            } else if (digest.startsWith("sha512:")) {
+                encodedDigest = digest.substring("sha512:".length());
+            }
+            if (encodedDigest == null || encodedDigest.length() < MIN_SHA256_DIGEST_LENGTH) {
+                throw new IllegalArgumentException("Length of the encoded digest does not match the expected value");
             }
         }
 
@@ -383,6 +387,8 @@ public class ImageName {
     private static final Pattern TAG_REGEXP = Pattern.compile("^[\\w][\\w.-]{0,127}$");
 
     private static final Pattern DIGEST_256_REGEXP = Pattern.compile("sha256:([0-9a-f]{64})");
+
     private static final Pattern DIGEST_512_REGEXP = Pattern.compile("sha512:([0-9a-f]{128})");
+
     private static final Pattern DIGEST_REGEXP = Pattern.compile("^(?:" + DIGEST_256_REGEXP + "|" + DIGEST_512_REGEXP + ")");
 }
