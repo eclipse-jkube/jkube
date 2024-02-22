@@ -25,7 +25,7 @@ import java.io.File;
 public class OpenshiftHelmMojo extends HelmMojo {
 
   /**
-   * The generated Kubernetes YAML file
+   * The generated OpenShift YAML file
    */
   @Parameter(property = "jkube.openshiftManifest", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift.yml")
   private File openShiftManifest;

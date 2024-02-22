@@ -18,6 +18,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 import java.io.File;
 
@@ -43,5 +44,10 @@ public class OpenshiftHelmLintMojo extends HelmLintMojo {
   @Override
   protected HelmConfig.HelmType getDefaultHelmType() {
     return HelmConfig.HelmType.OPENSHIFT;
+  }
+
+  @Override
+  protected String getLogPrefix() {
+    return OpenShift.DEFAULT_LOG_PREFIX;
   }
 }
