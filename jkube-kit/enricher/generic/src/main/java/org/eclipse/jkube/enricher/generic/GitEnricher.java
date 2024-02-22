@@ -63,7 +63,6 @@ public class GitEnricher extends BaseEnricher {
                 return annotations;
             } catch (IOException | GitAPIException e) {
                 log.error("Cannot extract Git information for adding to annotations: " + e, e);
-                return null;
             }
         }
 
