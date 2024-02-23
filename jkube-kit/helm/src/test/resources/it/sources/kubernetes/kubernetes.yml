@@ -33,6 +33,7 @@ items:
       helm-variable: ${GLOBAL_TEMPLATE_ENV_VAR}
       value-that-looks-like-helm-test: "{{ $The term 'helm' finds its roots in Old English }}"
       value-that-is-a-helm-expression: {{ .Values.abandonShip }}
+      value-with-helm-expression-inside: So does {{ print "this" }} work?
       helm-golang-expression: ${golang_expression}
       {{ end }}
     labels:
@@ -42,7 +43,7 @@ items:
     name: test
   spec:
     ports:
-    - name: http
+    - {{ print "name: http" }}
       port: 8080
       protocol: TCP
       targetPort: 8080
@@ -103,7 +104,7 @@ items:
           - containerPort: 8080
             name: http
             protocol: TCP
-          - containerPort: 9779
+          - containerPort: {{ .Values.prometheusPort }}
             name: prometheus
             protocol: TCP
           - containerPort: 8778
