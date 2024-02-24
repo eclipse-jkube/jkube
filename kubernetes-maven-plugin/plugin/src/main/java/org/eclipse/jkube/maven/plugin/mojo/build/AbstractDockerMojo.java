@@ -288,6 +288,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     /**
      * Resource config for getting annotation and labels to be applied to enriched build objects
      */
+
     @Parameter
     protected ResourceConfig resources;
 
@@ -648,5 +649,20 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         // Label used for this run
         return new GavLabel(project.getGroupId(), project.getArtifactId(), project.getVersion());
     }
-
+    
+    public ResourceConfig getResources() {
+        return this.resources;
+    }
+    
+    public void setResources(ResourceConfig resources) {
+        this.resources = resources;
+    }
+    
+    public String getNamespace() {
+        return this.namespace;
+    }
+    
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
 }

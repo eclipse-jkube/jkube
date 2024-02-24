@@ -29,6 +29,7 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 
 import org.apache.maven.project.MavenProject;
@@ -119,9 +120,10 @@ class WatchMojoTest {
   @Test
   void executeInternal_whenNamespaceConfiguredInResourceConfig_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
     // Given
-    watchMojo.resources = ResourceConfig.builder()
+    ResourceConfig resources = ResourceConfig.builder()
       .namespace("namespace-from-resource_config")
       .build();
+    watchMojo.setResources(resources);
     // When
     watchMojo.execute();
     // Then
@@ -131,7 +133,7 @@ class WatchMojoTest {
   @Test
   void executeInternal_whenNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
     // Given
-    watchMojo.namespace = "configured-namespace";
+    watchMojo.setNamespace("configured-namespace");
     // When
     watchMojo.execute();
     // Then
