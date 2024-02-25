@@ -31,10 +31,10 @@ public class HelmPushMojo extends HelmMojo {
     }
     try {
       super.executeInternal();
-      if (securityDispatcher instanceof DefaultSecDispatcher) {
-        ((DefaultSecDispatcher) securityDispatcher).setConfigurationFile(getHelm().getSecurity());
-      }
       helm = initHelmPushConfig(helm, javaProject);
+      if (securityDispatcher instanceof DefaultSecDispatcher) {
+        ((DefaultSecDispatcher) securityDispatcher).setConfigurationFile(helm.getSecurity());
+      }
       jkubeServiceHub.getHelmService().uploadHelmChart(helm);
     } catch (Exception exp) {
       getKitLogger().error("Error performing helm push", exp);

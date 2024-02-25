@@ -1,0 +1,8 @@
+.Example
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<entryPoint>
+   <!-- shell form  -->
+   <shell>java -jar $HOME/server.jar</shell>
+</entryPoint>
+----

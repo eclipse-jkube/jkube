@@ -48,7 +48,7 @@ class DefaultControllerEnricherTest {
     private Properties properties;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         config = new HashMap<>();
         properties = new Properties();
         context = JKubeEnricherContext.builder()

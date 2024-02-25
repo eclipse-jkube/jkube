@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+import org.eclipse.jkube.kit.config.service.kubernetes.BuildPackBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
@@ -42,6 +43,7 @@ class JKubeServiceHubBuildServiceTest {
         arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.docker, DockerBuildService.class),
         arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.s2i, DockerBuildService.class),
         arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.jib, JibBuildService.class),
+        arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.buildpacks, BuildPackBuildService.class),
         arguments(RuntimeMode.OPENSHIFT, null, OpenshiftBuildService.class),
         arguments(RuntimeMode.OPENSHIFT, JKubeBuildStrategy.docker, OpenshiftBuildService.class),
         arguments(RuntimeMode.OPENSHIFT, JKubeBuildStrategy.s2i, OpenshiftBuildService.class),

@@ -60,8 +60,6 @@ items:
 - apiVersion: apps/v1
   kind: ReplicaSet
   metadata:
-    annotations:
-      image.openshift.io/triggers: "@ignore@"
     labels:
       env: dev
       role: web

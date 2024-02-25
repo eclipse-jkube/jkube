@@ -1,0 +1,10 @@
+To generate the Helm chart you need to invoke the `{task-prefix}Helm` Gradle task on the command line:
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Resource {task-prefix}Helm
+----
+
+[NOTE]
+The `{task-prefix}Resource` goal is required to create the resource descriptors that are included in the Helm chart.
+If you have already generated the resources in a previous step then you can omit this task.

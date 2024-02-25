@@ -21,7 +21,7 @@
     <parent>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>gradle-plugin</artifactId>
-        <version>1.16-SNAPSHOT</version>
+        <version>1.17-SNAPSHOT</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -64,7 +64,7 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-resource-helm</artifactId>
+            <artifactId>jkube-kit-helm</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
         <dependency>

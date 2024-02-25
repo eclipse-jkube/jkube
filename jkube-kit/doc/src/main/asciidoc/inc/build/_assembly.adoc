@@ -81,37 +81,10 @@ https://maven.apache.org/plugins/maven-assembly-plugin/assembly.html[Maven Assem
 
 .Partial configuration example of an inline/layer element
 ifeval::["{plugin-type}" == "gradle"]
-[source,groovy,subs="attributes+"]
-----
-assembly {
-    targetDir = "/deployments"
-    layers = [{
-        fileSets = [{
-            directory = file("${project.rootDir}/build/dependencies")
-            outputDirectory = "static"
-       }]
-    }]
-}
-----
+include::gradle/_assembly_layers_filesets.adoc[]
 endif::[]
 ifeval::["{plugin-type}" == "maven"]
-[source,xml,indent=0,subs="verbatim,quotes,attributes"]
-----
-<assembly>
-  <!-- ... -->
-  <layers>
-    <layer>
-      <id>static-files</id>
-      <fileSets>
-        <fileSet>
-          <directory>src/static</directory>
-          <outputDirectory>static</outputDirectory>
-        </fileSet>
-      </fileSets>
-    </layer>
-  </layers>
-</assembly>
-----
+include::maven/_assembly_layers_filesets.adoc[]
 endif::[]
 
 

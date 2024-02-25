@@ -1,0 +1,98 @@
+
+[[integrations]]
+= Integrations
+
+ifeval::["{plugin-type}" == "maven"]
+[[integrations.dekorate]]
+== Dekorate
+
+*{plugin}* provides a Zero Configuration approach to delegate deployment manifests
+generation to https://github.com/dekorateio/dekorate[Dekorate].
+
+Just by adding a dependency to Dekorate library in the `pom.xml` file, all manifest
+generation will be delegated to Dekorate.
+
+[source,xml,indent=2,subs="verbatim,quotes,attributes"]
+----
+<dependencies>
+  <!-- ... -->
+  <dependency>
+      <groupId>io.dekorate</groupId>
+      <artifactId>option-annotations</artifactId>
+      <version>${dekorate.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dekorate</groupId>
+      <artifactId>openshift-annotations</artifactId>
+      <version>${dekorate.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dekorate</groupId>
+      <artifactId>kubernetes-annotations</artifactId>
+      <version>${dekorate.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.dekorate</groupId>
+      <artifactId>dekorate-spring-boot</artifactId>
+      <version>${dekorate.version}</version>
+    </dependency>
+</dependencies>
+----
+
+A full example of the integration can be found in the directory
+https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot-dekorate[quickstarts/maven/spring-boot-dekorate].
+
+An *experimental* feature is also provided to merge resources generated both by *{plugin}*
+and Dekorate. You can activate this feature by using the following flag `-Djkube.mergeWithDekorate`
+in the command-line, or setting it up as a property (`<jkube.mergeWithDekorate>true</jkube.mergeWithDekorate>`).
+endif::[]
+
+== JIB (Java Image Builder)
+*{plugin}* also provides user an option to build container images without having access to any docker daemon.
+You just need to set `jkube.build.strategy` property to `jib`. It will delegate the build process to
+https://github.com/GoogleContainerTools/jib[JIB]. It creates a tarball inside your target directory which can be loaded
+into any docker daemon afterwards. You may also push the image to your specified registry using push goal with feature flag enabled.
+
+ifeval::["{plugin-type}" == "maven"]
+You can find more details at https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot-with-jib[Spring Boot JIB Quickstart].
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+You can find more details at https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/spring-boot-with-jib-assembly/[Spring Boot JIB With Assembly Quickstart].
+endif::[]
+
+[[integrations.buildpacks]]
+== Buildpacks
+
+*{plugin}* provides the required features for users to leverage https://buildpacks.io/[Cloud Native Buildpacks] for building container images.
+You can enable this build strategy by setting the `jkube.build.strategy` property to `buildpacks`.
+
+[IMPORTANT]
+====
+Access to a Docker daemon is required in order to use Buildpacks as mentioned in https://buildpacks.io/docs/app-developer-guide/#prerequisites[Buildpack Prerequisites].
+====
+
+ifeval::["{plugin-type}" == "maven"]
+[source,shell,indent=2,subs="verbatim,quotes,attributes"]
+----
+mvn {goal-prefix}:build -Djkube.build.strategy=buildpacks
+----
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[source,shell,indent=2,subs="verbatim,quotes,attributes"]
+----
+gradle {task-prefix}Build -Djkube.build.strategy=buildpacks
+----
+endif::[]
+
+{plugin} downloads https://buildpacks.io/docs/tools/pack/[Pack CLI] to the user's `$HOME/.jkube` folder and starts the
+`pack build` process. If the download for the https://buildpacks.io/docs/tools/pack/[Pack CLI] binary fails, {plugin} looks for any locally installed https://buildpacks.io/docs/tools/pack/[Pack CLI] version.
+
+=== Buildpack Builder Image
+By default {plugin} uses the https://buildpacks.io/docs/concepts/components/builder/[builder image] specified in the https://buildpacks.io/docs/tools/pack/cli/pack_config/[Pack Config] file for building the container image using https://buildpacks.io/docs/tools/pack/[Pack CLI].
+
+For example, if the user has this image set in the `$HOME/.pack/config.toml` file:
+[source,toml,indent=2,subs="verbatim,quotes,attributes"]
+----
+default-builder-image = "testuser/buildpacks-quarkus-builder:latest"
+----
+{plugin} uses `testuser/buildpacks-quarkus-builder:latest` as Buildpacks builder image. If no image is configured, then {plugin} uses `paketobuildpacks/builder:base` as the default builder image.

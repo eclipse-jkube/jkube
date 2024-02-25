@@ -41,6 +41,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -105,8 +106,8 @@ class AssemblyManagerCreateDockerTarArchiveTest {
     assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
         "Dockerfile",
         "jkube-generated-layer-final-artifact",
-        "jkube-generated-layer-final-artifact/maven",
-        "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+        separatorsToSystem("jkube-generated-layer-final-artifact/maven"),
+        separatorsToSystem("jkube-generated-layer-final-artifact/maven/test-0.1.0.jar"),
         "maven"
     );
   }
@@ -136,8 +137,8 @@ class AssemblyManagerCreateDockerTarArchiveTest {
     assertBuildDirectoryFileTree("no-docker-file-and-customizer").containsExactlyInAnyOrder(
         "Dockerfile",
         "jkube-generated-layer-final-artifact",
-        "jkube-generated-layer-final-artifact/maven",
-        "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+        separatorsToSystem("jkube-generated-layer-final-artifact/maven"),
+        separatorsToSystem("jkube-generated-layer-final-artifact/maven/test-0.1.0.jar"),
         "maven");
     assertThat(customized).isTrue();
   }
@@ -166,8 +167,8 @@ class AssemblyManagerCreateDockerTarArchiveTest {
     assertBuildDirectoryFileTree("modified-image").containsExactlyInAnyOrder(
         "Dockerfile",
         "jkube-generated-layer-final-artifact",
-        "jkube-generated-layer-final-artifact/maven",
-        "jkube-generated-layer-final-artifact/maven/test-0.1.0.jar",
+        separatorsToSystem("jkube-generated-layer-final-artifact/maven"),
+        separatorsToSystem("jkube-generated-layer-final-artifact/maven/test-0.1.0.jar"),
         "maven");
     assertThat(resolveDockerBuild("modified-image")
         .resolve("jkube-generated-layer-final-artifact").resolve("maven").resolve("test-0.1.0.jar"))
@@ -197,10 +198,10 @@ class AssemblyManagerCreateDockerTarArchiveTest {
     assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
         "Dockerfile",
         "maven",
-        "maven/Dockerfile",
-        "maven/test-0.1.0.jar",
-        "maven/target",
-        "maven/target/test-0.1.0.jar");
+        separatorsToSystem("maven/Dockerfile"),
+        separatorsToSystem("maven/test-0.1.0.jar"),
+        separatorsToSystem("maven/target"),
+        separatorsToSystem("maven/target/test-0.1.0.jar"));
   }
 
   @Test
@@ -238,11 +239,11 @@ class AssemblyManagerCreateDockerTarArchiveTest {
     assertBuildDirectoryFileTree("dockerfile-and-assembly-file").containsExactlyInAnyOrder(
         "Dockerfile",
         "maven",
-        "maven/Dockerfile",
-        "maven/test-0.1.0.jar",
-        "maven/extra-file-1.txt",
-        "maven/target",
-        "maven/target/test-0.1.0.jar");
+        separatorsToSystem("maven/Dockerfile"),
+        separatorsToSystem("maven/test-0.1.0.jar"),
+        separatorsToSystem("maven/extra-file-1.txt"),
+        separatorsToSystem("maven/target"),
+        separatorsToSystem("maven/target/test-0.1.0.jar"));
   }
 
   @Test
@@ -271,9 +272,9 @@ class AssemblyManagerCreateDockerTarArchiveTest {
     assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
         "Dockerfile",
         "maven",
-        "maven/test-0.1.0.jar",
-        "maven/target",
-        "maven/target/ill-be-included.txt");
+        separatorsToSystem("maven/test-0.1.0.jar"),
+        separatorsToSystem("maven/target"),
+        separatorsToSystem("maven/target/ill-be-included.txt"));
   }
 
   @Test
@@ -302,11 +303,12 @@ class AssemblyManagerCreateDockerTarArchiveTest {
     assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
         "Dockerfile",
         "maven",
-        "maven/Dockerfile",
-        "maven/test-0.1.0.jar",
-        "maven/target",
-        "maven/target/test-0.1.0.jar",
-        "maven/target/ill-be-included");
+        separatorsToSystem("maven/Dockerfile"),
+        separatorsToSystem("maven/test-0.1.0.jar"),
+        separatorsToSystem("maven/target"),
+        separatorsToSystem("maven/target/test-0.1.0.jar"),
+        separatorsToSystem("maven/target/ill-be-included")
+    );
   }
 
   @Test
@@ -335,11 +337,11 @@ class AssemblyManagerCreateDockerTarArchiveTest {
     assertBuildDirectoryFileTree("test-image").containsExactlyInAnyOrder(
         "Dockerfile",
         "maven",
-        "maven/Dockerfile",
-        "maven/test-0.1.0.jar",
-        "maven/target",
-        "maven/target/test-0.1.0.jar",
-        "maven/target/i-wont-be-ignored");
+        separatorsToSystem("maven/Dockerfile"),
+        separatorsToSystem("maven/test-0.1.0.jar"),
+        separatorsToSystem("maven/target"),
+        separatorsToSystem("maven/target/test-0.1.0.jar"),
+        separatorsToSystem("maven/target/i-wont-be-ignored"));
   }
 
   private void assertTargetHasDockerDirectories(String imageDirName) {

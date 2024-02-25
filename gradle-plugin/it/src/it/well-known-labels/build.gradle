@@ -25,6 +25,32 @@ repositories {
     mavenCentral()
 }
 
+def allProperties = new Properties();
+allProperties.put("team","via-resource-groovy-dsl-labels-all")
+allProperties.put("language", "via-resource-groovy-dsl-labels-all")
+allProperties.put("provider", "via-resource-groovy-dsl-labels-all")
+allProperties.put("app", "via-resource-groovy-dsl-labels-all")
+allProperties.put("version", "via-resource-groovy-dsl-labels-all")
+allProperties.put("group", "via-resource-groovy-dsl-labels-all")
+allProperties.put("app.kubernetes.io/name", "via-resource-groovy-dsl-labels-all")
+allProperties.put("app.kubernetes.io/version", "via-resource-groovy-dsl-labels-all")
+allProperties.put("app.kubernetes.io/component", "via-resource-groovy-dsl-labels-all")
+allProperties.put("app.kubernetes.io/managed-by", "via-resource-groovy-dsl-labels-all")
+allProperties.put("app.kubernetes.io/part-of", "via-resource-groovy-dsl-labels-all")
+
+def serviceProperties = new Properties();
+serviceProperties.put("team", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("language", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("provider", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("app", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("version", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("group", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("app.kubernetes.io/name", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("app.kubernetes.io/version", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("app.kubernetes.io/component", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("app.kubernetes.io/managed-by", "via-resource-groovy-dsl-labels-service")
+serviceProperties.put("app.kubernetes.io/part-of", "via-resource-groovy-dsl-labels-service")
+
 def extensionConfig = {
     offline = true
     images {
@@ -36,6 +62,14 @@ def extensionConfig = {
             }
         }
     }
+if (project.hasProperty('labelsViaResourceConfig')) {
+    resources {
+        labels {
+            all = allProperties
+            service = serviceProperties
+        }
+    }
+}
 }
 
 kubernetes(extensionConfig)

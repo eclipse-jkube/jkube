@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
-    <version>1.16-SNAPSHOT</version>
+    <version>1.17-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -50,7 +50,7 @@
     <version.jnr-unixsocket>0.38.20</version.jnr-unixsocket>
     <version.jsr305>3.0.2</version.jsr305>
     <version.maven-archiver>3.6.1</version.maven-archiver>
-    <version.maven-core>3.6.3</version.maven-core>
+    <version.maven-core>3.8.1</version.maven-core>
     <version.maven-filtering>3.3.1</version.maven-filtering>
     <version.maven-plugin-annotations>3.9.0</version.maven-plugin-annotations>
     <version.networknt.validator>1.0.86</version.networknt.validator>
@@ -217,6 +217,12 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-build-service-buildpacks</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-watcher-api</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -271,7 +277,7 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
-        <artifactId>jkube-kit-resource-helm</artifactId>
+        <artifactId>jkube-kit-helm</artifactId>
         <version>${project.version}</version>
       </dependency>
 
@@ -392,6 +398,12 @@
         <groupId>com.fasterxml.jackson.datatype</groupId>
         <artifactId>jackson-datatype-jsr310</artifactId>
         <version>${version.jackson}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.marcnuri.helm-java</groupId>
+        <artifactId>helm-java</artifactId>
+        <version>${version.helm-java}</version>
       </dependency>
 
       <dependency>

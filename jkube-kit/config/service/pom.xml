@@ -20,7 +20,7 @@
     <parent>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-parent</artifactId>
-        <version>1.16-SNAPSHOT</version>
+        <version>1.17-SNAPSHOT</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
 
@@ -43,7 +43,11 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
-            <artifactId>jkube-kit-resource-helm</artifactId>
+            <artifactId>jkube-kit-build-service-buildpacks</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-helm</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

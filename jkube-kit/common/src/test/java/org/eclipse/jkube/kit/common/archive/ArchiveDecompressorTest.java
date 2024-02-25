@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 class ArchiveDecompressorTest {
@@ -66,7 +67,7 @@ class ArchiveDecompressorTest {
     FileAssertions.assertThat(tempDir)
         .exists()
         .fileTree()
-        .containsExactlyInAnyOrder(parentDir, artifactParentDir, artifact);
+        .containsExactlyInAnyOrder(parentDir, separatorsToSystem(artifactParentDir), separatorsToSystem(artifact));
   }
 
   @Test

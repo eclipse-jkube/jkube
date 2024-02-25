@@ -43,7 +43,8 @@ class WellKnownLabelsIT {
             "-Pjkube.enricher.jkube-well-known-labels.component=custom-component",
             "-Pjkube.enricher.jkube-well-known-labels.partOf=custom-part-of",
             "-Pjkube.enricher.jkube-well-known-labels.managedBy=custom-managed-by",
-        })
+        }),
+        arguments("labelsViaResourceConfig", new String[] {"-PlabelsViaResourceConfig=true"})
     );
   }
 

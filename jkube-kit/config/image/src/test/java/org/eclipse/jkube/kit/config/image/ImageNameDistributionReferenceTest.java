@@ -43,7 +43,7 @@ class ImageNameDistributionReferenceTest {
       "sub-dom1.foo.com/bar/baz/quux:some-long-tag",
       "b.gcr.io/test.example.com/my-app:test.example.com",
       "xn--n3h.com/myimage:xn--n3h.com",
-      //"xn--7o8h.com/myimage:xn--7o8h.com@sha512:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2540
+      "xn--7o8h.com/myimage:xn--7o8h.com@sha512:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "foo_bar.com:8080",
       "foo/foo_bar.com:8080",
       "192.168.1.1",
@@ -72,14 +72,14 @@ class ImageNameDistributionReferenceTest {
       "192.168.0.1:8/debian",
       "192.168.0.2:25000/debian",
       "docker.io/1a3f5e7d9c1b3a5f7e9d1c3b5a7f9e1d3c5b7a9f1e3d5d7c9b1a3f5e7d9c1b3a",
-      //"[2001:db8::1]/repo", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8:1:2:3:4:5:6]/repo:tag", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::1]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::1]:5000/repo:tag", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::1]:5000/repo@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::1]:5000/repo:tag@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2541
-      //"[2001:db8::]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
-      //"[::1]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
+      "[2001:db8::1]/repo",
+      "[2001:db8:1:2:3:4:5:6]/repo:tag",
+      "[2001:db8::1]:5000/repo",
+      "[2001:db8::1]:5000/repo:tag",
+      "[2001:db8::1]:5000/repo@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "[2001:db8::1]:5000/repo:tag@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "[2001:db8::]:5000/repo",
+      "[::1]:5000/repo",
   })
   void validNames(String name) {
     // Given
@@ -94,14 +94,14 @@ class ImageNameDistributionReferenceTest {
       "",
       ":justtag",
       "@sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-      //"a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a:tag", // https://github.com/eclipse/jkube/issues/2542
-      //"repo@sha256:ffffffffffffffffffffffffffffffffff", // https://github.com/eclipse/jkube/issues/2543
+      "a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a:tag",
+      "repo@sha256:fffffffffffffffffffffffffffffff",
       "validname@invaliddigest:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
       "Uppercase:tag",
       "test:5000/Uppercase/lowercase:tag",
       "aa/asdf$$^/aa",
-      //"[fe80::1%eth0]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
-      //"[fe80::1%@invalidzone]:5000/repo", // https://github.com/eclipse/jkube/issues/2541
+      "[fe80::1%eth0]:5000/repo",
+      "[fe80::1%@invalidzone]:5000/repo",
   })
   void invalidNames(String name) {
     assertThatIllegalArgumentException().isThrownBy(() -> new ImageName(name));

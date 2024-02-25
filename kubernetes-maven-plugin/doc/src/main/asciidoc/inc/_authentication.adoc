@@ -166,7 +166,7 @@ Password:
 ----
 
 This password then can be used in `authConfig`, `docker.password`
-and/or the `<server>` setting configuration. However, putting an
+and/or the <<helm-repository-authentication-credentials-in-settings-xml,`<server>` setting configuration>>. However, putting an
 encrypted password into `authConfig` in the `pom.xml` doesn't make
 much sense, since this password is encrypted with an individual master
 password.

@@ -17,8 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ConnectException;
-import java.net.Socket;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.Random;
@@ -128,12 +127,10 @@ public class IoUtil {
     public static int getFreeRandomPort(int min, int max, int attempts) {
         for (int i=0; i < attempts; i++) {
             int port = min + RANDOM.nextInt(max - min + 1);
-            try (Socket ignored = new Socket("localhost", port)) { // NOSONAR
-                // Port is open for communication, meaning it's used up, try again
-            } catch (ConnectException e) {
+            try (ServerSocket ignored = new ServerSocket(port)) {
                 return port;
-            } catch (IOException e) {
-                throw new IllegalStateException("Error while trying to check open ports", e);
+            } catch (Exception e) {
+                // NOOP
             }
         }
         throw new IllegalStateException("Cannot find a free random port in the range [" + min + ", " + max + "] after " + attempts + " attempts");

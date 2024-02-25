@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
 
@@ -51,7 +50,7 @@ class KubernetesApplyTaskTest {
   private TestKubernetesExtension extension;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp(){
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       // OpenShiftClient instance needed due to OpenShift checks performed in KubernetesApply
       final OpenShiftClient kubernetesClient = mock(OpenShiftClient.class);

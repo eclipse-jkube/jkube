@@ -18,13 +18,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <artifactId>jkube-kit-build</artifactId>
-  <version>1.16-SNAPSHOT</version>
+  <version>1.17-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube-kit-parent</artifactId>
-    <version>1.16-SNAPSHOT</version>
+    <version>1.17-SNAPSHOT</version>
     <relativePath>parent/pom.xml</relativePath>
   </parent>
 
@@ -51,8 +51,8 @@
       <module>enricher/generic</module>
       <module>enricher/specific</module>
       <module>profile</module>
+      <module>helm</module>
       <module>resource/service</module>
-      <module>resource/helm</module>
       <module>watcher/api</module>
       <module>watcher/standard</module>
       <module>remote-dev</module>

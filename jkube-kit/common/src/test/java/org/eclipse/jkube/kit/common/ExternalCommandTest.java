@@ -15,6 +15,8 @@ package org.eclipse.jkube.kit.common;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -33,6 +35,7 @@ class ExternalCommandTest {
   }
 
   @Test
+  @DisabledOnOs(OS.WINDOWS)
   void execute_whenCommandCompletedSuccessfully_thenPrintResult() throws IOException {
     // Given
     TestCommand testCommand = new TestCommand(kitLogger, new String[] {"echo", "hello"});
@@ -45,6 +48,7 @@ class ExternalCommandTest {
   }
 
   @Test
+  @DisabledOnOs(OS.WINDOWS)
   void execute_whenCommandFailed_thenThrowException() {
     // Given
     TestCommand testCommand = new TestCommand(kitLogger, new String[] {"ls", "idontexist"});
@@ -86,6 +90,7 @@ class ExternalCommandTest {
   }
 
   @Test
+  @DisabledOnOs(OS.WINDOWS)
   void execute_whenWorkDirProvided_thenUseWorkDir(@TempDir File temporaryFolder) throws IOException {
     // Given
     TestCommand testCommand = new TestCommand(kitLogger, new String[] {"touch", "foo"}, temporaryFolder);

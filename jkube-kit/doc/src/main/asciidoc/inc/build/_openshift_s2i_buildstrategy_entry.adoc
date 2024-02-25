@@ -1,0 +1,7 @@
+If the build is performed in an OpenShift cluster an additional `s2i` option is available
+and selected by default.
+
+Available strategies for OpenShift are:
+
+* `s2i` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#source-build[Source-to-Image build] with a binary source
+* `docker` for a https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html#docker-build[Docker build] with a binary source

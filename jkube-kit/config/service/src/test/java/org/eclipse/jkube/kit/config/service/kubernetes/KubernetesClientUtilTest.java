@@ -21,16 +21,17 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.kubernetes.client.Watcher;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.doDeleteAndWait;
+import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.getPodStatusMessagePostfix;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 @SuppressWarnings("unused")
 @EnableKubernetesMockClient(crud = true)
 class KubernetesClientUtilTest {
@@ -138,6 +139,29 @@ class KubernetesClientUtilTest {
 
     // Then
     assertThat(resolvedNamespace).isEqualTo("ns1");
+  }
+  @Test
+  void getPodStatusMessagePostfix_whenActionIsDeleted_shouldReturnPodDeletedMessage() {
+    // Given
+    Watcher.Action action = Watcher.Action.DELETED;
+
+    // When
+    String messagePostfix = KubernetesClientUtil.getPodStatusMessagePostfix(action);
+
+    // Then
+    assertThat(messagePostfix).isEqualTo(": Pod Deleted");
+  }
+
+  @Test
+  void getPodStatusMessagePostfix_whenActionIsError_shouldReturnErrorMessage() {
+    // Given
+    Watcher.Action action = Watcher.Action.ERROR;
+
+    // When
+    String messagePostfix = KubernetesClientUtil.getPodStatusMessagePostfix(action);
+
+    // Then
+    assertThat(messagePostfix).isEqualTo(": Error");
   }
 
 }

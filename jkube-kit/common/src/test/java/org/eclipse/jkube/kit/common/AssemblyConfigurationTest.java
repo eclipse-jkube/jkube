@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
@@ -260,8 +261,10 @@ class AssemblyConfigurationTest {
   @Test
   void rawDeserialization() throws IOException {
     // Given
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(MapperFeature.USE_ANNOTATIONS, false);
+    final ObjectMapper mapper = JsonMapper.builder()
+            .configure(MapperFeature.USE_ANNOTATIONS, false)
+            .build();
+
     // When
     final AssemblyConfiguration result = mapper.readValue(
         AssemblyConfigurationTest.class.getResourceAsStream("/assembly-configuration.json"),
