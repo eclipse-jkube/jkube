@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.17-SNAPSHOT
+* Fix #2582: Moved PortMapping class from package `org.eclipse.jkube.kit.build.api.model` to `org.eclipse.jkube.kit.common`
 
 ### 1.16.0 (2024-02-09)
 * Fix #1690: Base images based on ubi9
