@@ -650,16 +650,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
         return new GavLabel(project.getGroupId(), project.getArtifactId(), project.getVersion());
     }
     
-    public ResourceConfig getResources() {
-        return this.resources;
-    }
-    
     public void setResources(ResourceConfig resources) {
         this.resources = resources;
-    }
-    
-    public String getNamespace() {
-        return this.namespace;
     }
     
     public void setNamespace(String namespace) {
