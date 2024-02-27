@@ -47,6 +47,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -434,6 +437,7 @@ class HelmServiceUploadIT {
 
     @Test
     @DisplayName("Sends chart metadata file, tarball and manifest file in separate requests")
+    @DisabledOnOs(OS.WINDOWS)
     void withSuccessfulUpload_shouldUploadBlobsAndUpdateManifest() throws Exception {
       // Given
       helmConfig.setChartExtension("tar.gz");
@@ -479,6 +483,54 @@ class HelmServiceUploadIT {
             "    \"digest\" : \"sha256:c7051faa2fb28d147b34070a6bce25eaf1ee6bb4ca3b47af5ee6148d50079154\",\n" +
             "    \"size\" : 24\n" +
             "  } ]\n" +
+            "}");
+    }
+    @Test
+    @DisplayName("On Windows, Sends chart metadata file, tarball and manifest file in separate requests")
+    @EnabledOnOs(OS.WINDOWS)
+    void withSuccessfulUploadOnWindows_shouldUploadBlobsAndUpdateManifest() throws Exception {
+      helmConfig.setChartExtension("tar.gz");
+      Files.write(
+          Paths.get(helmConfig.getOutputDir()).resolve("kubernetes")
+              .resolve("Helm-Chart-1337-SNAPSHOT.tar.gz"),
+          "I'm a tar.gz, not a .tgz".getBytes(StandardCharsets.UTF_8));
+      Files.write(Paths.get(helmConfig.getOutputDir()).resolve("kubernetes").resolve("Chart.yaml"),
+          "---\r\napiVersion: v1\r\nname: test-chart\r\nversion: 0.0.1".getBytes(StandardCharsets.UTF_8));
+
+      mockServer.expect().post()
+          .withPath("/v2/test-chart/blobs/uploads/")
+          .andReply(new TestMockResponseProvider(202, singletonMap("Location", "/v2/test-chart/blobs/upload/first-upload-endpoint"), null))
+          .once();
+      mockServer.expect().post()
+          .withPath("/v2/test-chart/blobs/uploads/")
+          .andReply(new TestMockResponseProvider(202, singletonMap("Location", "/v2/test-chart/blobs/upload/second-upload-endpoint"), null))
+          .once();
+      mockServer.expect().put()
+          .withPath("/v2/test-chart/blobs/upload/first-upload-endpoint?digest=sha256%3A46a607aed71245e2489a79ad8b401b269565de36f3aa7eadf6f7e368a8938a43")
+          .andReply(new TestMockResponseProvider(200, singletonMap("Docker-Content-Digest", "sha256:46a607aed71245e2489a79ad8b401b269565de36f3aa7eadf6f7e368a8938a43"), null))
+          .once();
+      mockServer.expect().put()
+          .withPath("/v2/test-chart/blobs/upload/second-upload-endpoint?digest=sha256%3Ac7051faa2fb28d147b34070a6bce25eaf1ee6bb4ca3b47af5ee6148d50079154")
+          .andReply(new TestMockResponseProvider(200, singletonMap("Docker-Content-Digest", "sha256:c7051faa2fb28d147b34070a6bce25eaf1ee6bb4ca3b47af5ee6148d50079154"), null))
+          .once();
+      mockServer.expect().put()
+          .withPath("/v2/test-chart/manifests/0.0.1")
+          .andReply(new TestMockResponseProvider(200, singletonMap("Docker-Content-Digest", "manifestdigest"), null))
+          .once();
+      helmService.uploadHelmChart(helmConfig);
+      assertThat(mockServer.getLastRequest().getBody().readUtf8())
+          .isEqualTo("{\r\n" +
+            "  \"schemaVersion\" : 2,\r\n" +
+            "  \"config\" : {\r\n" +
+            "    \"mediaType\" : \"application/vnd.cncf.helm.config.v1+json\",\r\n" +
+            "    \"digest\" : \"sha256:46a607aed71245e2489a79ad8b401b269565de36f3aa7eadf6f7e368a8938a43\",\r\n" +
+            "    \"size\" : 77\r\n" +
+            "  },\r\n" +
+            "  \"layers\" : [ {\r\n" +
+            "    \"mediaType\" : \"application/vnd.cncf.helm.chart.content.v1.tar+gzip\",\r\n" +
+            "    \"digest\" : \"sha256:c7051faa2fb28d147b34070a6bce25eaf1ee6bb4ca3b47af5ee6148d50079154\",\r\n" +
+            "    \"size\" : 24\r\n" +
+            "  } ]\r\n" +
             "}");
     }
   }

@@ -36,6 +36,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class HelmServiceUtilTest {
@@ -89,9 +90,9 @@ class HelmServiceUtilTest {
       .hasFieldOrProperty("icon")
       .hasFieldOrPropertyWithValue("lintStrict", false)
       .hasFieldOrPropertyWithValue("lintQuiet", false);
-    assertThat(result.getSourceDir()).endsWith("target/classes/META-INF/jkube/");
-    assertThat(result.getOutputDir()).endsWith("target/jkube/helm/artifact-id");
-    assertThat(result.getTarballOutputDir()).endsWith("target/jkube/helm/artifact-id");
+    assertThat(result.getSourceDir()).endsWith(separatorsToSystem("target/classes/META-INF/jkube/"));
+    assertThat(result.getOutputDir()).endsWith(separatorsToSystem("target/jkube/helm/artifact-id"));
+    assertThat(result.getTarballOutputDir()).endsWith(separatorsToSystem("target/jkube/helm/artifact-id"));
   }
 
   @Test
