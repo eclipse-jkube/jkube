@@ -38,7 +38,7 @@ class KubernetesResourceTaskTest {
   public final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class))
         .thenReturn(new TestKubernetesExtension());
   }
