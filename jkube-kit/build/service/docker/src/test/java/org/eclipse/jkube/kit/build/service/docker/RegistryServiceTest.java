@@ -29,7 +29,7 @@ import java.util.Collections;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
@@ -64,11 +64,10 @@ class RegistryServiceTest {
 
   @Test
   void pullImageWithPolicy_pullPolicyNeverAndNoImage_shouldThrowException() {
-    // When
-    final IOException result = assertThrows(IOException.class, () -> registryService.pullImageWithPolicy("image",
-        ImagePullManager.createImagePullManager("Never", "", new Properties()), null, null));
-    // Then
-    assertThat(result).hasMessageStartingWith("No image 'image' found and pull policy 'Never' is set");
+    assertThatIOException()
+            .isThrownBy(() -> registryService.pullImageWithPolicy("image",
+                    ImagePullManager.createImagePullManager("Never", "", new Properties()), null, null))
+            .withMessageStartingWith("No image 'image' found and pull policy 'Never' is set");
   }
 
   @Test
