@@ -114,7 +114,7 @@ class JibBuildServiceBuildIntegrationTest {
     final ImageConfiguration ic = ImageConfiguration.builder()
       .name("namespace/image-name:tag")
       .build(BuildConfiguration.builder()
-        .from("gcr.io/distroless/base")
+        .from("gcr.io/distroless/base@sha256:8267a5d9fa15a538227a8850e81cf6c548a78de73458e99a67e8799bbffb1ba0")
         .assembly(AssemblyConfiguration.builder()
           .name("custom")
           .targetDir("/deployments")
@@ -140,7 +140,7 @@ class JibBuildServiceBuildIntegrationTest {
     assertThat(dockerDir.resolve("build"))
       .exists().isDirectory()
       .extracting(p -> p.resolve("Dockerfile").toFile()).asInstanceOf(InstanceOfAssertFactories.FILE)
-      .hasContent("FROM gcr.io/distroless/base\n" +
+      .hasContent("FROM gcr.io/distroless/base@sha256:8267a5d9fa15a538227a8850e81cf6c548a78de73458e99a67e8799bbffb1ba0\n" +
           "COPY /deployments-layer/deployments /deployments/\n" +
           "COPY /other-layer/deployments /deployments/\n" +
           "COPY /jkube-generated-layer-final-artifact/deployments /deployments/\n" +

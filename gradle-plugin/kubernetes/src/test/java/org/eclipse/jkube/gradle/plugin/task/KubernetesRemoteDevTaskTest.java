@@ -44,7 +44,7 @@ class KubernetesRemoteDevTaskTest {
   private Runnable onStart;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(new TestKubernetesExtension());
     task = new KubernetesRemoteDevTask(KubernetesExtension.class);
     task.jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
@@ -58,7 +58,7 @@ class KubernetesRemoteDevTaskTest {
   }
 
   @AfterEach
-  void tearDown() throws Exception {
+  void tearDown() {
     remoteDevelopmentService.close();
   }
 

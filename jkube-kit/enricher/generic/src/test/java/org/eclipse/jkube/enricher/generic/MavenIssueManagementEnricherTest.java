@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 class MavenIssueManagementEnricherTest {
     private JKubeEnricherContext context;
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
     }
 

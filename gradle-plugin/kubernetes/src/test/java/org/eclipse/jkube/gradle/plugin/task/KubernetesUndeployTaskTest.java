@@ -50,7 +50,7 @@ class KubernetesUndeployTaskTest {
   private TestKubernetesExtension extension;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
       final KubernetesClient kubernetesClient = mock(KubernetesClient.class);
       when(mock.createDefaultClient()).thenReturn(kubernetesClient);
