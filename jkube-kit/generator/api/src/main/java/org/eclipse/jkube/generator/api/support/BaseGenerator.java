@@ -104,7 +104,7 @@ public abstract class BaseGenerator implements Generator {
     protected JavaProject getProject() {
         return context.getProject();
     }
-    
+
 
     public GeneratorContext getContext() {
         return context;
