@@ -53,6 +53,8 @@ public abstract class BaseGenerator implements Generator {
     private static final String GIT_REMOTE = "origin";
 
     private final GeneratorContext context;
+
+    @Getter
     private final String name;
     private final GeneratorConfig config;
     protected final PrefixedLogger log;
@@ -102,10 +104,7 @@ public abstract class BaseGenerator implements Generator {
     protected JavaProject getProject() {
         return context.getProject();
     }
-
-    public String getName() {
-        return name;
-    }
+    
 
     public GeneratorContext getContext() {
         return context;
