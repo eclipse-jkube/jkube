@@ -29,7 +29,6 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-import org.eclipse.jkube.maven.plugin.mojo.build.AbstractDockerMojo;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 
 import org.apache.maven.project.MavenProject;
@@ -59,7 +58,7 @@ class WatchMojoTest {
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
   private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
-  private WatchMojo watchMojo;
+  private TestWatchMojo watchMojo;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws Exception {
@@ -90,7 +89,7 @@ class WatchMojoTest {
     mavenSettings = mock(Settings.class);
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
     // @formatter:off
-    watchMojo = new WatchMojo() {{
+    watchMojo = new TestWatchMojo() {{
       project = mavenProject;
       settings = mavenSettings;
       kubernetesManifest = kubernetesManifestFile;
@@ -138,5 +137,16 @@ class WatchMojoTest {
     watchMojo.execute();
     // Then
     watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("configured-namespace"), any(), any()), times(1));
+  }
+
+  private static class TestWatchMojo extends WatchMojo {
+
+    void setResources(ResourceConfig resources) {
+      this.resources = resources;
+    }
+
+    void setNamespace(String namespace) {
+      this.namespace = namespace;
+    }
   }
 }
