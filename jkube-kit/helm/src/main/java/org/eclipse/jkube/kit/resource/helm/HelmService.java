@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -368,7 +370,23 @@ public class HelmService {
         .collect(Collectors.toMap(HelmParameter::getName, HelmParameter::getValue));
     final Map<String, Object> valuesFromFragment = readFragment(VALUES_FRAGMENT_PATTERN, Map.class);
     final Map<String, Object> mergedValues = Serialization.merge(getNestedMap(valuesFromParameters), valuesFromFragment);
-    ResourceUtil.save(new File(outputDir, VALUES_FILENAME), mergedValues, ResourceFileType.yaml);
+    final Map<String, Object> sortedValues = sortValuesYaml(mergedValues);
+    ResourceUtil.save(new File(outputDir, VALUES_FILENAME), sortedValues, ResourceFileType.yaml);
+  }
+
+  private static SortedMap<String, Object> sortValuesYaml(final Map<String, Object> input) {
+    return (SortedMap<String, Object>) sortValuesYamlRecursive(input);
+  }
+
+  private static Object sortValuesYamlRecursive(final Object input) {
+    if (input instanceof Map) {
+      final Map<String, Object> inputMap = (Map<String, Object>) input;
+      final SortedMap<String, Object> result = new TreeMap<>();
+      inputMap.entrySet().stream().forEach(entry -> result.put(entry.getKey(), sortValuesYamlRecursive(entry.getValue())));
+      return result;
+    } else {
+      return input;
+    }
   }
 
   private static List<HelmParameter> collectParameters(HelmConfig helmConfig) {

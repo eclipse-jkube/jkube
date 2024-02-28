@@ -50,7 +50,7 @@ class RegistryAuthTest {
         // Since Base64.decodeBase64 handles URL-safe encoding, must explicitly check
         // the correct characters are used
         assertThat(config.toHeaderValue())
-            .isEqualTo("eyJlbWFpbCI6InJvbGFuZEBqb2xva2lhLm9yZyIsInBhc3N3b3JkIjoiIz5zZWNyZXRzPz8iLCJ1c2VybmFtZSI6InJvbGFuZCJ9");
+            .isEqualTo("eyJ1c2VybmFtZSI6InJvbGFuZCIsInBhc3N3b3JkIjoiIz5zZWNyZXRzPz8iLCJlbWFpbCI6InJvbGFuZEBqb2xva2lhLm9yZyJ9");
 
         String header = new String(Base64.getDecoder().decode(config.toHeaderValue()));
 

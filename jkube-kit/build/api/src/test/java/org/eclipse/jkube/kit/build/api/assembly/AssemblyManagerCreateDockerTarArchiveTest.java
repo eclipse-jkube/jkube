@@ -30,6 +30,7 @@ import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -43,7 +44,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 class AssemblyManagerCreateDockerTarArchiveTest {
 
@@ -59,7 +59,7 @@ class AssemblyManagerCreateDockerTarArchiveTest {
 
   @BeforeEach
   void setUp() throws IOException {
-    prefixedLogger = mock(PrefixedLogger.class);
+    prefixedLogger = new PrefixedLogger("test-prefix", new KitLogger.SilentLogger());
     assemblyManager = AssemblyManager.getInstance();
     baseDirectory = temporaryFolder.toFile();
     targetDirectory = Files.createDirectory(temporaryFolder.resolve("target")).toFile();

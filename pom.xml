@@ -99,7 +99,7 @@
     <version.gradle-api-maven-plugin>0.0.3</version.gradle-api-maven-plugin>
     <version.groovy>3.0.19</version.groovy>
     <version.guava>31.1-jre</version.guava>
-    <version.helm-java>0.0.3</version.helm-java>
+    <version.helm-java>0.0.6</version.helm-java>
     <version.jackson>2.15.2</version.jackson>
     <version.jacoco>0.8.10</version.jacoco>
     <version.json-smart>2.5.0</version.json-smart> <!-- Transitive dependency  required by citrus -->
@@ -126,7 +126,7 @@
     <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.sonar-maven-plugin>3.9.1.2184</version.sonar-maven-plugin>
     <version.sshd>2.9.2</version.sshd>
-    <project.build.outputTimestamp>2024-02-09T12:09:30Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2024-02-27T10:19:23Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
 
