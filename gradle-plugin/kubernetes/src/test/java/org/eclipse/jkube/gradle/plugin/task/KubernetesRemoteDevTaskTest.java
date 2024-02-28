@@ -58,7 +58,7 @@ class KubernetesRemoteDevTaskTest {
   }
 
   @AfterEach
-  void tearDown() throws Exception {
+  void tearDown() {
     remoteDevelopmentService.close();
   }
 
