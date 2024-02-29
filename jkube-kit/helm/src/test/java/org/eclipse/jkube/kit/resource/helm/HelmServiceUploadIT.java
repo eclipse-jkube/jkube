@@ -495,7 +495,7 @@ class HelmServiceUploadIT {
               .resolve("Helm-Chart-1337-SNAPSHOT.tar.gz"),
           "I'm a tar.gz, not a .tgz".getBytes(StandardCharsets.UTF_8));
       Files.write(Paths.get(helmConfig.getOutputDir()).resolve("kubernetes").resolve("Chart.yaml"),
-          "---\r\napiVersion: v1\r\nname: test-chart\r\nversion: 0.0.1".getBytes(StandardCharsets.UTF_8));
+          String.format("---%napiVersion: v1%nname: test-chart%nversion: 0.0.1").getBytes(StandardCharsets.UTF_8));
 
       mockServer.expect().post()
           .withPath("/v2/test-chart/blobs/uploads/")
@@ -519,19 +519,19 @@ class HelmServiceUploadIT {
           .once();
       helmService.uploadHelmChart(helmConfig);
       assertThat(mockServer.getLastRequest().getBody().readUtf8())
-          .isEqualTo("{\r\n" +
-            "  \"schemaVersion\" : 2,\r\n" +
-            "  \"config\" : {\r\n" +
-            "    \"mediaType\" : \"application/vnd.cncf.helm.config.v1+json\",\r\n" +
-            "    \"digest\" : \"sha256:46a607aed71245e2489a79ad8b401b269565de36f3aa7eadf6f7e368a8938a43\",\r\n" +
-            "    \"size\" : 77\r\n" +
-            "  },\r\n" +
-            "  \"layers\" : [ {\r\n" +
-            "    \"mediaType\" : \"application/vnd.cncf.helm.chart.content.v1.tar+gzip\",\r\n" +
-            "    \"digest\" : \"sha256:c7051faa2fb28d147b34070a6bce25eaf1ee6bb4ca3b47af5ee6148d50079154\",\r\n" +
-            "    \"size\" : 24\r\n" +
-            "  } ]\r\n" +
-            "}");
+          .isEqualTo(String.format("{%n" +
+            "  \"schemaVersion\" : 2,%n" +
+            "  \"config\" : {%n" +
+            "    \"mediaType\" : \"application/vnd.cncf.helm.config.v1+json\",%n" +
+            "    \"digest\" : \"sha256:46a607aed71245e2489a79ad8b401b269565de36f3aa7eadf6f7e368a8938a43\",%n" +
+            "    \"size\" : 77%n" +
+            "  },%n" +
+            "  \"layers\" : [ {%n" +
+            "    \"mediaType\" : \"application/vnd.cncf.helm.chart.content.v1.tar+gzip\",%n" +
+            "    \"digest\" : \"sha256:c7051faa2fb28d147b34070a6bce25eaf1ee6bb4ca3b47af5ee6148d50079154\",%n" +
+            "    \"size\" : 24%n" +
+            "  } ]%n" +
+            "}"));
     }
   }
 
