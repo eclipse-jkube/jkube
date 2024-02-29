@@ -26,6 +26,7 @@ import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,7 +64,7 @@ public class GitEnricher extends BaseEnricher {
                 return annotations;
             } catch (IOException | GitAPIException e) {
                 log.error("Cannot extract Git information for adding to annotations: " + e, e);
-                return null;
+                return Collections.emptyMap();
             }
         }
 

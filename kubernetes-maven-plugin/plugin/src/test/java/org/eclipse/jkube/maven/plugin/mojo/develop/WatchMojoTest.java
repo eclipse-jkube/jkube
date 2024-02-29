@@ -58,7 +58,7 @@ class WatchMojoTest {
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
   private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
   private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
-  private WatchMojo watchMojo;
+  private TestWatchMojo watchMojo;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws Exception {
@@ -89,7 +89,7 @@ class WatchMojoTest {
     mavenSettings = mock(Settings.class);
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
     // @formatter:off
-    watchMojo = new WatchMojo() {{
+    watchMojo = new TestWatchMojo() {{
       project = mavenProject;
       settings = mavenSettings;
       kubernetesManifest = kubernetesManifestFile;
@@ -119,9 +119,10 @@ class WatchMojoTest {
   @Test
   void executeInternal_whenNamespaceConfiguredInResourceConfig_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
     // Given
-    watchMojo.resources = ResourceConfig.builder()
+    ResourceConfig resources = ResourceConfig.builder()
       .namespace("namespace-from-resource_config")
       .build();
+    watchMojo.setResources(resources);
     // When
     watchMojo.execute();
     // Then
@@ -131,10 +132,21 @@ class WatchMojoTest {
   @Test
   void executeInternal_whenNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
     // Given
-    watchMojo.namespace = "configured-namespace";
+    watchMojo.setNamespace("configured-namespace");
     // When
     watchMojo.execute();
     // Then
     watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("configured-namespace"), any(), any()), times(1));
+  }
+
+  private static class TestWatchMojo extends WatchMojo {
+
+    void setResources(ResourceConfig resources) {
+      this.resources = resources;
+    }
+
+    void setNamespace(String namespace) {
+      this.namespace = namespace;
+    }
   }
 }
