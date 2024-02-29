@@ -21,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Properties;
@@ -37,15 +38,12 @@ class JKubeProjectUtilTest {
 
   private File artifactFile;
 
-  private boolean artifactFileCreated;
-
   private File finalOutputArtifact;
 
   @BeforeEach
   void setUp() throws IOException {
     project = JavaProject.builder().build();
-    artifactFile = new File(temporaryFolder, "foo-test-1.0.0.jar");
-    artifactFileCreated = artifactFile.createNewFile();
+    artifactFile = Files.createFile(temporaryFolder.toPath().resolve("foo-test-1.0.0.jar")).toFile();
   }
 
   @Test
@@ -134,15 +132,13 @@ class JKubeProjectUtilTest {
     finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(project);
 
     // Then
-    assertThat(artifactFileCreated).isTrue();
     assertThat(finalOutputArtifact).hasName("foo-test-1.0.0.jar");
   }
 
   @Test
   void getFinalOutputArtifact_withBuildFinalNamePackagingBuildDir_returnsInferredArtifact() throws IOException {
     // Given
-    File buildFinalArtifactFile = new File(temporaryFolder, "foo-test-final.jar");
-    boolean artifactFileCreated = buildFinalArtifactFile.createNewFile();
+    Files.createFile(temporaryFolder.toPath().resolve("foo-test-final.jar"));
     project = project.toBuilder()
             .buildFinalName("foo-test-final")
             .packaging("jar")
@@ -153,15 +149,13 @@ class JKubeProjectUtilTest {
     finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(project);
 
     // Then
-    assertThat(artifactFileCreated).isTrue();
     assertThat(finalOutputArtifact).hasName("foo-test-final.jar");
   }
 
   @Test
   void getFinalOutputArtifact_withArtifactAndBuildFinalNameAndPackaging_returnsInferredArtifact() throws IOException {
     // Given
-    File buildFinalArtifactFile = new File(temporaryFolder, "foo-test-final.jar");
-    boolean buildFinalArtifactFileCreated = buildFinalArtifactFile.createNewFile();
+    Files.createFile(temporaryFolder.toPath().resolve("foo-test-final.jar"));
     project = project.toBuilder()
         .artifact(artifactFile)
         .buildFinalName("foo-test-final")
@@ -173,8 +167,6 @@ class JKubeProjectUtilTest {
     finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(project);
 
     // Then
-    assertThat(artifactFileCreated).isTrue();
-    assertThat(buildFinalArtifactFileCreated).isTrue();
     assertThat(finalOutputArtifact).hasName("foo-test-final.jar");
   }
 
@@ -191,7 +183,6 @@ class JKubeProjectUtilTest {
     finalOutputArtifact = JKubeProjectUtil.getFinalOutputArtifact(project);
 
     // Then
-    assertThat(artifactFileCreated).isTrue();
     assertThat(finalOutputArtifact).hasName("foo-test-1.0.0.jar");
   }
 
