@@ -485,6 +485,7 @@ class HelmServiceUploadIT {
             "  } ]%n" +
             "}"));
     }
+
     @Test
     @DisplayName("On Windows, Sends chart metadata file, tarball and manifest file in separate requests")
     @EnabledOnOs(OS.WINDOWS)
