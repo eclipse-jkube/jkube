@@ -27,12 +27,13 @@ class ImageConfigurationTest {
     @Test
     void testBuilder() {
         // Given
-        BuildConfiguration mockJKubeBuildConfiguration = mock(BuildConfiguration.class);
-        when(mockJKubeBuildConfiguration.getUser()).thenReturn("super-user");
+        BuildConfiguration jkubeBuildConfiguration = BuildConfiguration.builder()
+                .user("super-user")
+                .build();
         // When
         final ImageConfiguration result = ImageConfiguration.builder()
                 .name("1337")
-                .build(mockJKubeBuildConfiguration)
+                .build(jkubeBuildConfiguration)
                 .build();
         // Then
         assertThat(result.getName()).isEqualTo("1337");
