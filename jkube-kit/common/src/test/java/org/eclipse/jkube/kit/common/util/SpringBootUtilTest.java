@@ -285,7 +285,7 @@ class SpringBootUtilTest {
     }
 
     @Test
-    void findNativeArtifactFile_whenNativeExecutableNotFound_thenReturnNull(@TempDir File temporaryFolder) throws IOException {
+    void findNativeArtifactFile_whenNativeExecutableNotFound_thenReturnNull(@TempDir File temporaryFolder) {
         // Given
         JavaProject javaProject = JavaProject.builder()
             .artifactId("sample")

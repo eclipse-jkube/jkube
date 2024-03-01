@@ -22,6 +22,10 @@ Usage:
 ```
 ### 1.17-SNAPSHOT
 
+### 1.16.1 (2024-02-27)
+* Fix #2582: Moved PortMapping class from package `org.eclipse.jkube.kit.build.api.model` to `org.eclipse.jkube.kit.common`
+* Fix #2726: helm-lint works seamlessly on MacOS aarch64
+
 ### 1.16.0 (2024-02-09)
 * Fix #1690: Base images based on ubi9
 * Fix #1700: Add [Kubernetes Well Known labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/) to generated resources
