@@ -24,7 +24,7 @@ function mvnVersion() {
   echo "Updating quickstarts pom files to JKube $JKUBE_VERSION"
   cd "$QUICKSTARTS" || exit 1
   find . -type f -name "pom.xml" -printf '%h\0' | xargs -0 -P 1 -I{} sh -c \
-    "cd {} && mvn -nsu -N versions:set -DnewVersion=$JKUBE_VERSION -DgenerateBackupPoms=false && cd ${QUICKSTARTS} || exit 255"
+    "echo Setting version for {} && cd {} && mvn -nsu -N versions:set -DnewVersion=$JKUBE_VERSION -DgenerateBackupPoms=false && cd ${QUICKSTARTS} || exit 255"
 }
 
 function gradleVersion() {
