@@ -75,7 +75,7 @@ public class SpringBootWatcher extends BaseWatcher {
     }
 
     @Override
-    public void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) throws Exception {
+    public void watch(List<ImageConfiguration> configs, String namespace, Collection<HasMetadata> resources, PlatformMode mode) {
         final NamespacedKubernetesClient kubernetes;
         if (namespace != null) {
             kubernetes = getContext().getJKubeServiceHub().getClient().adapt(NamespacedKubernetesClient.class).inNamespace(namespace);
