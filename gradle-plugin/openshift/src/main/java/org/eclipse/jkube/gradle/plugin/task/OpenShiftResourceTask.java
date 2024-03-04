@@ -21,11 +21,11 @@ import java.util.Properties;
 import javax.inject.Inject;
 
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 
-import static org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
+import static org.eclipse.jkube.kit.build.api.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
 
 public class OpenShiftResourceTask extends KubernetesResourceTask implements OpenShiftJKubeTask {
 
