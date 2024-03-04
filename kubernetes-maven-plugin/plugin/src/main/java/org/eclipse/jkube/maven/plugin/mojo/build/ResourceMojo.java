@@ -22,13 +22,15 @@ import java.util.Properties;
 import javax.validation.ConstraintViolationException;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
 import org.eclipse.jkube.kit.build.api.helper.ConfigHelper;
+
+import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
+import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.MappingConfig;
@@ -269,15 +271,15 @@ public class ResourceMojo extends AbstractJKubeMojo {
           null, // no filter on image name yet (TODO: Maybe add this, too ?)
           configs -> {
             try {
-              GeneratorContext ctx = GeneratorContext.builder()
-                  .config(extractGeneratorConfig())
-                  .project(javaProject)
-                  .runtimeMode(getRuntimeMode())
-                  .logger(log)
-                  .strategy(JKubeBuildStrategy.docker)
-                  .useProjectClasspath(useProjectClasspath)
-                  .build();
-              return GeneratorManager.generate(configs, ctx, true);
+                GeneratorManager generatorManager = new DefaultGeneratorManager(GeneratorContext.builder()
+                    .config(extractGeneratorConfig())
+                    .project(javaProject)
+                    .runtimeMode(getRuntimeMode())
+                    .logger(log)
+                    .strategy(JKubeBuildStrategy.docker)
+                    .useProjectClasspath(useProjectClasspath)
+                    .build());
+              return generatorManager.generate(configs, true);
             } catch (Exception e) {
               throw new IllegalArgumentException("Cannot extract generator: " + e, e);
             }

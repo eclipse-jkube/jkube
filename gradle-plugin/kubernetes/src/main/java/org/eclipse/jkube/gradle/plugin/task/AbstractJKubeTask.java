@@ -23,7 +23,7 @@ import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.GeneratorManager;
+import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
 import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
@@ -35,6 +35,7 @@ import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -118,7 +119,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   private List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-    return GeneratorManager.generate(configs, initGeneratorContextBuilder().build(), false);
+    GeneratorManager generatorManager = new DefaultGeneratorManager(initGeneratorContextBuilder().build());
+    return generatorManager.generate(configs, false);
   }
 
   private boolean isAnsiEnabled() {
