@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.config.handler;
+package org.eclipse.jkube.kit.build.api.helper;
 
 import java.util.List;
 

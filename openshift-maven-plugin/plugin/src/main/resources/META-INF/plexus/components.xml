@@ -91,8 +91,8 @@
     <!-- Components typically detected by annotations, but moved here because of
          https://github.com/codehaus-plexus/plexus-containers/issues/4 -->
     <component>
-      <role>org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler</role>
-      <implementation>org.eclipse.jkube.kit.build.service.docker.config.handler.property.PropertyConfigHandler</implementation>
+      <role>org.eclipse.jkube.kit.build.api.config.handler.property.PropertyConfigHandler</role>
+      <implementation>org.eclipse.jkube.kit.build.api.config.handler.property.PropertyConfigHandler</implementation>
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
@@ -133,8 +133,8 @@
       <isolated-realm>false</isolated-realm>
     </component>
     <component>
-      <role>org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver</role>
-      <implementation>org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver</implementation>
+      <role>org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver</role>
+      <implementation>org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver</implementation>
       <isolated-realm>false</isolated-realm>
     </component>
   </components>
