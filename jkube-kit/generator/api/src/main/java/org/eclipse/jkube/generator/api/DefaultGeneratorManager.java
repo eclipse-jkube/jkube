@@ -18,12 +18,13 @@ import java.util.List;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
+import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 /**
  * Manager responsible for finding and calling generators
  */
-public class GeneratorManager {
+public class DefaultGeneratorManager implements GeneratorManager {
 
   private static final String[] SERVICE_PATHS = new String[] {
       "META-INF/jkube/generator-default",
@@ -31,12 +32,14 @@ public class GeneratorManager {
       "META-INF/jkube/generator",
       "META-INF/jkube-generator"
   };
+  private final GeneratorContext genCtx;
 
-  private GeneratorManager() {
+  public DefaultGeneratorManager(GeneratorContext context) {
+    this.genCtx = context;
   }
 
-  public static List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs,
-      GeneratorContext genCtx, boolean prePackagePhase) {
+  @Override
+  public List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs, boolean prePackagePhase) {
 
     final PluginServiceFactory<GeneratorContext> pluginFactory = new PluginServiceFactory<>(genCtx);
     if (genCtx.isUseProjectClasspath()) {
