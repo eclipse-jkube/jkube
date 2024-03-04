@@ -130,10 +130,10 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     }
 
     @Override
-    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() throws DependencyResolutionRequiredException {
+    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() {
         return GeneratorContext.builder()
             .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator))
-            .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+            .project(javaProject)
             .logger(log)
             .runtimeMode(getConfiguredRuntimeMode())
             .useProjectClasspath(useProjectClasspath)
