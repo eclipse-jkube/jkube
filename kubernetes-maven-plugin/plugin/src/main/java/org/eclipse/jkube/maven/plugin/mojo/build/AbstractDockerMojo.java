@@ -22,8 +22,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.GeneratorManager;
+import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.kit.build.core.GavLabel;
+import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -573,7 +574,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
         log.info("Building Docker image");
         try {
-            return GeneratorManager.generate(configs, generatorContextBuilder().build(), false);
+            GeneratorManager generatorManager = new DefaultGeneratorManager(generatorContextBuilder().build());
+            return generatorManager.generate(configs, false);
         } catch (DependencyResolutionRequiredException de) {
             throw new IllegalArgumentException("Instructed to use project classpath, but cannot. Continuing build if we can: ", de);
         }
