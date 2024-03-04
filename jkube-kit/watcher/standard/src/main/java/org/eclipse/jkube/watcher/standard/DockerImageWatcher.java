@@ -22,7 +22,7 @@ import java.util.List;
 
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
-import org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter;
+import org.eclipse.jkube.kit.build.api.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchException;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;

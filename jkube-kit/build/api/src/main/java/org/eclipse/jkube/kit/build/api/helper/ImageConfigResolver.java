@@ -11,12 +11,11 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.config.handler;
+package org.eclipse.jkube.kit.build.api.helper;
 
 import java.util.*;
 
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 
