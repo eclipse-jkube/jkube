@@ -13,17 +13,16 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
+
 import java.io.File;
+import java.io.IOException;
 
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
-import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
-@Mojo(name = "helm-push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class OpenshiftHelmPushMojo extends HelmPushMojo {
+public abstract class AbstractHelmMojo extends AbstractJKubeMojo {
 
   /**
    * One of:
@@ -32,21 +31,32 @@ public class OpenshiftHelmPushMojo extends HelmPushMojo {
    * <li>A file containing a Kubernetes List with OpenShift Template entries to be used as Helm parameters.</li>
    * </ul>
    */
-  @Parameter(property = "jkube.openshiftTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/openshift")
-  private File openShiftTemplate;
+  @Parameter(property = "jkube.kubernetesTemplate", defaultValue = "${basedir}/target/classes/META-INF/jkube/kubernetes")
+  File kubernetesTemplate;
+
+  @Parameter
+  HelmConfig helm;
 
   @Override
+  public void init() throws MojoFailureException {
+    super.init();
+
+    try {
+      helm = initHelmConfig(getDefaultHelmType(), javaProject, getKubernetesTemplate(), helm).build();
+    } catch (IOException e) {
+      throw new MojoFailureException(e.getMessage(), e);
+    }
+  }
+
   protected File getKubernetesTemplate() {
-    return openShiftTemplate;
+    return kubernetesTemplate;
   }
 
-  @Override
   protected HelmConfig.HelmType getDefaultHelmType() {
-    return HelmConfig.HelmType.OPENSHIFT;
+    return HelmConfig.HelmType.KUBERNETES;
   }
 
-  @Override
-  protected String getLogPrefix() {
-    return OpenShift.DEFAULT_LOG_PREFIX;
+  protected HelmConfig getHelm() {
+    return helm;
   }
 }
