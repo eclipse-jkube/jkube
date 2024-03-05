@@ -18,22 +18,11 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
-import java.io.IOException;
-
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
-
 @Mojo(name = "helm-lint", defaultPhase = LifecyclePhase.INTEGRATION_TEST, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class HelmLintMojo extends HelmMojo {
+public class HelmLintMojo extends AbstractHelmMojo {
 
   @Override
   public void executeInternal() throws MojoExecutionException {
-    try {
-      helm = initHelmConfig(getDefaultHelmType(), javaProject, getKubernetesTemplate(), helm)
-        .build();
-      jkubeServiceHub.getHelmService().lint(helm);
-    } catch (IOException e) {
-      throw new MojoExecutionException(e.getMessage(), e);
-    }
-
+    jkubeServiceHub.getHelmService().lint(getHelm());
   }
 }

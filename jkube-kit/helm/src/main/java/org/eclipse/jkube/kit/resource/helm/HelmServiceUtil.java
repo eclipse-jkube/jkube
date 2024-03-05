@@ -120,16 +120,11 @@ public class HelmServiceUtil {
     return helmConfig.toBuilder();
   }
 
-  public static HelmConfig initHelmPushConfig(HelmConfig helmConfig, JavaProject project) {
-    if (helmConfig == null) {
-      helmConfig = new HelmConfig();
-    }
-
+  public static void initHelmPushConfig(HelmConfig helmConfig, JavaProject project) {
     helmConfig.setStableRepository(initHelmRepository(helmConfig.getStableRepository(), project, STABLE_REPOSITORY));
     helmConfig.setSnapshotRepository(initHelmRepository(helmConfig.getSnapshotRepository(), project, SNAPSHOT_REPOSITORY));
 
     helmConfig.setSecurity(resolveFromPropertyOrDefault(PROPERTY_SECURITY, project, helmConfig::getSecurity, () -> DEFAULT_SECURITY));
-    return helmConfig;
   }
 
   static HelmRepository initHelmRepository(HelmRepository helmRepository, JavaProject project, String repositoryType) {
