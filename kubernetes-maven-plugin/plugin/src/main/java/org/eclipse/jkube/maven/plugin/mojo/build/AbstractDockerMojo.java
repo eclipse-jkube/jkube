@@ -598,7 +598,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     public EnricherContext getEnricherContext() throws DependencyResolutionRequiredException {
         return JKubeEnricherContext.builder()
                 .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
-                .processorConfig(extractEnricherConfig())
+                .processorConfig(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), enricher))
                 .images(getResolvedImages())
                 .resources(resources)
                 .log(log)
@@ -608,29 +608,11 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     // Get generator context
     protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() throws DependencyResolutionRequiredException {
         return GeneratorContext.builder()
-                .config(extractGeneratorConfig())
+                .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator))
                 .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
                 .logger(log)
                 .runtimeMode(runtimeMode)
                 .useProjectClasspath(useProjectClasspath);
-    }
-
-    // Get generator config
-    protected ProcessorConfig extractGeneratorConfig() {
-        try {
-            return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
-        }
-    }
-
-    // Get enricher config
-    protected ProcessorConfig extractEnricherConfig() {
-        try {
-            return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), enricher);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Cannot extract enricher config: " + e, e);
-        }
     }
 
     /**

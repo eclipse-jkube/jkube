@@ -37,7 +37,6 @@ import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -173,7 +172,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected GeneratorContext.GeneratorContextBuilder initGeneratorContextBuilder() {
     return GeneratorContext.builder()
-        .config(extractGeneratorConfig())
+        .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfileOrNull(), ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()), kubernetesExtension.generator))
         .project(kubernetesExtension.javaProject)
         .logger(kitLogger)
         .runtimeMode(kubernetesExtension.getRuntimeMode())
@@ -191,14 +190,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         kubernetesExtension.getResourceEnvironmentOrNull());
   }
 
-
-  protected ProcessorConfig extractGeneratorConfig() {
-    try {
-      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfileOrNull(), ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()), kubernetesExtension.generator);
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
-    }
-  }
 
   protected List<ImageConfiguration> resolveImages(ImageConfigResolver imageConfigResolver) throws IOException {
     return initImageConfiguration(
