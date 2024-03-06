@@ -1,49 +1,7 @@
-/*
- * Copyright (c) 2019 Red Hat, Inc.
- * This program and the accompanying materials are made
- * available under the terms of the Eclipse Public License 2.0
- * which is available at:
- *
- *     https://www.eclipse.org/legal/epl-2.0/
- *
- * SPDX-License-Identifier: EPL-2.0
- *
- * Contributors:
- *   Red Hat, Inc. - initial API and implementation
- */
 package org.eclipse.jkube.maven.plugin.mojo.build;
-
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.nio.file.Path;
-import java.util.HashMap;
-
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
-import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
-import org.eclipse.jkube.kit.resource.helm.BadUploadException;
-import org.eclipse.jkube.kit.resource.helm.HelmConfig;
-import org.eclipse.jkube.kit.resource.helm.HelmRepository;
-import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
-import org.eclipse.jkube.kit.resource.helm.HelmService;
-import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.descriptor.MojoDescriptor;
-import org.apache.maven.project.MavenProject;
-import org.apache.maven.settings.Server;
-import org.apache.maven.settings.Settings;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-import org.mockito.MockedConstruction;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import org.mockito.AdditionalAnswers;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -53,13 +11,41 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class HelmPushMojoTest {
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.file.Path;
+import java.util.HashMap;
+
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Server;
+import org.apache.maven.settings.Settings;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.resource.helm.BadUploadException;
+import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.eclipse.jkube.kit.resource.helm.HelmRepository;
+import org.eclipse.jkube.kit.resource.helm.HelmRepository.HelmRepoType;
+import org.eclipse.jkube.kit.resource.helm.HelmService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.AdditionalAnswers;
+import org.mockito.MockedConstruction;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
+
+class OpenshiftHelmPushMojoTest {
   private PrintStream originalPrintStream;
   private ByteArrayOutputStream outputStream;
 
   @TempDir
   private Path projectDir;
-  private HelmPushMojo helmPushMojo;
+  private OpenshiftHelmPushMojo helmPushMojo;
   private MockedConstruction<HelmService> helmServiceMockedConstruction;
 
   @BeforeEach
@@ -70,7 +56,7 @@ class HelmPushMojoTest {
     outputStream = new ByteArrayOutputStream();
     System.setOut(new PrintStream(outputStream));
 
-    helmPushMojo = new HelmPushMojo();
+    helmPushMojo = new OpenshiftHelmPushMojo();
     helmPushMojo.helm = new HelmConfig();
     helmPushMojo.project = new MavenProject();
     helmPushMojo.settings = new Settings();
@@ -78,14 +64,14 @@ class HelmPushMojoTest {
     helmPushMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
     helmPushMojo.interpolateTemplateParameters = true;
     helmPushMojo.project.getBuild()
-    .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
+        .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     helmPushMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
     helmPushMojo.project.setFile(projectDir.resolve("target").toFile());
     helmPushMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
     helmPushMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
     helmPushMojo.mojoExecution.getMojoDescriptor().setGoal("helm-push");
     when(helmPushMojo.securityDispatcher.decrypt(anyString()))
-    .thenReturn(String.valueOf(AdditionalAnswers.returnsFirstArg()));
+        .thenReturn(String.valueOf(AdditionalAnswers.returnsFirstArg()));
   }
 
   @AfterEach
@@ -104,7 +90,7 @@ class HelmPushMojoTest {
     // When
     helmPushMojo.execute();
     // Then
-    assertThat(outputStream.toString()).contains("No Helm chart has been generated yet by the k8s:helm goal at: ");
+    assertThat(outputStream.toString()).contains("No Helm chart has been generated yet by the oc:helm goal at: ");
   }
 
   @Test
@@ -116,8 +102,8 @@ class HelmPushMojoTest {
     helmPushMojo.execute();
     // Then
     assertThat(helmPushMojo.helm)
-    .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml")
-    .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.ARTIFACTORY);
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.ARTIFACTORY);
     assertHelmServiceUpload(helmServiceMockedConstruction);
   }
 
@@ -133,8 +119,8 @@ class HelmPushMojoTest {
     final ThrowingCallable throwingCallable = () -> helmPushMojo.execute();
     // Then
     assertThatExceptionOfType(MojoExecutionException.class)
-    .isThrownBy(throwingCallable)
-    .withMessage("Error uploading helm chart");
+        .isThrownBy(throwingCallable)
+        .withMessage("Error uploading helm chart");
     assertThat(helmServiceMockedConstruction.constructed()).hasSize(1);
   }
 
@@ -151,12 +137,12 @@ class HelmPushMojoTest {
     helmPushMojo.execute();
     // Then
     assertThat(helmPushMojo.helm)
-    .hasFieldOrPropertyWithValue("snapshotRepository.name", "props repo")
-    .hasFieldOrPropertyWithValue("snapshotRepository.url", "http://example.com/url")
-    .hasFieldOrPropertyWithValue("snapshotRepository.username", "propsUser")
-    .hasFieldOrPropertyWithValue("snapshotRepository.password", "propS3cret")
-    .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.NEXUS)
-    .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml");
+        .hasFieldOrPropertyWithValue("snapshotRepository.name", "props repo")
+        .hasFieldOrPropertyWithValue("snapshotRepository.url", "http://example.com/url")
+        .hasFieldOrPropertyWithValue("snapshotRepository.username", "propsUser")
+        .hasFieldOrPropertyWithValue("snapshotRepository.password", "propS3cret")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.NEXUS)
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml");
     assertHelmServiceUpload(helmServiceMockedConstruction);
   }
 
@@ -170,12 +156,12 @@ class HelmPushMojoTest {
     helmPushMojo.execute();
     // Then
     assertThat(helmPushMojo.helm)
-    .hasFieldOrPropertyWithValue("snapshotRepository.name", "SNAP-REPO")
-    .hasFieldOrPropertyWithValue("snapshotRepository.url", "https://example.com/artifactory")
-    .hasFieldOrPropertyWithValue("snapshotRepository.username", "User")
-    .hasFieldOrPropertyWithValue("snapshotRepository.password", "propS3cret")
-    .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.ARTIFACTORY)
-    .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml");
+        .hasFieldOrPropertyWithValue("snapshotRepository.name", "SNAP-REPO")
+        .hasFieldOrPropertyWithValue("snapshotRepository.url", "https://example.com/artifactory")
+        .hasFieldOrPropertyWithValue("snapshotRepository.username", "User")
+        .hasFieldOrPropertyWithValue("snapshotRepository.password", "propS3cret")
+        .hasFieldOrPropertyWithValue("snapshotRepository.type", HelmRepoType.ARTIFACTORY)
+        .hasFieldOrPropertyWithValue("security", "~/.m2/settings-security.xml");
     assertHelmServiceUpload(helmServiceMockedConstruction);
   }
 
@@ -188,8 +174,8 @@ class HelmPushMojoTest {
     helmPushMojo.execute();
     // Then
     assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getRegistryConfig().getSettings()).singleElement()
-    .isEqualTo(RegistryServerConfiguration.builder()
-        .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
+        .isEqualTo(RegistryServerConfiguration.builder()
+            .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
     assertThat(helmServiceMockedConstruction.constructed()).hasSize(1);
     verify(helmServiceMockedConstruction.constructed().get(0), times(1)).uploadHelmChart(helmPushMojo.helm);
   }
@@ -216,7 +202,7 @@ class HelmPushMojoTest {
 
   private void assertHelmServiceUpload(MockedConstruction<HelmService> helmServiceMockedConstruction) throws Exception {
     assertThat(helmServiceMockedConstruction.constructed()).hasSize(1);
-    verify(helmServiceMockedConstruction.constructed().get(0),times(1)).uploadHelmChart(helmPushMojo.helm);
+    verify(helmServiceMockedConstruction.constructed().get(0), times(1)).uploadHelmChart(helmPushMojo.helm);
   }
 
   private static HelmRepository completeValidRepository() {

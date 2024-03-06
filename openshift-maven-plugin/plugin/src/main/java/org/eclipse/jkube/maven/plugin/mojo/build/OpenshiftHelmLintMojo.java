@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 import java.io.File;
+import java.nio.file.Path;
 
 @Mojo(name = "helm-lint", defaultPhase = LifecyclePhase.INTEGRATION_TEST, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class OpenshiftHelmLintMojo extends HelmLintMojo {
@@ -49,5 +50,10 @@ public class OpenshiftHelmLintMojo extends HelmLintMojo {
   @Override
   protected String getLogPrefix() {
     return OpenShift.DEFAULT_LOG_PREFIX;
+  }
+
+  @Override
+  protected void logChartNotFoundWarning(final Path chart) {
+    getKitLogger().warn("No Helm chart has been generated yet by the oc:helm goal at: " + chart);
   }
 }

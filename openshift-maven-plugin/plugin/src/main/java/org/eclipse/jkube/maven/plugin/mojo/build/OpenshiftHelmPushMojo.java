@@ -14,6 +14,7 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.io.File;
+import java.nio.file.Path;
 
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -48,5 +49,10 @@ public class OpenshiftHelmPushMojo extends HelmPushMojo {
   @Override
   protected String getLogPrefix() {
     return OpenShift.DEFAULT_LOG_PREFIX;
+  }
+
+  @Override
+  protected void logChartNotFoundWarning(final Path chart) {
+    getKitLogger().warn("No Helm chart has been generated yet by the oc:helm goal at: " + chart);
   }
 }

@@ -108,7 +108,7 @@ public class HelmServiceUtil {
     helmConfig.setSourceDir(resolveFromPropertyOrDefault(PROPERTY_SOURCE_DIR, project, helmConfig::getSourceDir,
         () -> separatorsToSystem(String.format("%s/META-INF/jkube/", project.getOutputDirectory()))));
     helmConfig.setOutputDir(resolveFromPropertyOrDefault(PROPERTY_OUTPUT_DIR, project, helmConfig::getOutputDir,
-      () -> separatorsToSystem(String.format("%s/jkube/helm/%s", project.getBuildDirectory(), helmConfig.getChart()))));
+        () -> separatorsToSystem(String.format("%s/jkube/helm/%s", project.getBuildDirectory(), helmConfig.getChart()))));
     helmConfig.setIcon(resolveFromPropertyOrDefault(PROPERTY_ICON, project, helmConfig::getIcon,
         () -> findIconURL(new File(helmConfig.getSourceDir()), helmConfig.getTypes())));
     helmConfig.setAppVersion(resolveFromPropertyOrDefault(PROPERTY_APP_VERSION, project, helmConfig::getAppVersion, project::getVersion));
@@ -134,25 +134,25 @@ public class HelmServiceUtil {
     }
 
     resolvedHelmRepository.setType(resolveFromPropertyOrDefault(String.format(PROPERTY_UPLOAD_REPO_TYPE, repositoryType), project,
-      resolvedHelmRepository::getTypeAsString, null));
+        resolvedHelmRepository::getTypeAsString, null));
     resolvedHelmRepository.setName(resolveFromPropertyOrDefault(String.format(PROPERTY_UPLOAD_REPO_NAME, repositoryType), project,
-      resolvedHelmRepository::getName, null));
+        resolvedHelmRepository::getName, null));
     resolvedHelmRepository.setUrl(resolveFromPropertyOrDefault(String.format(PROPERTY_UPLOAD_REPO_URL, repositoryType), project,
-      resolvedHelmRepository::getUrl, null));
+        resolvedHelmRepository::getUrl, null));
     resolvedHelmRepository.setUsername(resolveFromPropertyOrDefault(String.format(PROPERTY_UPLOAD_REPO_USERNAME, repositoryType), project,
-      resolvedHelmRepository::getUsername,  null));
+        resolvedHelmRepository::getUsername,  null));
     resolvedHelmRepository.setPassword(resolveFromPropertyOrDefault(String.format(PROPERTY_UPLOAD_REPO_PASSWORD, repositoryType), project,
-      resolvedHelmRepository::getPassword, null));
+        resolvedHelmRepository::getPassword, null));
 
     return resolvedHelmRepository;
   }
 
   static List<HelmConfig.HelmType> resolveHelmTypes(HelmConfig.HelmType defaultHelmType, JavaProject project) {
     final List<HelmConfig.HelmType> helmTypes = Optional.ofNullable(getProperty(PROPERTY_TYPE, project))
-      .filter(StringUtils::isNotBlank)
-      .map(types -> StringUtils.split(types, ","))
-      .map(Stream::of)
-      .map(s -> s.map(prop -> HelmConfig.HelmType.valueOf(prop.trim().toUpperCase())).collect(Collectors.toList())).orElse(null);
+        .filter(StringUtils::isNotBlank)
+        .map(types -> StringUtils.split(types, ","))
+        .map(Stream::of)
+        .map(s -> s.map(prop -> HelmConfig.HelmType.valueOf(prop.trim().toUpperCase())).collect(Collectors.toList())).orElse(null);
     if (helmTypes == null || helmTypes.isEmpty()) {
       return Collections.singletonList(defaultHelmType);
     }
@@ -161,17 +161,17 @@ public class HelmServiceUtil {
 
   static String resolveFromPropertyOrDefault(String property, JavaProject project, Supplier<String> getter, Supplier<String> defaultValue) {
     return Optional.ofNullable(getProperty(property, project))
-      .filter(StringUtils::isNotBlank)
-      .orElse(Optional.ofNullable(getter.get())
         .filter(StringUtils::isNotBlank)
-        .orElseGet(defaultValue == null ? () -> null : defaultValue));
+        .orElse(Optional.ofNullable(getter.get())
+            .filter(StringUtils::isNotBlank)
+            .orElseGet(defaultValue == null ? () -> null : defaultValue));
   }
 
   static boolean resolveBooleanFromPropertyOrDefault(String property, JavaProject project, BooleanSupplier getter) {
     return Optional.ofNullable(getProperty(property, project))
-      .filter(StringUtils::isNotBlank)
-      .map(Boolean::parseBoolean)
-      .orElse(getter.getAsBoolean());
+        .filter(StringUtils::isNotBlank)
+        .map(Boolean::parseBoolean)
+        .orElse(getter.getAsBoolean());
   }
 
   static List<File> getAdditionalFiles(HelmConfig helm, JavaProject project) {
@@ -191,8 +191,8 @@ public class HelmServiceUtil {
       return lower.equalsIgnoreCase(fileName) || lower.startsWith(fileName.toLowerCase() + ".");
     };
     return Optional.ofNullable(project.getBaseDirectory().listFiles(filter))
-      .filter(files -> files.length > 0)
-      .map(files -> files[0]);
+        .filter(files -> files.length > 0)
+        .map(files -> files[0]);
   }
 
   static String findIconURL(File directory, Collection<HelmConfig.HelmType> types) {
@@ -232,26 +232,29 @@ public class HelmServiceUtil {
     final File[] sourceFiles;
     if (templateDir != null && templateDir.isDirectory()) {
       sourceFiles = templateDir.listFiles((dir, filename) ->
-              filename.toLowerCase(Locale.ROOT).endsWith("-template.yml") ||
-              filename.toLowerCase(Locale.ROOT).endsWith("-template.yaml"));
+      filename.toLowerCase(Locale.ROOT).endsWith("-template.yml") ||
+      filename.toLowerCase(Locale.ROOT).endsWith("-template.yaml"));
     } else if (templateDir != null) {
       sourceFiles = new File[] { templateDir };
     } else {
       sourceFiles = new File[0];
     }
     for (File sourceFile : Objects
-      .requireNonNull(sourceFiles, "No template files found in the provided directory")) {
+        .requireNonNull(sourceFiles, "No template files found in the provided directory")) {
+      if (!sourceFile.exists()) {
+        continue;
+      }
       final KubernetesResource dto = Serialization.unmarshal(sourceFile);
       if (dto instanceof Template) {
         ret.add((Template) dto);
       } else if (dto instanceof KubernetesList) {
         Optional.ofNullable(((KubernetesList)dto).getItems())
-          .map(List::stream)
-          .map(items -> items.filter(Template.class::isInstance)
+        .map(List::stream)
+        .map(items -> items.filter(Template.class::isInstance)
             .map(Template.class::cast)
             .collect(Collectors.toList())
-          )
-          .ifPresent(ret::addAll);
+            )
+        .ifPresent(ret::addAll);
       }
     }
     return ret;
@@ -266,9 +269,9 @@ public class HelmServiceUtil {
 
   static boolean isRepositoryValid(HelmRepository repository) {
     return repository != null
-      && repository.getType() != null
-      && StringUtils.isNotBlank(repository.getName())
-      && StringUtils.isNotBlank(repository.getUrl());
+        && repository.getType() != null
+        && StringUtils.isNotBlank(repository.getName())
+        && StringUtils.isNotBlank(repository.getUrl());
   }
 
   static void setAuthentication(HelmRepository repository, KitLogger logger, List<RegistryServerConfiguration> registryServerConfigurations, UnaryOperator<String> passwordDecrypter)  {
@@ -282,19 +285,19 @@ public class HelmServiceUtil {
     } else {
 
       RegistryServerConfiguration server = registryServerConfigurations.stream()
-        .filter(r -> r.getId().equals(id))
-        .findAny()
-        .orElse(null);
+          .filter(r -> r.getId().equals(id))
+          .findAny()
+          .orElse(null);
       if (server == null) {
         throw new IllegalArgumentException(
-          "No credentials found for " + id + " in configuration or settings.xml server list.");
+            "No credentials found for " + id + " in configuration or settings.xml server list.");
       } else {
 
         logger.debug("Use credentials from server list for " + id + ".");
         if (server.getUsername() == null || server.getPassword() == null) {
           throw new IllegalArgumentException("Repo "
-            + id
-            + " was found in server list but has no username/password.");
+              + id
+              + " was found in server list but has no username/password.");
         }
         repository.setUsername(server.getUsername());
         repository.setPassword(passwordDecrypter.apply(server.getPassword()));
