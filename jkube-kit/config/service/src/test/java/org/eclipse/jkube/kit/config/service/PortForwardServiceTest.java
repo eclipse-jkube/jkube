@@ -51,7 +51,7 @@ class PortForwardServiceTest {
     private KitLogger logger;
 
     @BeforeEach
-    public void setUp() throws Exception{
+    public void setUp() {
         logger = new KitLogger.SilentLogger();
     }
 
