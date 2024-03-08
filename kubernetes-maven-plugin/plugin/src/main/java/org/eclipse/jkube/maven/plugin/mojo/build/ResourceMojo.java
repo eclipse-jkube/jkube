@@ -249,7 +249,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
         return jkubeServiceHub.getResourceService().generateResources(getPlatformMode(), enricherManager, log);
     }
 
-    private ProcessorConfig extractEnricherConfig() throws IOException {
+    private ProcessorConfig extractEnricherConfig() {
         return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile,
           jkubeServiceHub.getResourceServiceConfig().getResourceDirs(), enricher);
     }
