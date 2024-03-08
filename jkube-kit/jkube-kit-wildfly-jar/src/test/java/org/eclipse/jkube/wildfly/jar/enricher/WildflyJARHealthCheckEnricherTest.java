@@ -50,7 +50,7 @@ class WildflyJARHealthCheckEnricherTest {
     private JavaProject project;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    public void setUp() {
         context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
         project = mock(JavaProject.class);
         when(context.getProject()).thenReturn(project);
