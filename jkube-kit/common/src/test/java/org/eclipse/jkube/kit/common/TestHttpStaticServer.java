@@ -45,7 +45,7 @@ public class TestHttpStaticServer implements Closeable {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     log.info("Stopping server");
     getServer().stop(0);
   }
