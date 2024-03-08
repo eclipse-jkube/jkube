@@ -53,18 +53,6 @@ class KubernetesHelmTaskTest {
   }
 
   @Test
-  void runTask_withNoTemplateDir_shouldThrowException() {
-    // Given
-    KubernetesHelmTask kubernetesHelmTask = new KubernetesHelmTask(KubernetesExtension.class);
-
-    // When & Then
-    assertThatIllegalStateException()
-        .isThrownBy(kubernetesHelmTask::runTask)
-        .withMessageContaining("META-INF/jkube/kubernetes")
-        .withCauseInstanceOf(NoSuchFileException.class);
-  }
-
-  @Test
   void runTask_withTemplateDir_shouldCallHelmService() throws IOException {
     // Given
     taskEnvironment.withKubernetesTemplate();

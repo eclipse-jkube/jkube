@@ -53,18 +53,6 @@ class KubernetesHelmPushTaskTest {
   }
 
   @Test
-  void runTask_withNoTemplateDir_shouldThrowException() {
-    // Given
-    KubernetesHelmPushTask kubernetesHelmPushTask = new KubernetesHelmPushTask(KubernetesExtension.class);
-
-    // When & Then
-    assertThatIllegalStateException()
-        .isThrownBy(kubernetesHelmPushTask::runTask)
-        .withMessageContaining("META-INF/jkube/kubernetes")
-        .withCauseInstanceOf(NoSuchFileException.class);
-  }
-
-  @Test
   void runTask_withTemplateDir_shouldCallHelmService() throws IOException, BadUploadException {
     // Given
     taskEnvironment.withKubernetesTemplate();

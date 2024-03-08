@@ -97,7 +97,7 @@ class HelmPushMojoTest {
   }
 
   @Test
-  void execute_withMissingHelmPackage_shouldThrowException() throws MojoExecutionException, MojoFailureException {
+  void execute_withMissingHelmPackage_shouldGenerateWarning() throws MojoExecutionException, MojoFailureException {
     // Given
     helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
     helmPushMojo.project.setVersion("1337-SNAPSHOT");
