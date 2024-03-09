@@ -254,7 +254,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
           jkubeServiceHub.getResourceServiceConfig().getResourceDirs(), enricher);
     }
 
-    private ProcessorConfig extractGeneratorConfig() throws IOException {
+    private ProcessorConfig extractGeneratorConfig(){
         return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile,
           jkubeServiceHub.getResourceServiceConfig().getResourceDirs(), generator);
     }
