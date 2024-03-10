@@ -34,7 +34,7 @@ public class RemoteDevMojo extends AbstractJKubeMojo {
   protected RemoteDevelopmentConfig remoteDevelopment;
 
   @Override
-  public void executeInternal() throws MojoExecutionException, MojoFailureException {
+  public void executeInternal(){
     final RemoteDevelopmentService remoteDevelopmentService =
       new RemoteDevelopmentService(jkubeServiceHub.getLog(), jkubeServiceHub.getClient(), remoteDevelopment);
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
