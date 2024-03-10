@@ -33,7 +33,7 @@ final class NpipeConnectionSocketFactory extends AbstractNativeSocketFactory {
     }
 
     @Override
-    public Socket createSocket(HttpContext context) throws IOException {
+    public Socket createSocket(HttpContext context){
         return new NamedPipe(log);
     }
 
