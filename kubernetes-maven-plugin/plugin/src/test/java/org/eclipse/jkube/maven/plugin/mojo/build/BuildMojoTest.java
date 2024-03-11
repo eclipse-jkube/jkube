@@ -22,7 +22,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -53,7 +52,7 @@ class BuildMojoTest {
         BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder = buildMojo.buildServiceConfigBuilder();
         // Then
         assertThat(buildServiceConfigBuilder.build()).isNotNull()
-            .returns(new File("src/main/jkube"), c -> c.getResourceDir())
+            .returns(new File("src/main/jkube"), BuildServiceConfig::getResourceDir)
             .extracting(BuildServiceConfig::getResourceConfig)
             .extracting(ResourceConfig::getOpenshiftBuildConfig)
             .returns("200m", c -> c.getLimits().get("cpu"))
