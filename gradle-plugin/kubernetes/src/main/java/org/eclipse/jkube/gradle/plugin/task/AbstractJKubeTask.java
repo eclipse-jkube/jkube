@@ -171,6 +171,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .logger(kitLogger)
         .runtimeMode(kubernetesExtension.getRuntimeMode())
         .strategy(kubernetesExtension.getBuildStrategyOrDefault())
+        .prePackagePhase(false)
         .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault());
   }
 
@@ -192,7 +193,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         kubernetesExtension.images, imageConfigResolver, kitLogger,
       kubernetesExtension.getFilter().getOrNull(),
       new DefaultGeneratorManager(initGeneratorContextBuilder().build()),
-      false,
       jKubeServiceHub.getConfiguration());
   }
 

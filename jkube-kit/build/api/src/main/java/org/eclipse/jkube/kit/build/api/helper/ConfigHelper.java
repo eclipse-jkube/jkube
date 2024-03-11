@@ -60,17 +60,15 @@ public class ConfigHelper {
      * @param imageResolver the resolver used to extend on an image configuration
      * @param imageNameFilter filter to select only certain image configurations with the given name
      * @param generatorManager for applying generators on image configurations
-     * @param isPrePackagePhase  whether no artifacts have been packaged in build output directory.
      * @return a list of resolved and customized image configuration.
      */
     private static List<ImageConfiguration> resolveImages(KitLogger logger,
                                                          List<ImageConfiguration> images,
                                                          Resolver imageResolver,
                                                          String imageNameFilter,
-                                                         GeneratorManager generatorManager,
-                                                         boolean isPrePackagePhase) {
+                                                         GeneratorManager generatorManager) {
         List<ImageConfiguration> ret = resolveConfiguration(imageResolver, images);
-        ret = generatorManager.generate(ret, isPrePackagePhase);
+        ret = generatorManager.generate(ret);
         final List<ImageConfiguration> filtered =  filterImages(imageNameFilter,ret);
         if (!ret.isEmpty() && filtered.isEmpty() && imageNameFilter != null) {
             final List<String> imageNames = ret.stream().map(ImageConfiguration::getName).collect(Collectors.toList());
@@ -166,7 +164,7 @@ public class ConfigHelper {
         }
     }
 
-    public static List<ImageConfiguration> initImageConfiguration(Date buildTimeStamp, List<ImageConfiguration> unresolvedImages, ImageConfigResolver imageConfigResolver, KitLogger log, String filter, GeneratorManager generatorManager, boolean isPrePackagePhase, JKubeConfiguration jKubeConfiguration) {
+    public static List<ImageConfiguration> initImageConfiguration(Date buildTimeStamp, List<ImageConfiguration> unresolvedImages, ImageConfigResolver imageConfigResolver, KitLogger log, String filter, GeneratorManager generatorManager, JKubeConfiguration jKubeConfiguration) {
         final ImageNameFormatter imageNameFormatter = new ImageNameFormatter(jKubeConfiguration.getProject(), buildTimeStamp);
         // Resolve images
         final List<ImageConfiguration> resolvedImages = ConfigHelper.resolveImages(
@@ -174,8 +172,7 @@ public class ConfigHelper {
                 unresolvedImages,
                 (ImageConfiguration image) -> imageConfigResolver.resolve(image, jKubeConfiguration.getProject()),
                 filter,                   // A filter which image to process
-                generatorManager,         // GeneratorManager which will invoke generators
-                isPrePackagePhase);
+                generatorManager);        // GeneratorManager which will invoke generator
 
         // Check for simple Dockerfile mode
         ImageConfiguration dockerFileImageConfig = createImageConfigurationForSimpleDockerfile(resolvedImages, jKubeConfiguration, imageNameFormatter);

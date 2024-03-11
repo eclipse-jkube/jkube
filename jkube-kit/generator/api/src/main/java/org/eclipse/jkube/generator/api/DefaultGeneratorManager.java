@@ -39,7 +39,7 @@ public class DefaultGeneratorManager implements GeneratorManager {
   }
 
   @Override
-  public List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs, boolean prePackagePhase) {
+  public List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs) {
 
     final PluginServiceFactory<GeneratorContext> pluginFactory = new PluginServiceFactory<>(genCtx);
     if (genCtx.isUseProjectClasspath()) {
@@ -56,7 +56,7 @@ public class DefaultGeneratorManager implements GeneratorManager {
       log.verbose(" - %s", generator.getName());
       if (generator.isApplicable(ret)) {
         log.info("Running generator %s", generator.getName());
-        ret = generator.customize(ret, prePackagePhase);
+        ret = generator.customize(ret, genCtx.isPrePackagePhase());
       }
     }
     return ret;

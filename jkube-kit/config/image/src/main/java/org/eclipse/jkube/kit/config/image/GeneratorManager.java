@@ -20,8 +20,7 @@ public interface GeneratorManager {
    * Customize a given list of image configurations
    *
    * @param imageConfigs list of image configurations
-   * @param prePackagePhase if true this is called in a prepackage phase where no artifacts has been packaged in target/.
    * @return Modified list of image configurations
    */
-  List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs, boolean prePackagePhase);
+  List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs);
 }
