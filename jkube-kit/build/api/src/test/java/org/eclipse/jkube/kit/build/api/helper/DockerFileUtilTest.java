@@ -84,7 +84,7 @@ class DockerFileUtilTest {
     }
 
     private File copyToTempDir(String resource) throws IOException {
-      File ret = new File(tempDir, "Dockerfile");
+        File ret = new File(tempDir, "Dockerfile");
         try (OutputStream os = Files.newOutputStream(ret.toPath())) {
             FileUtils.copyFile(new File(getClass().getResource(resource).getPath()), os);
         }
