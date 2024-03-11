@@ -275,10 +275,11 @@ class DockerFileUtilTest {
     }
 
     @Test
-    void readDockerConfig_fromUserDir(@TempDir Path home) throws IOException {
+    void readDockerConfig_fromUserDir() throws IOException {
         final String original = System.getProperty("user.home");
         try {
             // Given
+            Path home = tempDir.toPath();
             System.setProperty("user.home", home.toFile().getAbsolutePath());
             Files.createDirectories(home.resolve(".docker"));
             Files.write(home.resolve(".docker").resolve("config.json"),
@@ -294,10 +295,11 @@ class DockerFileUtilTest {
     }
 
     @Test
-    void readDockerConfig_fromEnvVariable(@TempDir Path dockerConfig) throws IOException {
+    void readDockerConfig_fromEnvVariable() throws IOException {
         final String original = System.getProperty("user.home");
         try {
             // Given
+            Path dockerConfig = tempDir.toPath();
             final Map<String, String> env = Collections.singletonMap("DOCKER_CONFIG", dockerConfig.toFile().getAbsolutePath());
             EnvUtil.overrideEnvGetter(env::get);
             System.clearProperty("user.home");
@@ -313,11 +315,11 @@ class DockerFileUtilTest {
         }
     }
     @Test
-    void readDockerConfig_fromMissing(@TempDir Path home) {
+    void readDockerConfig_fromMissing() {
         final String original = System.getProperty("user.home");
         try {
             // Given
-            System.setProperty("user.home", home.toFile().getAbsolutePath());
+            System.setProperty("user.home", tempDir.toPath().toFile().getAbsolutePath());
             // When
             final Map<String, Object> config = DockerFileUtil.readDockerConfig();
             // Then
