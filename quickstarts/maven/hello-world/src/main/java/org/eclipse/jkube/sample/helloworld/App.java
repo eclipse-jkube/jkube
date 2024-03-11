@@ -14,10 +14,47 @@
 package org.eclipse.jkube.sample.helloworld;
 
 /**
- * Hello world!
+ * @Author: Wayne Kirimi
  */
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
+import java.net.InetSocketAddress;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.logging.Logger;
+
 public class App {
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
+    private static final Logger log = Logger.getLogger(App.class.getSimpleName());
+    private static int PORT = 8081;
+    public static void main(String[] args) throws IOException {
+
+        try {
+            HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+            server.createContext("/hello", new RootHandler());
+            server.setExecutor(null);
+            server.start();
+            log.info("Server started on port: " + PORT);
+        } catch (IOException e) {
+            log.severe("Error occured when starting server: " + e.getMessage());
+        }
+    }
+
+    static class RootHandler implements HttpHandler{
+        @Override
+        public void handle(HttpExchange exchange) throws IOException{
+            try {
+                log.info("GET /hello");
+                String response = "Hello World";
+                exchange.sendResponseHeaders(200, response.length());
+                exchange.getResponseHeaders().set("Content-Type", "text/plain");
+                OutputStream outputStream = exchange.getResponseBody();
+                outputStream.write(response.getBytes());
+                log.info("Response received successfully: " + response);
+                outputStream.close();
+            }catch (IOException e){
+                log.severe("Server failed to respond: " + e.getMessage());
+            }
+        }
     }
 }
