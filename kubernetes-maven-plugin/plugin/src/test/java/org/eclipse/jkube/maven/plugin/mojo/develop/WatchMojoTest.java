@@ -84,6 +84,7 @@ class WatchMojoTest {
     when(mavenProject.getCompileClasspathElements()).thenReturn(Collections.emptyList());
     when(mavenProject.getDependencies()).thenReturn(Collections.emptyList());
     when(mavenProject.getDevelopers()).thenReturn(Collections.emptyList());
+    when(mavenProject.getBasedir()).thenReturn(temporaryFolder.toFile());
     when(mavenProject.getBuild().getDirectory()).thenReturn(targetDir.getAbsolutePath());
     when(mavenProject.getBuild().getOutputDirectory()).thenReturn(targetDir.getAbsolutePath());
     mavenSettings = mock(Settings.class);

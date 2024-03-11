@@ -328,23 +328,6 @@ class BaseGeneratorTest {
   }
 
   @Test
-  @DisplayName("should not add default image in case of simple dockerfile")
-  void shouldNotAddDefaultImageInCaseOfSimpleDockerfile(@TempDir Path folder) throws IOException {
-    // Given
-    File projectBaseDir = Files.createDirectory(folder.resolve("test-project-dir")).toFile();
-    File dockerFile = new File(projectBaseDir, "Dockerfile");
-    boolean isTestDockerfileCreated = dockerFile.createNewFile();
-    when(ctx.getProject()).thenReturn(project);
-    when(project.getBaseDirectory()).thenReturn(projectBaseDir);
-    // When
-    BaseGenerator generator = createGenerator(null);
-
-    // Then
-    assertThat(isTestDockerfileCreated).isTrue();
-    assertThat(generator.shouldAddGeneratedImageConfiguration(Collections.emptyList())).isFalse();
-  }
-
-  @Test
   @DisplayName("should add generated image configuration when add enabled via config, should return true")
   void shouldAddGeneratedImageConfiguration_whenAddEnabledViaConfig_shouldReturnTrue() {
     // Given

@@ -26,7 +26,6 @@ import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.Generator;
 import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
@@ -215,10 +214,6 @@ public abstract class BaseGenerator implements Generator {
     }
 
     protected boolean shouldAddGeneratedImageConfiguration(List<ImageConfiguration> configs) {
-        if (getProject() != null && getProject().getBaseDirectory() != null && getProject().getBaseDirectory().exists()
-              && DockerFileUtil.isSimpleDockerFileMode(getContext().getProject().getBaseDirectory())) {
-            return false;
-        }
         if (containsBuildConfiguration(configs)) {
             return Boolean.parseBoolean(getConfigWithFallback(Config.ADD, "jkube.generator.add", "false"));
         }

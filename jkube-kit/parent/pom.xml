@@ -252,6 +252,12 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-generator-dockerfile-simple</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-enricher-api</artifactId>
         <version>${project.version}</version>
       </dependency>

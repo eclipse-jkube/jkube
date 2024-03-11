@@ -23,7 +23,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -32,12 +31,6 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.addSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.createSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.getTopLevelDockerfile;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.isSimpleDockerFileMode;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
 
 /**
  * Utility class which helps in resolving, customizing, initializing and validating
@@ -174,16 +167,6 @@ public class ConfigHelper {
                 filter,                   // A filter which image to process
                 generatorManager);        // GeneratorManager which will invoke generator
 
-        // Check for simple Dockerfile mode
-        ImageConfiguration dockerFileImageConfig = createImageConfigurationForSimpleDockerfile(resolvedImages, jKubeConfiguration, imageNameFormatter);
-        if (dockerFileImageConfig != null) {
-            if (resolvedImages.isEmpty()) {
-                resolvedImages.add(dockerFileImageConfig);
-            } else {
-                resolvedImages.set(0, dockerFileImageConfig);
-            }
-        }
-
         // Init and validate Image configurations. After this step, getResolvedImages() contains the valid configuration.
         for (ImageConfiguration imageConfiguration : resolvedImages) {
             imageConfiguration.setName(imageNameFormatter.format(imageConfiguration.getName()));
@@ -194,20 +177,6 @@ public class ConfigHelper {
         }
 
         return resolvedImages;
-    }
-
-    private static ImageConfiguration createImageConfigurationForSimpleDockerfile(List<ImageConfiguration> resolvedImages, JKubeConfiguration jKubeConfiguration, ImageNameFormatter imageNameFormatter) {
-        if (isSimpleDockerFileMode(jKubeConfiguration.getBasedir())) {
-            File topDockerfile = getTopLevelDockerfile(jKubeConfiguration.getBasedir());
-            String defaultImageName = imageNameFormatter.format(getValueFromProperties(jKubeConfiguration.getProject().getProperties(),
-                "jkube.image.name", "jkube.generator.name"));
-            if (resolvedImages.isEmpty()) {
-                return createSimpleDockerfileConfig(topDockerfile, defaultImageName);
-            } else if (resolvedImages.size() == 1 && resolvedImages.get(0).getBuildConfiguration() == null) {
-                return addSimpleDockerfileConfig(resolvedImages.get(0), topDockerfile);
-            }
-        }
-        return null;
     }
 
     // =========================================================================

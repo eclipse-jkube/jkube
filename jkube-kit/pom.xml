@@ -47,6 +47,7 @@
       <module>generator/java-exec</module>
       <module>generator/karaf</module>
       <module>generator/webapp</module>
+      <module>generator/dockerfile-simple</module>
       <module>enricher/api</module>
       <module>enricher/generic</module>
       <module>enricher/specific</module>

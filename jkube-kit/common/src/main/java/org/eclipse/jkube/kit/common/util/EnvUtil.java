@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.common.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.common.JKubeException;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -446,7 +447,7 @@ public class EnvUtil {
       }
     }
 
-    public static Date loadTimestamp(File tsFile) throws IOException {
+    public static Date loadTimestamp(File tsFile) {
         try {
             if (tsFile.exists()) {
                 final String ts = new String(Files.readAllBytes(tsFile.toPath()), StandardCharsets.US_ASCII);
@@ -455,7 +456,7 @@ public class EnvUtil {
                 return null;
             }
         } catch (IOException e) {
-            throw new IOException("Cannot read timestamp " + tsFile, e);
+            throw JKubeException.launderThrowable("Cannot read timestamp " + tsFile, e);
         }
     }
 

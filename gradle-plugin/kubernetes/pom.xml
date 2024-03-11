@@ -72,6 +72,12 @@
             <artifactId>jkube-kit-generator-java-exec</artifactId>
             <version>${jkube.kit.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-generator-dockerfile-simple</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-generator-karaf</artifactId>

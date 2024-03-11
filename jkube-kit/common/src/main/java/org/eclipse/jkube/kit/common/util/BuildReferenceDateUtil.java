@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
@@ -22,7 +21,7 @@ import java.util.Optional;
 public class BuildReferenceDateUtil {
   private BuildReferenceDateUtil() { }
 
-  static Date getBuildReferenceDate(String buildDirectory, String dockerBuildTimestampFile) throws IOException {
+  static Date getBuildReferenceDate(String buildDirectory, String dockerBuildTimestampFile) {
     return Optional.ofNullable(EnvUtil.loadTimestamp(getBuildTimestampFile(buildDirectory, dockerBuildTimestampFile)))
         .orElse(new Date());
   }
@@ -40,10 +39,9 @@ public class BuildReferenceDateUtil {
    * @param projectBuildDir project's build directory
    * @param dockerBuildTimestampFile docker build timestamp file
    * @return timestamp to use
-   * @throws IOException If failure in reading build timestamp file
    */
   public static Date getBuildTimestamp(Map<String, Object> pluginContext, String buildTimestampContextKey,
-                                                    String projectBuildDir, String dockerBuildTimestampFile) throws IOException {
+                                                    String projectBuildDir, String dockerBuildTimestampFile) {
     Date now = (Date) (pluginContext != null ? pluginContext.get(buildTimestampContextKey) : null);
     if (now == null) {
       now = getBuildReferenceDate(projectBuildDir, dockerBuildTimestampFile);
