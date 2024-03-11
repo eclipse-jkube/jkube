@@ -51,6 +51,9 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
  */
 class DockerFileUtilTest {
 
+    @TempDir
+    private File tempDir;
+
     @Test
     void simple() throws Exception {
         File toTest = copyToTempDir("Dockerfile_from_simple");
@@ -81,9 +84,8 @@ class DockerFileUtilTest {
     }
 
     private File copyToTempDir(String resource) throws IOException {
-        File dir = Files.createTempDirectory("d-m-p").toFile();
-        File ret = new File(dir, "Dockerfile");
-        try (OutputStream os = new FileOutputStream(ret)) {
+      File ret = new File(tempDir, "Dockerfile");
+        try (OutputStream os = Files.newOutputStream(ret.toPath())) {
             FileUtils.copyFile(new File(getClass().getResource(resource).getPath()), os);
         }
         return ret;
