@@ -30,20 +30,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-class HelmLintMojoTest {
+class OpenshiftHelmLintMojoTest {
 
   @TempDir
   private Path projectDir;
   private PrintStream originalPrintStream;
   private ByteArrayOutputStream outputStream;
-  private HelmLintMojo helmLintMojo;
+  private OpenshiftHelmLintMojo helmLintMojo;
 
   @BeforeEach
   void setUp() {
     originalPrintStream = System.out;
     outputStream = new ByteArrayOutputStream();
     System.setOut(new PrintStream(outputStream));
-    helmLintMojo = new HelmLintMojo();
+    helmLintMojo = new OpenshiftHelmLintMojo();
 
     helmLintMojo.helm = HelmConfig.builder().chartExtension("tgz").build();
     helmLintMojo.interpolateTemplateParameters = true;
@@ -68,7 +68,7 @@ class HelmLintMojoTest {
     .isInstanceOf(JKubeException.class)
     .hasMessage("Linting failed");
     assertThat(outputStream.toString())
-    .contains("No Helm chart has been generated yet by the k8s:helm goal at: ")
+    .contains("No Helm chart has been generated yet by the oc:helm goal at: ")
     .contains("Linting empty-project 0.1.0\n")
     .contains("Using packaged file:")
     .contains("[[W]]Error unable to open tarball:");
@@ -77,7 +77,10 @@ class HelmLintMojoTest {
   @Test
   void execute_withHelmPackage_shouldSucceed() throws Exception {
     Helm.create().withDir(projectDir).withName("empty-project").call()
-    .packageIt().withDestination(projectDir.resolve("target").resolve("jkube").resolve("helm").resolve("empty-project").resolve("kubernetes")).call();
+    .packageIt()
+    .withDestination(
+        projectDir.resolve("target").resolve("jkube").resolve("helm").resolve("empty-project").resolve("openshift"))
+    .call();
     helmLintMojo.execute();
     assertThat(outputStream.toString())
     .contains("Linting empty-project 0.1.0\n")

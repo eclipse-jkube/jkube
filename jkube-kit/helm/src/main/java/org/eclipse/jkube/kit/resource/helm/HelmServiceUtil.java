@@ -241,6 +241,9 @@ public class HelmServiceUtil {
     }
     for (File sourceFile : Objects
       .requireNonNull(sourceFiles, "No template files found in the provided directory")) {
+      if (!sourceFile.exists()) {
+        continue;
+      }
       final KubernetesResource dto = Serialization.unmarshal(sourceFile);
       if (dto instanceof Template) {
         ret.add((Template) dto);

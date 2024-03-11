@@ -52,18 +52,6 @@ class OpenShiftHelmPushTaskTest {
   }
 
   @Test
-  void runTask_withNoTemplateDir_shouldThrowException() {
-    // Given
-    OpenShiftHelmPushTask openShiftHelmPushTask = new OpenShiftHelmPushTask(OpenShiftExtension.class);
-
-    // When & Then
-    assertThatIllegalStateException()
-        .isThrownBy(openShiftHelmPushTask::runTask)
-        .withMessageContaining("META-INF/jkube/openshift")
-        .withCauseInstanceOf(NoSuchFileException.class);
-  }
-
-  @Test
   void runTask_withTemplateDir_shouldCallHelmService() throws IOException, BadUploadException {
     // Given
     taskEnvironment.withOpenShiftTemplate();

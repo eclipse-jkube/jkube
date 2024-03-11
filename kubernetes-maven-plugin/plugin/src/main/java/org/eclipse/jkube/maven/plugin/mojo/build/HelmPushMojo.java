@@ -13,14 +13,20 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmPushConfig;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.eclipse.jkube.kit.resource.helm.HelmService;
 import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
-
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmPushConfig;
 
 @Mojo(name = "helm-push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class HelmPushMojo extends AbstractHelmMojo {
@@ -29,7 +35,17 @@ public class HelmPushMojo extends AbstractHelmMojo {
   public void init() throws MojoFailureException {
     super.init();
 
+    checkChartsExist(getHelm());
     initHelmPushConfig(helm, javaProject);
+  }
+
+  private void checkChartsExist(final HelmConfig helmConfig) {
+    for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
+      final Path chart = Paths.get(helmConfig.getOutputDir(), helmType.getOutputDir(), HelmService.CHART_FILENAME);
+      if (Files.notExists(chart)) {
+        logChartNotFoundWarning(chart);
+      }
+    }
   }
 
   @Override
@@ -43,5 +59,9 @@ public class HelmPushMojo extends AbstractHelmMojo {
       getKitLogger().error("Error performing Helm push", exp);
       throw new MojoExecutionException(exp.getMessage(), exp);
     }
+  }
+
+  protected void logChartNotFoundWarning(final Path chart) {
+    getKitLogger().warn("No Helm chart has been generated yet by the k8s:helm goal at: " + chart);
   }
 }

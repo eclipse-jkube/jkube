@@ -51,18 +51,6 @@ class OpenShiftHelmTaskTest {
   }
 
   @Test
-  void runTask_withNoTemplateDir_shouldThrowException() {
-    // Given
-    OpenShiftHelmTask kubernetesHelmTask = new OpenShiftHelmTask(OpenShiftExtension.class);
-
-    // When & Then
-    assertThatIllegalStateException()
-        .isThrownBy(kubernetesHelmTask::runTask)
-        .withMessageContaining("META-INF/jkube/openshift")
-        .withCauseInstanceOf(NoSuchFileException.class);
-  }
-
-  @Test
   void runTask_withTemplateDir_shouldCallHelmService() throws IOException {
     // Given
     taskEnvironment.withOpenShiftTemplate();
