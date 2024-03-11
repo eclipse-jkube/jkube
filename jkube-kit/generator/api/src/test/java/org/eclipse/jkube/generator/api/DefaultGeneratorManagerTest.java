@@ -52,7 +52,7 @@ class DefaultGeneratorManagerTest {
     // Given
     final List<ImageConfiguration> images = Collections.singletonList(new ImageConfiguration());
     // When
-    final List<ImageConfiguration> result = generatorManager.generate(images, false);
+    final List<ImageConfiguration> result = generatorManager.generate(images);
     // Then
     assertThat(result)
         .isNotSameAs(images)

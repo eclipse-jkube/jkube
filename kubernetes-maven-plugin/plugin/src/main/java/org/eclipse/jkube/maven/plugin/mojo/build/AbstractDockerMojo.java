@@ -408,7 +408,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                     .buildServiceConfig(buildServiceConfigBuilder().build())
                     .offline(offline)
                     .build();
-                resolvedImages = ConfigHelper.initImageConfiguration(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), images, imageConfigResolver, log, filter, new DefaultGeneratorManager(generatorContextBuilder().build()), false, jkubeServiceHub.getConfiguration());
+                resolvedImages = ConfigHelper.initImageConfiguration(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), images, imageConfigResolver, log, filter, new DefaultGeneratorManager(generatorContextBuilder().build()), jkubeServiceHub.getConfiguration());
                 executeInternal();
             } catch (IOException | DependencyResolutionRequiredException exp) {
                 logException(exp);

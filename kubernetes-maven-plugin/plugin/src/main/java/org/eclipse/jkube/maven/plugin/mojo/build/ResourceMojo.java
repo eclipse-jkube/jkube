@@ -266,6 +266,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
             .runtimeMode(getRuntimeMode())
             .useProjectClasspath(useProjectClasspath)
             .strategy(JKubeBuildStrategy.docker)
+            .prePackagePhase(true)
             .build());
       return ConfigHelper.initImageConfiguration(
           getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
@@ -274,7 +275,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
           log,
           null, // no filter on image name yet (TODO: Maybe add this, too ?)
           generatorManager,
-          true,
           jkubeServiceHub.getConfiguration());
     }
 

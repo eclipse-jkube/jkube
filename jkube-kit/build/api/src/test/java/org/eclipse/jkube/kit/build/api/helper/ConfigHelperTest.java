@@ -74,10 +74,10 @@ class ConfigHelperTest {
     List<ImageConfiguration> images = new ArrayList<>();
     images.add(dummyImageConfiguration);
     when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
-    when(generatorManager.generate(images, false)).thenReturn(images);
+    when(generatorManager.generate(images)).thenReturn(images);
 
     // When
-    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, false, jKubeConfiguration);
+    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, jKubeConfiguration);
 
     // Then
     assertThat(resolvedImages).isNotNull()
@@ -96,7 +96,7 @@ class ConfigHelperTest {
       .build();
 
     // When
-    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, false, jKubeConfiguration);
+    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, jKubeConfiguration);
 
     // Then
     assertThat(resolvedImages).isNotNull()
@@ -120,10 +120,10 @@ class ConfigHelperTest {
         .build())
       .build();
     when(imageConfigResolver.resolve(dummyImageConfiguration, jKubeConfiguration.getProject())).thenReturn(images);
-    when(generatorManager.generate(images, false)).thenReturn(images);
+    when(generatorManager.generate(images)).thenReturn(images);
 
     // When
-    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, false, jKubeConfiguration);
+    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, jKubeConfiguration);
 
     // Then
     assertThat(resolvedImages).isNotNull()
@@ -144,7 +144,7 @@ class ConfigHelperTest {
 
     // When + Then
     assertThatIllegalArgumentException()
-        .isThrownBy(() -> ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, false, jKubeConfiguration))
+        .isThrownBy(() -> ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, jKubeConfiguration))
         .withMessage("Configuration error: <image> must have a non-null <name>");
   }
 
@@ -154,10 +154,10 @@ class ConfigHelperTest {
     ImageConfiguration dummyImageConfiguration = createNewDummyImageConfiguration();
     List<ImageConfiguration> images = Collections.singletonList(createNewDummyImageConfiguration());
     when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
-    when(generatorManager.generate(images, false)).thenReturn(images);
+    when(generatorManager.generate(images)).thenReturn(images);
 
     // When
-    ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, "i-dont-exist", generatorManager, false, jKubeConfiguration);
+    ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, "i-dont-exist", generatorManager, jKubeConfiguration);
 
     // Then
     verify(logger).warn("None of the resolved images [%s] match the configured filter '%s'", "foo/bar:latest", "i-dont-exist");
