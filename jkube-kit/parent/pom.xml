@@ -736,12 +736,6 @@
         <version>${version.mockito}</version>
         <scope>test</scope>
       </dependency>
-      <dependency>
-        <groupId>org.mockito</groupId>
-        <artifactId>mockito-inline</artifactId>
-        <version>${version.mockito}</version>
-        <scope>test</scope>
-      </dependency>
 
       <dependency>
         <groupId>io.fabric8</groupId>
