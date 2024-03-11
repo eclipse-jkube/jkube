@@ -52,7 +52,7 @@ class BuildMojoTest {
         BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder = buildMojo.buildServiceConfigBuilder();
         // Then
         assertThat(buildServiceConfigBuilder.build()).isNotNull()
-            .returns("src/main/jkube", c -> c.getResourceDir().getPath())
+            .returns(new File("src/main/jkube"), BuildServiceConfig::getResourceDir)
             .extracting(BuildServiceConfig::getResourceConfig)
             .extracting(ResourceConfig::getOpenshiftBuildConfig)
             .returns("200m", c -> c.getLimits().get("cpu"))
