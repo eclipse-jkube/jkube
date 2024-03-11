@@ -27,7 +27,7 @@ import java.util.logging.Logger;
 public class App {
     private static final Logger log = Logger.getLogger(App.class.getSimpleName());
     private static int PORT = 8081;
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args)  {
 
         try {
             HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
@@ -42,7 +42,7 @@ public class App {
 
     static class RootHandler implements HttpHandler{
         @Override
-        public void handle(HttpExchange exchange) throws IOException{
+        public void handle(HttpExchange exchange) {
             try {
                 log.info("GET /hello");
                 String response = "Hello World";
