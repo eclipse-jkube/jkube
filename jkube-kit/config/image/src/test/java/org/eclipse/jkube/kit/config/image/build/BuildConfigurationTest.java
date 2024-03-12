@@ -189,12 +189,10 @@ class BuildConfigurationTest {
 
   @Test
   void testBuilder() {
-    AssemblyConfiguration mockAssemblyConfiguration = mock(AssemblyConfiguration.class);
     // Given
-    when(mockAssemblyConfiguration.getName()).thenReturn("1337");
     // When
     final BuildConfiguration result = BuildConfiguration.builder()
-        .assembly(mockAssemblyConfiguration)
+        .assembly(AssemblyConfiguration.builder().name("1337").build())
         .user("super-user")
         .build();
     // Then
