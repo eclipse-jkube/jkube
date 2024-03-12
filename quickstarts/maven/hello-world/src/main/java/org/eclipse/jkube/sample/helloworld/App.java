@@ -16,45 +16,27 @@ package org.eclipse.jkube.sample.helloworld;
 /**
  * @Author: Wayne Kirimi
  */
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpExchange;
-import java.net.InetSocketAddress;
+
 import java.io.IOException;
-import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.util.logging.Logger;
+import java.util.logging.Level;
+
+import com.sun.net.httpserver.HttpServer;
 
 public class App {
     private static final Logger log = Logger.getLogger(App.class.getSimpleName());
-    private static int PORT = 8081;
+    private static int port = 8080;
     public static void main(String[] args)  {
 
         try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
             server.createContext("/hello", new RootHandler());
             server.setExecutor(null);
             server.start();
-            log.info("Server started on port: " + PORT);
+            log.info("Server started on port: " + port);
         } catch (IOException e) {
             log.severe("Error occured when starting server: " + e.getMessage());
-        }
-    }
-
-    static class RootHandler implements HttpHandler{
-        @Override
-        public void handle(HttpExchange exchange) {
-            try {
-                log.info("GET /hello");
-                String response = "Hello World";
-                exchange.sendResponseHeaders(200, response.length());
-                exchange.getResponseHeaders().set("Content-Type", "text/plain");
-                OutputStream outputStream = exchange.getResponseBody();
-                outputStream.write(response.getBytes());
-                log.info("Response received successfully: " + response);
-                outputStream.close();
-            }catch (IOException e){
-                log.severe("Server failed to respond: " + e.getMessage());
-            }
         }
     }
 }
