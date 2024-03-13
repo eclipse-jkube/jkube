@@ -22,23 +22,23 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
 /**
- * @Author: Wayne Kirimi
+ * @author: Wayne Kirimi
  */
 
-public class RootHandler implements HttpHandler{
+public class RootHandler implements HttpHandler {
   private static final Logger log = Logger.getLogger(App.class.getSimpleName());
+
   @Override
   public void handle(HttpExchange exchange) {
-    try {
+    try (OutputStream outputStream = exchange.getResponseBody()) {
       log.info("GET /hello");
       String response = "Hello World";
       exchange.sendResponseHeaders(200, response.length());
       exchange.getResponseHeaders().set("Content-Type", "text/plain");
-      OutputStream outputStream = exchange.getResponseBody();
       outputStream.write(response.getBytes());
-      log.info("Response received successfully: " + response);
+      log.info("Response written successfully: " + response);
       outputStream.close();
-    }catch (IOException e){
+    } catch (IOException e) {
       log.severe("Server failed to respond: " + e.getMessage());
     }
   }

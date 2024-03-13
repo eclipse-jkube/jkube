@@ -14,7 +14,7 @@
 package org.eclipse.jkube.sample.helloworld;
 
 /**
- * @Author: Wayne Kirimi
+ * @author: Wayne Kirimi
  */
 
 import java.io.IOException;
@@ -25,18 +25,19 @@ import java.util.logging.Level;
 import com.sun.net.httpserver.HttpServer;
 
 public class App {
-    private static final Logger log = Logger.getLogger(App.class.getSimpleName());
-    private static int port = 8080;
-    public static void main(String[] args)  {
+  private static final Logger log = Logger.getLogger(App.class.getSimpleName());
+  private static int port = 8080;
 
-        try {
-            HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
-            server.createContext("/hello", new RootHandler());
-            server.setExecutor(null);
-            server.start();
-            log.info("Server started on port: " + port);
-        } catch (IOException e) {
-            log.severe("Error occured when starting server: " + e.getMessage());
-        }
+  public static void main(String[] args) {
+
+    try {
+      HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+      server.createContext("/hello", new RootHandler());
+      server.setExecutor(null);
+      server.start();
+      log.info("Server started on port: " + port);
+    } catch (IOException e) {
+      log.severe("Error occured when starting server: " + e.getMessage());
     }
+  }
 }
