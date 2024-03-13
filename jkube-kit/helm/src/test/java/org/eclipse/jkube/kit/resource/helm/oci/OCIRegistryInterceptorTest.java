@@ -125,7 +125,7 @@ class OCIRegistryInterceptorTest {
   }
 
   @Test
-  void afterFailure_whenUnauthenticated_thenShouldAuthenticateWithGetAndFetchAccessToken() throws IOException {
+  void afterFailure_whenUnauthenticated_thenShouldAuthenticateWithGetAndFetchAccessToken() {
     server.expect().get()
         .withPath("/token?service=localhost&scope=repository:myuser/test-chart:pull,push")
         .andReturn(HTTP_OK, "{\"token\":\"mytoken\"}")
