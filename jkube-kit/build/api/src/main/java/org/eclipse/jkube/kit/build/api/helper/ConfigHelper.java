@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.build.api.helper;
 import org.eclipse.jkube.kit.build.api.config.handler.property.PropertyConfigHandler;
 import org.eclipse.jkube.kit.build.api.config.handler.property.PropertyMode;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -58,16 +59,16 @@ public class ConfigHelper {
      * @param images the original image config list (can be null)
      * @param imageResolver the resolver used to extend on an image configuration
      * @param imageNameFilter filter to select only certain image configurations with the given name
-     * @param imageCustomizer final customization hook for mangling the configuration
+     * @param generatorManager for applying generators on image configurations
      * @return a list of resolved and customized image configuration.
      */
     private static List<ImageConfiguration> resolveImages(KitLogger logger,
                                                          List<ImageConfiguration> images,
                                                          Resolver imageResolver,
                                                          String imageNameFilter,
-                                                         Customizer imageCustomizer) {
+                                                         GeneratorManager generatorManager) {
         List<ImageConfiguration> ret = resolveConfiguration(imageResolver, images);
-        ret = imageCustomizer.customizeConfig(ret);
+        ret = generatorManager.generate(ret);
         final List<ImageConfiguration> filtered =  filterImages(imageNameFilter,ret);
         if (!ret.isEmpty() && filtered.isEmpty() && imageNameFilter != null) {
             final List<String> imageNames = ret.stream().map(ImageConfiguration::getName).collect(Collectors.toList());
@@ -163,7 +164,7 @@ public class ConfigHelper {
         }
     }
 
-    public static List<ImageConfiguration> initImageConfiguration(Date buildTimeStamp, List<ImageConfiguration> unresolvedImages, ImageConfigResolver imageConfigResolver, KitLogger log, String filter, ConfigHelper.Customizer customizer, JKubeConfiguration jKubeConfiguration) {
+    public static List<ImageConfiguration> initImageConfiguration(Date buildTimeStamp, List<ImageConfiguration> unresolvedImages, ImageConfigResolver imageConfigResolver, KitLogger log, String filter, GeneratorManager generatorManager, JKubeConfiguration jKubeConfiguration) {
         final ImageNameFormatter imageNameFormatter = new ImageNameFormatter(jKubeConfiguration.getProject(), buildTimeStamp);
         // Resolve images
         final List<ImageConfiguration> resolvedImages = ConfigHelper.resolveImages(
@@ -171,7 +172,7 @@ public class ConfigHelper {
                 unresolvedImages,
                 (ImageConfiguration image) -> imageConfigResolver.resolve(image, jKubeConfiguration.getProject()),
                 filter,                   // A filter which image to process
-                customizer);              // customizer (can be overwritten by a subclass)
+                generatorManager);        // GeneratorManager which will invoke generator
 
         // Check for simple Dockerfile mode
         ImageConfiguration dockerFileImageConfig = createImageConfigurationForSimpleDockerfile(resolvedImages, jKubeConfiguration, imageNameFormatter);
@@ -217,15 +218,6 @@ public class ConfigHelper {
             log.info("Using Dockerfile: %s", buildConfiguration.getDockerFile().getAbsolutePath());
             log.info("Using Docker Context Directory: %s", buildConfiguration.getAbsoluteContextDirPath(jKubeConfiguration.getSourceDirectory(), jKubeConfiguration.getBasedir().getAbsolutePath()));
         }
-    }
-
-    /**
-     * Allow subclasses to customize the given set of image configurations. This is called
-     * after resolving of images. a customizer is free to change the image configuration as he want.
-     * Use this with responsibility.
-     */
-    public interface Customizer {
-        List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs);
     }
 
     /**

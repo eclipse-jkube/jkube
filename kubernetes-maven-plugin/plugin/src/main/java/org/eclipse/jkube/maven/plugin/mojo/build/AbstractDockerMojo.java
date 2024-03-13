@@ -21,10 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.core.GavLabel;
-import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
@@ -88,7 +87,7 @@ import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUt
 import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAULT_LOG_PREFIX;
 
 public abstract class AbstractDockerMojo extends AbstractMojo
-    implements ConfigHelper.Customizer, Contextualizable, KitLoggerProvider {
+    implements Contextualizable, KitLoggerProvider {
 
     public static final String CONTEXT_KEY_LOG_DISPATCHER = "CONTEXT_KEY_DOCKER_LOG_DISPATCHER";
 
@@ -409,7 +408,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                     .buildServiceConfig(buildServiceConfigBuilder().build())
                     .offline(offline)
                     .build();
-                resolvedImages = ConfigHelper.initImageConfiguration(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), images, imageConfigResolver, log, filter, this, jkubeServiceHub.getConfiguration());
+                resolvedImages = ConfigHelper.initImageConfiguration(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP), images, imageConfigResolver, log, filter, new DefaultGeneratorManager(generatorContextBuilder().build()), jkubeServiceHub.getConfiguration());
                 executeInternal();
             } catch (IOException | DependencyResolutionRequiredException exp) {
                 logException(exp);
@@ -565,22 +564,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 });
     }
 
-    /**
-     * Customization hook called by the base plugin.
-     *
-     * @param configs configuration to customize
-     * @return the configuration customized by our generators.
-     */
-    public List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-        log.info("Building Docker image");
-        try {
-            GeneratorManager generatorManager = new DefaultGeneratorManager(generatorContextBuilder().build());
-            return generatorManager.generate(configs, false);
-        } catch (DependencyResolutionRequiredException de) {
-            throw new IllegalArgumentException("Instructed to use project classpath, but cannot. Continuing build if we can: ", de);
-        }
-    }
-
     protected String getLogPrefix() {
         return DEFAULT_LOG_PREFIX;
     }
@@ -606,10 +589,10 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     }
 
     // Get generator context
-    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() throws DependencyResolutionRequiredException {
+    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() {
         return GeneratorContext.builder()
                 .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator))
-                .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+                .project(javaProject)
                 .logger(log)
                 .runtimeMode(runtimeMode)
                 .useProjectClasspath(useProjectClasspath);

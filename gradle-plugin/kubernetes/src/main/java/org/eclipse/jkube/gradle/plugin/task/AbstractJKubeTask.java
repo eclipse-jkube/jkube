@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
 import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
@@ -35,7 +35,6 @@ import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
-import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
@@ -117,11 +116,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     return kubernetesExtension;
   }
 
-  private List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-    GeneratorManager generatorManager = new DefaultGeneratorManager(initGeneratorContextBuilder().build());
-    return generatorManager.generate(configs, false);
-  }
-
   private boolean isAnsiEnabled() {
     return kubernetesExtension.getUseColorOrDefault()
         && getProject().getGradle().getStartParameter().getConsoleOutput() != ConsoleOutput.Plain;
@@ -177,6 +171,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .logger(kitLogger)
         .runtimeMode(kubernetesExtension.getRuntimeMode())
         .strategy(kubernetesExtension.getBuildStrategyOrDefault())
+        .prePackagePhase(false)
         .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault());
   }
 
@@ -197,7 +192,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
             DOCKER_BUILD_TIMESTAMP),
         kubernetesExtension.images, imageConfigResolver, kitLogger,
       kubernetesExtension.getFilter().getOrNull(),
-      this::customizeConfig,
+      new DefaultGeneratorManager(initGeneratorContextBuilder().build()),
       jKubeServiceHub.getConfiguration());
   }
 

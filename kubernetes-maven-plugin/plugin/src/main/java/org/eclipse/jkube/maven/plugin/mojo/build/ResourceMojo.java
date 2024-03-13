@@ -29,6 +29,7 @@ import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
 import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -254,36 +255,26 @@ public class ResourceMojo extends AbstractJKubeMojo {
           jkubeServiceHub.getResourceServiceConfig().getResourceDirs(), enricher);
     }
 
-    private ProcessorConfig extractGeneratorConfig() throws IOException {
-        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile,
-          jkubeServiceHub.getResourceServiceConfig().getResourceDirs(), generator);
-    }
-
     // ==================================================================================
 
     private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
         throws IOException {
+        GeneratorManager generatorManager = new DefaultGeneratorManager(GeneratorContext.builder()
+            .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator))
+            .project(javaProject)
+            .logger(log)
+            .runtimeMode(getRuntimeMode())
+            .useProjectClasspath(useProjectClasspath)
+            .strategy(JKubeBuildStrategy.docker)
+            .prePackagePhase(true)
+            .build());
       return ConfigHelper.initImageConfiguration(
           getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
               DOCKER_BUILD_TIMESTAMP),
           images, imageConfigResolver,
           log,
           null, // no filter on image name yet (TODO: Maybe add this, too ?)
-          configs -> {
-            try {
-                GeneratorManager generatorManager = new DefaultGeneratorManager(GeneratorContext.builder()
-                    .config(extractGeneratorConfig())
-                    .project(javaProject)
-                    .runtimeMode(getRuntimeMode())
-                    .logger(log)
-                    .strategy(JKubeBuildStrategy.docker)
-                    .useProjectClasspath(useProjectClasspath)
-                    .build());
-              return generatorManager.generate(configs, true);
-            } catch (Exception e) {
-              throw new IllegalArgumentException("Cannot extract generator: " + e, e);
-            }
-          },
+          generatorManager,
           jkubeServiceHub.getConfiguration());
     }
 

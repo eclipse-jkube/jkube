@@ -66,7 +66,7 @@ public class OpenshiftWatchMojo extends WatchMojo {
     }
 
     @Override
-    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() throws DependencyResolutionRequiredException {
+    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() {
         return super.generatorContextBuilder()
             .strategy(buildStrategy);
     }
