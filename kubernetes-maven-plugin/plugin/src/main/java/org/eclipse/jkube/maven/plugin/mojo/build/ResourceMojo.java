@@ -23,7 +23,6 @@ import javax.validation.ConstraintViolationException;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
-import org.eclipse.jkube.kit.build.api.helper.ConfigHelper;
 
 import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -248,8 +247,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     // ==================================================================================
 
-    private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
-        throws IOException {
+    private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log) {
         GeneratorManager generatorManager = new DefaultGeneratorManager(GeneratorContext.builder()
             .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator))
             .project(javaProject)
@@ -258,15 +256,9 @@ public class ResourceMojo extends AbstractJKubeMojo {
             .useProjectClasspath(useProjectClasspath)
             .strategy(JKubeBuildStrategy.docker)
             .prePackagePhase(true)
+            .buildTimestamp(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP))
             .build());
-      return ConfigHelper.initImageConfiguration(
-          getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
-              DOCKER_BUILD_TIMESTAMP),
-          images, imageConfigResolver,
-          log,
-          null, // no filter on image name yet (TODO: Maybe add this, too ?)
-          generatorManager,
-          jkubeServiceHub.getConfiguration());
+        return generatorManager.generateAndMerge(images);
     }
 
     private boolean hasJKubeDir() {

@@ -17,10 +17,11 @@ import java.util.List;
 
 public interface GeneratorManager {
   /**
-   * Customize a given list of image configurations
+   * Process provided set of ImageConfigurations. This processing may include filtering, merging with
+   * opinionated defaults and validating finally generated ImageConfigurations.
    *
-   * @param imageConfigs list of image configurations
-   * @return Modified list of image configurations
+   * @param imageConfigs list of ImageConfigurations to process
+   * @return processed list of ImageConfigurations
    */
-  List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs);
+  List<ImageConfiguration> generateAndMerge(List<ImageConfiguration> imageConfigs);
 }
