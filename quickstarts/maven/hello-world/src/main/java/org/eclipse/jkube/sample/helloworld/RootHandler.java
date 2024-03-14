@@ -37,7 +37,6 @@ public class RootHandler implements HttpHandler {
       exchange.getResponseHeaders().set("Content-Type", "text/plain");
       outputStream.write(response.getBytes());
       log.info("Response written successfully: " + response);
-      outputStream.close();
     } catch (IOException e) {
       log.severe("Server failed to respond: " + e.getMessage());
     }
