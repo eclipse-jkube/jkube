@@ -526,7 +526,7 @@ class ContainerHandlerTest {
     }
 
     @Test
-    void getPorts_withoutPort_shouldBeNull() {
+    void getPorts_withoutPort_shouldBeEmptyList() {
         ContainerHandler handler = createContainerHandler(project);
 
         //without Ports
