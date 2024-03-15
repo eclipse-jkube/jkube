@@ -538,7 +538,7 @@ class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         List<ContainerPort> containerPorts = handler.getContainers(config, images).get(0).getPorts();
-        assertThat(containerPorts).isNull();
+        assertThat(containerPorts).isEmpty();
     }
 
     @Test
