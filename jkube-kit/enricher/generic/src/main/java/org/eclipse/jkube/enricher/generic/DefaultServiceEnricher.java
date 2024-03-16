@@ -316,7 +316,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
             }
 
             // Extract first port and remove first element
-            if(portsFromImageLabels == null || portsFromImageLabels.isEmpty()) {
+            if(portsFromImageLabels.isEmpty()) {
                 addPortIfNotNull(ret, extractPortsFromImageSpec(image.getName(), podPorts.remove(0), shiftOrNull(configuredPorts), null));
             } else {
                 for (String imageLabelPort : portsFromImageLabels) {
