@@ -53,7 +53,8 @@ public class EnvUtil {
 
     public static final String MAVEN_PROPERTY_REGEXP = "\\s*\\$\\{\\s*([^}]+)\\s*}\\s*$";
 
-    // Standard HTTP port (IANA registered). It is used only in older docker installations.
+    // Standard HTTP port (IANA registered). It is used only in older docker
+    // installations.
     public static final String DOCKER_HTTP_PORT = "2375";
 
     public static final String PROPERTY_COMBINE_POLICY_SUFFIX = "_combine";
@@ -69,6 +70,7 @@ public class EnvUtil {
 
     /**
      * Don't use in production code. Only for testing purposes.
+     * 
      * @param getter
      */
     public static void overrideEnvGetter(UnaryOperator<String> getter) {
@@ -86,10 +88,15 @@ public class EnvUtil {
     }
 
     /**
-     * Compare to version strings and return the larger version strings. This is used in calculating
-     * the minimal required API version for this plugin. Version strings must be comparable as floating numbers.
-     * The versions must be given in the format in a semantic version format (e.g. "1.23"
-     * <p> If either version is <code>null</code>, the other version is returned (which can be null as well)
+     * Compare to version strings and return the larger version strings. This is
+     * used in calculating
+     * the minimal required API version for this plugin. Version strings must be
+     * comparable as floating numbers.
+     * The versions must be given in the format in a semantic version format (e.g.
+     * "1.23"
+     * <p>
+     * If either version is <code>null</code>, the other version is returned (which
+     * can be null as well)
      *
      * @param versionA first version number
      * @param versionB second version number
@@ -136,7 +143,8 @@ public class EnvUtil {
     }
 
     /**
-     * Check whether the first given API version is larger or equals the second given version
+     * Check whether the first given API version is larger or equals the second
+     * given version
      *
      * @param versionA first version to check against
      * @param versionB the second version
@@ -150,19 +158,23 @@ public class EnvUtil {
     private static final Function<String, String[]> SPLIT_ON_LAST_COLON = element -> {
         int colon = element.lastIndexOf(':');
         if (colon < 0) {
-            return new String[]{element, element};
+            return new String[] { element, element };
         } else {
-            return new String[]{element.substring(0, colon), element.substring(colon + 1)};
+            return new String[] { element.substring(0, colon), element.substring(colon + 1) };
         }
     };
 
     /**
-     * Splits every element in the given list on the last colon in the name and returns a list with
-     * two elements: The left part before the colon and the right part after the colon. If the string
-     * doesn't contain a colon, the value is used for both elements in the returned arrays.
+     * Splits every element in the given list on the last colon in the name and
+     * returns a list with
+     * two elements: The left part before the colon and the right part after the
+     * colon. If the string
+     * doesn't contain a colon, the value is used for both elements in the returned
+     * arrays.
      *
      * @param listToSplit list of strings to split
-     * @return return list of 2-element arrays or an empty list if the given list is empty or null
+     * @return return list of 2-element arrays or an empty list if the given list is
+     *         empty or null
      */
     public static List<String[]> splitOnLastColon(List<String> listToSplit) {
         if (listToSplit != null) {
@@ -171,11 +183,10 @@ public class EnvUtil {
         return Collections.emptyList();
     }
 
-    private static final Function<String, List<String>> COMMA_SPLITTER =
-            input -> Arrays.stream(input.split(COMMA))
-                    .filter(StringUtils::isNotBlank)
-                    .map(StringUtils::trim)
-                    .collect(Collectors.toList());
+    private static final Function<String, List<String>> COMMA_SPLITTER = input -> Arrays.stream(input.split(COMMA))
+            .filter(StringUtils::isNotBlank)
+            .map(StringUtils::trim)
+            .collect(Collectors.toList());
 
     /**
      * Remove empty members of a list.
@@ -195,7 +206,8 @@ public class EnvUtil {
      * Split each element of an Iterable;&lt;String;&gt; at commas.
      *
      * @param input Iterable over strings.
-     * @return An Iterable over string which breaks down each input element at comma boundaries
+     * @return An Iterable over string which breaks down each input element at comma
+     *         boundaries
      */
     @Nonnull
     public static List<String> splitAtCommasAndTrim(Iterable<String> input) {
@@ -216,9 +228,9 @@ public class EnvUtil {
         return res;
     }
 
-
     /**
-     * Join a list of objects to a string with a given separator by calling Object.toString() on the elements.
+     * Join a list of objects to a string with a given separator by calling
+     * Object.toString() on the elements.
      *
      * @param list      to join
      * @param separator separator to use
@@ -238,12 +250,16 @@ public class EnvUtil {
     }
 
     /**
-     * Extract part of given properties as a map. The given prefix is used to find the properties,
+     * Extract part of given properties as a map. The given prefix is used to find
+     * the properties,
      * the rest of the property name is used as key for the map.
      *
-     * <p> NOTE: If key is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored! This is reserved for combine policy tweaking.
+     * <p>
+     * NOTE: If key is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is
+     * ignored! This is reserved for combine policy tweaking.
      *
-     * @param prefix     prefix which specifies the part which should be extracted as map
+     * @param prefix     prefix which specifies the part which should be extracted
+     *                   as map
      * @param properties properties to extract from
      * @return the extracted map or null if no such map exists
      */
@@ -262,18 +278,24 @@ public class EnvUtil {
                 ret.put(mapKey, properties.getProperty(propName));
             }
         }
-        return ret.size() > 0 ? ret : null;
+        return !ret.isEmpty() ? ret : null;
     }
 
     /**
-     * Extract from given properties a list of string values. The prefix is used to determine the subset of the
-     * given properties from which the list should be extracted, the rest is used as a numeric index. If the rest
-     * is not numeric, the order is not determined (all those props are appended to the end of the list)
+     * Extract from given properties a list of string values. The prefix is used to
+     * determine the subset of the
+     * given properties from which the list should be extracted, the rest is used as
+     * a numeric index. If the rest
+     * is not numeric, the order is not determined (all those props are appended to
+     * the end of the list)
      *
-     * <p> NOTE: If suffix/index is "._combine" ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored!
+     * <p>
+     * NOTE: If suffix/index is "._combine"
+     * ({@link #PROPERTY_COMBINE_POLICY_SUFFIX}) it is ignored!
      * This is reserved for combine policy tweaking.
      *
-     * @param prefix     for selecting the properties from which the list should be extracted
+     * @param prefix     for selecting the properties from which the list should be
+     *                   extracted
      * @param properties properties from which to extract from
      * @return parsed list or null if no element with prefixes exists
      */
@@ -341,7 +363,9 @@ public class EnvUtil {
     /**
      * Calculate the duration between now and the given time
      *
-     * <p> Taken mostly from http://stackoverflow.com/a/5062810/207604 . Kudos to @dblevins
+     * <p>
+     * Taken mostly from http://stackoverflow.com/a/5062810/207604 . Kudos
+     * to @dblevins
      *
      * @param start starting time (in milliseconds)
      * @return time in seconds
@@ -358,7 +382,8 @@ public class EnvUtil {
             if (temp > 0) {
                 duration -= current.toMillis(temp);
                 res.append(temp).append(" ").append(current.name().toLowerCase());
-                if (temp < 2) res.deleteCharAt(res.length() - 1);
+                if (temp < 2)
+                    res.deleteCharAt(res.length() - 1);
                 res.append(COMMA_WHITESPACE);
             }
             if (current == SECONDS) {
@@ -386,7 +411,8 @@ public class EnvUtil {
     }
 
     /**
-     * Return the first non-null registry given. Use the env var DOCKER_REGISTRY as final fallback
+     * Return the first non-null registry given. Use the env var DOCKER_REGISTRY as
+     * final fallback
      *
      * @param checkFirst list of registries to check
      * @return registry found or null if none.
@@ -410,7 +436,8 @@ public class EnvUtil {
         return "https://" + registry;
     }
 
-    public static File prepareAbsoluteOutputDirPath(String outputDirectory, String projectBaseDir, String dir, String path) {
+    public static File prepareAbsoluteOutputDirPath(String outputDirectory, String projectBaseDir, String dir,
+            String path) {
         return prepareAbsolutePath(projectBaseDir, new File(outputDirectory, dir).toString(), path);
     }
 
@@ -429,21 +456,21 @@ public class EnvUtil {
     /**
      * Create a timestamp file holding time in epoch seconds.
      *
-     * @param tsFile the File to store the timestamp in.
+     * @param tsFile    the File to store the timestamp in.
      * @param buildDate the Date of the timestamp.
      * @throws IOException if the timestamp cannot be created.
      */
     public static void storeTimestamp(File tsFile, Date buildDate) throws IOException {
-      try {
-        Files.deleteIfExists(tsFile.toPath());
-        final File dir = tsFile.getParentFile();
-        if (!dir.exists() && !dir.mkdirs()) {
-          throw new IOException("Cannot create directory " + dir);
+        try {
+            Files.deleteIfExists(tsFile.toPath());
+            final File dir = tsFile.getParentFile();
+            if (!dir.exists() && !dir.mkdirs()) {
+                throw new IOException("Cannot create directory " + dir);
+            }
+            Files.write(tsFile.toPath(), Long.toString(buildDate.getTime()).getBytes(StandardCharsets.US_ASCII));
+        } catch (IOException e) {
+            throw new IOException("Cannot create " + tsFile + " for storing time " + buildDate.getTime(), e);
         }
-        Files.write(tsFile.toPath(), Long.toString(buildDate.getTime()).getBytes(StandardCharsets.US_ASCII));
-      } catch (IOException e) {
-        throw new IOException("Cannot create " + tsFile + " for storing time " + buildDate.getTime(), e);
-      }
     }
 
     public static Date loadTimestamp(File tsFile) throws IOException {
@@ -465,6 +492,7 @@ public class EnvUtil {
 
     /**
      * Return a {@link File} pointing to the user's home directory.
+     * 
      * @return the user home directory.
      */
     public static File getUserHome() {
@@ -477,6 +505,7 @@ public class EnvUtil {
 
     /**
      * Return the value of the given environment variable or null if it is not set.
+     * 
      * @param variableName name of the environment variable.
      * @return the value of the environment variable or null if it is not set.
      */
@@ -494,7 +523,7 @@ public class EnvUtil {
 
     public static String getEnvVarOrSystemProperty(String envVarName, String systemProperty, String defaultValue) {
         String ret = getEnv(envVarName);
-        if (StringUtils.isNotBlank(ret)){
+        if (StringUtils.isNotBlank(ret)) {
             return ret;
         }
         return Optional.ofNullable(getProperty(systemProperty)).orElse(defaultValue);
@@ -502,10 +531,11 @@ public class EnvUtil {
 
     /**
      * Utility method to get underlying processor architecture
+     * 
      * @return String value containing architecture
      */
     public static String getProcessorArchitecture() {
-      return getProperty("os.arch");
+        return getProperty("os.arch");
     }
 
     /**
@@ -527,10 +557,10 @@ public class EnvUtil {
         String userPath = getEnv("PATH");
         if (userPath != null) {
             return Arrays.stream(userPath.split(File.pathSeparator))
-                .map(p -> new File(p, binaryName))
-                .filter(f -> f.isFile() && f.exists())
-                .findFirst()
-                .orElse(null);
+                    .map(p -> new File(p, binaryName))
+                    .filter(f -> f.isFile() && f.exists())
+                    .findFirst()
+                    .orElse(null);
         }
         return null;
     }
