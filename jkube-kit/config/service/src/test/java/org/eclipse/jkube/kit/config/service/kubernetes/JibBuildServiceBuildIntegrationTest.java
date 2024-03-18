@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -150,15 +151,15 @@ class JibBuildServiceBuildIntegrationTest {
         .containsExactlyInAnyOrder(
             "Dockerfile",
             "deployments-layer",
-            "deployments-layer/deployments",
-            "deployments-layer/deployments/to-deployments.txt",
+            separatorsToSystem("deployments-layer/deployments"),
+            separatorsToSystem("deployments-layer/deployments/to-deployments.txt"),
             "other-layer",
-            "other-layer/deployments",
-            "other-layer/deployments/other",
-            "other-layer/deployments/other/to-other.txt",
+            separatorsToSystem("other-layer/deployments"),
+            separatorsToSystem("other-layer/deployments/other"),
+            separatorsToSystem("other-layer/deployments/other/to-other.txt"),
             "jkube-generated-layer-final-artifact",
-            "jkube-generated-layer-final-artifact/deployments",
-            "jkube-generated-layer-final-artifact/deployments/final-artifact.jar",
+            separatorsToSystem("jkube-generated-layer-final-artifact/deployments"),
+            separatorsToSystem("jkube-generated-layer-final-artifact/deployments/final-artifact.jar"),
             "deployments"
         );
     ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("docker-build.tar").toFile())
