@@ -37,9 +37,6 @@ import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.gzip;
 import static org.eclipse.jkube.kit.common.archive.ArchiveCompression.none;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 /**
  * @author roland
  */
@@ -189,12 +186,10 @@ class BuildConfigurationTest {
 
   @Test
   void testBuilder() {
-    AssemblyConfiguration mockAssemblyConfiguration = mock(AssemblyConfiguration.class);
     // Given
-    when(mockAssemblyConfiguration.getName()).thenReturn("1337");
     // When
     final BuildConfiguration result = BuildConfiguration.builder()
-        .assembly(mockAssemblyConfiguration)
+        .assembly(AssemblyConfiguration.builder().name("1337").build())
         .user("super-user")
         .build();
     // Then
