@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.stream.StreamSupport;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
@@ -68,5 +69,33 @@ public class GitUtil {
                 .findFirst().orElse(null);
         }
         return null;
+    }
+
+    /**
+     * Sanitize Git Repository's remote URL, trims username and access token from URL.
+     * This is taken from <a href="https://github.com/dekorateio/dekorate/blob/5f4acbd5b28251d88209388b6f2e826f5a546102/core/src/main/java/io/dekorate/utils/Git.java#L134">Dekorate's Git utility class</a>
+     *
+     * @param remoteUrlStr URL string of a particular git remote
+     * @return sanitized URL
+     */
+    public static String sanitizeRemoteUrl(String remoteUrlStr) {
+        if (StringUtils.isNotBlank(remoteUrlStr)) {
+            if (remoteUrlStr.contains("@")) {
+                String repoSegmentWithoutAuth = remoteUrlStr.substring(remoteUrlStr.indexOf('@') + 1);
+                String[] repoSegmentWithoutAuthParts = repoSegmentWithoutAuth.split(":");
+                if (repoSegmentWithoutAuthParts.length > 1) {
+                    String[] repoSegmentAfterColonParts = repoSegmentWithoutAuthParts[1].split("/");
+                    String portOrRepoPath = repoSegmentAfterColonParts[0];
+                    if (!StringUtils.isNumeric(portOrRepoPath)) {
+                        repoSegmentWithoutAuth = repoSegmentWithoutAuth.replaceFirst(":", "/");
+                    }
+                }
+                remoteUrlStr = String.format("https://%s", repoSegmentWithoutAuth);
+            }
+            if (!remoteUrlStr.endsWith(".git")) {
+                remoteUrlStr += ".git";
+            }
+        }
+        return remoteUrlStr;
     }
 }
