@@ -22,6 +22,7 @@ import lombok.NoArgsConstructor;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
@@ -43,6 +44,7 @@ public class WatcherContext {
   private WatchContext watchContext;
   private JKubeConfiguration buildContext;
   private JKubeServiceHub jKubeServiceHub;
+  private JKubeBuildStrategy jKubeBuildStrategy;
 
   public String getNamespace() {
     return getJKubeServiceHub().getClusterAccess().getNamespace();
