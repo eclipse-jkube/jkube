@@ -515,18 +515,18 @@ class ContainerHandlerTest {
     }
 
     @Test
-    void getPorts_withEmptyPorts_shouldBeNull() {
+    void getPorts_withEmptyPorts_shouldBeEmptyList() {
         ContainerHandler handler = createContainerHandler(project);
 
         images.add(imageConfiguration);
 
         //Empty Ports
         List<ContainerPort> containerPorts = handler.getContainers(config, images).get(0).getPorts();
-        assertThat(containerPorts).isNull();
+        assertThat(containerPorts).isEmpty();
     }
 
     @Test
-    void getPorts_withoutPort_shouldBeNull() {
+    void getPorts_withoutPort_shouldBeEmptyList() {
         ContainerHandler handler = createContainerHandler(project);
 
         //without Ports
@@ -538,7 +538,7 @@ class ContainerHandlerTest {
         images.add(imageConfiguration);
 
         List<ContainerPort> containerPorts = handler.getContainers(config, images).get(0).getPorts();
-        assertThat(containerPorts).isNull();
+        assertThat(containerPorts).isEmpty();
     }
 
     @Test

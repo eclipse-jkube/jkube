@@ -42,6 +42,7 @@ import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -181,7 +182,7 @@ public class ContainerHandler {
             }
             return ret;
         } else {
-            return null;
+            return Collections.emptyList();
         }
     }
 
