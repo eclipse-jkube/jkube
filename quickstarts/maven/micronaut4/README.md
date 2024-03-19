@@ -31,8 +31,6 @@ $ curl $(minikube ip):$(kubectl get svc micronaut -n default -o jsonpath='{.spec
 Hello from Micronaut deployed with JKube!
 $ curl $(minikube ip):$(kubectl get svc micronaut -n default -o jsonpath='{.spec.ports[].nodePort}')/hello/world
 Hello word!
-$ curl $(minikube ip):$(kubectl get svc micronaut -n default -o jsonpath='{.spec.ports[].nodePort}')/hello/1
-{"message":"name: size must be between 3 and 2147483647","_links":{"self":{"href":"/hello/1","templated":false}}}
 ```
 
 ### OpenShift
@@ -41,7 +39,5 @@ $ curl $(minikube ip):$(kubectl get svc micronaut -n default -o jsonpath='{.spec
 $ curl $(oc get routes.route.openshift.io micronaut -o jsonpath='{.spec.host}')
 Hello from Micronaut deployed with JKube!
 $ curl $(oc get routes.route.openshift.io micronaut -o jsonpath='{.spec.host}')/hello/world
-Hello world!%
-$ curl $(oc get routes.route.openshift.io micronaut -o jsonpath='{.spec.host}')/hello/1
-{"message":"name: size must be between 3 and 2147483647","_links":{"self":{"href":"/hello/1","templated":false}}}
+Hello world!
 ```
