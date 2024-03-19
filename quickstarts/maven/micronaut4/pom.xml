@@ -37,7 +37,7 @@
     <release.version>17</release.version>
     <jkube.version>${project.version}</jkube.version>
     <micronaut.version>${project.parent.version}</micronaut.version>
-    <exec.mainClass>org.eclipse.jkube.quickstart.micronaut4.custom.Application</exec.mainClass>
+    <exec.mainClass>org.eclipse.jkube.quickstart.micronaut.custom.Application</exec.mainClass>
     <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
   </properties>
 
