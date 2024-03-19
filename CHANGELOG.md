@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.17-SNAPSHOT
+* Fix #2461: `k8s:watch`/`k8sWatch` should throw error in `buildpacks` build strategy
 
 ### 1.16.1 (2024-02-27)
 * Fix #2582: Moved PortMapping class from package `org.eclipse.jkube.kit.build.api.model` to `org.eclipse.jkube.kit.common`

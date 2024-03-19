@@ -83,6 +83,7 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
         .oldPodLogger(createLogger("[[R]][OLD][[R]] "))
         .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault())
         .jKubeServiceHub(jKubeServiceHub)
+        .jKubeBuildStrategy(kubernetesExtension.getBuildStrategyOrDefault())
         .build();
   }
 

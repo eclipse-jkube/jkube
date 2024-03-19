@@ -121,6 +121,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                     .oldPodLogger(createLogger("[[R]][OLD][[R]] "))
                     .useProjectClasspath(useProjectClasspath)
                     .jKubeServiceHub(jkubeServiceHub)
+                    .jKubeBuildStrategy(getJKubeBuildStrategy())
                     .build();
         } catch (DependencyResolutionRequiredException dependencyException) {
             throw new MojoExecutionException("Instructed to use project classpath, but cannot. Continuing build if we can: " + dependencyException.getMessage());
