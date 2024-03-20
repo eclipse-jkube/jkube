@@ -20,6 +20,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+import java.util.Map;
+
 @Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,4 +33,8 @@ public class BuildPackBuildOptions {
   private String builderImage;
   private String imageName;
   private String creationTime;
+  private String imagePullPolicy;
+  private List<String> tags;
+  private Map<String, String> env;
+  private List<String> volumes;
 }
