@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
@@ -59,6 +61,22 @@ class BuildPackCliControllerTest {
 
       // Then
       verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder foo/builder:base --creation-time now");
+    }
+
+    @Test
+    @DisplayName("build, with additional BuildPackBuildOptions passes as commandline arguments")
+    void build_whenInvokedWithMoreBuildOptions_thenOptionsPassedAsCommandLineArguments() {
+      // Given
+      buildOptions = buildOptions.toBuilder()
+          .volumes(Collections.singletonList("/tmp/volume:/platform/volume:ro"))
+          .tags(Arrays.asList("t1", "t2", "t3"))
+          .imagePullPolicy("if-not-present")
+          .env(Collections.singletonMap("BP_SPRING_CLOUD_BINDINGS_DISABLED", "true"))
+          .build();
+      // When
+      buildPackCliController.build(buildOptions);
+      // Then
+      verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder foo/builder:base --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true");
     }
 
     @Test

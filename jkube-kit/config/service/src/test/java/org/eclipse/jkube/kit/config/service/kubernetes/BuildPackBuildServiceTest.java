@@ -41,6 +41,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -196,6 +197,26 @@ class BuildPackBuildServiceTest {
 
         // Then
         verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now");
+      }
+
+      @Test
+      @DisplayName("ImageConfiguration fields are used for pack build arguments")
+      void whenImageConfigurationContainsPackBuildArguments_thenArgumentsPassedToBuildPackCommand() {
+        // Given
+        imageConfiguration = imageConfiguration.toBuilder()
+            .build(imageConfiguration.getBuild().toBuilder()
+                .imagePullPolicy("IfNotPresent")
+                .volumes(Collections.singletonList("/tmp/volume:/platform/volume:ro"))
+                .tags(Arrays.asList("t1", "t2", "t3"))
+                .env(Collections.singletonMap("BP_SPRING_CLOUD_BINDINGS_DISABLED", "true"))
+                .build())
+            .build();
+
+        // When
+        buildPackBuildService.buildSingleImage(imageConfiguration);
+
+        // Then
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true");
       }
     }
   }
