@@ -35,7 +35,7 @@ class OpenShiftHelmLintTaskTest {
   private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     System.setProperty("jkube.kubernetesTemplate", taskEnvironment.getRoot().getAbsolutePath());
     final TestOpenShiftExtension extension = new TestOpenShiftExtension();
     extension.helm = HelmConfig.builder().chartExtension("tgz").build();
