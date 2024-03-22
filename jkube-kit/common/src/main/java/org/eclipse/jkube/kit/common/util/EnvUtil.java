@@ -262,7 +262,7 @@ public class EnvUtil {
                 ret.put(mapKey, properties.getProperty(propName));
             }
         }
-        return ret.size() > 0 ? ret : null;
+        return !ret.isEmpty() ? ret : null;
     }
 
     /**
