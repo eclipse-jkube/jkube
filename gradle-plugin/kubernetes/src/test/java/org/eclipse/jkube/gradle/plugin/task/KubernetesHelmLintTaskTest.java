@@ -22,8 +22,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import java.io.IOException;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.verify;
@@ -35,7 +33,7 @@ class KubernetesHelmLintTaskTest {
   private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp(){
     System.setProperty("jkube.kubernetesTemplate", taskEnvironment.getRoot().getAbsolutePath());
     final TestKubernetesExtension extension = new TestKubernetesExtension();
     extension.helm = HelmConfig.builder().chartExtension("tgz").build();
