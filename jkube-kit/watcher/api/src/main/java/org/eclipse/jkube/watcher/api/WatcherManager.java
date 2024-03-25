@@ -44,8 +44,8 @@ public class WatcherManager {
   public static void watch(List<ImageConfiguration> ret, String namespace, Collection<HasMetadata> resources, WatcherContext watcherCtx)
       throws Exception {
 
-    if (watcherCtx.getJKubeBuildStrategy() != null && watcherCtx.getJKubeBuildStrategy().equals(JKubeBuildStrategy.buildpacks)) {
-      throw new JKubeException("Watch is not supported in BuildPacks build strategy");
+    if (watcherCtx.getJKubeBuildStrategy() != null && !watcherCtx.getJKubeBuildStrategy().isSupportsWatch()) {
+      throw new JKubeException("Watch is not supported in " + watcherCtx.getJKubeBuildStrategy().getLabel() + " build strategy");
     }
     final PluginServiceFactory<WatcherContext> pluginFactory = new PluginServiceFactory<>(watcherCtx);
     if (watcherCtx.isUseProjectClasspath()) {
