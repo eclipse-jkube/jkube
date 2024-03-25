@@ -76,7 +76,7 @@ class WatcherManagerTest {
     // When
     assertThatExceptionOfType(JKubeException.class)
         .isThrownBy(() -> WatcherManager.watch(null, null, null, watcherContext))
-        .withMessage("Watch is not supported in BuildPacks build strategy");
+        .withMessage("Watch is not supported in Buildpacks build strategy");
   }
 
   // Loaded from META-INF/jkube/watcher-default
