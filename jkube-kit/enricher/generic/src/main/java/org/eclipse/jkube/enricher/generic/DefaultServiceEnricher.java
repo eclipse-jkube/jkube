@@ -611,22 +611,38 @@ public class DefaultServiceEnricher extends BaseEnricher {
         return protocol;
     }
 
-    public static Integer getPortToExpose(ServiceBuilder serviceBuilder) {
+    private static ServicePort getServicePortToExpose(ServiceBuilder serviceBuilder){
         ServiceSpec spec = serviceBuilder.buildSpec();
-        if (spec != null) {
+            if (spec != null) {
             final List<ServicePort> ports = spec.getPorts();
             if (ports != null && !ports.isEmpty()) {
                 for (ServicePort port : ports) {
                     if (Objects.equals(port.getName(), "http") || Objects.equals(port.getProtocol(), "http") ) {
-                        return port.getPort();
+                        return port;
                     }
                 }
                 ServicePort servicePort = ports.iterator().next();
                 if (servicePort.getPort() != null) {
-                    return servicePort.getPort();
+                    return servicePort;
                 }
             }
         }
         return null;
+    }
+
+    public static Integer getPortToExpose(ServiceBuilder serviceBuilder) {
+       ServicePort servicePort = getServicePortToExpose(serviceBuilder);
+       if (servicePort == null){
+           return  null;
+       }
+       return servicePort.getPort();
+    }
+
+    public static Integer getTargetPortToExpose(ServiceBuilder serviceBuilder) {
+        ServicePort servicePort = getServicePortToExpose(serviceBuilder);
+        if (servicePort == null || servicePort.getTargetPort() == null){
+            return  null;
+        }
+        return servicePort.getTargetPort().getIntVal();
     }
 }
