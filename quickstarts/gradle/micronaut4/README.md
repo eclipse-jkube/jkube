@@ -15,9 +15,9 @@ Micronaut 4 application featuring REST endpoints (micronaut-http) with validatio
 
 ```shell script
 # Kubernetes
-$ gradle clean build k8sBuild k8sResource k8sApply
+$ ./gradlew clean build k8sBuild k8sResource k8sApply
 # OpenShift
-$ gradle clean build ocBuild ocResource ocApply
+$ ./gradlew clean build ocBuild ocResource ocApply
 ```
 ## Expected output
 
