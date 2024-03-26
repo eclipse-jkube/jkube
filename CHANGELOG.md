@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.17-SNAPSHOT
 * Fix #2461: `k8s:watch`/`k8sWatch` should throw error in `buildpacks` build strategy
+* Fix #2852: Bump version.kubernetes-client from 6.10.0 to 6.11.0
 
 ### 1.16.1 (2024-02-27)
 * Fix #2582: Moved PortMapping class from package `org.eclipse.jkube.kit.build.api.model` to `org.eclipse.jkube.kit.common`
