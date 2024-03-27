@@ -89,7 +89,7 @@ items:
     name: dockerfile-simple
   spec:
     port:
-      targetPort: 9080
+      targetPort: glrpc
     to:
       kind: Service
       name: dockerfile-simple

@@ -151,7 +151,7 @@ items:
     name: probes-groovy-dsl-config
   spec:
     port:
-      targetPort: 8080
+      targetPort: http
     to:
       kind: Service
       name: probes-groovy-dsl-config

@@ -135,7 +135,7 @@ items:
       name: image-pull-secrets
     spec:
       port:
-        targetPort: 8080
+        targetPort: http
       to:
         kind: Service
         name: image-pull-secrets

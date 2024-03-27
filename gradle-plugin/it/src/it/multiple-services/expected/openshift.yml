@@ -179,7 +179,7 @@ items:
     name: multiple-services
   spec:
     port:
-      targetPort: 8080
+      targetPort: http
     to:
       kind: Service
       name: multiple-services

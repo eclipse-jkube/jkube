@@ -46,7 +46,7 @@ items:
     name: jkube-maven-sample-statefulset
   spec:
     port:
-      targetPort: 8080
+      targetPort: "http"
     to:
       kind: Service
       name: jkube-maven-sample-statefulset
