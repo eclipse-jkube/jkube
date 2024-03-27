@@ -38,6 +38,7 @@ import org.eclipse.jkube.kit.enricher.api.ServiceExposer;
 import java.util.Objects;
 
 import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
+import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getTargetPortToExpose;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeMetadata;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeSimpleFields;
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.removeItemFromKubernetesBuilder;
@@ -122,7 +123,8 @@ public class RouteEnricher extends BaseEnricher implements ServiceExposer {
 
     private static RoutePort createRoutePort(ServiceBuilder serviceBuilder) {
         RoutePort routePort = null;
-        final Integer servicePort = getPortToExpose(serviceBuilder);
+        final Integer serviceTargetPort = getTargetPortToExpose(serviceBuilder);
+        final Integer servicePort = serviceTargetPort != null ? serviceTargetPort : getPortToExpose(serviceBuilder);
         if (servicePort != null) {
             routePort = new RoutePort();
             routePort.setTargetPort(new IntOrString(servicePort));
