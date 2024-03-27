@@ -88,8 +88,7 @@ public class ArchiveDecompressor {
       FileUtil.cleanDirectory(targetDirectory);
     }
     FileUtil.createDirectory(targetDirectory);
-    try (ArchiveInputStream ais = new ArchiveStreamFactory().createArchiveInputStream(is)) {
-      ArchiveEntry entry;
+    try (ArchiveInputStream<ArchiveEntry> ais = new ArchiveStreamFactory().createArchiveInputStream(is)) {      ArchiveEntry entry;
       while ((entry = ais.getNextEntry()) != null) {
         final File extractTo = new File(targetDirectory, fileName(entry.getName()));
         if (extractTo.getCanonicalFile().toPath().startsWith(targetDirectory.getCanonicalFile().toPath())) {
