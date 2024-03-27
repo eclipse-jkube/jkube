@@ -57,7 +57,7 @@ class ProfileUtilTest {
     }
 
     @Test
-    void findProfile_whenValidProfileArg_returnsValidProfile() throws URISyntaxException, IOException {
+    void findProfile_whenValidProfileArg_returnsValidProfile() throws URISyntaxException {
         assertThat(ProfileUtil.findProfile("simple", getProfileDir()))
           .isNotNull()
           .hasFieldOrPropertyWithValue("name", "simple")
