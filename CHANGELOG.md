@@ -20,6 +20,8 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.17-SNAPSHOT
+
 ### 1.16.2 (2024-03-27)
 * Fix #2461: `k8s:watch`/`k8sWatch` should throw error in `buildpacks` build strategy
 * Fix #2852: Bump version.kubernetes-client from 6.10.0 to 6.11.0
