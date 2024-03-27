@@ -59,6 +59,7 @@ public class PodTemplateHandler {
             .withContainers(containerHandler.getContainers(config, images))
             .withInitContainers(createNewInitContainersFromConfig(config.getInitContainers()))
             .withVolumes(getVolumes(config))
+            .withNodeSelector(config.getNodeSelector())
             .build();
     }
 
