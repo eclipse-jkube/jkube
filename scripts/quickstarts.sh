@@ -60,7 +60,8 @@ function packageMaven() {
 function packageGradle() {
   echo "Packaging all Gradle quickstart projects (excluding sub-modules)"
   cd "$QUICKSTARTS" || exit 1
-  find . -type f -name "build.gradle" -execdir ./gradlew build \;
+  find . -type f -name "gradlew" -printf '%h\0' | \
+    xargs -0 -L 1 -P 1 -I{} sh -c "echo Packaging {} && cd {} && ./gradlew clean build && cd ${QUICKSTARTS} || exit 255"
 }
 
 function package() {
