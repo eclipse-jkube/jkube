@@ -1,4 +1,4 @@
-= org.eclipse.jkube/{plugin}
+= Eclipse JKube documentation / {plugin}
 Roland Huß, James Strachan;
 :plugin: kubernetes-maven-plugin
 :goal-prefix: k8s
