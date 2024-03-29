@@ -35,12 +35,14 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+
 
 class KubernetesPluginTest {
 
@@ -89,5 +91,15 @@ class KubernetesPluginTest {
         .containsEntry("k8sHelm", Collections.singletonList(KubernetesResourceTask.class))
         .containsEntry("k8sHelmPush", Collections.singletonList(KubernetesHelmTask.class))
         .containsEntry("k8sHelmLint", Collections.singletonList(KubernetesHelmTask.class));
+  }
+
+  @Test
+  void register_shouldRegisterTasks_WithoutReturningTask_() {
+    AbstractJKubePlugin<KubernetesExtension> jkubePlugin = mock(KubernetesPlugin.class, RETURNS_DEEP_STUBS);
+    doNothing().when(jkubePlugin).register(any(),any(),any());
+    // Call the register method
+    jkubePlugin.register(project, "k8sApply", KubernetesApplyTask.class);
+    // Verify that register was called with the expected arguments
+    verify(jkubePlugin, times(1)).register(project,"k8sApply", KubernetesApplyTask.class);
   }
 }

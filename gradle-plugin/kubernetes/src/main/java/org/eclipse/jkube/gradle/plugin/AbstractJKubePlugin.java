@@ -68,10 +68,9 @@ public abstract class AbstractJKubePlugin<E extends KubernetesExtension> impleme
     });
   }
 
-  protected final <T extends JKubeTask> TaskProvider<T> register(Project project, String name, Class<T> type) {
+  protected final <T extends JKubeTask> void register(Project project, String name, Class<T> type) {
     final TaskProvider<T> registeredTask = project.getTasks().register(name, type, extensionClass);
     registeredTasks.add(registeredTask);
-    return registeredTask;
   }
 
   private static Function<String, Task> taskByName(Project evaluatedProject) {
