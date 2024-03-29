@@ -26,10 +26,17 @@ import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 
+import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 class OpenShiftPluginTest {
 
@@ -47,5 +54,16 @@ class OpenShiftPluginTest {
       .containsEntry("ocHelm", Arrays.asList(KubernetesResourceTask.class, OpenShiftResourceTask.class))
       .containsEntry("ocHelmPush", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class))
       .containsEntry("ocHelmLint", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class));
+  }
+
+  @Test
+  void register_shouldRegisterTasks_WithoutReturningTask_openShiftPlugin() {
+    Project project = mock(Project.class, RETURNS_DEEP_STUBS);
+    AbstractJKubePlugin<OpenShiftExtension> jkubePlugin = mock(OpenShiftPlugin.class, RETURNS_DEEP_STUBS);
+    doNothing().when(jkubePlugin).register(any(),any(),any());
+    // Call the register method
+    jkubePlugin.register(project, "ocApply", OpenShiftResourceTask.class);
+    // Verify that register was called with the expected arguments
+    verify(jkubePlugin, times(1)).register(project,"ocApply", OpenShiftResourceTask.class);
   }
 }

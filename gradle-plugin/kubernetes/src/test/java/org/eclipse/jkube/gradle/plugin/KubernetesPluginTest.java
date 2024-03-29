@@ -94,7 +94,7 @@ class KubernetesPluginTest {
   }
 
   @Test
-  void register_shouldRegisterTasks_WithoutReturningTask_() {
+  void register_shouldRegisterTasks_WithoutReturningTask_kubPlugin() {
     AbstractJKubePlugin<KubernetesExtension> jkubePlugin = mock(KubernetesPlugin.class, RETURNS_DEEP_STUBS);
     doNothing().when(jkubePlugin).register(any(),any(),any());
     // Call the register method
