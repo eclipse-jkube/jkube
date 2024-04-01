@@ -36,7 +36,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 
 class OpenShiftPluginTest {
 
@@ -58,12 +57,12 @@ class OpenShiftPluginTest {
 
   @Test
   void register_shouldRegisterTasks_WithoutReturningTask_openShiftPlugin() {
-    Project project = mock(Project.class, RETURNS_DEEP_STUBS);
-    AbstractJKubePlugin<OpenShiftExtension> jkubePlugin = mock(OpenShiftPlugin.class, RETURNS_DEEP_STUBS);
+    Project project = mock(Project.class);
+    AbstractJKubePlugin<OpenShiftExtension> jkubePlugin = mock(OpenShiftPlugin.class);
     doNothing().when(jkubePlugin).register(any(),any(),any());
-    // Call the register method
+
     jkubePlugin.register(project, "ocApply", OpenShiftResourceTask.class);
-    // Verify that register was called with the expected arguments
     verify(jkubePlugin, times(1)).register(project,"ocApply", OpenShiftResourceTask.class);
   }
+
 }
