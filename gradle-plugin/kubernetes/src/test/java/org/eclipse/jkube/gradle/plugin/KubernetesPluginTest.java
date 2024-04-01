@@ -102,4 +102,5 @@ class KubernetesPluginTest {
     // Verify that register was called with the expected arguments
     verify(jkubePlugin, times(1)).register(project,"k8sApply", KubernetesApplyTask.class);
   }
+
 }
