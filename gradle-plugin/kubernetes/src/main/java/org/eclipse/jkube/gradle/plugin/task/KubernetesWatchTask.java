@@ -22,7 +22,6 @@ import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
@@ -78,21 +77,14 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
     return WatcherContext.builder()
         .buildContext(jKubeServiceHub.getConfiguration())
         .watchContext(watchContext)
-        .config(extractWatcherConfig())
+        .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.WATCHER_CONFIG, kubernetesExtension.getProfileOrNull(), ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()), kubernetesExtension.watcher))
         .logger(kitLogger)
         .newPodLogger(createLogger("[[C]][NEW][[C]] "))
         .oldPodLogger(createLogger("[[R]][OLD][[R]] "))
         .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault())
         .jKubeServiceHub(jKubeServiceHub)
+        .jKubeBuildStrategy(kubernetesExtension.getBuildStrategyOrDefault())
         .build();
-  }
-
-  private ProcessorConfig extractWatcherConfig() {
-    try {
-      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.WATCHER_CONFIG, kubernetesExtension.getProfileOrNull(), ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()), kubernetesExtension.watcher);
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Cannot extract watcher config: " + e, e);
-    }
   }
 
   private WatchContext getWatchContext() throws IOException {

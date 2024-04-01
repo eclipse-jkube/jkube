@@ -86,7 +86,7 @@ class RouteEnricherBehavioralTest {
     // Given
     context.getProject().getProperties().put("jkube.createExternalUrls", "true");
     klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
-      .withNewSpec().addNewPort().withPort(21).endPort().endSpec().endServiceItem();
+      .withNewSpec().addNewPort().withPort(21).withNewTargetPort(21).endPort().endSpec().endServiceItem();
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
@@ -106,7 +106,7 @@ class RouteEnricherBehavioralTest {
     @BeforeEach
     void setUp() {
       klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
-        .withNewSpec().addNewPort().withPort(80).endPort().endSpec().endServiceItem();
+        .withNewSpec().addNewPort().withPort(80).withNewTargetPort(8080).endPort().endSpec().endServiceItem();
     }
 
     @Test
@@ -129,7 +129,7 @@ class RouteEnricherBehavioralTest {
         .last()
         .hasFieldOrPropertyWithValue("apiVersion", "route.openshift.io/v1")
         .hasFieldOrPropertyWithValue("metadata.name", "http")
-        .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 80)
+        .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 8080)
         .hasFieldOrPropertyWithValue("spec.to.kind", "Service")
         .hasFieldOrPropertyWithValue("spec.to.name", "http");
     }
@@ -147,7 +147,7 @@ class RouteEnricherBehavioralTest {
         .last()
         .hasFieldOrPropertyWithValue("apiVersion", "route.openshift.io/v1")
         .hasFieldOrPropertyWithValue("metadata.name", "http")
-        .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 80)
+        .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 8080)
         .hasFieldOrPropertyWithValue("spec.to.kind", "Service")
         .hasFieldOrPropertyWithValue("spec.to.name", "http")
         .extracting("metadata.annotations")
@@ -170,7 +170,7 @@ class RouteEnricherBehavioralTest {
         .last()
         .hasFieldOrPropertyWithValue("apiVersion", "route.openshift.io/v1")
         .hasFieldOrPropertyWithValue("metadata.name", "http")
-        .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 80)
+        .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 8080)
         .hasFieldOrPropertyWithValue("spec.to.kind", "Service")
         .hasFieldOrPropertyWithValue("spec.to.name", "http")
         .extracting("metadata.annotations")
@@ -193,7 +193,7 @@ class RouteEnricherBehavioralTest {
         .last()
         .hasFieldOrPropertyWithValue("apiVersion", "route.openshift.io/v1")
         .hasFieldOrPropertyWithValue("metadata.name", "http")
-        .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 80)
+        .hasFieldOrPropertyWithValue("spec.port.targetPort.value", 8080)
         .hasFieldOrPropertyWithValue("spec.to.kind", "Service")
         .hasFieldOrPropertyWithValue("spec.to.name", "http")
         .extracting("metadata.annotations")

@@ -17,8 +17,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -28,11 +30,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class WatcherManagerTest {
 
@@ -65,6 +67,16 @@ class WatcherManagerTest {
         .extracting(ImageConfiguration::getName)
         .contains("processed-by-test");
     verify(logger,times(1)).info("Running watcher %s", "fake-watcher");
+  }
+
+  @Test
+  void watch_whenBuildPacksBuildStrategy_thenThrowException() {
+    // Given
+    watcherContext = watcherContext.toBuilder().jKubeBuildStrategy(JKubeBuildStrategy.buildpacks).build();
+    // When
+    assertThatExceptionOfType(JKubeException.class)
+        .isThrownBy(() -> WatcherManager.watch(null, null, null, watcherContext))
+        .withMessage("Watch is not supported in Buildpacks build strategy");
   }
 
   // Loaded from META-INF/jkube/watcher-default

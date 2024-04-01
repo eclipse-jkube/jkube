@@ -13,7 +13,7 @@
  */
 plugins {
     id 'java'
-    id("org.eclipse.jkube.kubernetes") version "1.16.1"
+    id("org.eclipse.jkube.kubernetes") version "1.16.2"
 }
 
 version = "1.5.1"
@@ -25,8 +25,8 @@ repositories {
 }
 
 dependencies {
-    implementation "org.apache.camel:camel-core:3.11.1"
-    implementation "org.apache.camel:camel-cdi:3.11.1"
+    implementation 'org.apache.camel:camel-core:3.11.1'
+    implementation 'org.apache.camel:camel-cdi:3.11.1'
     implementation "javax.enterprise:cdi-api:2.0.SP1"
     implementation 'org.jboss.weld.se:weld-se:2.4.8.Final'
     implementation 'org.jboss.weld:weld-core:2.4.8.Final'
@@ -36,7 +36,7 @@ dependencies {
 }
 
 task copyDependencies(type: Copy) {
-    from configurations.default
+    from configurations.runtimeClasspath
     into file("build/dependencies")
 }
 build.dependsOn(copyDependencies)

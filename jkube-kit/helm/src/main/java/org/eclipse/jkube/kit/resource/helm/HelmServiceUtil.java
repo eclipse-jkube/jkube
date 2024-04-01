@@ -43,6 +43,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getProperty;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.listYamls;
@@ -105,9 +106,9 @@ public class HelmServiceUtil {
     helmConfig.setTypes(resolveHelmTypes(defaultHelmType, project));
 
     helmConfig.setSourceDir(resolveFromPropertyOrDefault(PROPERTY_SOURCE_DIR, project, helmConfig::getSourceDir,
-        () -> String.format("%s/META-INF/jkube/", project.getOutputDirectory())));
+        () -> separatorsToSystem(String.format("%s/META-INF/jkube/", project.getOutputDirectory()))));
     helmConfig.setOutputDir(resolveFromPropertyOrDefault(PROPERTY_OUTPUT_DIR, project, helmConfig::getOutputDir,
-      () -> String.format("%s/jkube/helm/%s", project.getBuildDirectory(), helmConfig.getChart())));
+      () -> separatorsToSystem(String.format("%s/jkube/helm/%s", project.getBuildDirectory(), helmConfig.getChart()))));
     helmConfig.setIcon(resolveFromPropertyOrDefault(PROPERTY_ICON, project, helmConfig::getIcon,
         () -> findIconURL(new File(helmConfig.getSourceDir()), helmConfig.getTypes())));
     helmConfig.setAppVersion(resolveFromPropertyOrDefault(PROPERTY_APP_VERSION, project, helmConfig::getAppVersion, project::getVersion));
@@ -119,16 +120,11 @@ public class HelmServiceUtil {
     return helmConfig.toBuilder();
   }
 
-  public static HelmConfig initHelmPushConfig(HelmConfig helmConfig, JavaProject project) {
-    if (helmConfig == null) {
-      helmConfig = new HelmConfig();
-    }
-
+  public static void initHelmPushConfig(HelmConfig helmConfig, JavaProject project) {
     helmConfig.setStableRepository(initHelmRepository(helmConfig.getStableRepository(), project, STABLE_REPOSITORY));
     helmConfig.setSnapshotRepository(initHelmRepository(helmConfig.getSnapshotRepository(), project, SNAPSHOT_REPOSITORY));
 
     helmConfig.setSecurity(resolveFromPropertyOrDefault(PROPERTY_SECURITY, project, helmConfig::getSecurity, () -> DEFAULT_SECURITY));
-    return helmConfig;
   }
 
   static HelmRepository initHelmRepository(HelmRepository helmRepository, JavaProject project, String repositoryType) {

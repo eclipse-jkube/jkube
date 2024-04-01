@@ -21,7 +21,7 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Settings;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;

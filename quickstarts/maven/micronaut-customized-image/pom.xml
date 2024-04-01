@@ -21,12 +21,12 @@
   <parent>
     <groupId>io.micronaut</groupId>
     <artifactId>micronaut-parent</artifactId>
-    <version>2.1.0</version>
+    <version>3.9.7</version>
   </parent>
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
   <artifactId>micronaut-customized-image</artifactId>
-  <version>1.16.1</version>
+  <version>1.16.2</version>
   <name>Eclipse JKube :: Quickstarts :: Maven :: Micronaut customized Image</name>
   <description>
     Micronaut application featuring REST endpoints (micronaut-http) with validation (micronaut-validation).

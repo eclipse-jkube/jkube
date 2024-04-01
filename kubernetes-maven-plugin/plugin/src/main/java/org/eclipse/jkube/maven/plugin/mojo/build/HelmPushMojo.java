@@ -14,6 +14,7 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
@@ -22,24 +23,25 @@ import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmPushConfig;
 
 @Mojo(name = "helm-push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class HelmPushMojo extends HelmMojo {
+public class HelmPushMojo extends AbstractHelmMojo {
+
+  @Override
+  public void init() throws MojoFailureException {
+    super.init();
+
+    initHelmPushConfig(helm, javaProject);
+  }
 
   @Override
   public void executeInternal() throws MojoExecutionException {
-    if (skip) {
-      return;
-    }
     try {
-      super.executeInternal();
-      helm = initHelmPushConfig(helm, javaProject);
       if (securityDispatcher instanceof DefaultSecDispatcher) {
-        ((DefaultSecDispatcher) securityDispatcher).setConfigurationFile(helm.getSecurity());
+        ((DefaultSecDispatcher) securityDispatcher).setConfigurationFile(getHelm().getSecurity());
       }
-      jkubeServiceHub.getHelmService().uploadHelmChart(helm);
+      jkubeServiceHub.getHelmService().uploadHelmChart(getHelm());
     } catch (Exception exp) {
-      getKitLogger().error("Error performing helm push", exp);
+      getKitLogger().error("Error performing Helm push", exp);
       throw new MojoExecutionException(exp.getMessage(), exp);
     }
   }
-
 }

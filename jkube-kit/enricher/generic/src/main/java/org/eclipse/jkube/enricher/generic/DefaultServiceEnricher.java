@@ -17,7 +17,6 @@ import io.fabric8.ianaservicehelper.Helper;
 import io.fabric8.kubernetes.api.builder.TypedVisitor;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceFluent;
@@ -316,7 +315,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
             }
 
             // Extract first port and remove first element
-            if(portsFromImageLabels == null || portsFromImageLabels.isEmpty()) {
+            if(portsFromImageLabels.isEmpty()) {
                 addPortIfNotNull(ret, extractPortsFromImageSpec(image.getName(), podPorts.remove(0), shiftOrNull(configuredPorts), null));
             } else {
                 for (String imageLabelPort : portsFromImageLabels) {
@@ -612,22 +611,38 @@ public class DefaultServiceEnricher extends BaseEnricher {
         return protocol;
     }
 
-    public static Integer getPortToExpose(ServiceBuilder serviceBuilder) {
+    private static ServicePort getServicePortToExpose(ServiceBuilder serviceBuilder){
         ServiceSpec spec = serviceBuilder.buildSpec();
-        if (spec != null) {
+            if (spec != null) {
             final List<ServicePort> ports = spec.getPorts();
             if (ports != null && !ports.isEmpty()) {
                 for (ServicePort port : ports) {
                     if (Objects.equals(port.getName(), "http") || Objects.equals(port.getProtocol(), "http") ) {
-                        return port.getPort();
+                        return port;
                     }
                 }
                 ServicePort servicePort = ports.iterator().next();
                 if (servicePort.getPort() != null) {
-                    return servicePort.getPort();
+                    return servicePort;
                 }
             }
         }
         return null;
+    }
+
+    public static Integer getPortToExpose(ServiceBuilder serviceBuilder) {
+       ServicePort servicePort = getServicePortToExpose(serviceBuilder);
+       if (servicePort == null){
+           return  null;
+       }
+       return servicePort.getPort();
+    }
+
+    public static Integer getTargetPortToExpose(ServiceBuilder serviceBuilder) {
+        ServicePort servicePort = getServicePortToExpose(serviceBuilder);
+        if (servicePort == null || servicePort.getTargetPort() == null){
+            return  null;
+        }
+        return servicePort.getTargetPort().getIntVal();
     }
 }

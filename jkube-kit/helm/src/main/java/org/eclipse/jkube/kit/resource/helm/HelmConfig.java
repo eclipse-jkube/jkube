@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.Maintainer;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -67,7 +68,8 @@ public class HelmConfig {
   private String outputDir;
   private String tarballOutputDir;
   private String tarFileClassifier;
-  private List<GeneratedChartListener> generatedChartListeners;
+  @Builder.Default
+  private List<GeneratedChartListener> generatedChartListeners = new ArrayList<>();
   private HelmRepository stableRepository;
   private HelmRepository snapshotRepository;
   private String security;

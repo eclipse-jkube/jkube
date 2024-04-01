@@ -68,7 +68,7 @@ class HelmLintMojoTest {
       .isInstanceOf(JKubeException.class)
       .hasMessage("Linting failed");
     assertThat(outputStream.toString())
-      .contains("Linting empty-project 0.1.0\n")
+      .contains(String.format("Linting empty-project 0.1.0%n"))
       .contains("Using packaged file:")
       .contains("[[W]]Error unable to open tarball:");
   }
@@ -79,7 +79,7 @@ class HelmLintMojoTest {
       .packageIt().withDestination(projectDir.resolve("target").resolve("jkube").resolve("helm").resolve("empty-project").resolve("kubernetes")).call();
     helmLintMojo.execute();
     assertThat(outputStream.toString())
-      .contains("Linting empty-project 0.1.0\n")
+      .contains(String.format("Linting empty-project 0.1.0%n"))
       .contains("Using packaged file:")
       .contains("[[W]][INFO] Chart.yaml: icon is recommended")
       .contains("Linting successful");

@@ -14,11 +14,13 @@
 package org.eclipse.jkube.watcher.api;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 
 import java.util.Collection;
@@ -42,6 +44,9 @@ public class WatcherManager {
   public static void watch(List<ImageConfiguration> ret, String namespace, Collection<HasMetadata> resources, WatcherContext watcherCtx)
       throws Exception {
 
+    if (watcherCtx.getJKubeBuildStrategy() != null && !watcherCtx.getJKubeBuildStrategy().isSupportsWatch()) {
+      throw new JKubeException("Watch is not supported in " + watcherCtx.getJKubeBuildStrategy().getLabel() + " build strategy");
+    }
     final PluginServiceFactory<WatcherContext> pluginFactory = new PluginServiceFactory<>(watcherCtx);
     if (watcherCtx.isUseProjectClasspath()) {
       pluginFactory.addAdditionalClassLoader(ClassUtil.createProjectClassLoader(

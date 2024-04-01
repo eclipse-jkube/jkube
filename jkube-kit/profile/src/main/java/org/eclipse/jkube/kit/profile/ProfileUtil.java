@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.profile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
@@ -46,7 +47,7 @@ public class ProfileUtil {
     // Default profile which will be always there
     public static final String DEFAULT_PROFILE = "default";
 
-    public static Profile findProfile(String profileArg, List<File> resourceDirs) throws IOException {
+    public static Profile findProfile(String profileArg, List<File> resourceDirs) {
         return findProfile(profileArg, resourceDirs == null ? new File[0] : resourceDirs.toArray(new File[0]));
     }
 
@@ -59,12 +60,11 @@ public class ProfileUtil {
      * @param profileArg the profile's name
      * @param resourceDirs directories to check for profiles.
      * @return the profile found or the default profile if none of this name is given
-     * @throws IOException if there's a problem while performing IO operations.
      */
-    public static Profile findProfile(String profileArg, File... resourceDirs) throws IOException {
-        try {
-            final String profile = profileArg == null ? DEFAULT_PROFILE : profileArg;
-            for (File resourceDir : resourceDirs) {
+    public static Profile findProfile(String profileArg, File... resourceDirs) {
+        final String profile = profileArg == null ? DEFAULT_PROFILE : profileArg;
+        for (File resourceDir : resourceDirs) {
+            try {
                 Profile profileFound = lookup(profile, resourceDir);
                 if (profileFound != null) {
                     if (profileFound.getParentProfile() != null) {
@@ -73,11 +73,11 @@ public class ProfileUtil {
                     }
                     return profileFound;
                 }
+            } catch (IOException ioException) {
+                throw JKubeException.launderThrowable("Error in looking up profile in " + resourceDir.getAbsolutePath(), ioException);
             }
-            throw new IllegalArgumentException("No profile '" + profile + "' defined");
-        } catch (IOException e) {
-            throw new IOException("Error while looking up profile " + profileArg + ": " + e.getMessage(),e);
         }
+        throw new IllegalArgumentException("No profile '" + profile + "' defined");
     }
 
     private static Profile inheritFromParentProfile(Profile aProfile, File resourceDir) throws IOException {
@@ -100,14 +100,13 @@ public class ProfileUtil {
      * @param resourceDirs resource directory where to lookup the profile (in addition to a classpath lookup)
      * @return the merged configuration which can be empty if no profile is given
      * @param config the provided configuration
-     * @throws IOException
      */
     public static ProcessorConfig blendProfileWithConfiguration(ProcessorConfigurationExtractor configExtractor,
                                                                 String profile,
                                                                 List<File> resourceDirs,
-                                                                ProcessorConfig config) throws IOException {
+                                                                ProcessorConfig config) {
         // Get specified profile or the default profile
-        ProcessorConfig profileConfig = extractProcesssorConfiguration(configExtractor, profile, resourceDirs);
+        ProcessorConfig profileConfig = extractProcessorConfiguration(configExtractor, profile, resourceDirs);
 
         return ProcessorConfig.mergeProcessorConfigs(config, profileConfig);
     }
@@ -141,9 +140,8 @@ public class ProfileUtil {
         return mergeProfiles(profiles);
     }
 
-    private static ProcessorConfig extractProcesssorConfiguration(ProcessorConfigurationExtractor extractor,
-                                                                 String profile,
-                                                                 List<File> resourceDirs) throws IOException {
+    private static ProcessorConfig extractProcessorConfiguration(ProcessorConfigurationExtractor extractor,
+                                                                 String profile, List<File> resourceDirs) {
         Profile profileFound = findProfile(profile, resourceDirs);
         return extractor.extract(profileFound);
     }

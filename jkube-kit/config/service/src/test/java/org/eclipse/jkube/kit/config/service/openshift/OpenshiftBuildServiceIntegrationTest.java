@@ -136,7 +136,7 @@ class OpenshiftBuildServiceIntegrationTest {
         .thenReturn(new ArchiveService(AssemblyManager.getInstance(), logger));
     when(jKubeServiceHub.getBuildServiceConfig().getBuildDirectory()).thenReturn(target.getAbsolutePath());
     when(jKubeServiceHub.getConfiguration()).thenReturn(JKubeConfiguration.builder()
-        .outputDirectory(target.getAbsolutePath())
+        .outputDirectory(target.getName())
         .project(JavaProject.builder()
             .baseDirectory(baseDirectory)
             .buildDirectory(target)
@@ -238,7 +238,7 @@ class OpenshiftBuildServiceIntegrationTest {
   @Test
   void build_withDockerfileModeAndAssembly_shouldSucceed() throws Exception {
     //Given
-    final File dockerFile = new File(target, "Dockerfile");
+    final File dockerFile = new File(baseDirectory, "Dockerfile");
     FileUtils.write(dockerFile, "FROM busybox\n", StandardCharsets.UTF_8);
     image.setBuild(BuildConfiguration.builder()
         .from(projectName)

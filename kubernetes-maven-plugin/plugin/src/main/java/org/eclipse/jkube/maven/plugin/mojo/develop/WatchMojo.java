@@ -29,7 +29,6 @@ import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil;
 import org.eclipse.jkube.kit.profile.ProfileUtil;
 import org.eclipse.jkube.maven.plugin.mojo.ManifestProvider;
@@ -116,12 +115,13 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
             return WatcherContext.builder()
                     .buildContext(buildContext)
                     .watchContext(watchContext)
-                    .config(extractWatcherConfig())
+                    .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.WATCHER_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), watcher))
                     .logger(log)
                     .newPodLogger(createLogger("[[C]][NEW][[C]] "))
                     .oldPodLogger(createLogger("[[R]][OLD][[R]] "))
                     .useProjectClasspath(useProjectClasspath)
                     .jKubeServiceHub(jkubeServiceHub)
+                    .jKubeBuildStrategy(getJKubeBuildStrategy())
                     .build();
         } catch (DependencyResolutionRequiredException dependencyException) {
             throw new MojoExecutionException("Instructed to use project classpath, but cannot. Continuing build if we can: " + dependencyException.getMessage());
@@ -131,23 +131,14 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
     }
 
     @Override
-    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() throws DependencyResolutionRequiredException {
+    protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() {
         return GeneratorContext.builder()
-            .config(extractGeneratorConfig())
-            .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
+            .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator))
+            .project(javaProject)
             .logger(log)
             .runtimeMode(getConfiguredRuntimeMode())
             .useProjectClasspath(useProjectClasspath)
             .generatorMode(GeneratorMode.WATCH);
-    }
-
-    // Get watcher config
-    private ProcessorConfig extractWatcherConfig() {
-        try {
-            return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.WATCHER_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), watcher);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Cannot extract watcher config: " + e, e);
-        }
     }
 
     protected KitLogger createLogger(String prefix) {

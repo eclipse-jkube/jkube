@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;

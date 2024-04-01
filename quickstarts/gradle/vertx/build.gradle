@@ -14,16 +14,20 @@
 plugins {
   id 'java'
   id 'application'
-  id 'org.eclipse.jkube.kubernetes' version '1.16.1'
-  id 'org.eclipse.jkube.openshift' version '1.16.1'
-  id 'io.vertx.vertx-plugin' version '1.3.0'
+  id 'org.eclipse.jkube.kubernetes' version '1.16.2'
+  id 'org.eclipse.jkube.openshift' version '1.16.2'
+  id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 group = 'org.eclipse.jkube.quickstarts.gradle'
 version = '1.6.0-SNAPSHOT'
 sourceCompatibility = '11'
-def vertxVersion = '4.2.2'
+def vertxVersion = '4.5.6'
 def launcherClassName = 'io.vertx.core.Launcher'
+def mainVerticleName = 'org.eclipse.jkube.quickstarts.gradle.vertx.MainVerticle'
+
+def watchForChange = "src/**/*"
+def doOnChange = "${projectDir}/gradlew classes"
 
 repositories {
   mavenCentral()
@@ -55,6 +59,24 @@ kubernetes {
   }
 }
 
-vertx {
-  mainVerticle = 'org.eclipse.jkube.quickstarts.gradle.vertx.MainVerticle'
+application {
+  mainClass.set(launcherClassName)
 }
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
+}
+
+shadowJar {
+  archiveClassifier.set('fat')
+  manifest {
+    attributes 'Main-Verticle': mainVerticleName
+  }
+  mergeServiceFiles()
+}
+
+task runApp(type: JavaExec) {
+  args = ["run", mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$launcherClassName", "--on-redeploy=$doOnChange"]
+}
+

@@ -15,9 +15,11 @@ package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -75,12 +77,22 @@ public class BuildPackBuildService extends AbstractImageBuildService {
     } else {
       builderImage = DEFAULT_BUILDER_IMAGE;
     }
-    new BuildPackCliController(packCli, kitLogger)
-      .build(BuildPackBuildOptions.builder()
+    BuildPackBuildOptions.BuildPackBuildOptionsBuilder buildPackBuildOptionsBuilder = BuildPackBuildOptions.builder()
         .imageName(imageConfiguration.getName())
         .builderImage(builderImage)
-        .creationTime("now")
-        .build());
+        .creationTime("now");
+    if (imageConfiguration.getBuild() != null) {
+      if (StringUtils.isNotBlank(imageConfiguration.getBuild().getImagePullPolicy())) {
+        String packBuildPullPolicy = imageConfiguration.getBuild().getImagePullPolicy().equalsIgnoreCase("IfNotPresent") ?
+            "if-not-present" :
+            imageConfiguration.getBuild().getImagePullPolicy().toLowerCase(Locale.ROOT);
+        buildPackBuildOptionsBuilder.imagePullPolicy(packBuildPullPolicy);
+      }
+      buildPackBuildOptionsBuilder.env(imageConfiguration.getBuild().getEnv())
+          .tags(imageConfiguration.getBuild().getTags())
+          .volumes(imageConfiguration.getBuild().getVolumes());
+    }
+    new BuildPackCliController(packCli, kitLogger).build(buildPackBuildOptionsBuilder.build());
   }
 
   @Override

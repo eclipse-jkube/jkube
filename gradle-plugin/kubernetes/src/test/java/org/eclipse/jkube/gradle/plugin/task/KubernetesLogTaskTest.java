@@ -40,7 +40,7 @@ class KubernetesLogTaskTest {
   private TestKubernetesExtension extension;
 
   @BeforeEach
-  void setUp() throws IOException {
+  void setUp() {
     extension = new TestKubernetesExtension();
     extension.isUseColor = false;
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);

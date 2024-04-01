@@ -18,21 +18,19 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 
 class ImageConfigurationTest {
 
     @Test
     void testBuilder() {
         // Given
-        BuildConfiguration mockJKubeBuildConfiguration = mock(BuildConfiguration.class);
-        when(mockJKubeBuildConfiguration.getUser()).thenReturn("super-user");
+        BuildConfiguration jkubeBuildConfiguration = BuildConfiguration.builder()
+                .user("super-user")
+                .build();
         // When
         final ImageConfiguration result = ImageConfiguration.builder()
                 .name("1337")
-                .build(mockJKubeBuildConfiguration)
+                .build(jkubeBuildConfiguration)
                 .build();
         // Then
         assertThat(result.getName()).isEqualTo("1337");

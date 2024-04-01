@@ -21,6 +21,13 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.17-SNAPSHOT
+* Fix #2335: Add support for configuring nodeSelector spec for controller via xml/groovy DSL configuration
+* Fix #2459: Allow configuring Buildpacks build via ImageConfiguration
+
+### 1.16.2 (2024-03-27)
+* Fix #2461: `k8s:watch`/`k8sWatch` should throw error in `buildpacks` build strategy
+* Fix #2852: Bump version.kubernetes-client from 6.10.0 to 6.11.0
+* Fix #2847: OpenShift Routes use `spec.port.targetPort` instead of `spec.port.port`
 
 ### 1.16.1 (2024-02-27)
 * Fix #2582: Moved PortMapping class from package `org.eclipse.jkube.kit.build.api.model` to `org.eclipse.jkube.kit.common`

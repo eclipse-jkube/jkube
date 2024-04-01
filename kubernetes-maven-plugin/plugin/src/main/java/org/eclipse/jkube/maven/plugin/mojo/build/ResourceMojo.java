@@ -22,13 +22,16 @@ import java.util.Properties;
 import javax.validation.ConstraintViolationException;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.GeneratorManager;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
-import org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper;
+import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
+import org.eclipse.jkube.kit.build.api.helper.ConfigHelper;
+
+import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
+import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.validator.ResourceValidator;
+import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.MappingConfig;
@@ -49,7 +52,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
 
-import static org.eclipse.jkube.kit.build.service.docker.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
+import static org.eclipse.jkube.kit.build.api.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.DEFAULT_RESOURCE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.DekorateUtil.useDekorate;
@@ -247,41 +250,31 @@ public class ResourceMojo extends AbstractJKubeMojo {
         return jkubeServiceHub.getResourceService().generateResources(getPlatformMode(), enricherManager, log);
     }
 
-    private ProcessorConfig extractEnricherConfig() throws IOException {
+    private ProcessorConfig extractEnricherConfig() {
         return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.ENRICHER_CONFIG, profile,
           jkubeServiceHub.getResourceServiceConfig().getResourceDirs(), enricher);
-    }
-
-    private ProcessorConfig extractGeneratorConfig() throws IOException {
-        return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile,
-          jkubeServiceHub.getResourceServiceConfig().getResourceDirs(), generator);
     }
 
     // ==================================================================================
 
     private List<ImageConfiguration> getResolvedImages(List<ImageConfiguration> images, final KitLogger log)
         throws IOException {
+        GeneratorManager generatorManager = new DefaultGeneratorManager(GeneratorContext.builder()
+            .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator))
+            .project(javaProject)
+            .logger(log)
+            .runtimeMode(getRuntimeMode())
+            .useProjectClasspath(useProjectClasspath)
+            .strategy(JKubeBuildStrategy.docker)
+            .prePackagePhase(true)
+            .build());
       return ConfigHelper.initImageConfiguration(
           getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
               DOCKER_BUILD_TIMESTAMP),
           images, imageConfigResolver,
           log,
           null, // no filter on image name yet (TODO: Maybe add this, too ?)
-          configs -> {
-            try {
-              GeneratorContext ctx = GeneratorContext.builder()
-                  .config(extractGeneratorConfig())
-                  .project(javaProject)
-                  .runtimeMode(getRuntimeMode())
-                  .logger(log)
-                  .strategy(JKubeBuildStrategy.docker)
-                  .useProjectClasspath(useProjectClasspath)
-                  .build();
-              return GeneratorManager.generate(configs, ctx, true);
-            } catch (Exception e) {
-              throw new IllegalArgumentException("Cannot extract generator: " + e, e);
-            }
-          },
+          generatorManager,
           jkubeServiceHub.getConfiguration());
     }
 

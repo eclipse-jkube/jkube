@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.service.buildpacks.controller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.service.buildpacks.BuildPackBuildOptions;
 import org.eclipse.jkube.kit.service.buildpacks.BuildPackCommand;
 
@@ -24,7 +25,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class BuildPackCliController implements BuildPackController {
   private final File pack;
@@ -68,6 +71,46 @@ public class BuildPackCliController implements BuildPackController {
     buildArgs.add(buildOptions.getImageName());
     buildArgs.addAll(Arrays.asList("--builder", buildOptions.getBuilderImage()));
     buildArgs.addAll(Arrays.asList("--creation-time", buildOptions.getCreationTime()));
+    buildArgs.addAll(extractStringArg("--pull-policy", buildOptions.getImagePullPolicy()));
+    buildArgs.addAll(extractRepeatedArgsForListElements("--volume", buildOptions.getVolumes()));
+    if (buildOptions.getTags() != null && !buildOptions.getTags().isEmpty()) {
+      ImageName specifiedImageName = new ImageName(buildOptions.getImageName());
+      List<String> imageNameWithAdditionalTags = buildOptions.getTags().stream()
+          .map(t -> specifiedImageName.getNameWithoutTag() + ":" + t)
+          .collect(Collectors.toList());
+      buildArgs.addAll(extractRepeatedArgsForListElements("--tag", imageNameWithAdditionalTags));
+    }
+    if (buildOptions.getEnv() != null) {
+      List<String> keyValueEntryList = buildOptions.getEnv().entrySet().stream()
+          .map(this::getSingleEnvArg)
+          .collect(Collectors.toList());
+      buildArgs.addAll(extractRepeatedArgsForListElements("--env", keyValueEntryList));
+    }
     return buildArgs;
+  }
+
+  private List<String> extractRepeatedArgsForListElements(String flag, List<String> flagValues) {
+    List<String> args = new ArrayList<>();
+    if (flagValues != null && !flagValues.isEmpty()) {
+      flagValues.forEach(v -> args.addAll(extractStringArg(flag, v)));
+    }
+    return args;
+  }
+
+  private List<String> extractStringArg(String flag, String flagValue) {
+    List<String> args = new ArrayList<>();
+    if (StringUtils.isNotBlank(flagValue)) {
+      args.add(flag);
+      args.add(flagValue);
+    }
+    return args;
+  }
+
+  private String getSingleEnvArg(Map.Entry<String, String> e) {
+    String entryKeyValue = e.getKey();
+    if (StringUtils.isNotBlank(e.getValue())) {
+      entryKeyValue = entryKeyValue + "=" + e.getValue();
+    }
+    return entryKeyValue;
   }
 }

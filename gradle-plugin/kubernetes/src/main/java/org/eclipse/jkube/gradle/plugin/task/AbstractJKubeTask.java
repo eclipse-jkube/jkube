@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.GeneratorManager;
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
 import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
-import org.eclipse.jkube.kit.build.service.docker.config.handler.ImageConfigResolver;
+import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
@@ -36,7 +36,6 @@ import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -50,7 +49,7 @@ import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
-import static org.eclipse.jkube.kit.build.service.docker.helper.ConfigHelper.initImageConfiguration;
+import static org.eclipse.jkube.kit.build.api.helper.ConfigHelper.initImageConfiguration;
 import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.interpolate;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.updateResourceConfigNamespace;
@@ -117,10 +116,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     return kubernetesExtension;
   }
 
-  private List<ImageConfiguration> customizeConfig(List<ImageConfiguration> configs) {
-    return GeneratorManager.generate(configs, initGeneratorContextBuilder().build(), false);
-  }
-
   private boolean isAnsiEnabled() {
     return kubernetesExtension.getUseColorOrDefault()
         && getProject().getGradle().getStartParameter().getConsoleOutput() != ConsoleOutput.Plain;
@@ -171,11 +166,12 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected GeneratorContext.GeneratorContextBuilder initGeneratorContextBuilder() {
     return GeneratorContext.builder()
-        .config(extractGeneratorConfig())
+        .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfileOrNull(), ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()), kubernetesExtension.generator))
         .project(kubernetesExtension.javaProject)
         .logger(kitLogger)
         .runtimeMode(kubernetesExtension.getRuntimeMode())
         .strategy(kubernetesExtension.getBuildStrategyOrDefault())
+        .prePackagePhase(false)
         .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault());
   }
 
@@ -190,21 +186,13 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
 
-  protected ProcessorConfig extractGeneratorConfig() {
-    try {
-      return ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, kubernetesExtension.getProfileOrNull(), ResourceUtil.getFinalResourceDirs(kubernetesExtension.getResourceSourceDirectoryOrDefault(), kubernetesExtension.getResourceEnvironmentOrNull()), kubernetesExtension.generator);
-    } catch (IOException e) {
-      throw new IllegalArgumentException("Cannot extract generator config: " + e, e);
-    }
-  }
-
   protected List<ImageConfiguration> resolveImages(ImageConfigResolver imageConfigResolver) throws IOException {
     return initImageConfiguration(
         getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
             DOCKER_BUILD_TIMESTAMP),
         kubernetesExtension.images, imageConfigResolver, kitLogger,
       kubernetesExtension.getFilter().getOrNull(),
-      this::customizeConfig,
+      new DefaultGeneratorManager(initGeneratorContextBuilder().build()),
       jKubeServiceHub.getConfiguration());
   }
 

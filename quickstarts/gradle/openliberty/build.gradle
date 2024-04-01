@@ -12,8 +12,8 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 plugins {
-    id 'io.openliberty.tools.gradle.Liberty' version '3.2'
-    id 'org.eclipse.jkube.kubernetes' version '1.16.1'
+    id 'io.openliberty.tools.gradle.Liberty' version '3.8.2'
+    id 'org.eclipse.jkube.kubernetes' version '1.16.2'
     id 'war'
 }
 
