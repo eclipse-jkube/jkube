@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.quickstart.quarkus.rest;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 @Singleton
 public class CoolApplicationService {
