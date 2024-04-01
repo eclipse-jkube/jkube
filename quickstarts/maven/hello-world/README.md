@@ -3,7 +3,6 @@ name: "Maven :: Hello World"
 description: |
   Demo project for getting started with Eclipse JKube.
   It just prints "Hello World" on command line and exits.
-author: Wayne Kirimi
 ---
 # JKube Hello World Sample
 
