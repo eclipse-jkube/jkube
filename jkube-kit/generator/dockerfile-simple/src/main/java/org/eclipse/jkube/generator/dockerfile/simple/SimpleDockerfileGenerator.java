@@ -21,10 +21,10 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import java.io.File;
 import java.util.List;
 
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.addSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.createSimpleDockerfileConfig;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.getTopLevelDockerfile;
-import static org.eclipse.jkube.kit.build.api.helper.DockerFileUtil.isSimpleDockerFileMode;
+import static org.eclipse.jkube.generator.dockerfile.simple.SimpleDockerfileUtil.addSimpleDockerfileConfig;
+import static org.eclipse.jkube.generator.dockerfile.simple.SimpleDockerfileUtil.createSimpleDockerfileConfig;
+import static org.eclipse.jkube.generator.dockerfile.simple.SimpleDockerfileUtil.getTopLevelDockerfile;
+import static org.eclipse.jkube.generator.dockerfile.simple.SimpleDockerfileUtil.isSimpleDockerFileMode;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getValueFromProperties;
 

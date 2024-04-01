@@ -13,13 +13,25 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
 
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -29,8 +41,10 @@ import org.gradle.api.GradleException;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
@@ -136,5 +150,42 @@ class KubernetesBuildTaskTest {
     // Then
     assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
     verify(buildTask.jKubeServiceHub.getBuildService(), times(0)).build(any());
+  }
+
+  @Test
+  @DisplayName("when Dockerfile present in project base directory, then generate opinionated ImageConfiguration for Dockerfile")
+  void simpleDockerfileModeWorksAsExpected(@TempDir File temporaryFolder) throws IOException {
+    // Given
+    File dockerFileInProjectBaseDir = temporaryFolder.toPath().resolve("Dockerfile").toFile();
+    Files.createFile(dockerFileInProjectBaseDir.toPath());
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<File> getResourceSourceDirectory() {
+        return super.getResourceSourceDirectory().value(new File(temporaryFolder, "src/main/jkube"));
+      }
+    };
+    extension.javaProject = JavaProject.builder()
+        .baseDirectory(temporaryFolder)
+        .outputDirectory(temporaryFolder.toPath().resolve("target").toFile())
+        .buildDirectory(temporaryFolder.toPath().resolve("target").toFile())
+        .plugin(Plugin.builder().groupId("org.springframework.boot").artifactId("org.springframework.boot.gradle.plugin").build())
+        .properties(new Properties()).build();
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
+    buildTask.kitLogger = new KitLogger.SilentLogger();
+    GeneratorContext generatorContext = buildTask.initGeneratorContextBuilder().build();
+    List<ImageConfiguration> imageConfigurations = new ArrayList<>();
+    DefaultGeneratorManager generatorManager = new DefaultGeneratorManager(generatorContext);
+
+    // When
+    List<ImageConfiguration> imageConfigurationList = generatorManager.generate(imageConfigurations);
+
+    // Then
+    Assertions.assertThat(imageConfigurationList)
+        .hasSize(1)
+        .singleElement(InstanceOfAssertFactories.type(ImageConfiguration.class))
+        .extracting(ImageConfiguration::getBuild)
+        .extracting(BuildConfiguration::getDockerFileRaw)
+        .isEqualTo(dockerFileInProjectBaseDir.getAbsolutePath());
   }
 }

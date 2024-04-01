@@ -40,17 +40,9 @@ public class DefaultGeneratorManager implements GeneratorManager {
 
   @Override
   public List<ImageConfiguration> generate(List<ImageConfiguration> imageConfigs) {
-
-    final PluginServiceFactory<GeneratorContext> pluginFactory = new PluginServiceFactory<>(genCtx);
-    if (genCtx.isUseProjectClasspath()) {
-      pluginFactory.addAdditionalClassLoader(
-          ClassUtil.createProjectClassLoader(genCtx.getProject().getCompileClassPathElements(), genCtx.getLogger()));
-    }
-
     List<ImageConfiguration> ret = imageConfigs;
     final KitLogger log = genCtx.getLogger();
-    final List<Generator> generators = pluginFactory.createServiceObjects(SERVICE_PATHS);
-    final List<Generator> usableGenerators = genCtx.getConfig().prepareProcessors(generators, "generator");
+    List<Generator> usableGenerators = createUsableGeneratorList();
     log.verbose("Generators:");
     for (Generator generator : usableGenerators) {
       log.verbose(" - %s", generator.getName());
@@ -60,5 +52,15 @@ public class DefaultGeneratorManager implements GeneratorManager {
       }
     }
     return ret;
+  }
+
+  private List<Generator> createUsableGeneratorList() {
+    final PluginServiceFactory<GeneratorContext> pluginFactory = new PluginServiceFactory<>(genCtx);
+    if (genCtx.isUseProjectClasspath()) {
+      pluginFactory.addAdditionalClassLoader(
+          ClassUtil.createProjectClassLoader(genCtx.getProject().getCompileClassPathElements(), genCtx.getLogger()));
+    }
+    final List<Generator> generators = pluginFactory.createServiceObjects(SERVICE_PATHS);
+    return genCtx.getConfig().prepareProcessors(generators, "generator");
   }
 }
