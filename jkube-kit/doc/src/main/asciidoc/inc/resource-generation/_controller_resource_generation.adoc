@@ -96,8 +96,10 @@ For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster
 | Configure Controller's compute resource requirements
 | `schedule`
 | Schedule for _CronJob_ written in https://en.wikipedia.org/wiki/Cron[Cron] syntax.
-|===
 
+| `nodeSelector`
+| Configuration element for adding nodeSelector to Pod template spec.
+|===
 
 [[initcontainer-configuration]]
 ==== InitContainer {plugin-configuration-type} configuration
