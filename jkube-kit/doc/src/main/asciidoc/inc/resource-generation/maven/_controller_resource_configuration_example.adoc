@@ -43,6 +43,10 @@
                  <cpu>500m</cpu>
               </limits>
            </containerResources>
+           <nodeSelector> <!--11-->
+              <region>east</region>
+              <type>user-node</type>
+           </nodeSelector>
         </controller>
     </resources>
 </configuration>
@@ -58,3 +62,4 @@
 <8> Mounting an EmptyDir Volume to your application pods
 <9> Requests describe the minimum amount of compute resources required. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[Kubernetes Resource Management Documentation] for more info.
 <10> Limits describe the maximum amount of compute resources allowed. See https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[Kubernetes Resource Management Documentation] for more info.
+<11> NodeSelector is used to select nodes where the pods should be scheduled based on the labels specified in the node. See https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/[Kubernetes NodeSelector] for more details.
