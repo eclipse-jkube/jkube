@@ -36,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -95,12 +94,13 @@ class KubernetesPluginTest {
 
   @Test
   void register_shouldRegisterTasks_WithoutReturningTask_kubPlugin() {
-    Project project = mock(Project.class);
-    AbstractJKubePlugin<KubernetesExtension> jkubePlugin = mock(KubernetesPlugin.class);
-    doNothing().when(jkubePlugin).register(any(),any(),any());
+    TaskProvider<Task> taskProvider = mock(TaskProvider.class);
+    when(project.getTasks().register(any(),any(),any(KubernetesExtension.class))).thenReturn(taskProvider);
 
+    AbstractJKubePlugin<KubernetesExtension> jkubePlugin = new KubernetesPlugin();
     jkubePlugin.register(project, "k8sApply", KubernetesApplyTask.class);
-    verify(jkubePlugin, times(1)).register(project,"k8sApply", KubernetesApplyTask.class);
+
+    verify(project.getTasks(),times(1)).register("k8sApply", KubernetesApplyTask.class,KubernetesExtension.class);
   }
 
 }

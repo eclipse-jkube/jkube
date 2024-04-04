@@ -28,14 +28,17 @@ import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskProvider;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
 
 class OpenShiftPluginTest {
 
@@ -58,11 +61,15 @@ class OpenShiftPluginTest {
   @Test
   void register_shouldRegisterTasks_WithoutReturningTask_openShiftPlugin() {
     Project project = mock(Project.class);
-    AbstractJKubePlugin<OpenShiftExtension> jkubePlugin = mock(OpenShiftPlugin.class);
-    doNothing().when(jkubePlugin).register(any(),any(),any());
+    TaskContainer taskContainer = mock(TaskContainer.class);
+    TaskProvider<Task> taskProvider = mock(TaskProvider.class);
+    when(project.getTasks()).thenReturn(taskContainer);
+    when(project.getTasks().register(any(),any(),any(OpenShiftExtension.class))).thenReturn(taskProvider);
 
+    AbstractJKubePlugin<OpenShiftExtension> jkubePlugin = new OpenShiftPlugin();
     jkubePlugin.register(project, "ocApply", OpenShiftResourceTask.class);
-    verify(jkubePlugin, times(1)).register(project,"ocApply", OpenShiftResourceTask.class);
+
+    verify(project.getTasks(),times(1)).register("ocApply", OpenShiftResourceTask.class,OpenShiftExtension.class);
   }
 
 }
