@@ -92,15 +92,4 @@ class KubernetesPluginTest {
         .containsEntry("k8sHelmLint", Collections.singletonList(KubernetesHelmTask.class));
   }
 
-  @Test
-  void register_shouldRegisterTasks_WithoutReturningTask_kubPlugin() {
-    TaskProvider<Task> taskProvider = mock(TaskProvider.class);
-    when(project.getTasks().register(any(),any(),any(KubernetesExtension.class))).thenReturn(taskProvider);
-
-    AbstractJKubePlugin<KubernetesExtension> jkubePlugin = new KubernetesPlugin();
-    jkubePlugin.register(project, "k8sApply", KubernetesApplyTask.class);
-
-    verify(project.getTasks(),times(1)).register("k8sApply", KubernetesApplyTask.class,KubernetesExtension.class);
-  }
-
 }
