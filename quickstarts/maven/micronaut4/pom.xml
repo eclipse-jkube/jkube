@@ -33,7 +33,7 @@
   </description>
 
   <properties>
-	<jdk.version>17</jdk.version>
+    <jdk.version>17</jdk.version>
     <release.version>17</release.version>
     <jkube.version>${project.version}</jkube.version>
     <micronaut.version>${project.parent.version}</micronaut.version>
