@@ -99,6 +99,7 @@ class SpringBootUtilTest {
         JavaProject javaProject = JavaProject.builder()
             .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/util/springboot/resources")).getPath())
             .outputDirectory(new File("target"))
+            .baseDirectory(new File("target"))
             .build();
         URLClassLoader compileClassLoader = JKubeProjectUtil.getClassLoader(javaProject);
 

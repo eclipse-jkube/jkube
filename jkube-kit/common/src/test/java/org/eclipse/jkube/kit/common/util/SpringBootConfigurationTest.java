@@ -60,6 +60,7 @@ class SpringBootConfigurationTest {
     project = JavaProject.builder()
       .properties(properties)
       .outputDirectory(target.toFile())
+      .baseDirectory(target.toFile())
       .build();
   }
 

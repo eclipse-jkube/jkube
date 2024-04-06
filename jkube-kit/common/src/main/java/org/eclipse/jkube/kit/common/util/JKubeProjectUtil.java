@@ -175,7 +175,8 @@ public class JKubeProjectUtil {
   public static URLClassLoader getClassLoader(JavaProject jKubeProject) {
     return ClassUtil.createClassLoader(
         jKubeProject.getCompileClassPathElements(),
-        jKubeProject.getOutputDirectory().getAbsolutePath());
+        jKubeProject.getOutputDirectory().getAbsolutePath(),
+        jKubeProject.getResourcesDirectory().getAbsolutePath());
   }
 
   public static String getProperty(String key, JavaProject project) {
