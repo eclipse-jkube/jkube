@@ -116,10 +116,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
     @Parameter
     private ProcessorConfig generator;
 
-    // Whether to use replica sets or replication controller. Could be configurable
-    // but for now leave it hidden.
-    private boolean useReplicaSet = true;
-
     // The image configuration after resolving and customization
     protected List<ImageConfiguration> resolvedImages;
 
