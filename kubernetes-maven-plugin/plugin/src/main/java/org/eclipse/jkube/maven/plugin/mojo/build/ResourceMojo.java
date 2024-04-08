@@ -179,11 +179,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
         }
     }
 
-    @Override
-    protected RuntimeMode getRuntimeMode() {
-        return RuntimeMode.KUBERNETES;
-    }
-
     protected PlatformMode getPlatformMode() {
         return PlatformMode.kubernetes;
     }
