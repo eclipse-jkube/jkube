@@ -363,9 +363,9 @@ public class AuthConfigFactory {
         }
 
         // Check plugin config
-        Map mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfigMap);
+        Map<String, String> mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfigMap);
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USE_OPENSHIFT_AUTH) &&
-            Boolean.parseBoolean((String) mapToCheck.get(AUTH_USE_OPENSHIFT_AUTH))) {
+            Boolean.parseBoolean(mapToCheck.get(AUTH_USE_OPENSHIFT_AUTH))) {
                 return validateMandatoryOpenShiftLogin(readKubeConfigAuth(), useOpenAuthModeKey);
         } else {
             return null;
