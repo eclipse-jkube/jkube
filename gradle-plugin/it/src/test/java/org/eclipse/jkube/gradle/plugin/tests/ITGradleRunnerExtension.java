@@ -38,7 +38,7 @@ public class ITGradleRunnerExtension implements BeforeEachCallback, AfterEachCal
   }
 
   @Override
-  public void afterEach(ExtensionContext context) throws Exception {
+  public void afterEach(ExtensionContext context) {
     gradleRunner = null;
   }
 
