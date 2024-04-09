@@ -34,7 +34,7 @@
     <jkube.version>${project.version}</jkube.version>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <version.quarkus>2.13.3.Final</version.quarkus>
+    <version.quarkus>3.9.1</version.quarkus>
     <jkube.build.pullSecret>12819530-ocp42-exposed-env-pull-secret-pull-secret</jkube.build.pullSecret>
   </properties>
 
@@ -98,7 +98,7 @@
             <image>
               <name>${project.groupId}/${project.artifactId}</name>
               <build>
-                <from>registry.redhat.io/openjdk/openjdk-11-rhel8:1.2-3.1587486933</from>
+                <from>registry.access.redhat.com/ubi9/openjdk-21:1.18-1</from>
                 <tags>
                   <tag>latest</tag>
                   <tag>${project.version}</tag>
