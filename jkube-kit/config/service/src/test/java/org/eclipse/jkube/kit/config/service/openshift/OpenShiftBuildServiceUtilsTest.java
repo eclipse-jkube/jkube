@@ -32,6 +32,7 @@ import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.BuildConfigBuilder;
 import io.fabric8.openshift.api.model.BuildConfigSpec;
@@ -194,6 +195,34 @@ class OpenShiftBuildServiceUtilsTest {
         .extracting(BuildStrategy::getDockerStrategy)
         .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
         .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base");
+  }
+
+  @Test
+  void createBuildStrategy_withDockerBuildArgs_shouldReturnValidBuildStrategyWithBuildArgs() {
+    // Given
+    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
+        .thenReturn(JKubeBuildStrategy.docker);
+    ImageConfiguration imageConfig = ImageConfiguration.builder()
+        .name("myapp")
+        .build(BuildConfiguration.builder()
+            .from("ubi8/s2i-base")
+            .args(Collections.singletonMap("BUILD_ARGS_KEY", "build-args-value"))
+            .build())
+        .build();
+    // When
+    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfig, "my-secret-for-pull");
+    // Then
+    assertThat(result)
+        .hasFieldOrPropertyWithValue("type", "Docker")
+        .extracting(BuildStrategy::getDockerStrategy)
+        .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
+        .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base")
+        .extracting("buildArgs").asList().hasSize(1).first().satisfies(
+            envVar -> {
+              assertThat(envVar)
+                  .hasFieldOrPropertyWithValue("name", "BUILD_ARGS_KEY")
+                  .hasFieldOrPropertyWithValue("value", "build-args-value");
+            });
   }
 
   @Test
