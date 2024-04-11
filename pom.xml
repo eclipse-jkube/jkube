@@ -91,7 +91,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <skipTests>false</skipTests>
     <version.asciidoctor-maven-plugin>2.2.4</version.asciidoctor-maven-plugin>
-    <version.asciidoctorj>2.2.0</version.asciidoctorj>
+    <version.asciidoctorj>2.3.0</version.asciidoctorj>
     <version.assertj-core>3.24.2</version.assertj-core>
     <version.citrus>3.4.0</version.citrus>
     <version.commons-compress>1.26.1</version.commons-compress> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
