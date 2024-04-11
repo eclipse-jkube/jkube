@@ -87,6 +87,7 @@
   generator:
     # The order given in "includes" is the order in which generators are called
     includes:
+    - dockerfile-simple
     - quarkus
     - spring-boot
     - thorntail-v2
@@ -119,6 +120,7 @@
   generator:
     # The order given in "includes" is the order in which generators are called
     includes:
+    - dockerfile-simple
     - spring-boot
     - thorntail-v2
     - wildfly-jar

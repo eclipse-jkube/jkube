@@ -73,6 +73,11 @@
 
       <dependency>
         <groupId>org.eclipse.jkube</groupId>
+        <artifactId>jkube-kit-generator-dockerfile-simple</artifactId>
+      </dependency>
+
+      <dependency>
+        <groupId>org.eclipse.jkube</groupId>
         <artifactId>jkube-kit-generator-karaf</artifactId>
         <version>${jkube.kit.version}</version>
         </dependency>

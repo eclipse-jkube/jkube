@@ -137,4 +137,5 @@ class KubernetesBuildTaskTest {
     assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
     verify(buildTask.jKubeServiceHub.getBuildService(), times(0)).build(any());
   }
+
 }

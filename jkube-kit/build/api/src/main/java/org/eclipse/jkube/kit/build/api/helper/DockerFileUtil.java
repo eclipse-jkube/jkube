@@ -18,14 +18,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -34,7 +32,6 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.eclipse.jkube.kit.common.JKubeFileInterpolator;
 import org.eclipse.jkube.kit.common.util.Serialization;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
@@ -192,42 +189,6 @@ public class DockerFileUtil {
         }
     }
 
-    public static boolean isSimpleDockerFileMode(File projectBaseDirectory) {
-        if (projectBaseDirectory != null) {
-            return getTopLevelDockerfile(projectBaseDirectory).exists();
-        }
-        return false;
-    }
-
-    public static File getTopLevelDockerfile(File projectBaseDirectory) {
-        return new File(projectBaseDirectory, "Dockerfile");
-    }
-
-    public static ImageConfiguration createSimpleDockerfileConfig(File dockerFile, String defaultImageName) {
-        if (defaultImageName == null) {
-            // Default name group/artifact:version (or 'latest' if SNAPSHOT)
-            defaultImageName = "%g/%a:%l";
-        }
-
-        final BuildConfiguration buildConfig = BuildConfiguration.builder()
-                .dockerFile(dockerFile.getPath())
-                .ports(extractPorts(dockerFile))
-                .build();
-
-        return ImageConfiguration.builder()
-                .name(defaultImageName)
-                .build(buildConfig)
-                .build();
-    }
-
-    public static ImageConfiguration addSimpleDockerfileConfig(ImageConfiguration image, File dockerfile) {
-        final BuildConfiguration buildConfig = BuildConfiguration.builder()
-                .dockerFile(dockerfile.getPath())
-                .ports(extractPorts(dockerfile))
-                .build();
-        return image.toBuilder().build(buildConfig).build();
-    }
-
     private static void updateMapWithArgValue(Map<String, String> result, Map<String, String> args, String argString) {
         if (argString.contains("=") || argString.contains(":")) {
             String[] argStringParts = argString.split("[=:]");
@@ -267,25 +228,6 @@ public class DockerFileUtil {
         if (argStringParts.length > 1) {
             throw new IllegalArgumentException("Dockerfile parse error: ARG requires exactly one argument. Provided : " + argStringParam);
         }
-    }
-
-    static List<String> extractPorts(File dockerFile) {
-        Properties properties = new Properties();
-        try {
-            return extractPorts(extractLines(dockerFile, "EXPOSE", properties, null));
-        } catch (IOException ioException) {
-            throw new IllegalArgumentException("Error in reading Dockerfile", ioException);
-        }
-    }
-
-    static List<String> extractPorts(List<String[]> dockerLinesContainingExpose) {
-        Set<String> ports = new HashSet<>();
-        dockerLinesContainingExpose.forEach(line -> Arrays.stream(line)
-                .skip(1)
-                .filter(Objects::nonNull)
-                .filter(StringUtils::isNotBlank)
-                .forEach(ports::add));
-        return new ArrayList<>(ports);
     }
 
     static String resolveDockerfileFilter(String filter) {

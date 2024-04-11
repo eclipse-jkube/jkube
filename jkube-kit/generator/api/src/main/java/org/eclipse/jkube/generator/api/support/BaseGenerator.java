@@ -26,7 +26,6 @@ import org.eclipse.jkube.generator.api.FromSelector;
 import org.eclipse.jkube.generator.api.Generator;
 import org.eclipse.jkube.generator.api.GeneratorConfig;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
@@ -48,6 +47,9 @@ import org.eclipse.jgit.lib.Repository;
  * @author roland
  */
 public abstract class BaseGenerator implements Generator {
+
+    public static final String PROPERTY_JKUBE_IMAGE_NAME = "jkube.image.name";
+    public static final String PROPERTY_JKUBE_GENERATOR_NAME = "jkube.generator.name";
 
     private static final String LABEL_SCHEMA_VERSION = "1.0";
     private static final String GIT_REMOTE = "origin";
@@ -186,9 +188,9 @@ public abstract class BaseGenerator implements Generator {
      */
     protected String getImageName() {
         if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT) {
-            return getConfigWithFallback(Config.NAME, "jkube.generator.name", "%a:%l");
+            return getConfigWithFallback(Config.NAME, PROPERTY_JKUBE_GENERATOR_NAME, "%a:%l");
         } else {
-            return getConfigWithFallback(Config.NAME, "jkube.generator.name", "%g/%a:%l");
+            return getConfigWithFallback(Config.NAME, PROPERTY_JKUBE_GENERATOR_NAME, "%g/%a:%l");
         }
     }
 
@@ -215,10 +217,6 @@ public abstract class BaseGenerator implements Generator {
     }
 
     protected boolean shouldAddGeneratedImageConfiguration(List<ImageConfiguration> configs) {
-        if (getProject() != null && getProject().getBaseDirectory() != null && getProject().getBaseDirectory().exists()
-              && DockerFileUtil.isSimpleDockerFileMode(getContext().getProject().getBaseDirectory())) {
-            return false;
-        }
         if (containsBuildConfiguration(configs)) {
             return Boolean.parseBoolean(getConfigWithFallback(Config.ADD, "jkube.generator.add", "false"));
         }
