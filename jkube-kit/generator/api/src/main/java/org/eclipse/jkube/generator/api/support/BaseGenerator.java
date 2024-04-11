@@ -48,6 +48,9 @@ import org.eclipse.jgit.lib.Repository;
  */
 public abstract class BaseGenerator implements Generator {
 
+    public static final String PROPERTY_JKUBE_IMAGE_NAME = "jkube.image.name";
+    public static final String PROPERTY_JKUBE_GENERATOR_NAME = "jkube.generator.name";
+
     private static final String LABEL_SCHEMA_VERSION = "1.0";
     private static final String GIT_REMOTE = "origin";
 
@@ -185,9 +188,9 @@ public abstract class BaseGenerator implements Generator {
      */
     protected String getImageName() {
         if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT) {
-            return getConfigWithFallback(Config.NAME, "jkube.generator.name", "%a:%l");
+            return getConfigWithFallback(Config.NAME, PROPERTY_JKUBE_GENERATOR_NAME, "%a:%l");
         } else {
-            return getConfigWithFallback(Config.NAME, "jkube.generator.name", "%g/%a:%l");
+            return getConfigWithFallback(Config.NAME, PROPERTY_JKUBE_GENERATOR_NAME, "%g/%a:%l");
         }
     }
 

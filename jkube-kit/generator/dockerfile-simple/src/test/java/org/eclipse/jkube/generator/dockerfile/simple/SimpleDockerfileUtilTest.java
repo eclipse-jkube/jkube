@@ -50,6 +50,12 @@ class SimpleDockerfileUtilTest {
     void whenNoDockerfilePresentInBaseDirectory_thenReturnFalse(@TempDir File temporaryFolder) {
       assertThat(SimpleDockerfileUtil.isSimpleDockerFileMode(temporaryFolder)).isFalse();
     }
+
+    @Test
+    @DisplayName("When project directory is null, return false")
+    void whenNullProjectBaseDirectory_thenReturnFalse() {
+      assertThat(SimpleDockerfileUtil.isSimpleDockerFileMode(null)).isFalse();
+    }
   }
 
   @Nested

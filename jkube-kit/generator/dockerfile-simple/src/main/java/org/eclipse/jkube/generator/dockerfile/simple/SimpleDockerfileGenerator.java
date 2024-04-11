@@ -46,7 +46,7 @@ public class SimpleDockerfileGenerator extends BaseGenerator {
         "docker/build.timestamp"));
     File topDockerfile = getTopLevelDockerfile(getContext().getProject().getBaseDirectory());
     String defaultImageName = imageNameFormatter.format(getValueFromProperties(getContext().getProject().getProperties(),
-        "jkube.image.name", "jkube.generator.name"));
+      PROPERTY_JKUBE_IMAGE_NAME, PROPERTY_JKUBE_GENERATOR_NAME));
     if (configs.isEmpty()) {
       configs.add(createSimpleDockerfileConfig(topDockerfile, defaultImageName));
     } else if (configs.size() == 1 && configs.get(0).getBuildConfiguration() == null) {

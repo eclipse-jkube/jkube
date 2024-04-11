@@ -76,6 +76,7 @@
         <dependency>
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>jkube-kit-generator-dockerfile-simple</artifactId>
+            <version>${jkube.kit.version}</version>
         </dependency>
 
         <dependency>
