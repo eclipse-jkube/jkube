@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.config.service.openshift;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.LocalObjectReferenceBuilder;
 import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.BuildConfigSpec;
@@ -132,6 +133,11 @@ public class OpenShiftBuildServiceUtils {
               .withNamespace(StringUtils.isEmpty(fromNamespace) ? null : fromNamespace)
             .endFrom()
             .withEnv(checkForEnv(imageConfig))
+            .withBuildArgs(imageConfig.getBuildConfiguration().getArgs().entrySet().stream()
+                .map(bcArg -> new EnvVarBuilder()
+                    .withName(bcArg.getKey())
+                    .withValue(bcArg.getValue()).build())
+                .collect(Collectors.toList()))
             .withNoCache(checkForNocache(imageConfig))
           .endDockerStrategy().build();
       if (openshiftPullSecret != null) {
