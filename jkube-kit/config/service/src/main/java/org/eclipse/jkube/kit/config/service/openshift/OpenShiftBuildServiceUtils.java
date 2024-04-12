@@ -133,7 +133,7 @@ public class OpenShiftBuildServiceUtils {
               .withNamespace(StringUtils.isEmpty(fromNamespace) ? null : fromNamespace)
             .endFrom()
             .withEnv(checkForEnv(imageConfig))
-            .withBuildArgs(imageConfig.getBuildConfiguration().getArgs().entrySet().stream()
+            .withBuildArgs(Optional.ofNullable(buildConfig.getArgs()).orElse(Collections.emptyMap()).entrySet().stream()
                 .map(bcArg -> new EnvVarBuilder()
                     .withName(bcArg.getKey())
                     .withValue(bcArg.getValue()).build())
