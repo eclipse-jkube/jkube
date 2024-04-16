@@ -14,6 +14,10 @@ All default generators examine the build information for certain aspects and gen
 |===
 | Generator | Name | Description
 
+| <<generator-simple-dockerfile, Simple Dockerfile>>
+| `dockerfile-simple`
+| Generator for creating Image when user places `Dockerfile` in project base directory.
+
 | <<generator-java-exec,Java Applications>>
 | `java-exec`
 | Generic generator for flat classpath and fat-jar Java applications
@@ -67,6 +71,7 @@ endif::[]
 
 include::generator/_options_common.adoc[]
 
+include::generator/_simple_dockerfile.adoc[]
 include::generator/_java_exec.adoc[]
 include::generator/_spring_boot.adoc[]
 include::generator/_thorntail_v2.adoc[]

@@ -1,0 +1,11 @@
+[[generator-simple-dockerfile]]
+=== Simple Dockerfile
+
+Simple Dockerfile generator is responsible for creating an opinionated image configuration when user places `Dockerfile` in project's base directory.
+
+This generator gets activated when these conditions are met:
+
+- `Dockerfile` is placed in project's base directory
+- Either `image` configuration is not provided, or `image` configuration provided does not have `build` configured.
+
+Image built with this configuration would use the `Dockerfile` for https://docs.docker.com/reference/cli/docker/image/build/[docker build] and project base directory as https://docs.docker.com/build/building/context/#filesystem-contexts[docker context directory].
