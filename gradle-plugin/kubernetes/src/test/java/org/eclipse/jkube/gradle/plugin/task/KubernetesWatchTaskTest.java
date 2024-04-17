@@ -30,7 +30,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
-import java.io.IOException;
 import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
