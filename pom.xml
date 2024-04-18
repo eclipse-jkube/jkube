@@ -120,7 +120,7 @@
     <version.maven-release-plugin>3.0.1</version.maven-release-plugin>
     <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
     <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
-    <version.maven-surefire-plugin>3.1.2</version.maven-surefire-plugin>
+    <version.maven-surefire-plugin>3.2.5</version.maven-surefire-plugin>
     <version.mockito>4.6.1</version.mockito>
     <version.nexus-staging-maven-plugin>1.6.13</version.nexus-staging-maven-plugin>
     <version.plexus-component-metadata>2.2.0</version.plexus-component-metadata>
