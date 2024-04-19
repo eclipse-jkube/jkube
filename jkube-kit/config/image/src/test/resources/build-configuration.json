@@ -7,6 +7,7 @@
   "fromExt": {
     "name": "jkube-images/image:ext"
   },
+  "buildpacksBuilderImage": "paketobuildpacks/builder:tiny",
   "maintainer": "A-Team",
   "ports": ["8080"],
   "shell": {

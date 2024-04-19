@@ -78,6 +78,7 @@ public abstract class BaseGenerator implements Generator {
 
         // Base image mode (only relevant for OpenShift)
         FROM_MODE("fromMode", null),
+        BUILDPACKS_BUILDER_IMAGE("buildpacksBuilderImage", null),
 
         // Optional registry
         REGISTRY("registry", null),
@@ -133,6 +134,10 @@ public abstract class BaseGenerator implements Generator {
         return getConfigWithFallback(Config.FROM, "jkube.generator.from", null);
     }
 
+    protected String getBuildpacksBuilderImageAsConfigured() {
+        return getConfigWithFallback(Config.BUILDPACKS_BUILDER_IMAGE, "jkube.generator.buildpacksBuilderImage", null);
+    }
+
     /**
      * Add the base image either from configuration or from a given selector
      *
@@ -141,6 +146,7 @@ public abstract class BaseGenerator implements Generator {
     protected void addFrom(BuildConfiguration.BuildConfigurationBuilder builder) {
         String fromMode = getConfigWithFallback(Config.FROM_MODE, "jkube.generator.fromMode", "docker");
         String from = getFromAsConfigured();
+        builder.buildpacksBuilderImage(getBuildpacksBuilderImageAsConfigured());
         if ("docker".equalsIgnoreCase(fromMode)) {
             String fromImage = from;
             if (fromImage == null) {

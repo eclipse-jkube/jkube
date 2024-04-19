@@ -13,10 +13,6 @@
  */
 package org.eclipse.jkube.generator.api.support;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -35,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.entry;
@@ -94,6 +89,29 @@ class BaseGeneratorTest {
     final String result = new TestBaseGenerator(ctx, "test-generator").getFromAsConfigured();
     // Then
     assertThat(result).isEqualTo("fromInProperties");
+  }
+
+  @Test
+  @DisplayName("get buildpacksBuilderImageAsConfigured as configured with properties and configuration, should return configured")
+  void buildpacksBuilderImageConfiguredWithPropertiesAndConfigurationShouldReturnConfig() {
+    // Given
+    properties.put("jkube.generator.buildpacksBuilderImage", "buildPackBuilderViaProperties");
+    config.getConfig().put("test-generator", Collections.singletonMap("buildpacksBuilderImage", "buildPackBuilderViaConfig"));
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getBuildpacksBuilderImageAsConfigured();
+    // Then
+    assertThat(result).isEqualTo("buildPackBuilderViaConfig");
+  }
+
+  @Test
+  @DisplayName("get buildpacksBuilderImage as configured with properties, should return value in properties")
+  void buildpacksBuilderImageAsConfiguredAsConfiguredWithPropertiesShouldReturnValueInProperties() {
+    // Given
+    properties.put("jkube.generator.buildpacksBuilderImage", "buildPackBuilderViaProperties");
+    // When
+    final String result = new TestBaseGenerator(ctx, "test-generator").getBuildpacksBuilderImageAsConfigured();
+    // Then
+    assertThat(result).isEqualTo("buildPackBuilderViaProperties");
   }
 
   @Test
