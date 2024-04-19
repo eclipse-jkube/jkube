@@ -97,7 +97,7 @@
     <version.commons-compress>1.26.1</version.commons-compress> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
     <version.commons-io>2.15.1</version.commons-io> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
     <version.gradle>7.6.2</version.gradle>
-    <version.gradle-api-maven-plugin>0.0.3</version.gradle-api-maven-plugin>
+    <version.gradle-api-maven-plugin>0.0.5</version.gradle-api-maven-plugin>
     <version.groovy>3.0.19</version.groovy>
     <version.guava>33.1.0-jre</version.guava>
     <version.helm-java>0.0.6</version.helm-java>
