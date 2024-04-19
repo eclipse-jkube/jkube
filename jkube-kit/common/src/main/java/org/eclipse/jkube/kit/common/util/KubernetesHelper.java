@@ -440,7 +440,7 @@ public class KubernetesHelper {
                     log.warn("Ignoring empty values in selector expression %s", expression);
                     continue;
                 }
-                String[] valuesArray = values.toArray(new String[values.size()]);
+                String[] valuesArray = values.toArray(new String[0]);
                 String operator = expression.getOperator();
                 switch (operator) {
                     case "In":
