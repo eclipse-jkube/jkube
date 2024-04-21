@@ -34,7 +34,7 @@ pipeline {
             to: jKubeInfraEmail
       }
       fixed {
-          emailext subject: '[JKube] SNAPSHOT deployment: Bach to normal $BUILD_STATUS $PROJECT_NAME #$BUILD_NUMBER',
+          emailext subject: '[JKube] SNAPSHOT deployment: Back to normal $BUILD_STATUS $PROJECT_NAME #$BUILD_NUMBER',
             body: '''Check console output at $BUILD_URL to view the results.''',
             to: jKubeInfraEmail
       }
