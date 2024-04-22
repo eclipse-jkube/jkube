@@ -175,7 +175,7 @@ public class jrelease {
         System.in.read();
 
         // 17. Tag new release in https://github.com/jkubeio/jkube-website
-        printStep(17, "Tag new release in https://github.com/jkubeio/jkube-website (keep empty title/description)");
+        printStep(17, "Tag new release in https://github.com/eclipse-jkube/jkube-website (keep empty title/description)");
         print("Press enter to continue");
         System.in.read();
 
@@ -190,7 +190,7 @@ public class jrelease {
         print("");
         print("📢 Please help us spread the word & share your experience @jkubeio");
         print("");
-        print("https://github.com/eclipse/jkube/releases/tag/v" + nextReleaseVersion);
+        print("https://github.com/eclipse-jkube/jkube/releases/tag/v" + nextReleaseVersion);
         print("");
         print("Press enter to continue");
         System.in.read();
@@ -206,7 +206,7 @@ public class jrelease {
         print("");
         print("📢 Please help us spread the word & share your experience https://twitter.com/jkubeio");
         print("");
-        print("https://github.com/eclipse/jkube/releases/tag/v" + nextReleaseVersion);
+        print("https://github.com/eclipse-jkube/jkube/releases/tag/v" + nextReleaseVersion);
         print("");
         print("Press enter to continue");
         System.in.read();
@@ -218,7 +218,7 @@ public class jrelease {
 
         // 21. Run the Gradle verification test
         printStep(21,
-                "Run the Gradle verification test: https://github.com/jkubeio/jkube-integration-tests/actions/workflows/smoke-tests.yml");
+                "Run the Gradle verification test: https://github.com/eclipse-jkube/jkube-integration-tests/actions/workflows/smoke-tests.yml");
         print("Press enter to continue");
         System.in.read();
 

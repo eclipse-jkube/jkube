@@ -21,7 +21,7 @@ contact_links:
     url: https://accounts.eclipse.org/mailing-list/jkube-dev
     about: Eclipse JKube Developer Discussions
   - name: Eclipse JKube GitHub Discussions
-    url: https://github.com/eclipse/jkube/discussions
+    url: https://github.com/eclipse-jkube/jkube/discussions
     about: Eclipse JKube GitHub Discussions
   - name: Stack Overflow
     url: https://stackoverflow.com/questions/tagged/jkube

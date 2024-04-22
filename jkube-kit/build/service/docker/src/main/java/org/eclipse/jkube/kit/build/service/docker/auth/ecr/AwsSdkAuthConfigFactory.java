@@ -54,7 +54,7 @@ public class AwsSdkAuthConfigFactory {
             if (t.getCause() != null) {
                 log.warn("Caused by: %s", t.getCause().getMessage());
             }
-            log.warn("Please report a bug at https://github.com/eclipse/jkube/issues/new?%s",
+            log.warn("Please report a bug at https://github.com/eclipse-jkube/jkube/issues/new?%s",
                     issueTitle == null ? "" : "title=?" + issueTitle);
             log.warn("%s", t);
             return null;

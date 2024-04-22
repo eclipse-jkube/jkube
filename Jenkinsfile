@@ -19,8 +19,8 @@ pipeline {
                 # Setup Git Config
                 git config --global user.email eclipsejkubebot@eclipse.org
                 git config --global user.name "Eclipse JKube Bot"
-                git clone https://eclipse-jkube-bot:$GH_TOKEN@github.com/eclipse/jkube.git && cd jkube
-                
+                git clone https://eclipse-jkube-bot:$GH_TOKEN@github.com/eclipse-jkube/jkube.git && cd jkube
+
                 # Find Project release version
                 HEAD=$(git log -1 --format=format:%H)
                 PROJECT_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
@@ -41,7 +41,7 @@ pipeline {
 
                 mvn clean -B
                 mvn -V -B -e -U install org.sonatype.plugins:nexus-staging-maven-plugin:1.6.7:deploy -P release -DnexusUrl=https://oss.sonatype.org -DserverId=ossrh
-                
+
                 # Modify poms back to SNAPSHOT VERSIONS
                 MAJOR_VERSION=`echo $NEXT_RELEASE_VERSION | cut -d. -f1`
                 MINOR_VERSION=`echo $NEXT_RELEASE_VERSION | cut -d. -f2`

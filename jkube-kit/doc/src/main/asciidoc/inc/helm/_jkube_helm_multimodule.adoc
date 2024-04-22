@@ -63,7 +63,7 @@ Configure inheritance of the `project` and  `scm` elements in the *parent* modul
 <!-- ... -->
     <url>https://jkube.example.com</url>
     <scm child.scm.url.inherit.append.path="false">
-        <url>https://github.com/eclipse/jkube</url>
+        <url>https://github.com/eclipse-jkube/jkube</url>
     </scm>
 <!-- ... -->
 </project>

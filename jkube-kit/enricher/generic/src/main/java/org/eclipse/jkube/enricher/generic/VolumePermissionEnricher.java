@@ -210,7 +210,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
     /**
      * Get useAnnotation from enricher configuration
      * TODO: This method is kept only for backward compatibility. This should
-     *       be removed in future. See <a href="https://github.com/eclipse/jkube/issues/1989">GitHub Issue</a> for more details
+     *       be removed in future. See <a href="https://github.com/eclipse-jkube/jkube/issues/1989">GitHub Issue</a> for more details
      *
      * @return boolean value indicating whether StorageClass annotation should be used or not
      */
@@ -222,7 +222,7 @@ public class VolumePermissionEnricher extends BaseEnricher {
      * Get Default StorageClass from enricher configuration
      *
      * TODO: This method is kept only for backward compatibility. This should
-     *       be removed in future. See <a href="https://github.com/eclipse/jkube/issues/1989">GitHub Issue</a> for more details
+     *       be removed in future. See <a href="https://github.com/eclipse-jkube/jkube/issues/1989">GitHub Issue</a> for more details
      * @return default storage class
      */
     public String getDefaultStorageClass() {

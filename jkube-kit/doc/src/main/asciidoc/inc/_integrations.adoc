@@ -40,7 +40,7 @@ generation will be delegated to Dekorate.
 ----
 
 A full example of the integration can be found in the directory
-https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot-dekorate[quickstarts/maven/spring-boot-dekorate].
+https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/spring-boot-dekorate[quickstarts/maven/spring-boot-dekorate].
 
 An *experimental* feature is also provided to merge resources generated both by *{plugin}*
 and Dekorate. You can activate this feature by using the following flag `-Djkube.mergeWithDekorate`
@@ -54,10 +54,10 @@ https://github.com/GoogleContainerTools/jib[JIB]. It creates a tarball inside yo
 into any docker daemon afterwards. You may also push the image to your specified registry using push goal with feature flag enabled.
 
 ifeval::["{plugin-type}" == "maven"]
-You can find more details at https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot-with-jib[Spring Boot JIB Quickstart].
+You can find more details at https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/spring-boot-with-jib[Spring Boot JIB Quickstart].
 endif::[]
 ifeval::["{plugin-type}" == "gradle"]
-You can find more details at https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/spring-boot-with-jib-assembly/[Spring Boot JIB With Assembly Quickstart].
+You can find more details at https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/gradle/spring-boot-with-jib-assembly/[Spring Boot JIB With Assembly Quickstart].
 endif::[]
 
 [[integrations.buildpacks]]

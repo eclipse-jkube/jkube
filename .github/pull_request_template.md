@@ -33,7 +33,7 @@ What types of changes does your code introduce? Put an `x` in all the boxes that
  - [ ] I tested my code in OpenShift
 
 <!--
-Integration tests (https://github.com/jkubeio/jkube-integration-tests)
+Integration tests (https://github.com/eclipse-jkube/jkube-integration-tests)
 Please check integration tests and provide/improve tests if necessary.
 
 Open your PR in Draft mode and verify all of the applicable Checklist items before marking your issue as ready

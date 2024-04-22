@@ -113,7 +113,7 @@ class RemoteDevelopmentServiceTest {
 
   @Test
   @DisplayName("start fails if LocalPort for remote service is in use")
-  @DisabledOnJre(value = JRE.JAVA_8, disabledReason = "ServerSocket isn't throwing Bind exception for a port already in use on Eclipse CI with JDK8, see https://github.com/eclipse/jkube/issues/2576")
+  @DisabledOnJre(value = JRE.JAVA_8, disabledReason = "ServerSocket isn't throwing Bind exception for a port already in use on Eclipse CI with JDK8, see https://github.com/eclipse-jkube/jkube/issues/2576")
   void startFailsIfLocalPortInUse() {
     final int localPort = IoUtil.getFreeRandomPort();
     RemoteService remoteService = RemoteService.builder()

@@ -136,11 +136,11 @@ public class JKubeProjectUtil {
 
    * <p> In case no artifacts are found or configured, this method returns null.
    *
-   * <p> TODO: https://github.com/eclipse/jkube/issues/817
+   * <p> TODO: https://github.com/eclipse-jkube/jkube/issues/817
    * <br> This method prioritizes artifact inference instead of configuration. This is done to handle case of maven
    * where value of artifact varies depending upon the maven phase in which goal was executed.
    *
-   * @see <a href="https://github.com/eclipse/jkube/issues/817">#817</a>
+   * @see <a href="https://github.com/eclipse-jkube/jkube/issues/817">#817</a>
    *
    * @param jkubeProject project for which to retrieve the output artifact.
    * @return the final output artifact file or null if it doesn't exist.

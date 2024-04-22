@@ -21,7 +21,7 @@ body:
     attributes:
       value: |
         ### Suggesting a new task 🔧
-        🔍  Before opening a new issue please search existing issues at https://github.com/eclipse/jkube/issues
+        🔍  Before opening a new issue please search existing issues at https://github.com/eclipse-jkube/jkube/issues
 
         🤔  To make it easier for us to help you, please include as much useful information as possible.
 

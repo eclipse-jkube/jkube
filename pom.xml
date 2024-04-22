@@ -46,10 +46,10 @@
   </developers>
 
   <scm>
-    <connection>scm:git:git://github.com/eclipse/jkube.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/eclipse/jkube.git</developerConnection>
+    <connection>scm:git:git://github.com/eclipse-jkube/jkube.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/eclipse-jkube/jkube.git</developerConnection>
     <tag>HEAD</tag>
-    <url>git://github.com/eclipse/jkube.git</url>
+    <url>git://github.com/eclipse-jkube/jkube.git</url>
   </scm>
 
   <repositories>

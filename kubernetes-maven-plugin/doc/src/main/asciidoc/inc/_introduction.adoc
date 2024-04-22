@@ -99,7 +99,7 @@ Let's have a look at some code. The following examples will demonstrate all thre
 
 This minimal but full working example `pom.xml` shows how a simple spring boot application can be dockerized and
 prepared for Kubernetes. The full example can be found in directory
-https://github.com/eclipse/jkube/tree/master/quickstarts/maven/zero-config[quickstarts/maven/zero-config].
+https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/zero-config[quickstarts/maven/zero-config].
 
 .Example
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
@@ -239,7 +239,7 @@ The plugin configuration can be roughly divided into the following sections:
 * `<enricher>` configures various aspects of <<enrichers,enrichers>> for creating or enhancing resource descriptors.
 
 A working example can be found in the
-https://github.com/eclipse/jkube/tree/master/quickstarts/maven/xml-config[quickstarts/maven/xml-config] directory.
+https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/xml-config[quickstarts/maven/xml-config] directory.
 An extract of the plugin configuration is shown below:
 
 .Example for an XML configuration
@@ -351,7 +351,7 @@ An extract of the plugin configuration is shown below:
 <9> ServiceAccount(s) to create
 <10> Annotations which should be applied either to all or to specific resources
 <11> Annotations applied to Deployment resources only
-<12> Annotations with a special character, a slash in this case 
+<12> Annotations with a special character, a slash in this case
 <13> ConfigMap to be created
 <14> ConfigMap data entry as a string key value pair
 <15> ConfigMap data entry with value as file path, file's contents are loaded into ConfigMap as key value
@@ -367,7 +367,7 @@ The third configuration option is to use an external configuration in form of YA
 Note: In order to support simultaneously both OpenShift and Kubernetes, there is currently no way to specify OpenShift-only features this way, though this might change in future releases.
 
 Let's have a look at an example from
-https://github.com/eclipse/jkube/tree/master/quickstarts/maven/external-resources[quickstarts/maven/external-resources].
+https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/external-resources[quickstarts/maven/external-resources].
 This is a plain Spring Boot application, whose images are auto generated like in the <<zero-config, Zero-Config>> case.
 The resource fragments are in `src/main/jkube`.
 

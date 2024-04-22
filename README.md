@@ -3,13 +3,13 @@
 > Cloud-Native Java Applications without a hassle
 
 [![Circle CI](https://circleci.com/gh/eclipse/jkube/tree/master.svg?style=shield)](https://circleci.com/gh/eclipse/jkube/tree/master)
-[![E2E Tests](https://github.com/jkubeio/jkube-integration-tests/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/jkubeio/jkube-integration-tests/actions/workflows/e2e-tests.yml)
+[![E2E Tests](https://github.com/eclipse-jkube/jkube-integration-tests/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/eclipse-jkube/jkube-integration-tests/actions/workflows/e2e-tests.yml)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jkubeio_jkube)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube&metric=coverage)](https://sonarcloud.io/dashboard?id=jkubeio_jkube)
-[![Gitter](https://badges.gitter.im/eclipse/jkube.svg)](https://gitter.im/eclipse/jkube?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Gitter](https://badges.gitter.im/eclipse-jkube/jkube.svg)](https://gitter.im/eclipse-jkube/jkube?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 [![Twitter](https://img.shields.io/twitter/follow/jkubeio?style=social)](https://twitter.com/jkubeio)
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/eclipse/jkube)
+[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/eclipse-jkube/jkube)
 
 <p align="center">
   <a href="https://www.eclipse.dev/jkube/">
@@ -129,7 +129,7 @@ You can take a look at our quickstarts in [quickstarts](./quickstarts) directory
 
 ### Hello World using Eclipse JKube
 
-- Clone repository and move to quickstart [helloworld](https://github.com/eclipse/jkube/tree/master/quickstarts/maven/hello-world) sample, build project and run JKube goals:
+- Clone repository and move to quickstart [helloworld](https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/hello-world) sample, build project and run JKube goals:
 
 ```shell script
 # 1. Clone repository

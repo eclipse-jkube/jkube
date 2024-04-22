@@ -6,7 +6,7 @@ jkube-plugins are enabled by just declaring a dependency in the plugin declarati
 
 
 ifeval::["{plugin-type}" == "gradle"]
-The following example is from https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/plugin[quickstarts/gradle/plugin]
+The following example is from https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/gradle/plugin[quickstarts/gradle/plugin]
 
 JKube Plugin is defined under Gradle's `buildSrc` directory which is automatically added to build script classpath by Gradle.
 
@@ -32,7 +32,7 @@ JKube Plugin is defined under Gradle's `buildSrc` directory which is automatical
 ----
 endif::[]
 ifeval::["{plugin-type}" == "maven"]
-The following example is from https://github.com/eclipse/jkube/tree/master/quickstarts/maven/plugin[quickstarts/maven/plugin]
+The following example is from https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/plugin[quickstarts/maven/plugin]
 
 [source,xml,indent=0,subs="verbatim,quotes,attributes"]
 ----
@@ -87,8 +87,8 @@ JKube plugin would need to implement `org.eclipse.jkube.api.JKubePlugin` interfa
 
 
 ifeval::["{plugin-type}" == "gradle"]
-Check out https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/plugin[`quickstarts/gradle/plugin`] for a fully working example.
+Check out https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/gradle/plugin[`quickstarts/gradle/plugin`] for a fully working example.
 endif::[]
 ifeval::["{plugin-type}" == "maven"]
-Check out https://github.com/eclipse/jkube/tree/master/quickstarts/maven/plugin[`quickstarts/maven/plugin`] for a fully working example.
+Check out https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/plugin[`quickstarts/maven/plugin`] for a fully working example.
 endif::[]

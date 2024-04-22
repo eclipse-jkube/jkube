@@ -33,7 +33,7 @@ Welcome! See 'oc help' to get started.
 [[devsandbox-jkubeplugin]]
 *Adding {plugin} to your project*
 
-We'll be using https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/spring-boot[quickstarts/gradle/spring-boot] for this demonstration. If you have your own gradle project set up, you can follow instructions mentioned below.
+We'll be using https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/gradle/spring-boot[quickstarts/gradle/spring-boot] for this demonstration. If you have your own gradle project set up, you can follow instructions mentioned below.
 
 You can add {plugin} to plugins section:
 
