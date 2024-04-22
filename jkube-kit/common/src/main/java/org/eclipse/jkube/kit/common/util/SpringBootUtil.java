@@ -23,6 +23,7 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.PropertiesExtender;
 
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 
@@ -65,14 +66,22 @@ public class SpringBootUtil {
      * @param compileClassLoader compile class loader
      * @return properties object
      */
-    public static Properties getSpringBootApplicationProperties(String springActiveProfile, URLClassLoader compileClassLoader) {
+    public static PropertiesExtender getSpringBootApplicationProperties(String springActiveProfile, URLClassLoader compileClassLoader) {
         URL ymlResource = compileClassLoader.findResource("application.yml");
         URL propertiesResource = compileClassLoader.findResource("application.properties");
-
+        
         Properties props = YamlUtil.getPropertiesFromYamlResource(springActiveProfile, ymlResource);
         props.putAll(getPropertiesFromResource(propertiesResource));
-        return new SpringBootPropertyPlaceholderHelper(PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX, VALUE_SEPARATOR, true)
-        .replaceAllPlaceholders(props);
+        props = new SpringBootPropertyPlaceholderHelper(PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX, VALUE_SEPARATOR, true)
+            .replaceAllPlaceholders(props);
+        
+        // Extend Properties object with resources file path
+        PropertiesExtender propsExtender = new PropertiesExtender();
+        URL propertiesFile = ymlResource != null ? ymlResource : propertiesResource;
+        propsExtender.setPropertiesFile(propertiesFile);
+        propsExtender.putAll(props);
+        
+        return propsExtender;
     }
 
     /**
