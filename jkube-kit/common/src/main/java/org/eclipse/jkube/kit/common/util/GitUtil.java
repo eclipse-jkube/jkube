@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.stream.StreamSupport;
 
 import org.eclipse.jgit.api.Git;
@@ -33,7 +32,7 @@ public class GitUtil {
     private GitUtil() { }
 
     public static Repository getGitRepository(File currentDir) throws IOException {
-        Objects.requireNonNull(currentDir, "currentDir should not be null");
+
         File gitFolder = findGitFolder(currentDir);
         if (gitFolder == null) {
             // No git repository found
