@@ -100,7 +100,7 @@ class ConfigsTest {
     // Given
     try {
       System.setProperty(systemKey, systemValue);
-      // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
+      // TODO : Replace this when https://github.com/eclipse-jkube/jkube/issues/958 gets fixed
       final Properties fallback = new Properties();
       fallback.put(fallbackKey, fallbackValue);
       // When

@@ -153,7 +153,7 @@ public class RouteEnricher extends BaseEnricher implements ServiceExposer {
          * Update ApiVersion to route.openshift.io/v1. Plugin always generates an opinionated
          * Route with apiVersion 'route.openshift.io/v1'. However, when resource fragments are used
          * we get a route with apiVersion 'v1'. For more info, see:
-         *        https://github.com/eclipse/jkube/issues/383
+         *        https://github.com/eclipse-jkube/jkube/issues/383
          */
         if (routeFromFragment.getApiVersion().equals("v1")) {
             routeFromFragment.setApiVersion(opinionatedRoute.getApiVersion());

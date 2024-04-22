@@ -293,7 +293,7 @@ class EnvUtilTest {
         try {
           //Given
           System.setProperty("os.name", "random");
-          // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
+          // TODO : Replace this when https://github.com/eclipse-jkube/jkube/issues/958 gets fixed
           //When
           boolean result = EnvUtil.isWindows();
           //Then
@@ -309,7 +309,7 @@ class EnvUtilTest {
       try {
         //Given
         System.setProperty("os.name", "windows");
-        // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
+        // TODO : Replace this when https://github.com/eclipse-jkube/jkube/issues/958 gets fixed
         //When
         boolean result = EnvUtil.isWindows();
         //Then

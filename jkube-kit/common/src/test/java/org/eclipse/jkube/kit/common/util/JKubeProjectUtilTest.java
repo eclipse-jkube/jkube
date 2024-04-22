@@ -191,7 +191,7 @@ class JKubeProjectUtilTest {
     // Given
     try {
       System.setProperty("jkube.testProperty", "true");
-      // TODO : Replace this when https://github.com/eclipse/jkube/issues/958 gets fixed
+      // TODO : Replace this when https://github.com/eclipse-jkube/jkube/issues/958 gets fixed
 
       // When
       String result = JKubeProjectUtil.getProperty("jkube.testProperty", project);

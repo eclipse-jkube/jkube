@@ -28,7 +28,7 @@ endif::[]
 //TODO: Unify documentation structure for both maven and gradle plugins
 //      At the moment, we display build configuration sections in separate section from
 //      tasks for Gradle Plugins, but in case of Maven Plugins we show it in goal documentation.
-//      This section is duplicated in https://github.com/eclipse/jkube/blob/a616fe68e3d348f5f5c4f94844c50ba3ecb12ede/gradle-plugin/doc/src/main/asciidoc/inc/_groovy-configuration.adoc
+//      This section is duplicated in https://github.com/eclipse-jkube/jkube/blob/a616fe68e3d348f5f5c4f94844c50ba3ecb12ede/gradle-plugin/doc/src/main/asciidoc/inc/_groovy-configuration.adoc
 ifeval::["{plugin-type}" == "maven"]
 
 include::_build_configuration_options.adoc[]

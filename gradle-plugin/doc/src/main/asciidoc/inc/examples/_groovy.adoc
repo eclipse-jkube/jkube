@@ -14,7 +14,7 @@ The plugin configuration can be roughly divided into the following sections:
 * `resources` defines the resource descriptors for deploying on {cluster} cluster.
 * `enricher` configures various aspects of creating and enhancing resource descriptors.
 
-A working example can be found in https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/groovy-dsl-config[`quickstarts/gradle/groovy-dsl-config`] directory.
+A working example can be found in https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/gradle/groovy-dsl-config[`quickstarts/gradle/groovy-dsl-config`] directory.
 
 [[groovy-scenario-image]]
 === Configuring Images

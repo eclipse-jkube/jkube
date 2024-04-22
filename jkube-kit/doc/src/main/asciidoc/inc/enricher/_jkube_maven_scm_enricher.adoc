@@ -58,9 +58,9 @@ Lets say you have a maven pom.xml with the following scm information,
 [source,xml]
 ----
 <scm>
-    <connection>scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git</connection>
-    <developerConnection>scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git</developerConnection>
-    <url>git://github.com/jkubeio/kubernetes-maven-plugin.git</url>
+    <connection>scm:git:git://github.com/eclipse-jkube/kubernetes-maven-plugin.git</connection>
+    <developerConnection>scm:git:git://github.com/eclipse-jkube/kubernetes-maven-plugin.git</developerConnection>
+    <url>git://github.com/eclipse-jkube/kubernetes-maven-plugin.git</url>
 </scm>
 
 ----
@@ -72,9 +72,9 @@ This information will be enriched as annotations in the generated manifest like,
   kind: Service
   metadata:
     annotations:
-      jkube.eclipse.org/scm-con-url: "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git"
-      jkube.eclipse.org/scm-devcon-url: "scm:git:git://github.com/jkubeio/kubernetes-maven-plugin.git"
+      jkube.eclipse.org/scm-con-url: "scm:git:git://github.com/eclipse-jkube/kubernetes-maven-plugin.git"
+      jkube.eclipse.org/scm-devcon-url: "scm:git:git://github.com/eclipse-jkube/kubernetes-maven-plugin.git"
       jkube.eclipse.org/scm-tag: "HEAD"
-      jkube.eclipse.org/scm-url: "git://github.com/jkubeio/kubernetes-maven-plugin.git"
+      jkube.eclipse.org/scm-url: "git://github.com/eclipse-jkube/kubernetes-maven-plugin.git"
 # ...
 ----

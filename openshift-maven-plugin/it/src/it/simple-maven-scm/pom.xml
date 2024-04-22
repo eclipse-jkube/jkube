@@ -30,9 +30,9 @@
   </parent>
 
   <scm>
-    <connection>scm:git:git://github.com/jkubeio/openshift-maven-plugin.git</connection>
-    <developerConnection>scm:git:git://github.com/jkubeio/openshift-maven-plugin.git</developerConnection>
-    <url>git://github.com/jkubeio/openshift-maven-plugin.git</url>
+    <connection>scm:git:git://github.com/eclipse-jkube/jkube.git</connection>
+    <developerConnection>scm:git:git://github.com/eclipse-jkube/jkube.git</developerConnection>
+    <url>git://github.com/eclipse-jkube/jkube.git</url>
   </scm>
 
   <dependencies>

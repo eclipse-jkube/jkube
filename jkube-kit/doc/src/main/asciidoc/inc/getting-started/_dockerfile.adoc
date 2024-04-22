@@ -29,7 +29,7 @@ Read <<simple-dockerfile-build, Simple Dockerfile>> section for more details.
 You can choose to place your Dockerfile at some other location.
 By default, the plugin assumes it to be `src/main/docker`, but you'll need to configure docker context directory in plugin configuration.
 When not specified, context directory is assumed to be Dockerfile's parent directory.
-You can take a look at https://github.com/eclipse/jkube/tree/master/quickstarts/gradle/docker-file-provided-docker-file[Docker File Provided Quickstarts] for more details.
+You can take a look at https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/gradle/docker-file-provided-docker-file[Docker File Provided Quickstarts] for more details.
 
 [[docker-file-mode-include-exclude]]
 *Controlling what gets copied to image*

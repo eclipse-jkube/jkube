@@ -17,7 +17,7 @@ the source code before generating the documentation in order to spread the
 "condensed" javadoc declared in the Lombok affected fields.
 
 ## Integration tests
-Apart from tests that are available in this repository, there is a separate repository with intergration tests [available here](https://github.com/jkubeio/jkube-integration-tests).
+Apart from tests that are available in this repository, there is a separate repository with integration tests [available here](https://github.com/eclipse-jkube/jkube-integration-tests).
 
 ## Release process
 Release process has to be performed in a project fork.

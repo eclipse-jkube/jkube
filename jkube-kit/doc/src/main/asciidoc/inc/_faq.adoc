@@ -20,13 +20,13 @@ spec:
 
 The above will generate an environment variable `$FOO` of value `bar`
 
-For a full list of the environments used in java base images, https://github.com/jkubeio/jkube-images#available-imagesk[see this list]
+For a full list of the environments used in java base images, https://github.com/eclipse-jkube/jkube-images#available-imagesk[see this list]
 
 === How do I define a system property?
 
 The simplest way is to add system properties to the `JAVA_OPTIONS` environment variable.
 
-For a full list of the environments used in java base images, https://github.com/jkubeio/jkube-images#available-images[see this list]
+For a full list of the environments used in java base images, https://github.com/eclipse-jkube/jkube-images#available-images[see this list]
 
 e.g. add a `src/main/jkube/deployment.yml` file to your project containing something like:
 
@@ -80,7 +80,7 @@ spec:
               mountPath: /deployments/config
 ----
 
-Here is https://github.com/eclipse/jkube/tree/master/quickstarts/maven/external-resources[an example quickstart doing this]
+Here is https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/external-resources[an example quickstart doing this]
 
 Note that the annotation `configmap.jkube.io/update-on-change` is optional; its used if your application is not capable
 of watching for changes in the `/deployments/config/application.properties` file. In this case if you are also running
@@ -151,7 +151,7 @@ jkube.domain=example.com
 endif::[]
 
 ifeval::["{plugin-type}" == "maven"]
-You can find an example in our link: https://github.com/eclipse/jkube/tree/master/quickstarts/maven/spring-boot[spring-boot]
+You can find an example in our link: https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/spring-boot[spring-boot]
 quickstart in `kubernetes-with-ingress` profile.
 endif::[]
 
@@ -205,7 +205,7 @@ ifeval::["{plugin-type}" == "gradle"]
                 from = "openjdk:latest"
                 cmd {
                     exec = ["java", "-jar", "${project.name}-${project.version}.jar"]
-                }   
+                }
             }
          }
      }

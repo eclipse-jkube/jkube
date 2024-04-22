@@ -86,7 +86,7 @@ public class DockerImageWatcher extends BaseWatcher {
     @Override
     public boolean isApplicable(List<ImageConfiguration> configs, Collection<HasMetadata> resources, PlatformMode mode) {
         // TODO: There's no reason for this watcher to work only on Kubernetes at least for some of the modes
-        // https://github.com/eclipse/jkube/issues/422
+        // https://github.com/eclipse-jkube/jkube/issues/422
         return mode == PlatformMode.kubernetes;
     }
 

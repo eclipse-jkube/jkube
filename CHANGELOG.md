@@ -13,7 +13,7 @@ After this we will switch probably to real [Semantic Versioning 2.0.0](http://se
 ## Extracting changelog portions
 We provide a script to extract changelog portions and automatic link building to send notifications
 (i.e. e-mail) about new releases
-([scripts/extract-changelog-for-version.sh](https://github.com/eclipse/jkube/blob/master/scripts/extract-changelog-for-version.sh))
+([scripts/extract-changelog-for-version.sh](https://github.com/eclipse-jkube/jkube/blob/master/scripts/extract-changelog-for-version.sh))
 
 Usage:
 ```
@@ -480,7 +480,7 @@ Only the set of documented features are available to users.
 * Fix #73: Jib Support, Port of fabric8io/fabric8-maven-plugin#1766
 * Fix #195: Added MigrateMojo for migrating projects from FMP to JKube
 * Fix #238: Watch uses same logic as build to monitor changed assembly files
-* Fix #245: Debug goals work on webapp (Tomcat & Jetty) > See https://github.com/jkubeio/jkube-images/releases/tag/v0.0.7
+* Fix #245: Debug goals work on webapp (Tomcat & Jetty) > See https://github.com/eclipse-jkube/jkube-images/releases/tag/v0.0.7
 * Fix #261: DockerFileBuilder only supports \*nix paths (Dockerfile Linux only), fixed invalid default configs
 * Fix #246: Dockerfile custom interpolation is broken
 * Fix #259: Cleanup unused properties inside Mojos

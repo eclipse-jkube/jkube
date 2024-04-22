@@ -70,7 +70,7 @@ function addLinks() {
       lines+="$line\n";
     else
       lines+="$line [$currentLink]\n"
-      links+="[$currentLink] https://github.com/eclipse/jkube/issues/$issueNumber\n"
+      links+="[$currentLink] https://github.com/eclipse-jkube/jkube/issues/$issueNumber\n"
       currentLink=$((currentLink + 1));
     fi
   done < <(echo "$1")
@@ -118,7 +118,7 @@ function emailTemplate() {
   lines+="[1] https://repo1.maven.org/maven2/org/eclipse/jkube/kubernetes-maven-plugin/$1/\n"
   lines+="[2] https://www.eclipse.dev/jkube/docs/migration-guide/\n"
   lines+="$changelogLinks\n"
-  lines+="$githubLinkId https://github.com/eclipse/jkube\n"
+  lines+="$githubLinkId https://github.com/eclipse-jkube/jkube\n"
   lines+="$gitterLinkId https://gitter.im/eclipse/jkube\n"
   echo -e "$lines"
 }
