@@ -24,11 +24,10 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesPushTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
-import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesUndeployTask;
-
 import org.eclipse.jkube.gradle.plugin.task.KubernetesWatchTask;
+
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.junit.jupiter.api.BeforeEach;
