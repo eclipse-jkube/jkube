@@ -13,16 +13,18 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.stream.StreamSupport;
-
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.URIish;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.stream.StreamSupport;
 
 /**
  * @author roland
@@ -79,22 +81,24 @@ public class GitUtil {
      * @return sanitized URL
      */
     public static String sanitizeRemoteUrl(String remoteUrlStr) {
-        if (StringUtils.isNotBlank(remoteUrlStr)) {
-            if (remoteUrlStr.contains("@")) {
-                String repoSegmentWithoutAuth = remoteUrlStr.substring(remoteUrlStr.indexOf('@') + 1);
-                String[] repoSegmentWithoutAuthParts = repoSegmentWithoutAuth.split(":");
-                if (repoSegmentWithoutAuthParts.length > 1) {
-                    String[] repoSegmentAfterColonParts = repoSegmentWithoutAuthParts[1].split("/");
-                    String portOrRepoPath = repoSegmentAfterColonParts[0];
-                    if (!StringUtils.isNumeric(portOrRepoPath)) {
-                        repoSegmentWithoutAuth = repoSegmentWithoutAuth.replaceFirst(":", "/");
-                    }
-                }
-                remoteUrlStr = String.format("https://%s", repoSegmentWithoutAuth);
+        if (StringUtils.isBlank(remoteUrlStr)) {
+            return remoteUrlStr;
+        }
+        try {
+            URIish uri = new URIish(remoteUrlStr);
+            final StringBuilder userInfo = new StringBuilder();
+            if (StringUtils.isNotBlank(uri.getUser())) {
+                userInfo.append(uri.getUser());
             }
-            if (!remoteUrlStr.endsWith(".git")) {
-                remoteUrlStr += ".git";
+            if (StringUtils.isNotBlank(uri.getPass())) {
+                userInfo.append(":").append(uri.getPass());
             }
+            if (userInfo.length() > 0) {
+                remoteUrlStr = remoteUrlStr.replace(userInfo + "@", "");
+            }
+            return remoteUrlStr;
+        } catch (URISyntaxException e) {
+            //NO OP - Not a valid URL
         }
         return remoteUrlStr;
     }
