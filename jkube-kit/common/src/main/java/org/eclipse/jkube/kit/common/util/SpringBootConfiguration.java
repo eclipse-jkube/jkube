@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.common.util;
 import lombok.Builder;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.PropertiesExtender;
 
 import java.util.Optional;
 import java.util.Properties;
@@ -39,9 +40,11 @@ public class SpringBootConfiguration {
   private boolean managementHealthProbesEnabled;
 
   public static SpringBootConfiguration from(JavaProject project) {
-    final Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
+    final PropertiesExtender properties = SpringBootUtil.getSpringBootApplicationProperties(
       SpringBootUtil.getSpringBootActiveProfile(project),
       JKubeProjectUtil.getClassLoader(project));
+     project.setPropertiesFile(properties.getPropertiesFile());
+     
     final int majorVersion = SpringBootUtil.getSpringBootVersion(project)
       .map(semVer -> {
         try {

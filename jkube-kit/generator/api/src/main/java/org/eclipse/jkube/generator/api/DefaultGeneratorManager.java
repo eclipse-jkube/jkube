@@ -102,6 +102,7 @@ public class DefaultGeneratorManager implements GeneratorManager {
       if (generator.isApplicable(ret)) {
         log.info("Running generator %s", generator.getName());
         ret = generator.customize(ret, genCtx.isPrePackagePhase());
+        log.info("The following properties file is used %s", genCtx.getProject().getPropertiesFile());
       }
     }
     return ret;
