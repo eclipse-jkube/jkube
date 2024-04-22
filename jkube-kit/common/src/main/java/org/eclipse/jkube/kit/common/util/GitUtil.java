@@ -75,7 +75,6 @@ public class GitUtil {
 
     /**
      * Sanitize Git Repository's remote URL, trims username and access token from URL.
-     * This is taken from <a href="https://github.com/dekorateio/dekorate/blob/5f4acbd5b28251d88209388b6f2e826f5a546102/core/src/main/java/io/dekorate/utils/Git.java#L134">Dekorate's Git utility class</a>
      *
      * @param remoteUrlStr URL string of a particular git remote
      * @return sanitized URL
