@@ -44,7 +44,7 @@ public enum RuntimeMode {
 
     public static final String JKUBE_EFFECTIVE_PLATFORM_MODE = "jkube.internal.effective.platform.mode";
 
-    private final String label;
+    private String label;
 
     RuntimeMode(String label) {
         this.label = label;
