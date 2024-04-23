@@ -17,6 +17,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
+import java.util.Map;
+import java.util.LinkedHashMap;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.FromSelector;
@@ -418,6 +420,23 @@ class BaseGeneratorTest {
     assertThat(config.getTags())
         .hasSize(3)
         .containsExactlyInAnyOrder("tag-1", "tag-2", "other-tag");
+  }
+
+  @Test
+  @DisplayName("add labels from property")
+  void addLabelsFromProperty() {
+    when(ctx.getProject()).thenReturn(project);
+    BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+    properties.put("jkube.generator.labels", " label-1=a, label-2=b , invalid-label");
+    Map<String, String> extractedLabels = new LinkedHashMap<>();
+    BaseGenerator generator = createGenerator(null);
+    generator.addLabelsFromConfig(extractedLabels);
+    assertThat(extractedLabels)
+        .hasSize(2)
+        .contains(
+                entry("label-1", "a"),
+                entry("label-2", "b")
+        );
   }
 
   private void inKubernetes() {
