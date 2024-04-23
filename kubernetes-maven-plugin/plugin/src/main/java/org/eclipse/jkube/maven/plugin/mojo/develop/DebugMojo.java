@@ -15,6 +15,7 @@ package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.util.Collection;
 
+import org.eclipse.jkube.kit.config.service.DebugContext;
 import org.eclipse.jkube.maven.plugin.mojo.build.ApplyMojo;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -39,8 +40,14 @@ public class DebugMojo extends ApplyMojo {
 
   @Override
   protected void applyEntities(KubernetesClient kubernetes, String fileName, Collection<HasMetadata> entities) {
-    jkubeServiceHub.getDebugService().debug(
-        applyService.getNamespace(), fileName, entities, localDebugPort, debugSuspend, createLogger("[[Y]][W][[Y]] [[s]]"));
+    jkubeServiceHub.getDebugService().debug(DebugContext.builder()
+            .namespace(applyService.getNamespace())
+            .fileName(fileName)
+            .localDebugPort(localDebugPort)
+            .debugSuspend(debugSuspend)
+            .podWaitLog(createLogger("[[Y]][W][[Y]] [[s]]"))
+            .jKubeBuildStrategy(buildStrategy)
+            .build(), entities);
   }
 
 }

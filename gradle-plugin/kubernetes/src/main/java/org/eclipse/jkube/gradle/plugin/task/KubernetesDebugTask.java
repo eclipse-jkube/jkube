@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.eclipse.jkube.kit.config.service.DebugContext;
 import org.gradle.api.GradleException;
 
 public class KubernetesDebugTask extends AbstractJKubeTask {
@@ -40,10 +41,14 @@ public class KubernetesDebugTask extends AbstractJKubeTask {
     try (KubernetesClient kubernetes = jKubeServiceHub.getClient()) {
       final File manifest = getManifest(kubernetes);
       final List<HasMetadata> entities = KubernetesHelper.loadResources(manifest);
-      jKubeServiceHub.getDebugService().debug(
-          kubernetesExtension.getNamespaceOrNull(), manifest.getName(), entities,
-          "" + kubernetesExtension.getLocalDebugPortOrDefault(), kubernetesExtension.getDebugSuspendOrDefault(),
-          createLogger("[[Y]][W][[Y]] [[s]]"));
+      jKubeServiceHub.getDebugService().debug(DebugContext.builder()
+              .namespace(kubernetesExtension.getNamespaceOrNull())
+              .fileName(manifest.getName())
+              .localDebugPort("" + kubernetesExtension.getLocalDebugPortOrDefault())
+              .debugSuspend(kubernetesExtension.getDebugSuspendOrDefault())
+              .podWaitLog(createLogger("[[Y]][W][[Y]] [[s]]"))
+              .jKubeBuildStrategy(kubernetesExtension.getBuildStrategyOrDefault())
+              .build(), entities);
     } catch (IOException ex) {
       throw new GradleException("Failure in debug task", ex);
     }

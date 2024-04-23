@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.config.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
@@ -45,10 +46,12 @@ import io.fabric8.zjsonpatch.JsonPatch;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,6 +62,7 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -67,6 +71,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.spy;
@@ -82,6 +87,7 @@ class DebugServiceTest {
   private KubernetesMockServer mockServer;
   private ExecutorService singleThreadExecutor;
   private DebugService debugService;
+  private DebugContext debugContext;
 
   @BeforeEach
   void setUp() {
@@ -92,6 +98,12 @@ class DebugServiceTest {
       .platformMode(RuntimeMode.KUBERNETES)
       .clusterAccess(new ClusterAccess(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build()))
       .build();
+    debugContext = DebugContext.builder()
+        .namespace("namespace")
+        .fileName("file.name")
+        .debugSuspend(false)
+        .podWaitLog(logger)
+        .build();
     singleThreadExecutor = Executors.newSingleThreadExecutor();
     serviceHub.getApplyService().setNamespace(kubernetesClient.getNamespace());
     debugService = new DebugService(logger, kubernetesClient, new PortForwardService(logger), serviceHub.getApplyService());
@@ -207,18 +219,38 @@ class DebugServiceTest {
   }
 
   @Test
+  @DisplayName("with buildpacks build strategy, should throw exception")
+  void debugWithBuildPacksBuildStrategyShouldThrowException() {
+    // Given
+    final Deployment deployment = withDeploymentRollout(initDeployment());
+    debugContext = debugContext.toBuilder().jKubeBuildStrategy(JKubeBuildStrategy.buildpacks).build();
+    List<HasMetadata> entities = Collections.singletonList(deployment);
+
+    // When + Then
+    assertThatExceptionOfType(JKubeException.class)
+        .isThrownBy(() -> debugService.debug(debugContext, entities))
+        .withMessage("Debug is not supported in Buildpacks build strategy");
+  }
+
+  @Test
+  @DisplayName("Empty Kubernetes resources list logs no application resource found error")
   void debugWithNotApplicableEntitiesLogsError() {
     // When
-    debugService.debug("namespace", "file.name", Collections.emptySet(), null, false, logger);
+    debugService.debug(debugContext, Collections.emptySet());
     // Then
     verify(logger, times(1))
       .error("Unable to proceed with Debug. No application resource found running in the cluster");
   }
 
   @Test
+  @DisplayName("Valid Kubernetes resources list should initiate port forward in specified namespace")
   void debugWithApplicableEntities() throws Exception {
     // Given
     final Deployment deployment = withDeploymentRollout(initDeployment());
+    debugContext = debugContext.toBuilder()
+        .namespace("test")
+        .localDebugPort("1337")
+        .build();
     final CompletableFuture<RecordedRequest> portForwardRequest = new CompletableFuture<>();
     mockServer.expect().get().withPath("/api/v1/namespaces/test/pods/pod-in-debug-mode/portforward?ports=5005")
       .andReply(200, r -> {
@@ -226,8 +258,7 @@ class DebugServiceTest {
         return "";
       }).always();
     // When
-    singleThreadExecutor.submit(() -> debugService.debug( "test", "file.name",
-      Collections.singletonList(deployment), "1337", false, logger));
+    singleThreadExecutor.submit(() -> debugService.debug(debugContext, Collections.singletonList(deployment)));
     verify(logger, timeout(10000L))
       .info(startsWith("Now you can start a Remote debug session by using localhost"), anyInt());
     try (final Socket ignored = new Socket(InetAddress.getLocalHost(), 1337)) {
@@ -238,8 +269,14 @@ class DebugServiceTest {
   }
 
   @Test
+  @DisplayName("valid Kubernetes resource list with debug suspend enabled, should initiate port forward")
   void debugWithApplicableEntitiesAndSuspend() throws Exception {
     // Given
+    debugContext = debugContext.toBuilder()
+        .namespace("test")
+        .localDebugPort("1337")
+        .debugSuspend(true)
+        .build();
     final Deployment deployment = withDeploymentRollout(initDeployment());
     final CompletableFuture<RecordedRequest> portForwardRequest = new CompletableFuture<>();
     mockServer.expect().get().withPath("/api/v1/namespaces/test/pods/pod-in-debug-mode/portforward?ports=5005")
@@ -248,8 +285,7 @@ class DebugServiceTest {
         return "";
       }).always();
     // When
-    singleThreadExecutor.submit(() -> debugService.debug( "test", "file.name",
-      Collections.singletonList(deployment), "1337", true, logger));
+    singleThreadExecutor.submit(() -> debugService.debug(debugContext, Collections.singletonList(deployment)));
     verify(logger, timeout(10000L))
       .info(startsWith("Now you can start a Remote debug session by using localhost"), anyInt());
     try (final Socket ignored = new Socket(InetAddress.getLocalHost(), 1337)) {

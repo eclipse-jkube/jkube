@@ -17,11 +17,13 @@ import org.eclipse.jkube.gradle.plugin.GradleLogger;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
+import org.eclipse.jkube.kit.config.service.DebugContext;
 import org.eclipse.jkube.kit.config.service.DebugService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -77,12 +79,18 @@ class OpenShiftDebugTaskTest {
     // Given
     taskEnvironment.withOpenShiftManifest();
     final OpenShiftDebugTask debugTask = new OpenShiftDebugTask(OpenShiftExtension.class);
+    ArgumentCaptor<DebugContext> debugContextArgumentCaptor = ArgumentCaptor.forClass(DebugContext.class);
     // When
     debugTask.runTask();
     // Then
     assertThat(debugServiceMockedConstruction.constructed()).hasSize(1);
     verify(debugServiceMockedConstruction.constructed().iterator().next(), times(1))
-      .debug(any(), eq("openshift.yml"), eq(Collections.emptyList()), eq("5005"), eq(false), any(GradleLogger.class));
+        .debug(debugContextArgumentCaptor.capture(), eq(Collections.emptyList()));
+    assertThat(debugContextArgumentCaptor.getValue())
+        .hasFieldOrPropertyWithValue("fileName", "openshift.yml")
+        .hasFieldOrPropertyWithValue("localDebugPort", "5005")
+        .hasFieldOrPropertyWithValue("debugSuspend", false)
+        .satisfies(d -> assertThat(d.getPodWaitLog()).isInstanceOf(GradleLogger.class));
   }
 
 }
