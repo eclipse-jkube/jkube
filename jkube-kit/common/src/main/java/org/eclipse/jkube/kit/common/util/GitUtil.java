@@ -13,15 +13,18 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.stream.StreamSupport;
-
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.URIish;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.stream.StreamSupport;
 
 /**
  * @author roland
@@ -68,5 +71,34 @@ public class GitUtil {
                 .findFirst().orElse(null);
         }
         return null;
+    }
+
+    /**
+     * Sanitize Git Repository's remote URL, trims username and access token from URL.
+     *
+     * @param remoteUrlStr URL string of a particular git remote
+     * @return sanitized URL
+     */
+    public static String sanitizeRemoteUrl(String remoteUrlStr) {
+        if (StringUtils.isBlank(remoteUrlStr)) {
+            return remoteUrlStr;
+        }
+        try {
+            URIish uri = new URIish(remoteUrlStr);
+            final StringBuilder userInfo = new StringBuilder();
+            if (StringUtils.isNotBlank(uri.getUser())) {
+                userInfo.append(uri.getUser());
+            }
+            if (StringUtils.isNotBlank(uri.getPass())) {
+                userInfo.append(":").append(uri.getPass());
+            }
+            if (userInfo.length() > 0) {
+                remoteUrlStr = remoteUrlStr.replace(userInfo + "@", "");
+            }
+            return remoteUrlStr;
+        } catch (URISyntaxException e) {
+            //NO OP - Not a valid URL
+        }
+        return remoteUrlStr;
     }
 }
