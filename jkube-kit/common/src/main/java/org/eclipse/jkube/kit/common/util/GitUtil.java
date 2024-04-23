@@ -36,10 +36,6 @@ public class GitUtil {
 
     public static Repository getGitRepository(File currentDir) throws IOException {
 
-        if (currentDir == null) {
-            // TODO: Why is this check needed ?
-            currentDir = new File(System.getProperty("basedir", "."));
-        }
         File gitFolder = findGitFolder(currentDir);
         if (gitFolder == null) {
             // No git repository found
