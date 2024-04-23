@@ -16,6 +16,7 @@ package org.eclipse.jkube.wildfly.jar.generator;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -89,9 +90,10 @@ public class WildflyJARGenerator extends JavaExecGenerator {
                 parentDir = repoDir.getParent();
             }
             if (Files.notExists(repoDir)) {
-               throw new RuntimeException("Error, WildFly bootable JAR generator can't retrieve "
+               throw new JKubeException("Error, WildFly bootable JAR generator can't retrieve "
                        + "generated maven local cache, directory " + repoDir + " doesn't exist.");
             }
+
             set.add(AssemblyFileSet.builder()
                     .directory(parentDir.toFile())
                     .include(localRepoCache.getFileName().toString())
