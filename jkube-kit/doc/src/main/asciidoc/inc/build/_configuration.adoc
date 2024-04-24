@@ -70,6 +70,11 @@ ifeval::["{goal-prefix}" == "oc"]
 In case of an <<build-openshift,S2I Binary build>> this parameter specifies the S2I Builder Image to use, which by default is `fabric8/s2i-java:latest`. See also <<build-config-from-ext,from-ext>> how to add additional properties for the base image.
 endif::[]
 
+| *buildpacksBuilderImage*
+|  Configure https://buildpacks.io/docs/for-platform-operators/concepts/builder/[BuildPack builder] OCI image for BuildPack Build. This field is applicable only in `buildpacks` build strategy. This overrides builder image specified in local `~/.pack/config.toml`. If not specified this defaults to `null`.
+
+This field is only applicable for `buildpacks` build strategy.
+
 | [[build-config-from-ext]]**fromExt**
 a| Extended definition for a base image. This field holds a map of defined in `key = "value"` format. The known keys are:
 

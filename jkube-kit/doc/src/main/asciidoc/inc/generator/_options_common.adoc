@@ -49,6 +49,11 @@ or already added by a generator which has been run previously.
 | *tags*
 | A comma separated list of additional tags you want to tag your image with
 | `jkube.generator.tags`
+
+| *buildpacksBuilderImage*
+|  Configure https://buildpacks.io/docs/for-platform-operators/concepts/builder/[BuildPack builder] OCI image for BuildPack Build. This field is applicable only in `buildpacks` build strategy.
+Defaults to `paketobuildpacks/builder:base`
+| `jkube.generator.buildpacksBuilderImage`
 |===
 
 When used as properties they can be directly referenced with the property names above.

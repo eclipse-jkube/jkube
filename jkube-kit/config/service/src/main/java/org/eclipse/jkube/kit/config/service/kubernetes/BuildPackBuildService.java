@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -69,14 +70,8 @@ public class BuildPackBuildService extends AbstractImageBuildService {
     kitLogger.info("Delegating container image building process to BuildPacks");
     final File packCli = buildPackCliDownloader.getPackCLIIfPresentOrDownload();
     kitLogger.info("Using pack %s", packCli.getAbsolutePath());
-    final String builderImage;
-    final Properties localPackConfig =
-      readProperties(getUserHome().toPath().resolve(PACK_CONFIG_DIR).resolve(PACK_CONFIG_FILE));
-    if (localPackConfig.get("default-builder-image") != null) {
-      builderImage = strip(localPackConfig.getProperty("default-builder-image"), "\"");
-    } else {
-      builderImage = DEFAULT_BUILDER_IMAGE;
-    }
+    final String builderImage = getApplicableBuildPackBuilderImage(imageConfiguration.getBuild());
+
     BuildPackBuildOptions.BuildPackBuildOptionsBuilder buildPackBuildOptionsBuilder = BuildPackBuildOptions.builder()
         .imageName(imageConfiguration.getName())
         .builderImage(builderImage)
@@ -113,5 +108,17 @@ public class BuildPackBuildService extends AbstractImageBuildService {
   @Override
   public void postProcess() {
     // NOOP
+  }
+
+  private String getApplicableBuildPackBuilderImage(BuildConfiguration buildConfiguration) {
+    final Properties localPackConfig =
+        readProperties(getUserHome().toPath().resolve(PACK_CONFIG_DIR).resolve(PACK_CONFIG_FILE));
+    if (buildConfiguration != null && StringUtils.isNotBlank(buildConfiguration.getBuildpacksBuilderImage())) {
+      return buildConfiguration.getBuildpacksBuilderImage();
+    } else if (localPackConfig.get("default-builder-image") != null) {
+      return strip(localPackConfig.getProperty("default-builder-image"), "\"");
+    } else {
+      return DEFAULT_BUILDER_IMAGE;
+    }
   }
 }

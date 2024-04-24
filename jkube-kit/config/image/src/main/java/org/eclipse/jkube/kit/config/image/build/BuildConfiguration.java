@@ -328,6 +328,13 @@ public class BuildConfiguration implements Serializable {
   @Singular("addCacheFrom")
   private List<String> cacheFrom;
 
+  /**
+   * Configure BuildPack <a href="https://buildpacks.io/docs/for-platform-operators/concepts/builder/">builder</a> OCI image for BuildPack Build.
+   * <p>
+   * This field is applicable for only <code>buildpacks</code> build strategy.
+   */
+  private String buildpacksBuilderImage;
+
   public boolean isDockerFileMode() {
     return dockerFile != null || contextDir != null;
   }

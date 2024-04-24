@@ -246,6 +246,7 @@ class BuildConfigurationTest {
         .hasFieldOrPropertyWithValue("filter", "@")
         .hasFieldOrPropertyWithValue("from", "jkube-images/image:1337")
         .hasFieldOrPropertyWithValue("fromExt", Collections.singletonMap("name", "jkube-images/image:ext"))
+        .hasFieldOrPropertyWithValue("buildpacksBuilderImage", "paketobuildpacks/builder:tiny")
         .hasFieldOrPropertyWithValue("maintainer", "A-Team")
         .hasFieldOrPropertyWithValue("ports", Collections.singletonList("8080"))
         .hasFieldOrPropertyWithValue("shell.shell", "java -version")

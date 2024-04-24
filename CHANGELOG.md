@@ -24,6 +24,7 @@ Usage:
 * Fix #2335: Add support for configuring nodeSelector spec for controller via xml/groovy DSL configuration
 * Fix #2459: Allow configuring Buildpacks build via ImageConfiguration
 * Fix #2462: `k8s:debug` throws error when using `buildpacks` build strategy
+* Fix #2470: Add configuration option for overriding buildpack builder image
 * Fix #2662: Sanitize VCS remote URL used in `jkube.eclipse.org/git-url` annotation
 * Fix #2860: Correctly pass Docker build-arg from the build configuration to the Openshift build strategy
 
