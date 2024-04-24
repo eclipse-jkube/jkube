@@ -21,6 +21,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.AssertionsForInterfaceTypes;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.GeneratorManager;
@@ -34,7 +35,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -119,9 +120,9 @@ class DefaultGeneratorManagerTest {
       List<ImageConfiguration> images = Collections.singletonList(imageConfiguration);
 
       // When + Then
-      assertThatIllegalArgumentException()
-          .isThrownBy(() -> generatorManager.generateAndMerge(images))
-          .withMessage("Configuration error: <image> must have a non-null <name>");
+      assertThatThrownBy(() -> generatorManager.generateAndMerge(images))
+          .isInstanceOf(JKubeException.class)
+          .hasMessage("Configuration error: <image> must have a non-null <name>");
     }
 
     @Test
