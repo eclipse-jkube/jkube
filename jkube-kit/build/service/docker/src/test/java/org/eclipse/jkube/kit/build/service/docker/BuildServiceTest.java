@@ -20,7 +20,10 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -34,6 +37,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -130,6 +134,97 @@ class BuildServiceTest {
         .containsEntry("FULL_IMAGE", "busybox:latest")
         .containsEntry("REPO_1", "docker.io/library")
         .containsEntry("IMAGE-1", "openjdk");
+  }
+
+  @Nested
+  @DisplayName("mergeBuildArgs with BuildArgs")
+  class MergeBuildArgs {
+    @Test
+    void fromAllSourcesWithDifferentKeys_shouldMergeBuildArgs() {
+      // Given
+      givenBuildArgsFromImageConfiguration("VERSION", "latest");
+      givenBuildArgsFromSystemProperties("docker.buildArg.IMAGE-1", "openjdk");
+      givenBuildArgsFromProjectProperties("docker.buildArg.REPO_1", "docker.io/library");
+      givenBuildArgsFromJKubeConfiguration("FULL_IMAGE", "busybox:latest");
+
+      // When
+      Map<String, String> mergedBuildArgs = BuildService.mergeBuildArgs(imageConfiguration, mockedJKubeConfiguration);
+
+      // Then
+      assertThat(mergedBuildArgs)
+          .containsEntry("VERSION", "latest")
+          .containsEntry("FULL_IMAGE", "busybox:latest")
+          .containsEntry("REPO_1", "docker.io/library")
+          .containsEntry("IMAGE-1", "openjdk");
+    }
+
+    @Test
+    void fromBuildConfigurationAndSystemPropertiesWithSameKey_shouldNotMergeBuildArgs() {
+      // Given
+      givenBuildArgsFromImageConfiguration("VERSION", "latest");
+      givenBuildArgsFromSystemProperties("docker.buildArg.VERSION", "1.0.0");
+
+      // When & Then
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> BuildService.mergeBuildArgs(imageConfiguration, mockedJKubeConfiguration))
+          .withMessage("Multiple entries with same key: VERSION=latest and VERSION=1.0.0");
+    }
+
+    @Test
+    void fromBuildConfigurationAndProjectPropertiesWithSameKey_shouldNotMergeBuildArgs() {
+      // Given
+      givenBuildArgsFromImageConfiguration("VERSION", "latest");
+      givenBuildArgsFromProjectProperties("docker.buildArg.VERSION", "1.0.0");
+
+      // When & Then
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> BuildService.mergeBuildArgs(imageConfiguration, mockedJKubeConfiguration))
+          .withMessage("Multiple entries with same key: VERSION=latest and VERSION=1.0.0");
+    }
+
+    @Test
+    void fromBuildConfigurationAndJKubeConfigurationWithSameKey_shouldNotMergeBuildArgs() {
+      // Given
+      givenBuildArgsFromImageConfiguration("VERSION", "latest");
+      givenBuildArgsFromJKubeConfiguration("VERSION", "1.0.0");
+
+      // When & Then
+      assertThatIllegalArgumentException()
+          .isThrownBy(() -> BuildService.mergeBuildArgs(imageConfiguration, mockedJKubeConfiguration))
+          .withMessage("Multiple entries with same key: VERSION=latest and VERSION=1.0.0");
+    }
+
+    private void givenBuildArgsFromImageConfiguration(String key, String value) {
+      imageConfiguration = ImageConfiguration.builder()
+          .name("image-name")
+          .build(BuildConfiguration.builder()
+              .args(
+                  Collections.singletonMap(key, value))
+              .build())
+          .build();
+    }
+
+    private void givenBuildArgsFromSystemProperties(String key, String value) {
+      System.setProperty(key, value);
+    }
+
+    private void givenBuildArgsFromProjectProperties(String key, String value) {
+      Properties props = new Properties();
+      props.setProperty(key, value);
+      when(mockedJKubeConfiguration.getProject().getProperties())
+          .thenReturn(props);
+    }
+
+    private void givenBuildArgsFromJKubeConfiguration(String key, String value) {
+      when(mockedJKubeConfiguration.getBuildArgs())
+          .thenReturn(Collections.singletonMap(key, value));
+    }
+
+    @AfterEach
+    void clearSystemPropertiesUsedInTests() {
+      System.clearProperty("docker.buildArg.IMAGE-1");
+      System.clearProperty("docker.buildArg.VERSION");
+    }
   }
 
   @Test
