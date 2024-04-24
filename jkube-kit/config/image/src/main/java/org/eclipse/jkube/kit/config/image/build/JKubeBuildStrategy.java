@@ -28,22 +28,22 @@ public enum JKubeBuildStrategy {
     /**
      * S2i build with a binary source
      */
-    s2i("S2I", true),
+    s2i("S2I", true, true),
 
     /**
      * JIB build
      */
-    jib("Jib", true),
+    jib("Jib", true, true),
 
     /**
      * Docker build with a binary source
      */
-    docker("Docker", true),
+    docker("Docker", true, true),
 
     /**
      * BuildPacks
      */
-    buildpacks("Buildpacks", false);
+    buildpacks("Buildpacks", false, false);
 
     // Source strategy elements
     public enum SourceStrategy {
@@ -60,10 +60,12 @@ public enum JKubeBuildStrategy {
 
     private final String label;
     private final boolean supportsWatch;
+    private final boolean supportsDebug;
 
-    JKubeBuildStrategy(String label, boolean supportsWatch) {
+    JKubeBuildStrategy(String label, boolean supportsWatch, boolean supportsDebug) {
         this.label = label;
         this.supportsWatch = supportsWatch;
+        this.supportsDebug = supportsDebug;
     }
 
     /**
