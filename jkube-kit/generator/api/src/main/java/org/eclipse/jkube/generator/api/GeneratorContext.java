@@ -25,6 +25,7 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -46,6 +47,9 @@ public class GeneratorContext {
     private boolean prePackagePhase;
 
     private GeneratorMode generatorMode;
+    private Date buildTimestamp;
+    private String sourceDirectory;
+    private String filter;
 
 
     public GeneratorMode getGeneratorMode() {

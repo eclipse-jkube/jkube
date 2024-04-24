@@ -14,48 +14,25 @@
 package org.eclipse.jkube.kit.build.api.helper;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class ConfigHelperTest {
-  private KitLogger logger;
-  private ImageConfigResolver imageConfigResolver;
   private JavaProject javaProject;
-  private JKubeConfiguration jKubeConfiguration;
-  private GeneratorManager generatorManager;
 
   @BeforeEach
   void setUp() {
-    logger = spy(new KitLogger.SilentLogger());
-    imageConfigResolver = mock(ImageConfigResolver.class, RETURNS_DEEP_STUBS);
-    generatorManager = mock(GeneratorManager.class);
     javaProject = JavaProject.builder()
       .groupId("org.eclipse.jkube")
       .artifactId("test-java-project")
@@ -63,77 +40,6 @@ class ConfigHelperTest {
       .properties(new Properties())
       .baseDirectory(new File("dummy-dir"))
       .build();
-    jKubeConfiguration = JKubeConfiguration.builder()
-      .project(javaProject)
-      .build();
-  }
-
-  @Test
-  void initImageConfiguration_withSimpleImageConfiguration_shouldReturnImageConfiguration() {
-    // Given
-    ImageConfiguration dummyImageConfiguration = createNewDummyImageConfiguration();
-    List<ImageConfiguration> images = new ArrayList<>();
-    images.add(dummyImageConfiguration);
-    when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
-    when(generatorManager.generate(images)).thenReturn(images);
-
-    // When
-    List<ImageConfiguration> resolvedImages = ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, jKubeConfiguration);
-
-    // Then
-    assertThat(resolvedImages).isNotNull()
-        .singleElement()
-        .isEqualTo(dummyImageConfiguration);
-  }
-
-  @Test
-  void initImageConfiguration_whenImageConfigurationNameBlank_thenThrowException() {
-    // Given
-    ImageConfiguration imageConfiguration = ImageConfiguration.builder().build();
-    List<ImageConfiguration> images = Collections.singletonList(imageConfiguration);
-    when(imageConfigResolver.resolve(imageConfiguration, javaProject)).thenReturn(images);
-
-    // When + Then
-    assertThatIllegalArgumentException()
-        .isThrownBy(() -> ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, jKubeConfiguration))
-        .withMessage("Configuration error: <image> must have a non-null <name>");
-  }
-
-  @Test
-  void initImageConfiguration_whenNoMatchForImageFilter_thenLogWarning() {
-    // Given
-    ImageConfiguration dummyImageConfiguration = createNewDummyImageConfiguration();
-    List<ImageConfiguration> images = Collections.singletonList(createNewDummyImageConfiguration());
-    when(imageConfigResolver.resolve(dummyImageConfiguration, javaProject)).thenReturn(images);
-    when(generatorManager.generate(images)).thenReturn(images);
-
-    // When
-    ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, "i-dont-exist", generatorManager, jKubeConfiguration);
-
-    // Then
-    verify(logger).warn("None of the resolved images [%s] match the configured filter '%s'", "foo/bar:latest", "i-dont-exist");
-  }
-
-  @Test
-  void initImageConfiguration_whenDockerfileUsed_thenLogDockerfilePathAndContextDir(@TempDir File temporaryFolder) {
-    File dockerFile = temporaryFolder.toPath().resolve("Dockerfile").toFile();
-    ImageConfiguration dummyImageConfiguration = ImageConfiguration.builder()
-        .name("imageconfiguration-no-build:latest")
-        .build(BuildConfiguration.builder()
-            .dockerFile(dockerFile.getAbsolutePath())
-            .build())
-        .build();
-    List<ImageConfiguration> images = new ArrayList<>();
-    images.add(dummyImageConfiguration);
-    when(imageConfigResolver.resolve(dummyImageConfiguration, jKubeConfiguration.getProject())).thenReturn(images);
-    when(generatorManager.generate(images)).thenReturn(images);
-
-    // When
-    ConfigHelper.initImageConfiguration(new Date(), images, imageConfigResolver, logger, null, generatorManager, jKubeConfiguration);
-
-    // Then
-    verify(logger).info(eq("Using Dockerfile: %s"), anyString());
-    verify(logger).info(eq("Using Docker Context Directory: %s"), any(File.class));
   }
 
   @Test
