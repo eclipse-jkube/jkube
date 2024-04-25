@@ -15,7 +15,9 @@ package org.eclipse.jkube.gradle.plugin.task;
 
 import javax.inject.Inject;
 
+import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 
@@ -31,15 +33,22 @@ public class OpenShiftBuildTask extends KubernetesBuildTask implements OpenShift
   @Override
   protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
     return super.buildServiceConfigBuilder()
-        .openshiftPullSecret(getOpenShiftExtension().getOpenshiftPullSecretOrDefault())
-        .s2iBuildNameSuffix(getOpenShiftExtension().getS2iBuildNameSuffixOrDefault())
-        .s2iImageStreamLookupPolicyLocal(getOpenShiftExtension().getS2iImageStreamLookupPolicyLocalOrDefault())
-        .openshiftPushSecret(getOpenShiftExtension().getOpenshiftPushSecretOrDefault())
         .resourceConfig(getOpenShiftExtension().resources)
-        .buildOutputKind(getOpenShiftExtension().getBuildOutputKindOrDefault())
         .enricherTask(e -> {
           enricherManager.enrich(PlatformMode.kubernetes, e);
           enricherManager.enrich(PlatformMode.openshift, e);
         });
+  }
+
+  @Override
+  protected GeneratorContext.GeneratorContextBuilder initGeneratorContextBuilder() {
+    return super.initGeneratorContextBuilder()
+        .openshiftForcePull(getOpenShiftExtension().getForcePullOrDefault())
+        .openshiftS2iBuildNameSuffix(getOpenShiftExtension().getS2iBuildNameSuffixOrDefault())
+        .openshiftS2iImageStreamLookupPolicyLocal(getOpenShiftExtension().getS2iImageStreamLookupPolicyLocalOrDefault())
+        .openshiftPullSecret(getOpenShiftExtension().getOpenshiftPullSecretOrDefault())
+        .openshiftPushSecret(getOpenShiftExtension().getOpenshiftPushSecretOrDefault())
+        .openshiftBuildOutputKind(getOpenShiftExtension().getBuildOutputKindOrDefault())
+        .openshiftBuildRecreate(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreateOrDefault()));
   }
 }

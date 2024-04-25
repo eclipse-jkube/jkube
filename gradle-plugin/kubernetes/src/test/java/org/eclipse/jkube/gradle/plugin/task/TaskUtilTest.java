@@ -17,7 +17,6 @@ import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,16 +48,13 @@ class TaskUtilTest {
 
     // Then
     assertThat(buildServiceConfig)
-      .hasFieldOrPropertyWithValue("buildRecreateMode", BuildRecreateMode.none)
       .hasFieldOrPropertyWithValue("jKubeBuildStrategy", JKubeBuildStrategy.docker)
-      .hasFieldOrPropertyWithValue("forcePull", false)
       .hasFieldOrPropertyWithValue("buildDirectory", null);
   }
 
   @Test
   void buildServiceConfigBuilder_shouldInitializeBuildServiceConfigWithConfiguredValues() {
     // Given
-    extension.buildRecreate = "true";
     extension.isForcePull = true;
     extension.buildStrategy = JKubeBuildStrategy.jib;
     when(extension.javaProject.getBuildDirectory().getAbsolutePath()).thenReturn("/tmp/foo");
@@ -68,9 +64,7 @@ class TaskUtilTest {
 
     // Then
     assertThat(buildServiceConfig)
-      .hasFieldOrPropertyWithValue("buildRecreateMode", BuildRecreateMode.all)
       .hasFieldOrPropertyWithValue("jKubeBuildStrategy", JKubeBuildStrategy.jib)
-      .hasFieldOrPropertyWithValue("forcePull", true)
       .hasFieldOrPropertyWithValue("buildDirectory", "/tmp/foo");
   }
 

@@ -19,9 +19,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
-import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
 
 import static org.eclipse.jkube.kit.config.resource.RuntimeMode.KUBERNETES;
@@ -89,19 +89,16 @@ public class OpenshiftBuildMojo extends BuildMojo {
     }
 
     @Override
-    protected BuildServiceConfig.BuildServiceConfigBuilder buildServiceConfigBuilder() {
-        return super.buildServiceConfigBuilder()
-            .openshiftPullSecret(openshiftPullSecret)
-            .s2iBuildNameSuffix(s2iBuildNameSuffix)
-            .s2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal)
-            .openshiftPushSecret(openshiftPushSecret)
-            .buildOutputKind(buildOutputKind);
-    }
-
-    @Override
     protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() {
         return super.generatorContextBuilder()
-            .strategy(getJKubeBuildStrategy());
+            .strategy(getJKubeBuildStrategy())
+            .openshiftForcePull(forcePull)
+            .openshiftS2iBuildNameSuffix(s2iBuildNameSuffix)
+            .openshiftS2iImageStreamLookupPolicyLocal(s2iImageStreamLookupPolicyLocal)
+            .openshiftPullSecret(openshiftPullSecret)
+            .openshiftPushSecret(openshiftPushSecret)
+            .openshiftBuildOutputKind(buildOutputKind)
+            .openshiftBuildRecreate(BuildRecreateMode.fromParameter(buildRecreate));
     }
 
     @Override
@@ -116,5 +113,4 @@ public class OpenshiftBuildMojo extends BuildMojo {
         }
         return JKubeBuildStrategy.s2i;
     }
-
 }

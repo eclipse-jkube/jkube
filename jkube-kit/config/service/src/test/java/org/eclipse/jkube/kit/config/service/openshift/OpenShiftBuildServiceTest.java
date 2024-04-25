@@ -136,9 +136,9 @@ class OpenShiftBuildServiceTest {
   @Test
   void getApplicableImageConfiguration_withRegistryInImageConfigurationAndDockerImageBuildOutput_shouldAppendRegistryToImageName() {
     // Given
-    when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(BuildServiceConfig.builder()
-            .buildOutputKind("DockerImage")
-        .build());
+    imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder().openshiftBuildOutputKind("DockerImage").build())
+        .build();
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
 
     // When
@@ -152,9 +152,9 @@ class OpenShiftBuildServiceTest {
   @Test
   void getApplicableImageConfiguration_withRegistryInImageConfiguration_shouldNotAppendRegistryToImageName() {
     // Given
-    when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(BuildServiceConfig.builder()
-        .buildOutputKind("ImageStreamTag")
-        .build());
+    imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder().openshiftBuildOutputKind("ImageStreamTag").build())
+        .build();
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
 
     // When

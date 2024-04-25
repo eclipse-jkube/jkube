@@ -32,6 +32,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
@@ -56,7 +57,9 @@ public class BuildConfiguration implements Serializable {
   public static final String DEFAULT_FILTER = "${*}";
   public static final String DEFAULT_CLEANUP = "try";
 
+  ///////////////////////////////////////////////////////////////////////////
   // Generic fields applicable to all build strategies
+  ///////////////////////////////////////////////////////////////////////////
   /**
    * The base image which should be used for this image.
    *
@@ -328,12 +331,83 @@ public class BuildConfiguration implements Serializable {
   @Singular("addCacheFrom")
   private List<String> cacheFrom;
 
+  ///////////////////////////////////////////////////////////////////////////
+  // Fields applicable to buildpacks build strategy
+  ///////////////////////////////////////////////////////////////////////////
   /**
    * Configure BuildPack <a href="https://buildpacks.io/docs/for-platform-operators/concepts/builder/">builder</a> OCI image for BuildPack Build.
    * <p>
    * This field is applicable for only <code>buildpacks</code> build strategy.
    */
   private String buildpacksBuilderImage;
+
+  ///////////////////////////////////////////////////////////////////////////
+  // Fields applicable to openshift build strategy
+  ///////////////////////////////////////////////////////////////////////////
+  /**
+   * While creating a BuildConfig, By default, if the builder image specified in the
+   * build configuration is available locally on the node, that image will be used.
+   * <p>
+   * ForcePull to override the local image and refresh it from the registry to which the image stream points.
+   * <p>
+   * This field is applicable in case of <code>s2i</code> build strategy
+   */
+  private boolean openshiftForcePull;
+
+  /**
+   * The S2I binary builder BuildConfig name suffix appended to the image name to avoid
+   * clashing with the underlying BuildConfig for the Jenkins pipeline
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private String openshiftS2iBuildNameSuffix;
+
+  /**
+   * Allow the ImageStream used in the S2I binary build to be used in standard
+   * Kubernetes resources such as Deployment or StatefulSet.
+   * <p>
+   * This field is only applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private boolean openshiftS2iImageStreamLookupPolicyLocal;
+
+  /**
+   * The name of pullSecret to be used to pull the base image in case pulling from a protected
+   * registry which requires authentication.
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private String openshiftPullSecret;
+
+  /**
+   * The name of pushSecret to be used to push the final image in case pushing from a protected
+   * registry which requires authentication.
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private String openshiftPushSecret;
+
+  /**
+   * Allow specifying in which registry to push the container image at the end of the build.
+   * If the output kind is ImageStreamTag, then the image will be pushed to the internal OpenShift registry.
+   * If the output is of type DockerImage, then the name of the output reference will be used as a Docker push specification.
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private String openshiftBuildOutputKind;
+
+  /**
+   * How the OpenShift resource objects associated with the build should be treated when they already exist
+
+   * <code>buildConfig</code> or <code>bc</code> : Only the BuildConfig is recreated
+   * <code>all</code> or <code>is</code> : Only the ImageStream is recreated
+   * <code>all</code> : Both, BuildConfig and ImageStream are recreated
+   * <code>none</code> : Neither BuildConfig nor ImageStream is recreated
+   * The default is <code>none</code>. If you provide the property without value then <code>all</code> is assumed, so everything gets recreated.
+   *
+   * <p>
+   * This field is applicable in case of OpenShift <code>s2i</code> build strategy
+   */
+  private BuildRecreateMode openshiftBuildRecreateMode;
 
   public boolean isDockerFileMode() {
     return dockerFile != null || contextDir != null;

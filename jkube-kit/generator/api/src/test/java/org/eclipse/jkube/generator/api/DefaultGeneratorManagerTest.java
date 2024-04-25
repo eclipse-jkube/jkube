@@ -21,6 +21,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.AssertionsForInterfaceTypes;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -169,6 +170,136 @@ class DefaultGeneratorManagerTest {
       // Then
       verify(logger).info(eq("Using Dockerfile: %s"), anyString());
       verify(logger).info(eq("Using Docker Context Directory: %s"), any(File.class));
+    }
+
+
+    @Nested
+    @DisplayName("merge configuration parameters for OpenShift S2I build into Image Build configuration")
+    class MergeOpenShiftS2IImageConfigParams {
+      @Test
+      @DisplayName("zero configuration, do not set anything in image build configuration")
+      void whenNoConfigurationProvided_thenDoNotSetInBuildConfig() {
+        // When
+        List<ImageConfiguration> result = generatorManager.generateAndMerge(Collections.singletonList(imageConfig));
+
+        // Then
+        assertThat(result)
+            .singleElement()
+            .extracting(ImageConfiguration::getBuild)
+            .hasFieldOrPropertyWithValue("openshiftForcePull", false)
+            .hasFieldOrPropertyWithValue("openshiftS2iBuildNameSuffix", null)
+            .hasFieldOrPropertyWithValue("openshiftS2iImageStreamLookupPolicyLocal", false)
+            .hasFieldOrPropertyWithValue("openshiftPullSecret", null)
+            .hasFieldOrPropertyWithValue("openshiftPushSecret", null)
+            .hasFieldOrPropertyWithValue("openshiftBuildOutputKind", null)
+            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", null);
+      }
+
+      @Test
+      @DisplayName("image Configuration, then fields retained in Image Configuration")
+      void whenProvidedInImageConfiguration_thenDoNotUpdateBuildConfig() {
+        // Given
+        imageConfig = imageConfig.toBuilder()
+            .build(BuildConfiguration.builder()
+                .openshiftForcePull(true)
+                .openshiftS2iBuildNameSuffix("-custom")
+                .openshiftS2iImageStreamLookupPolicyLocal(true)
+                .openshiftPushSecret("push-secret")
+                .openshiftPullSecret("pull-secret")
+                .openshiftBuildOutputKind("ImageStreamTag")
+                .openshiftBuildRecreateMode(BuildRecreateMode.buildConfig)
+                .build())
+            .build();
+        List<ImageConfiguration> images = Collections.singletonList(imageConfig);
+
+        // When
+        List<ImageConfiguration> result = generatorManager.generateAndMerge(images);
+
+        // Then
+        assertThat(result)
+            .singleElement()
+            .extracting(ImageConfiguration::getBuild)
+            .hasFieldOrPropertyWithValue("openshiftForcePull", true)
+            .hasFieldOrPropertyWithValue("openshiftS2iBuildNameSuffix", "-custom")
+            .hasFieldOrPropertyWithValue("openshiftS2iImageStreamLookupPolicyLocal", true)
+            .hasFieldOrPropertyWithValue("openshiftPullSecret", "pull-secret")
+            .hasFieldOrPropertyWithValue("openshiftPushSecret", "push-secret")
+            .hasFieldOrPropertyWithValue("openshiftBuildOutputKind", "ImageStreamTag")
+            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", BuildRecreateMode.buildConfig);
+      }
+
+      @Test
+      @DisplayName("plugin configuration, then fields merged in final Image Configuration")
+      void whenProvidedViaPluginConfiguration_thenSetInBuildConfig() {
+        // Given
+        generatorContext = generatorContext.toBuilder()
+            .openshiftForcePull(true)
+            .openshiftS2iBuildNameSuffix("-custom")
+            .openshiftS2iImageStreamLookupPolicyLocal(true)
+            .openshiftPullSecret("pull-secret")
+            .openshiftPushSecret("push-secret")
+            .openshiftBuildOutputKind("ImageStreamTag")
+            .openshiftBuildRecreate(BuildRecreateMode.buildConfig)
+            .build();
+        List<ImageConfiguration> images = Collections.singletonList(imageConfig);
+
+        // When
+        List<ImageConfiguration> result = new DefaultGeneratorManager(generatorContext).generateAndMerge(images);
+
+        // Then
+        assertThat(result)
+            .singleElement()
+            .extracting(ImageConfiguration::getBuild)
+            .hasFieldOrPropertyWithValue("openshiftForcePull", true)
+            .hasFieldOrPropertyWithValue("openshiftS2iBuildNameSuffix", "-custom")
+            .hasFieldOrPropertyWithValue("openshiftS2iImageStreamLookupPolicyLocal", true)
+            .hasFieldOrPropertyWithValue("openshiftPullSecret", "pull-secret")
+            .hasFieldOrPropertyWithValue("openshiftPushSecret", "push-secret")
+            .hasFieldOrPropertyWithValue("openshiftBuildOutputKind", "ImageStreamTag")
+            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", BuildRecreateMode.buildConfig);
+      }
+
+      @Test
+      @DisplayName("plugin configuration and image configuration, then fields retained in Image Configuration")
+      void whenProvidedViaBothPluginAndImageConfiguration_thenDoNotModifyConfigurationSetInBuildConfig() {
+        // Given
+        imageConfig = imageConfig.toBuilder()
+            .build(BuildConfiguration.builder()
+                .openshiftForcePull(true)
+                .openshiftS2iBuildNameSuffix("-custom-via-image-config")
+                .openshiftS2iImageStreamLookupPolicyLocal(true)
+                .openshiftPushSecret("push-secret-via-image-config")
+                .openshiftPullSecret("pull-secret-via-image-config")
+                .openshiftBuildOutputKind("ImageStreamTag-via-image-config")
+                .openshiftBuildRecreateMode(BuildRecreateMode.buildConfig)
+                .build())
+            .build();
+        generatorContext = generatorContext.toBuilder()
+            .openshiftForcePull(true)
+            .openshiftS2iBuildNameSuffix("-custom")
+            .openshiftS2iImageStreamLookupPolicyLocal(true)
+            .openshiftPullSecret("pull-secret")
+            .openshiftPushSecret("push-secret")
+            .openshiftBuildOutputKind("ImageStreamTag")
+            .openshiftBuildRecreate(BuildRecreateMode.buildConfig)
+            .build();
+        List<ImageConfiguration> images = Collections.singletonList(imageConfig);
+
+        // When
+        List<ImageConfiguration> result = new DefaultGeneratorManager(generatorContext).generateAndMerge(images);
+
+        // Then
+        assertThat(result)
+            .singleElement()
+            .extracting(ImageConfiguration::getBuild)
+            .hasFieldOrPropertyWithValue("openshiftForcePull", true)
+            .hasFieldOrPropertyWithValue("openshiftS2iBuildNameSuffix", "-custom-via-image-config")
+            .hasFieldOrPropertyWithValue("openshiftS2iImageStreamLookupPolicyLocal", true)
+            .hasFieldOrPropertyWithValue("openshiftPullSecret", "pull-secret-via-image-config")
+            .hasFieldOrPropertyWithValue("openshiftPushSecret", "push-secret-via-image-config")
+            .hasFieldOrPropertyWithValue("openshiftBuildOutputKind", "ImageStreamTag-via-image-config")
+            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", BuildRecreateMode.buildConfig);
+      }
     }
   }
 
