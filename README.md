@@ -138,7 +138,11 @@ $ git clone git@github.com:eclipse/jkube.git
 # 2. Move to Hello World Quickstart folder
 $ cd jkube/quickstarts/maven/hello-world
 
-# 3. Build Project and run JKube goals
+# 3. Configure your local environment to re-use the Docker daemon inside the Minikube instance.
+
+~ jkube/quickstarts/maven/hello-world : $ eval $(minikube -p minikube docker-env) 
+
+# 4. Build Project and run JKube goals
 $ mvn clean install                                                            \
   k8s:build         `# Build Docker Image`                                     \
   k8s:resource      `# Generate Kubernetes Manifests`                          \
@@ -150,26 +154,21 @@ $ mvn clean install                                                            \
 ```shell script
 # Using Kubectl
 $ kubectl get pods
-NAME                                       READY   STATUS        RESTARTS   AGE
-helloworld-7c4665f464-xwskj                0/1     Completed     2          27s
-$ kubectl logs jkube-sample-helloworld-7c4665f464-xwskj
-Hello World!
-# Using JKube
-$ mvn k8s:log
-[INFO] k8s:  [NEW] helloworld-7c4665f464-xwskj status: Running
-[INFO] k8s:  [NEW] Tailing log of pod: helloworld-587dfff745-2kdpq
-[INFO] k8s:  [NEW] Press Ctrl-C to stop tailing the log
-[INFO] k8s:  [NEW]
-[INFO] k8s: Hello World!
-[INFO] k8s:  [NEW] helloworld-7c4665f464-xwskj status: Running
+NAME                          READY   STATUS    RESTARTS   AGE
+helloworld-664bf5fdff-2bmrt   1/1     Running   0          9s
+$ kubectl get svc
+helloworld   NodePort    10.110.92.145   <none>        8080:32353/TCP   58m
+kubernetes   ClusterIP   10.96.0.1       <none>        443/TCP          7h
+$ curl `minikube ip`:32353/hello
+Hello World
 ```
 
 #### Troubleshooting
 
-If you experience problems using minikube that pod's status shows 'ImagePullBackOff' and not 'Completed' you must share the minikube's docker daemon environment with your shell with:
+If you experience problems using minikube that pod's status shows 'ImagePullBackOff' and not 'Running' you must share the minikube's docker daemon environment with your shell with:
 
 ```shell script
-$ eval $(minikube docker-env)
+$ eval $(minikube -p minikube docker-env) 
 ```
 
 You can remove this from your shell again with:

@@ -13,11 +13,31 @@
  */
 package org.eclipse.jkube.sample.helloworld;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.logging.Logger;
+import java.util.logging.Level;
+
+import com.sun.net.httpserver.HttpServer;
+
 /**
- * Hello world!
+ * @author: Wayne Kirimi
  */
 public class App {
-    public static void main(String[] args) {
-        System.out.println("Hello World!");
+
+  private static final Logger log = Logger.getLogger(App.class.getSimpleName());
+  private static final int PORT = 8080;
+
+  public static void main(String[] args) {
+
+    try {
+      HttpServer server = HttpServer.create(new InetSocketAddress(PORT), 0);
+      server.createContext("/hello", new RootHandler());
+      server.setExecutor(null);
+      server.start();
+      log.info("Server started on port: " + PORT);
+    } catch (IOException e) {
+      log.severe("Error occured when starting server: " + e.getMessage());
     }
+  }
 }

@@ -26,11 +26,12 @@
 
   <description>
     Demo project for getting started with Eclipse JKube.
-    It just prints "Hello World" on command line and exits.
+    It starts a simple HTTP server on port 8080 that replies with "Hello World" to the /hello endpoint.
   </description>
 
   <properties>
     <jkube.version>${project.version}</jkube.version>
+    <jkube.enricher.jkube-service.type>NodePort</jkube.enricher.jkube-service.type>
   </properties>
 
   <build>
@@ -77,6 +78,9 @@
               <build>
                 <from>openjdk:latest</from>
                 <cmd>java -jar maven/${project.artifactId}-${project.version}.jar</cmd>
+                <ports>
+                  <port>8080</port>
+                </ports>
               </build>
             </image>
           </images>
