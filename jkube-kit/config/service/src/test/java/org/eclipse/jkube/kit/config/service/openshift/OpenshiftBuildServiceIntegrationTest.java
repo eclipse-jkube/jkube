@@ -32,6 +32,7 @@ import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -142,7 +143,7 @@ class OpenshiftBuildServiceIntegrationTest {
         .build(BuildConfiguration.builder()
             .from(projectName)
             .openshiftS2iBuildNameSuffix("-s2i-suffix2")
-            .openshiftBuildRecreateMode("none")
+            .openshiftBuildRecreateMode(BuildRecreateMode.none)
             .build()
         ).build();
 

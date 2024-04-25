@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.resource;
+package org.eclipse.jkube.kit.common;
 
 import org.apache.commons.lang3.StringUtils;
 

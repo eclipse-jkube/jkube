@@ -32,6 +32,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
@@ -398,7 +399,7 @@ public class BuildConfiguration implements Serializable {
    * <p>
    * This field is applicable in case of OpenShift <code>s2i</code> build strategy
    */
-  private String openshiftBuildRecreateMode;
+  private BuildRecreateMode openshiftBuildRecreateMode;
 
   public boolean isDockerFileMode() {
     return dockerFile != null || contextDir != null;

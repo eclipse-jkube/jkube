@@ -19,6 +19,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.maven.plugin.mojo.OpenShift;
@@ -97,7 +98,7 @@ public class OpenshiftBuildMojo extends BuildMojo {
             .openshiftPullSecret(openshiftPullSecret)
             .openshiftPushSecret(openshiftPushSecret)
             .openshiftBuildOutputKind(buildOutputKind)
-            .openshiftBuildRecreate(buildRecreate);
+            .openshiftBuildRecreate(BuildRecreateMode.fromParameter(buildRecreate));
     }
 
     @Override

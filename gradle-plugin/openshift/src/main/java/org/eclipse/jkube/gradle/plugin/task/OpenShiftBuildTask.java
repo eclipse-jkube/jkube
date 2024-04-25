@@ -17,6 +17,7 @@ import javax.inject.Inject;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 
@@ -48,6 +49,6 @@ public class OpenShiftBuildTask extends KubernetesBuildTask implements OpenShift
         .openshiftPullSecret(getOpenShiftExtension().getOpenshiftPullSecretOrDefault())
         .openshiftPushSecret(getOpenShiftExtension().getOpenshiftPushSecretOrDefault())
         .openshiftBuildOutputKind(getOpenShiftExtension().getBuildOutputKindOrDefault())
-        .openshiftBuildRecreate(getOpenShiftExtension().getBuildRecreateOrDefault());
+        .openshiftBuildRecreate(BuildRecreateMode.fromParameter(kubernetesExtension.getBuildRecreateOrDefault()));
   }
 }

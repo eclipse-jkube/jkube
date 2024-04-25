@@ -39,7 +39,7 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.BuildRecreateMode;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -214,7 +214,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
             BuildConfigSpec spec = OpenShiftBuildServiceUtils.getBuildConfigSpec(buildConfig);
             validateSourceType(buildName, spec);
 
-            if (BuildRecreateMode.fromParameter(imageConfig.getBuild().getOpenshiftBuildRecreateMode()).isBuildConfig()) {
+            if (imageConfig.getBuild().getOpenshiftBuildRecreateMode().isBuildConfig()) {
                 // Delete and recreate afresh
                 client.buildConfigs().inNamespace(applicableOpenShiftNamespace).withName(buildName).delete();
                 return createBuildConfig(builder, buildName, buildStrategyResource, buildOutput);
@@ -405,7 +405,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
 
     private void checkOrCreateImageStream(ImageConfiguration applicableImageConfig, OpenShiftClient client, KubernetesListBuilder builder, String imageStreamName) {
         boolean hasImageStream = client.imageStreams().inNamespace(applicableOpenShiftNamespace).withName(imageStreamName).get() != null;
-        if (hasImageStream && BuildRecreateMode.fromParameter(applicableImageConfig.getBuild().getOpenshiftBuildRecreateMode()).isImageStream()) {
+        if (hasImageStream && applicableImageConfig.getBuild().getOpenshiftBuildRecreateMode().isImageStream()) {
             client.imageStreams().inNamespace(applicableOpenShiftNamespace).withName(imageStreamName).delete();
             hasImageStream = false;
         }

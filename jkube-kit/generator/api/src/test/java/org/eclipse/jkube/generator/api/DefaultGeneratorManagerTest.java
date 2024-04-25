@@ -21,6 +21,7 @@ import java.util.Properties;
 import java.util.stream.Collectors;
 
 import org.assertj.core.api.AssertionsForInterfaceTypes;
+import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -206,7 +207,7 @@ class DefaultGeneratorManagerTest {
                 .openshiftPushSecret("push-secret")
                 .openshiftPullSecret("pull-secret")
                 .openshiftBuildOutputKind("ImageStreamTag")
-                .openshiftBuildRecreateMode("buildConfig")
+                .openshiftBuildRecreateMode(BuildRecreateMode.buildConfig)
                 .build())
             .build();
         List<ImageConfiguration> images = Collections.singletonList(imageConfig);
@@ -224,7 +225,7 @@ class DefaultGeneratorManagerTest {
             .hasFieldOrPropertyWithValue("openshiftPullSecret", "pull-secret")
             .hasFieldOrPropertyWithValue("openshiftPushSecret", "push-secret")
             .hasFieldOrPropertyWithValue("openshiftBuildOutputKind", "ImageStreamTag")
-            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", "buildConfig");
+            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", BuildRecreateMode.buildConfig);
       }
 
       @Test
@@ -238,7 +239,7 @@ class DefaultGeneratorManagerTest {
             .openshiftPullSecret("pull-secret")
             .openshiftPushSecret("push-secret")
             .openshiftBuildOutputKind("ImageStreamTag")
-            .openshiftBuildRecreate("buildConfig")
+            .openshiftBuildRecreate(BuildRecreateMode.buildConfig)
             .build();
         List<ImageConfiguration> images = Collections.singletonList(imageConfig);
 
@@ -255,7 +256,7 @@ class DefaultGeneratorManagerTest {
             .hasFieldOrPropertyWithValue("openshiftPullSecret", "pull-secret")
             .hasFieldOrPropertyWithValue("openshiftPushSecret", "push-secret")
             .hasFieldOrPropertyWithValue("openshiftBuildOutputKind", "ImageStreamTag")
-            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", "buildConfig");
+            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", BuildRecreateMode.buildConfig);
       }
 
       @Test
@@ -270,7 +271,7 @@ class DefaultGeneratorManagerTest {
                 .openshiftPushSecret("push-secret-via-image-config")
                 .openshiftPullSecret("pull-secret-via-image-config")
                 .openshiftBuildOutputKind("ImageStreamTag-via-image-config")
-                .openshiftBuildRecreateMode("buildConfig-via-image-config")
+                .openshiftBuildRecreateMode(BuildRecreateMode.buildConfig)
                 .build())
             .build();
         generatorContext = generatorContext.toBuilder()
@@ -280,7 +281,7 @@ class DefaultGeneratorManagerTest {
             .openshiftPullSecret("pull-secret")
             .openshiftPushSecret("push-secret")
             .openshiftBuildOutputKind("ImageStreamTag")
-            .openshiftBuildRecreate("buildConfig")
+            .openshiftBuildRecreate(BuildRecreateMode.buildConfig)
             .build();
         List<ImageConfiguration> images = Collections.singletonList(imageConfig);
 
@@ -297,7 +298,7 @@ class DefaultGeneratorManagerTest {
             .hasFieldOrPropertyWithValue("openshiftPullSecret", "pull-secret-via-image-config")
             .hasFieldOrPropertyWithValue("openshiftPushSecret", "push-secret-via-image-config")
             .hasFieldOrPropertyWithValue("openshiftBuildOutputKind", "ImageStreamTag-via-image-config")
-            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", "buildConfig-via-image-config");
+            .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", BuildRecreateMode.buildConfig);
       }
     }
   }

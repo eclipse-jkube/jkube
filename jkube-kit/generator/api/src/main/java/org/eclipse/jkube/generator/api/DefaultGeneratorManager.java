@@ -157,7 +157,7 @@ public class DefaultGeneratorManager implements GeneratorManager {
     if (StringUtils.isBlank(build.getOpenshiftBuildOutputKind()) && StringUtils.isNotBlank(genCtx.getOpenshiftBuildOutputKind())) {
       buildConfigBuilder.openshiftBuildOutputKind(genCtx.getOpenshiftBuildOutputKind());
     }
-    if (StringUtils.isBlank(build.getOpenshiftBuildRecreateMode()) && StringUtils.isNotBlank(genCtx.getOpenshiftBuildRecreate())) {
+    if (build.getOpenshiftBuildRecreateMode() == null) {
       buildConfigBuilder.openshiftBuildRecreateMode(genCtx.getOpenshiftBuildRecreate());
     }
     return buildConfigBuilder.build();
