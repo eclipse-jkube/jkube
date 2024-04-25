@@ -155,15 +155,15 @@ public class ResourceValidator {
 
     private JsonSchema getJsonSchema(URL schemaUrl, String kind) throws IOException {
         final JsonMetaSchema v7 = JsonMetaSchema.getV7();
-        final String defaultUri = v7.getUri();
+        final String defaultUri = v7.getIri();
         JsonObject jsonSchema = fixUrlIfUnversioned(getSchemaJson(schemaUrl), defaultUri);
         checkIfKindPropertyExists(kind);
         getResourceProperties(kind, jsonSchema);
-        final JsonMetaSchema metaSchema = JsonMetaSchema.builder(v7.getUri(), v7)
-            .addKeywords(createNonValidationKeywordList())
+        final JsonMetaSchema metaSchema = JsonMetaSchema.builder(v7.getIri(), v7)
+            .keywords(createNonValidationKeywordList())
             .build();
         return new JsonSchemaFactory.Builder()
-            .defaultMetaSchemaURI(defaultUri).addMetaSchema(metaSchema).build()
+            .defaultMetaSchemaIri(defaultUri).metaSchema(metaSchema).build()
             .getSchema(jsonSchema.toString());
     }
 
