@@ -24,8 +24,8 @@ import com.sun.net.httpserver.HttpHandler;
 /**
  * @author: Wayne Kirimi
  */
-
 public class RootHandler implements HttpHandler {
+
   private static final Logger log = Logger.getLogger(App.class.getSimpleName());
 
   @Override

@@ -26,7 +26,7 @@
 
   <description>
     Demo project for getting started with Eclipse JKube.
-    It just prints "Hello World" on command line and exits.
+    It starts a simple HTTP server on port 8080 that replies with "Hello World" to the /hello endpoint.
   </description>
 
   <properties>
