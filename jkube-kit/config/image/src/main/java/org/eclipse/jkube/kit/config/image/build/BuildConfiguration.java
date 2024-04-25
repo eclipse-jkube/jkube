@@ -57,7 +57,9 @@ public class BuildConfiguration implements Serializable {
   public static final String DEFAULT_FILTER = "${*}";
   public static final String DEFAULT_CLEANUP = "try";
 
+  ///////////////////////////////////////////////////////////////////////////
   // Generic fields applicable to all build strategies
+  ///////////////////////////////////////////////////////////////////////////
   /**
    * The base image which should be used for this image.
    *
@@ -329,6 +331,9 @@ public class BuildConfiguration implements Serializable {
   @Singular("addCacheFrom")
   private List<String> cacheFrom;
 
+  ///////////////////////////////////////////////////////////////////////////
+  // Fields applicable to buildpacks build strategy
+  ///////////////////////////////////////////////////////////////////////////
   /**
    * Configure BuildPack <a href="https://buildpacks.io/docs/for-platform-operators/concepts/builder/">builder</a> OCI image for BuildPack Build.
    * <p>
@@ -336,6 +341,9 @@ public class BuildConfiguration implements Serializable {
    */
   private String buildpacksBuilderImage;
 
+  ///////////////////////////////////////////////////////////////////////////
+  // Fields applicable to openshift build strategy
+  ///////////////////////////////////////////////////////////////////////////
   /**
    * While creating a BuildConfig, By default, if the builder image specified in the
    * build configuration is available locally on the node, that image will be used.

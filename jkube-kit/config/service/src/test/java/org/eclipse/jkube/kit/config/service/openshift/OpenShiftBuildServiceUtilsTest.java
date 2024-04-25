@@ -258,9 +258,6 @@ class OpenShiftBuildServiceUtilsTest {
   @Test
   void createBuildOutput_withOutputKindDockerAndPushSecret_shouldReturnDocker() {
     // Given
-    final BuildServiceConfig buildServiceConfig = BuildServiceConfig.builder()
-        .buildDirectory(temporaryFolder.getAbsolutePath())
-        .build();
     imageConfiguration = imageConfiguration.toBuilder()
         .build(imageConfiguration.getBuild().toBuilder()
             .openshiftBuildOutputKind("DockerImage")
