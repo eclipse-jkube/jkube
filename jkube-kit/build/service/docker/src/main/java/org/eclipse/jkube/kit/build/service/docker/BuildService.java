@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
@@ -207,7 +208,7 @@ public class BuildService {
                 String argKey = key.replaceFirst(ARG_PREFIX, "");
                 String value = properties.getProperty(key);
 
-                if (!isEmpty(value)) {
+                if (StringUtils.isNotBlank(value)) {
                     buildArgs.put(argKey, value);
                 }
             }
@@ -296,10 +297,6 @@ public class BuildService {
             BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
             return buildConfig.nocache();
         }
-    }
-
-    private static boolean isEmpty(String str) {
-        return str == null || str.isEmpty();
     }
 
 }
