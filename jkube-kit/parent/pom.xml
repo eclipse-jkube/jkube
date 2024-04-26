@@ -59,7 +59,6 @@
     <version.plexus-utils>3.5.0</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
-    <version.wagon-ssh-external>2.3</version.wagon-ssh-external>
     <version.ow2.asm>9.7</version.ow2.asm>
 
     <!-- =======================================================  -->
@@ -925,14 +924,6 @@
         <artifactId>maven-failsafe-plugin</artifactId>
       </plugin>
     </plugins>
-
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.wagon</groupId>
-        <artifactId>wagon-ssh-external</artifactId>
-        <version>${version.wagon-ssh-external}</version>
-      </extension>
-    </extensions>
   </build>
 
 </project>
