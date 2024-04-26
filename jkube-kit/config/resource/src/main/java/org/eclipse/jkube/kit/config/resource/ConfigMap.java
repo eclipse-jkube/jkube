@@ -13,9 +13,14 @@
  */
 package org.eclipse.jkube.kit.config.resource;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
+@Setter
 public class ConfigMap {
 
     private String name;
@@ -25,25 +30,6 @@ public class ConfigMap {
         this.entries.add(configMapEntry);
     }
 
-    public List<ConfigMapEntry> getEntries() {
-        return entries;
-    }
-
-    /**
-     * Set the name of ConfigMap.
-     * @param name the ConfigMap name
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * Return the name of ConfigMap.
-     * @return
-     */
-    public String getName() {
-        return name;
-    }
 }
 
 
