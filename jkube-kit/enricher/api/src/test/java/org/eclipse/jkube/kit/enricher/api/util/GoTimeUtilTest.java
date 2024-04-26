@@ -21,6 +21,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -32,8 +33,10 @@ class GoTimeUtilTest {
     @ParameterizedTest(name = "duration ''{0}'' should be ''{1}'' seconds")
     @MethodSource("data")
     void conversion(String duration, int expectedDuration) {
-        int result = GoTimeUtil.durationSeconds(duration).get();
-        assertThat(result).isEqualTo(expectedDuration);
+        Optional<INTEGER> optionalResult = GoTimeUtil.durationSeconds(duration);
+        assertThat(optionalResult).isPresent();
+        assertThat(optionalResult).contains(expectedDuration);
+        int result = optionalResult.get();
     }
 
     static Stream<Arguments> data() {
