@@ -44,24 +44,46 @@ public class BuildArgResolverUtil {
    * @param configuration {@link JKubeConfiguration}.
    * @return a Map containing merged Build Args from all sources.
    */
-  public static Map<String, String> mergeBuildArgs(ImageConfiguration imageConfig, JKubeConfiguration configuration) {
+  public static Map<String, String> mergeBuildArgsIncludingLocalDockerConfigProxySettings(ImageConfiguration imageConfig, JKubeConfiguration configuration) {
+    return mergeBuildArgsFrom(imageConfig.getBuild().getArgs(),
+            buildArgsFromProperties(System.getProperties()),
+            buildArgsFromProperties(configuration.getProject().getProperties()),
+            configuration.getBuildArgs(),
+            buildArgsFromDockerConfig());
+  }
+
+  /**
+   * Merges Docker Build Args from the following sources:
+   * <ul>
+   *   <li>Build Args specified directly in ImageConfiguration</li>
+   *   <li>Build Args specified via System Properties</li>
+   *   <li>Build Args specified via Project Properties</li>
+   *   <li>Build Args specified via Plugin configuration</li>
+   * </ul>
+   * @param imageConfig ImageConfiguration where to get the Build Args from.
+   * @param configuration {@link JKubeConfiguration}.
+   * @return a Map containing merged Build Args from all sources.
+   */
+  public static Map<String, String> mergeBuildArgsWithoutLocalDockerConfigProxySettings(ImageConfiguration imageConfig, JKubeConfiguration configuration) {
+    return mergeBuildArgsFrom(imageConfig.getBuild().getArgs(),
+        buildArgsFromProperties(System.getProperties()),
+        buildArgsFromProperties(configuration.getProject().getProperties()),
+        configuration.getBuildArgs());
+  }
+
+  @SafeVarargs
+  private static Map<String, String> mergeBuildArgsFrom(Map<String, String>... buildArgSources) {
     final Map<String, String> buildArgs = new HashMap<>();
-    Stream.of(
-      imageConfig.getBuild().getArgs(),
-      buildArgsFromProperties(System.getProperties()),
-      buildArgsFromProperties(configuration.getProject().getProperties()),
-      configuration.getBuildArgs(),
-      buildArgsFromDockerConfig()
-    )
-      .filter(Objects::nonNull)
-      .flatMap(map -> map.entrySet().stream())
-      .forEach(entry -> {
-        if (buildArgs.containsKey(entry.getKey())) {
-          throw new JKubeException(String.format("Multiple Build Args with the same key: %s=%s and %s=%s",
-            entry.getKey(), buildArgs.get(entry.getKey()), entry.getKey(), entry.getValue()));
-        }
-        buildArgs.put(entry.getKey(), entry.getValue());
-      });
+    Stream.of(buildArgSources)
+        .filter(Objects::nonNull)
+        .flatMap(map -> map.entrySet().stream())
+        .forEach(entry -> {
+          if (buildArgs.containsKey(entry.getKey())) {
+            throw new JKubeException(String.format("Multiple Build Args with the same key: %s=%s and %s=%s",
+                entry.getKey(), buildArgs.get(entry.getKey()), entry.getKey(), entry.getValue()));
+          }
+          buildArgs.put(entry.getKey(), entry.getValue());
+        });
     return buildArgs;
   }
 

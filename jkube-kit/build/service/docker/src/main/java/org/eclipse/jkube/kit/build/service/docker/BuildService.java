@@ -34,7 +34,7 @@ import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.CleanupMode;
 
-import static org.eclipse.jkube.kit.build.api.helper.BuildArgResolverUtil.mergeBuildArgs;
+import static org.eclipse.jkube.kit.build.api.helper.BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings;
 import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
 
 public class BuildService {
@@ -64,7 +64,7 @@ public class BuildService {
     public void buildImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration)
             throws IOException {
 
-        Map<String, String> mergedBuildArgs = mergeBuildArgs(imageConfig, configuration);
+        Map<String, String> mergedBuildArgs = mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfig, configuration);
 
         if (imagePullManager != null) {
             autoPullBaseImage(imageConfig, imagePullManager, configuration, mergedBuildArgs);

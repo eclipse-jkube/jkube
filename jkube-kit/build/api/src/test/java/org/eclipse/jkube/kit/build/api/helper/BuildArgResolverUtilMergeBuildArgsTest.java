@@ -22,6 +22,7 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -74,7 +75,7 @@ class BuildArgResolverUtilMergeBuildArgsTest {
         .build();
 
     // When
-    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgs(imageConfiguration, jKubeConfiguration);
+    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration);
 
     // Then
     assertThat(mergedBuildArgs)
@@ -94,7 +95,7 @@ class BuildArgResolverUtilMergeBuildArgsTest {
     givenBuildArgsFromJKubeConfiguration("FULL_IMAGE", "busybox:latest");
 
     // When
-    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgs(imageConfiguration, jKubeConfiguration);
+    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration);
 
     // Then
     assertThat(mergedBuildArgs)
@@ -113,7 +114,7 @@ class BuildArgResolverUtilMergeBuildArgsTest {
 
     // When & Then
     assertThatExceptionOfType(JKubeException.class)
-        .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgs(imageConfiguration, jKubeConfiguration))
+        .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration))
         .withMessage("Multiple Build Args with the same key: VERSION=latest and VERSION=1.0.0");
   }
 
@@ -126,7 +127,7 @@ class BuildArgResolverUtilMergeBuildArgsTest {
 
     // When & Then
     assertThatExceptionOfType(JKubeException.class)
-        .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgs(imageConfiguration, jKubeConfiguration))
+        .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration))
         .withMessage("Multiple Build Args with the same key: VERSION=latest and VERSION=1.0.0");
   }
 
@@ -139,31 +140,55 @@ class BuildArgResolverUtilMergeBuildArgsTest {
 
     // When & Then
     assertThatExceptionOfType(JKubeException.class)
-        .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgs(imageConfiguration, jKubeConfiguration))
+        .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration))
         .withMessage("Multiple Build Args with the same key: VERSION=latest and VERSION=1.0.0");
   }
 
-  @Test
-  @DisplayName("should add proxy build args from ~/.docker/config.json")
-  void shouldAddBuildArgsFromDockerConfig(@TempDir File temporaryFolder) throws IOException {
-    try {
-      // Given
+  @Nested
+  @DisplayName("local ~/.docker/config.json contains proxy settings")
+  class LocalDockerConfigContainsProxySettings {
+    @TempDir
+    private File temporaryFolder;
+
+    @BeforeEach
+    void setUp() throws IOException {
       Path dockerConfig = temporaryFolder.toPath();
       final Map<String, String> env = Collections.singletonMap("DOCKER_CONFIG", dockerConfig.toFile().getAbsolutePath());
       EnvUtil.overrideEnvGetter(env::get);
       Files.write(dockerConfig.resolve("config.json"), ("{\"proxies\": {\"default\": {\n" +
-              "     \"httpProxy\": \"http://proxy.example.com:3128\",\n" +
-              "     \"httpsProxy\": \"https://proxy.example.com:3129\",\n" +
-              "     \"noProxy\": \"*.test.example.com,.example.org,127.0.0.0/8\"\n" +
-              "   }}}").getBytes());
+          "     \"httpProxy\": \"http://proxy.example.com:3128\",\n" +
+          "     \"httpsProxy\": \"https://proxy.example.com:3129\",\n" +
+          "     \"noProxy\": \"*.test.example.com,.example.org,127.0.0.0/8\"\n" +
+          "   }}}").getBytes());
+
+    }
+
+    @Test
+    @DisplayName("mergeBuildArgsIncludingLocalDockerConfigProxySettings, should add proxy build args for docker build strategy")
+    void shouldAddBuildArgsFromDockerConfigInDockerBuild() {
       // When
-      final Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgs(imageConfiguration, jKubeConfiguration);
+      final Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration);
       // Then
       assertThat(mergedBuildArgs)
           .containsEntry("docker.buildArg.http_proxy", "http://proxy.example.com:3128")
           .containsEntry("docker.buildArg.https_proxy", "https://proxy.example.com:3129")
           .containsEntry("docker.buildArg.no_proxy", "*.test.example.com,.example.org,127.0.0.0/8");
-    } finally {
+    }
+
+    @Test
+    @DisplayName("mergeBuildArgsWithoutIncludingLocalDockerConfigProxySettings, should not add proxy build args for OpenShift build strategy")
+    void shouldNotAddBuildArgsFromDockerConfig() {
+      // When
+      final Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsWithoutLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration);
+      // Then
+      assertThat(mergedBuildArgs)
+          .doesNotContainEntry("docker.buildArg.http_proxy", "http://proxy.example.com:3128")
+          .doesNotContainEntry("docker.buildArg.https_proxy", "https://proxy.example.com:3129")
+          .doesNotContainEntry("docker.buildArg.no_proxy", "*.test.example.com,.example.org,127.0.0.0/8");
+    }
+
+    @AfterEach
+    void tearDown() {
       EnvUtil.overrideEnvGetter(System::getenv);
     }
   }
