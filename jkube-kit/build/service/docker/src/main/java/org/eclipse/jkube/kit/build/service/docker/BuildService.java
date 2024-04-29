@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
@@ -69,11 +70,17 @@ public class BuildService {
     public void buildImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration)
             throws IOException {
 
+        Map<String, String> mergedBuildArgs = mergeBuildArgs(imageConfig, configuration);
+
         if (imagePullManager != null) {
-            autoPullBaseImage(imageConfig, imagePullManager, configuration);
+            autoPullBaseImage(imageConfig, imagePullManager, configuration, mergedBuildArgs);
         }
 
-        buildImage(imageConfig, configuration, checkForNocache(imageConfig), addBuildArgs(configuration));
+        buildImage(imageConfig, configuration, checkForNocache(imageConfig), mergedBuildArgs);
+    }
+
+    static Map<String, String> mergeBuildArgs(ImageConfiguration imageConfig, JKubeConfiguration configuration) {
+        return prepareBuildArgs(addBuildArgs(configuration), imageConfig.getBuildConfiguration());
     }
 
     public void tagImage(String imageName, ImageConfiguration imageConfig) throws DockerAccessException {
@@ -129,8 +136,6 @@ public class BuildService {
         File dockerArchive = archiveService.createArchive(imageName, buildConfig, params, log);
         log.info("%s: Created %s in %s", imageConfig.getDescription(), dockerArchive.getName(), EnvUtil.formatDurationTill(time));
 
-        Map<String, String> mergedBuildMap = prepareBuildArgs(buildArgs, buildConfig);
-
         // auto is now supported by docker, consider switching?
         BuildOptions opts =
                 new BuildOptions(buildConfig.getBuildOptions())
@@ -138,7 +143,7 @@ public class BuildService {
                         .forceRemove(cleanupMode.isRemove())
                         .noCache(noCache)
                         .cacheFrom(buildConfig.getCacheFrom())
-                        .buildArgs(mergedBuildMap);
+                        .buildArgs(buildArgs);
         String newImageId = doBuildImage(imageName, dockerArchive, opts);
         if (newImageId == null) {
             throw new IllegalStateException("Failure in building image, unable to find image built with name " + imageName);
@@ -160,7 +165,7 @@ public class BuildService {
         }
     }
 
-    private Map<String, String> prepareBuildArgs(Map<String, String> buildArgs, BuildConfiguration buildConfig) {
+    private static Map<String, String> prepareBuildArgs(Map<String, String> buildArgs, BuildConfiguration buildConfig) {
         ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder().putAll(buildArgs);
         if (buildConfig.getArgs() != null) {
             builder.putAll(buildConfig.getArgs());
@@ -182,8 +187,9 @@ public class BuildService {
         return queryService.getImageId(imageName);
     }
 
-    private Map<String, String> addBuildArgs(JKubeConfiguration configuration) {
-        Map<String, String> buildArgsFromProject = addBuildArgsFromProperties(configuration.getProject().getProperties());
+    private static Map<String, String> addBuildArgs(JKubeConfiguration configuration) {
+        Properties props = configuration.getProject().getProperties();
+        Map<String, String> buildArgsFromProject = addBuildArgsFromProperties(props);
         Map<String, String> buildArgsFromSystem = addBuildArgsFromProperties(System.getProperties());
         Map<String, String> buildArgsFromDockerConfig = addBuildArgsFromDockerConfig();
         return ImmutableMap.<String, String>builder()
@@ -194,7 +200,7 @@ public class BuildService {
                 .build();
     }
 
-    private Map<String, String> addBuildArgsFromProperties(Properties properties) {
+    private static Map<String, String> addBuildArgsFromProperties(Properties properties) {
         Map<String, String> buildArgs = new HashMap<>();
         for (Object keyObj : properties.keySet()) {
             String key = (String) keyObj;
@@ -202,16 +208,15 @@ public class BuildService {
                 String argKey = key.replaceFirst(ARG_PREFIX, "");
                 String value = properties.getProperty(key);
 
-                if (!isEmpty(value)) {
+                if (StringUtils.isNotBlank(value)) {
                     buildArgs.put(argKey, value);
                 }
             }
         }
-        log.debug("Build args set %s", buildArgs);
         return buildArgs;
     }
 
-    private Map<String, String> addBuildArgsFromDockerConfig() {
+    private static Map<String, String> addBuildArgsFromDockerConfig() {
         final Map<String, Object> dockerConfig = DockerFileUtil.readDockerConfig();
         if (dockerConfig == null) {
             return Collections.emptyMap();
@@ -237,11 +242,11 @@ public class BuildService {
                 }
             }
         }
-        log.debug("Build args set %s", buildArgs);
         return buildArgs;
     }
 
-    private void autoPullBaseImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration)
+    private void autoPullBaseImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager,
+            JKubeConfiguration configuration, Map<String, String> mergedBuildArgs)
             throws IOException {
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
 
@@ -252,7 +257,7 @@ public class BuildService {
 
         List<String> fromImages;
         if (buildConfig.isDockerFileMode()) {
-            fromImages = extractBaseFromDockerfile(buildConfig, configuration);
+            fromImages = extractBaseFromDockerfile(buildConfig, configuration, mergedBuildArgs);
         } else {
             fromImages = new LinkedList<>();
             String baseImage = extractBaseFromConfiguration(buildConfig);
@@ -267,13 +272,15 @@ public class BuildService {
         }
     }
 
-    private List<String> extractBaseFromDockerfile(BuildConfiguration buildConfig, JKubeConfiguration configuration) {
+    private List<String> extractBaseFromDockerfile(BuildConfiguration buildConfig, JKubeConfiguration configuration,
+            Map<String, String> mergedBuildArgs) {
         List<String> fromImage;
         try {
             File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(configuration.getSourceDirectory(),
                 Optional.ofNullable(configuration.getProject().getBaseDirectory()).map(File::toString) .orElse(null));
 
-            fromImage = DockerFileUtil.extractBaseImages(fullDockerFilePath, configuration.getProperties(), buildConfig.getFilter(), buildConfig.getArgs());
+            fromImage = DockerFileUtil.extractBaseImages(fullDockerFilePath, configuration.getProperties(),
+                    buildConfig.getFilter(), mergedBuildArgs);
         } catch (IOException e) {
             // Cant extract base image, so we wont try an auto pull. An error will occur later anyway when
             // building the image, so we are passive here.
@@ -290,10 +297,6 @@ public class BuildService {
             BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
             return buildConfig.nocache();
         }
-    }
-
-    private boolean isEmpty(String str) {
-        return str == null || str.isEmpty();
     }
 
 }

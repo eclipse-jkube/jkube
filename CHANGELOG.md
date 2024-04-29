@@ -27,6 +27,7 @@ Usage:
 * Fix #2470: Add configuration option for overriding buildpack builder image
 * Fix #2662: Sanitize VCS remote URL used in `jkube.eclipse.org/git-url` annotation
 * Fix #2860: Correctly pass Docker build-arg from the build configuration to the Openshift build strategy
+* Fix #2901: Ensure Docker build arguments from properties are used during images pre-pulling
 
 ### 1.16.2 (2024-03-27)
 * Fix #2461: `k8s:watch`/`k8sWatch` should throw error in `buildpacks` build strategy
