@@ -22,8 +22,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-
 public class OCIRegistryEndpoint {
 
   private static final Map<String, String> PROTOCOL_MAPPER = new HashMap<>();
