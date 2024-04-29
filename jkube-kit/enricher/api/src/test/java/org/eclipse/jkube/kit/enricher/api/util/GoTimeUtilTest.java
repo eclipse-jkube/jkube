@@ -21,7 +21,6 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
