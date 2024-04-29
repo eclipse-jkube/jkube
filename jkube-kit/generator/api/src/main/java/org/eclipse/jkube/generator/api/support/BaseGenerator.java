@@ -50,6 +50,8 @@ public abstract class BaseGenerator implements Generator {
 
     public static final String PROPERTY_JKUBE_IMAGE_NAME = "jkube.image.name";
     public static final String PROPERTY_JKUBE_GENERATOR_NAME = "jkube.generator.name";
+    private static final String PROPERTY_JKUBE_GENERATOR_LABELS = "jkube.generator.labels";
+
 
     private static final String LABEL_SCHEMA_VERSION = "1.0";
     private static final String GIT_REMOTE = "origin";
@@ -257,22 +259,10 @@ public abstract class BaseGenerator implements Generator {
         return false;
     }
 
-
-    protected void addLabelsFromConfig(Map<String, String> labels) {
-        String commaSeparatedLabels = getConfigWithFallback(Config.LABELS, "jkube.generator.labels", null);
-        if (StringUtils.isNotBlank(commaSeparatedLabels)) {
-            Map<String,String> configLabels = Arrays.stream(commaSeparatedLabels.split(","))
-                    .map(envNameValue -> envNameValue.split("="))
-                    .filter(e -> e.length == 2)
-                    .collect(Collectors.toMap(e -> e[0].trim(), e -> e[1].trim()));
-            labels.putAll(configLabels);
-        }
-    }
-
     protected void addSchemaLabels(BuildConfiguration.BuildConfigurationBuilder buildBuilder, PrefixedLogger log) {
         final JavaProject project = getProject();
         String docURL = project.getDocumentationUrl();
-        Map<String, String> labels = new HashMap<>();
+        final Map<String, String> labels = new HashMap<>(buildBuilder.build().getLabels());
 
         labels.put(BuildLabelAnnotations.BUILD_DATE.value(), getProject().getBuildDate().format(DateTimeFormatter.ISO_DATE));
         labels.put(BuildLabelAnnotations.NAME.value(), project.getName());
@@ -289,8 +279,6 @@ public abstract class BaseGenerator implements Generator {
         labels.put(BuildLabelAnnotations.VERSION.value(), project.getVersion());
         labels.put(BuildLabelAnnotations.SCHEMA_VERSION.value(), LABEL_SCHEMA_VERSION);
 
-        addLabelsFromConfig(labels);
-
         try {
             Repository repository = GitUtil.getGitRepository(project.getBaseDirectory());
             if (repository != null) {
@@ -306,6 +294,18 @@ public abstract class BaseGenerator implements Generator {
         } catch (IOException | GitAPIException | NullPointerException e) {
             log.error("Cannot extract Git information: " + e, e);
         } finally {
+            buildBuilder.labels(labels);
+        }
+    }
+
+    protected void addLabelsFromConfig(BuildConfiguration.BuildConfigurationBuilder buildBuilder) {
+        final String commaSeparatedLabels = getConfigWithFallback(Config.LABELS, PROPERTY_JKUBE_GENERATOR_LABELS, null);
+        if (StringUtils.isNotBlank(commaSeparatedLabels)) {
+            final Map<String, String> labels = new HashMap<>(buildBuilder.build().getLabels());
+            Arrays.stream(commaSeparatedLabels.split(","))
+              .map(envNameValue -> envNameValue.split("="))
+              .filter(e -> e.length == 2)
+              .forEach(e -> labels.put(e[0].trim(), e[1].trim()));
             buildBuilder.labels(labels);
         }
     }
