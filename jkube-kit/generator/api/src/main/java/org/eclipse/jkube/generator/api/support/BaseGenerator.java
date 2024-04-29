@@ -80,6 +80,9 @@ public abstract class BaseGenerator implements Generator {
         FROM_MODE("fromMode", null),
         BUILDPACKS_BUILDER_IMAGE("buildpacksBuilderImage", null),
 
+        // Labels
+        LABELS("labels", null),
+
         // Optional registry
         REGISTRY("registry", null),
 
@@ -254,6 +257,18 @@ public abstract class BaseGenerator implements Generator {
         return false;
     }
 
+
+    protected void addLabelsFromConfig(Map<String, String> labels) {
+        String commaSeparatedLabels = getConfigWithFallback(Config.LABELS, "jkube.generator.labels", null);
+        if (StringUtils.isNotBlank(commaSeparatedLabels)) {
+            Map<String,String> configLabels = Arrays.stream(commaSeparatedLabels.split(","))
+                    .map(envNameValue -> envNameValue.split("="))
+                    .filter(e -> e.length == 2)
+                    .collect(Collectors.toMap(e -> e[0].trim(), e -> e[1].trim()));
+            labels.putAll(configLabels);
+        }
+    }
+
     protected void addSchemaLabels(BuildConfiguration.BuildConfigurationBuilder buildBuilder, PrefixedLogger log) {
         final JavaProject project = getProject();
         String docURL = project.getDocumentationUrl();
@@ -273,6 +288,8 @@ public abstract class BaseGenerator implements Generator {
         }
         labels.put(BuildLabelAnnotations.VERSION.value(), project.getVersion());
         labels.put(BuildLabelAnnotations.SCHEMA_VERSION.value(), LABEL_SCHEMA_VERSION);
+
+        addLabelsFromConfig(labels);
 
         try {
             Repository repository = GitUtil.getGitRepository(project.getBaseDirectory());
