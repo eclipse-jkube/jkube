@@ -16,18 +16,13 @@ package org.eclipse.jkube.kit.build.service.docker;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.LinkedList;
-
-import com.google.common.collect.ImmutableMap;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.build.api.helper.DockerFileUtil;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.BuildOptions;
@@ -39,11 +34,10 @@ import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.CleanupMode;
 
+import static org.eclipse.jkube.kit.build.api.helper.BuildArgResolverUtil.mergeBuildArgs;
 import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromConfiguration;
 
 public class BuildService {
-
-    private static final String ARG_PREFIX = "docker.buildArg.";
 
     private final DockerAccess docker;
     private final QueryService queryService;
@@ -77,10 +71,6 @@ public class BuildService {
         }
 
         buildImage(imageConfig, configuration, checkForNocache(imageConfig), mergedBuildArgs);
-    }
-
-    static Map<String, String> mergeBuildArgs(ImageConfiguration imageConfig, JKubeConfiguration configuration) {
-        return prepareBuildArgs(addBuildArgs(configuration), imageConfig.getBuildConfiguration());
     }
 
     public void tagImage(String imageName, ImageConfiguration imageConfig) throws DockerAccessException {
@@ -165,14 +155,6 @@ public class BuildService {
         }
     }
 
-    private static Map<String, String> prepareBuildArgs(Map<String, String> buildArgs, BuildConfiguration buildConfig) {
-        ImmutableMap.Builder<String, String> builder = ImmutableMap.<String, String>builder().putAll(buildArgs);
-        if (buildConfig.getArgs() != null) {
-            builder.putAll(buildConfig.getArgs());
-        }
-        return builder.build();
-    }
-
     private String getDockerfileName(BuildConfiguration buildConfig) {
         if (buildConfig.isDockerFileMode()) {
             return buildConfig.getDockerFile().getName();
@@ -185,64 +167,6 @@ public class BuildService {
             throws DockerAccessException {
         docker.buildImage(imageName, dockerArchive, options);
         return queryService.getImageId(imageName);
-    }
-
-    private static Map<String, String> addBuildArgs(JKubeConfiguration configuration) {
-        Properties props = configuration.getProject().getProperties();
-        Map<String, String> buildArgsFromProject = addBuildArgsFromProperties(props);
-        Map<String, String> buildArgsFromSystem = addBuildArgsFromProperties(System.getProperties());
-        Map<String, String> buildArgsFromDockerConfig = addBuildArgsFromDockerConfig();
-        return ImmutableMap.<String, String>builder()
-                .putAll(buildArgsFromDockerConfig)
-                .putAll(Optional.ofNullable(configuration.getBuildArgs()).orElse(Collections.emptyMap()))
-                .putAll(buildArgsFromProject)
-                .putAll(buildArgsFromSystem)
-                .build();
-    }
-
-    private static Map<String, String> addBuildArgsFromProperties(Properties properties) {
-        Map<String, String> buildArgs = new HashMap<>();
-        for (Object keyObj : properties.keySet()) {
-            String key = (String) keyObj;
-            if (key.startsWith(ARG_PREFIX)) {
-                String argKey = key.replaceFirst(ARG_PREFIX, "");
-                String value = properties.getProperty(key);
-
-                if (StringUtils.isNotBlank(value)) {
-                    buildArgs.put(argKey, value);
-                }
-            }
-        }
-        return buildArgs;
-    }
-
-    private static Map<String, String> addBuildArgsFromDockerConfig() {
-        final Map<String, Object> dockerConfig = DockerFileUtil.readDockerConfig();
-        if (dockerConfig == null) {
-            return Collections.emptyMap();
-        }
-
-        // add proxies
-        Map<String, String> buildArgs = new HashMap<>();
-        if (dockerConfig.containsKey("proxies")) {
-            final Map<String, Object> proxies = (Map<String, Object>) dockerConfig.get("proxies");
-            if (proxies.containsKey("default")) {
-                final Map<String, String> defaultProxyObj = (Map<String, String>) proxies.get("default");
-                String[] proxyMapping = new String[] {
-                        "httpProxy", "http_proxy",
-                        "httpsProxy", "https_proxy",
-                        "noProxy", "no_proxy",
-                        "ftpProxy", "ftp_proxy"
-                };
-
-                for(int index = 0; index < proxyMapping.length; index += 2) {
-                    if (defaultProxyObj.containsKey(proxyMapping[index])) {
-                        buildArgs.put(ARG_PREFIX + proxyMapping[index+1], defaultProxyObj.get(proxyMapping[index]));
-                    }
-                }
-            }
-        }
-        return buildArgs;
     }
 
     private void autoPullBaseImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager,
