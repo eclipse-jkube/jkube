@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.build.api.helper;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -34,7 +35,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 class BuildArgResolverUtilMergeBuildArgsTest {
   private ImageConfiguration imageConfiguration;
@@ -111,9 +112,9 @@ class BuildArgResolverUtilMergeBuildArgsTest {
     System.setProperty("docker.buildArg.VERSION", "1.0.0");
 
     // When & Then
-    assertThatIllegalArgumentException()
+    assertThatExceptionOfType(JKubeException.class)
         .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgs(imageConfiguration, jKubeConfiguration))
-        .withMessage("Multiple entries with same key: VERSION=latest and VERSION=1.0.0");
+        .withMessage("Multiple Build Args with the same key: VERSION=latest and VERSION=1.0.0");
   }
 
   @Test
@@ -124,9 +125,9 @@ class BuildArgResolverUtilMergeBuildArgsTest {
     projectProperties.setProperty("docker.buildArg.VERSION", "1.0.0");
 
     // When & Then
-    assertThatIllegalArgumentException()
+    assertThatExceptionOfType(JKubeException.class)
         .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgs(imageConfiguration, jKubeConfiguration))
-        .withMessage("Multiple entries with same key: VERSION=latest and VERSION=1.0.0");
+        .withMessage("Multiple Build Args with the same key: VERSION=latest and VERSION=1.0.0");
   }
 
   @Test
@@ -137,9 +138,9 @@ class BuildArgResolverUtilMergeBuildArgsTest {
     givenBuildArgsFromJKubeConfiguration("VERSION", "1.0.0");
 
     // When & Then
-    assertThatIllegalArgumentException()
+    assertThatExceptionOfType(JKubeException.class)
         .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgs(imageConfiguration, jKubeConfiguration))
-        .withMessage("Multiple entries with same key: VERSION=latest and VERSION=1.0.0");
+        .withMessage("Multiple Build Args with the same key: VERSION=latest and VERSION=1.0.0");
   }
 
   @Test

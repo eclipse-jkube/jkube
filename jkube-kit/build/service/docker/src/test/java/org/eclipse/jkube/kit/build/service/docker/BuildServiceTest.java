@@ -17,13 +17,11 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -32,12 +30,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,11 +42,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BuildServiceTest {
+
+  @TempDir
+  private File tempDir;
   private DockerAccess mockedDockerAccess;
   private BuildService buildService;
   private ImageConfiguration imageConfiguration;
   private ImagePullManager mockedImagePullManager;
-  private JKubeConfiguration mockedJKubeConfiguration;
+  private Properties projectProperties;
+  private JKubeConfiguration jKubeConfiguration;
   private RegistryService mockedRegistryService;
 
   @BeforeEach
@@ -60,11 +58,23 @@ class BuildServiceTest {
     mockedDockerAccess = mock(DockerAccess.class, RETURNS_DEEP_STUBS);
     ArchiveService mockedArchiveService = mock(ArchiveService.class, RETURNS_DEEP_STUBS);
     mockedRegistryService = mock(RegistryService.class, RETURNS_DEEP_STUBS);
-    KitLogger mockedLog = mock(KitLogger.SilentLogger.class, RETURNS_DEEP_STUBS);
     mockedImagePullManager = mock(ImagePullManager.class, RETURNS_DEEP_STUBS);
-    mockedJKubeConfiguration = mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS);
+    projectProperties = new Properties();
+    jKubeConfiguration = JKubeConfiguration.builder()
+      .project(JavaProject.builder()
+        .properties(projectProperties)
+        .baseDirectory(tempDir)
+        .build())
+      .sourceDirectory(tempDir.getAbsolutePath())
+      .build();
     QueryService mockedQueryService = new QueryService(mockedDockerAccess);
-    buildService = new BuildService(mockedDockerAccess, mockedQueryService, mockedRegistryService, mockedArchiveService, mockedLog);
+    buildService = new BuildService(
+      mockedDockerAccess,
+      mockedQueryService,
+      mockedRegistryService,
+      mockedArchiveService,
+      new KitLogger.SilentLogger()
+    );
     imageConfiguration = ImageConfiguration.builder()
         .name("image-name")
         .build(BuildConfiguration.builder()
@@ -80,7 +90,7 @@ class BuildServiceTest {
     when(mockedDockerAccess.getImageId("image-name")).thenReturn("c8003cb6f5db");
 
     // When
-    buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration);
+    buildService.buildImage(imageConfiguration, mockedImagePullManager, jKubeConfiguration);
 
     // Then
     verify(mockedDockerAccess, times(1))
@@ -93,7 +103,7 @@ class BuildServiceTest {
     when(mockedDockerAccess.getImageId("image-name")).thenReturn(null);
     // When & Then
     assertThatIllegalStateException()
-            .isThrownBy(() -> buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration))
+            .isThrownBy(() -> buildService.buildImage(imageConfiguration, mockedImagePullManager, jKubeConfiguration))
             .withMessage("Failure in building image, unable to find image built with name image-name");
   }
 
@@ -111,8 +121,6 @@ class BuildServiceTest {
   void buildImage_whenMultiStageDockerfileWithBuildArgs_shouldPrepullImages() throws IOException {
     // Given
     when(mockedDockerAccess.getImageId("image-name")).thenReturn("c8003cb6f5db");
-    when(mockedJKubeConfiguration.getSourceDirectory()).thenReturn(tempDir.getAbsolutePath());
-    when(mockedJKubeConfiguration.getProject().getBaseDirectory()).thenReturn(tempDir);
     File multistageDockerfile = copyToTempDir("Dockerfile_multi_stage_with_args_no_default");
     imageConfiguration = ImageConfiguration.builder()
         .name("image-name")
@@ -122,15 +130,13 @@ class BuildServiceTest {
             .build())
         .build();
 
-    Properties props = new Properties();
-    props.setProperty("docker.buildArg.VERSION", "latest");
-    props.setProperty("docker.buildArg.FULL_IMAGE", "busybox:latest");
-    props.setProperty("docker.buildArg.REPO_1", "docker.io/library");
-    props.setProperty("docker.buildArg.IMAGE-1", "openjdk");
-    when(mockedJKubeConfiguration.getProject().getProperties()).thenReturn(props);
+    projectProperties.setProperty("docker.buildArg.VERSION", "latest");
+    projectProperties.setProperty("docker.buildArg.FULL_IMAGE", "busybox:latest");
+    projectProperties.setProperty("docker.buildArg.REPO_1", "docker.io/library");
+    projectProperties.setProperty("docker.buildArg.IMAGE-1", "openjdk");
 
     // When
-    buildService.buildImage(imageConfiguration, mockedImagePullManager, mockedJKubeConfiguration);
+    buildService.buildImage(imageConfiguration, mockedImagePullManager, jKubeConfiguration);
 
     // Then
     verify(mockedRegistryService, times(1)).pullImageWithPolicy(eq("fabric8/s2i-java:latest"), any(), any(), any());
@@ -138,9 +144,6 @@ class BuildServiceTest {
     verify(mockedRegistryService, times(1)).pullImageWithPolicy(eq("docker.io/library/openjdk:latest"), any(), any(),
         any());
   }
-
-  @TempDir
-  private File tempDir;
 
   private File copyToTempDir(String resource) throws IOException {
     File ret = new File(tempDir, "Dockerfile");

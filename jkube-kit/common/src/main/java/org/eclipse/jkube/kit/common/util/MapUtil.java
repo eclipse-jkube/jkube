@@ -43,32 +43,6 @@ public class MapUtil {
     }
 
     /**
-     * Returns a new map with all the entries of first map with rest map entries. It throws IllegalArgumentException
-     * when it encounters conflicting keys
-     *
-     * @param maps var arg parameter of maps to be merged
-     * @return merged map
-     * @param <K> key type
-     * @param <V> value type
-     * @throws IllegalArgumentException when multiple entries with same key are found
-     */
-    @SafeVarargs
-    public static <K,V> Map<K,V> mergeMapsImmutable(Map<K, V>... maps) {
-        Map<K, V> answer = new HashMap<>();
-        for (int i = maps.length-1; i >= 0; i--) {
-            if (maps[i] != null) {
-                for (Map.Entry<K, V> e : maps[i].entrySet()) {
-                    if (answer.containsKey(e.getKey())) {
-                        throw new IllegalArgumentException(String.format("Multiple entries with same key: %s=%s and %s=%s", e.getKey(), e.getValue(), e.getKey(), answer.get(e.getKey())));
-                    }
-                    answer.put(e.getKey(), e.getValue());
-                }
-            }
-        }
-        return answer;
-    }
-
-    /**
      * Returns a new map with all the entries of first map with rest map entries which don't override map1.
      *
      * Can handle either maps being null. Always returns a new mutable map.

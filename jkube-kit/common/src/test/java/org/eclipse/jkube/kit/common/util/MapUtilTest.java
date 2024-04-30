@@ -19,16 +19,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.kit.common.util.MapUtil.getFlattenedMap;
 import static org.eclipse.jkube.kit.common.util.MapUtil.getNestedMap;
-import static org.eclipse.jkube.kit.common.util.MapUtil.mergeMapsImmutable;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -139,39 +135,6 @@ class MapUtilTest {
         // Then
         assertThat(result).hasMessage("The provided input Map is invalid (node <second> overlaps with key)");
     }
-
-    @Nested
-    class MergeMapsImmutable {
-        @Test
-        @DisplayName("different keys present in maps, then merge maps")
-        void whenNoConflictingKeysProvided_thenMergeMaps() {
-            // Given
-            Map<String, String> m1 = createMap("foo", "bar");
-            Map<String, String> m2 = createMap("BAR", "FOO");
-
-            // When
-            Map<String, String> result = mergeMapsImmutable(m1, m2);
-
-            // Then
-            assertThat(result)
-                .containsEntry("foo", "bar")
-                .containsEntry("BAR", "FOO");
-        }
-
-        @Test
-        @DisplayName("same keys present in maps, then throw exception")
-        void whenConflictingKeysProvided_thenThrowException() {
-            // Given
-            Map<String, String> m1 = createMap("foo", "bar");
-            Map<String, String> m2 = createMap("foo", "FOO");
-
-            // When + Then
-            assertThatIllegalArgumentException()
-                .isThrownBy(() -> MapUtil.mergeMapsImmutable(m1, m2, null))
-                .withMessage("Multiple entries with same key: foo=bar and foo=FOO");
-        }
-    }
-
 
     private Map<String, String> createMap(String ... args) {
         Map<String, String> ret = new LinkedHashMap<>();
