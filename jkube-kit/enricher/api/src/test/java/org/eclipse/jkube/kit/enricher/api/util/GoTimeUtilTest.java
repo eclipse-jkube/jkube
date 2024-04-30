@@ -32,8 +32,7 @@ class GoTimeUtilTest {
     @ParameterizedTest(name = "duration ''{0}'' should be ''{1}'' seconds")
     @MethodSource("data")
     void conversion(String duration, int expectedDuration) {
-        int result = GoTimeUtil.durationSeconds(duration).get();
-        assertThat(result).isEqualTo(expectedDuration);
+        assertThat(GoTimeUtil.durationSeconds(duration)).isPresent().contains(expectedDuration);
     }
 
     static Stream<Arguments> data() {
