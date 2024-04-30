@@ -125,6 +125,7 @@ public class WebAppGenerator extends BaseGenerator {
     handler.runCmds().forEach(buildBuilder::runCmd);
 
     addSchemaLabels(buildBuilder, log);
+    addLabelsFromConfig(buildBuilder);
     if (!prePackagePhase) {
       buildBuilder.assembly(createAssembly(handler));
     }

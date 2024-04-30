@@ -71,6 +71,7 @@ public class KarafGenerator extends BaseGenerator {
         .putEnv("KARAF_HOME", "/deployments/karaf");
 
     addSchemaLabels(buildBuilder, log);
+    addLabelsFromConfig(buildBuilder);
     addFrom(buildBuilder);
     if (!prePackagePhase) {
       buildBuilder.assembly(createDefaultAssembly());
