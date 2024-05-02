@@ -30,6 +30,7 @@ Usage:
 * Fix #2885: Provide a way to set labels on images defined by Generators
 * Fix #2901: Ensure Docker build arguments from properties are used during images pre-pulling
 * Fix #2904: `docker.buildArg.*` properties not taken into account in OpenShift plugins
+* Fix #3007: Kubernetes Maven Plugin generating resource manifests with line feeds on Windows
 
 ### 1.16.2 (2024-03-27)
 * Fix #2461: `k8s:watch`/`k8sWatch` should throw error in `buildpacks` build strategy

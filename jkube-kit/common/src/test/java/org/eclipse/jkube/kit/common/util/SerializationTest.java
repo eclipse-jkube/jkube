@@ -207,12 +207,12 @@ class SerializationTest {
     // Then
     assertThat(targetFile)
       .content()
-      .isEqualTo("---\n" +
-        "apiVersion: v1\n" +
-        "kind: ConfigMap\n" +
-        "metadata:\n" +
-        "  name: test\n" +
-        "data:\n" +
-        "  key: value\n");
+      .isEqualTo(String.format("---%n" +
+        "apiVersion: v1%n" +
+        "kind: ConfigMap%n" +
+        "metadata:%n" +
+        "  name: test%n" +
+        "data:%n" +
+        "  key: value%n"));
   }
 }
