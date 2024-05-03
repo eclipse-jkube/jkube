@@ -20,6 +20,8 @@ import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.openshift.api.model.Template;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -214,5 +216,80 @@ class SerializationTest {
         "  name: test%n" +
         "data:%n" +
         "  key: value%n"));
+  }
+
+  @Nested
+  @DisplayName("Multi-line strings are serialized to YAML using scalar blocks")
+  class MultiLineStringsSerializedToScalarYamlBlocks {
+    @Test
+    @DisplayName("string ends with newline, then add | to use block style in serialized object")
+    void whenStringEndingWithNewline_thenAddBlockIndicatorInSerializedObject(@TempDir Path targetDir) throws IOException {
+      // Given
+      final File targetFile = targetDir.resolve("cm.yaml").toFile();
+      final ConfigMap source = new ConfigMapBuilder()
+              .withNewMetadata()
+              .addToAnnotations("proxy.istio.io/config", String.format("proxyMetadata:%n    ISTIO_META_DNS_CAPTURE: \"false\"%nholdApplicationUntilProxyStarts: true\n"))
+              .endMetadata()
+              .build();
+      // When
+      Serialization.saveYaml(targetFile, source);
+      // Then
+      assertThat(targetFile)
+          .content()
+          .isEqualTo(String.format("---%n" +
+              "apiVersion: v1%n" +
+              "kind: ConfigMap%n" +
+              "metadata:%n" +
+              "  annotations:%n" +
+              "    proxy.istio.io/config: |%n" +
+              "      proxyMetadata:%n" +
+              "          ISTIO_META_DNS_CAPTURE: \"false\"%n"+
+              "      holdApplicationUntilProxyStarts: true%n"));
+    }
+
+    @Test
+    @DisplayName("when string contains windows line breaks, then convert then to unix line breaks during deserialization")
+    void unmarshal_withWindowsLineEndings_shouldDeserializeMultilineStringWithLineFeeds() {
+      // Given
+      String input = "apiVersion: v1\r\n" +
+          "kind: ConfigMap\r\n" +
+          "metadata:\r\n" +
+          "  annotations:\r\n" +
+          "    proxy.istio.io/config: |\r\n" +
+          "      proxyMetadata:\r\n" +
+          "        ISTIO_META_DNS_CAPTURE: \"false\"\r\n"+
+          "      holdApplicationUntilProxyStarts: true\r\n";
+
+      // When
+      ConfigMap configMap = Serialization.unmarshal(input, ConfigMap.class);
+
+      // Then
+      assertThat(configMap.getMetadata().getAnnotations())
+              .containsEntry("proxy.istio.io/config", "proxyMetadata:\n" +
+                      "  ISTIO_META_DNS_CAPTURE: \"false\"\n" +
+              "holdApplicationUntilProxyStarts: true\n");
+    }
+
+    @Test
+    @DisplayName("when string contains unix line breaks, then line breaks remain unchanged during deserialization")
+    void unmarshal_withUnixLineEndings_shouldDeserializeMultilineStringWithLineFeeds() {
+      // Given
+      String input = "apiVersion: v1\n" +
+          "kind: ConfigMap\n" +
+          "metadata:\n" +
+          "  annotations:\n" +
+          "    proxy.istio.io/config: |\n" +
+          "      proxyMetadata:\n" +
+          "        ISTIO_META_DNS_CAPTURE: \"false\"\n"+
+          "      holdApplicationUntilProxyStarts: true\n";
+      // When
+      ConfigMap configMap = Serialization.unmarshal(input, ConfigMap.class);
+
+      // Then
+      assertThat(configMap.getMetadata().getAnnotations())
+              .containsEntry("proxy.istio.io/config", "proxyMetadata:\n" +
+                      "  ISTIO_META_DNS_CAPTURE: \"false\"\n" +
+                      "holdApplicationUntilProxyStarts: true\n");
+    }
   }
 }
