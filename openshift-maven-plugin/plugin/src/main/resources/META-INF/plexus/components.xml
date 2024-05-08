@@ -91,11 +91,6 @@
     <!-- Components typically detected by annotations, but moved here because of
          https://github.com/codehaus-plexus/plexus-containers/issues/4 -->
     <component>
-      <role>org.eclipse.jkube.kit.build.api.config.handler.property.PropertyConfigHandler</role>
-      <implementation>org.eclipse.jkube.kit.build.api.config.handler.property.PropertyConfigHandler</implementation>
-      <isolated-realm>false</isolated-realm>
-    </component>
-    <component>
       <role>org.codehaus.plexus.archiver.Archiver</role>
       <role-hint>track</role-hint>
       <implementation>org.eclipse.jkube.kit.build.core.assembly.MappingTrackArchiver</implementation>
@@ -130,11 +125,6 @@
     <component>
       <role>org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory</role>
       <implementation>org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory</implementation>
-      <isolated-realm>false</isolated-realm>
-    </component>
-    <component>
-      <role>org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver</role>
-      <implementation>org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver</implementation>
       <isolated-realm>false</isolated-realm>
     </component>
   </components>

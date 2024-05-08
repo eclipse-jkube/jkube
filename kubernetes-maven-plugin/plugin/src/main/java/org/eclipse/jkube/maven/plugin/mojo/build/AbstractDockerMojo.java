@@ -33,10 +33,8 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
-import org.eclipse.jkube.kit.build.api.helper.ConfigHelper;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
-import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
@@ -198,10 +196,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
      */
     @Parameter(property = "jkube.profile")
     protected String profile;
-
-    // Handler for external configurations
-    @Component
-    protected ImageConfigResolver imageConfigResolver;
 
     /**
      * Skip extended authentication
@@ -377,7 +371,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected void init() {
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
         authConfigFactory = new AuthConfigFactory(log);
-        imageConfigResolver.setLog(log);
         clusterAccess = new ClusterAccess(initClusterConfiguration());
         runtimeMode = getConfiguredRuntimeMode();
     }
@@ -429,7 +422,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected abstract void executeInternal() throws IOException, MojoExecutionException;
 
     protected JKubeConfiguration initJKubeConfiguration() throws DependencyResolutionRequiredException {
-        ConfigHelper.validateExternalPropertyActivation(javaProject, images);
         return JKubeConfiguration.builder()
             .project(MavenUtil.convertMavenProjectToJKubeProject(project, session))
             .sourceDirectory(sourceDirectory)
