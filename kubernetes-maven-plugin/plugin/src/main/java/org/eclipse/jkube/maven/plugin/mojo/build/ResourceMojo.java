@@ -22,7 +22,6 @@ import java.util.Properties;
 import javax.validation.ConstraintViolationException;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
 
 import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -68,9 +67,6 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     // Filename for holding the build timestamp
     public static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
-
-    @Component
-    protected ImageConfigResolver imageConfigResolver;
 
     /**
      * Should we use the project's compile-time classpath to scan for additional enrichers/generators?

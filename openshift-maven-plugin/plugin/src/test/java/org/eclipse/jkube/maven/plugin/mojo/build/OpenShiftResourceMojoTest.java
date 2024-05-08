@@ -21,7 +21,6 @@ import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Settings;
-import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -35,13 +34,10 @@ import java.nio.file.Path;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class OpenShiftResourceMojoTest {
 
@@ -105,8 +101,6 @@ class OpenShiftResourceMojoTest {
         .build())
       .build();
     resourceMojo.images = Collections.singletonList(imageConfiguration);
-    resourceMojo.imageConfigResolver = mock(ImageConfigResolver.class);
-    when(resourceMojo.imageConfigResolver.resolve(eq(imageConfiguration), any())).thenReturn(Collections.singletonList(imageConfiguration));
     resourceMojo.access = ClusterConfiguration.builder().namespace("namespace-from-cluster-access").build();
     // When
     resourceMojo.execute();
@@ -126,8 +120,6 @@ class OpenShiftResourceMojoTest {
         .build())
       .build();
     resourceMojo.images = Collections.singletonList(imageConfiguration);
-    resourceMojo.imageConfigResolver = mock(ImageConfigResolver.class);
-    when(resourceMojo.imageConfigResolver.resolve(eq(imageConfiguration), any())).thenReturn(Collections.singletonList(imageConfiguration));
     resourceMojo.namespace = "namespace-configured-via-plugin";
     // When
     resourceMojo.execute();
