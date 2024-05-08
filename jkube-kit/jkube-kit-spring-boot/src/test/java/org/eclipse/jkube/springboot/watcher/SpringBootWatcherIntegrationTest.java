@@ -120,6 +120,7 @@ class SpringBootWatcherIntegrationTest {
   @Test
   void withAllRequirementsShouldStartWatcherProcess() throws Exception {
     final Runtime runtime = mock(Runtime.class, RETURNS_DEEP_STUBS);
+    target.resolve("spring-boot-lib.jar").toFile().createNewFile();
     target.resolve("spring-boot-devtools.jar").toFile().createNewFile();
     FileUtils.write(target.resolve("application.properties").toFile(), "spring.devtools.remote.secret=this-is-a-test", StandardCharsets.UTF_8);
     new SpringBootWatcher(runtime, watcherContext)
@@ -129,15 +130,19 @@ class SpringBootWatcherIntegrationTest {
       && new File(command[0]).exists()
       && command[1].equals("-cp")
       && command[2].contains(
-      absolutePath("spring-boot-lib.jar") + File.pathSeparator + absolutePath("spring-boot-devtools.jar"))
+      realPath("spring-boot-lib.jar") + File.pathSeparator + realPath("spring-boot-devtools.jar"))
       && command[3].equals("-Dspring.devtools.remote.secret=this-is-a-test")
       && command[4].equals("org.springframework.boot.devtools.RemoteSpringApplication")
       && command[5].matches("^http://localhost:\\d+$")
     ));
   }
 
-  private String absolutePath(String jar) {
-    return project.resolve("target").resolve(jar).toFile().getAbsolutePath();
+  private String realPath(String jar) {
+      try {
+          return project.resolve("target").resolve(jar).toRealPath().toString();
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      }
   }
 
 }
