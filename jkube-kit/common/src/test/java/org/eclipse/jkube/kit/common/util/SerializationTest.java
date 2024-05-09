@@ -13,24 +13,21 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import io.fabric8.kubernetes.api.model.ConfigMap;
-import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.openshift.api.model.Template;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.openshift.api.model.Template;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -81,8 +78,7 @@ class SerializationTest {
     assertThat(result)
       .isInstanceOf(Template.class)
       .hasFieldOrPropertyWithValue("metadata.name", "template-example")
-      .extracting("objects").asList().singleElement()
-      .isInstanceOf(Pod.class)
+        .extracting("objects").asInstanceOf(InstanceOfAssertFactories.list(Pod.class)).singleElement()
       .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
       .extracting("spec.containers").asList().singleElement()
       .hasFieldOrPropertyWithValue("image", "busybox")
