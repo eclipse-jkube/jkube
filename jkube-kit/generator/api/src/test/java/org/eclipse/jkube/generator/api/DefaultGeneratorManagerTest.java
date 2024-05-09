@@ -29,6 +29,7 @@ import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -275,6 +276,23 @@ class DefaultGeneratorManagerTest {
         .hasFieldOrPropertyWithValue("openshiftPushSecret", "push-secret-via-image-config")
         .hasFieldOrPropertyWithValue("openshiftBuildOutputKind", "ImageStreamTag-via-image-config")
         .hasFieldOrPropertyWithValue("openshiftBuildRecreateMode", BuildRecreateMode.buildConfig);
+    }
+
+    @Test
+    void whenOpenShiftRuntimeMode_thenShouldResolveGroupToNamespace() {
+      // Given
+      baseImageConfig = baseImageConfig.toBuilder().name("%g/%a").build();
+      generatorContext = generatorContext.toBuilder()
+        .openshiftNamespace("test-custom-namespace")
+        .runtimeMode(RuntimeMode.OPENSHIFT)
+        .build();
+      // When
+      final List<ImageConfiguration> result = new DefaultGeneratorManager(generatorContext)
+        .generateAndMerge(Collections.singletonList(baseImageConfig));
+      // Then
+      assertThat(result)
+        .singleElement()
+        .hasFieldOrPropertyWithValue("name", "test-custom-namespace/test-java-project");
     }
   }
 
