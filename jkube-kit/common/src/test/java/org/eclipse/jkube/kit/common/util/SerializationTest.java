@@ -80,10 +80,10 @@ class SerializationTest {
       .hasFieldOrPropertyWithValue("metadata.name", "template-example")
         .extracting("objects").asInstanceOf(InstanceOfAssertFactories.list(Pod.class)).singleElement()
       .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
-      .extracting("spec.containers").asList().singleElement()
+      .extracting("spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class)).singleElement()
       .hasFieldOrPropertyWithValue("image", "busybox")
       .hasFieldOrPropertyWithValue("securityContext.additionalProperties.privileged", "${POD_SECURITY_CONTEXT}")
-      .extracting("env").asList().singleElement()
+      .extracting("env").asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class)).singleElement()
       .hasFieldOrPropertyWithValue("value", "${ENV_VAR_KEY}");
   }
 
@@ -96,13 +96,12 @@ class SerializationTest {
     assertThat(result)
       .isInstanceOf(Template.class)
       .hasFieldOrPropertyWithValue("metadata.name", "template-example")
-      .extracting("objects").asList().singleElement()
-      .isInstanceOf(Pod.class)
+      .extracting("objects").asInstanceOf(InstanceOfAssertFactories.list(Pod.class)).singleElement()
       .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
-      .extracting("spec.containers").asList().singleElement()
+      .extracting("spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class)).singleElement()
       .hasFieldOrPropertyWithValue("image", "busybox")
       .hasFieldOrPropertyWithValue("securityContext.additionalProperties.privileged", "${POD_SECURITY_CONTEXT}")
-      .extracting("env").asList().singleElement()
+      .extracting("env").asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class)).singleElement()
       .hasFieldOrPropertyWithValue("value", "${ENV_VAR_KEY}");
   }
 
