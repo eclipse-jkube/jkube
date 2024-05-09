@@ -33,12 +33,11 @@ public class RemoteDevMojo extends AbstractJKubeMojo {
 
   @Override
   public void executeInternal() {
-    final RemoteDevelopmentService remoteDevelopmentService = new RemoteDevelopmentService(jkubeServiceHub.getLog(),
-        jkubeServiceHub.getClient(), remoteDevelopment);
+    final RemoteDevelopmentService remoteDevelopmentService =
+      new RemoteDevelopmentService(jkubeServiceHub.getLog(), jkubeServiceHub.getClient(), remoteDevelopment);
     Runtime.getRuntime().addShutdownHook(new Thread(() -> {
       if (jkubeServiceHub.getLog() instanceof AnsiLogger) {
-        // Perform uninstall before Maven does to avoid race conditions and messages
-        // being logged as Ansi to a closed
+        // Perform uninstall before Maven does to avoid race conditions and messages being logged as Ansi to a closed
         // AnsiConsole
         AnsiConsole.systemUninstall();
       }
