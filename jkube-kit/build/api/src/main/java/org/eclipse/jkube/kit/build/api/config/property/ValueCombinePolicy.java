@@ -11,23 +11,23 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.api.config.handler.property;
+package org.eclipse.jkube.kit.build.api.config.property;
 
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * Dictates how to combine values from different sources. See {@link PropertyConfigHandler} for details.
+ * Dictates how to combine values from different sources. See {@link PropertyConfigResolver} for details.
  */
-public enum ValueCombinePolicy {
+enum ValueCombinePolicy {
     /**
      * The prioritized value fully replaces any other values.
      */
-    Replace,
+    REPLACE,
 
     /**
      * All provided values are merged. This only makes sense for complex types such as lists and maps.
      */
-    Merge;
+    MERGE;
 
     public static ValueCombinePolicy fromString(String valueCombinePolicy) {
         for (ValueCombinePolicy policy : values()) {

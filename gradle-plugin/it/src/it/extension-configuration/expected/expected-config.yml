@@ -65,20 +65,16 @@ images:
 - name: "registry/image:tag"
   build:
     contextDir: "@endsWith('extension-configuration/src/main/context-dir')@"
-    dockerFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
     from: "busybox"
     skip: false
     compression: "none"
-    dockerFileFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
     dockerFileMode: true
     contextDirRaw: "@endsWith('extension-configuration/src/main/context-dir')@"
   buildConfiguration:
     contextDir: "@endsWith('extension-configuration/src/main/context-dir')@"
-    dockerFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
     from: "busybox"
     skip: false
     compression: "none"
-    dockerFileFile: "@endsWith('extension-configuration/src/main/context-dir/Dockerfile')@"
     dockerFileMode: true
     contextDirRaw: "@endsWith('extension-configuration/src/main/context-dir')@"
   description: "[registry/image:tag]"

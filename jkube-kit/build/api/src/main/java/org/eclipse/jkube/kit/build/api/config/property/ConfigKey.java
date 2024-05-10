@@ -11,7 +11,7 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.api.config.handler.property;
+package org.eclipse.jkube.kit.build.api.config.property;
 
 
 /**
@@ -22,41 +22,26 @@ package org.eclipse.jkube.kit.build.api.config.handler.property;
 public enum ConfigKey {
 
     ALIAS,
-    ARGS(ValueCombinePolicy.Merge),
-    ASSEMBLY_BASEDIR("assembly.baseDir"),
+    ARGS(ValueCombinePolicy.MERGE),
+    ASSEMBLY_TARGET_DIR("assembly.targetDir"),
     ASSEMBLY_EXPORT_TARGET_DIR("assembly.exportTargetDir"),
     ASSEMBLY_PERMISSIONS("assembly.permissions"),
     ASSEMBLY_USER("assembly.user"),
     ASSEMBLY_MODE("assembly.mode"),
     ASSEMBLY_TARLONGFILEMODE("assembly.tarLongFileMode"),
-    AUTO_REMOVE,
-    BIND,
     BUILD_OPTIONS,
-    CAP_ADD,
-    CAP_DROP,
     CLEANUP,
-    CONTAINER_NAME_PATTERN,
-    CPUSHARES,
-    CPUS,
-    CPUSET,
     NOCACHE,
     CACHEFROM,
     OPTIMISE,
     CMD,
     CONTEXT_DIR,
-    DEPENDS_ON,
-    DOMAINNAME,
-    DNS,
-    DNS_SEARCH,
     DOCKER_ARCHIVE,
     DOCKER_FILE,
     ENTRYPOINT,
     ENV,
-    ENV_PROPERTY_FILE,
-    ENV_BUILD("envBuild", ValueCombinePolicy.Merge),
-    ENV_RUN("envRun", ValueCombinePolicy.Merge),
-    EXPOSED_PROPERTY_KEY,
-    EXTRA_HOSTS,
+    ENV_BUILD("envBuild", ValueCombinePolicy.MERGE),
+    ENV_RUN("envRun", ValueCombinePolicy.MERGE),
     FILTER,
     FROM,
     FROM_EXT,
@@ -67,74 +52,30 @@ public enum ConfigKey {
     HEALTHCHECK_START_PERIOD("healthcheck.startPeriod"),
     HEALTHCHECK_RETRIES("healthcheck.retries"),
     HEALTHCHECK_CMD("healthcheck.cmd"),
-    HOSTNAME,
-    IMAGE_PULL_POLICY_BUILD("imagePullPolicy.build"),
-    IMAGE_PULL_POLICY_RUN("imagePullPolicy.run"),
-    LABELS(ValueCombinePolicy.Merge),
-    LINKS,
-    LOG_ENABLED("log.enabled"),
-    LOG_PREFIX("log.prefix"),
-    LOG_DATE("log.date"),
-    LOG_FILE("log.file"),
-    LOG_COLOR("log.color"),
-    LOG_DRIVER_NAME("log.driver.name"),
-    LOG_DRIVER_OPTS("log.driver.opts"),
+    IMAGE_PULL_POLICY,
+    LABELS(ValueCombinePolicy.MERGE),
     MAINTAINER,
-    MEMORY,
-    MEMORY_SWAP,
     NAME,
-    NET,
-    NETWORK_MODE("network.mode"),
-    NETWORK_NAME("network.name"),
-    NETWORK_ALIAS("network.alias"),
-    PORT_PROPERTY_FILE,
-    PORTS(ValueCombinePolicy.Merge),
-    PRIVILEGED,
-    READ_ONLY,
+    PORTS(ValueCombinePolicy.MERGE),
     REGISTRY,
-    RESTART_POLICY_NAME("restartPolicy.name"),
-    RESTART_POLICY_RETRY("restartPolicy.retry"),
     SHELL,
     RUN,
-    SECURITY_OPTS,
-    SHMSIZE,
-    SKIP_BUILD("skip.build"),
-    SKIP_RUN("skip.run"),
-    TAGS(ValueCombinePolicy.Merge),
-    TMPFS,
-    ULIMITS,
+    SKIP,
+    TAGS(ValueCombinePolicy.MERGE),
     USER,
     VOLUMES,
-    VOLUMES_FROM,
-    WAIT_LOG("wait.log"),
-    WAIT_TIME("wait.time"),
-    WAIT_HEALTHY("wait.healthy"),
-    WAIT_URL("wait.url"),
-    WAIT_HTTP_URL("wait.http.url"),
-    WAIT_HTTP_METHOD("wait.http.method"),
-    WAIT_HTTP_STATUS("wait.http.status"),
-    WAIT_KILL("wait.kill"),
-    WAIT_EXEC_POST_START("wait.exec.postStart"),
-    WAIT_EXEC_PRE_STOP("wait.exec.preStop"),
-    WAIT_EXEC_BREAK_ON_ERROR("wait.exec.breakOnError"),
-    WAIT_EXIT("wait.exit"),
-    WAIT_SHUTDOWN("wait.shutdown"),
-    WAIT_TCP_MODE("wait.tcp.mode"),
-    WAIT_TCP_HOST("wait.tcp.host"),
-    WAIT_TCP_PORT("wait.tcp.port"),
     WATCH_INTERVAL("watch.interval"),
     WATCH_MODE("watch.mode"),
     WATCH_POSTGOAL("watch.postGoal"),
     WATCH_POSTEXEC("watch.postExec"),
-    WORKDIR,
-    WORKING_DIR;
+    WORKDIR;
 
     ConfigKey() {
-        this(ValueCombinePolicy.Replace);
+        this(ValueCombinePolicy.REPLACE);
     }
 
     ConfigKey(String key) {
-        this(key, ValueCombinePolicy.Replace);
+        this(key, ValueCombinePolicy.REPLACE);
     }
 
     ConfigKey(ValueCombinePolicy valueCombinePolicy) {

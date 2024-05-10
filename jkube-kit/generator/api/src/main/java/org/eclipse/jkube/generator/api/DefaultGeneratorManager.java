@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
+import org.eclipse.jkube.kit.build.api.config.property.PropertyConfigResolver;
 import org.eclipse.jkube.kit.build.api.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -43,11 +43,11 @@ public class DefaultGeneratorManager implements GeneratorManager {
       "META-INF/jkube-generator"
   };
   private final GeneratorContext genCtx;
-  private final ImageConfigResolver imageConfigResolver;
+  private final PropertyConfigResolver propertyConfigResolver;
 
   public DefaultGeneratorManager(GeneratorContext context) {
     this.genCtx = context;
-    imageConfigResolver = new ImageConfigResolver();
+    propertyConfigResolver = new PropertyConfigResolver();
   }
 
   @Override
@@ -76,13 +76,12 @@ public class DefaultGeneratorManager implements GeneratorManager {
   private List<ImageConfiguration> resolveImages(List<ImageConfiguration> unresolvedImages) {
     final List<ImageConfiguration> resolvedImages = new ArrayList<>();
     if (unresolvedImages != null) {
-      for (ImageConfiguration image : unresolvedImages) {
-        resolvedImages.addAll(imageConfigResolver.resolve(image, genCtx.getProject()));
-      }
-      for (ImageConfiguration config : resolvedImages) {
-        if (config.getName() == null) {
+      for (ImageConfiguration unresolvedImage : unresolvedImages) {
+        final ImageConfiguration resolvedImage = propertyConfigResolver.resolve(unresolvedImage, genCtx.getProject());
+        if (resolvedImage.getName() == null) {
           throw new JKubeException("Configuration error: <image> must have a non-null <name>");
         }
+        resolvedImages.add(resolvedImage);
       }
     }
     return resolvedImages;

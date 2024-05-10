@@ -11,12 +11,13 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.api.config.handler.property;
+package org.eclipse.jkube.kit.build.api.config.property;
 
 
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -32,36 +33,36 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.extractFromPropertiesAsM
  * Obtaining a value is done via data-type specific methods (such as {@link #getString}). The ConfigKey parameter
  * tells us which property to look for, and how to handle combination of multiple values.
  *
- * For {@link PropertyMode#Only} we only look at the properties, ignoring any config value.
- * For {@link PropertyMode#Skip} we only look at the config, ignoring any properties value.
- * For {@link PropertyMode#Override} we use the property value if it is non-null, else the config value.
- * For {@link PropertyMode#Fallback} we use the config value if it is non-null, else the property value.
+ * For {@link PropertyMode#ONLY} we only look at the properties, ignoring any config value.
+ * For {@link PropertyMode#SKIP} we only look at the config, ignoring any properties value.
+ * For {@link PropertyMode#OVERRIDE} we use the property value if it is non-null, else the config value.
+ * For {@link PropertyMode#FALLBACK} we use the config value if it is non-null, else the property value.
  *
  * For Override and Fallback mode, merging may take place as dictated by the {@link ValueCombinePolicy}
  * defined in the {@link ConfigKey}, or as overriden by the property &lt;prefix.someproperty&gt;<b>._combine</b>
  * ({@link EnvUtil#PROPERTY_COMBINE_POLICY_SUFFIX}).
  *
- * If {@link ValueCombinePolicy#Replace} is used, only the prioritized value (first non-null) is used.
- * If {@link ValueCombinePolicy#Merge} is used, the merge method depends on the data type.
+ * If {@link ValueCombinePolicy#REPLACE} is used, only the prioritized value (first non-null) is used.
+ * If {@link ValueCombinePolicy#MERGE} is used, the merge method depends on the data type.
  * For simple types (string, int, long, boolean) this is not supported and will throw exception.
  * For Lists, the non-null values will be appended to each other (with values from first source added first)
  * For Maps, all maps are merged into one map, with data from the first map taking precedence. *
  *
  * @author Johan Ström
  */
-public class ValueProvider {
-    private String prefix;
-    private Properties properties;
-    private PropertyMode propertyMode;
+class ValueProvider {
+    private final String prefix;
+    private final Properties properties;
+    private final PropertyMode propertyMode;
 
-    private StringListValueExtractor stringListValueExtractor;
-    private IntListValueExtractor intListValueExtractor;
-    private MapValueExtractor mapValueExtractor;
-    private StringValueExtractor stringValueExtractor;
-    private IntValueExtractor intValueExtractor;
-    private LongValueExtractor longValueExtractor;
-    private BooleanValueExtractor booleanValueExtractor;
-    private DoubleValueExtractor doubleValueExtractor;
+    private final StringListValueExtractor stringListValueExtractor;
+    private final IntListValueExtractor intListValueExtractor;
+    private final MapValueExtractor mapValueExtractor;
+    private final StringValueExtractor stringValueExtractor;
+    private final IntValueExtractor intValueExtractor;
+    private final LongValueExtractor longValueExtractor;
+    private final BooleanValueExtractor booleanValueExtractor;
+    private final DoubleValueExtractor doubleValueExtractor;
 
     /**
      * Initiates ValueProvider which is to work with data from the given properties.
@@ -139,14 +140,14 @@ public class ValueProvider {
     }
 
     /**
-     * Helper base class for picking values out of the the Properties class and/or config value.
+     * Helper base class for picking values out of the Properties class and/or config value.
      *
      * If there is only one source defined, we only use that. If multiple source are defined, the first one get's priority.
      * If more than one value is specified, a merge policy as specified for the ConfigKey
      */
     private abstract class ValueExtractor<T> {
         T getFromPreferredSource(String prefix, ConfigKey key, T fromConfig) {
-            if(propertyMode == PropertyMode.Skip) {
+            if(propertyMode == PropertyMode.SKIP) {
                 return fromConfig;
             }
 
@@ -161,9 +162,9 @@ public class ValueProvider {
             }
 
             switch (propertyMode) {
-                case Only:
+                case ONLY:
                     return fromProperty;
-                case Override:
+                case OVERRIDE:
                     if(fromProperty != null) {
                         values.add(fromProperty);
                     }
@@ -171,7 +172,7 @@ public class ValueProvider {
                         values.add(fromConfig);
                     }
                     break;
-                case Fallback:
+                case FALLBACK:
                     if(fromConfig != null) {
                         values.add(fromConfig);
                     }
@@ -196,9 +197,9 @@ public class ValueProvider {
             }
 
             switch(combinePolicy) {
-                case Replace:
+                case REPLACE:
                     return values.get(0);
-                case Merge:
+                case MERGE:
                     return merge(key, values);
             }
             return null;
@@ -312,16 +313,12 @@ public class ValueProvider {
 
         @Override
         protected Map<String, String> merge(ConfigKey key, List<Map<String, String>> values) {
-            Map<String, String> merged = null;
+            final Map<String, String> merged = new LinkedHashMap<>();
 
             // Iterate in reverse, the first entry in values has highest priority
             for(int i = values.size() - 1; i >= 0; i--) {
                 Map<String, String> value = values.get(i);
-                if(merged == null) {
-                    merged = value;
-                } else {
-                    merged.putAll(value);
-                }
+                merged.putAll(value);
             }
             return merged;
         }
