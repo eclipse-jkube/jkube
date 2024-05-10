@@ -19,7 +19,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.io.input.BoundedInputStream;
+
 
 import java.io.IOException;
 
@@ -34,7 +35,7 @@ public class OCIManifestLayer {
   private String digest;
   private long size;
 
-  public static OCIManifestLayer from(CountingInputStream blobStream) throws IOException {
+  public static OCIManifestLayer from(BoundedInputStream blobStream) throws IOException {
     blobStream.mark(Integer.MAX_VALUE);
     final String digest = "sha256:" + DigestUtils.sha256Hex(blobStream);
     final long size = blobStream.getByteCount();
