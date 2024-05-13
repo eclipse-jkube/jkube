@@ -69,7 +69,7 @@ public class OCIRegistryClient {
   }
 
   public OCIManifestLayer uploadBlobIfNotUploadedYet(Chart chart, InputStream inputStream) throws IOException, BadUploadException {
-    try (BoundedInputStream blobStream = new BoundedInputStream(inputStream)) {
+    try (BoundedInputStream blobStream = BoundedInputStream.builder().setInputStream(inputStream).get()) {
       final OCIManifestLayer ociBlob = OCIManifestLayer.from(blobStream);
       if (isLayerUploadedAlready(chart, ociBlob)) {
         return ociBlob;
