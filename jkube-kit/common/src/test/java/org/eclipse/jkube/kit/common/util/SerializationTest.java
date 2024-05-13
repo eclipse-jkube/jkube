@@ -16,10 +16,13 @@ package org.eclipse.jkube.kit.common.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.openshift.api.model.Template;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -81,13 +84,12 @@ class SerializationTest {
     assertThat(result)
       .isInstanceOf(Template.class)
       .hasFieldOrPropertyWithValue("metadata.name", "template-example")
-      .extracting("objects").asList().singleElement()
-      .isInstanceOf(Pod.class)
+      .extracting("objects").asInstanceOf(InstanceOfAssertFactories.list(Pod.class)).singleElement()
       .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
-      .extracting("spec.containers").asList().singleElement()
+      .extracting("spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class)).singleElement()
       .hasFieldOrPropertyWithValue("image", "busybox")
       .hasFieldOrPropertyWithValue("securityContext.additionalProperties.privileged", "${POD_SECURITY_CONTEXT}")
-      .extracting("env").asList().singleElement()
+      .extracting("env").asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class)).singleElement()
       .hasFieldOrPropertyWithValue("value", "${ENV_VAR_KEY}");
   }
 
@@ -100,13 +102,12 @@ class SerializationTest {
     assertThat(result)
       .isInstanceOf(Template.class)
       .hasFieldOrPropertyWithValue("metadata.name", "template-example")
-      .extracting("objects").asList().singleElement()
-      .isInstanceOf(Pod.class)
+      .extracting("objects").asInstanceOf(InstanceOfAssertFactories.list(Pod.class)).singleElement()
       .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
-      .extracting("spec.containers").asList().singleElement()
+      .extracting("spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class)).singleElement()
       .hasFieldOrPropertyWithValue("image", "busybox")
       .hasFieldOrPropertyWithValue("securityContext.additionalProperties.privileged", "${POD_SECURITY_CONTEXT}")
-      .extracting("env").asList().singleElement()
+      .extracting("env").asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class)).singleElement()
       .hasFieldOrPropertyWithValue("value", "${ENV_VAR_KEY}");
   }
 
