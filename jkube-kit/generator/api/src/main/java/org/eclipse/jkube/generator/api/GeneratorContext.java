@@ -57,6 +57,7 @@ public class GeneratorContext {
     private String openshiftPullSecret;
     private String openshiftPushSecret;
     private String openshiftBuildOutputKind;
+    private String openshiftNamespace;
     private BuildRecreateMode openshiftBuildRecreate;
 
 

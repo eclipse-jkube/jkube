@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,9 @@ import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+
+import static org.eclipse.jkube.kit.build.api.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
 
 /**
  * Manager responsible for finding and calling generators
@@ -48,6 +52,7 @@ public class DefaultGeneratorManager implements GeneratorManager {
   public DefaultGeneratorManager(GeneratorContext context) {
     this.genCtx = context;
     propertyConfigResolver = new PropertyConfigResolver();
+    addOpenShiftBuildRelatedProperties();
   }
 
   @Override
@@ -115,6 +120,21 @@ public class DefaultGeneratorManager implements GeneratorManager {
         String.join(",", imageNames), genCtx.getFilter());
     }
     return filteredImages;
+  }
+
+  // TODO: Should be moved to a more suitable place (Probably within the JavaProject class)
+  private void addOpenShiftBuildRelatedProperties() {
+    if (genCtx.getRuntimeMode() == RuntimeMode.OPENSHIFT) {
+      final Properties properties = genCtx.getProject().getProperties();
+      final String namespaceToBeUsed = genCtx.getOpenshiftNamespace();
+      if (!properties.contains(DOCKER_IMAGE_USER) && StringUtils.isNotBlank(namespaceToBeUsed)) {
+        genCtx.getLogger().info("Using container image name of namespace: " + namespaceToBeUsed);
+        properties.setProperty(DOCKER_IMAGE_USER, namespaceToBeUsed);
+      }
+      if (!properties.contains(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE)) {
+        properties.setProperty(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, genCtx.getRuntimeMode().toString());
+      }
+    }
   }
 
   private boolean matchesConfiguredImages(String imageList, ImageConfiguration imageConfig) {
