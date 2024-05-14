@@ -52,11 +52,11 @@ public class DefaultGeneratorManager implements GeneratorManager {
   public DefaultGeneratorManager(GeneratorContext context) {
     this.genCtx = context;
     propertyConfigResolver = new PropertyConfigResolver();
+    addOpenShiftBuildRelatedProperties();
   }
 
   @Override
   public List<ImageConfiguration> generateAndMerge(List<ImageConfiguration> unresolvedImages) {
-    addOpenShiftBuildRelatedProperties();
     final List<ImageConfiguration> resolvedImages = resolveImages(unresolvedImages);
     final List<ImageConfiguration> generatedImages = generateImages(resolvedImages);
     final List<ImageConfiguration> filteredImages = filterImages(generatedImages);
@@ -122,10 +122,11 @@ public class DefaultGeneratorManager implements GeneratorManager {
     return filteredImages;
   }
 
+  // TODO: Should be moved to a more suitable place (Probably within the JavaProject class)
   private void addOpenShiftBuildRelatedProperties() {
     if (genCtx.getRuntimeMode() == RuntimeMode.OPENSHIFT) {
       final Properties properties = genCtx.getProject().getProperties();
-      String namespaceToBeUsed = genCtx.getOpenshiftNamespace();
+      final String namespaceToBeUsed = genCtx.getOpenshiftNamespace();
       if (!properties.contains(DOCKER_IMAGE_USER) && StringUtils.isNotBlank(namespaceToBeUsed)) {
         genCtx.getLogger().info("Using container image name of namespace: " + namespaceToBeUsed);
         properties.setProperty(DOCKER_IMAGE_USER, namespaceToBeUsed);
