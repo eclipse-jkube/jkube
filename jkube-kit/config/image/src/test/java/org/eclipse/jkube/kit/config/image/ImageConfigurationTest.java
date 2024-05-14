@@ -21,19 +21,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ImageConfigurationTest {
 
-    @Test
-    void testBuilder() {
-        // Given
-        BuildConfiguration jkubeBuildConfiguration = BuildConfiguration.builder()
-                .user("super-user")
-                .build();
-        // When
-        final ImageConfiguration result = ImageConfiguration.builder()
-                .name("1337")
-                .build(jkubeBuildConfiguration)
-                .build();
-        // Then
-        assertThat(result.getName()).isEqualTo("1337");
-        assertThat(result.getBuildConfiguration().getUser()).isEqualTo("super-user");
-    }
+  @Test
+  void testBuilder() {
+    // Given
+    BuildConfiguration jkubeBuildConfiguration = BuildConfiguration.builder()
+      .user("super-user")
+      .build();
+    // When
+    final ImageConfiguration result = ImageConfiguration.builder()
+      .name("1337")
+      .propertyResolverPrefix("app.images.image-1")
+      .build(jkubeBuildConfiguration)
+      .build();
+    // Then
+    assertThat(result)
+      .hasFieldOrPropertyWithValue("name", "1337")
+      .hasFieldOrPropertyWithValue("propertyResolverPrefix", "app.images.image-1")
+      .extracting(ImageConfiguration::getBuildConfiguration)
+      .hasFieldOrPropertyWithValue("user", "super-user");
+  }
 }

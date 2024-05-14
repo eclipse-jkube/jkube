@@ -35,6 +35,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -86,7 +87,7 @@ class KubernetesPushTaskTest {
     // Then
     assertThat(dockerBuildServiceMockedConstruction.constructed()).hasSize(1);
     verify(dockerBuildServiceMockedConstruction.constructed().iterator().next(), times(1))
-        .push(eq(extension.images), eq(0), any(), eq(false));
+        .push(argThat(images -> images.iterator().next().getName().equals("foo/bar:latest")), eq(0), any(), eq(false));
   }
 
 

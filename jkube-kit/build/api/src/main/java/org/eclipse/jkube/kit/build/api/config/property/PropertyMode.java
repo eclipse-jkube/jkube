@@ -11,20 +11,20 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.api.config.handler.property;
+package org.eclipse.jkube.kit.build.api.config.property;
 
 
 /**
- * Identifies how the {@link PropertyConfigHandler} should treat properties vs configuration
+ * Identifies how the {@link PropertyConfigResolver} should treat properties vs configuration
  * from POM file in the {@link ValueProvider}.
  *
  * @author Johan Ström
  */
-public enum PropertyMode {
-    Only,
-    Override,
-    Fallback,
-    Skip;
+enum PropertyMode {
+    ONLY,
+    OVERRIDE,
+    FALLBACK,
+    SKIP;
 
     /**
      * Given String, parse to a valid property mode.
@@ -36,7 +36,7 @@ public enum PropertyMode {
      */
     static PropertyMode parse(String name) {
         if(name == null) {
-            return PropertyMode.Only;
+            return PropertyMode.ONLY;
         }
 
         name = name.toLowerCase();
