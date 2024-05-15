@@ -51,6 +51,7 @@ class PropertyConfigResolverTest {
         .port("9082")
         .tag("initial-tag-1")
         .tag("initial-tag-2")
+        .platform("darwin/amd64")
         .healthCheck(HealthCheckConfiguration.builder()
           .interval("30s")
           .build())
@@ -73,6 +74,8 @@ class PropertyConfigResolverTest {
     javaProject.getProperties().put("jkube.container-image.ports.2", "9080");
     javaProject.getProperties().put("jkube.container-image.tags.1", "tag-1");
     javaProject.getProperties().put("jkube.container-image.tags.2", "tag-2");
+    javaProject.getProperties().put("jkube.container-image.platforms.1", "linux/amd64");
+    javaProject.getProperties().put("jkube.container-image.platforms.2", "linux/arm64");
     javaProject.getProperties().put("jkube.container-image.healthcheck.interval", "10s");
   }
 
@@ -149,9 +152,15 @@ class PropertyConfigResolverTest {
       assertThat(resolved.getBuild().getPorts()).containsExactlyInAnyOrder("8080", "9080");
     }
 
+
     @Test
     void setsTags() {
       assertThat(resolved.getBuild().getTags()).containsExactlyInAnyOrder("tag-1", "tag-2");
+    }
+
+    @Test
+    void setsPlatforms() {
+      assertThat(resolved.getBuild().getPlatforms()).containsExactlyInAnyOrder("linux/amd64", "linux/arm64");
     }
 
     @Test
@@ -226,6 +235,11 @@ class PropertyConfigResolverTest {
     }
 
     @Test
+    void appendsPlatforms() {
+      assertThat(resolved.getBuild().getPlatforms()).containsExactlyInAnyOrder("linux/amd64", "linux/arm64", "darwin/amd64");
+    }
+
+    @Test
     void overridesHealthCheckInterval() {
       assertThat(resolved.getBuild().getHealthCheck().getInterval()).isEqualTo("10s");
     }
@@ -290,6 +304,11 @@ class PropertyConfigResolverTest {
     @Test
     void preservesTags() {
       assertThat(resolved.getBuild().getTags()).containsExactlyInAnyOrder("initial-tag-1", "initial-tag-2");
+    }
+
+    @Test
+    void preservesPlatforms() {
+      assertThat(resolved.getBuild().getPlatforms()).containsExactlyInAnyOrder("darwin/amd64");
     }
 
     @Test

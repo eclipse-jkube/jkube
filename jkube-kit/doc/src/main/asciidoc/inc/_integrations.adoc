@@ -47,6 +47,7 @@ and Dekorate. You can activate this feature by using the following flag `-Djkube
 in the command-line, or setting it up as a property (`<jkube.mergeWithDekorate>true</jkube.mergeWithDekorate>`).
 endif::[]
 
+[[integrations.jib]]
 == JIB (Java Image Builder)
 *{plugin}* also provides user an option to build container images without having access to any docker daemon.
 You just need to set `jkube.build.strategy` property to `jib`. It will delegate the build process to

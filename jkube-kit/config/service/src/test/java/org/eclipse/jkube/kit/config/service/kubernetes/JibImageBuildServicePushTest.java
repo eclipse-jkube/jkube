@@ -93,7 +93,7 @@ class JibImageBuildServicePushTest {
     imageConfiguration = ImageConfiguration.builder()
       .name("test/test-image:0.0.1")
       .build(BuildConfiguration.builder()
-        .from("busybox")
+        .from("scratch")
         .build())
       .registry(remoteOciServer)
       .build();
@@ -103,6 +103,7 @@ class JibImageBuildServicePushTest {
       .buildServiceConfig(BuildServiceConfig.builder().build())
       .configuration(JKubeConfiguration.builder()
         .project(JavaProject.builder().baseDirectory(temporaryFolder.toFile()).build())
+        .pullRegistryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
         .pushRegistryConfig(RegistryConfig.builder()
           .registry(remoteOciServer)
           .settings(Collections.singletonList(
@@ -124,7 +125,7 @@ class JibImageBuildServicePushTest {
       .resolve("test-image")
       .resolve("0.0.1")
       .resolve("tmp")
-      .resolve("jib-image.tar");
+      .resolve("jib-image.linux-amd64.tar");
     Jib.fromScratch()
       .setFormat(ImageFormat.Docker)
       .containerize(Containerizer.to(TarImage
@@ -180,8 +181,8 @@ class JibImageBuildServicePushTest {
   }
 
   @Nested
-  @DisplayName("withValidConfiguration")
-  class ValidConfiguration {
+  @DisplayName("withValidNoPlatformConfiguration")
+  class ValidNoPlatformConfiguration {
 
     @BeforeEach
     void pushValidImage() throws Exception {
@@ -204,6 +205,56 @@ class JibImageBuildServicePushTest {
       assertThat(connection.getResponseCode()).isEqualTo(200);
       assertThat(IOUtils.toString(connection.getInputStream(), StandardCharsets.UTF_8))
         .contains("{\"name\":\"test/test-image\",\"tags\":[\"0.0.1\"]}");
+    }
+  }
+
+  @Nested
+  @DisplayName("withValidMultiplatformConfiguration")
+  class ValidMultiplatformConfiguration {
+
+    @BeforeEach
+    void pushValidImage() throws Exception {
+      imageConfiguration = imageConfiguration.toBuilder()
+        .name("test/test-image:multiplatform")
+        .build(imageConfiguration.getBuild().toBuilder()
+          .platform("linux/amd64")
+          .platform("linux/arm64")
+          .platform("darwin/amd64")
+          .build())
+        .build();
+      new JibImageBuildService(jKubeServiceHub)
+        .push(Collections.singletonList(imageConfiguration), 1, false);
+    }
+
+    @Test
+    void logsImagePush() {
+      verify(logger, times(1))
+        .info("Pushing image: %s", remoteOciServer + "/test/test-image:multiplatform");
+    }
+
+    @Test
+    void pushesImage() throws Exception {
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/test/test-image/tags/list")
+        .openConnection();
+      connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
+      connection.connect();
+      assertThat(connection.getResponseCode()).isEqualTo(200);
+      assertThat(IOUtils.toString(connection.getInputStream(), StandardCharsets.UTF_8))
+        .contains("{\"name\":\"test/test-image\",\"tags\":[\"multiplatform\"]}");
+    }
+
+    @Test
+    void pushedImageManifestIsMultiplatform() throws Exception {
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/test/test-image/manifests/multiplatform")
+        .openConnection();
+      connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
+      connection.setRequestProperty("Accept", "application/vnd.docker.distribution.manifest.list.v2+json");
+      connection.connect();
+      assertThat(connection.getResponseCode()).isEqualTo(200);
+      assertThat(IOUtils.toString(connection.getInputStream(), StandardCharsets.UTF_8))
+        .contains(":{\"architecture\":\"amd64\",\"os\":\"linux\"}}")
+        .contains(":{\"architecture\":\"arm64\",\"os\":\"linux\"}}")
+        .contains(":{\"architecture\":\"amd64\",\"os\":\"darwin\"}}");
     }
   }
 

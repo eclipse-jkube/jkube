@@ -86,6 +86,7 @@ public class PropertyConfigResolver {
       .fromExt(valueProvider.getMap(ConfigKey.FROM_EXT, valueOrNull(config, BuildConfiguration::getFromExt)))
       .clearVolumes().volumes(valueProvider.getList(ConfigKey.VOLUMES, valueOr(config, BuildConfiguration::getVolumes, Collections.emptyList())))
       .clearTags().tags(valueProvider.getList(ConfigKey.TAGS, valueOr(config, BuildConfiguration::getTags, Collections.emptyList())))
+      .clearPlatforms().platforms(valueProvider.getList(ConfigKey.PLATFORMS, valueOr(config, BuildConfiguration::getPlatforms, Collections.emptyList())))
       .maintainer(valueProvider.getString(ConfigKey.MAINTAINER, valueOrNull(config, BuildConfiguration::getMaintainer)))
       .workdir(valueProvider.getString(ConfigKey.WORKDIR, valueOrNull(config, BuildConfiguration::getWorkdir)))
       .skip(valueProvider.getBoolean(ConfigKey.SKIP, valueOrNull(config, BuildConfiguration::getSkip)))
