@@ -39,6 +39,7 @@ import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -58,6 +59,7 @@ import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
 import static org.mockito.Answers.RETURNS_SELF;
 import static org.mockito.ArgumentMatchers.any;
@@ -113,18 +115,6 @@ class JibServiceUtilTest {
             verify(jibContainerBuilder, times(1)).setFormat(ImageFormat.Docker);
         }
 
-    }
-
-    @Test
-    void testGetFullImageNameWithDefaultTag() {
-        assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), null))
-            .isEqualTo("test/test-project:latest");
-    }
-
-    @Test
-    void testGetFullImageNameWithProvidedTag() {
-        assertThat(JibServiceUtil.getFullImageName(getSampleImageConfiguration(), "0.0.1"))
-            .isEqualTo("test/test-project:0.0.1");
     }
 
     @Test
@@ -215,9 +205,9 @@ class JibServiceUtilTest {
             when(jibContainerBuilder.containerize(containerizer)).thenThrow(new RegistryException("Unable to pull base image"));
 
             // When
-            assertThatIllegalStateException()
-                .isThrownBy(() -> JibServiceUtil.buildContainer(jibContainerBuilder, tarImage, jibLogger))
-                .withMessageContaining("Unable to pull base image");
+            assertThatThrownBy(() -> JibServiceUtil.buildContainer(jibContainerBuilder, tarImage, jibLogger))
+                .isInstanceOf(JKubeException.class)
+                .hasMessage("Unable to build the image tarball: Unable to pull base image");
 
             // Then
             verify(containerizer).setAllowInsecureRegistries(true);
@@ -240,11 +230,10 @@ class JibServiceUtilTest {
             ImageConfiguration imageConfiguration = getSampleImageConfiguration();
             Credential credential = Credential.from("testuser", "secret");
             File tarArchive = new File("docker-build.tar");
-
             // When + Then
-            assertThatIllegalStateException()
-                .isThrownBy(() -> JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, jibLogger))
-                .withMessage("Exception occurred while pushing the image: test/test-project:latest, Unauthorized");
+            assertThatThrownBy(() -> JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, jibLogger))
+                .isInstanceOf(JKubeException.class)
+                .hasMessage("Exception occurred while pushing the image: test/test-project:latest, Unauthorized");
         }
     }
 

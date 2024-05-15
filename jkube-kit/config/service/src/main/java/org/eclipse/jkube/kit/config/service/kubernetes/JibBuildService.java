@@ -105,8 +105,6 @@ public class JibBuildService extends AbstractImageBuildService {
             JibServiceUtil.buildContainer(containerBuilder,
                 TarImage.at(dockerTarArchive.toPath()).named(imageConfig.getName()), jibLogger);
             kitLogger.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
         } catch (Exception ex) {
             throw new JKubeServiceException("Error when building JIB image", ex);
         }
