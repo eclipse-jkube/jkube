@@ -59,13 +59,13 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 @SuppressWarnings({"unused"})
-class JibBuildServiceBuildIntegrationTest {
+class JibImageBuildServiceIntegrationTest {
 
   private File projectRoot;
   private Path targetDirectory;
   private Path dockerOutput;
   private JKubeServiceHub hub;
-  private JibBuildService jibBuildService;
+  private JibImageBuildService jibBuildService;
 
   @BeforeEach
   void setUp(@TempDir Path projectRoot) throws IOException {
@@ -88,7 +88,7 @@ class JibBuildServiceBuildIntegrationTest {
         .registryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
         .build())
       .build();
-    jibBuildService = new JibBuildService(hub);
+    jibBuildService = new JibImageBuildService(hub);
   }
 
   @Test
@@ -196,7 +196,7 @@ class JibBuildServiceBuildIntegrationTest {
           .build())
         .build();
       out = spy(System.out);
-      jibBuildService = new JibBuildService(hub, new JibLogger(hub.getLog(), out));
+      jibBuildService = new JibImageBuildService(hub, new JibLogger(hub.getLog(), out));
     }
 
     @Test

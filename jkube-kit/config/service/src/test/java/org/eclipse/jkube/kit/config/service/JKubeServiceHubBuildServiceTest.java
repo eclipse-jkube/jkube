@@ -23,7 +23,7 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.BuildPackBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
-import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
+import org.eclipse.jkube.kit.config.service.kubernetes.JibImageBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -42,12 +42,12 @@ class JKubeServiceHubBuildServiceTest {
         arguments(RuntimeMode.KUBERNETES, null, DockerBuildService.class),
         arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.docker, DockerBuildService.class),
         arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.s2i, DockerBuildService.class),
-        arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.jib, JibBuildService.class),
+        arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.jib, JibImageBuildService.class),
         arguments(RuntimeMode.KUBERNETES, JKubeBuildStrategy.buildpacks, BuildPackBuildService.class),
         arguments(RuntimeMode.OPENSHIFT, null, OpenshiftBuildService.class),
         arguments(RuntimeMode.OPENSHIFT, JKubeBuildStrategy.docker, OpenshiftBuildService.class),
         arguments(RuntimeMode.OPENSHIFT, JKubeBuildStrategy.s2i, OpenshiftBuildService.class),
-        arguments(RuntimeMode.OPENSHIFT, JKubeBuildStrategy.jib, JibBuildService.class));
+        arguments(RuntimeMode.OPENSHIFT, JKubeBuildStrategy.jib, JibImageBuildService.class));
   }
 
   @DisplayName("get build service")

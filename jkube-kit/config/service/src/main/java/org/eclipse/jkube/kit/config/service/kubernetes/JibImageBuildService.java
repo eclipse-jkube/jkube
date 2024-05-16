@@ -48,7 +48,12 @@ import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicableP
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.getBaseImage;
 
-public class JibBuildService extends AbstractImageBuildService {
+/**
+ * AbstractImageBuildService implementation for JIB build strategy.
+ * <p>
+ * Relies on Jib to perform the build and push operations.
+ */
+public class JibImageBuildService extends AbstractImageBuildService {
 
     private final KitLogger kitLogger;
     private final JibLogger jibLogger;
@@ -56,12 +61,12 @@ public class JibBuildService extends AbstractImageBuildService {
     private final BuildServiceConfig buildServiceConfig;
     private final JKubeConfiguration configuration;
 
-    public JibBuildService(JKubeServiceHub jKubeServiceHub) {
+    public JibImageBuildService(JKubeServiceHub jKubeServiceHub) {
         this(jKubeServiceHub,
           new JibLogger(Objects.requireNonNull(jKubeServiceHub.getLog(), "Log is required")));
     }
 
-    public JibBuildService(JKubeServiceHub jKubeServiceHub, JibLogger jibLogger) {
+    public JibImageBuildService(JKubeServiceHub jKubeServiceHub, JibLogger jibLogger) {
         super(jKubeServiceHub);
         this.jibLogger = jibLogger;
         kitLogger = jKubeServiceHub.getLog();

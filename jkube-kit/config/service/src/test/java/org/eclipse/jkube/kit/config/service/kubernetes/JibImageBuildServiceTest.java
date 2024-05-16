@@ -52,7 +52,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class JibBuildServiceTest {
+class JibImageBuildServiceTest {
 
     @TempDir
     Path temporaryFolder;
@@ -97,7 +97,7 @@ class JibBuildServiceTest {
     @Test
     void isApplicable_withNoBuildStrategy_shouldReturnFalse() {
         // When
-        final boolean result = new JibBuildService(mockedServiceHub).isApplicable();
+        final boolean result = new JibImageBuildService(mockedServiceHub).isApplicable();
         // Then
         assertThat(result).isFalse();
     }
@@ -107,7 +107,7 @@ class JibBuildServiceTest {
         // Given
         when(mockedServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.jib);
         // When
-        final boolean result = new JibBuildService(mockedServiceHub).isApplicable();
+        final boolean result = new JibImageBuildService(mockedServiceHub).isApplicable();
         // Then
         assertThat(result).isTrue();
     }
@@ -121,7 +121,7 @@ class JibBuildServiceTest {
             .passwordDecryptionMethod(s -> s)
             .build();
         // When
-        Credential credential = new JibBuildService(mockedServiceHub)
+        Credential credential = new JibImageBuildService(mockedServiceHub)
           .getRegistryCredentials(registryConfig, true, "test.example.org");
         // Then
         assertThat(credential).isNotNull()
@@ -138,7 +138,7 @@ class JibBuildServiceTest {
             .passwordDecryptionMethod(s -> s)
             .build();
         // When
-        Credential credential = new JibBuildService(mockedServiceHub)
+        Credential credential = new JibImageBuildService(mockedServiceHub)
           .getRegistryCredentials(registryConfig, false, "test.example.org");
         // Then
         assertThat(credential).isNotNull()
@@ -151,7 +151,7 @@ class JibBuildServiceTest {
         // Given
         File projectBaseDir = Files.createDirectory(temporaryFolder.resolve("test")).toFile();
         // When
-        File tarArchive = JibBuildService.getBuildTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir));
+        File tarArchive = JibImageBuildService.getBuildTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir));
         // Then
         assertThat(tarArchive).isNotNull()
             .isEqualTo(projectBaseDir.toPath().resolve("target").resolve("test").resolve("testimage").resolve("0.0.1")
@@ -164,7 +164,7 @@ class JibBuildServiceTest {
         // Given
         File projectBaseDir = Files.createDirectory(temporaryFolder.resolve("test")).toFile();
         // When
-        File tarArchive = JibBuildService.getAssemblyTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir), logger);
+        File tarArchive = JibImageBuildService.getAssemblyTarArchive(imageConfiguration, createJKubeConfiguration(projectBaseDir), logger);
         // Then
         assertThat(tarArchive).isNotNull()
             .isEqualTo(projectBaseDir.toPath().resolve("target").resolve("test").resolve("testimage").resolve("0.0.1")
@@ -174,7 +174,7 @@ class JibBuildServiceTest {
     @Test
     void pushWithNoConfigurations() throws Exception {
         // When
-        new JibBuildService(mockedServiceHub).push(Collections.emptyList(), 1, null, false);
+        new JibImageBuildService(mockedServiceHub).push(Collections.emptyList(), 1, null, false);
         // Then
         jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(any(), any(), any(), any()), times(0));
     }
@@ -187,7 +187,7 @@ class JibBuildServiceTest {
             .passwordDecryptionMethod(s -> s)
             .build();
         // When
-        new JibBuildService(mockedServiceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
+        new JibImageBuildService(mockedServiceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
         // Then
         jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(eq(imageConfiguration), eq(Credential.from("testuserpush", "testpass")), any(), any()), times(1));
     }
@@ -203,7 +203,7 @@ class JibBuildServiceTest {
                 .build())
             .build();
         // When
-        new JibBuildService(mockedServiceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
+        new JibImageBuildService(mockedServiceHub).push(Collections.singletonList(imageConfiguration), 1, registryConfig, false);
         // Then
         jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.jibPush(any(), any(), any(), any()), times(0));
     }
@@ -215,7 +215,7 @@ class JibBuildServiceTest {
             .name("test/foo:latest")
             .build();
         // When
-        new JibBuildService(mockedServiceHub).build(imageConfiguration);
+        new JibImageBuildService(mockedServiceHub).build(imageConfiguration);
         // Then
         jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.buildContainer(any(), any(), any()), times(0));
     }
@@ -231,7 +231,7 @@ class JibBuildServiceTest {
                 .build())
             .build();
         // When
-        new JibBuildService(mockedServiceHub).build(imageConfiguration);
+        new JibImageBuildService(mockedServiceHub).build(imageConfiguration);
         // Then
         jibServiceUtilMockedStatic.verify(() -> JibServiceUtil.buildContainer(any(), any(), any()), times(0));
     }
@@ -243,7 +243,7 @@ class JibBuildServiceTest {
           .name("test/foo:latest")
           .build();
         // When
-        new JibBuildService(mockedServiceHub).build(imageConfiguration);
+        new JibImageBuildService(mockedServiceHub).build(imageConfiguration);
         // Then
         verify(mockedServiceHub.getPluginManager().resolvePluginService(), times(1)).addExtraFiles();
     }
@@ -256,7 +256,7 @@ class JibBuildServiceTest {
         when(mockedServiceHub.getConfiguration().getProject())
           .thenReturn(JavaProject.builder().baseDirectory(temporaryFolder.toFile()).build());
         // When
-        new JibBuildService(mockedServiceHub).build(imageConfiguration);
+        new JibImageBuildService(mockedServiceHub).build(imageConfiguration);
         // Then
         jibServiceUtilMockedStatic.verify(() -> JibServiceUtil
           .containerFromImageConfiguration(argThat(ic -> ic.getName().equals("quay.io/test/testimage:0.0.1")), any(), any()), times(1));
