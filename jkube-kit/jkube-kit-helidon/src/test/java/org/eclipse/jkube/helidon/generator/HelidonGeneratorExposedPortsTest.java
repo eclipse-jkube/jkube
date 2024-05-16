@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.helidon.generator;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -67,7 +68,7 @@ class HelidonGeneratorExposedPortsTest {
     assertThat(result).singleElement()
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .containsExactly("8080", "8778", "9779");
   }
 
@@ -82,7 +83,7 @@ class HelidonGeneratorExposedPortsTest {
     assertThat(result).singleElement()
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .containsExactly("8080");
   }
 
@@ -100,7 +101,7 @@ class HelidonGeneratorExposedPortsTest {
     assertThat(result).singleElement()
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .containsExactly("1337", "8778", "9779");
   }
 
