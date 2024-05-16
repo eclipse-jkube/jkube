@@ -251,7 +251,7 @@ class JibImageBuildServiceTest {
     @Test
     void build_withRegistryConfig_shouldPrependRegistryToImageName() throws JKubeServiceException {
         // Given
-        when(mockedServiceHub.getConfiguration().getRegistryConfig())
+        when(mockedServiceHub.getConfiguration().getPullRegistryConfig())
           .thenReturn(RegistryConfig.builder().registry("quay.io").settings(Collections.emptyList()).build());
         when(mockedServiceHub.getConfiguration().getProject())
           .thenReturn(JavaProject.builder().baseDirectory(temporaryFolder.toFile()).build());

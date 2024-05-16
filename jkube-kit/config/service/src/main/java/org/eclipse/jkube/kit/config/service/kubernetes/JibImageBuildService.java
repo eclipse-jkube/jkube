@@ -89,11 +89,11 @@ public class JibImageBuildService extends AbstractImageBuildService {
             if (imageConfiguration.getBuildConfiguration().isDockerFileMode()) {
                 throw new JKubeServiceException("Dockerfile mode is not supported with JIB build strategy");
             }
-            final ImageConfiguration imageConfigToBuild = prependPushRegistry(imageConfiguration, configuration.getRegistryConfig());
+            final ImageConfiguration imageConfigToBuild = prependPushRegistry(imageConfiguration, configuration.getPullRegistryConfig());
             final BuildDirs buildDirs = new BuildDirs(imageConfigToBuild.getName(), configuration);
-            final String pullRegistry = getPullRegistry(imageConfigToBuild, configuration.getRegistryConfig());
+            final String pullRegistry = getPullRegistry(imageConfigToBuild, configuration.getPullRegistryConfig());
             final Credential pullRegistryCredential = getRegistryCredentials(
-                configuration.getRegistryConfig(), false, pullRegistry);
+                configuration.getPullRegistryConfig(), false, pullRegistry);
             final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfigToBuild, pullRegistry, pullRegistryCredential);
 
             final Map<Assembly, List<AssemblyFileEntry>> layers = AssemblyManager.getInstance()

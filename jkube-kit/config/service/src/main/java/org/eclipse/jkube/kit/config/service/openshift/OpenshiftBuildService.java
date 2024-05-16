@@ -39,7 +39,6 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -131,7 +130,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         initClient();
         String buildName = null;
         try {
-            final ImageConfiguration applicableImageConfig = getApplicableImageConfiguration(imageConfig, jKubeConfiguration.getRegistryConfig());
+            final ImageConfiguration applicableImageConfig = getApplicableImageConfiguration(imageConfig, jKubeConfiguration.getPullRegistryConfig());
             ImageName imageName = new ImageName(applicableImageConfig.getName());
 
             File dockerTar = createBuildArchive(jKubeServiceHub, applicableImageConfig);
@@ -343,10 +342,10 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
             fromImage = extractBaseFromConfiguration(buildConfig);
         }
 
-        String pullRegistry = getApplicablePullRegistryFrom(fromImage, jKubeConfiguration.getRegistryConfig());
+        String pullRegistry = getApplicablePullRegistryFrom(fromImage, jKubeConfiguration.getPullRegistryConfig());
 
         if (pullRegistry != null) {
-            RegistryConfig registryConfig = jKubeConfiguration.getRegistryConfig();
+            RegistryConfig registryConfig = jKubeConfiguration.getPullRegistryConfig();
             final AuthConfig authConfig = new AuthConfigFactory(log).createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
                     registryConfig.getSettings(), null, pullRegistry, registryConfig.getPasswordDecryptionMethod());
 
