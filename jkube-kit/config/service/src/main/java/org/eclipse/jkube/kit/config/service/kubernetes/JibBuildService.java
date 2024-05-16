@@ -78,22 +78,22 @@ public class JibBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    public void buildSingleImage(ImageConfiguration imageConfig) throws JKubeServiceException {
+    public void buildSingleImage(ImageConfiguration imageConfiguration) throws JKubeServiceException {
         try {
             kitLogger.info("[[B]]JIB[[B]] image build started");
-            if (imageConfig.getBuildConfiguration().isDockerFileMode()) {
+            if (imageConfiguration.getBuildConfiguration().isDockerFileMode()) {
                 throw new JKubeServiceException("Dockerfile mode is not supported with JIB build strategy");
             }
-            prependRegistry(imageConfig, getPushRegistry(imageConfig, configuration.getRegistryConfig()));
-            BuildDirs buildDirs = new BuildDirs(imageConfig.getName(), configuration);
-            String pullRegistry = getPullRegistry(imageConfig, configuration.getRegistryConfig());
+            final ImageConfiguration imageConfigToBuild = prependPushRegistry(imageConfiguration, configuration.getRegistryConfig());
+            final BuildDirs buildDirs = new BuildDirs(imageConfigToBuild.getName(), configuration);
+            final String pullRegistry = getPullRegistry(imageConfigToBuild, configuration.getRegistryConfig());
             final Credential pullRegistryCredential = getRegistryCredentials(
                 configuration.getRegistryConfig(), false, pullRegistry);
-            final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfig, pullRegistry, pullRegistryCredential);
+            final JibContainerBuilder containerBuilder = containerFromImageConfiguration(imageConfigToBuild, pullRegistry, pullRegistryCredential);
 
             final Map<Assembly, List<AssemblyFileEntry>> layers = AssemblyManager.getInstance()
                 .copyFilesToFinalTarballDirectory(configuration, buildDirs,
-                    AssemblyManager.getAssemblyConfiguration(imageConfig.getBuildConfiguration(), configuration));
+                    AssemblyManager.getAssemblyConfiguration(imageConfigToBuild.getBuildConfiguration(), configuration));
             JibServiceUtil.layers(buildDirs, layers).forEach(containerBuilder::addFileEntriesLayer);
 
             // TODO: Improve Assembly Manager so that the effective assemblyFileEntries computed can be properly shared
@@ -101,9 +101,9 @@ public class JibBuildService extends AbstractImageBuildService {
             // files should be added using the AssemblyFileEntry list. AssemblyManager, should provide
             // a common way to achieve this so that both the tar builder and any other builder could get a hold of
             // archive customizers, file entries, etc.
-            File dockerTarArchive = getAssemblyTarArchive(imageConfig, configuration, kitLogger);
+            File dockerTarArchive = getAssemblyTarArchive(imageConfigToBuild, configuration, kitLogger);
             JibServiceUtil.buildContainer(containerBuilder,
-                TarImage.at(dockerTarArchive.toPath()).named(imageConfig.getName()), jibLogger);
+                TarImage.at(dockerTarArchive.toPath()).named(imageConfigToBuild.getName()), jibLogger);
             kitLogger.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
         } catch (Exception ex) {
             throw new JKubeServiceException("Error when building JIB image", ex);
@@ -113,14 +113,13 @@ public class JibBuildService extends AbstractImageBuildService {
     @Override
     protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
         try {
-            final String pushRegistry = getPushRegistry(imageConfiguration, registryConfig);
-            prependRegistry(imageConfiguration, pushRegistry);
-            kitLogger.info("This push refers to: %s", imageConfiguration.getName());
-            kitLogger.info("Pushing image: %s", new ImageName(imageConfiguration.getName()).getFullName());
+            final ImageConfiguration imageConfigToPush = prependPushRegistry(imageConfiguration, registryConfig);
+            kitLogger.info("This push refers to: %s", imageConfigToPush.getName());
+            kitLogger.info("Pushing image: %s", new ImageName(imageConfigToPush.getName()).getFullName());
             JibServiceUtil.jibPush(
-                imageConfiguration,
-                getRegistryCredentials(registryConfig, true, pushRegistry),
-                getBuildTarArchive(imageConfiguration, configuration),
+              imageConfigToPush,
+                getRegistryCredentials(registryConfig, true, getPushRegistry(imageConfigToPush, registryConfig)),
+                getBuildTarArchive(imageConfigToPush, configuration),
               jibLogger
             );
         } catch (Exception ex) {
@@ -133,13 +132,15 @@ public class JibBuildService extends AbstractImageBuildService {
         // No post processing required
     }
 
-    static ImageConfiguration prependRegistry(ImageConfiguration imageConfiguration, String registry) {
-        ImageName imageName = new ImageName(imageConfiguration.getName());
-        if (!imageName.hasRegistry() && registry != null) {
-            imageConfiguration.setName(imageName.getFullName(registry));
-            imageConfiguration.setRegistry(registry);
+    static ImageConfiguration prependPushRegistry(ImageConfiguration imageConfiguration, RegistryConfig registryConfig) {
+        final ImageConfiguration.ImageConfigurationBuilder icBuilder = imageConfiguration.toBuilder();
+        final ImageName imageName = new ImageName(imageConfiguration.getName());
+        final String pushRegistry = getPushRegistry(imageConfiguration, registryConfig);
+        if (!imageName.hasRegistry() && pushRegistry != null) {
+            icBuilder.name(imageName.getFullName(pushRegistry));
+            icBuilder.registry(pushRegistry);
         }
-        return imageConfiguration;
+        return icBuilder.build();
     }
 
     static File getAssemblyTarArchive(ImageConfiguration imageConfig, JKubeConfiguration configuration, KitLogger log) throws IOException {

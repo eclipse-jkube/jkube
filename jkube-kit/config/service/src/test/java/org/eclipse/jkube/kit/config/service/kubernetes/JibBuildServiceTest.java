@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 
+import com.google.cloud.tools.jib.api.JibContainerBuilder;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -40,6 +41,7 @@ import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
@@ -51,6 +53,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class JibBuildServiceTest {
+
     @TempDir
     Path temporaryFolder;
 
@@ -80,8 +83,10 @@ class JibBuildServiceTest {
             .authConfig(Collections.emptyMap())
             .settings(Collections.emptyList())
             .build();
-        jibServiceUtilMockedStatic.when(() -> JibServiceUtil.getBaseImage(eq(imageConfiguration), isNull()))
+        jibServiceUtilMockedStatic.when(() -> JibServiceUtil.getBaseImage(argThat(ic -> ic.getBuild().getFrom().equals("busybox")), isNull()))
             .thenReturn("busybox");
+        jibServiceUtilMockedStatic.when(() -> JibServiceUtil.containerFromImageConfiguration(any(), any(), any()))
+            .thenReturn(mock(JibContainerBuilder.class, RETURNS_DEEP_STUBS));
     }
 
     @AfterEach
@@ -167,15 +172,6 @@ class JibBuildServiceTest {
     }
 
     @Test
-    void prependRegistry_prependsRegistryToTargetImageName() {
-        // When
-        JibBuildService.prependRegistry(imageConfiguration, "quay.io");
-        // Then
-        assertThat(imageConfiguration).isNotNull()
-            .hasFieldOrPropertyWithValue("name", "quay.io/test/testimage:0.0.1");
-    }
-
-    @Test
     void pushWithNoConfigurations() throws Exception {
         // When
         new JibBuildService(mockedServiceHub).push(Collections.emptyList(), 1, null, false);
@@ -250,6 +246,20 @@ class JibBuildServiceTest {
         new JibBuildService(mockedServiceHub).build(imageConfiguration);
         // Then
         verify(mockedServiceHub.getPluginManager().resolvePluginService(), times(1)).addExtraFiles();
+    }
+
+    @Test
+    void build_withRegistryConfig_shouldPrependRegistryToImageName() throws JKubeServiceException {
+        // Given
+        when(mockedServiceHub.getConfiguration().getRegistryConfig())
+          .thenReturn(RegistryConfig.builder().registry("quay.io").settings(Collections.emptyList()).build());
+        when(mockedServiceHub.getConfiguration().getProject())
+          .thenReturn(JavaProject.builder().baseDirectory(temporaryFolder.toFile()).build());
+        // When
+        new JibBuildService(mockedServiceHub).build(imageConfiguration);
+        // Then
+        jibServiceUtilMockedStatic.verify(() -> JibServiceUtil
+          .containerFromImageConfiguration(argThat(ic -> ic.getName().equals("quay.io/test/testimage:0.0.1")), any(), any()), times(1));
     }
 
     private static JKubeConfiguration createJKubeConfiguration(File projectBaseDir) {
