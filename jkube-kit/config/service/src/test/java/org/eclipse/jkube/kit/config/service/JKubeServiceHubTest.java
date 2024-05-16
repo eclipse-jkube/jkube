@@ -23,7 +23,7 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
-import org.eclipse.jkube.kit.config.service.kubernetes.JibBuildService;
+import org.eclipse.jkube.kit.config.service.kubernetes.JibImageBuildService;
 import org.eclipse.jkube.kit.config.service.kubernetes.KubernetesUndeployService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
@@ -148,7 +148,7 @@ class JKubeServiceHubTest {
       // Then
       assertThat(buildService)
           .isNotNull()
-          .isInstanceOf(JibBuildService.class);
+          .isInstanceOf(JibImageBuildService.class);
     }
   }
 
