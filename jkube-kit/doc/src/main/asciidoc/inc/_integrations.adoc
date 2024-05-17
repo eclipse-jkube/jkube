@@ -100,3 +100,9 @@ default-builder-image = "testuser/buildpacks-quarkus-builder:latest"
 ----
 jkube.generator.buildpacksBuilderImage = "testuser/buildpacks-quarkus-builder:latest"
 ----
+
+[NOTE]
+====
+BuildPacks integration simply involves delegation of the build process to `pack` CLI. {plugin} has no control over how image gets built. This is controlled by BuildPack builder image. User is
+responsible for making sure that valid configuration is provided for BuildPacks.
+====
