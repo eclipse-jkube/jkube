@@ -24,7 +24,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProjectHelper;
 import org.eclipse.jkube.kit.resource.helm.GeneratedChartListener;
-import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 /**
  * Generates a Helm chart for the Kubernetes resources
@@ -71,8 +70,4 @@ public class HelmMojo extends AbstractHelmMojo {
     return kubernetesManifest;
   }
 
-  @Override
-  protected HelmConfig.HelmType getDefaultHelmType() {
-    return HelmConfig.HelmType.KUBERNETES;
-  }
 }
