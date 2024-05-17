@@ -31,10 +31,6 @@ public class PushMojo extends AbstractDockerMojo {
     @Parameter(property = "jkube.skip.push", defaultValue = "false")
     protected boolean skipPush;
 
-    // Registry to use for push operations if no registry is specified
-    @Parameter(property = "jkube.docker.push.registry")
-    private String pushRegistry;
-
     /**
      * Skip building tags
      */

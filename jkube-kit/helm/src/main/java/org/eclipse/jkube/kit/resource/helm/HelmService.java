@@ -16,7 +16,6 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -154,10 +153,10 @@ public class HelmService {
     final HelmRepository helmRepository = selectHelmRepository(helm);
     if (isRepositoryValid(helmRepository)) {
       final List<RegistryServerConfiguration> registryServerConfigurations = Optional
-          .ofNullable(jKubeConfiguration).map(JKubeConfiguration::getRegistryConfig).map(RegistryConfig::getSettings)
+          .ofNullable(jKubeConfiguration).map(JKubeConfiguration::getPullRegistryConfig).map(RegistryConfig::getSettings)
           .orElse(Collections.emptyList());
       final UnaryOperator<String> passwordDecryptor = Optional.ofNullable(jKubeConfiguration)
-          .map(JKubeConfiguration::getRegistryConfig).map(RegistryConfig::getPasswordDecryptionMethod)
+          .map(JKubeConfiguration::getPullRegistryConfig).map(RegistryConfig::getPasswordDecryptionMethod)
           .orElse(s -> s);
       setAuthentication(helmRepository, logger, registryServerConfigurations, passwordDecryptor);
       uploadHelmChart(helm, helmRepository);

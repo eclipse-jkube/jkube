@@ -67,7 +67,7 @@ class HelmServiceTest {
       .tarballOutputDir(helmOutputDirectory.toFile().getAbsolutePath());
     jKubeConfiguration = JKubeConfiguration.builder()
       .project(JavaProject.builder().properties(new Properties()).build())
-      .registryConfig(RegistryConfig.builder().settings(new ArrayList<>()).build()).build();
+      .pullRegistryConfig(RegistryConfig.builder().settings(new ArrayList<>()).build()).build();
     resourceServiceConfig = new ResourceServiceConfig();
     helmService = new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger());
   }

@@ -41,7 +41,8 @@ public class JKubeConfiguration implements Serializable {
   private String sourceDirectory;
   private String outputDirectory;
   private Map<String, String> buildArgs;
-  private RegistryConfig registryConfig;
+  private RegistryConfig pullRegistryConfig;
+  private RegistryConfig pushRegistryConfig;
   private List<JavaProject> reactorProjects;
 
   public File getBasedir() {

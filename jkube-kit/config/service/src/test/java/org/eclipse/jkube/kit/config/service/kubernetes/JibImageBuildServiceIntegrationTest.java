@@ -85,7 +85,8 @@ class JibImageBuildServiceIntegrationTest {
           .outputDirectory(targetDirectory.toFile())
           .properties(new Properties())
           .build())
-        .registryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
+        .pullRegistryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
+        .pushRegistryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
         .build())
       .build();
     jibBuildService = new JibImageBuildService(hub);
@@ -188,7 +189,7 @@ class JibImageBuildServiceIntegrationTest {
         .registry("gcr.io")
         .build();
       hub = hub.toBuilder().configuration(hub.getConfiguration().toBuilder()
-          .registryConfig(RegistryConfig.builder()
+          .pullRegistryConfig(RegistryConfig.builder()
             .registry("gcr.io")
             .authConfig(Collections.emptyMap())
             .settings(Collections.emptyList())

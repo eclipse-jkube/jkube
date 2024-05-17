@@ -177,6 +177,10 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(property = "jkube.docker.pull.registry")
     protected String pullRegistry;
 
+    // Registry to use for push operations if no registry is specified
+    @Parameter(property = "jkube.docker.push.registry")
+    protected String pushRegistry;
+
     /**
      * Build mode when build is performed.
      * Can be either "s2i" for an s2i binary build mode (in case of OpenShift) or
@@ -428,7 +432,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             .outputDirectory(outputDirectory)
             .reactorProjects(Collections.singletonList(javaProject))
             .buildArgs(buildArgs)
-            .registryConfig(getRegistryConfig(pullRegistry))
+            .pullRegistryConfig(getRegistryConfig(pullRegistry))
+            .pushRegistryConfig(getRegistryConfig(pushRegistry))
             .build();
     }
 

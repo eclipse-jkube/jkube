@@ -99,7 +99,7 @@ class HelmServiceUploadIT {
     helmService = new HelmService(
       JKubeConfiguration.builder()
         .project(JavaProject.builder().properties(new Properties()).build())
-        .registryConfig(RegistryConfig.builder()
+        .pullRegistryConfig(RegistryConfig.builder()
           .settings(Collections.singletonList(registryServerConfiguration)).build())
         .build(),
       new ResourceServiceConfig(),

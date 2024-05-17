@@ -166,7 +166,7 @@ class HelmPushMojoTest {
       // When
       helmPushMojo.execute();
       // Then
-      assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getRegistryConfig().getSettings()).singleElement()
+      assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getPullRegistryConfig().getSettings()).singleElement()
           .isEqualTo(RegistryServerConfiguration.builder()
               .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
       assertThat(helmServiceMockedConstruction.constructed()).hasSize(1);
