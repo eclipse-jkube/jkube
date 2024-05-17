@@ -31,6 +31,7 @@ Usage:
 * Fix #2901: Ensure Docker build arguments from properties are used during images pre-pulling
 * Fix #2904: `docker.buildArg.*` properties not taken into account in OpenShift plugins
 * Fix #3007: Kubernetes Maven Plugin generating resource manifests with line feeds on Windows
+* Fix #3067: Helm Push uses configured docker global and push registries instead of pull 
 
 ### 1.16.2 (2024-03-27)
 * Fix #2461: `k8s:watch`/`k8sWatch` should throw error in `buildpacks` build strategy

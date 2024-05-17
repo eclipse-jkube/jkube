@@ -169,6 +169,9 @@ class HelmPushMojoTest {
       assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getPullRegistryConfig().getSettings()).singleElement()
           .isEqualTo(RegistryServerConfiguration.builder()
               .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
+      assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getPushRegistryConfig().getSettings()).singleElement()
+          .isEqualTo(RegistryServerConfiguration.builder()
+              .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
       assertThat(helmServiceMockedConstruction.constructed()).hasSize(1);
       verify(helmServiceMockedConstruction.constructed().get(0), times(1)).uploadHelmChart(helmPushMojo.helm);
     }

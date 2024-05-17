@@ -153,10 +153,10 @@ public class HelmService {
     final HelmRepository helmRepository = selectHelmRepository(helm);
     if (isRepositoryValid(helmRepository)) {
       final List<RegistryServerConfiguration> registryServerConfigurations = Optional
-          .ofNullable(jKubeConfiguration).map(JKubeConfiguration::getPullRegistryConfig).map(RegistryConfig::getSettings)
+          .ofNullable(jKubeConfiguration).map(JKubeConfiguration::getPushRegistryConfig).map(RegistryConfig::getSettings)
           .orElse(Collections.emptyList());
       final UnaryOperator<String> passwordDecryptor = Optional.ofNullable(jKubeConfiguration)
-          .map(JKubeConfiguration::getPullRegistryConfig).map(RegistryConfig::getPasswordDecryptionMethod)
+          .map(JKubeConfiguration::getPushRegistryConfig).map(RegistryConfig::getPasswordDecryptionMethod)
           .orElse(s -> s);
       setAuthentication(helmRepository, logger, registryServerConfigurations, passwordDecryptor);
       uploadHelmChart(helm, helmRepository);
