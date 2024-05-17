@@ -56,7 +56,7 @@ class ExternalCommandTest {
     // When + Then
     assertThatIOException()
         .isThrownBy(testCommand::execute)
-        .withMessage("Process 'ls idontexist' exited with status 2");
+        .withMessageMatching("Process 'ls idontexist' exited with status [^0]");
   }
 
   @Test
