@@ -159,7 +159,8 @@ class SpringBootGeneratorIntegrationTest {
       // Then
       assertThat(images)
         .singleElement()
-        .extracting("buildConfiguration.ports").asList()
+        .extracting("buildConfiguration.ports")
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .contains("8080");
     }
     @Test
@@ -170,7 +171,8 @@ class SpringBootGeneratorIntegrationTest {
         .customize(new ArrayList<>(), false);
       // Then
       assertThat(images).singleElement()
-        .extracting("buildConfiguration.ports").asList()
+        .extracting("buildConfiguration.ports")
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .contains("8778");
     }
 
@@ -182,7 +184,8 @@ class SpringBootGeneratorIntegrationTest {
         .customize(new ArrayList<>(), false);
       // Then
       assertThat(images).singleElement()
-        .extracting("buildConfiguration.ports").asList()
+        .extracting("buildConfiguration.ports")
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .contains("9779");
     }
 
@@ -216,12 +219,15 @@ class SpringBootGeneratorIntegrationTest {
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList().hasSize(1)
+        .asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
+        .hasSize(1)
         .satisfies(layers -> assertThat(layers).element(0).asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
           .extracting(Assembly::getFileSets)
-          .asList().element(2)
+          .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class))
+          .element(2)
           .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
-          .extracting("includes").asList()
+          .extracting("includes")
+          .asInstanceOf(InstanceOfAssertFactories.list(String.class))
           .containsExactly("fat.jar"));
     }
 
@@ -258,7 +264,8 @@ class SpringBootGeneratorIntegrationTest {
       // Then
       assertThat(images)
         .singleElement()
-        .extracting("buildConfiguration.ports").asList()
+        .extracting("buildConfiguration.ports")
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .contains("8081");
     }
 
@@ -340,7 +347,7 @@ class SpringBootGeneratorIntegrationTest {
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
         .hasSize(5)
         .contains(
           Assembly.builder()
@@ -440,13 +447,16 @@ class SpringBootGeneratorIntegrationTest {
           .hasFieldOrPropertyWithValue("targetDir", "/")
           .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
           .extracting(AssemblyConfiguration::getLayers)
-          .asList().hasSize(1)
+          .asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
+          .hasSize(1)
           .satisfies(layers -> assertThat(layers).element(0).asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
               .extracting(Assembly::getFileSets)
-              .asList().element(2)
+              .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class))
+              .element(2)
               .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
               .hasFieldOrPropertyWithValue("fileMode", "0755")
-              .extracting("includes").asList()
+              .extracting("includes")
+              .asInstanceOf(InstanceOfAssertFactories.list(String.class))
               .containsExactly("native-binary-artifact"));
     }
 
