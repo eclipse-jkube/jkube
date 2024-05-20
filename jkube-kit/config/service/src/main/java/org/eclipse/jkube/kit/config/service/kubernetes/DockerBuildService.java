@@ -19,7 +19,6 @@ import java.util.Objects;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -66,9 +65,10 @@ public class DockerBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, boolean skipTag) throws JKubeServiceException {
         try {
-            dockerServices.getRegistryService().pushImage(imageConfiguration, retries, registryConfig, skipTag);
+            dockerServices.getRegistryService()
+              .pushImage(imageConfiguration, retries, jKubeConfiguration.getPushRegistryConfig(), skipTag);
         } catch (IOException ex) {
             throw new JKubeServiceException("Error while trying to push the image: " + ex.getMessage(), ex);
         }

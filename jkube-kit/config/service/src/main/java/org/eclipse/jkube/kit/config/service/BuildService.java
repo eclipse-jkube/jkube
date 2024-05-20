@@ -43,11 +43,10 @@ public interface BuildService {
      *
      * @param imageConfigs image configurations to process
      * @param retries number of retries
-     * @param registryConfig registry configuration
      * @param skipTag boolean value whether skip tagging or not
      * @throws JKubeServiceException in case of any error while building image
      */
-    void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException;
+    void push(Collection<ImageConfiguration> imageConfigs, int retries, boolean skipTag) throws JKubeServiceException;
 
     /**
      * Post processing step called after all images has been build
