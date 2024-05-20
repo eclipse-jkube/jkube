@@ -90,6 +90,7 @@ public class HelmConfig {
     setTypes(HelmType.parseString(types));
   }
 
+  @Getter
   public enum HelmType {
     KUBERNETES("helm", "kubernetes", "kubernetes", "Kubernetes"),
     OPENSHIFT("helmshift", "openshift","openshift", "OpenShift");
@@ -104,22 +105,6 @@ public class HelmConfig {
       this.sourceDir = sourceDir;
       this.outputDir = outputDir;
       this.description = description;
-    }
-
-    public String getClassifier() {
-      return classifier;
-    }
-
-    public String getSourceDir() {
-      return sourceDir;
-    }
-
-    public String getOutputDir() {
-      return outputDir;
-    }
-
-    public String getDescription() {
-      return description;
     }
 
     public static List<HelmType> parseString(String types) {
