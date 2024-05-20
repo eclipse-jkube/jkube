@@ -116,8 +116,9 @@ public class JibImageBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
+    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, boolean skipTag) throws JKubeServiceException {
         try {
+            final RegistryConfig registryConfig = configuration.getPushRegistryConfig();
             final ImageConfiguration imageConfigToPush = prependPushRegistry(imageConfiguration, registryConfig);
             kitLogger.info("This push refers to: %s", imageConfigToPush.getName());
             kitLogger.info("Pushing image: %s", new ImageName(imageConfigToPush.getName()).getFullName());

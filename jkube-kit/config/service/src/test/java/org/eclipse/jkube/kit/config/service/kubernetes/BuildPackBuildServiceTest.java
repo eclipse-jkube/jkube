@@ -77,6 +77,7 @@ class BuildPackBuildServiceTest {
     jKubeServiceHub = JKubeServiceHub.builder()
         .log(kitLogger)
         .platformMode(RuntimeMode.KUBERNETES)
+        .dockerServiceHub(mock(DockerServiceHub.class))
         .buildServiceConfig(buildServiceConfig)
         .configuration(JKubeConfiguration.builder().build())
         .build();
@@ -228,17 +229,17 @@ class BuildPackBuildServiceTest {
     private BuildPackBuildService buildPackBuildService;
     private DockerAccess dockerAccess;
 
-    private RegistryConfig registryConfig;
-
     @BeforeEach
     void setUp() {
       dockerAccess = mock(DockerAccess.class);
       jKubeServiceHub = jKubeServiceHub.toBuilder()
           .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, dockerAccess))
-          .build();
-      registryConfig = RegistryConfig.builder()
-          .registry("example.com")
-          .settings(Collections.emptyList())
+          .configuration(JKubeConfiguration.builder()
+            .pushRegistryConfig(RegistryConfig.builder()
+              .registry("example.com")
+              .settings(Collections.emptyList())
+              .build())
+            .build())
           .build();
       buildPackBuildService = new BuildPackBuildService(jKubeServiceHub, new Properties());
     }
@@ -247,7 +248,7 @@ class BuildPackBuildServiceTest {
     @DisplayName("push successfully done via docker daemon")
     void whenPushSuccessful_thenImagePushedViaDockerAccess() throws JKubeServiceException, DockerAccessException {
       // When
-      buildPackBuildService.pushSingleImage(imageConfiguration, 0, registryConfig, true);
+      buildPackBuildService.pushSingleImage(imageConfiguration, 0, true);
 
       // Then
       verify(dockerAccess).pushImage("foo/bar:latest", null, "example.com", 0);
@@ -262,7 +263,7 @@ class BuildPackBuildServiceTest {
 
       // When + Then
       assertThatExceptionOfType(JKubeServiceException.class)
-          .isThrownBy(() -> buildPackBuildService.pushSingleImage(imageConfiguration, 0, registryConfig, false))
+          .isThrownBy(() -> buildPackBuildService.pushSingleImage(imageConfiguration, 0, false))
           .withMessage("Error while trying to push the image: Push failure");
     }
   }

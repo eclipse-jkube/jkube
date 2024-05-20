@@ -139,7 +139,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
                 .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
                 .skipExtendedAuth(kubernetesExtension.getSkipExtendedAuth().getOrElse(false))
                 .passwordDecryptionMethod(s -> s)
-                .registry(kubernetesExtension.getPushRegistryOrNull())
+                .registry(kubernetesExtension.getPushRegistryOrNull() != null ?
+                  kubernetesExtension.getPushRegistryOrNull() : kubernetesExtension.getRegistryOrDefault())
                 .build())
             .build())
         .clusterAccess(clusterAccess)
