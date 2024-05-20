@@ -31,7 +31,7 @@ import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicableP
 import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePushRegistryFrom;
 
 /**
- * Allows to interact with registries, eg. to push/pull images.
+ * Allows to interact with registries, e.g. to push/pull images.
  */
 public class RegistryService {
 
@@ -54,8 +54,9 @@ public class RegistryService {
      * @param skipTag flag to skip pushing tagged images
      * @throws IOException exception
      */
-    public void pushImage(ImageConfiguration imageConfig,
-                          int retries, RegistryConfig registryConfig, boolean skipTag) throws IOException {
+    public void pushImage(
+      ImageConfiguration imageConfig, int retries, RegistryConfig registryConfig, boolean skipTag
+    ) throws IOException {
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
         String name = imageConfig.getName();
         if (buildConfig != null) {

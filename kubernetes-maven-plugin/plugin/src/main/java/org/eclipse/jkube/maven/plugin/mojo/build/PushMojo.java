@@ -23,7 +23,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * Uploads the built Docker images to a Docker registry
  *
  * @author roland
- * @since 16/03/16
  */
 @Mojo(name = "push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class PushMojo extends AbstractDockerMojo {
@@ -52,7 +51,7 @@ public class PushMojo extends AbstractDockerMojo {
         }
 
         try {
-            jkubeServiceHub.getBuildService().push(getResolvedImages(), retries, getRegistryConfig(pushRegistry), skipTag);
+            jkubeServiceHub.getBuildService().push(getResolvedImages(), retries, skipTag);
         } catch (Exception ex) {
             throw new MojoExecutionException(ex.getMessage(), ex);
         }

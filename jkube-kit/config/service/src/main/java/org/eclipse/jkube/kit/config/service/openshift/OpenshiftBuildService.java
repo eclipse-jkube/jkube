@@ -173,7 +173,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) {
+    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, boolean skipTag) {
         // Do nothing. Image is pushed as part of build phase
         log.warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
     }
