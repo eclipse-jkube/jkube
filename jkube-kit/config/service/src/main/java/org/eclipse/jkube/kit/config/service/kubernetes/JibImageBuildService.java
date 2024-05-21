@@ -118,11 +118,9 @@ public class JibImageBuildService extends AbstractImageBuildService {
 
     @Override
     protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, boolean skipTag) throws JKubeServiceException {
-        final RegistryConfig registryConfig = configuration.getPushRegistryConfig();
-        final ImageConfiguration imageConfigToPush = prependPushRegistry(imageConfiguration, registryConfig);
-        kitLogger.info("Pushing image: %s", new ImageName(imageConfigToPush.getName()).getFullName());
-        try (JibService jibService = new JibService(kitLogger, configuration, imageConfigToPush)) {
-            jibService.push(getRegistryCredentials(registryConfig, true, getPushRegistry(imageConfigToPush, registryConfig)));
+        try (JibService jibService = new JibService(kitLogger, authConfigFactory, configuration, imageConfiguration)) {
+            kitLogger.info("Pushing image: %s", jibService.getImageName().getFullName());
+            jibService.push();
         } catch (Exception ex) {
             throw new JKubeServiceException("Error when push JIB image", ex);
         }
@@ -133,6 +131,7 @@ public class JibImageBuildService extends AbstractImageBuildService {
         // No post processing required
     }
 
+    // TODO: remove in favor of JibService implementation
     static ImageConfiguration prependPushRegistry(ImageConfiguration imageConfiguration, RegistryConfig registryConfig) {
         final ImageConfiguration.ImageConfigurationBuilder icBuilder = imageConfiguration.toBuilder();
         final ImageName imageName = new ImageName(imageConfiguration.getName());
@@ -151,6 +150,7 @@ public class JibImageBuildService extends AbstractImageBuildService {
                 .createDockerTarArchive(targetImage, configuration, imageConfig.getBuildConfiguration(), log, null);
     }
 
+    // TODO: remove in favor of JibService implementation
     Credential getRegistryCredentials(RegistryConfig registryConfig, boolean isPush, String registry)
         throws IOException {
 

@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.service.jib;
 
 import com.google.cloud.tools.jib.api.Containerizer;
-import com.google.cloud.tools.jib.api.Credential;
 import com.google.cloud.tools.jib.api.Jib;
 import com.google.cloud.tools.jib.api.RegistryUnauthorizedException;
 import com.google.cloud.tools.jib.api.TarImage;
@@ -30,6 +29,8 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.AfterEach;
@@ -44,6 +45,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -55,6 +57,7 @@ class JibServiceTest {
   private Path tempDir;
   private String remoteOciServer;
   private KitLogger kitLogger;
+  private TestAuthConfigFactory testAuthConfigFactory;
   private JKubeConfiguration configuration;
   private ImageConfiguration imageConfiguration;
 
@@ -69,7 +72,16 @@ class JibServiceTest {
       new RepoServerOptions(null, "oci-user", "oci-password")
     ).out;
     kitLogger = new KitLogger.SilentLogger();
+    testAuthConfigFactory = new TestAuthConfigFactory();
     configuration = JKubeConfiguration.builder()
+      .pushRegistryConfig(RegistryConfig.builder()
+        .registry(remoteOciServer)
+        .settings(Collections.singletonList(RegistryServerConfiguration.builder()
+            .id(remoteOciServer)
+            .username("oci-user")
+            .password("oci-password")
+          .build()))
+        .build())
       .project(JavaProject.builder()
         .baseDirectory(tempDir.toFile())
         .build())
@@ -82,6 +94,19 @@ class JibServiceTest {
       .build();
   }
 
+  @Test
+  void prependsRegistryWhenNotConfiguredInName() throws Exception {
+    configuration = configuration.toBuilder()
+      .pushRegistryConfig(RegistryConfig.builder()
+        .registry("prepend.example.com")
+        .build())
+      .build();
+    imageConfiguration = ImageConfiguration.builder().name("the-image-name").build();
+    try (JibService jibService = new JibService(kitLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+      assertThat(jibService.getImageName().getFullName()).isEqualTo("prepend.example.com/the-image-name:latest");
+    }
+  }
+
   @Nested
   @DisplayName("push")
   class Push {
@@ -89,9 +114,10 @@ class JibServiceTest {
     private boolean sendCredentialsOverHttp;
 
     @BeforeEach
-    void buildContainer() throws Exception {
+    void setUp() throws Exception {
       sendCredentialsOverHttp = JibSystemProperties.sendCredentialsOverHttp();
       System.setProperty(JibSystemProperties.SEND_CREDENTIALS_OVER_HTTP, "true");
+
       final BuildDirs buildDirs = new BuildDirs(imageConfiguration.getName(), configuration);
       Jib.fromScratch()
         .setFormat(ImageFormat.Docker)
@@ -109,19 +135,20 @@ class JibServiceTest {
     }
 
     @Test
-    void emptyImageNameThrowsException() throws Exception {
-      try (JibService jibService = new JibService(kitLogger, configuration, ImageConfiguration.builder().build())) {
-        assertThatThrownBy(() -> jibService.push(null))
-          .isInstanceOf(NullPointerException.class)
-          .hasMessage("Image name must not be null");
-      }
+    void emptyImageNameThrowsException() {
+      final ImageConfiguration emptyImageConfiguration = ImageConfiguration.builder().build();
+      assertThatThrownBy(() -> new JibService(kitLogger, testAuthConfigFactory, configuration, emptyImageConfiguration))
+        .isInstanceOf(NullPointerException.class)
+        .hasMessage("Image name must not be null");
     }
 
     @Test
     void pushInvalidCredentials() throws Exception {
-      final Credential invalidCredential = Credential.from("oci-user", "oci-password-invalid");
-      try (JibService jibService = new JibService(kitLogger, configuration, imageConfiguration)) {
-        assertThatThrownBy(() -> jibService.push(invalidCredential))
+      configuration = configuration.toBuilder()
+        .pushRegistryConfig(RegistryConfig.builder().build())
+        .build();
+      try (JibService jibService = new JibService(kitLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        assertThatThrownBy(jibService::push)
           .isInstanceOf(JKubeException.class)
           .hasMessageContaining("Unable to containerize image using Jib: Unauthorized for")
           .cause()
@@ -131,8 +158,8 @@ class JibServiceTest {
 
     @Test
     void push() throws Exception {
-      try (JibService jibService = new JibService(kitLogger, configuration, imageConfiguration)) {
-        jibService.push(Credential.from("oci-user", "oci-password"));
+      try (JibService jibService = new JibService(kitLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        jibService.push();
       }
       final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/the-image-name/tags/list")
         .openConnection();
@@ -151,8 +178,8 @@ class JibServiceTest {
           .tag("1.0.0")
           .build())
         .build();
-      try (JibService jibService = new JibService(kitLogger, configuration, imageConfiguration)) {
-        jibService.push(Credential.from("oci-user", "oci-password"));
+      try (JibService jibService = new JibService(kitLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        jibService.push();
       }
       final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/the-image-name/tags/list")
         .openConnection();
