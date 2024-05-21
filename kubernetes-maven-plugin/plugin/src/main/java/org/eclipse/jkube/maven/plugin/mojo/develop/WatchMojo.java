@@ -125,8 +125,6 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
                     .build();
         } catch (DependencyResolutionRequiredException dependencyException) {
             throw new MojoExecutionException("Instructed to use project classpath, but cannot. Continuing build if we can: " + dependencyException.getMessage());
-        } catch (IOException ioException) {
-            throw new MojoExecutionException(ioException.getMessage());
         }
     }
 
@@ -150,7 +148,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
         return new AnsiLogger(getLog(), useColor, verbose, !settings.getInteractiveMode(), getLogPrefix() + prefix);
     }
 
-    protected WatchContext getWatchContext() throws DependencyResolutionRequiredException, IOException {
+    protected WatchContext getWatchContext() throws DependencyResolutionRequiredException {
         final DockerServiceHub hub = jkubeServiceHub.getDockerServiceHub();
         return WatchContext.builder()
                 .watchInterval(watchInterval)
