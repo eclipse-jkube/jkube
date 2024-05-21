@@ -33,7 +33,6 @@ import java.util.function.UnaryOperator;
  * pushing to Docker
  *
  * @author roland
- * @since 22.07.14
  */
 @Getter
 @EqualsAndHashCode

@@ -38,6 +38,10 @@
       <groupId>com.google.cloud.tools</groupId>
       <artifactId>jib-core</artifactId>
     </dependency>
+    <dependency> <!-- Required by Jib -->
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -56,6 +60,10 @@
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>com.marcnuri.helm-java</groupId>
+      <artifactId>helm-java</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

@@ -102,8 +102,6 @@ class JibImageBuildServiceIntegrationTest {
     // When + Then
     assertThatExceptionOfType(JKubeServiceException.class)
         .isThrownBy(() -> jibBuildService.build(ic))
-        .withMessage("Error when building JIB image")
-        .havingCause()
         .withMessage("Dockerfile mode is not supported with JIB build strategy");
   }
 
