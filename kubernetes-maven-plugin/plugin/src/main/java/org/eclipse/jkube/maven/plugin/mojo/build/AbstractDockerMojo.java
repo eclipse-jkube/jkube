@@ -32,7 +32,7 @@ import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.DockerAuthConfigFactory;
 import org.eclipse.jkube.kit.build.service.docker.config.DockerMachineConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -307,7 +307,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected String environment;
 
     // Handler dealing with authentication credentials
-    protected AuthConfigFactory authConfigFactory;
+    protected DockerAuthConfigFactory authConfigFactory;
 
     protected KitLogger log;
 
@@ -374,7 +374,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected void init() {
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
-        authConfigFactory = new AuthConfigFactory(log);
+        authConfigFactory = new DockerAuthConfigFactory(log);
         clusterAccess = new ClusterAccess(initClusterConfiguration());
         runtimeMode = getConfiguredRuntimeMode();
     }

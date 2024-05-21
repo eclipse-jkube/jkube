@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.ImageStreamTag;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.DockerAuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -346,7 +346,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
 
         if (pullRegistry != null) {
             RegistryConfig registryConfig = jKubeConfiguration.getPullRegistryConfig();
-            final AuthConfig authConfig = new AuthConfigFactory(log).createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
+            final AuthConfig authConfig = new DockerAuthConfigFactory(log).createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
                     registryConfig.getSettings(), null, pullRegistry, registryConfig.getPasswordDecryptionMethod());
 
             final Secret secret = Optional.ofNullable(pullSecretName)

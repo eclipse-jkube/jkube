@@ -54,9 +54,9 @@ import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
-class AuthConfigFactoryTest {
+class DockerAuthConfigFactoryTest {
     static final String ECR_NAME = "123456789012.dkr.ecr.bla.amazonaws.com";
-    private AuthConfigFactory factory;
+    private DockerAuthConfigFactory factory;
     private GsonBuilder gsonBuilder;
     private KitLogger log;
     private AwsSdkHelper awsSdkHelper;
@@ -66,7 +66,7 @@ class AuthConfigFactoryTest {
     void containerSetup() {
         log = new KitLogger.SilentLogger();
         awsSdkHelper = mock(AwsSdkHelper.class);
-        factory = new AuthConfigFactory(log, awsSdkHelper);
+        factory = new DockerAuthConfigFactory(log, awsSdkHelper);
         gsonBuilder = new GsonBuilder();
     }
 
@@ -85,7 +85,7 @@ class AuthConfigFactoryTest {
         System.setProperty("jkube.docker.password", "testpass");
         try {
             // When
-            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromSystemProperties(AuthConfigFactory.LookupMode.DEFAULT, s -> s);
+            AuthConfig authConfig = DockerAuthConfigFactory.getAuthConfigFromSystemProperties(DockerAuthConfigFactory.LookupMode.DEFAULT, s -> s);
             // Then
             assertAuthConfig(authConfig, "testuser", "testpass");
         } finally {
@@ -105,7 +105,7 @@ class AuthConfigFactoryTest {
                     .password("sometoken")
                     .build());
             // When
-            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromOpenShiftConfig(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
+            AuthConfig authConfig = DockerAuthConfigFactory.getAuthConfigFromOpenShiftConfig(DockerAuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
             // Then
             assertAuthConfig(authConfig, "test", "sometoken");
         } finally {
@@ -124,7 +124,7 @@ class AuthConfigFactoryTest {
                 .password("sometoken")
                 .build());
             // When
-            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromOpenShiftConfig(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
+            AuthConfig authConfig = DockerAuthConfigFactory.getAuthConfigFromOpenShiftConfig(DockerAuthConfigFactory.LookupMode.DEFAULT, authConfigMap);
 
             // Then
             assertAuthConfig(authConfig, "test", "sometoken");
@@ -140,7 +140,7 @@ class AuthConfigFactoryTest {
         authConfigMap.put("email", "test@example.com");
 
         // When
-        AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromPluginConfiguration(AuthConfigFactory.LookupMode.DEFAULT, authConfigMap, s -> s);
+        AuthConfig authConfig = DockerAuthConfigFactory.getAuthConfigFromPluginConfiguration(DockerAuthConfigFactory.LookupMode.DEFAULT, authConfigMap, s -> s);
 
         // Then
         assertAuthConfig(authConfig, "testuser", "testpass");
@@ -157,7 +157,7 @@ class AuthConfigFactoryTest {
                 .password("testpass")
                 .build());
         // When
-        AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromSettings(settings, "testuser", "testregistry.io", s -> s);
+        AuthConfig authConfig = DockerAuthConfigFactory.getAuthConfigFromSettings(settings, "testuser", "testregistry.io", s -> s);
 
         // Then
         assertAuthConfig(authConfig, "testuser", "testpass");
@@ -172,7 +172,7 @@ class AuthConfigFactoryTest {
         try {
             EnvUtil.overrideEnvGetter(env::get);
             // When
-            AuthConfig authConfig = AuthConfigFactory.getAuthConfigFromDockerConfig("https://index.docker.io/v1/", log);
+            AuthConfig authConfig = DockerAuthConfigFactory.getAuthConfigFromDockerConfig("https://index.docker.io/v1/", log);
             // Then
             assertAuthConfig(authConfig, "testuser", "testpass");
         } finally {
@@ -187,7 +187,7 @@ class AuthConfigFactoryTest {
         System.setProperty("jkube.docker.password", "testpass");
         try {
             // When
-            AuthConfigFactory authConfigFactory = new AuthConfigFactory(log);
+            DockerAuthConfigFactory authConfigFactory = new DockerAuthConfigFactory(log);
             AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), Collections.emptyList(), "testuser", "testregistry.io", s -> s);
             // Then
             assertAuthConfig(authConfig, "testuser", "testpass");
@@ -208,7 +208,7 @@ class AuthConfigFactoryTest {
                 .build());
 
         // When
-        AuthConfigFactory authConfigFactory = new AuthConfigFactory(log);
+        DockerAuthConfigFactory authConfigFactory = new DockerAuthConfigFactory(log);
         AuthConfig authConfig = authConfigFactory.createAuthConfig(true, true, Collections.emptyMap(), settings, "testuser", "testregistry.io", s -> s);
 
         // Then

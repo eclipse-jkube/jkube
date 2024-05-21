@@ -18,7 +18,7 @@ import java.io.IOException;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.DockerAuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -152,7 +152,7 @@ public class RegistryService {
     private AuthConfig createAuthConfig(boolean isPush, String user, String registry, RegistryConfig config)
             throws IOException {
 
-        return new AuthConfigFactory(log).createAuthConfig(
+        return new DockerAuthConfigFactory(log).createAuthConfig(
             isPush, config.isSkipExtendedAuth(), config.getAuthConfig(),
             config.getSettings(), user, registry, config.getPasswordDecryptionMethod());
     }
