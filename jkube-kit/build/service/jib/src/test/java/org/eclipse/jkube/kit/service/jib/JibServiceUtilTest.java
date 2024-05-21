@@ -28,10 +28,7 @@ import java.util.concurrent.ExecutorService;
 
 import com.google.cloud.tools.jib.api.CacheDirectoryCreationException;
 import com.google.cloud.tools.jib.api.Containerizer;
-import com.google.cloud.tools.jib.api.Credential;
-import com.google.cloud.tools.jib.api.Jib;
 import com.google.cloud.tools.jib.api.RegistryException;
-import com.google.cloud.tools.jib.api.RegistryImage;
 import com.google.cloud.tools.jib.api.TarImage;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
@@ -58,12 +55,10 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
 import static org.mockito.Answers.RETURNS_SELF;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstructionWithAnswer;
 import static org.mockito.Mockito.mockStatic;
@@ -213,77 +208,6 @@ class JibServiceUtilTest {
             verify(containerizer).setAllowInsecureRegistries(true);
             verify(containerizer).setExecutorService(any(ExecutorService.class));
             verify(containerizer, times(2)).addEventHandler(any(), any());
-            verify(jibContainerBuilder).containerize(containerizer);
-        }
-    }
-
-    @Test
-    void jibPush_whenPushFailed_thenThrowException() throws CacheDirectoryCreationException, IOException, ExecutionException, InterruptedException, RegistryException {
-        try (MockedStatic<Containerizer> containerizerMockedStatic = mockStatic(Containerizer.class);
-             MockedStatic<Jib> jibMockedStatic = mockStatic(Jib.class)) {
-            // Given
-            JibContainerBuilder jibContainerBuilder = mock(JibContainerBuilder.class, RETURNS_SELF);
-            Containerizer containerizer = mock(Containerizer.class, RETURNS_SELF);
-            jibMockedStatic.when(() -> Jib.from(any(TarImage.class))).thenReturn(jibContainerBuilder);
-            containerizerMockedStatic.when(() -> Containerizer.to(any(RegistryImage.class))).thenReturn(containerizer);
-            when(jibContainerBuilder.containerize(containerizer)).thenThrow(new RegistryException("Unauthorized"));
-            ImageConfiguration imageConfiguration = getSampleImageConfiguration();
-            Credential credential = Credential.from("testuser", "secret");
-            File tarArchive = new File("docker-build.tar");
-            // When + Then
-            assertThatThrownBy(() -> JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, jibLogger))
-                .isInstanceOf(JKubeException.class)
-                .hasMessage("Exception occurred while pushing the image: test/test-project:latest, Unauthorized");
-        }
-    }
-
-    @Test
-    void jibPush_whenNoTagsInBuildConfig_thenNoAdditionalTagsAddedToContainerizer() throws CacheDirectoryCreationException, IOException, ExecutionException, InterruptedException, RegistryException {
-        try (MockedStatic<Containerizer> containerizerMockedStatic = mockStatic(Containerizer.class);
-             MockedStatic<Jib> jibMockedStatic = mockStatic(Jib.class)) {
-            // Given
-            JibContainerBuilder jibContainerBuilder = mock(JibContainerBuilder.class, RETURNS_SELF);
-            Containerizer containerizer = mock(Containerizer.class, RETURNS_SELF);
-            jibMockedStatic.when(() -> Jib.from(any(TarImage.class))).thenReturn(jibContainerBuilder);
-            containerizerMockedStatic.when(() -> Containerizer.to(any(RegistryImage.class))).thenReturn(containerizer);
-            ImageConfiguration imageConfiguration = getSampleImageConfiguration();
-            Credential credential = Credential.from("testuser", "secret");
-            File tarArchive = new File("docker-build.tar");
-
-            // When
-            JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, jibLogger);
-
-            // Then
-            verify(containerizer, times(0)).withAdditionalTag(anyString());
-            verify(jibContainerBuilder).containerize(containerizer);
-        }
-    }
-
-    @Test
-    void jibPush_whenAdditionalTagsInBuildConfig_thenAdditionalTagsAddedToContainerizer() throws CacheDirectoryCreationException, IOException, ExecutionException, InterruptedException, RegistryException {
-        try (MockedStatic<Containerizer> containerizerMockedStatic = mockStatic(Containerizer.class);
-             MockedStatic<Jib> jibMockedStatic = mockStatic(Jib.class)) {
-            // Given
-            JibContainerBuilder jibContainerBuilder = mock(JibContainerBuilder.class, RETURNS_SELF);
-            Containerizer containerizer = mock(Containerizer.class, RETURNS_SELF);
-            jibMockedStatic.when(() -> Jib.from(any(TarImage.class))).thenReturn(jibContainerBuilder);
-            containerizerMockedStatic.when(() -> Containerizer.to(any(RegistryImage.class))).thenReturn(containerizer);
-            ImageConfiguration imageConfiguration = getSampleImageConfiguration();
-            imageConfiguration = imageConfiguration.toBuilder()
-                .build(imageConfiguration.getBuild().toBuilder()
-                    .tags(Arrays.asList("t1", "t2", "t3"))
-                    .build())
-                .build();
-            Credential credential = Credential.from("testuser", "secret");
-            File tarArchive = new File("docker-build.tar");
-
-            // When
-            JibServiceUtil.jibPush(imageConfiguration, credential, tarArchive, jibLogger);
-
-            // Then
-            verify(containerizer).withAdditionalTag("t1");
-            verify(containerizer).withAdditionalTag("t2");
-            verify(containerizer).withAdditionalTag("t3");
             verify(jibContainerBuilder).containerize(containerizer);
         }
     }

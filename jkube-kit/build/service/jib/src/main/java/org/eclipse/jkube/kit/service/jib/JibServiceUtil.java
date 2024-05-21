@@ -94,7 +94,7 @@ public class JibServiceUtil {
   }
 
   public static JibContainerBuilder containerFromImageConfiguration(
-    ImageConfiguration imageConfiguration, String pullRegistry, Credential pullRegistryCredential) throws InvalidImageReferenceException {
+    ImageConfiguration imageConfiguration, String pullRegistry, Credential pullRegistryCredential) {
     final JibContainerBuilder containerBuilder = Jib
       .from(toRegistryImage(getBaseImage(imageConfiguration, pullRegistry), pullRegistryCredential))
       .setFormat(ImageFormat.Docker);
@@ -134,50 +134,16 @@ public class JibServiceUtil {
     return containerBuilder;
   }
 
-  /**
-   * Push Image to registry using JIB.
-   *
-   * @param imageConfiguration ImageConfiguration.
-   * @param pushCredentials    push credentials.
-   * @param tarArchive         tar archive built during build goal.
-   * @param logger             the JibLogger.
-   */
-  public static void jibPush(ImageConfiguration imageConfiguration, Credential pushCredentials, File tarArchive, JibLogger logger) {
-    final String imageName = new ImageName(imageConfiguration.getName()).getFullName();
-    final TarImage image = TarImage.at(tarArchive.toPath());
-    final ExecutorService jibBuildExecutor = Executors.newCachedThreadPool();
+  static RegistryImage toRegistryImage(String imageReference, Credential credential) {
     try {
-      final RegistryImage registryImage = toRegistryImage(imageName, pushCredentials);
-      final Containerizer containerizer = customizeContainerizer(Containerizer.to(registryImage), imageConfiguration, logger)
-        .setExecutorService(jibBuildExecutor);
-      Jib
-        .from(image)
-        .setCreationTime(Instant.now())
-        .containerize(containerizer);
-      logger.updateFinished();
-    } catch (Exception e) {
-      throw new JKubeException("Exception occurred while pushing the image: " + imageName + ", " + e.getMessage(), e);
-    } finally {
-      shutdownAndWait(jibBuildExecutor);
+      final RegistryImage registryImage = RegistryImage.named(imageReference);
+      if (credential != null && !credential.getUsername().isEmpty() && !credential.getPassword().isEmpty()) {
+        registryImage.addCredential(credential.getUsername(), credential.getPassword());
+      }
+      return registryImage;
+    } catch (InvalidImageReferenceException e) {
+      throw new JKubeException("Invalid image reference: " + imageReference, e);
     }
-  }
-
-  private static Containerizer customizeContainerizer(Containerizer c, ImageConfiguration imageConfiguration, JibLogger logger) {
-    c.setAllowInsecureRegistries(true);
-    c.addEventHandler(LogEvent.class, logger);
-    c.addEventHandler(ProgressEvent.class, logger.progressEventHandler());
-    if (imageConfiguration.getBuildConfiguration().getTags() != null) {
-      imageConfiguration.getBuildConfiguration().getTags().forEach(c::withAdditionalTag);
-    }
-    return c;
-  }
-
-  private static RegistryImage toRegistryImage(String imageReference, Credential credential) throws InvalidImageReferenceException {
-    RegistryImage registryImage = RegistryImage.named(imageReference);
-    if (credential != null && !credential.getUsername().isEmpty() && !credential.getPassword().isEmpty()) {
-      registryImage.addCredential(credential.getUsername(), credential.getPassword());
-    }
-    return registryImage;
   }
 
   public static String getBaseImage(ImageConfiguration imageConfiguration, String optionalRegistry) {
