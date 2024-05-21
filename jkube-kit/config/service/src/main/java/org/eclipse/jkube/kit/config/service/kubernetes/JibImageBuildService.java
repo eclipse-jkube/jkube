@@ -20,7 +20,7 @@ import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.DockerAuthConfigFactory;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -58,7 +58,7 @@ public class JibImageBuildService extends AbstractImageBuildService {
 
     private final KitLogger kitLogger;
     private final JibLogger jibLogger;
-    private final AuthConfigFactory authConfigFactory;
+    private final DockerAuthConfigFactory authConfigFactory;
     private final BuildServiceConfig buildServiceConfig;
     private final JKubeConfiguration configuration;
 
@@ -71,7 +71,7 @@ public class JibImageBuildService extends AbstractImageBuildService {
         super(jKubeServiceHub);
         this.jibLogger = jibLogger;
         kitLogger = jKubeServiceHub.getLog();
-        authConfigFactory = new AuthConfigFactory(kitLogger);
+        authConfigFactory = new DockerAuthConfigFactory(kitLogger);
         buildServiceConfig = Objects.requireNonNull(jKubeServiceHub.getBuildServiceConfig(),
             "BuildServiceConfig is required");
         configuration = Objects.requireNonNull(jKubeServiceHub.getConfiguration(),

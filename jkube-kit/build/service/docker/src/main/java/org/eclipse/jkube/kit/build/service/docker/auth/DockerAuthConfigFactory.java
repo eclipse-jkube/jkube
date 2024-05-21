@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.build.service.docker.auth;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jkube.kit.build.api.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
@@ -52,7 +53,7 @@ import static org.eclipse.jkube.kit.build.api.helper.KubernetesConfigAuthUtil.re
  *
  * @author roland
  */
-public class AuthConfigFactory {
+public class DockerAuthConfigFactory implements AuthConfigFactory {
 
     // Properties for specifying username, password (can be encrypted), email and authtoken (not used yet)
     // + whether to check for OpenShift authentication
@@ -70,11 +71,11 @@ public class AuthConfigFactory {
             "docker.io", "index.docker.io", "registry.hub.docker.com"
     };
 
-    public AuthConfigFactory(KitLogger log) {
+    public DockerAuthConfigFactory(KitLogger log) {
         this(log, new AwsSdkHelper());
     }
 
-    AuthConfigFactory(KitLogger log, AwsSdkHelper awsSdkHelper) {
+    DockerAuthConfigFactory(KitLogger log, AwsSdkHelper awsSdkHelper) {
         this.log = log;
         this.awsSdkHelper = awsSdkHelper;
     }
@@ -116,6 +117,7 @@ public class AuthConfigFactory {
      *
      * @throws IOException mojo failure exception
      */
+    @Override
     public AuthConfig createAuthConfig(boolean isPush, boolean skipExtendedAuth, Map authConfig, List<RegistryServerConfiguration> settings, String user, String registry, UnaryOperator<String> passwordDecryptionMethod)
             throws IOException {
 
