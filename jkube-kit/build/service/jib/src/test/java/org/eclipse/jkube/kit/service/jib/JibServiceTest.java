@@ -56,7 +56,7 @@ class JibServiceTest {
   @TempDir
   private Path tempDir;
   private String remoteOciServer;
-  private KitLogger kitLogger;
+  private JibLogger jibLogger;
   private TestAuthConfigFactory testAuthConfigFactory;
   private JKubeConfiguration configuration;
   private ImageConfiguration imageConfiguration;
@@ -71,7 +71,7 @@ class JibServiceTest {
     remoteOciServer = helmLib.RepoOciServerStart(
       new RepoServerOptions(null, "oci-user", "oci-password")
     ).out;
-    kitLogger = new KitLogger.SilentLogger();
+    jibLogger = new JibLogger(new KitLogger.SilentLogger());
     testAuthConfigFactory = new TestAuthConfigFactory();
     configuration = JKubeConfiguration.builder()
       .pushRegistryConfig(RegistryConfig.builder()
@@ -102,7 +102,7 @@ class JibServiceTest {
         .build())
       .build();
     imageConfiguration = ImageConfiguration.builder().name("the-image-name").build();
-    try (JibService jibService = new JibService(kitLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+    try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
       assertThat(jibService.getImageName().getFullName()).isEqualTo("prepend.example.com/the-image-name:latest");
     }
   }
@@ -137,7 +137,7 @@ class JibServiceTest {
     @Test
     void emptyImageNameThrowsException() {
       final ImageConfiguration emptyImageConfiguration = ImageConfiguration.builder().build();
-      assertThatThrownBy(() -> new JibService(kitLogger, testAuthConfigFactory, configuration, emptyImageConfiguration))
+      assertThatThrownBy(() -> new JibService(jibLogger, testAuthConfigFactory, configuration, emptyImageConfiguration))
         .isInstanceOf(NullPointerException.class)
         .hasMessage("Image name must not be null");
     }
@@ -147,7 +147,7 @@ class JibServiceTest {
       configuration = configuration.toBuilder()
         .pushRegistryConfig(RegistryConfig.builder().build())
         .build();
-      try (JibService jibService = new JibService(kitLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
         assertThatThrownBy(jibService::push)
           .isInstanceOf(JKubeException.class)
           .hasMessageContaining("Unable to containerize image using Jib: Unauthorized for")
@@ -158,7 +158,7 @@ class JibServiceTest {
 
     @Test
     void push() throws Exception {
-      try (JibService jibService = new JibService(kitLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
         jibService.push();
       }
       final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/the-image-name/tags/list")
@@ -178,7 +178,7 @@ class JibServiceTest {
           .tag("1.0.0")
           .build())
         .build();
-      try (JibService jibService = new JibService(kitLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
         jibService.push();
       }
       final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/the-image-name/tags/list")

@@ -34,13 +34,13 @@ import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.service.jib.JibLogger;
-import org.fusesource.jansi.Ansi;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -54,16 +54,14 @@ import java.util.Properties;
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 @SuppressWarnings({"unused"})
-class JibImageBuildServiceIntegrationTest {
+class JibImageBuildServiceBuildTest {
 
   private File projectRoot;
   private Path targetDirectory;
   private Path dockerOutput;
+  private ByteArrayOutputStream out;
   private JKubeServiceHub hub;
   private JibImageBuildService jibBuildService;
 
@@ -71,8 +69,9 @@ class JibImageBuildServiceIntegrationTest {
   void setUp(@TempDir Path projectRoot) throws IOException {
     targetDirectory = Files.createDirectory(projectRoot.resolve("target"));
     dockerOutput = targetDirectory.resolve("docker");
+    out = new ByteArrayOutputStream();
     hub = JKubeServiceHub.builder()
-      .log(new KitLogger.SilentLogger())
+      .log(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .platformMode(RuntimeMode.KUBERNETES)
       .buildServiceConfig(BuildServiceConfig.builder().build())
       .configuration(JKubeConfiguration.builder()
@@ -103,6 +102,49 @@ class JibImageBuildServiceIntegrationTest {
     assertThatExceptionOfType(JKubeServiceException.class)
         .isThrownBy(() -> jibBuildService.build(ic))
         .withMessage("Dockerfile mode is not supported with JIB build strategy");
+  }
+
+  @Test
+  void build_withImageMissingBuildConfiguration_shouldNotBuildImage() throws JKubeServiceException {
+    // Given
+    final ImageConfiguration ic  = ImageConfiguration.builder()
+      .name("test/foo:latest")
+      .build();
+    // When
+    jibBuildService.build(ic);
+    // Then
+    assertThat(out.toString())
+      .contains("[test/foo:latest] : Skipped building (Image configuration has no build settings)");
+  }
+
+  @Test
+  void build_withImageBuildConfigurationSkipTrue_shouldNotBuildImage() throws JKubeServiceException {
+    // Given
+    final ImageConfiguration ic = ImageConfiguration.builder()
+      .name("test/foo:latest")
+      .build(BuildConfiguration.builder()
+        .from("test/base:latest")
+        .skip(true)
+        .build())
+      .build();
+    // When
+    jibBuildService.build(ic);
+    // Then
+    assertThat(out.toString())
+      .contains("[test/foo:latest] : Skipped building" + System.lineSeparator());
+  }
+
+  @Test
+  void build_shouldCallPluginServiceAddFiles() throws JKubeServiceException {
+    // Given
+    final ImageConfiguration ic = ImageConfiguration.builder()
+      .name("test/foo:latest")
+      .build();
+    // When
+    jibBuildService.build(ic);
+    // Then
+    assertThat(out.toString())
+      .contains("Adding extra files for plugin org.eclipse.jkube");
   }
 
   @Test
@@ -173,7 +215,7 @@ class JibImageBuildServiceIntegrationTest {
   class GlobalRegistry {
 
     private ImageConfiguration imageConfiguration;
-    private PrintStream out;
+    private ByteArrayOutputStream out;
 
     @BeforeEach
     void setUp() {
@@ -186,7 +228,9 @@ class JibImageBuildServiceIntegrationTest {
           .build())
         .registry("gcr.io")
         .build();
-      hub = hub.toBuilder().configuration(hub.getConfiguration().toBuilder()
+      out = new ByteArrayOutputStream();
+      hub = hub.toBuilder()
+        .configuration(hub.getConfiguration().toBuilder()
           .pullRegistryConfig(RegistryConfig.builder()
             .registry("gcr.io")
             .authConfig(Collections.emptyMap())
@@ -194,8 +238,7 @@ class JibImageBuildServiceIntegrationTest {
             .build())
           .build())
         .build();
-      out = spy(System.out);
-      jibBuildService = new JibImageBuildService(hub, new JibLogger(hub.getLog(), out));
+      jibBuildService = new JibImageBuildService(hub, new JibLogger(new KitLogger.SilentLogger(), new PrintStream(out)));
     }
 
     @Test
@@ -222,8 +265,8 @@ class JibImageBuildServiceIntegrationTest {
       // When
       jibBuildService.build(imageConfiguration);
       // Then
-      verify(out)
-        .println(argThat((Ansi ansi) -> ansi.toString().contains("Getting manifest for base image gcr.io/distroless/base")));
+      assertThat(out.toString())
+        .contains("Getting manifest for base image gcr.io/distroless/base");
     }
 
   }

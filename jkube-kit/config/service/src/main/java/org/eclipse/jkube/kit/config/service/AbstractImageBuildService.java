@@ -35,6 +35,7 @@ public abstract class AbstractImageBuildService implements BuildService {
     processImage(this::buildSingleImage, "Skipped building", imageConfigurations);
   }
 
+  /** {@inheritDoc} */
   @Override
   public final void push(Collection<ImageConfiguration> imageConfigs, int retries, boolean skipTag) throws JKubeServiceException {
     processImage(imageConfiguration -> pushSingleImage(imageConfiguration, retries, skipTag), "Skipped push", imageConfigs.toArray(new ImageConfiguration[0]));

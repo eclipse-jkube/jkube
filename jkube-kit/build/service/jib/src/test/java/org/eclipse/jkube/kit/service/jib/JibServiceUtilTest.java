@@ -23,22 +23,14 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 
-import com.google.cloud.tools.jib.api.CacheDirectoryCreationException;
-import com.google.cloud.tools.jib.api.Containerizer;
-import com.google.cloud.tools.jib.api.RegistryException;
-import com.google.cloud.tools.jib.api.TarImage;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -48,31 +40,18 @@ import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
 import com.google.cloud.tools.jib.api.buildplan.Port;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
 import static org.mockito.Answers.RETURNS_SELF;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstructionWithAnswer;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class JibServiceUtilTest {
-    private JibLogger jibLogger;
-
-    @BeforeEach
-    void setUp() {
-        jibLogger = new JibLogger(new KitLogger.SilentLogger());
-    }
 
     @Test
     void testGetBaseImageWithNullBuildConfig() {
@@ -167,49 +146,6 @@ class JibServiceUtilTest {
             )
             .extracting(FileEntriesLayer::getName)
             .containsExactly("layer-1", "", "jkube-generated-layer-final-artifact");
-    }
-
-    @Test
-    void buildContainer_whenBuildSuccessful_thenDelegateToJibContainerize() throws InterruptedException, CacheDirectoryCreationException, IOException, ExecutionException, RegistryException {
-        try (MockedStatic<Containerizer> containerizerMockedStatic = mockStatic(Containerizer.class)) {
-            // Given
-            JibContainerBuilder jibContainerBuilder = mock(JibContainerBuilder.class, RETURNS_SELF);
-            Containerizer containerizer = mock(Containerizer.class, RETURNS_SELF);
-            TarImage tarImage = TarImage.at(new File("docker-build.tar").toPath());
-            containerizerMockedStatic.when(() -> Containerizer.to(tarImage)).thenReturn(containerizer);
-
-            // When
-            JibServiceUtil.buildContainer(jibContainerBuilder, tarImage, jibLogger);
-
-            // Then
-            verify(containerizer).setAllowInsecureRegistries(true);
-            verify(containerizer).setExecutorService(any(ExecutorService.class));
-            verify(containerizer, times(2)).addEventHandler(any(), any());
-            verify(jibContainerBuilder).containerize(containerizer);
-        }
-    }
-
-    @Test
-    void buildContainer_whenBuildFailure_thenThrowException() throws InterruptedException, CacheDirectoryCreationException, IOException, ExecutionException, RegistryException {
-        try (MockedStatic<Containerizer> containerizerMockedStatic = mockStatic(Containerizer.class)) {
-            // Given
-            JibContainerBuilder jibContainerBuilder = mock(JibContainerBuilder.class, RETURNS_SELF);
-            Containerizer containerizer = mock(Containerizer.class, RETURNS_SELF);
-            TarImage tarImage = TarImage.at(new File("docker-build.tar").toPath());
-            containerizerMockedStatic.when(() -> Containerizer.to(tarImage)).thenReturn(containerizer);
-            when(jibContainerBuilder.containerize(containerizer)).thenThrow(new RegistryException("Unable to pull base image"));
-
-            // When
-            assertThatThrownBy(() -> JibServiceUtil.buildContainer(jibContainerBuilder, tarImage, jibLogger))
-                .isInstanceOf(JKubeException.class)
-                .hasMessage("Unable to build the image tarball: Unable to pull base image");
-
-            // Then
-            verify(containerizer).setAllowInsecureRegistries(true);
-            verify(containerizer).setExecutorService(any(ExecutorService.class));
-            verify(containerizer, times(2)).addEventHandler(any(), any());
-            verify(jibContainerBuilder).containerize(containerizer);
-        }
     }
 
     private ImageConfiguration getSampleImageConfiguration() {
