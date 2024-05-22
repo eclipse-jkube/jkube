@@ -39,7 +39,8 @@ public class JibLogger implements Consumer<LogEvent> {
   private static final int PROGRESS_BAR_COUNT = 30;
   public static final String JIB_LOG_PREFIX = "JIB> ";
 
-  private final KitLogger logger;
+  // Shouldn't be exposed, however, it's needed by AssemblyManager
+  final KitLogger logger;
   private final PrintStream out;
 
   public JibLogger(KitLogger logger) {
