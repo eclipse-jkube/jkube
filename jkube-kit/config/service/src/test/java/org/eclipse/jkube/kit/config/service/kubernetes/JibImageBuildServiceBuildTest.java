@@ -148,6 +148,21 @@ class JibImageBuildServiceBuildTest {
   }
 
   @Test
+  void build_shouldLogBuiltTarImage() throws JKubeServiceException {
+    final ImageConfiguration ic = ImageConfiguration.builder()
+      .name("test/foo:latest")
+      .build(BuildConfiguration.builder()
+        .from("gcr.io/distroless/base@sha256:8267a5d9fa15a538227a8850e81cf6c548a78de73458e99a67e8799bbffb1ba0")
+        .build())
+      .build();
+    // When
+    jibBuildService.build(ic);
+    // Then
+    assertThat(out.toString())
+      .contains("/latest/tmp/jib-image.tar successfully built");
+  }
+
+  @Test
   void build_withLayersAndArtifact_shouldPerformJibBuild() throws Exception {
     // Given
     Files.createFile(targetDirectory.resolve( "final-artifact.jar"));
@@ -203,7 +218,7 @@ class JibImageBuildServiceBuildTest {
             separatorsToSystem("jkube-generated-layer-final-artifact/deployments/final-artifact.jar"),
             "deployments"
         );
-    ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("docker-build.tar").toFile())
+    ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("jib-image.tar").toFile())
       .fileTree()
       .hasSize(17)
       .contains("config.json", "manifest.json")
@@ -250,7 +265,7 @@ class JibImageBuildServiceBuildTest {
         .resolve("gcr.io").resolve("namespace").resolve("image-name").resolve("tag");
       // Note that the registry is part of the directory tree
       assertThat(dockerDir).exists().isDirectory();
-      ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("docker-build.tar").toFile())
+      ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("jib-image.tar").toFile())
         .entry("manifest.json")
         .asString()
         .satisfies(manifest -> assertThat(Serialization.unmarshal(manifest, new TypeReference<List<Map<String, Object>>>(){}))

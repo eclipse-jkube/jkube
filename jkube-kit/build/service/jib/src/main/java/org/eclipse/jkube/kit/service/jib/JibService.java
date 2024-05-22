@@ -21,12 +21,10 @@ import com.google.cloud.tools.jib.api.Jib;
 import com.google.cloud.tools.jib.api.JibContainerBuilder;
 import com.google.cloud.tools.jib.api.LogEvent;
 import com.google.cloud.tools.jib.api.RegistryException;
-import com.google.cloud.tools.jib.api.RegistryImage;
 import com.google.cloud.tools.jib.api.TarImage;
 import com.google.cloud.tools.jib.event.events.ProgressEvent;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
-import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.common.Assembly;
@@ -84,12 +82,40 @@ public class JibService implements AutoCloseable {
     }
   }
 
+  public final ImageName getImageName() {
+    return new ImageName(imageConfiguration.getName());
+  }
+
+  /**
+   * Builds a container Jib container image tarball.
+   *
+   * @return the location of the generated tarball file.
+   */
   public final File build() {
+    final JibContainerBuilder from = assembleFrom();
+    try {
+      final File jibImageTarArchive = getJibImageTarArchive();
+      final Containerizer to = Containerizer
+        .to(TarImage.at(jibImageTarArchive.toPath()).named(imageConfiguration.getName()));
+      containerize(from, to);
+      return jibImageTarArchive;
+    } catch (InvalidImageReferenceException ex) {
+      throw new JKubeException("Unable to build the image tarball: " + ex.getMessage(), ex);
+    }
+  }
+
+  public final void push() {
+    final JibContainerBuilder from = Jib.from(TarImage.at(getJibImageTarArchive().toPath()));
+    final Containerizer to = Containerizer
+      .to(toRegistryImage(getImageName().getFullName(), getPushRegistryCredentials()));
+    containerize(from, to);
+  }
+
+  private JibContainerBuilder assembleFrom() {
     final BuildDirs buildDirs = new BuildDirs(imageConfiguration.getName(), configuration);
     final String pullRegistry = getApplicablePullRegistryFrom(imageConfiguration.getBuildConfiguration().getFrom(), configuration.getPullRegistryConfig());
     final Credential pullRegistryCredential = getPullRegistryCredentials();
     final JibContainerBuilder from = containerFromImageConfiguration(imageConfiguration, pullRegistry, pullRegistryCredential);
-
     try {
       // Prepare Assembly files
       final AssemblyManager assemblyManager = AssemblyManager.getInstance();
@@ -104,27 +130,12 @@ public class JibService implements AutoCloseable {
       // files should be added using the AssemblyFileEntry list. AssemblyManager, should provide
       // a common way to achieve this so that both the tar builder and any other builder could get a hold of
       // archive customizers, file entries, etc.
-      final File dockerTarArchive = assemblyManager.createDockerTarArchive(
+      assemblyManager.createDockerTarArchive(
         imageConfiguration.getName(), configuration, imageConfiguration.getBuildConfiguration(), jibLogger.logger, null);
-
-      final Containerizer to = Containerizer.to(TarImage.at(dockerTarArchive.toPath()).named(imageConfiguration.getName()));
-      containerize(from, to);
-      return dockerTarArchive;
-    } catch (IOException | InvalidImageReferenceException ex) {
+      return from;
+    } catch (IOException ex) {
       throw new JKubeException("Unable to build the image tarball: " + ex.getMessage(), ex);
     }
-  }
-
-  public final void push() {
-    final TarImage image = TarImage.at(getBuildTarArchive().toPath());
-    final JibContainerBuilder from = Jib.from(image);
-    final RegistryImage registryImage = toRegistryImage(getImageName().getFullName(), getPushRegistryCredentials());
-    final Containerizer to = Containerizer.to(registryImage);
-    containerize(from, to);
-  }
-
-  public final ImageName getImageName() {
-    return new ImageName(imageConfiguration.getName());
   }
 
   private void containerize(JibContainerBuilder from, Containerizer to) {
@@ -147,9 +158,9 @@ public class JibService implements AutoCloseable {
     }
   }
 
-  private File getBuildTarArchive() {
+  private File getJibImageTarArchive() {
     final BuildDirs buildDirs = new BuildDirs(imageConfiguration.getName(), configuration);
-    return new File(buildDirs.getTemporaryRootDirectory(), JKubeBuildTarArchiver.ARCHIVE_FILE_NAME + ArchiveCompression.none.getFileSuffix());
+    return new File(buildDirs.getTemporaryRootDirectory(), "jib-image." + ArchiveCompression.none.getFileSuffix());
   }
 
   private Credential getPullRegistryCredentials() {
