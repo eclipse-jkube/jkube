@@ -61,6 +61,12 @@
       <artifactId>assertj-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.eclipse.jkube</groupId>
+      <artifactId>jkube-kit-common</artifactId>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
       <groupId>com.marcnuri.helm-java</groupId>
       <artifactId>helm-java</artifactId>
       <scope>test</scope>

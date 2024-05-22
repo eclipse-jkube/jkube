@@ -31,6 +31,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.AfterEach;
@@ -41,6 +42,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -74,6 +76,7 @@ class JibServiceTest {
     jibLogger = new JibLogger(new KitLogger.SilentLogger());
     testAuthConfigFactory = new TestAuthConfigFactory();
     configuration = JKubeConfiguration.builder()
+      .pullRegistryConfig(RegistryConfig.builder().build())
       .pushRegistryConfig(RegistryConfig.builder()
         .registry(remoteOciServer)
         .settings(Collections.singletonList(RegistryServerConfiguration.builder()
@@ -108,6 +111,31 @@ class JibServiceTest {
   }
 
   @Nested
+  @DisplayName("build")
+  class Build {
+
+    @BeforeEach
+    void setUp() {
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .from("gcr.io/distroless/base@sha256:8267a5d9fa15a538227a8850e81cf6c548a78de73458e99a67e8799bbffb1ba0")
+          .build())
+        .build();
+    }
+
+    @Test
+    void build() throws Exception {
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        final File jibContainerImageTar = jibService.build();
+        ArchiveAssertions.assertThat(jibContainerImageTar)
+          .fileTree()
+          .contains("manifest.json", "config.json");
+      }
+    }
+
+  }
+
+  @Nested
   @DisplayName("push")
   class Push {
 
@@ -122,7 +150,7 @@ class JibServiceTest {
       Jib.fromScratch()
         .setFormat(ImageFormat.Docker)
         .containerize(Containerizer.to(TarImage
-          .at(buildDirs.getTemporaryRootDirectory().toPath().resolve("docker-build.tar"))
+          .at(buildDirs.getTemporaryRootDirectory().toPath().resolve("jib-image.tar"))
           .named(imageConfiguration.getName()))
         );
     }

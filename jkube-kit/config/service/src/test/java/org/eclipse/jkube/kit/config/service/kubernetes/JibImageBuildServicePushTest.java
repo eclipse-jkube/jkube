@@ -124,7 +124,7 @@ class JibImageBuildServicePushTest {
       .resolve("test-image")
       .resolve("0.0.1")
       .resolve("tmp")
-      .resolve("docker-build.tar");
+      .resolve("jib-image.tar");
     Jib.fromScratch()
       .setFormat(ImageFormat.Docker)
       .containerize(Containerizer.to(TarImage
