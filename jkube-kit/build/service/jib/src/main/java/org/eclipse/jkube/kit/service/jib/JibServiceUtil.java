@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com.google.cloud.tools.jib.api.ImageReference;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
@@ -54,10 +55,16 @@ public class JibServiceUtil {
   private static final String BUSYBOX = "busybox:latest";
 
   public static JibContainerBuilder containerFromImageConfiguration(
-    ImageConfiguration imageConfiguration, String pullRegistry, Credential pullRegistryCredential) {
-    final JibContainerBuilder containerBuilder = Jib
-      .from(toRegistryImage(getBaseImage(imageConfiguration, pullRegistry), pullRegistryCredential))
-      .setFormat(ImageFormat.Docker);
+    ImageConfiguration imageConfiguration, String pullRegistry, Credential pullRegistryCredential
+  ) {
+    final String baseImage = getBaseImage(imageConfiguration, pullRegistry);
+    final JibContainerBuilder containerBuilder;
+    if (baseImage.equals(ImageReference.scratch().toString() + ":latest")) {
+      containerBuilder = Jib.fromScratch();
+    } else {
+      containerBuilder = Jib.from(toRegistryImage(baseImage, pullRegistryCredential));
+    }
+    containerBuilder.setFormat(ImageFormat.Docker);
     if (imageConfiguration.getBuildConfiguration() != null) {
       final BuildConfiguration bic = imageConfiguration.getBuildConfiguration();
       Optional.ofNullable(bic.getEntryPoint())

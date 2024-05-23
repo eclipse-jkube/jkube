@@ -114,15 +114,6 @@ class JibServiceTest {
   @DisplayName("build")
   class Build {
 
-    @BeforeEach
-    void setUp() {
-      imageConfiguration = imageConfiguration.toBuilder()
-        .build(imageConfiguration.getBuild().toBuilder()
-          .from("gcr.io/distroless/base@sha256:8267a5d9fa15a538227a8850e81cf6c548a78de73458e99a67e8799bbffb1ba0")
-          .build())
-        .build();
-    }
-
     @Test
     void build() throws Exception {
       try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
