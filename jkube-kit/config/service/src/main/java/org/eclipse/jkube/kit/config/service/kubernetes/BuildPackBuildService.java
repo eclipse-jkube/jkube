@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -89,6 +90,7 @@ public class BuildPackBuildService extends AbstractImageBuildService {
       }
       buildPackBuildOptionsBuilder.env(imageConfiguration.getBuild().getEnv())
           .tags(imageConfiguration.getBuild().getTags())
+          .clearCache(Optional.ofNullable(imageConfiguration.getBuild().getNocache()).orElse(false))
           .volumes(imageConfiguration.getBuild().getVolumes());
     }
     new BuildPackCliController(packCli, kitLogger).build(buildPackBuildOptionsBuilder.build());

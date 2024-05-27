@@ -211,6 +211,7 @@ class BuildPackBuildServiceTest {
                 .volumes(Collections.singletonList("/tmp/volume:/platform/volume:ro"))
                 .tags(Arrays.asList("t1", "t2", "t3"))
                 .env(Collections.singletonMap("BP_SPRING_CLOUD_BINDINGS_DISABLED", "true"))
+                .nocache(true)
                 .build())
             .build();
 
@@ -218,7 +219,7 @@ class BuildPackBuildServiceTest {
         buildPackBuildService.buildSingleImage(imageConfiguration);
 
         // Then
-        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:tiny --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true");
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:tiny --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true --clear-cache");
       }
     }
   }
