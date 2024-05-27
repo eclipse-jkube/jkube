@@ -88,7 +88,7 @@ public class ResourceVerify {
   }
 
   public static String readFile(File path) throws IOException {
-    return new String(FileCopyUtils.copyToByteArray(Files.newInputStream(path.toPath())), Charset.defaultCharset());
+    return new String(FileCopyUtils.copyToByteArray(Files.newInputStream(path.toPath())), Charset.defaultCharset()).replaceAll(System.lineSeparator(), "\n");
   }
 
   public static TestContext createTestContext() {
