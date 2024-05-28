@@ -56,6 +56,7 @@ public enum ConfigKey {
     LABELS(ValueCombinePolicy.MERGE),
     MAINTAINER,
     NAME,
+    PLATFORMS(ValueCombinePolicy.MERGE),
     PORTS(ValueCombinePolicy.MERGE),
     REGISTRY,
     SHELL,

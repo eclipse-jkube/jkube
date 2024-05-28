@@ -48,6 +48,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -80,9 +81,9 @@ class JibServiceTest {
       .pushRegistryConfig(RegistryConfig.builder()
         .registry(remoteOciServer)
         .settings(Collections.singletonList(RegistryServerConfiguration.builder()
-            .id(remoteOciServer)
-            .username("oci-user")
-            .password("oci-password")
+          .id(remoteOciServer)
+          .username("oci-user")
+          .password("oci-password")
           .build()))
         .build())
       .project(JavaProject.builder()
@@ -117,11 +118,41 @@ class JibServiceTest {
     @Test
     void build() throws Exception {
       try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
-        final File jibContainerImageTar = jibService.build();
-        ArchiveAssertions.assertThat(jibContainerImageTar)
-          .fileTree()
-          .contains("manifest.json", "config.json");
+        final List<File> containerImageTarFiles = jibService.build();
+        assertThat(containerImageTarFiles)
+          .singleElement()
+          .returns("jib-image.linux-amd64.tar", File::getName)
+          .satisfies(jibContainerImageTar -> {
+            ArchiveAssertions.assertThat(jibContainerImageTar)
+              .fileTree()
+              .contains("manifest.json", "config.json");
+          });
       }
+    }
+
+    @Test
+    void buildMultiplePlatforms() throws Exception {
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .platform("linux/amd64")
+          .platform("linux/arm64")
+          .platform("linux/arm")
+          .build())
+        .build();
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        final List<File> containerImageTarFiles = jibService.build();
+        assertThat(containerImageTarFiles)
+          .hasSize(3)
+          .allSatisfy(jibContainerImageTar -> {
+            ArchiveAssertions.assertThat(jibContainerImageTar)
+              .fileTree()
+              .contains("manifest.json", "config.json");
+          })
+          .extracting(File::getName)
+          .contains("jib-image.linux-amd64.tar", "jib-image.linux-arm64.tar", "jib-image.linux-arm.tar");
+        ;
+      }
+
     }
 
   }
@@ -141,7 +172,7 @@ class JibServiceTest {
       Jib.fromScratch()
         .setFormat(ImageFormat.Docker)
         .containerize(Containerizer.to(TarImage
-          .at(buildDirs.getTemporaryRootDirectory().toPath().resolve("jib-image.tar"))
+          .at(buildDirs.getTemporaryRootDirectory().toPath().resolve("jib-image.linux-amd64.tar"))
           .named(imageConfiguration.getName()))
         );
     }
@@ -153,6 +184,7 @@ class JibServiceTest {
       }
     }
 
+    @SuppressWarnings("resource")
     @Test
     void emptyImageNameThrowsException() {
       final ImageConfiguration emptyImageConfiguration = ImageConfiguration.builder().build();
@@ -207,6 +239,30 @@ class JibServiceTest {
       assertThat(connection.getResponseCode()).isEqualTo(200);
       assertThat(IOUtils.toString(connection.getInputStream(), StandardCharsets.UTF_8))
         .contains("{\"name\":\"the-image-name\",\"tags\":[\"1.0\",\"1.0.0\",\"latest\"]}");
+    }
+
+    @Test
+    void pushMultiplatform() throws Exception {
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .platform("linux/amd64")
+          .platform("linux/arm64")
+          .platform("linux/arm")
+          .build())
+        .build();
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        jibService.push();
+      }
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/the-image-name/manifests/latest")
+        .openConnection();
+      connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
+      connection.setRequestProperty("Accept", "application/vnd.docker.distribution.manifest.list.v2+json");
+      connection.connect();
+      assertThat(connection.getResponseCode()).isEqualTo(200);
+      assertThat(IOUtils.toString(connection.getInputStream(), StandardCharsets.UTF_8))
+        .contains(":{\"architecture\":\"amd64\",\"os\":\"linux\"}}")
+        .contains(":{\"architecture\":\"arm64\",\"os\":\"linux\"}}")
+        .contains(":{\"architecture\":\"arm\",\"os\":\"linux\"}}");
     }
   }
 

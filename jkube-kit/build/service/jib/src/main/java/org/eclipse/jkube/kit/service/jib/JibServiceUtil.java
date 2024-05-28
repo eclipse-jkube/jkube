@@ -16,13 +16,17 @@ package org.eclipse.jkube.kit.service.jib;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import com.google.cloud.tools.jib.api.ImageReference;
+import com.google.cloud.tools.jib.api.buildplan.Platform;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyFileEntry;
@@ -49,17 +53,18 @@ import static com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer.DEFAULT_
 
 public class JibServiceUtil {
 
+  private static final String BUSYBOX = "busybox:latest";
+  private static final Platform DEFAULT_PLATFORM = new Platform("amd64", "linux");
+
   private JibServiceUtil() {
   }
-
-  private static final String BUSYBOX = "busybox:latest";
 
   public static JibContainerBuilder containerFromImageConfiguration(
     ImageConfiguration imageConfiguration, String pullRegistry, Credential pullRegistryCredential
   ) {
     final String baseImage = getBaseImage(imageConfiguration, pullRegistry);
     final JibContainerBuilder containerBuilder;
-    if (baseImage.equals(ImageReference.scratch().toString() + ":latest")) {
+    if (baseImage.equals(ImageReference.scratch() + ":latest")) {
       containerBuilder = Jib.fromScratch();
     } else {
       containerBuilder = Jib.from(toRegistryImage(baseImage, pullRegistryCredential));
@@ -111,6 +116,34 @@ public class JibServiceUtil {
     } catch (InvalidImageReferenceException e) {
       throw new JKubeException("Invalid image reference: " + imageReference, e);
     }
+  }
+
+  static ImageReference toImageReference(ImageConfiguration imageConfiguration) {
+    try {
+      return ImageReference.parse(imageConfiguration.getName());
+    } catch (InvalidImageReferenceException e) {
+      throw new JKubeException("Invalid image reference: " + imageConfiguration.getName(), e);
+    }
+  }
+
+  static Set<Platform> platforms(ImageConfiguration imageConfiguration) {
+    final List<String> targetPlatforms = Optional.ofNullable(imageConfiguration)
+      .map(ImageConfiguration::getBuildConfiguration)
+      .map(BuildConfiguration::getPlatforms)
+      .orElse(Collections.emptyList());
+    final Set<Platform> ret = new LinkedHashSet<>();
+    for (String targetPlatform : targetPlatforms) {
+      final int slashIndex = targetPlatform.indexOf('/');
+      if (slashIndex >= 0) {
+        final String os = targetPlatform.substring(0, slashIndex);
+        final String arch = targetPlatform.substring(slashIndex + 1);
+        ret.add(new Platform(arch, os));
+      }
+    }
+    if (ret.isEmpty()) {
+      ret.add(DEFAULT_PLATFORM);
+    }
+    return ret;
   }
 
   public static String getBaseImage(ImageConfiguration imageConfiguration, String optionalRegistry) {

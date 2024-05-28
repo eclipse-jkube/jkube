@@ -159,7 +159,7 @@ class JibImageBuildServiceBuildTest {
     jibBuildService.build(ic);
     // Then
     assertThat(out.toString())
-      .contains("/latest/tmp/jib-image.tar successfully built");
+      .contains("/latest/tmp/jib-image.linux-amd64.tar successfully built");
   }
 
   @Test
@@ -218,11 +218,36 @@ class JibImageBuildServiceBuildTest {
             separatorsToSystem("jkube-generated-layer-final-artifact/deployments/final-artifact.jar"),
             "deployments"
         );
-    ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("jib-image.tar").toFile())
+    ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("jib-image.linux-amd64.tar").toFile())
       .fileTree()
       .hasSize(17)
       .contains("config.json", "manifest.json")
       .haveExactly(15, new Condition<>(s -> s.endsWith(".tar.gz"), "Tar File layers"));
+  }
+
+  @Test
+  void buildMultiplatform_shouldBuildSeparateTars() throws Exception {
+    // Given
+    final ImageConfiguration ic = ImageConfiguration.builder()
+      .name("namespace/image-name:multiplatform")
+      .build(BuildConfiguration.builder()
+        .from("scratch")
+        .platform("linux/amd64")
+        .platform("linux/arm64")
+        .build())
+      .build();
+    final Path dockerDir = dockerOutput.resolve("namespace").resolve("image-name").resolve("multiplatform");
+    // When
+    jibBuildService.build(ic);
+    // Then
+    ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("jib-image.linux-amd64.tar").toFile())
+      .fileTree()
+      .hasSize(2)
+      .contains("config.json", "manifest.json");
+    ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("jib-image.linux-arm64.tar").toFile())
+      .fileTree()
+      .hasSize(2)
+      .contains("config.json", "manifest.json");
   }
 
   @Nested
@@ -265,7 +290,7 @@ class JibImageBuildServiceBuildTest {
         .resolve("gcr.io").resolve("namespace").resolve("image-name").resolve("tag");
       // Note that the registry is part of the directory tree
       assertThat(dockerDir).exists().isDirectory();
-      ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("jib-image.tar").toFile())
+      ArchiveAssertions.assertThat(dockerDir.resolve("tmp").resolve("jib-image.linux-amd64.tar").toFile())
         .entry("manifest.json")
         .asString()
         .satisfies(manifest -> assertThat(Serialization.unmarshal(manifest, new TypeReference<List<Map<String, Object>>>(){}))

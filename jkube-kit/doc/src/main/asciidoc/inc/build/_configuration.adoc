@@ -141,6 +141,18 @@ See the global configuration option <<image-pull-policy, imagePullPolicy>> for t
 | if set to true then it will compress all the `runCmds` into a single `RUN` directive so that only one image layer is created.
 | `jkube.container-image.optimise`
 
+| *platforms*
+a| List of `platform` elements with the target platforms (os/architecture) for which to build the image. Enables multi-platform builds.
+
+You should use a base image that includes supports for multiple platforms such as:
+
+- x86-64: `linux/amd64`, `linux/i386`
+- ARM architectures: `linux/arm/v7`, `linux/arm64`
+- PowerPC: `linux/ppc64le`
+
+_Supported only when using the <<integrations.jib, jib>> build strategy_
+| `jkube.container-image.platforms`
+
 | *ports*
 | The exposed ports which is a list of `port` elements, one for each port to expose. Whitespace is trimmed from each element and empty elements are ignored. The format can be either pure numerical ("8080") or with the protocol attached ("8080/tcp").
 | `jkube.container-image.ports`

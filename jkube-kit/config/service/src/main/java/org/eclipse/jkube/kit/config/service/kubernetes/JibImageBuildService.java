@@ -69,8 +69,9 @@ public class JibImageBuildService extends AbstractImageBuildService {
         }
         kitLogger.info("[[B]]JIB[[B]] image build started");
         try (JibService jibService = new JibService(jibLogger, authConfigFactory, configuration, imageConfiguration)) {
-            final File dockerTarArchive = jibService.build();
-            kitLogger.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
+            for (final File dockerTarArchive : jibService.build()) {
+                kitLogger.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
+            }
         } catch (Exception ex) {
             throw new JKubeServiceException("Error when building JIB image", ex);
         }
@@ -88,6 +89,6 @@ public class JibImageBuildService extends AbstractImageBuildService {
 
     @Override
     public void postProcess() {
-        // No post processing required
+        // No post-processing required
     }
 }
