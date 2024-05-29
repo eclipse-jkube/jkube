@@ -75,6 +75,9 @@ public class HelmConfig {
   private String security;
   private boolean lintStrict;
   private boolean lintQuiet;
+  private boolean debug;
+  private boolean dependencyVerify;
+  private boolean dependencySkipRefresh;
 
 
   @JsonProperty("dependencies")

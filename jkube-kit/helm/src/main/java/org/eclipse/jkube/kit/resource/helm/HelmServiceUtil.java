@@ -77,6 +77,9 @@ public class HelmServiceUtil {
 
   protected static final String PROPERTY_HELM_LINT_STRICT = "jkube.helm.lint.strict";
   protected static final String PROPERTY_HELM_LINT_QUIET = "jkube.helm.lint.quiet";
+  protected static final String PROPERTY_HELM_DEBUG = "jkube.helm.debug";
+  protected static final String PROPERTY_HELM_DEPENDENCY_VERIFY = "jkube.helm.dependencyVerify";
+  protected static final String PROPERTY_HELM_DEPENDENCY_SKIP_REFRESH = "jkube.helm.dependencySkipRefresh";
 
   private HelmServiceUtil() { }
 
@@ -117,6 +120,9 @@ public class HelmServiceUtil {
         helmConfig::getOutputDir));
     helmConfig.setLintStrict(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_LINT_STRICT, project, helmConfig::isLintStrict));
     helmConfig.setLintQuiet(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_LINT_QUIET, project, helmConfig::isLintQuiet));
+    helmConfig.setDebug(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_DEBUG, project, helmConfig::isDebug));
+    helmConfig.setDependencyVerify(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_DEPENDENCY_VERIFY, project, helmConfig::isDependencyVerify));
+    helmConfig.setDependencySkipRefresh(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_DEPENDENCY_SKIP_REFRESH, project, helmConfig::isDependencySkipRefresh));
     return helmConfig.toBuilder();
   }
 

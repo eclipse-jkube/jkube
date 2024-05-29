@@ -19,6 +19,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.marcnuri.helm.DependencyCommand;
 import com.marcnuri.helm.Helm;
 import com.marcnuri.helm.LintCommand;
 import com.marcnuri.helm.LintResult;
@@ -164,6 +166,26 @@ public class HelmService {
       String error = "No repository or invalid repository configured for upload";
       logger.error(error);
       throw new IllegalStateException(error);
+    }
+  }
+
+  public void dependencyUpdate(HelmConfig helmConfig) {
+    for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
+      logger.info("Running Helm Dependency Upgrade %s %s", helmConfig.getChart(), helmConfig.getVersion());
+      DependencyCommand.DependencySubcommand<String> dependencyUpdateCommand = new Helm(Paths.get(helmConfig.getOutputDir(), helmType.getOutputDir()))
+          .dependency().update();
+      if (helmConfig.isDebug()) {
+        dependencyUpdateCommand.debug();
+      }
+      if (helmConfig.isDependencyVerify()) {
+        dependencyUpdateCommand.verify();
+      }
+      if (helmConfig.isDependencySkipRefresh()) {
+        dependencyUpdateCommand.skipRefresh();
+      }
+      Arrays.stream(dependencyUpdateCommand.call()
+          .split(System.lineSeparator()))
+          .forEach(l -> logger.info("[[W]]%s", l));
     }
   }
 
