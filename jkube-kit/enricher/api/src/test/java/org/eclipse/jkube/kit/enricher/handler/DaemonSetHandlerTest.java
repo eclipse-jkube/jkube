@@ -37,14 +37,13 @@ import static org.mockito.Mockito.mock;
 
 class DaemonSetHandlerTest {
 
-    private ProbeHandler probeHandler;
     private List<VolumeConfig> volumes;
     private List<ImageConfiguration> images;
     private DaemonSetHandler daemonSetHandler;
 
     @BeforeEach
     void before(){
-        probeHandler = mock(ProbeHandler.class);
+        ProbeHandler probeHandler = new ProbeHandler();
         volumes = new ArrayList<>();
         images = new ArrayList<>();
         List<String> mounts = new ArrayList<>();
@@ -100,7 +99,7 @@ class DaemonSetHandlerTest {
                 .extracting(DaemonSetSpec::getTemplate).isNotNull()
                 .extracting(PodTemplateSpec::getSpec)
                 .extracting(PodSpec::getVolumes).isNotNull()
-                .asList()
+                .asInstanceOf(InstanceOfAssertFactories.list(type.class))
                 .first()
                 .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
             );
