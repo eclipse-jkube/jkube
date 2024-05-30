@@ -224,12 +224,12 @@ class SerializationTest {
   class MultiLineStringsSerializedToScalarYamlBlocks {
     @Test
     @DisplayName("string ends with newline, then add | to use block style in serialized object")
-    void whenStringEndingWithNewline_thenAddBlockIndicatorInSerializedObject(@TempDir Path targetDir) throws IOException {
+    void unmarshal_whenStringEndingWithNewline_thenAddBlockIndicatorInSerializedObject(@TempDir Path targetDir) throws IOException {
       // Given
       final File targetFile = targetDir.resolve("cm.yaml").toFile();
       final ConfigMap source = new ConfigMapBuilder()
               .withNewMetadata()
-              .addToAnnotations("proxy.istio.io/config", String.format("proxyMetadata:%n    ISTIO_META_DNS_CAPTURE: \"false\"%nholdApplicationUntilProxyStarts: true\n"))
+              .addToAnnotations("proxy.istio.io/config", "proxyMetadata:\n    ISTIO_META_DNS_CAPTURE: \"false\"\nholdApplicationUntilProxyStarts: true\n")
               .endMetadata()
               .build();
       // When
