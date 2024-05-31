@@ -15,7 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.assertj.core.api.InstanceOfAssertFactories;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
