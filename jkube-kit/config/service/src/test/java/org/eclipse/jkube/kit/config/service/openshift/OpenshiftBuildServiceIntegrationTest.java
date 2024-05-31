@@ -592,6 +592,7 @@ class OpenshiftBuildServiceIntegrationTest {
     if (!imageStreamExists) {
       mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams/" + resourceName).andReturn(404, "").once();
     }
+    mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=openshift.io%2Fbuild.name").andReply(collector.record("build-config-check").andReturn(200, bc)).always();
     mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams/" + resourceName).andReturn(200, imageStream).always();
 
     mockServer.expect().post().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams").andReturn(201, imageStream).once();
