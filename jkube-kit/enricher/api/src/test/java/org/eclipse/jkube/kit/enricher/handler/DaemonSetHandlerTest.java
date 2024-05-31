@@ -101,7 +101,7 @@ class DaemonSetHandlerTest {
                 .extracting(DaemonSetSpec::getTemplate).isNotNull()
                 .extracting(PodTemplateSpec::getSpec)
                 .extracting(PodSpec::getVolumes).isNotNull()
-                .asInstanceOf(InstanceOfAssertFactories.list(Volumes.class))
+                .asInstanceOf(InstanceOfAssertFactories.list(Volume.class))
                 .first()
                 .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
             );
