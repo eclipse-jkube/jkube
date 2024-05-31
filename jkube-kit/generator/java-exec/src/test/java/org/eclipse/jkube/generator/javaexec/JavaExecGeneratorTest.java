@@ -111,9 +111,9 @@ class JavaExecGeneratorTest {
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", false)
-        .extracting(AssemblyConfiguration::getLayers).asInstanceOf(InstanceOfAssertFactories.list(type.class)).hasSize(1)
+        .extracting(AssemblyConfiguration::getLayers).asInstanceOf(InstanceOfAssertFactories.list(Assembly.class)).hasSize(1)
         .first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
-        .extracting(Assembly::getFileSets).asInstanceOf(InstanceOfAssertFactories.list(type.class))
+        .extracting(Assembly::getFileSets).asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
         .hasSize(2);
   }
 
