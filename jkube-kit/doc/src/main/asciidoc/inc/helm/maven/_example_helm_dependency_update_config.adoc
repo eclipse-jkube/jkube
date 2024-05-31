@@ -1,0 +1,20 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <helm>
+      <dependencies>
+        <dependency>
+          <name>foo</name>
+          <version>0.0.1</version>
+          <repository>https://charts.example.com/test-chart</repository>
+        </dependency>
+      </dependencies>
+
+      <debug>true</debug>
+      <dependencySkipRefresh>true</dependencySkipRefresh>
+      <dependencyVerify>true</dependencyVerify>
+    </helm>
+  </configuration>
+</plugin>
+----
