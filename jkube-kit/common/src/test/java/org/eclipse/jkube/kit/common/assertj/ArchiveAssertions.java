@@ -167,7 +167,7 @@ public class ArchiveAssertions extends AbstractFileAssert<ArchiveAssertions> {
         TarArchiveInputStream tis = inputStream(bis)
     ) {
       TarArchiveEntry entry;
-      while ((entry = tis.getNextTarEntry()) != null) {
+      while ((entry = tis.getNextEntry()) != null) {
         entryConsumer.accept(entry, tis);
       }
     }
