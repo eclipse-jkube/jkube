@@ -80,6 +80,7 @@ public class BuildPackBuildService extends AbstractImageBuildService {
     BuildPackBuildOptions.BuildPackBuildOptionsBuilder buildPackBuildOptionsBuilder = BuildPackBuildOptions.builder()
         .imageName(imageConfiguration.getName())
         .builderImage(builderImage)
+        .path(jKubeConfiguration.getBasedir().getAbsolutePath())
         .creationTime("now");
     if (imageConfiguration.getBuild() != null) {
       if (StringUtils.isNotBlank(imageConfiguration.getBuild().getImagePullPolicy())) {
