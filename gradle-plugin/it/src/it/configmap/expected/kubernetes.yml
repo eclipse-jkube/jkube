@@ -20,15 +20,15 @@ items:
   kind: Service
   metadata:
     annotations:
-      jkube.eclipse.org/git-commit: "@ignore@"
+      eclipse-jkube.eclipse.org/git-commit: "@ignore@"
       prometheus.io/scrape: "true"
-      jkube.eclipse.org/git-branch: "@ignore@"
+      eclipse-jkube.eclipse.org/git-branch: "@ignore@"
       prometheus.io/port: "9779"
     labels:
-      provider: jkube
+      provider: eclipse-jkube
       app: configmap
       version: "@ignore@"
-      group: org.eclipse.jkube.integration.tests.gradle
+      group: org.eclipse.eclipse-jkube.integration.tests.gradle
     name: configmap
   spec:
     ports:
@@ -38,17 +38,17 @@ items:
       targetPort: 8080
     selector:
       app: configmap
-      provider: jkube
-      group: org.eclipse.jkube.integration.tests.gradle
+      provider: eclipse-jkube
+      group: org.eclipse.eclipse-jkube.integration.tests.gradle
 - apiVersion: v1
   kind: ConfigMap
   metadata:
     labels:
       app: configmap
-      provider: jkube
+      provider: eclipse-jkube
       version: 0.0.1-SNAPSHOT
-      group: org.eclipse.jkube.integration.tests.gradle
-    name: jkube-annotation-directory
+      group: org.eclipse.eclipse-jkube.integration.tests.gradle
+    name: eclipse-jkube-annotation-directory
   data:
     first.properties: name = first
     second.properties: name = second
@@ -57,10 +57,10 @@ items:
   metadata:
     labels:
       app: configmap
-      provider: jkube
+      provider: eclipse-jkube
       version: "@ignore@"
-      group: org.eclipse.jkube.integration.tests.gradle
-    name: jkube-annotation-file
+      group: org.eclipse.eclipse-jkube.integration.tests.gradle
+    name: eclipse-jkube-annotation-file
   data:
     application.properties: |-
       environment = test
@@ -70,10 +70,10 @@ items:
   metadata:
     labels:
       app: configmap
-      provider: jkube
+      provider: eclipse-jkube
       version: "@ignore@"
-      group: org.eclipse.jkube.integration.tests.gradle
-    name: jkube-gradle-sample-config-map
+      group: org.eclipse.eclipse-jkube.integration.tests.gradle
+    name: eclipse-jkube-gradle-sample-config-map
   data:
     A: B
     test-configmap.properties: |
@@ -83,31 +83,31 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      jkube.eclipse.org/git-commit: "@ignore@"
-      jkube.eclipse.org/git-branch: "@ignore@"
+      eclipse-jkube.eclipse.org/git-commit: "@ignore@"
+      eclipse-jkube.eclipse.org/git-branch: "@ignore@"
     labels:
-      provider: jkube
+      provider: eclipse-jkube
       app: configmap
       version: "@ignore@"
-      group: org.eclipse.jkube.integration.tests.gradle
+      group: org.eclipse.eclipse-jkube.integration.tests.gradle
     name: configmap
   spec:
     replicas: 1
     selector:
       matchLabels:
         app: configmap
-        provider: jkube
-        group: org.eclipse.jkube.integration.tests.gradle
+        provider: eclipse-jkube
+        group: org.eclipse.eclipse-jkube.integration.tests.gradle
     template:
       metadata:
         annotations:
-          jkube.eclipse.org/git-commit: "@ignore@"
-          jkube.eclipse.org/git-branch: "@ignore@"
+          eclipse-jkube.eclipse.org/git-commit: "@ignore@"
+          eclipse-jkube.eclipse.org/git-branch: "@ignore@"
         labels:
-          provider: jkube
+          provider: eclipse-jkube
           app: configmap
           version: "@ignore@"
-          group: org.eclipse.jkube.integration.tests.gradle
+          group: org.eclipse.eclipse-jkube.integration.tests.gradle
       spec:
         containers:
         - env:
