@@ -535,4 +535,13 @@ public class EnvUtil {
         }
         return null;
     }
+
+    public static String javaBinary() {
+        String path = new File(EnvUtil.getProperty("java.home")).toPath().resolve("bin").resolve("java").toFile()
+          .getAbsolutePath();
+        if (isWindows()) {
+            path = path.concat(".exe");
+        }
+        return path;
+    }
 }

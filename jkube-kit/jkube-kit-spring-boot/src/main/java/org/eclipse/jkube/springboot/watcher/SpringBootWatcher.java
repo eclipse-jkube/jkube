@@ -26,11 +26,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import org.eclipse.jkube.kit.common.ExternalCommand;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.PrefixedLogger;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
-import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.IoUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -40,6 +37,7 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
+import org.eclipse.jkube.springboot.RemoteSpringBootDevtoolsCommand;
 import org.eclipse.jkube.watcher.api.BaseWatcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
@@ -47,7 +45,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import org.apache.commons.lang3.StringUtils;
 
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.DEV_TOOLS_REMOTE_SECRET;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootPluginConfiguration;
 import static org.eclipse.jkube.springboot.SpringBootDevtoolsUtils.getSpringBootDevToolsJar;
@@ -125,7 +122,7 @@ public class SpringBootWatcher extends BaseWatcher {
         if (pluginClassLoader instanceof URLClassLoader) {
             classLoaders.add((URLClassLoader) pluginClassLoader);
         }
-        try(URLClassLoader projectClassLoader = ClassUtil.createProjectClassLoader(
+        try (URLClassLoader projectClassLoader = ClassUtil.createProjectClassLoader(
                     getContext().getBuildContext().getProject().getCompileClassPathElements(), log)
         ) {
             classLoaders.add(projectClassLoader);
@@ -148,7 +145,7 @@ public class SpringBootWatcher extends BaseWatcher {
             try {
                 command.execute();
             } catch (Exception e) {
-                throw new RuntimeException("Failed to run RemoteSpringApplication: " + e, e);
+                throw new JKubeException("Failed to run RemoteSpringApplication: " + e, e);
             }
         } catch (IOException e) {
             log.warn("Instructed to use project classpath, but cannot. Continuing build if we can: ", e);
@@ -170,65 +167,6 @@ public class SpringBootWatcher extends BaseWatcher {
             throw new IllegalStateException("No " + DEV_TOOLS_REMOTE_SECRET + " property defined in application.properties or system properties");
         }
         return properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
-    }
-
-    private static String javaBinary() {
-        String path = new File(EnvUtil.getProperty("java.home")).toPath().resolve("bin").resolve("java").toFile()
-          .getAbsolutePath();
-        if (isWindows()) {
-            path = path.concat(".exe");
-        }
-        return path;
-    }
-
-    private static class RemoteSpringBootDevtoolsCommand extends ExternalCommand {
-        private final String classPath;
-        private final String remoteSecret;
-        private final String url;
-        private final KitLogger processLogger;
-
-        public RemoteSpringBootDevtoolsCommand(String classPath, String remoteSecret, String url, KitLogger kitLogger) {
-            super(kitLogger);
-            this.classPath = classPath;
-            this.remoteSecret = remoteSecret;
-            this.url = url;
-            this.processLogger = new PrefixedLogger("Spring-Remote", kitLogger);
-        }
-
-        @Override
-        protected void start() {
-            log.debug("Running: " + String.join(" ", getCommandAsString()));
-        }
-
-        @Override
-        protected String[] getArgs() {
-          return new String[]{
-              javaBinary(),
-              "-cp",
-              classPath,
-              "-Dspring.devtools.remote.secret=" + remoteSecret,
-              "org.springframework.boot.devtools.RemoteSpringApplication",
-              url
-            };
-        }
-
-        @Override
-        protected void processLine(String line) {
-            processLogger.info("%s", line);
-        }
-
-        @Override
-        protected void processError(String line) {
-            processLogger.error("%s", line);
-        }
-
-        @Override
-        protected void end() {
-            if (getStatusCode() != 0) {
-                log.warn("Process returned status: %s", getStatusCode());
-            }
-            log.info("Terminating the Spring remote client...");
-        }
     }
 }
 

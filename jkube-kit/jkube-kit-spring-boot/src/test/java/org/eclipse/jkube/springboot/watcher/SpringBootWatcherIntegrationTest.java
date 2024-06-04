@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -128,8 +129,12 @@ class SpringBootWatcherIntegrationTest {
     try {
       // Given
       Map<String, String> propMap = new HashMap<>();
-      File overriddenJavaHome = new File(Objects.requireNonNull(getClass().getResource("/test-java-home")).getFile());
-      propMap.put("java.home", overriddenJavaHome.getAbsolutePath());
+      File dummyJavaArtifact =  new File(Objects.requireNonNull(SpringBootWatcherIntegrationTest.class.getResource("/dummy-java")).getFile());
+      Path testJavaHome = project.resolve("java-home");
+      Files.createDirectory(testJavaHome);
+      Files.createDirectory(testJavaHome.resolve("bin"));
+      Files.copy(dummyJavaArtifact.toPath(), testJavaHome.resolve("bin").resolve("java"), StandardCopyOption.COPY_ATTRIBUTES);
+      propMap.put("java.home", testJavaHome.toString());
       propMap.put("os.name", "linux");
       EnvUtil.overridePropertyGetter(propMap::get);
       Files.createFile(target.resolve("spring-boot-lib.jar"));
@@ -144,12 +149,12 @@ class SpringBootWatcherIntegrationTest {
       verify(logger).info("spring-boot: Terminating the Spring remote client...");
       verify(logger).debug(javaProcessArgumentCaptor.capture());
       assertThat(javaProcessArgumentCaptor.getValue())
-        .contains(String.format("spring-boot: Running: " +
-          "%s/bin/java -cp " +
-          "%s/target/spring-boot-lib.jar:%s/target/spring-boot-devtools.jar " +
-          "-Dspring.devtools.remote.secret=this-is-a-test " +
-          "org.springframework.boot.devtools.RemoteSpringApplication " +
-          "http://localhost:", overriddenJavaHome.getAbsolutePath(), project.toString(), project));
+        .contains("spring-boot: Running: ")
+        .contains(String.format("%s/bin/java -cp ", testJavaHome))
+        .contains(String.format("%s/target/spring-boot-lib.jar:%s/target/spring-boot-devtools.jar ", project, project))
+        .contains("-Dspring.devtools.remote.secret=this-is-a-test ")
+        .contains("org.springframework.boot.devtools.RemoteSpringApplication ")
+        .contains("http://localhost:");
     } finally {
       EnvUtil.overridePropertyGetter(System::getProperty);
     }
