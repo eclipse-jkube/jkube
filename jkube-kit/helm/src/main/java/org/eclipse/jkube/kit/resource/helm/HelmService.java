@@ -183,9 +183,9 @@ public class HelmService {
       if (helmConfig.isDependencySkipRefresh()) {
         dependencyUpdateCommand.skipRefresh();
       }
-      Arrays.stream(dependencyUpdateCommand.call()
-          .split(System.lineSeparator()))
-          .forEach(l -> logger.info("[[W]]%s", l));
+      Arrays.stream(dependencyUpdateCommand.call() 
+       .split("\r?\n"))
+       .forEach(l -> logger.info("[[W]]%s", l)); 
     }
   }
 
