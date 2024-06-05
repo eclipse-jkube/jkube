@@ -15,16 +15,18 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import org.assertj.core.api.InstanceOfAssertFactories;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
+import io.fabric8.kubernetes.api.model.Volume;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
+
 
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DaemonSet;
@@ -37,14 +39,13 @@ import static org.mockito.Mockito.mock;
 
 class DaemonSetHandlerTest {
 
-    private ProbeHandler probeHandler;
     private List<VolumeConfig> volumes;
     private List<ImageConfiguration> images;
     private DaemonSetHandler daemonSetHandler;
 
     @BeforeEach
     void before(){
-        probeHandler = mock(ProbeHandler.class);
+        ProbeHandler probeHandler = new ProbeHandler();
         volumes = new ArrayList<>();
         images = new ArrayList<>();
         List<String> mounts = new ArrayList<>();
@@ -100,7 +101,7 @@ class DaemonSetHandlerTest {
                 .extracting(DaemonSetSpec::getTemplate).isNotNull()
                 .extracting(PodTemplateSpec::getSpec)
                 .extracting(PodSpec::getVolumes).isNotNull()
-                .asList()
+                .asInstanceOf(InstanceOfAssertFactories.list(Volume.class))
                 .first()
                 .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
             );

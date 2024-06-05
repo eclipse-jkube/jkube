@@ -38,4 +38,5 @@ public class BuildPackBuildOptions {
   private List<String> tags;
   private Map<String, String> env;
   private List<String> volumes;
+  private String path;
 }

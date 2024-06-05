@@ -14,7 +14,6 @@
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 

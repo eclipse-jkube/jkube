@@ -1,0 +1,43 @@
+ifeval::["{plugin-type}" == "maven"]
+[[jkube:helm-dependency-update]]
+== *{goal-prefix}:helm-dependency-update*
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[[jkubeHelmDependencyUpdate]]
+=== *{task-prefix}HelmDependencyUpdate*
+endif::[]
+
+This feature allows you to update dependencies of your Eclipse JKube-generated
+https://helm.sh/docs/topics/charts[Helm charts]
+
+It provides the same output as the https://helm.sh/docs/helm/helm_dependency_update/[`helm dependency update`] command.
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_mvn_helm_dependency_update.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_gradle_helm_dependency_update.adoc[]
+endif::[]
+
+.Helm Dependency Update configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *dependencyVerify*
+| verify the packages against signatures
+| `jkube.helm.dependencyVerify`
+
+| *dependencySkipRefresh*
+| do not refresh the local repository cache
+| `jkube.helm.dependencySkipRefresh`
+
+|===
+
+.Example Helm Dependency Update configuration
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_example_helm_dependency_update_config.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_example_helm_dependency_update_config.adoc[]
+endif::[]

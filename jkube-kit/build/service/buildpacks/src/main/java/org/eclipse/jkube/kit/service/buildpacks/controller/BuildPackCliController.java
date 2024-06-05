@@ -89,6 +89,7 @@ public class BuildPackCliController implements BuildPackController {
     if (buildOptions.isClearCache()) {
       buildArgs.add("--clear-cache");
     }
+    buildArgs.addAll(Arrays.asList("--path", buildOptions.getPath()));
     return buildArgs;
   }
 
