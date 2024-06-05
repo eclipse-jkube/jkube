@@ -10,7 +10,7 @@ import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-public class ImagePullSecretsIT {
+class ImagePullSecretsIT {
     @RegisterExtension
     final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
