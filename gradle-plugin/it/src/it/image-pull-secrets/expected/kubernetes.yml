@@ -1,0 +1,101 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+      labels:
+        app: image-pull-secrets
+        provider: jkube
+        version: 0.0.1-SNAPSHOT
+        group: org.eclipse.jkube.integration.tests.gradle
+        app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/name: image-pull-secrets
+        app.kubernetes.io/version: 0.0.1-SNAPSHOT
+      name: image-pull-secrets
+    spec:
+      ports:
+        - name: http
+          port: 8080
+          protocol: TCP
+          targetPort: 8080
+      selector:
+        app: image-pull-secrets
+        provider: jkube
+        group: org.eclipse.jkube.integration.tests.gradle
+        app.kubernetes.io/name: image-pull-secrets
+        app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
+        app.kubernetes.io/managed-by: jkube
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+      labels:
+        app: image-pull-secrets
+        provider: jkube
+        version: 0.0.1-SNAPSHOT
+        group: org.eclipse.jkube.integration.tests.gradle
+        app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/name: image-pull-secrets
+        app.kubernetes.io/version: 0.0.1-SNAPSHOT
+      name: image-pull-secrets
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        matchLabels:
+          app: image-pull-secrets
+          provider: jkube
+          group: org.eclipse.jkube.integration.tests.gradle
+          app.kubernetes.io/name: image-pull-secrets
+          app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
+          app.kubernetes.io/managed-by: jkube
+      template:
+        metadata:
+          annotations:
+            jkube.eclipse.org/git-commit: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
+          labels:
+            app: image-pull-secrets
+            provider: jkube
+            version: 0.0.1-SNAPSHOT
+            group: org.eclipse.jkube.integration.tests.gradle
+            app.kubernetes.io/part-of: org.eclipse.jkube.integration.tests.gradle
+            app.kubernetes.io/managed-by: jkube
+            app.kubernetes.io/name: image-pull-secrets
+            app.kubernetes.io/version: 0.0.1-SNAPSHOT
+          name: image-pull-secrets
+        spec:
+          containers:
+            - env:
+                - name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: HOSTNAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+              image: repository/image-pull-secrets:latest
+              imagePullPolicy: IfNotPresent
+              name: repository-image-pull-secrets
+              ports:
+                - containerPort: 8080
+                  name: http
+                  protocol: TCP
+              securityContext:
+                privileged: false
+          imagePullSecrets:
+            - name: secret-1
+            - name: secret-2
