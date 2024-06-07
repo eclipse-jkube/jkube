@@ -28,6 +28,7 @@ Usage:
 * Fix #2463: Buildpacks should clear build cache when `nocache` option is enabled
 * Fix #2470: Add configuration option for overriding buildpack builder image
 * Fix #2662: Sanitize VCS remote URL used in `jkube.eclipse.org/git-url` annotation
+* Fix #2665: Added support for explicit path for readiness and liveness probes in SpringBootHealthCheckEnricher
 * Fix #2860: Correctly pass Docker build-arg from the build configuration to the Openshift build strategy
 * Fix #2885: Provide a way to set labels on images defined by Generators
 * Fix #2901: Ensure Docker build arguments from properties are used during images pre-pulling
