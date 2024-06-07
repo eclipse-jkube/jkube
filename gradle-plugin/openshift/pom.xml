@@ -65,6 +65,13 @@
 
         <!-- test -->
         <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-common</artifactId>
+            <scope>test</scope>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>mockwebserver</artifactId>
         </dependency>
