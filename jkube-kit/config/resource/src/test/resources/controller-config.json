@@ -41,5 +41,8 @@
     "getUrl": "http://:8080/q/health",
     "initialDelaySeconds": 3,
     "timeoutSeconds": 3
-  }
+  },
+  "imagePullSecrets": [
+    "secret"
+  ]
 }
