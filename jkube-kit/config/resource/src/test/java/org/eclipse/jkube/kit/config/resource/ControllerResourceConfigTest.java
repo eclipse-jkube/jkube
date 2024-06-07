@@ -76,7 +76,8 @@ class ControllerResourceConfigTest {
             .name("workdir")
             .type("emptyDir")
             .path("/work-dir")
-            .build()));
+            .build()))
+        .imagePullSecrets(Collections.singletonList("secret"));
 
     // When
     ControllerResourceConfig controllerResourceConfig = initContainerConfigBuilder.build();
@@ -123,7 +124,10 @@ class ControllerResourceConfigTest {
             .singleElement(InstanceOfAssertFactories.type(VolumeConfig.class))
             .hasFieldOrPropertyWithValue("name", "workdir")
             .hasFieldOrPropertyWithValue("type", "emptyDir")
-            .hasFieldOrPropertyWithValue("path", "/work-dir"));
+            .hasFieldOrPropertyWithValue("path", "/work-dir"))
+        .satisfies( c -> assertThat(c.getImagePullSecrets())
+            .singleElement(InstanceOfAssertFactories.type(String.class))
+            .isEqualTo("secret"));
   }
 
   private void assertProbe(ProbeConfig probeConfig) {

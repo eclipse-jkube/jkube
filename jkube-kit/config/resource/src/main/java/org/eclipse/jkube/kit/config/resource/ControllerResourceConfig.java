@@ -45,4 +45,5 @@ public class ControllerResourceConfig {
   private ContainerResourcesConfig containerResources;
   private String schedule;
   private Map<String, String> nodeSelector;
+  private List<String> imagePullSecrets;
 }

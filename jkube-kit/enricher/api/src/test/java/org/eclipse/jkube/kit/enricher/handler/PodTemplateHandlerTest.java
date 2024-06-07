@@ -13,8 +13,10 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -182,6 +185,38 @@ class PodTemplateHandlerTest {
         // Then
         assertThat(podTemplateSpec)
             .hasFieldOrPropertyWithValue("spec.restartPolicy", "Always");
+    }
+
+    @Test
+    void gePodTemplate_withImagePullSecrets_shouldGeneratePodTemplateWithConfiguredSecretes() {
+        // Given
+        ControllerResourceConfig config = ControllerResourceConfig.builder()
+                .imagePullSecrets(Collections.singletonList("secret"))
+                .build();
+
+        // When
+        PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
+
+        // Then
+        assertThat(podTemplateSpec)
+                .extracting("spec.imagePullSecrets")
+                .asInstanceOf(InstanceOfAssertFactories.list(LocalObjectReference.class))
+                .singleElement()
+                .hasFieldOrPropertyWithValue("name", "secret");
+    }
+
+    @Test
+    void getPodTemplate_withoutImagePullSecrets_shouldGeneratePodTemplateWithoutSecrets() {
+        // Given
+        ControllerResourceConfig config = ControllerResourceConfig.builder().build();
+
+        // When
+        PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
+
+        // Then
+        assertThat(podTemplateSpec)
+                .extracting("spec.imagePullSecrets")
+                .isNull();
     }
 
     private ContainerHandler getContainerHandler() {

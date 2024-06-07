@@ -28,6 +28,7 @@ Usage:
 * Fix #2463: Buildpacks should clear build cache when `nocache` option is enabled
 * Fix #2470: Add configuration option for overriding buildpack builder image
 * Fix #2662: Sanitize VCS remote URL used in `jkube.eclipse.org/git-url` annotation
+* Fix #2665: Added support for explicit path for readiness and liveness probes in SpringBootHealthCheckEnricher
 * Fix #2860: Correctly pass Docker build-arg from the build configuration to the Openshift build strategy
 * Fix #2885: Provide a way to set labels on images defined by Generators
 * Fix #2901: Ensure Docker build arguments from properties are used during images pre-pulling
@@ -36,7 +37,7 @@ Usage:
 * Fix #3067: Helm Push uses configured docker global and push registries instead of pull 
 * Fix #2110: Add new helm dependency update goal task (`k8s:helm-dependency-update` for maven and `k8sHelmDependencyUpdate` for gradle)
 * Fix #3122: JKube should also pass project directory in `buildpacks` build strategy
-
+* Fix #2467: Add support for specifying imagePullSecrets via resource configuration
 ### 1.16.2 (2024-03-27)
 * Fix #2461: `k8s:watch`/`k8sWatch` should throw error in `buildpacks` build strategy
 * Fix #2852: Bump version.kubernetes-client from 6.10.0 to 6.11.0

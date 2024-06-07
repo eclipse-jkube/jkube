@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -488,6 +489,42 @@ class EnvUtilTest {
             assertThat(EnvUtil.findBinaryFileInUserPath("foo")).isNull();
         } finally {
             EnvUtil.overrideEnvGetter(System::getenv);
+        }
+    }
+
+    @Test
+    @EnabledOnOs(OS.LINUX)
+    void javaBinary_whenLinuxBinaryPresent_shouldReturnPathToJavaBinary() {
+        try {
+            // Given
+            Map<String, String> properties = new HashMap<>();
+            properties.put("java.home", "/usr/java/jdk-foo");
+            properties.put("os.name", "Linux");
+            EnvUtil.overridePropertyGetter(properties::get);
+
+            // When + Then
+            assertThat(EnvUtil.javaBinary())
+              .isEqualTo("/usr/java/jdk-foo/bin/java");
+        } finally {
+            EnvUtil.overridePropertyGetter(System::getProperty);
+        }
+    }
+
+    @Test
+    @EnabledOnOs(OS.WINDOWS)
+    void javaBinary_whenWindowsBinaryPresent_shouldReturnPathToJavaBinary() {
+        try {
+            // Given
+            Map<String, String> properties = new HashMap<>();
+            properties.put("os.name", "Windows");
+            properties.put("java.home", "C:\\Program Files\\Java\\jdk-foo");
+            EnvUtil.overridePropertyGetter(properties::get);
+
+            // When + Then
+            assertThat(EnvUtil.javaBinary())
+              .isEqualTo("C:\\Program Files\\Java\\jdk-foo\\bin\\java.exe");
+        } finally {
+            EnvUtil.overridePropertyGetter(System::getProperty);
         }
     }
 }

@@ -122,11 +122,9 @@ class JibServiceTest {
         assertThat(containerImageTarFiles)
           .singleElement()
           .returns("jib-image.linux-amd64.tar", File::getName)
-          .satisfies(jibContainerImageTar -> {
-            ArchiveAssertions.assertThat(jibContainerImageTar)
-              .fileTree()
-              .contains("manifest.json", "config.json");
-          });
+          .satisfies(jibContainerImageTar -> ArchiveAssertions.assertThat(jibContainerImageTar)
+            .fileTree()
+            .contains("manifest.json", "config.json"));
       }
     }
 
@@ -143,14 +141,11 @@ class JibServiceTest {
         final List<File> containerImageTarFiles = jibService.build();
         assertThat(containerImageTarFiles)
           .hasSize(3)
-          .allSatisfy(jibContainerImageTar -> {
-            ArchiveAssertions.assertThat(jibContainerImageTar)
-              .fileTree()
-              .contains("manifest.json", "config.json");
-          })
+          .allSatisfy(jibContainerImageTar -> ArchiveAssertions.assertThat(jibContainerImageTar)
+            .fileTree()
+            .contains("manifest.json", "config.json"))
           .extracting(File::getName)
           .contains("jib-image.linux-amd64.tar", "jib-image.linux-arm64.tar", "jib-image.linux-arm.tar");
-        ;
       }
 
     }

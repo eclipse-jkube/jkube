@@ -22,6 +22,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,10 +120,21 @@ class HelmServiceDependencyUpdateIT {
 
   @Test
   @DisplayName("invalid chart provided, then throw exception")
+  @EnabledOnOs(OS.LINUX)
   void whenInvalidChartDirProvided_thenThrowException() {
     // When + Then
     assertThatIllegalStateException()
         .isThrownBy(() -> helmService.dependencyUpdate(helmConfig))
         .withMessageContaining("no such file or directory");
+  }
+
+  @Test
+  @DisplayName("invalid chart provided, then throw exception for Windows")
+  @EnabledOnOs(OS.WINDOWS)
+  void whenInvalidChartDirProvided_thenThrowException_Windows() {
+      // When + Then
+      assertThatIllegalStateException()
+          .isThrownBy(() -> helmService.dependencyUpdate(helmConfig))
+          .withMessageContaining("The system cannot find the path specified");
   }
 }
