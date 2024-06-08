@@ -159,7 +159,7 @@ class JibImageBuildServiceBuildTest {
     jibBuildService.build(ic);
     // Then
     assertThat(out.toString())
-      .contains("/latest/tmp/jib-image.linux-amd64.tar successfully built");
+      .contains(separatorsToSystem("/latest/tmp/jib-image.linux-amd64.tar successfully built"));
   }
 
   @Test
