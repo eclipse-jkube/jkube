@@ -38,24 +38,38 @@
       <groupId>com.google.cloud.tools</groupId>
       <artifactId>jib-core</artifactId>
     </dependency>
+    <dependency> <!-- Required by Jib -->
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-text</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-core</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
     </dependency>
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.eclipse.jkube</groupId>
+      <artifactId>jkube-kit-common</artifactId>
+      <scope>test</scope>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>com.marcnuri.helm-java</groupId>
+      <artifactId>helm-java</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

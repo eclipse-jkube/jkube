@@ -100,9 +100,8 @@ class JKubeConfigurationTest {
         .sourceDirectory("src/main/jkube")
         .outputDirectory("target")
         .buildArgs(Collections.singletonMap("foo", "bar"))
-        .registryConfig(RegistryConfig.builder()
-            .registry("r.example.com")
-            .build());
+        .pullRegistryConfig(RegistryConfig.builder().registry("pull.example.com").build())
+        .pushRegistryConfig(RegistryConfig.builder().registry("push.example.com").build());
 
     // When
     JKubeConfiguration jKubeConfiguration = builder.build();
@@ -113,7 +112,8 @@ class JKubeConfigurationTest {
         .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/jkube")
         .hasFieldOrPropertyWithValue("outputDirectory", "target")
         .hasFieldOrPropertyWithValue("buildArgs", Collections.singletonMap("foo", "bar"))
-        .hasFieldOrPropertyWithValue("registryConfig.registry", "r.example.com");
+        .hasFieldOrPropertyWithValue("pullRegistryConfig.registry", "pull.example.com")
+        .hasFieldOrPropertyWithValue("pushRegistryConfig.registry", "push.example.com");
   }
 
   /**
@@ -134,7 +134,8 @@ class JKubeConfigurationTest {
         .hasFieldOrPropertyWithValue("sourceDirectory", "src")
         .hasFieldOrPropertyWithValue("outputDirectory", "target")
         .hasFieldOrPropertyWithValue("buildArgs.http_proxy", "127.0.0.1:8001")
-        .hasFieldOrPropertyWithValue("registryConfig.registry", "the-registry")
+        .hasFieldOrPropertyWithValue("pullRegistryConfig.registry", "the-pull-registry")
+        .hasFieldOrPropertyWithValue("pushRegistryConfig.registry", "the-push-registry")
         .extracting(JKubeConfiguration::getReactorProjects).asList().isEmpty();
   }
 }

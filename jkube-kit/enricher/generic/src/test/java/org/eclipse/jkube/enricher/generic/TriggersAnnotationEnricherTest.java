@@ -56,7 +56,7 @@ class TriggersAnnotationEnricherTest {
     }
 
     @Test
-    void testEnrichmentNotPerformedInNonOpenShiftMode() throws IOException {
+    void testEnrichmentNotPerformedInNonOpenShiftMode() {
         KubernetesListBuilder builder = new KubernetesListBuilder()
             .addToItems(new StatefulSetBuilder()
                 .withNewMetadata()

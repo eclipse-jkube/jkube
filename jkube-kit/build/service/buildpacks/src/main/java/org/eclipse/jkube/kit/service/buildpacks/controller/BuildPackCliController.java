@@ -86,6 +86,10 @@ public class BuildPackCliController implements BuildPackController {
           .collect(Collectors.toList());
       buildArgs.addAll(extractRepeatedArgsForListElements("--env", keyValueEntryList));
     }
+    if (buildOptions.isClearCache()) {
+      buildArgs.add("--clear-cache");
+    }
+    buildArgs.addAll(Arrays.asList("--path", buildOptions.getPath()));
     return buildArgs;
   }
 

@@ -25,7 +25,6 @@ import io.fabric8.kubernetes.client.Watcher;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 
 import java.util.Collections;
 import java.util.List;

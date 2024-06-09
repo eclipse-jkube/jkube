@@ -19,6 +19,8 @@ import java.util.List;
 
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -26,6 +28,7 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceAccount;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServicePortBuilder;
 import io.fabric8.kubernetes.api.model.apiextensions.v1beta1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -109,8 +112,11 @@ class ResourceUtilTest {
             .isInstanceOf(Pod.class)
             .asInstanceOf(InstanceOfAssertFactories.type(Pod.class))
             .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
-            .extracting("spec.containers").asList().first()
-            .extracting("env").asList()
+            .extracting("spec.containers")
+            .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+            .first()
+            .extracting("env")
+            .asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class))
             .containsExactly(new EnvVarBuilder()
                 .withName("ENV_VAR_FROM_PARAMETER")
                 .withValue("replaced_value")
@@ -132,7 +138,8 @@ class ResourceUtilTest {
           .isInstanceOf(Service.class)
           .asInstanceOf(InstanceOfAssertFactories.type(Service.class))
           .hasFieldOrPropertyWithValue("metadata.name", "test-project")
-          .extracting("spec.ports").asList()
+          .extracting("spec.ports")
+          .asInstanceOf(InstanceOfAssertFactories.list(ServicePort.class))
           .containsExactly(new ServicePortBuilder()
             .withName("http")
             .withPort(8080)
@@ -143,8 +150,11 @@ class ResourceUtilTest {
           .isInstanceOf(Deployment.class)
           .asInstanceOf(InstanceOfAssertFactories.type(Deployment.class))
           .hasFieldOrPropertyWithValue("metadata.name", "test-project")
-          .extracting("spec.template.spec.containers").asList().first()
-          .extracting("env").asList()
+          .extracting("spec.template.spec.containers")
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+          .first()
+          .extracting("env")
+          .asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class))
           .containsExactly(new EnvVarBuilder()
             .withName("KUBERNETES_NAMESPACE")
             .withNewValueFrom()
@@ -168,7 +178,9 @@ class ResourceUtilTest {
                 .isInstanceOf(Service.class)
                 .hasFieldOrPropertyWithValue("metadata.name", "the-service")
                 .hasFieldOrPropertyWithValue("metadata.additionalProperties.annotations", "${annotations_placeholder}")
-                .extracting("spec.ports").asList().singleElement()
+                .extracting("spec.ports")
+                .asInstanceOf(InstanceOfAssertFactories.list(ServicePort.class))
+                .singleElement()
                 .hasFieldOrPropertyWithValue("protocol", "TCP")
                 .hasFieldOrPropertyWithValue("additionalProperties.port", "{{ .Values.service.port }}")
             )

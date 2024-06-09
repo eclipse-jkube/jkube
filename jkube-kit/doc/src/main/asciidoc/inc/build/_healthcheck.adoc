@@ -3,29 +3,36 @@ Healthchecks has been introduced since Docker 1.12 and are a way to tell Docker 
 
 The healtcheck configuration can have the following options
 
-.Healthcheck Configuration
-[cols="1,5"]
+[[config-image-build-healthcheck]]
+.Healthcheck Configuration (<<config-image, image >> : <<config-image-build, build >>)
+[cols="1,5,1"]
 |===
-| Element | Description
+| Element | Description | Property
 
 
 | *cmd*
 | Command to execute, which can be given in an shell or exec format as described in <<misc-startup, Startup Arguments>>.
+| `jkube.container-image.healthcheck.cmd`
 
 | *interval*
 | Interval for how often to run the healthcheck. The time is specified in seconds, but a time unit can be appended to change this.
+| `jkube.container-image.healthcheck.interval`
 
 | *mode*
 | Mode of the healthcheck. This can be `cmd` which is the default and specifies that the health check should be executed. Or `none` to disable a health check from the base image. Only use this option with `none` for disabling some healthcheck from the base image.
+| `jkube.container-image.healthcheck.mode`
 
 | *retries*
 | How many retries should be performed before the container is to be considered unhealthy.
+| `jkube.container-image.healthcheck.retries`
 
 | *startPeriod*
 | Initialization time for containers that need time to bootstrap. Probe failure during that period will not be counted towards the maximum number of retries. However, if a health check succeeds during the start period, the container is considered started and all consecutive failures will be counted towards the maximum number of retries. Given in seconds, but another time unit can be appended.
+| `jkube.container-image.healthcheck.startPeriod`
 
 | *timeout*
 | Timeout after which healthckeck should be stopped and considered to have failed. Given in seconds, but another time unit can be appended.
+| `jkube.container-image.healthcheck.timeout`
 |===
 
 The following example queries an URL every 10s as an healthcheck:

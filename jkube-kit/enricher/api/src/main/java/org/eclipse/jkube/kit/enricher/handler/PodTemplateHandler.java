@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
+import io.fabric8.kubernetes.api.model.LocalObjectReference;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
@@ -27,6 +28,7 @@ import org.eclipse.jkube.kit.config.resource.VolumeType;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createNewInitContainersFromConfig;
 
@@ -60,6 +62,11 @@ public class PodTemplateHandler {
             .withInitContainers(createNewInitContainersFromConfig(config.getInitContainers()))
             .withVolumes(getVolumes(config))
             .withNodeSelector(config.getNodeSelector())
+            .withImagePullSecrets(
+                    config.getImagePullSecrets() == null ? null: config.getImagePullSecrets()
+                            .stream()
+                            .map(LocalObjectReference::new)
+                            .collect(Collectors.toList()))
             .build();
     }
 

@@ -17,6 +17,7 @@ import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.TestHttpBuildPacksArtifactsServer;
@@ -77,8 +78,13 @@ class BuildPackBuildServiceTest {
     jKubeServiceHub = JKubeServiceHub.builder()
         .log(kitLogger)
         .platformMode(RuntimeMode.KUBERNETES)
+        .dockerServiceHub(mock(DockerServiceHub.class))
         .buildServiceConfig(buildServiceConfig)
-        .configuration(JKubeConfiguration.builder().build())
+        .configuration(JKubeConfiguration.builder()
+          .project(JavaProject.builder()
+            .baseDirectory(temporaryFolder)
+            .build())
+          .build())
         .build();
     imageConfiguration = ImageConfiguration.builder()
         .name("foo/bar:latest")
@@ -169,7 +175,7 @@ class BuildPackBuildServiceTest {
         buildPackBuildService.buildSingleImage(imageConfiguration);
 
         // Then
-        verify(kitLogger).info("[[s]]%s","build foo/bar:latest --builder cnbs/sample-builder:bionic --creation-time now");
+        verify(kitLogger).info("[[s]]%s","build foo/bar:latest --builder cnbs/sample-builder:bionic --creation-time now --path " + temporaryFolder.getAbsolutePath());
       }
 
       @Test
@@ -182,7 +188,7 @@ class BuildPackBuildServiceTest {
         buildPackBuildService.buildSingleImage(imageConfiguration);
 
         // Then
-        verify(kitLogger).info("[[s]]%s","build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now");
+        verify(kitLogger).info("[[s]]%s","build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now --path " + temporaryFolder.getAbsolutePath());
       }
     }
 
@@ -196,7 +202,7 @@ class BuildPackBuildServiceTest {
         buildPackBuildService.buildSingleImage(imageConfiguration);
 
         // Then
-        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now");
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now --path " + temporaryFolder.getAbsolutePath());
       }
 
       @Test
@@ -210,6 +216,7 @@ class BuildPackBuildServiceTest {
                 .volumes(Collections.singletonList("/tmp/volume:/platform/volume:ro"))
                 .tags(Arrays.asList("t1", "t2", "t3"))
                 .env(Collections.singletonMap("BP_SPRING_CLOUD_BINDINGS_DISABLED", "true"))
+                .nocache(true)
                 .build())
             .build();
 
@@ -217,7 +224,7 @@ class BuildPackBuildServiceTest {
         buildPackBuildService.buildSingleImage(imageConfiguration);
 
         // Then
-        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:tiny --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true");
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:tiny --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true --clear-cache --path " + temporaryFolder.getAbsolutePath());
       }
     }
   }
@@ -228,17 +235,17 @@ class BuildPackBuildServiceTest {
     private BuildPackBuildService buildPackBuildService;
     private DockerAccess dockerAccess;
 
-    private RegistryConfig registryConfig;
-
     @BeforeEach
     void setUp() {
       dockerAccess = mock(DockerAccess.class);
       jKubeServiceHub = jKubeServiceHub.toBuilder()
           .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, dockerAccess))
-          .build();
-      registryConfig = RegistryConfig.builder()
-          .registry("example.com")
-          .settings(Collections.emptyList())
+          .configuration(JKubeConfiguration.builder()
+            .pushRegistryConfig(RegistryConfig.builder()
+              .registry("example.com")
+              .settings(Collections.emptyList())
+              .build())
+            .build())
           .build();
       buildPackBuildService = new BuildPackBuildService(jKubeServiceHub, new Properties());
     }
@@ -247,7 +254,7 @@ class BuildPackBuildServiceTest {
     @DisplayName("push successfully done via docker daemon")
     void whenPushSuccessful_thenImagePushedViaDockerAccess() throws JKubeServiceException, DockerAccessException {
       // When
-      buildPackBuildService.pushSingleImage(imageConfiguration, 0, registryConfig, true);
+      buildPackBuildService.pushSingleImage(imageConfiguration, 0, true);
 
       // Then
       verify(dockerAccess).pushImage("foo/bar:latest", null, "example.com", 0);
@@ -262,7 +269,7 @@ class BuildPackBuildServiceTest {
 
       // When + Then
       assertThatExceptionOfType(JKubeServiceException.class)
-          .isThrownBy(() -> buildPackBuildService.pushSingleImage(imageConfiguration, 0, registryConfig, false))
+          .isThrownBy(() -> buildPackBuildService.pushSingleImage(imageConfiguration, 0, false))
           .withMessage("Error while trying to push the image: Push failure");
     }
   }

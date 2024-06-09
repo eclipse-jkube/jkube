@@ -116,6 +116,9 @@ public class BuildConfiguration implements Serializable {
   @Singular
   private List<String> tags;
 
+  @Singular
+  private List<String> platforms;
+
   /**
    * Environment variables.
    * <p>
@@ -174,7 +177,9 @@ public class BuildConfiguration implements Serializable {
    */
   private Boolean skip;
 
-  // Docker build strategy specific configuration options
+  ///////////////////////////////////////////////////////////////////////////
+  // Fields applicable to docker build strategy
+  ///////////////////////////////////////////////////////////////////////////
   /**
    * Path to a directory used for the build's context. You can specify the Dockerfile to use with dockerFile, which by
    * default is the Dockerfile found in the contextDir.

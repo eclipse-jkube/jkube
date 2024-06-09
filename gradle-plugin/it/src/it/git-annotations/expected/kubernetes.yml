@@ -6,7 +6,7 @@ items:
   kind: Deployment
   metadata:
     annotations:
-      jkube.eclipse.org/git-url: "@matches('(?:git|ssh|https?|git@[-\\w.]+):(\\/\\/)?(.*?)(\\.git)(\\/?|\\#[-\\d\\w._]+?)$')@"
+      jkube.eclipse.org/git-url: "@matches('(https://|git@)?github.com(:|/)+(.*?)(\\.git)')@"
       jkube.eclipse.org/git-commit: "@matches('\\b[0-9a-f]{5,40}\\b')@"
       jkube.eclipse.org/git-branch: "@assertThat(not(isEmptyString())@"
     labels:
@@ -26,7 +26,7 @@ items:
     template:
       metadata:
         annotations:
-          jkube.eclipse.org/git-url: "@matches('(?:git|ssh|https?|git@[-\\w.]+):(\\/\\/)?(.*?)(\\.git)(\\/?|\\#[-\\d\\w._]+?)$')@"
+          jkube.eclipse.org/git-url: "@matches('(https://|git@)?github.com(:|/)+(.*?)(\\.git)')@"
           jkube.eclipse.org/git-commit: "@matches('\\b[0-9a-f]{5,40}\\b')@"
           jkube.eclipse.org/git-branch: "@assertThat(not(isEmptyString())@"
         labels:

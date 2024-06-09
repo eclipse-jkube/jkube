@@ -18,12 +18,15 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import io.fabric8.openshift.api.model.ImageStreamTag;
 import io.fabric8.openshift.api.model.ImageStreamTagBuilder;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -40,6 +43,8 @@ import io.fabric8.openshift.api.model.BuildOutput;
 import io.fabric8.openshift.api.model.BuildStrategy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
@@ -75,6 +80,10 @@ class OpenShiftBuildServiceUtilsTest {
     jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     when(jKubeServiceHub.getBuildServiceConfig().getBuildDirectory())
         .thenReturn(temporaryFolder.getAbsolutePath());
+    when(jKubeServiceHub.getConfiguration()).thenReturn(JKubeConfiguration.builder()
+            .project(JavaProject.builder().build())
+            .buildArgs(Collections.emptyMap())
+        .build());
     imageConfiguration = ImageConfiguration.builder()
         .name("myapp")
         .build(BuildConfiguration.builder()
@@ -183,64 +192,95 @@ class OpenShiftBuildServiceUtilsTest {
         .hasFieldOrPropertyWithValue("pullSecret.name", "my-secret-for-pull");
   }
 
-  @Test
-  void createBuildStrategy_withDockerBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
-    // Given
-    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
-        .thenReturn(JKubeBuildStrategy.docker);
-    // When
-    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null);
-    // Then
-    assertThat(result)
-        .hasFieldOrPropertyWithValue("type", "Docker")
-        .extracting(BuildStrategy::getDockerStrategy)
-        .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
-        .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base");
-  }
+  @Nested
+  @DisplayName("docker BuildStrategy")
+  class DockerBuildStrategy {
+    @BeforeEach
+    void setUp() {
+      when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
+          .thenReturn(JKubeBuildStrategy.docker);
+    }
 
-  @Test
-  void createBuildStrategy_withDockerBuildArgs_shouldReturnValidBuildStrategyWithBuildArgs() {
-    // Given
-    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
-        .thenReturn(JKubeBuildStrategy.docker);
-    ImageConfiguration imageConfig = ImageConfiguration.builder()
-        .name("myapp")
-        .build(BuildConfiguration.builder()
-            .from("ubi8/s2i-base")
-            .args(Collections.singletonMap("BUILD_ARGS_KEY", "build-args-value"))
-            .build())
-        .build();
-    // When
-    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfig, "my-secret-for-pull");
-    // Then
-    assertThat(result)
-        .hasFieldOrPropertyWithValue("type", "Docker")
-        .extracting(BuildStrategy::getDockerStrategy)
-        .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
-        .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base")
-        .extracting("buildArgs").asList().hasSize(1).first().satisfies(
-            envVar -> {
-              assertThat(envVar)
-                  .hasFieldOrPropertyWithValue("name", "BUILD_ARGS_KEY")
-                  .hasFieldOrPropertyWithValue("value", "build-args-value");
-            });
-  }
+    @Test
+    @DisplayName("no pull secret specified")
+    void withDockerBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
+      // When
+      final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null);
+      // Then
+      assertThat(result)
+          .hasFieldOrPropertyWithValue("type", "Docker")
+          .extracting(BuildStrategy::getDockerStrategy)
+          .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
+          .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base");
+    }
 
-  @Test
-  void createBuildStrategy_withDockerBuildStrategyAndPullSecret_shouldReturnValidBuildStrategy() {
-    // Given
-    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
-        .thenReturn(JKubeBuildStrategy.docker);
-    // When
-    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
-    // Then
-    assertThat(result)
-        .hasFieldOrPropertyWithValue("type", "Docker")
-        .extracting(BuildStrategy::getDockerStrategy)
-        .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
-        .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base")
-        .hasFieldOrPropertyWithValue("noCache", false)
-        .hasFieldOrPropertyWithValue("pullSecret.name", "my-secret-for-pull");
+    @Test
+    @DisplayName("pull secret specified, should reflect in Build Strategy")
+    void withPullSecret_shouldReturnValidBuildStrategy() {
+      // When
+      final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
+      // Then
+      assertThat(result)
+          .hasFieldOrPropertyWithValue("type", "Docker")
+          .extracting(BuildStrategy::getDockerStrategy)
+          .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
+          .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base")
+          .hasFieldOrPropertyWithValue("noCache", false)
+          .hasFieldOrPropertyWithValue("pullSecret.name", "my-secret-for-pull");
+    }
+
+    @Nested
+    @DisplayName("with build args")
+    class WithDockerBuildArgs {
+      @Test
+      @DisplayName("when docker build args in ImageConfig, then add them to BuildStrategy")
+      void withDockerBuildArgsInImageConfiguration_shouldReturnValidBuildStrategyWithBuildArgs() {
+        // Given
+        imageConfiguration = imageConfiguration.toBuilder()
+            .build(imageConfiguration.getBuild().toBuilder()
+                .args(Collections.singletonMap("BUILD_ARGS_KEY", "build-args-value"))
+                .build())
+            .build();
+        // When
+        final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
+        // Then
+        assertBuildArgPresentInBuildStrategy(result);
+      }
+
+      @Test
+      @DisplayName("when docker build args in project properties, then add them to BuildStrategy")
+      void withDockerBuildArgsInProjectProperties_shouldReturnValidBuildStrategyWithBuildArgs() {
+        // Given
+        Properties properties = new Properties();
+        properties.put("docker.buildArg.BUILD_ARGS_KEY", "build-args-value");
+        when(jKubeServiceHub.getConfiguration()).thenReturn(JKubeConfiguration.builder()
+            .project(JavaProject.builder()
+                .properties(properties)
+                .build())
+            .build());
+        // When
+        final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
+        // Then
+        assertBuildArgPresentInBuildStrategy(result);
+      }
+
+      void assertBuildArgPresentInBuildStrategy(BuildStrategy result) {
+        assertThat(result)
+            .hasFieldOrPropertyWithValue("type", "Docker")
+            .extracting(BuildStrategy::getDockerStrategy)
+            .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
+            .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base")
+            .extracting("buildArgs")
+            .asInstanceOf(InstanceOfAssertFactories.LIST)
+            .singleElement()
+            .satisfies(
+                envVar -> {
+                  assertThat(envVar)
+                      .hasFieldOrPropertyWithValue("name", "BUILD_ARGS_KEY")
+                      .hasFieldOrPropertyWithValue("value", "build-args-value");
+                });
+      }
+    }
   }
 
   @Test

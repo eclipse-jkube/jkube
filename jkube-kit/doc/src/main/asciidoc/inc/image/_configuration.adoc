@@ -1,20 +1,23 @@
 [[config-image]]
 .Image Configuration
-[cols="1,5"]
+[cols="1,5,1"]
 |===
-| Element | Description
+| Element | Description | Property
 
 | <<image-name, *name*>>
-| Each `image` configuration has a mandatory, unique docker
-repository _name_. This can include registry and tag parts, but also placeholder parameters. See below for a detailed explanation.
+| Each `image` configuration has a mandatory, unique docker repository _name_.
+  This can include registry and tag parts, but also placeholder parameters.
+  See below for a detailed explanation.
+| `jkube.container-image.name`
 
 | *alias*
-| Shortcut name for an image which can be used for
-identifying the image within this configuration. This is used when
-linking images together or for specifying it with the global *image* configuration element.
+| Shortcut name for an image which can be used for identifying the image within this configuration.
+  This is used when linking images together or for specifying it with the global *image* configuration element.
+| `jkube.container-image.alias`
 
 | <<registry, *registry*>>
 | Registry to use for this image. If the `name` already contains a registry this takes precedence. See <<registry,Registry handling>> for more details.
+|
 
 | <<config-image-build, *build*>>
 |
@@ -25,6 +28,13 @@ ifeval::["{plugin-type}" == "gradle"]
 Element which contains all the configuration aspects when doing a <<jkubeBuild, {task-prefix}Build>>.
 endif::[]
 
-This element can be omitted if the image is only pulled from a registry e.g. as support for integration tests like database images.
+  This element can be omitted if the image is only pulled from a registry.
+  e.g. as support for integration tests like database images.
+|
 
+| *propertyResolverPrefix*
+| Prefix for property resolution. This is used to resolve properties in the configuration.
+  If not set, the default prefix is `jkube.container-image`.
+
+|
 |===

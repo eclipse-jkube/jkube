@@ -568,9 +568,7 @@ public class ApplyService {
                 }
 
                 // now lets add them all in case 2 tags have the same name
-                for (TagReference tag : fromTags) {
-                    toTags.add(tag);
-                }
+                toTags.addAll(fromTags);
             }
         }
     }

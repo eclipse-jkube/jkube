@@ -99,6 +99,9 @@ For `Job`, this defaults to `OnFailure`. For others, it's not provided ({cluster
 
 | `nodeSelector`
 | Configuration element for adding nodeSelector to Pod template spec.
+
+|`imagePullSecrets`
+| Specify https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/[secrets] for pulling images from private repos
 |===
 
 [[initcontainer-configuration]]

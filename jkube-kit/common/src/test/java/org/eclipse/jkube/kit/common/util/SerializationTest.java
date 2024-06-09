@@ -16,10 +16,15 @@ package org.eclipse.jkube.kit.common.util;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.openshift.api.model.Template;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -79,13 +84,12 @@ class SerializationTest {
     assertThat(result)
       .isInstanceOf(Template.class)
       .hasFieldOrPropertyWithValue("metadata.name", "template-example")
-      .extracting("objects").asList().singleElement()
-      .isInstanceOf(Pod.class)
+      .extracting("objects").asInstanceOf(InstanceOfAssertFactories.list(Pod.class)).singleElement()
       .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
-      .extracting("spec.containers").asList().singleElement()
+      .extracting("spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class)).singleElement()
       .hasFieldOrPropertyWithValue("image", "busybox")
       .hasFieldOrPropertyWithValue("securityContext.additionalProperties.privileged", "${POD_SECURITY_CONTEXT}")
-      .extracting("env").asList().singleElement()
+      .extracting("env").asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class)).singleElement()
       .hasFieldOrPropertyWithValue("value", "${ENV_VAR_KEY}");
   }
 
@@ -98,13 +102,12 @@ class SerializationTest {
     assertThat(result)
       .isInstanceOf(Template.class)
       .hasFieldOrPropertyWithValue("metadata.name", "template-example")
-      .extracting("objects").asList().singleElement()
-      .isInstanceOf(Pod.class)
+      .extracting("objects").asInstanceOf(InstanceOfAssertFactories.list(Pod.class)).singleElement()
       .hasFieldOrPropertyWithValue("metadata.name", "pod-from-template")
-      .extracting("spec.containers").asList().singleElement()
+      .extracting("spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class)).singleElement()
       .hasFieldOrPropertyWithValue("image", "busybox")
       .hasFieldOrPropertyWithValue("securityContext.additionalProperties.privileged", "${POD_SECURITY_CONTEXT}")
-      .extracting("env").asList().singleElement()
+      .extracting("env").asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class)).singleElement()
       .hasFieldOrPropertyWithValue("value", "${ENV_VAR_KEY}");
   }
 
@@ -207,12 +210,87 @@ class SerializationTest {
     // Then
     assertThat(targetFile)
       .content()
-      .isEqualTo("---\n" +
-        "apiVersion: v1\n" +
-        "kind: ConfigMap\n" +
-        "metadata:\n" +
-        "  name: test\n" +
-        "data:\n" +
-        "  key: value\n");
+      .isEqualTo(String.format("---%n" +
+        "apiVersion: v1%n" +
+        "kind: ConfigMap%n" +
+        "metadata:%n" +
+        "  name: test%n" +
+        "data:%n" +
+        "  key: value%n"));
+  }
+
+  @Nested
+  @DisplayName("Multi-line strings are serialized to YAML using scalar blocks")
+  class MultiLineStringsSerializedToScalarYamlBlocks {
+    @Test
+    @DisplayName("string ends with newline, then add | to use block style in serialized object")
+    void unmarshal_whenStringEndingWithNewline_thenAddBlockIndicatorInSerializedObject(@TempDir Path targetDir) throws IOException {
+      // Given
+      final File targetFile = targetDir.resolve("cm.yaml").toFile();
+      final ConfigMap source = new ConfigMapBuilder()
+              .withNewMetadata()
+              .addToAnnotations("proxy.istio.io/config", "proxyMetadata:\n    ISTIO_META_DNS_CAPTURE: \"false\"\nholdApplicationUntilProxyStarts: true\n")
+              .endMetadata()
+              .build();
+      // When
+      Serialization.saveYaml(targetFile, source);
+      // Then
+      assertThat(targetFile)
+          .content()
+          .isEqualTo(String.format("---%n" +
+              "apiVersion: v1%n" +
+              "kind: ConfigMap%n" +
+              "metadata:%n" +
+              "  annotations:%n" +
+              "    proxy.istio.io/config: |%n" +
+              "      proxyMetadata:%n" +
+              "          ISTIO_META_DNS_CAPTURE: \"false\"%n"+
+              "      holdApplicationUntilProxyStarts: true%n"));
+    }
+
+    @Test
+    @DisplayName("when string contains windows line breaks, then convert then to unix line breaks during deserialization")
+    void unmarshal_withWindowsLineEndings_shouldDeserializeMultilineStringWithLineFeeds() {
+      // Given
+      String input = "apiVersion: v1\r\n" +
+          "kind: ConfigMap\r\n" +
+          "metadata:\r\n" +
+          "  annotations:\r\n" +
+          "    proxy.istio.io/config: |\r\n" +
+          "      proxyMetadata:\r\n" +
+          "        ISTIO_META_DNS_CAPTURE: \"false\"\r\n"+
+          "      holdApplicationUntilProxyStarts: true\r\n";
+
+      // When
+      ConfigMap configMap = Serialization.unmarshal(input, ConfigMap.class);
+
+      // Then
+      assertThat(configMap.getMetadata().getAnnotations())
+              .containsEntry("proxy.istio.io/config", "proxyMetadata:\n" +
+                      "  ISTIO_META_DNS_CAPTURE: \"false\"\n" +
+              "holdApplicationUntilProxyStarts: true\n");
+    }
+
+    @Test
+    @DisplayName("when string contains unix line breaks, then line breaks remain unchanged during deserialization")
+    void unmarshal_withUnixLineEndings_shouldDeserializeMultilineStringWithLineFeeds() {
+      // Given
+      String input = "apiVersion: v1\n" +
+          "kind: ConfigMap\n" +
+          "metadata:\n" +
+          "  annotations:\n" +
+          "    proxy.istio.io/config: |\n" +
+          "      proxyMetadata:\n" +
+          "        ISTIO_META_DNS_CAPTURE: \"false\"\n"+
+          "      holdApplicationUntilProxyStarts: true\n";
+      // When
+      ConfigMap configMap = Serialization.unmarshal(input, ConfigMap.class);
+
+      // Then
+      assertThat(configMap.getMetadata().getAnnotations())
+              .containsEntry("proxy.istio.io/config", "proxyMetadata:\n" +
+                      "  ISTIO_META_DNS_CAPTURE: \"false\"\n" +
+                      "holdApplicationUntilProxyStarts: true\n");
+    }
   }
 }

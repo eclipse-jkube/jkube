@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.common;
 
+import java.io.PrintStream;
+
 /**
  * @author roland
  */
@@ -102,33 +104,45 @@ public interface KitLogger {
      */
     default void progressFinished() {}
 
-    @SuppressWarnings("java:S106")
-    class StdoutLogger implements KitLogger {
+    class PrintStreamLogger implements KitLogger {
+
+        private final PrintStream out;
+
+        public PrintStreamLogger(PrintStream out) {
+            this.out = out;
+        }
+
         @Override
         public void debug(String format, Object... params) {
-            System.out.println(String.format(format,params));
+            out.println(String.format(format, params));
         }
 
         @Override
         public void info(String format, Object... params) {
-            System.out.println(String.format(format,params));
+            out.println(String.format(format, params));
         }
 
         @Override
         public void warn(String format, Object... params) {
-            System.out.println(String.format(format,params));
+            out.println(String.format(format, params));
         }
 
         @Override
         public void error(String format, Object... params) {
-            System.out.println(String.format(format,params));
+            out.println(String.format(format, params));
         }
 
         @Override
         public boolean isDebugEnabled() {
             return true;
         }
+    }
 
+    @SuppressWarnings("java:S106")
+    class StdoutLogger extends PrintStreamLogger {
+        public StdoutLogger() {
+            super(System.out);
+        }
     }
 
     class SilentLogger implements KitLogger {

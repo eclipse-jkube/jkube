@@ -18,7 +18,7 @@ import java.io.IOException;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.service.docker.access.CreateImageOptions;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.DockerAuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -31,7 +31,7 @@ import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicableP
 import static org.eclipse.jkube.kit.build.api.helper.RegistryUtil.getApplicablePushRegistryFrom;
 
 /**
- * Allows to interact with registries, eg. to push/pull images.
+ * Allows to interact with registries, e.g. to push/pull images.
  */
 public class RegistryService {
 
@@ -54,8 +54,9 @@ public class RegistryService {
      * @param skipTag flag to skip pushing tagged images
      * @throws IOException exception
      */
-    public void pushImage(ImageConfiguration imageConfig,
-                          int retries, RegistryConfig registryConfig, boolean skipTag) throws IOException {
+    public void pushImage(
+      ImageConfiguration imageConfig, int retries, RegistryConfig registryConfig, boolean skipTag
+    ) throws IOException {
         BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
         String name = imageConfig.getName();
         if (buildConfig != null) {
@@ -151,7 +152,7 @@ public class RegistryService {
     private AuthConfig createAuthConfig(boolean isPush, String user, String registry, RegistryConfig config)
             throws IOException {
 
-        return new AuthConfigFactory(log).createAuthConfig(
+        return new DockerAuthConfigFactory(log).createAuthConfig(
             isPush, config.isSkipExtendedAuth(), config.getAuthConfig(),
             config.getSettings(), user, registry, config.getPasswordDecryptionMethod());
     }

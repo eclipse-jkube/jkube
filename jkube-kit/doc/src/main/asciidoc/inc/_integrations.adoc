@@ -47,6 +47,7 @@ and Dekorate. You can activate this feature by using the following flag `-Djkube
 in the command-line, or setting it up as a property (`<jkube.mergeWithDekorate>true</jkube.mergeWithDekorate>`).
 endif::[]
 
+[[integrations.jib]]
 == JIB (Java Image Builder)
 *{plugin}* also provides user an option to build container images without having access to any docker daemon.
 You just need to set `jkube.build.strategy` property to `jib`. It will delegate the build process to
@@ -88,11 +89,21 @@ endif::[]
 `pack build` process. If the download for the https://buildpacks.io/docs/tools/pack/[Pack CLI] binary fails, {plugin} looks for any locally installed https://buildpacks.io/docs/tools/pack/[Pack CLI] version.
 
 === Buildpack Builder Image
-By default {plugin} uses the https://buildpacks.io/docs/concepts/components/builder/[builder image] specified in the https://buildpacks.io/docs/tools/pack/cli/pack_config/[Pack Config] file for building the container image using https://buildpacks.io/docs/tools/pack/[Pack CLI].
-
-For example, if the user has this image set in the `$HOME/.pack/config.toml` file:
+- If no builder image is configured, then {plugin} uses `paketobuildpacks/builder:base` as the default builder image.
+- If builder image is provided in local https://buildpacks.io/docs/tools/pack/cli/pack_config/[Pack Config], {plugin} uses the https://buildpacks.io/docs/concepts/components/builder/[builder image] specified in the file.
+  For example,if the user has this image set in the `$HOME/.pack/config.toml` file, {plugin} will use `testuser/buildpacks-quarkus-builder:latest` as Buildpacks builder image.:
 [source,toml,indent=2,subs="verbatim,quotes,attributes"]
 ----
 default-builder-image = "testuser/buildpacks-quarkus-builder:latest"
 ----
-{plugin} uses `testuser/buildpacks-quarkus-builder:latest` as Buildpacks builder image. If no image is configured, then {plugin} uses `paketobuildpacks/builder:base` as the default builder image.
+- It's also possible to configure BuildPack builder image using property or {plugin-configuration-type} configuration. You can use this property to configure buildpacks builder image:
+[source,properties,indent=2,subs="verbatim,quotes,attributes"]
+----
+jkube.generator.buildpacksBuilderImage = "testuser/buildpacks-quarkus-builder:latest"
+----
+
+[NOTE]
+====
+BuildPacks integration simply involves delegation of the build process to `pack` CLI. {plugin} has no control over how image gets built. This is controlled by BuildPack builder image. User is
+responsible for making sure that valid configuration is provided for BuildPacks.
+====

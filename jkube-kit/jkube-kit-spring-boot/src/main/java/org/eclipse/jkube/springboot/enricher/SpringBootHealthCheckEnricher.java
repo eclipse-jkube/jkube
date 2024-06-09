@@ -39,6 +39,9 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
     private static final String SCHEME_HTTPS = "HTTPS";
     private static final String SCHEME_HTTP = "HTTP";
 
+    private static final String LIVENESS_PROBE_SUFFIX = "/liveness";
+    private static final String READINESS_PROBE_SUFFIX = "/readiness";
+
     @AllArgsConstructor
     private enum Config implements Configs.Config {
         READINESS_PROBE_INITIAL_DELAY_SECONDS("readinessProbeInitialDelaySeconds", "10"),
@@ -67,7 +70,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
         Integer timeout = Configs.asInteger(getConfig(Config.TIMEOUT_SECONDS));
         Integer failureThreshold = Configs.asInteger(getConfig(Config.FAILURE_THRESHOLD));
         Integer successThreshold = Configs.asInteger(getConfig(Config.SUCCESS_THRESHOLD));
-        return discoverSpringBootHealthCheck(initialDelay, period, timeout, failureThreshold, successThreshold);
+        return discoverSpringBootHealthCheck(initialDelay, period, timeout, failureThreshold, successThreshold, READINESS_PROBE_SUFFIX);
     }
 
     @Override
@@ -77,13 +80,13 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
         Integer timeout = Configs.asInteger(getConfig(Config.TIMEOUT_SECONDS));
         Integer failureThreshold = Configs.asInteger(getConfig(Config.FAILURE_THRESHOLD));
         Integer successThreshold = Configs.asInteger(getConfig(Config.SUCCESS_THRESHOLD));
-        return discoverSpringBootHealthCheck(initialDelay, period, timeout, failureThreshold, successThreshold);
+        return discoverSpringBootHealthCheck(initialDelay, period, timeout, failureThreshold, successThreshold, LIVENESS_PROBE_SUFFIX);
     }
 
-    protected Probe discoverSpringBootHealthCheck(Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh) {
+    protected Probe discoverSpringBootHealthCheck(Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh, String suffix) {
         try {
             if (getContext().getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES)) {
-                return buildProbe(initialDelay, period, timeout, failureTh, successTh);
+                return buildProbe(initialDelay, period, timeout, failureTh, successTh, suffix);
             }
         } catch (Exception ex) {
             log.error("Error while reading the spring-boot configuration", ex);
@@ -91,7 +94,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
         return null;
     }
 
-    protected Probe buildProbe(Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh) {
+    protected Probe buildProbe(Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh, String suffix) {
         final SpringBootConfiguration springBootConfiguration = SpringBootConfiguration.from(getContext().getProject());
         Integer managementPort = springBootConfiguration.getManagementPort();
         boolean usingManagementPort = managementPort != null;
@@ -122,9 +125,16 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
             actuatorBasePath = springBootConfiguration.getActuatorBasePath();
         }
 
+        // adds suffix to probe paths when ManagementHealthProbesEnabled is true
+        String probePath = prefix + actuatorBasePath + Configs.asString(getConfig(Config.PATH));
+        if(springBootConfiguration.isManagementHealthProbesEnabled()){
+            probePath += suffix;
+        }
+        probePath = normalizeMultipleSlashes(probePath);
+
         // lets default to adding a spring boot actuator health check
         ProbeBuilder probeBuilder = new ProbeBuilder().
-                withNewHttpGet().withNewPort(port).withPath(normalizeMultipleSlashes(prefix + actuatorBasePath + Configs.asString(getConfig(Config.PATH)))).withScheme(scheme).endHttpGet();
+                withNewHttpGet().withNewPort(port).withPath(probePath).withScheme(scheme).endHttpGet();
 
         if (initialDelay != null) {
             probeBuilder = probeBuilder.withInitialDelaySeconds(initialDelay);

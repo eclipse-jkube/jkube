@@ -20,6 +20,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -73,6 +75,7 @@ public class MetadataVisitor<T extends VisitableBuilder> extends TypedVisitor<T>
   private final Supplier<Properties> labelSupplier;
   private final Function<T, ObjectMetaFluent<?>> objectMeta;
   private final Function<ObjectMetaFluent<?>, Runnable> endMetadata;
+  private static final Pattern CONTAINS_LINE_BREAK = Pattern.compile("\r?\n");
 
   public MetadataVisitor(
       Class<T> clazz,
@@ -112,8 +115,12 @@ public class MetadataVisitor<T extends VisitableBuilder> extends TypedVisitor<T>
   }
 
   private String appendTrailingNewLineIfMultiline(String value) {
-    if (value.contains(System.lineSeparator()) && !value.endsWith(System.lineSeparator())) {
-      return value + System.lineSeparator();
+    Matcher m = CONTAINS_LINE_BREAK.matcher(value);
+    if (m.find()) {
+      String eol = m.group();
+      if (!value.endsWith(eol)) {
+        return value + eol;
+      }
     }
     return value;
   }

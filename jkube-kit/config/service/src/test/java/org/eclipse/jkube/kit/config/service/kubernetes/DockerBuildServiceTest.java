@@ -122,7 +122,7 @@ class DockerBuildServiceTest {
   @Test
   void push_withDefaults_shouldPush() throws Exception {
     // When
-    new DockerBuildService(mockedJKubeServiceHub).push(Collections.emptyList(), 0, null, false);
+    new DockerBuildService(mockedJKubeServiceHub).push(Collections.emptyList(), 0, false);
     // Then
     verify(mockedJKubeServiceHub.getDockerServiceHub().getRegistryService(), times(0))
         .pushImage(any(), eq(0), isNull(), eq(false));

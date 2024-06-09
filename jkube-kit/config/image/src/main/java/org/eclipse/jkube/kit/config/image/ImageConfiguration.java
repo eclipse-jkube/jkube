@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.config.image;
 
 import java.io.Serializable;
-import java.util.Map;
 
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
@@ -34,7 +33,7 @@ import lombok.Setter;
 @EqualsAndHashCode
 public class ImageConfiguration implements Serializable {
     /**
-     * Change the name which can be useful in long running runs e.g. for updating
+     * Change the name which can be useful in long-running runs e.g. for updating
      * images when doing updates. Use with caution and only for those circumstances.
      *
      * @param name image name to set.
@@ -43,22 +42,18 @@ public class ImageConfiguration implements Serializable {
     private String alias;
     private BuildConfiguration build;
     private WatchImageConfiguration watch;
-    /**
-     * Override externalConfiguration when defined via special property.
-     *
-     * @param external Map with alternative config
-     */
-    private Map<String,String> external;
     private String registry;
-
     /**
-     * Override externalConfiguration when defined via special property.
+     * Prefix to use for property resolution.
      *
-     * @param externalConfiguration Map with alternative config
+     * <p> If not set, properties are resolved from <code>jkube.container-image.xxx</code>.
+     * The image name property would be resolved from <code>jkube.container-image.name</code>.
+     *
+     * <p> Use this to narrow down the properties to use for image configuration resolution.
+     * For example, if set with <code>app.images.image-1</code>, properties are resolved from <code>app.images.image-1.xxx</code>.
+     * The image name property is then resolved from <code>app.images.image-1.name</code>.
      */
-    public void setExternalConfiguration(Map<String, String> externalConfiguration) {
-        this.external = externalConfiguration;
-    }
+    private String propertyResolverPrefix;
 
     public BuildConfiguration getBuildConfiguration() {
         return build;
@@ -68,13 +63,8 @@ public class ImageConfiguration implements Serializable {
         return watch;
     }
 
-    public Map<String, String> getExternalConfig() {
-        return external;
-    }
-
     public String getDescription() {
         return String.format("[%s] %s", new ImageName(name).getFullName(), (alias != null ? "\"" + alias + "\"" : "")).trim();
     }
-
 
 }

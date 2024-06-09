@@ -21,10 +21,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.mockConstructionWithAnswer;
+import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.withSettings;
 
 class AnsiLoggerFallbackTest {
 
@@ -32,7 +32,8 @@ class AnsiLoggerFallbackTest {
 
   @BeforeEach
   void setUp() {
-    mockedLogger = mockConstructionWithAnswer(KitLogger.StdoutLogger.class, CALLS_REAL_METHODS);
+    final KitLogger.StdoutLogger spied = new KitLogger.StdoutLogger();
+    mockedLogger = mockConstruction(KitLogger.StdoutLogger.class, withSettings().spiedInstance(spied));
     if (!AnsiConsole.isInstalled()) {
       AnsiConsole.systemInstall();
     }

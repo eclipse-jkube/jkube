@@ -6,35 +6,41 @@ logic (see <<jkube-plugin, JKube Plugin>> for more details).
 
 [[config-image-build-assembly]]
 .Assembly Configuration (<<config-image, image >> : <<config-image-build, build >>)
-[cols="1,5"]
+[cols="1,5,1"]
 |===
-| Element | Description
+| Element | Description | Property
 
 | *name*
 | Assembly name, which is `maven` by default. This name is used for the archives and directories created during the build.
   This directory holds the files specified by the assembly. If an <<external-dockerfile,external Dockerfile>> is used then
   this name is also the relative directory which contains the assembly files.
+|
 
 | *targetDir*
 | Directory under which the files and artifacts contained in the assembly will be copied within the container.
   The default value for this is `${assembly.name}`, so `/maven` if *name* is not set to a different value.
+| `jkube.container-image.assembly.targetDir`
 
 | <<build-assembly-layer, *inline*>>
 | _Deprecated: Use layers instead_
   Inlined assembly descriptor as described in <<build-assembly-layer,Assembly - Inline>> below.
+|
 
 | <<build-assembly-layer, *layers*>>
 | Each of the layers that the assembly will contain as described in
   <<build-assembly-layer, Assembly - Layer>> below.
+|
 
 | *exportTargetDir*
 | Specification whether the `targetDir` should be exported as a volume. This value is `true` by default except in the
   case the `targetDir` is set to the container root (`/`). It is also `false` by default when a base image is used with
   `from` since exporting makes no sense in this case and will waste disk space unnecessarily.
+| `jkube.container-image.assembly.exportTargetDir`
 
 | *excludeFinalOutputArtifact*
 | By default, the project's final artifact will be included in the assembly, set this flag to true in case the
   artifact should be excluded from the assembly.
+|
 
 | *mode*
 a| Mode how the assembled files should be collected:
@@ -45,6 +51,7 @@ a| Mode how the assembled files should be collected:
 * `zip` : Transfer via ZIP archive
 
 The archive formats have the advantage that file permission can be preserved better (since the copying is independent from the underlying files systems)
+| `jkube.container-image.assembly.mode`
 
 | *permissions*
 a| Permission of the files to add:
@@ -56,9 +63,11 @@ assembly configuration
 * `auto` to let the plugin select `exec` on Windows and `keep` on others.
 
 `keep` is the default value.
+| `jkube.container-image.assembly.permissions`
 
 | *tarLongFileMode*
 | Sets the TarArchiver behaviour on file paths with more than 100 characters length. Valid values are: "warn"(default), "fail", "truncate", "gnu", "posix", "posix_warn" or "omit"
+| `jkube.container-image.assembly.tarLongFileMode`
 
 | *user*
 a| User and/or group under which the files should be added. The user must already exist in the base image.
@@ -69,6 +78,7 @@ If a third part is given, then the build changes to user `root` before changing 
 
 For example, the image `jboss/wildfly` use a "jboss" user under which all commands are executed. Adding files in Docker always happens under the UID root. These files can only be changed to "jboss" is the `chown` command is executed as root. For the following commands to be run again as "jboss" (like the final `standalone.sh`), the plugin switches back to user `jboss` (this is this "run-user") after changing the file ownership. For this example a specification of
 `jboss:jboss:jboss` would be required.
+| `jkube.container-image.assembly.user`
 |===
 
 In the event you do not need to include any artifacts with the image, you may safely omit this element from the configuration.

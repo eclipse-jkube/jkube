@@ -53,6 +53,7 @@ class OpenShiftGeneratedPluginDescriptorTest {
         arguments("log", "compile+runtime", "validate"),
         arguments("push", "compile", "install"),
         arguments("helm", "", "pre-integration-test"),
+        arguments("helm-dependency-update", "compile", "integration-test"),
         arguments("helm-push", "compile", "install"),
         arguments("helm-lint", "compile", "integration-test")
     );

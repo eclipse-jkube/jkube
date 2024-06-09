@@ -108,6 +108,9 @@ class HelmServiceUtilTest {
         .outputDir("output")
         .lintStrict(true)
         .lintQuiet(true)
+        .debug(true)
+        .dependencySkipRefresh(true)
+        .dependencyVerify(true)
         .build();
     // When
     final HelmConfig result = HelmServiceUtil
@@ -127,7 +130,10 @@ class HelmServiceUtilTest {
       .hasFieldOrPropertyWithValue("sourceDir", "sources")
       .hasFieldOrPropertyWithValue("outputDir", "output")
       .hasFieldOrPropertyWithValue("lintStrict", true)
-      .hasFieldOrPropertyWithValue("lintQuiet", true);
+      .hasFieldOrPropertyWithValue("lintQuiet", true)
+      .hasFieldOrPropertyWithValue("debug", true)
+      .hasFieldOrPropertyWithValue("dependencySkipRefresh", true)
+      .hasFieldOrPropertyWithValue("dependencyVerify", true);
   }
 
   @Test
@@ -162,6 +168,21 @@ class HelmServiceUtilTest {
     assertThat(result)
       .hasFieldOrPropertyWithValue("lintStrict", true)
       .hasFieldOrPropertyWithValue("lintQuiet", true);
+  }
+
+  @Test
+  void initHelmConfig_withHelmDependencyProperties_shouldInitConfigWithHelmDependencySettings() throws IOException {
+    // Given
+    javaProject.getProperties().put("jkube.helm.dependencyVerify", "True");
+    javaProject.getProperties().put("jkube.helm.dependencySkipRefresh", "trUe");
+    // When
+    final HelmConfig result = HelmServiceUtil
+      .initHelmConfig(HelmConfig.HelmType.KUBERNETES, javaProject, templateDir, null)
+      .build();
+    // Then
+    assertThat(result)
+      .hasFieldOrPropertyWithValue("dependencyVerify", true)
+      .hasFieldOrPropertyWithValue("dependencySkipRefresh", true);
   }
 
   @Test

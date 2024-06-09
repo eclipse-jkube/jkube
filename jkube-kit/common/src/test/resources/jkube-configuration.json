@@ -4,8 +4,11 @@
   "buildArgs": {
     "http_proxy": "127.0.0.1:8001"
   },
-  "registryConfig": {
-    "registry": "the-registry"
+  "pullRegistryConfig": {
+    "registry": "the-pull-registry"
+  },
+  "pushRegistryConfig": {
+    "registry": "the-push-registry"
   },
   "reactorProjects": []
 }

@@ -34,7 +34,9 @@ public class BuildPackBuildOptions {
   private String imageName;
   private String creationTime;
   private String imagePullPolicy;
+  private boolean clearCache;
   private List<String> tags;
   private Map<String, String> env;
   private List<String> volumes;
+  private String path;
 }

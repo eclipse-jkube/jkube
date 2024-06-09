@@ -17,11 +17,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.kit.build.api.helper.ImageConfigResolver;
+import org.eclipse.jkube.kit.build.api.config.property.PropertyConfigResolver;
 import org.eclipse.jkube.kit.build.api.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -30,6 +31,9 @@ import org.eclipse.jkube.kit.common.util.PluginServiceFactory;
 import org.eclipse.jkube.kit.config.image.GeneratorManager;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
+
+import static org.eclipse.jkube.kit.build.api.helper.ImageNameFormatter.DOCKER_IMAGE_USER;
 
 /**
  * Manager responsible for finding and calling generators
@@ -43,11 +47,12 @@ public class DefaultGeneratorManager implements GeneratorManager {
       "META-INF/jkube-generator"
   };
   private final GeneratorContext genCtx;
-  private final ImageConfigResolver imageConfigResolver;
+  private final PropertyConfigResolver propertyConfigResolver;
 
   public DefaultGeneratorManager(GeneratorContext context) {
     this.genCtx = context;
-    imageConfigResolver = new ImageConfigResolver();
+    propertyConfigResolver = new PropertyConfigResolver();
+    addOpenShiftBuildRelatedProperties();
   }
 
   @Override
@@ -76,13 +81,12 @@ public class DefaultGeneratorManager implements GeneratorManager {
   private List<ImageConfiguration> resolveImages(List<ImageConfiguration> unresolvedImages) {
     final List<ImageConfiguration> resolvedImages = new ArrayList<>();
     if (unresolvedImages != null) {
-      for (ImageConfiguration image : unresolvedImages) {
-        resolvedImages.addAll(imageConfigResolver.resolve(image, genCtx.getProject()));
-      }
-      for (ImageConfiguration config : resolvedImages) {
-        if (config.getName() == null) {
+      for (ImageConfiguration unresolvedImage : unresolvedImages) {
+        final ImageConfiguration resolvedImage = propertyConfigResolver.resolve(unresolvedImage, genCtx.getProject());
+        if (resolvedImage.getName() == null) {
           throw new JKubeException("Configuration error: <image> must have a non-null <name>");
         }
+        resolvedImages.add(resolvedImage);
       }
     }
     return resolvedImages;
@@ -116,6 +120,21 @@ public class DefaultGeneratorManager implements GeneratorManager {
         String.join(",", imageNames), genCtx.getFilter());
     }
     return filteredImages;
+  }
+
+  // TODO: Should be moved to a more suitable place (Probably within the JavaProject class)
+  private void addOpenShiftBuildRelatedProperties() {
+    if (genCtx.getRuntimeMode() == RuntimeMode.OPENSHIFT) {
+      final Properties properties = genCtx.getProject().getProperties();
+      final String namespaceToBeUsed = genCtx.getOpenshiftNamespace();
+      if (!properties.contains(DOCKER_IMAGE_USER) && StringUtils.isNotBlank(namespaceToBeUsed)) {
+        genCtx.getLogger().info("Using container image name of namespace: " + namespaceToBeUsed);
+        properties.setProperty(DOCKER_IMAGE_USER, namespaceToBeUsed);
+      }
+      if (!properties.contains(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE)) {
+        properties.setProperty(RuntimeMode.JKUBE_EFFECTIVE_PLATFORM_MODE, genCtx.getRuntimeMode().toString());
+      }
+    }
   }
 
   private boolean matchesConfiguredImages(String imageList, ImageConfiguration imageConfig) {
