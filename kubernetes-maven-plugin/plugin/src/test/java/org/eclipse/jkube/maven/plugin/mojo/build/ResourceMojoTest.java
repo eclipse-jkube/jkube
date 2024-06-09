@@ -101,7 +101,7 @@ class ResourceMojoTest {
     final File generatedArtifact = new File(resourceMojo.targetDir, "kubernetes.yml");
     assertThat(generatedArtifact)
       .exists()
-      .content().isEqualTo("---\napiVersion: v1\nkind: List\n");
+      .content().isEqualTo("---\r\napiVersion: v1\r\nkind: List\r\n");
     verify(resourceMojo.projectHelper, times(1))
       .attachArtifact(resourceMojo.project, "yml", "kubernetes", generatedArtifact);
   }
@@ -116,7 +116,7 @@ class ResourceMojoTest {
     final File generatedArtifact = new File(resourceMojo.targetDir, "kubernetes.yml");
     assertThat(generatedArtifact)
       .exists()
-      .content().isEqualTo("---\napiVersion: v1\nkind: List\n");
+      .content().isEqualTo("---\r\napiVersion: v1\r\nkind: List\r\n");
     verify(resourceMojo.projectHelper, times(1))
       .attachArtifact(resourceMojo.project, "yml", "kubernetes", generatedArtifact);
     InOrder inOrder = inOrder(kitLogger);
