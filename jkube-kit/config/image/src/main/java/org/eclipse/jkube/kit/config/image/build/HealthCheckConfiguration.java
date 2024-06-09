@@ -26,7 +26,7 @@ import java.util.Optional;
 /**
  * Build configuration for health checks.
  */
-@Builder
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
-import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 import java.util.Collection;
@@ -27,7 +26,7 @@ public abstract class AbstractImageBuildService implements BuildService {
 
   protected abstract void buildSingleImage(ImageConfiguration imageConfiguration) throws JKubeServiceException;
 
-  protected abstract void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException;
+  protected abstract void pushSingleImage(ImageConfiguration imageConfiguration, int retries, boolean skipTag) throws JKubeServiceException;
 
   /** {@inheritDoc} */
   @Override
@@ -36,9 +35,10 @@ public abstract class AbstractImageBuildService implements BuildService {
     processImage(this::buildSingleImage, "Skipped building", imageConfigurations);
   }
 
+  /** {@inheritDoc} */
   @Override
-  public final void push(Collection<ImageConfiguration> imageConfigs, int retries, RegistryConfig registryConfig, boolean skipTag) throws JKubeServiceException {
-    processImage(imageConfiguration -> pushSingleImage(imageConfiguration, retries, registryConfig, skipTag), "Skipped push", imageConfigs.toArray(new ImageConfiguration[0]));
+  public final void push(Collection<ImageConfiguration> imageConfigs, int retries, boolean skipTag) throws JKubeServiceException {
+    processImage(imageConfiguration -> pushSingleImage(imageConfiguration, retries, skipTag), "Skipped push", imageConfigs.toArray(new ImageConfiguration[0]));
   }
 
   @FunctionalInterface

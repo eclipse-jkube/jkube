@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.ImageStreamTag;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.auth.DockerAuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.ResourceFileType;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
@@ -39,7 +39,6 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.common.BuildRecreateMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -131,7 +130,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         initClient();
         String buildName = null;
         try {
-            final ImageConfiguration applicableImageConfig = getApplicableImageConfiguration(imageConfig, jKubeConfiguration.getRegistryConfig());
+            final ImageConfiguration applicableImageConfig = getApplicableImageConfiguration(imageConfig, jKubeConfiguration.getPullRegistryConfig());
             ImageName imageName = new ImageName(applicableImageConfig.getName());
 
             File dockerTar = createBuildArchive(jKubeServiceHub, applicableImageConfig);
@@ -174,7 +173,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
     }
 
     @Override
-    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, RegistryConfig registryConfig, boolean skipTag) {
+    protected void pushSingleImage(ImageConfiguration imageConfiguration, int retries, boolean skipTag) {
         // Do nothing. Image is pushed as part of build phase
         log.warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
     }
@@ -343,11 +342,11 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
             fromImage = extractBaseFromConfiguration(buildConfig);
         }
 
-        String pullRegistry = getApplicablePullRegistryFrom(fromImage, jKubeConfiguration.getRegistryConfig());
+        String pullRegistry = getApplicablePullRegistryFrom(fromImage, jKubeConfiguration.getPullRegistryConfig());
 
         if (pullRegistry != null) {
-            RegistryConfig registryConfig = jKubeConfiguration.getRegistryConfig();
-            final AuthConfig authConfig = new AuthConfigFactory(log).createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
+            RegistryConfig registryConfig = jKubeConfiguration.getPullRegistryConfig();
+            final AuthConfig authConfig = new DockerAuthConfigFactory(log).createAuthConfig(false, registryConfig.isSkipExtendedAuth(), registryConfig.getAuthConfig(),
                     registryConfig.getSettings(), null, pullRegistry, registryConfig.getPasswordDecryptionMethod());
 
             final Secret secret = Optional.ofNullable(pullSecretName)

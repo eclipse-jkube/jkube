@@ -35,6 +35,7 @@ public class SpringBootConfiguration {
   private String managementContextPath;
   private String actuatorBasePath;
   private String actuatorDefaultBasePath;
+  private boolean managementHealthProbesEnabled;
 
   public static SpringBootConfiguration from(JavaProject project) {
     final Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
@@ -56,6 +57,7 @@ public class SpringBootConfiguration {
       .managementPort(Optional.ofNullable(properties.getProperty("management.port")).map(Integer::parseInt).orElse(null))
       .serverPort(Integer.parseInt(properties.getProperty("server.port", DEFAULT_SERVER_PORT)))
       .serverKeystore(properties.getProperty("server.ssl.key-store"))
+      .managementHealthProbesEnabled(Boolean.parseBoolean(properties.getProperty("management.health.probes.enabled")))
       .managementKeystore(properties.getProperty("management.ssl.key-store"))
       .servletPath(properties.getProperty("server.servlet-path"))
       .serverContextPath(properties.getProperty("server.context-path"))

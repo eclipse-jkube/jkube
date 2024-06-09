@@ -160,6 +160,22 @@ class DockerFileUtilTest {
     }
 
     @Test
+    void extractBaseImages_withMultiStageAndBuildArgs() throws Exception {
+        // Given
+        File toTest = copyToTempDir("Dockerfile_multi_stage_with_args_no_default");
+        Map<String, String> buildArgs = new HashMap<>();
+        buildArgs.put("VERSION", "latest");
+        buildArgs.put("FULL_IMAGE", "busybox:latest");
+        buildArgs.put("REPO_1", "docker.io/library");
+        buildArgs.put("IMAGE-1", "openjdk");
+        // When
+        List<String> images = DockerFileUtil.extractBaseImages(toTest, new Properties(), null, buildArgs);
+        // Then
+        assertThat(images)
+                .containsExactly("fabric8/s2i-java:latest", "busybox:latest", "docker.io/library/openjdk:latest");
+    }
+
+    @Test
     void extractArgsFromDockerfile() {
       assertAll(
           () -> assertThat(DockerFileUtil.extractArgsFromLines(Arrays.asList(new String[] { "ARG", "VERSION:latest" }, new String[] { "ARG", "FULL_IMAGE=busybox:latest" }), Collections.emptyMap())).hasToString("{VERSION=latest, FULL_IMAGE=busybox:latest}"),

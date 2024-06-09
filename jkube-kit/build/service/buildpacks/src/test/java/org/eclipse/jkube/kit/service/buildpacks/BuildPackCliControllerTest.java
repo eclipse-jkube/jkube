@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.util.Arrays;
@@ -37,6 +38,9 @@ class BuildPackCliControllerTest {
   private BuildPackBuildOptions buildOptions;
   private File pack;
 
+  @TempDir
+  private File temporaryFolder;
+
   @BeforeEach
   void setUp() {
     kitLogger = spy(new KitLogger.SilentLogger());
@@ -47,6 +51,7 @@ class BuildPackCliControllerTest {
         .imageName("foo/bar:latest")
         .builderImage("foo/builder:base")
         .creationTime("now")
+        .path(temporaryFolder.getAbsolutePath())
         .build();
   }
 
@@ -60,7 +65,7 @@ class BuildPackCliControllerTest {
       buildPackCliController.build(buildOptions);
 
       // Then
-      verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder foo/builder:base --creation-time now");
+      verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder foo/builder:base --creation-time now --path " + temporaryFolder.getAbsolutePath());
     }
 
     @Test
@@ -72,11 +77,12 @@ class BuildPackCliControllerTest {
           .tags(Arrays.asList("t1", "t2", "t3"))
           .imagePullPolicy("if-not-present")
           .env(Collections.singletonMap("BP_SPRING_CLOUD_BINDINGS_DISABLED", "true"))
+          .clearCache(true)
           .build();
       // When
       buildPackCliController.build(buildOptions);
       // Then
-      verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder foo/builder:base --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true");
+      verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder foo/builder:base --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true --clear-cache --path " + temporaryFolder.getAbsolutePath());
     }
 
     @Test

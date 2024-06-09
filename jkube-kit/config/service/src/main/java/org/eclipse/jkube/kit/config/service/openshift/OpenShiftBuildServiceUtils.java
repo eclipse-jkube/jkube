@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.eclipse.jkube.kit.build.api.helper.BuildArgResolverUtil.mergeBuildArgsWithoutLocalDockerConfigProxySettings;
 import static org.eclipse.jkube.kit.build.api.helper.BuildUtil.extractBaseFromDockerfile;
 import static org.eclipse.jkube.kit.config.service.openshift.ImageStreamService.resolveImageStreamName;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.DEFAULT_BUILD_OUTPUT_KIND;
@@ -133,7 +134,9 @@ public class OpenShiftBuildServiceUtils {
               .withNamespace(StringUtils.isEmpty(fromNamespace) ? null : fromNamespace)
             .endFrom()
             .withEnv(checkForEnv(imageConfig))
-            .withBuildArgs(Optional.ofNullable(buildConfig.getArgs()).orElse(Collections.emptyMap()).entrySet().stream()
+            .withBuildArgs(mergeBuildArgsWithoutLocalDockerConfigProxySettings(imageConfig, jKubeServiceHub.getConfiguration())
+                .entrySet()
+                .stream()
                 .map(bcArg -> new EnvVarBuilder()
                     .withName(bcArg.getKey())
                     .withValue(bcArg.getValue()).build())

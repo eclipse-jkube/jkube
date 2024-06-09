@@ -135,7 +135,7 @@ class OpenshiftBuildServiceIntegrationTest {
             .baseDirectory(baseDirectory)
             .buildDirectory(target)
             .build())
-        .registryConfig(RegistryConfig.builder().build())
+        .pullRegistryConfig(RegistryConfig.builder().build())
         .build());
 
     image = ImageConfiguration.builder()

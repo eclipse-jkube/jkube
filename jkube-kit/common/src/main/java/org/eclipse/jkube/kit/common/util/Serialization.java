@@ -37,6 +37,7 @@ public class Serialization {
   private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
   private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory()
     .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true)
+    .configure(YAMLGenerator.Feature.USE_PLATFORM_LINE_BREAKS, true)
     .configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, true));
   private static final KubernetesSerialization KUBERNETES_SERIALIZATION = new KubernetesSerialization(JSON_MAPPER, true);
   static {

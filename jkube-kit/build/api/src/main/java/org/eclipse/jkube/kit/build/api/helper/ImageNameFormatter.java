@@ -31,7 +31,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
  * @author roland
  * @since 07/06/16
  */
-public class ImageNameFormatter implements ConfigHelper.NameFormatter {
+public class ImageNameFormatter implements NameFormatter {
 
     /**
      * Property to lookup for image user which overwrites the calculated default (group).

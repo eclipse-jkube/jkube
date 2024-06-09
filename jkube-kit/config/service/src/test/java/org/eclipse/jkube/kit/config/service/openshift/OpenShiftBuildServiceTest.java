@@ -91,7 +91,7 @@ class OpenShiftBuildServiceTest {
     when(jKubeServiceHub.getLog()).thenReturn(kitLogger);
 
     // When
-    new OpenshiftBuildService(jKubeServiceHub).push(Collections.emptyList(), 0, new RegistryConfig(), false);
+    new OpenshiftBuildService(jKubeServiceHub).push(Collections.emptyList(), 0, false);
     // Then
     verify(kitLogger, times(0)).warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
   }
@@ -102,7 +102,7 @@ class OpenShiftBuildServiceTest {
     when(jKubeServiceHub.getLog()).thenReturn(kitLogger);
 
     // When
-    new OpenshiftBuildService(jKubeServiceHub).push(Collections.singletonList(imageConfiguration), 0, new RegistryConfig(), false);
+    new OpenshiftBuildService(jKubeServiceHub).push(Collections.singletonList(imageConfiguration), 0, false);
     // Then
     verify(kitLogger, times(1)).warn("Image is pushed to OpenShift's internal registry during oc:build goal. Skipping...");
   }

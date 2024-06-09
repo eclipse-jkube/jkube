@@ -13,11 +13,8 @@
  */
 package org.eclipse.jkube.springboot.watcher;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -25,13 +22,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.PrefixedLogger;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.util.ClassUtil;
 import org.eclipse.jkube.kit.common.util.IoUtil;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
@@ -42,6 +37,7 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 import org.eclipse.jkube.kit.config.service.PortForwardService;
+import org.eclipse.jkube.springboot.RemoteSpringBootDevtoolsCommand;
 import org.eclipse.jkube.watcher.api.BaseWatcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
@@ -49,7 +45,6 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import org.apache.commons.lang3.StringUtils;
 
-import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.DEV_TOOLS_REMOTE_SECRET;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootPluginConfiguration;
 import static org.eclipse.jkube.springboot.SpringBootDevtoolsUtils.getSpringBootDevToolsJar;
@@ -57,15 +52,10 @@ import static org.eclipse.jkube.springboot.SpringBootDevtoolsUtils.getSpringBoot
 public class SpringBootWatcher extends BaseWatcher {
 
     private final PortForwardService portForwardService;
-    private final Runtime runtime;
 
     public SpringBootWatcher(WatcherContext watcherContext) {
-        this(Runtime.getRuntime(), watcherContext);
-    }
-    SpringBootWatcher(Runtime runtime, WatcherContext watcherContext) {
         super(watcherContext, "spring-boot");
         portForwardService = new PortForwardService(watcherContext.getLogger());
-        this.runtime = runtime;
     }
 
     @Override
@@ -132,7 +122,7 @@ public class SpringBootWatcher extends BaseWatcher {
         if (pluginClassLoader instanceof URLClassLoader) {
             classLoaders.add((URLClassLoader) pluginClassLoader);
         }
-        try(URLClassLoader projectClassLoader = ClassUtil.createProjectClassLoader(
+        try (URLClassLoader projectClassLoader = ClassUtil.createProjectClassLoader(
                     getContext().getBuildContext().getProject().getCompileClassPathElements(), log)
         ) {
             classLoaders.add(projectClassLoader);
@@ -150,73 +140,16 @@ public class SpringBootWatcher extends BaseWatcher {
             }).collect(Collectors.joining(File.pathSeparator, "", File.pathSeparator))
               // Add dev tools to the classpath (the main class is not read from BOOT-INF/lib)
               .concat(devToolsPath);
-            final String[] command = new String[]{
-              javaBinary(),
-              "-cp",
-              classPath,
-              "-Dspring.devtools.remote.secret=" + remoteSecret,
-              "org.springframework.boot.devtools.RemoteSpringApplication",
-              url
-            };
-
+            RemoteSpringBootDevtoolsCommand command = new RemoteSpringBootDevtoolsCommand(classPath, remoteSecret, url, log);
 
             try {
-                log.debug("Running: " + String.join(" ", command));
-                final Process process = runtime.exec(command);
-
-                final AtomicBoolean outputEnabled = new AtomicBoolean(true);
-                runtime.addShutdownHook(new Thread("jkube:watch [spring-boot] shutdown hook") {
-                    @Override
-                    public void run() {
-                        log.info("Terminating the Spring remote client...");
-                        outputEnabled.set(false);
-                        process.destroy();
-                    }
-                });
-                KitLogger logger = new PrefixedLogger("Spring-Remote", log);
-                Thread stdOutPrinter = startOutputProcessor(logger, process.getInputStream(), false, outputEnabled);
-                Thread stdErrPrinter = startOutputProcessor(logger, process.getErrorStream(), true, outputEnabled);
-                int status = process.waitFor();
-                stdOutPrinter.join();
-                stdErrPrinter.join();
-                if (status != 0) {
-                    log.warn("Process returned status: %s", status);
-                }
-            }  catch(InterruptedException ex) {
-                Thread.currentThread().interrupt();
-            }catch (Exception e) {
-                throw new RuntimeException("Failed to run RemoteSpringApplication: " + e, e);
+                command.execute();
+            } catch (Exception e) {
+                throw new JKubeException("Failed to run RemoteSpringApplication: " + e, e);
             }
         } catch (IOException e) {
             log.warn("Instructed to use project classpath, but cannot. Continuing build if we can: ", e);
         }
-    }
-
-    protected Thread startOutputProcessor(final KitLogger logger, final InputStream inputStream, final boolean error, final AtomicBoolean outputEnabled) {
-        Thread printer = new Thread() {
-            @Override
-            public void run() {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        if (outputEnabled.get()) {
-                            if (error) {
-                                logger.error("%s", line);
-                            } else {
-                                logger.info("%s", line);
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    if (outputEnabled.get()) {
-                        logger.error("Failed to process " + (error ? "stderr" : "stdout") + " from spring-remote process: " + e);
-                    }
-                }
-            }
-        };
-
-        printer.start();
-        return printer;
     }
 
     private String validateSpringBootDevtoolsSettings() {
@@ -235,15 +168,5 @@ public class SpringBootWatcher extends BaseWatcher {
         }
         return properties.getProperty(DEV_TOOLS_REMOTE_SECRET);
     }
-
-    private static String javaBinary() {
-        String path = new File(System.getProperty("java.home")).toPath().resolve("bin").resolve("java").toFile()
-          .getAbsolutePath();
-        if (isWindows()) {
-            path = path.concat(".exe");
-        }
-        return path;
-    }
-
 }
 

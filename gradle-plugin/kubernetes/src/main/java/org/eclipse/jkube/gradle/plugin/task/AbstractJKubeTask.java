@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.gradle.plugin.GradleLogger;
@@ -126,12 +127,20 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
             .reactorProjects(Collections.singletonList(kubernetesExtension.javaProject))
             .sourceDirectory(kubernetesExtension.getBuildSourceDirectoryOrDefault())
             .outputDirectory(kubernetesExtension.getBuildOutputDirectoryOrDefault())
-            .registryConfig(RegistryConfig.builder()
+            .pullRegistryConfig(RegistryConfig.builder()
                 .settings(Collections.emptyList())
                 .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
                 .skipExtendedAuth(kubernetesExtension.getSkipExtendedAuth().getOrElse(false))
                 .passwordDecryptionMethod(s -> s)
                 .registry(kubernetesExtension.getPullRegistryOrDefault())
+                .build())
+            .pushRegistryConfig(RegistryConfig.builder()
+                .settings(Collections.emptyList())
+                .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
+                .skipExtendedAuth(kubernetesExtension.getSkipExtendedAuth().getOrElse(false))
+                .passwordDecryptionMethod(s -> s)
+                .registry(kubernetesExtension.getPushRegistryOrNull() != null ?
+                  kubernetesExtension.getPushRegistryOrNull() : kubernetesExtension.getRegistryOrDefault())
                 .build())
             .build())
         .clusterAccess(clusterAccess)
@@ -167,6 +176,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .prePackagePhase(false)
         .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault())
         .sourceDirectory(kubernetesExtension.getBuildSourceDirectoryOrDefault())
+        .openshiftNamespace(StringUtils.isNotBlank(kubernetesExtension.getNamespaceOrNull()) ? kubernetesExtension.getNamespaceOrNull() : clusterAccess.getNamespace())
         .buildTimestamp(getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
             DOCKER_BUILD_TIMESTAMP))
         .filter(kubernetesExtension.getFilterOrNull());

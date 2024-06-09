@@ -35,6 +35,10 @@ or already added by a generator which has been run previously.
   The mode takes only effect when running in OpenShift mode.
 | `jkube.generator.fromMode`
 
+| *labels*
+| A comma separated list of additional labels you want to set on your image with
+| `jkube.generator.labels`
+
 | *name*
 | The Docker image name used when doing Docker builds. For OpenShift S2I builds its the name of the image stream. This
   can be a pattern as described in <<image-name, Name Placeholders>>. The default is `%g/%a:%l`. Note that this flag would only work

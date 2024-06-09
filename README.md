@@ -2,7 +2,6 @@
 
 > Cloud-Native Java Applications without a hassle
 
-[![Circle CI](https://circleci.com/gh/eclipse/jkube/tree/master.svg?style=shield)](https://circleci.com/gh/eclipse/jkube/tree/master)
 [![E2E Tests](https://github.com/eclipse-jkube/jkube-integration-tests/actions/workflows/e2e-tests.yml/badge.svg)](https://github.com/eclipse-jkube/jkube-integration-tests/actions/workflows/e2e-tests.yml)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=jkubeio_jkube)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=jkubeio_jkube&metric=coverage)](https://sonarcloud.io/dashboard?id=jkubeio_jkube)

@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.springboot.watcher;
 
+import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -23,6 +24,7 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -32,18 +34,22 @@ import org.eclipse.jkube.watcher.api.WatcherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.ArgumentMatchers;
+import org.mockito.ArgumentCaptor;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 @EnableKubernetesMockClient(crud = true)
@@ -55,6 +61,7 @@ class SpringBootWatcherIntegrationTest {
   private WatcherContext watcherContext;
   private Path target;
   private Deployment deployment;
+  private KitLogger logger;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -65,7 +72,7 @@ class SpringBootWatcherIntegrationTest {
       .endSpec()
       .build();
     // Watcher Configuration
-    final KitLogger logger = new KitLogger.SilentLogger();
+    logger = spy(new KitLogger.SilentLogger());
     final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
       .log(logger)
       .platformMode(RuntimeMode.KUBERNETES)
@@ -119,25 +126,37 @@ class SpringBootWatcherIntegrationTest {
 
   @Test
   void withAllRequirementsShouldStartWatcherProcess() throws Exception {
-    final Runtime runtime = mock(Runtime.class, RETURNS_DEEP_STUBS);
-    target.resolve("spring-boot-devtools.jar").toFile().createNewFile();
-    FileUtils.write(target.resolve("application.properties").toFile(), "spring.devtools.remote.secret=this-is-a-test", StandardCharsets.UTF_8);
-    new SpringBootWatcher(runtime, watcherContext)
-      .watch(Collections.emptyList(), null, Collections.singletonList(deployment), PlatformMode.kubernetes);
-    verify(runtime).exec(ArgumentMatchers.<String[]>argThat(command -> command.length == 6
-      && command[0].matches(".+java(\\.exe)?")
-      && new File(command[0]).exists()
-      && command[1].equals("-cp")
-      && command[2].contains(
-      absolutePath("spring-boot-lib.jar") + File.pathSeparator + absolutePath("spring-boot-devtools.jar"))
-      && command[3].equals("-Dspring.devtools.remote.secret=this-is-a-test")
-      && command[4].equals("org.springframework.boot.devtools.RemoteSpringApplication")
-      && command[5].matches("^http://localhost:\\d+$")
-    ));
+    try {
+      // Given
+      Map<String, String> propMap = new HashMap<>();
+      File dummyJavaArtifact =  new File(Objects.requireNonNull(SpringBootWatcherIntegrationTest.class.getResource("/dummy-java")).getFile());
+      Path testJavaHome = project.resolve("java-home");
+      Files.createDirectory(testJavaHome);
+      Files.createDirectory(testJavaHome.resolve("bin"));
+      Files.copy(dummyJavaArtifact.toPath(), testJavaHome.resolve("bin").resolve("java"), StandardCopyOption.COPY_ATTRIBUTES);
+      propMap.put("java.home", testJavaHome.toString());
+      propMap.put("os.name", "linux");
+      EnvUtil.overridePropertyGetter(propMap::get);
+      Files.createFile(target.resolve("spring-boot-lib.jar"));
+      Files.createFile(target.resolve("spring-boot-devtools.jar"));
+      FileUtils.write(target.resolve("application.properties").toFile(), "spring.devtools.remote.secret=this-is-a-test", StandardCharsets.UTF_8);
+      // When
+      new SpringBootWatcher(watcherContext)
+        .watch(Collections.emptyList(), null, Collections.singletonList(deployment), PlatformMode.kubernetes);
+      // Then
+      ArgumentCaptor<String> javaProcessArgumentCaptor = ArgumentCaptor.forClass(String.class);
+      verify(logger).info("spring-boot: Watching pods with selector %s waiting for a running pod...", new LabelSelectorBuilder().addToMatchLabels("app", "spring-boot-test").build());
+      verify(logger).info("spring-boot: Terminating the Spring remote client...");
+      verify(logger).debug(javaProcessArgumentCaptor.capture());
+      assertThat(javaProcessArgumentCaptor.getValue())
+        .contains("spring-boot: Running: ")
+        .contains(String.format("%s/bin/java -cp ", testJavaHome))
+        .contains(String.format("%s/target/spring-boot-lib.jar:%s/target/spring-boot-devtools.jar ", project, project))
+        .contains("-Dspring.devtools.remote.secret=this-is-a-test ")
+        .contains("org.springframework.boot.devtools.RemoteSpringApplication ")
+        .contains("http://localhost:");
+    } finally {
+      EnvUtil.overridePropertyGetter(System::getProperty);
+    }
   }
-
-  private String absolutePath(String jar) {
-    return project.resolve("target").resolve(jar).toFile().getAbsolutePath();
-  }
-
 }

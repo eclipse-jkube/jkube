@@ -14,6 +14,14 @@ endif::[]
 
 The enricher will try to discover the settings from the `application.properties` / `application.yaml` Spring Boot configuration file.
 
+`/actuator/health` is the default endpoint for the liveness and readiness probes.
+
+If the user has enabled the `management.health.probes.enabled` property this Enricher uses the `/actuator/health/liveness` as liveness and `/actuator/health/readiness` as readiness probe endpoints instead.
+[source,properties]
+----
+management.health.probes.enabled=true
+----
+
 The port number is read from the `management.port` option, and will use the default value of `8080`
 The scheme will use HTTPS if `server.ssl.key-store` option is in use, and fallback to use `HTTP` otherwise.
 

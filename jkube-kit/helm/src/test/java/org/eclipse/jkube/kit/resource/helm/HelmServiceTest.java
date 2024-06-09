@@ -67,7 +67,7 @@ class HelmServiceTest {
       .tarballOutputDir(helmOutputDirectory.toFile().getAbsolutePath());
     jKubeConfiguration = JKubeConfiguration.builder()
       .project(JavaProject.builder().properties(new Properties()).build())
-      .registryConfig(RegistryConfig.builder().settings(new ArrayList<>()).build()).build();
+      .pushRegistryConfig(RegistryConfig.builder().settings(new ArrayList<>()).build()).build();
     resourceServiceConfig = new ResourceServiceConfig();
     helmService = new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger());
   }
@@ -217,18 +217,19 @@ class HelmServiceTest {
   void generateHelmCharts_whenInvoked_thenGeneratedValuesYamlInAlphabeticalOrder() throws IOException {
     // Given
     Path unsortedValuesYaml = helmSourceDirectory.resolve("values.helm.yaml");
-    Files.write(unsortedValuesYaml, ("root:\n" +
-        "  ingress:\n" +
-        "    className: \"IngressClass\"\n" +
-        "    annotations:\n" +
-        "      tls-acme: \"true\"\n" +
-        "      ingress.class: nginx\n" +
-        "    enabled: false\n" +
-        "  country-codes:\n" +
-        "    countries:\n" +
-        "      spain: \"+34\"\n" +
-        "      france: \"+33\"\n" +
-        "      india: \"+91\"").getBytes());
+    Files.write(unsortedValuesYaml, String.format(
+      "root:%n" +
+      "  ingress:%n" +
+      "    className: \"IngressClass\"%n" +
+      "    annotations:%n" +
+      "      tls-acme: \"true\"%n" +
+      "      ingress.class: nginx%n" +
+      "    enabled: false%n" +
+      "  country-codes:%n" +
+      "    countries:%n" +
+      "      spain: \"+34\"%n" +
+      "      france: \"+33\"%n" +
+      "      india: \"+91\"").getBytes());
     resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(helmSourceDirectory.toFile())).build();
     helmConfig.types(Collections.singletonList(HelmType.KUBERNETES));
 
@@ -239,19 +240,19 @@ class HelmServiceTest {
     // Then
     File generatedValuesYaml = helmOutputDirectory.resolve("kubernetes").resolve("values.yaml").toFile();
     assertThat(new String(Files.readAllBytes(generatedValuesYaml.toPath())))
-        .isEqualTo("---\n" +
-            "root:\n" +
-            "  country-codes:\n" +
-            "    countries:\n" +
-            "      france: \"+33\"\n" +
-            "      india: \"+91\"\n" +
-            "      spain: \"+34\"\n" +
-            "  ingress:\n" +
-            "    annotations:\n" +
-            "      ingress.class: nginx\n" +
-            "      tls-acme: \"true\"\n" +
-            "    className: IngressClass\n" +
-            "    enabled: false\n");
+        .isEqualTo(String.format("---%n" +
+        "root:%n" +
+        "  country-codes:%n" +
+        "    countries:%n" +
+        "      france: \"+33\"%n" +
+        "      india: \"+91\"%n" +
+        "      spain: \"+34\"%n" +
+        "  ingress:%n" +
+        "    annotations:%n" +
+        "      ingress.class: nginx%n" +
+        "      tls-acme: \"true\"%n" +
+        "    className: IngressClass%n" +
+        "    enabled: false%n"));
   }
 
   @Test

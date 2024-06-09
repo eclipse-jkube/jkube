@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.enricher.api.visitor;
 
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
@@ -38,6 +39,9 @@ import io.fabric8.openshift.api.model.ImageStreamBuilder;
 import io.fabric8.openshift.api.model.RouteBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
@@ -350,12 +354,13 @@ class MetadataVisitorTest {
     assertThat(route.build().getMetadata().getLabels()).containsOnly(entry("route", "Yay"));
   }
 
-  @Test
-  void metadataVisit_whenMultilineAnnotationProvided_shouldAddTrailingNewline() {
+  @ParameterizedTest
+  @MethodSource
+  void metadataVisit_whenMultilineAnnotationProvided_shouldAddTrailingNewline(String multiLineScalar, String eol) {
     // Given
     Properties allProps = new Properties();
     final ObjectMetaBuilder db = new ObjectMetaBuilder();
-    allProps.put("multiline/config", String.format("proxyMetadata:%n ISTIO_META_DNS_CAPTURE: \"false\"%nholdUntilProxyStarts: true"));
+    allProps.put("multiline/config", String.format(multiLineScalar));
     ResourceConfig rc = ResourceConfig.builder()
         .annotations(MetaDataConfig.builder()
             .all(allProps)
@@ -367,6 +372,13 @@ class MetadataVisitorTest {
 
     // Then
     assertThat(db.build().getAnnotations())
-        .containsOnly(entry("multiline/config", String.format("proxyMetadata:%n ISTIO_META_DNS_CAPTURE: \"false\"%nholdUntilProxyStarts: true%n")));
+        .containsOnly(entry("multiline/config", String.format("proxyMetadata:%s ISTIO_META_DNS_CAPTURE: \"false\"%sholdUntilProxyStarts: true%s", eol, eol, eol)));
+  }
+
+  private static Stream<Arguments> metadataVisit_whenMultilineAnnotationProvided_shouldAddTrailingNewline() {
+    return Stream.of(
+        Arguments.of("proxyMetadata:\n ISTIO_META_DNS_CAPTURE: \"false\"\nholdUntilProxyStarts: true", "\n"),
+        Arguments.of("proxyMetadata:\r\n ISTIO_META_DNS_CAPTURE: \"false\"\r\nholdUntilProxyStarts: true", "\r\n")
+    );
   }
 }

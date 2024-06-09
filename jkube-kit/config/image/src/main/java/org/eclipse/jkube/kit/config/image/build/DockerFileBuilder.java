@@ -474,7 +474,7 @@ public class DockerFileBuilder {
 
     // All entries required, destination is relative to exportDir
     private static final class CopyEntry {
-        private String source;
+        private final String source;
         private String destination;
 
         private CopyEntry(String src, String dest) {

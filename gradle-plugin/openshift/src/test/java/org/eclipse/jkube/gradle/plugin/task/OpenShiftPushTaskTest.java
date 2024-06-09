@@ -29,7 +29,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.verify;
@@ -71,7 +71,7 @@ class OpenShiftPushTaskTest {
       // Then
       assertThat(openshiftBuildServiceMockedConstruction.constructed()).hasSize(1);
       verify(openshiftBuildServiceMockedConstruction.constructed().iterator().next())
-          .push(eq(extension.images), eq(0), any(), eq(false));
+          .push(argThat(images -> images.iterator().next().getName().equals("foo/bar:latest")), eq(0), eq(false));
   }
 
   @Test

@@ -61,6 +61,12 @@ Defaults to `${project.version}`.
 endif::[]
 | `jkube.helm.version`
 
+| *debug*
+| enable verbose output for helm operations
+
+Defaults to `false`
+| `jkube.helm.debug`
+
 | *description*
 | The Chart single-sentence description.
 ifeval::["{plugin-type}" == "maven"]

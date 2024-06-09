@@ -144,6 +144,7 @@ class WebAppGeneratorTest {
       projectProperties.put("jkube.generator.webapp.ports", "8082,80");
       projectProperties.put("jkube.generator.webapp.supportsS2iBuild", "true");
       projectProperties.put("jkube.generator.from", "image-to-trigger-custom-app-server-handler");
+      projectProperties.put("jkube.generator.labels", "app=webapp");
 
       generatorContext = generatorContext.toBuilder()
         .runtimeMode(RuntimeMode.OPENSHIFT)
@@ -167,6 +168,7 @@ class WebAppGeneratorTest {
           .hasFieldOrPropertyWithValue("ports", Arrays.asList("8082", "80"))
           .hasFieldOrPropertyWithValue("env", Collections.singletonMap("DEPLOY_DIR", "/other-dir"))
           .hasFieldOrPropertyWithValue("cmd.shell", "sleep 3600")
+          .hasFieldOrPropertyWithValue("labels.app", "webapp")
           .extracting(BuildConfiguration::getAssembly)
           .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
           .hasFieldOrPropertyWithValue("user", "root")

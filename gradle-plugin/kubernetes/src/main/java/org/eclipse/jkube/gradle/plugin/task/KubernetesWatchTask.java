@@ -29,7 +29,6 @@ import org.eclipse.jkube.watcher.api.WatcherContext;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
@@ -72,7 +71,7 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
     }
   }
 
-  private WatcherContext createWatcherContext() throws IOException {
+  private WatcherContext createWatcherContext() {
     WatchContext watchContext = jKubeServiceHub.getDockerServiceHub() != null ? getWatchContext() : null;
     return WatcherContext.builder()
         .buildContext(jKubeServiceHub.getConfiguration())
@@ -87,7 +86,7 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
         .build();
   }
 
-  private WatchContext getWatchContext() throws IOException {
+  private WatchContext getWatchContext() {
     final DockerServiceHub hub = jKubeServiceHub.getDockerServiceHub();
     return WatchContext.builder()
         .watchInterval(kubernetesExtension.getWatchIntervalOrDefault())
