@@ -36,7 +36,7 @@
   </description>
 
   <properties>
-    <jkube.version>1.17-SNAPSHOT</jkube.version>
+    <jkube.version>${project.version}</jkube.version>
   </properties>
 
   <distributionManagement>
