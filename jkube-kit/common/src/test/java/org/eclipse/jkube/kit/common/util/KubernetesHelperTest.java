@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -26,15 +27,23 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import io.fabric8.kubernetes.api.model.AuthProviderConfigBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.api.model.NamedAuthInfo;
+import io.fabric8.kubernetes.api.model.NamedCluster;
+import io.fabric8.kubernetes.api.model.NamedContext;
+import io.fabric8.kubernetes.api.model.NamedContextBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.api.model.runtime.RawExtension;
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -64,6 +73,7 @@ import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.common.TestHttpStaticServer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -71,6 +81,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.eclipse.jkube.kit.common.util.KubernetesHelper.hasAccessForAction;
 
 @EnableKubernetesMockClient(crud = true)
@@ -439,6 +450,80 @@ class KubernetesHelperTest {
         assertThat(result.getMatchLabels())
             .hasSize(1)
             .containsEntry("template", "label");
+    }
+
+
+    @Test
+    void exportKubernetesClientConfigToFile_whenInvalidFileProvided_thenThrowException(@TempDir Path temporaryFolder) {
+        // Given
+        io.fabric8.kubernetes.client.Config kubernetesClientConfig = createKubernetesClientConfig();
+
+        // When + Then
+        assertThatExceptionOfType(JKubeException.class)
+          .isThrownBy(() -> KubernetesHelper.exportKubernetesClientConfigToFile(kubernetesClientConfig, temporaryFolder.resolve("i-dont-exist").resolve("config")))
+          .withMessageContaining("Failure in exporting KubernetesClient config ");
+    }
+
+    @Test
+    void exportKubernetesClientConfigToFile_whenValidTargetFile_thenWriteKubeConfigToFile(@TempDir Path temporaryFolder) throws IOException {
+        // Given
+        io.fabric8.kubernetes.client.Config kubernetesClientConfig = createKubernetesClientConfig();
+
+        // When
+        Path exportedKubeConfig = KubernetesHelper.exportKubernetesClientConfigToFile(kubernetesClientConfig, temporaryFolder.resolve("config"));
+
+        // Then
+        assertThat(exportedKubeConfig).isNotNull();
+        assertThat(Serialization.unmarshal(exportedKubeConfig.toFile(), io.fabric8.kubernetes.api.model.Config.class))
+          .hasFieldOrPropertyWithValue("currentContext", "cluster1-context")
+          .satisfies(c -> assertThat(c.getContexts())
+            .singleElement(InstanceOfAssertFactories.type(NamedContext.class))
+            .hasFieldOrPropertyWithValue("name", "cluster1-context")
+            .hasFieldOrPropertyWithValue("context.cluster", "example-openshiftapps-com:6443")
+            .hasFieldOrPropertyWithValue("context.namespace", "example-ns")
+            .hasFieldOrPropertyWithValue("context.user", "example-user/example-openshiftapps-com:6443"))
+          .satisfies(c -> assertThat(c.getClusters())
+            .singleElement(InstanceOfAssertFactories.type(NamedCluster.class))
+            .hasFieldOrPropertyWithValue("name", "example-openshiftapps-com:6443")
+            .hasFieldOrPropertyWithValue("cluster.server", "https://example-openshiftapps-com:6443/")
+            .hasFieldOrPropertyWithValue("cluster.certificateAuthority", "ca.crt")
+            .hasFieldOrPropertyWithValue("cluster.certificateAuthorityData", "cert-data"))
+          .satisfies(c -> assertThat(c.getUsers())
+            .singleElement(InstanceOfAssertFactories.type(NamedAuthInfo.class))
+            .hasFieldOrPropertyWithValue("name", "example-user/example-openshiftapps-com:6443")
+            .hasFieldOrPropertyWithValue("user.token", "oauth-token")
+            .hasFieldOrPropertyWithValue("user.clientCertificate", "client.crt")
+            .hasFieldOrPropertyWithValue("user.clientCertificateData", "client-certificate-data")
+            .hasFieldOrPropertyWithValue("user.clientKeyData", "client-key-data")
+            .hasFieldOrPropertyWithValue("user.clientKey", "client.key")
+            .hasFieldOrPropertyWithValue("user.authProvider.name", "test-auth-provider")
+            .hasFieldOrPropertyWithValue("user.authProvider.config.key1", "value1"));
+    }
+
+    private Config createKubernetesClientConfig() {
+        NamedContext currentContext = new NamedContextBuilder().withName("cluster1-context")
+          .withNewContext()
+          .withCluster("example-openshiftapps-com:6443")
+          .withNamespace("example-ns")
+          .withUser("example-user/example-openshiftapps-com:6443")
+          .endContext()
+          .build();
+        return new io.fabric8.kubernetes.client.ConfigBuilder(io.fabric8.kubernetes.client.Config.empty())
+          .withCurrentContext(currentContext)
+          .withMasterUrl("https://example-openshiftapps-com:6443/")
+          .withAutoOAuthToken("secret-token")
+          .withOauthToken("oauth-token")
+          .withCaCertData("cert-data")
+          .withCaCertFile("ca.crt")
+          .withClientCertFile("client.crt")
+          .withClientCertData("client-certificate-data")
+          .withClientKeyFile("client.key")
+          .withClientKeyData("client-key-data")
+          .withAuthProvider(new AuthProviderConfigBuilder()
+            .withName("test-auth-provider")
+            .withConfig(Collections.singletonMap("key1", "value1"))
+            .build())
+          .build();
     }
 
     @ParameterizedTest
