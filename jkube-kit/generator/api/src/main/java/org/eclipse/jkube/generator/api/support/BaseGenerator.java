@@ -235,7 +235,7 @@ public abstract class BaseGenerator implements Generator {
     }
 
     protected void addLatestTagIfSnapshot(BuildConfiguration.BuildConfigurationBuilder buildBuilder) {
-        if (getProject().getVersion().endsWith("-SNAPSHOT")) {
+        if (getProject().getVersion().endsWith("-SNAPSHOT") && !getImageName().contains("%t")) {
             buildBuilder.tags(Collections.singletonList("latest"));
         }
     }

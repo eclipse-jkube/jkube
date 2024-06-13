@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.entry;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.eclipse.jkube.generator.api.support.BaseGenerator.PROPERTY_JKUBE_GENERATOR_NAME;
 
 class BaseGeneratorTest {
 
@@ -366,6 +367,25 @@ class BaseGeneratorTest {
         .singleElement()
         .asString()
         .endsWith("latest");
+  }
+
+  @Test
+  @DisplayName("omit latest tag if formatter contains '%t'")
+  void omitLatestTagIfTimestamped() {
+    properties.put(PROPERTY_JKUBE_GENERATOR_NAME, "%g/%a:%t");
+    ctx = ctx.toBuilder().project(
+            ctx.getProject().toBuilder()
+                    .version("1.2-SNAPSHOT")
+                    .properties(properties)
+                    .build())
+            .build();
+    BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
+
+    new TestBaseGenerator(ctx, "test-generator").addLatestTagIfSnapshot(builder);
+
+    BuildConfiguration buildConfiguration = builder.build();
+    List<String> tags = buildConfiguration.getTags();
+    assertThat(tags).isEmpty();
   }
 
   @Test
