@@ -17,7 +17,7 @@ import io.fabric8.kubernetes.client.http.HttpClient;
 import io.fabric8.kubernetes.client.http.HttpRequest;
 import io.fabric8.kubernetes.client.http.HttpResponse;
 import io.fabric8.kubernetes.client.utils.URLUtils;
-import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
@@ -69,7 +69,7 @@ public class OCIRegistryClient {
   }
 
   public OCIManifestLayer uploadBlobIfNotUploadedYet(Chart chart, InputStream inputStream) throws IOException, BadUploadException {
-    try (CountingInputStream blobStream = new CountingInputStream(inputStream)) {
+    try (BoundedInputStream blobStream = new BoundedInputStream(inputStream)) {
       final OCIManifestLayer ociBlob = OCIManifestLayer.from(blobStream);
       if (isLayerUploadedAlready(chart, ociBlob)) {
         return ociBlob;
@@ -105,7 +105,7 @@ public class OCIRegistryClient {
     }
   }
 
-  private OCIManifestLayer uploadBlob(String uploadUrl, CountingInputStream blobStream) throws IOException, BadUploadException {
+  private OCIManifestLayer uploadBlob(String uploadUrl, BoundedInputStream blobStream) throws IOException, BadUploadException {
     final OCIManifestLayer ociBlob = OCIManifestLayer.from(blobStream);
     HttpRequest httpRequest = newRequest()
         .url(new URLUtils.URLBuilder(uploadUrl).addQueryParameter("digest", ociBlob.getDigest()).build())
