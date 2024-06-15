@@ -20,7 +20,7 @@ import javax.inject.Inject;
 
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
 
-public class KubernetesHelmDependencyUpdateTask extends AbstractJKubeTask {
+public class KubernetesHelmDependencyUpdateTask extends AbstractHelmTask {
     @Inject
     public KubernetesHelmDependencyUpdateTask(Class<? extends KubernetesExtension> extensionClass) {
         super(extensionClass);
@@ -29,18 +29,7 @@ public class KubernetesHelmDependencyUpdateTask extends AbstractJKubeTask {
 
     @Override
     public void run() {
-        if (kubernetesExtension.getSkipOrDefault()) {
-            return;
-        }
-        try {
-            final HelmConfig helm = initHelmConfig(kubernetesExtension.getDefaultHelmType(), kubernetesExtension.javaProject,
-                    kubernetesExtension.getKubernetesTemplateOrDefault(),
-                    kubernetesExtension.helm)
-                    .build();
-            jKubeServiceHub.getHelmService().dependencyUpdate(helm);
-        } catch (Exception exp) {
-            kitLogger.error("Error performing helm dependency update", exp);
-            throw new IllegalStateException(exp.getMessage(), exp);
-        }
+        super.run();
+        jKubeServiceHub.getHelmService().dependencyUpdate(helmConfig);
     }
 }
