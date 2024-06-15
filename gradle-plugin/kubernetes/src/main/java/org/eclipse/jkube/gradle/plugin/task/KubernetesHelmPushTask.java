@@ -29,8 +29,7 @@ public class KubernetesHelmPushTask extends AbstractHelmTask {
   }
 
   @Override
-  public void run() {
-    super.run();
+  protected void executeTask(HelmConfig helmConfig) {
     try {
       initHelmPushConfig(helmConfig, kubernetesExtension.javaProject);
       jKubeServiceHub.getHelmService().uploadHelmChart(helmConfig);

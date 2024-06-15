@@ -18,7 +18,6 @@ import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import javax.inject.Inject;
 
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
 
 public class KubernetesHelmLintTask extends AbstractHelmTask {
   @Inject
@@ -27,14 +26,14 @@ public class KubernetesHelmLintTask extends AbstractHelmTask {
     setDescription("Examine Helm chart for possible issues");
   }
 
+
   @Override
-  public void run() {
-    super.run();
+  protected void executeTask(HelmConfig helmConfig) {
     try {
       jKubeServiceHub.getHelmService().lint(helmConfig);
-    } catch (Exception exception) {
-      kitLogger.error("Error initializing Helm configuration", exception);
-      throw new IllegalStateException(exception.getMessage(), exception);
+    } catch (Exception exp) {
+      kitLogger.error("Error performing helm lint", exp);
+      throw new IllegalStateException(exp.getMessage(), exp);
     }
   }
 }

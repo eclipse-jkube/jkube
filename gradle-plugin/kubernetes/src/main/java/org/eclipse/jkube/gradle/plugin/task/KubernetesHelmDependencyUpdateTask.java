@@ -28,8 +28,12 @@ public class KubernetesHelmDependencyUpdateTask extends AbstractHelmTask {
     }
 
     @Override
-    public void run() {
-        super.run();
-        jKubeServiceHub.getHelmService().dependencyUpdate(helmConfig);
+    protected void executeTask(HelmConfig helmConfig) {
+        try {
+            jKubeServiceHub.getHelmService().dependencyUpdate(helmConfig);
+        } catch (Exception exp) {
+            kitLogger.error("Error performing helm dependency update", exp);
+            throw new IllegalStateException(exp.getMessage(), exp);
+        }
     }
 }

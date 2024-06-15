@@ -30,7 +30,7 @@ public class KubernetesHelmTask extends AbstractHelmTask {
   }
 
   @Override
-  public void run() {
+  protected void executeTask(HelmConfig helmConfig) {
     try {
       File manifest = kubernetesExtension.getKubernetesManifestOrDefault();
       if (manifest == null || !manifest.isFile()) {
