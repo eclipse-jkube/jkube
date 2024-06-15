@@ -30,6 +30,11 @@ public class KubernetesHelmLintTask extends AbstractHelmTask {
   @Override
   public void run() {
     super.run();
-    jKubeServiceHub.getHelmService().lint(helmConfig);
+    try {
+      jKubeServiceHub.getHelmService().lint(helmConfig);
+    } catch (Exception exception) {
+      kitLogger.error("Error initializing Helm configuration", exception);
+      throw new IllegalStateException(exception.getMessage(), exception);
+    }
   }
 }
