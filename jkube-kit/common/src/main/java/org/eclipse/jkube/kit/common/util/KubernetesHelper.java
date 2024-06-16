@@ -18,6 +18,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -37,14 +39,24 @@ import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import io.fabric8.kubernetes.api.model.AuthInfoBuilder;
+import io.fabric8.kubernetes.api.model.ClusterBuilder;
+import io.fabric8.kubernetes.api.model.Context;
 import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
+import io.fabric8.kubernetes.api.model.NamedAuthInfo;
+import io.fabric8.kubernetes.api.model.NamedAuthInfoBuilder;
+import io.fabric8.kubernetes.api.model.NamedCluster;
+import io.fabric8.kubernetes.api.model.NamedClusterBuilder;
+import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.api.model.authorization.v1.ResourceAttributesBuilder;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
+import io.fabric8.kubernetes.client.internal.KubeConfigUtils;
 import io.fabric8.kubernetes.client.utils.ApiVersionUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
+import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 import io.fabric8.kubernetes.api.model.Container;
@@ -815,6 +827,76 @@ public class KubernetesHelper {
             .withNewSpec().withResourceAttributes(resourceAttributesBuilder.build()).endSpec()
             .build());
         return accessReviewFromServer.getStatus().getAllowed();
+    }
+
+    /**
+     * Export KubernetesClient cluster config to a kubeconfig file
+     *
+     * @param kubernetesClientConfig KubernetesClient Config currently in use
+     * @return path to kubeconfig file created by inspecting KubernetesClient Config object.
+     */
+    public static Path exportKubernetesClientConfigToFile(io.fabric8.kubernetes.client.Config kubernetesClientConfig, Path targetKubeConfig) {
+        try {
+            io.fabric8.kubernetes.api.model.ConfigBuilder kubeConfigBuilder = new io.fabric8.kubernetes.api.model.ConfigBuilder();
+            kubeConfigBuilder.addToClusters(createKubeConfigClusterFromClient(kubernetesClientConfig));
+            kubeConfigBuilder.addToContexts(kubernetesClientConfig.getCurrentContext());
+            kubeConfigBuilder.withCurrentContext(kubernetesClientConfig.getCurrentContext().getName());
+            kubeConfigBuilder.addToUsers(createKubeConfigUserFromClient(kubernetesClientConfig));
+            KubeConfigUtils.persistKubeConfigIntoFile(kubeConfigBuilder.build(), targetKubeConfig.toString());
+            return targetKubeConfig;
+        } catch (IOException ioException) {
+            throw new JKubeException("Failure in exporting KubernetesClient config : " + ioException.getMessage());
+        }
+    }
+
+    private static NamedCluster createKubeConfigClusterFromClient(io.fabric8.kubernetes.client.Config kubernetesClientConfig) {
+        ClusterBuilder clusterBuilder = new ClusterBuilder();
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getMasterUrl())) {
+            clusterBuilder.withServer(kubernetesClientConfig.getMasterUrl());
+        }
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getCaCertFile())) {
+            clusterBuilder.withCertificateAuthority(kubernetesClientConfig.getCaCertFile());
+        }
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getCaCertData())) {
+            clusterBuilder.withCertificateAuthorityData(kubernetesClientConfig.getCaCertData());
+        }
+        return new NamedClusterBuilder().withName(Optional.ofNullable(kubernetesClientConfig.getCurrentContext())
+            .map(NamedContext::getContext)
+            .map(Context::getCluster)
+            .orElse(null))
+          .withCluster(clusterBuilder.build()).build();
+    }
+
+    private static NamedAuthInfo createKubeConfigUserFromClient(io.fabric8.kubernetes.client.Config kubernetesClientConfig) {
+        NamedAuthInfoBuilder namedAuthInfoBuilder = new NamedAuthInfoBuilder();
+        if (kubernetesClientConfig.getCurrentContext() != null &&
+          kubernetesClientConfig.getCurrentContext().getContext() != null &&
+          StringUtils.isNotBlank(kubernetesClientConfig.getCurrentContext().getContext().getUser())) {
+            namedAuthInfoBuilder.withName(kubernetesClientConfig.getCurrentContext().getContext().getUser());
+        }
+        AuthInfoBuilder authInfoBuilder = new AuthInfoBuilder();
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getAutoOAuthToken())) {
+            authInfoBuilder.withToken(kubernetesClientConfig.getAutoOAuthToken());
+        }
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getOauthToken())) {
+            authInfoBuilder.withToken(kubernetesClientConfig.getOauthToken());
+        }
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getClientCertFile())) {
+            authInfoBuilder.withClientCertificate(kubernetesClientConfig.getClientCertFile());
+        }
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getClientCertData())) {
+            authInfoBuilder.withClientCertificateData(kubernetesClientConfig.getClientCertData());
+        }
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getClientKeyData())) {
+            authInfoBuilder.withClientKeyData(kubernetesClientConfig.getClientKeyData());
+        }
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getClientKeyFile())) {
+            authInfoBuilder.withClientKey(kubernetesClientConfig.getClientKeyFile());
+        }
+        if (kubernetesClientConfig.getAuthProvider() != null) {
+            authInfoBuilder.withAuthProvider(kubernetesClientConfig.getAuthProvider());
+        }
+        return namedAuthInfoBuilder.withUser(authInfoBuilder.build()).build();
     }
 }
 
