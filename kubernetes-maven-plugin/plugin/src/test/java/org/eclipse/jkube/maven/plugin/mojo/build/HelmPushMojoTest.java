@@ -16,6 +16,7 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 import java.nio.file.Path;
 import java.util.HashMap;
 
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
@@ -78,6 +79,34 @@ class HelmPushMojoTest {
   @AfterEach
   void tearDown() {
     helmPushMojo = null;
+  }
+
+  @Test
+  void init_withValidServer_shouldSetPullRegistry() throws MojoFailureException {
+    // Given
+    helmPushMojo.settings.addServer(completeValidServer());
+
+    // When
+    helmPushMojo.init();
+
+    // Then
+    assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getPullRegistryConfig().getSettings()).singleElement()
+        .isEqualTo(RegistryServerConfiguration.builder()
+            .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
+  }
+
+  @Test
+  void init_withValidServer_shouldSetPushRegistry() throws MojoFailureException {
+    // Given
+    helmPushMojo.settings.addServer(completeValidServer());
+
+    // When
+    helmPushMojo.init();
+
+    // Then
+    assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getPushRegistryConfig().getSettings()).singleElement()
+        .isEqualTo(RegistryServerConfiguration.builder()
+            .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
   }
 
   @Test
@@ -166,12 +195,6 @@ class HelmPushMojoTest {
       // When
       helmPushMojo.execute();
       // Then
-      assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getPullRegistryConfig().getSettings()).singleElement()
-          .isEqualTo(RegistryServerConfiguration.builder()
-              .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
-      assertThat(helmPushMojo.jkubeServiceHub.getConfiguration().getPushRegistryConfig().getSettings()).singleElement()
-          .isEqualTo(RegistryServerConfiguration.builder()
-              .id("SNAP-REPO").username("mavenUser").password("mavenPassword").configuration(new HashMap<>()).build());
       assertThat(helmServiceMockedConstruction.constructed()).hasSize(1);
       verify(helmServiceMockedConstruction.constructed().get(0), times(1)).uploadHelmChart(helmPushMojo.helm);
     }
