@@ -17,6 +17,7 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -193,7 +194,8 @@ class HelidonGeneratorTest {
     final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
     // Then
     assertThat(result).singleElement()
-      .extracting("buildConfiguration.ports").asList()
+      .extracting("buildConfiguration.ports")
+      .asInstanceOf(InstanceOfAssertFactories.list(String.class))
       .contains("8778");
   }
 
@@ -218,7 +220,8 @@ class HelidonGeneratorTest {
     final List<ImageConfiguration> result = new HelidonGenerator(ctx).customize(new ArrayList<>(), true);
     // Then
     assertThat(result).singleElement()
-      .extracting("buildConfiguration.ports").asList()
+      .extracting("buildConfiguration.ports")
+      .asInstanceOf(InstanceOfAssertFactories.list(String.class))
       .contains("9779");
   }
 
@@ -256,20 +259,25 @@ class HelidonGeneratorTest {
         .hasFieldOrPropertyWithValue("targetDir", "/deployments")
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList().hasSize(2)
+        .asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
+        .hasSize(2)
         .satisfies(layers -> assertThat(layers).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
             .hasFieldOrPropertyWithValue("id", "libs")
             .extracting(Assembly::getFileSets)
-            .asList().singleElement()
+            .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class))
+            .singleElement()
             .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
-            .extracting("includes").asList()
+            .extracting("includes")
+            .asInstanceOf(InstanceOfAssertFactories.list(String.class))
             .containsExactly("libs"))
         .satisfies(layers -> assertThat(layers).element(1).asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
             .hasFieldOrPropertyWithValue("id", "artifact")
             .extracting(Assembly::getFileSets)
-            .asList().singleElement()
+            .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class))
+            .singleElement()
             .hasFieldOrPropertyWithValue("outputDirectory", new File("."))
-            .extracting("includes").asList()
+            .extracting("includes")
+            .asInstanceOf(InstanceOfAssertFactories.list(String.class))
             .containsExactly("sample.jar"));
   }
 
@@ -293,9 +301,10 @@ class HelidonGeneratorTest {
         .extracting(BuildConfiguration::getAssembly)
         .hasFieldOrPropertyWithValue("targetDir", "/")
         .extracting(AssemblyConfiguration::getLayers)
-        .asList().singleElement().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
+        .singleElement().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class))
         .hasSize(1)
         .flatExtracting("includes")
         .containsExactly("sample");
