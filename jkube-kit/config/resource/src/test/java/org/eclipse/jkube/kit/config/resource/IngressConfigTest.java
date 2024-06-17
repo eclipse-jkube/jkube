@@ -14,7 +14,8 @@
 package org.eclipse.jkube.kit.config.resource;
 
 import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -28,35 +29,38 @@ class IngressConfigTest {
   @Test
   void rawDeserialization() throws IOException {
     // Given
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(MapperFeature.USE_ANNOTATIONS, false);
+    final JsonMapper mapper = JsonMapper.builder()
+        .configure(MapperFeature.USE_ANNOTATIONS, false)
+        .build();
     // When
     final IngressConfig result = mapper.readValue(
         IngressConfigTest.class.getResourceAsStream("/ingress-config.json"),
         IngressConfig.class);
     // Then
     assertThat(result)
-        .satisfies(ic -> assertThat(ic).extracting(IngressConfig::getIngressRules).asList().containsExactly(
-            IngressRuleConfig.builder()
-                .host("example.com")
-                .path(IngressRulePathConfig.builder()
-                    .pathType("ImplementationSpecific")
-                    .path("/path")
-                    .serviceName("service-name")
-                    .servicePort(8080)
-                    .resource(IngressRulePathResourceConfig.builder()
-                        .apiGroup("group.k8s.io")
-                        .kind("ResourceKind")
-                        .name("resource-name")
+        .satisfies(ic -> assertThat(ic).extracting(IngressConfig::getIngressRules)
+            .asInstanceOf(InstanceOfAssertFactories.list(IngressRuleConfig.class))
+            .containsExactly(
+                IngressRuleConfig.builder()
+                    .host("example.com")
+                    .path(IngressRulePathConfig.builder()
+                        .pathType("ImplementationSpecific")
+                        .path("/path")
+                        .serviceName("service-name")
+                        .servicePort(8080)
+                        .resource(IngressRulePathResourceConfig.builder()
+                            .apiGroup("group.k8s.io")
+                            .kind("ResourceKind")
+                            .name("resource-name")
+                            .build())
                         .build())
-                    .build())
-                .build()
-        ))
-        .satisfies(ic -> assertThat(ic).extracting(IngressConfig::getIngressTlsConfigs).asList()
-            .hasSize(1)
-            .element(0)
+                    .build()))
+        .satisfies(ic -> assertThat(ic).extracting(IngressConfig::getIngressTlsConfigs)
+            .asInstanceOf(InstanceOfAssertFactories.list(IngressTlsConfig.class))
+            .singleElement()
             .hasFieldOrPropertyWithValue("secretName", "shhhh")
-            .extracting("hosts").asList().containsExactly("tls.example.com")
-        );
+            .extracting("hosts")
+            .asInstanceOf(InstanceOfAssertFactories.list(String.class))
+            .containsExactly("tls.example.com"));
   }
 }
