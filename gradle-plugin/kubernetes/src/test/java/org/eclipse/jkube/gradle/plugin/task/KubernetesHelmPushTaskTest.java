@@ -26,6 +26,7 @@ import org.mockito.MockedConstruction;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 
+import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockConstruction;
@@ -60,7 +61,7 @@ class KubernetesHelmPushTaskTest {
     // When & Then
     assertThatIllegalStateException()
         .isThrownBy(kubernetesHelmPushTask::runTask)
-        .withMessageContaining("META-INF/jkube/kubernetes")
+        .withMessageContaining(separatorsToSystem("META-INF/jkube/kubernetes"))
         .withCauseInstanceOf(NoSuchFileException.class);
   }
 
