@@ -20,6 +20,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.api.model.Template;
 import io.fabric8.openshift.api.model.TemplateBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
+
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -129,7 +131,7 @@ class OpenshiftHelperTest {
         assertThat(result)
             .isNotNull()
             .extracting(KubernetesList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.LIST)
             .singleElement()
             .isInstanceOf(Pod.class);
 
