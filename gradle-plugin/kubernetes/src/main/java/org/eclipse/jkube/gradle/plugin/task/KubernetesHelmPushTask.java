@@ -18,7 +18,6 @@ import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import javax.inject.Inject;
 
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmPushConfig;
 
 public class KubernetesHelmPushTask extends AbstractHelmTask {
