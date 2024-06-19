@@ -78,6 +78,10 @@ public class HelmConfig {
   private boolean debug;
   private boolean dependencyVerify;
   private boolean dependencySkipRefresh;
+  private String releaseName;
+  private boolean installDependencyUpdate;
+  private boolean installWaitReady;
+  private boolean disableOpenAPIValidation;
 
 
   @JsonProperty("dependencies")
