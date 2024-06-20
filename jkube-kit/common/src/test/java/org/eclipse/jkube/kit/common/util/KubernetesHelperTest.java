@@ -40,6 +40,7 @@ import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewB
 import io.fabric8.kubernetes.api.model.runtime.RawExtension;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.http.TlsVersion;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -72,6 +73,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.common.TestHttpStaticServer;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -454,6 +456,7 @@ class KubernetesHelperTest {
 
 
     @Test
+    @DisplayName("when invalid target kubeconfig file provided, then thrown exception")
     void exportKubernetesClientConfigToFile_whenInvalidFileProvided_thenThrowException(@TempDir Path temporaryFolder) {
         // Given
         io.fabric8.kubernetes.client.Config kubernetesClientConfig = createKubernetesClientConfig();
@@ -465,6 +468,42 @@ class KubernetesHelperTest {
     }
 
     @Test
+    @DisplayName("should work with KubernetesClient config provided by KubernetesMockServer")
+    void exportKubernetesClientConfigToFile_whenTrustCertsEnabled_thenWriteKubeConfigWithInsecureSkipTlsVerify(@TempDir Path temporaryFolder) throws IOException {
+        // Given
+        io.fabric8.kubernetes.client.Config kubernetesClientConfig = new io.fabric8.kubernetes.client.ConfigBuilder(io.fabric8.kubernetes.client.Config.empty())
+          .withMasterUrl("https://localhost:32354")
+          .withTrustCerts()
+          .withTlsVersions(TlsVersion.TLS_1_2)
+          .withNamespace("test")
+          .withHttp2Disable()
+          .build();
+        // When
+        kubernetesClientConfig.setCurrentContext(KubernetesMockServerUtil.createOpinionatedKubernetesContextForMockKubernetesClientConfiguration(kubernetesClientConfig));
+        Path exportedKubeConfig = KubernetesHelper.exportKubernetesClientConfigToFile(kubernetesClientConfig, temporaryFolder.resolve("config"));
+
+        // Then
+        assertThat(exportedKubeConfig).isNotNull();
+        assertThat(Serialization.unmarshal(exportedKubeConfig.toFile(), io.fabric8.kubernetes.api.model.Config.class))
+          .hasFieldOrPropertyWithValue("currentContext", "jkube-context")
+          .satisfies(c -> assertThat(c.getContexts())
+            .singleElement(InstanceOfAssertFactories.type(NamedContext.class))
+            .hasFieldOrPropertyWithValue("name", "jkube-context")
+            .hasFieldOrPropertyWithValue("context.cluster", "localhost:32354")
+            .hasFieldOrPropertyWithValue("context.namespace", "test")
+            .hasFieldOrPropertyWithValue("context.user", "jkube"))
+          .satisfies(c -> assertThat(c.getClusters())
+            .singleElement(InstanceOfAssertFactories.type(NamedCluster.class))
+            .hasFieldOrPropertyWithValue("name", "localhost:32354")
+            .hasFieldOrPropertyWithValue("cluster.server", "https://localhost:32354/")
+            .hasFieldOrPropertyWithValue("cluster.insecureSkipTlsVerify", true))
+          .satisfies(c -> assertThat(c.getUsers())
+            .singleElement(InstanceOfAssertFactories.type(NamedAuthInfo.class))
+            .hasFieldOrPropertyWithValue("name", "jkube"));
+    }
+
+    @Test
+    @DisplayName("should work with valid kube config")
     void exportKubernetesClientConfigToFile_whenValidTargetFile_thenWriteKubeConfigToFile(@TempDir Path temporaryFolder) throws IOException {
         // Given
         io.fabric8.kubernetes.client.Config kubernetesClientConfig = createKubernetesClientConfig();
