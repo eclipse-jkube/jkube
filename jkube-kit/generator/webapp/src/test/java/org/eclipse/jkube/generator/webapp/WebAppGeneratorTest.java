@@ -118,7 +118,7 @@ class WebAppGeneratorTest {
           .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
           .hasFieldOrPropertyWithValue("alias", "webapp")
           .extracting(ImageConfiguration::getBuildConfiguration)
-          .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
+          .hasFieldOrPropertyWithValue("tags", Collections.emptyList())
           .hasFieldOrPropertyWithValue("ports", Collections.singletonList("8080"))
           .hasFieldOrPropertyWithValue("env", new HashMap<String, String>() {{
               put("DEPLOY_DIR", "/deployments");
@@ -164,7 +164,7 @@ class WebAppGeneratorTest {
           .hasFieldOrPropertyWithValue("name", "%a:%l")
           .hasFieldOrPropertyWithValue("alias", "webapp")
           .extracting(ImageConfiguration::getBuildConfiguration)
-          .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
+          .hasFieldOrPropertyWithValue("tags", Collections.emptyList())
           .hasFieldOrPropertyWithValue("ports", Arrays.asList("8082", "80"))
           .hasFieldOrPropertyWithValue("env", Collections.singletonMap("DEPLOY_DIR", "/other-dir"))
           .hasFieldOrPropertyWithValue("cmd.shell", "sleep 3600")
