@@ -279,7 +279,7 @@ class EnvUtilTest {
     }
 
     @Test
-    void testLoadTimestampShouldLoadFromFile() throws Exception {
+    void testLoadTimestampShouldLoadFromFile() {
         // Given
         final File file = new File(EnvUtilTest.class.getResource("/util/loadTimestamp.timestamp").getFile());
         // When
