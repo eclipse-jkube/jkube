@@ -93,7 +93,7 @@ class KarafGeneratorTest {
         .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
         .hasFieldOrPropertyWithValue("alias", "karaf")
         .extracting(ImageConfiguration::getBuildConfiguration)
-        .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
+        .hasFieldOrPropertyWithValue("tags", Collections.emptyList())
         .hasFieldOrPropertyWithValue("ports", Arrays.asList("8181", "8778"))
         .extracting(BuildConfiguration::getEnv)
         .asInstanceOf(InstanceOfAssertFactories.MAP)

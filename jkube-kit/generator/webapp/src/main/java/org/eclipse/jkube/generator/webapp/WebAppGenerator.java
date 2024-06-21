@@ -129,7 +129,6 @@ public class WebAppGenerator extends BaseGenerator {
     if (!prePackagePhase) {
       buildBuilder.assembly(createAssembly(handler));
     }
-    addLatestTagIfSnapshot(buildBuilder);
     addTagsFromConfig(buildBuilder);
     imageBuilder
         .name(getImageName())

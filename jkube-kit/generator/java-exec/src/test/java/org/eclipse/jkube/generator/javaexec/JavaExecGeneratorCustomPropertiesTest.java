@@ -60,7 +60,7 @@ class JavaExecGeneratorCustomPropertiesTest {
         .hasFieldOrPropertyWithValue("alias", "java-exec")
         .extracting(ImageConfiguration::getBuildConfiguration)
         .hasFieldOrPropertyWithValue("from", "custom-image")
-        .hasFieldOrPropertyWithValue("tags", Collections.singletonList("latest"))
+        .hasFieldOrPropertyWithValue("tags", Collections.emptyList())
         .hasFieldOrPropertyWithValue("env", new HashMap<String, String>(){{
           put("JAVA_APP_DIR", "/other-dir");
           put("JAVA_MAIN_CLASS", "com.example.Main");
