@@ -16,32 +16,31 @@ package org.eclipse.jkube.kit.common.util;
 import io.fabric8.kubernetes.api.model.NamedContext;
 import io.fabric8.kubernetes.api.model.NamedContextBuilder;
 import io.fabric8.kubernetes.client.Config;
-import org.eclipse.jkube.kit.common.JKubeException;
+import io.fabric8.kubernetes.client.ConfigBuilder;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Optional;
+import java.nio.file.Path;
 
 public class KubernetesMockServerUtil {
+
   private KubernetesMockServerUtil() { }
 
-  public static NamedContext createOpinionatedKubernetesContextForMockKubernetesClientConfiguration(Config kubernetesClientConfig) {
-    try {
-      if (kubernetesClientConfig != null && kubernetesClientConfig.getCurrentContext() == null) {
-        URI uri = new URI(kubernetesClientConfig.getMasterUrl());
-        return new NamedContextBuilder()
-          .withName("jkube-context")
-          .withNewContext()
-          .withNamespace(kubernetesClientConfig.getNamespace())
-          .withCluster(String.format("%s:%d", uri.getHost(), uri.getPort()))
-          .withUser(Optional.ofNullable(kubernetesClientConfig.getUsername())
-            .orElse("jkube"))
-          .endContext()
-          .build();
-      }
-      return null;
-    } catch (URISyntaxException uriSyntaxException) {
-      throw new JKubeException("Invalid Kubernetes cluster url ", uriSyntaxException);
-    }
+  // TODO: Remove after https://github.com/fabric8io/kubernetes-client/issues/6068 is fixed
+  public static Path exportKubernetesClientConfigToFile(KubernetesMockServer mockServer, Path targetKubeConfig) {
+    final KubernetesClient client = mockServer.createClient();
+    final NamedContext mockServerContext = new NamedContextBuilder()
+      .withName("mock-server")
+      .withNewContext()
+      .withNamespace(client.getNamespace())
+      .withCluster(String.format("%s:%d", mockServer.getHostName(), mockServer.getPort()))
+      .withUser("mock-server-user")
+      .endContext()
+      .build();
+    final Config kubernetesClientConfig = new ConfigBuilder(client.getConfiguration())
+      .addToContexts(mockServerContext)
+      .withCurrentContext(mockServerContext)
+      .build();
+    return KubernetesHelper.exportKubernetesClientConfigToFile(kubernetesClientConfig, targetKubeConfig);
   }
 }
