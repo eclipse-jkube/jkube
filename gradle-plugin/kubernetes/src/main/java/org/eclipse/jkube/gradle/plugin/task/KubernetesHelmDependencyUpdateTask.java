@@ -18,29 +18,22 @@ import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import javax.inject.Inject;
 
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
 
-public class KubernetesHelmDependencyUpdateTask extends AbstractJKubeTask {
-    @Inject
-    public KubernetesHelmDependencyUpdateTask(Class<? extends KubernetesExtension> extensionClass) {
-        super(extensionClass);
-        setDescription("Update the on-disk dependencies to mirror Chart.yaml");
-    }
+public class KubernetesHelmDependencyUpdateTask extends AbstractHelmTask {
 
-    @Override
-    public void run() {
-        if (kubernetesExtension.getSkipOrDefault()) {
-            return;
-        }
-        try {
-            final HelmConfig helm = initHelmConfig(kubernetesExtension.getDefaultHelmType(), kubernetesExtension.javaProject,
-                    kubernetesExtension.getKubernetesTemplateOrDefault(),
-                    kubernetesExtension.helm)
-                    .build();
-            jKubeServiceHub.getHelmService().dependencyUpdate(helm);
-        } catch (Exception exp) {
-            kitLogger.error("Error performing helm dependency update", exp);
-            throw new IllegalStateException(exp.getMessage(), exp);
-        }
+  @Inject
+  public KubernetesHelmDependencyUpdateTask(Class<? extends KubernetesExtension> extensionClass) {
+    super(extensionClass);
+    setDescription("Update the on-disk dependencies to mirror Chart.yaml");
+  }
+
+  @Override
+  public void run() {
+    try {
+      jKubeServiceHub.getHelmService().dependencyUpdate(kubernetesExtension.helm);
+    } catch (Exception exp) {
+      kitLogger.error("Error performing helm dependency update", exp);
+      throw new IllegalStateException(exp.getMessage(), exp);
     }
+  }
 }

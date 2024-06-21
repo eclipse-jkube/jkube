@@ -20,9 +20,8 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
+public class KubernetesHelmTask extends AbstractHelmTask {
 
-public class KubernetesHelmTask extends AbstractJKubeTask {
   @Inject
   public KubernetesHelmTask(Class<? extends KubernetesExtension> extensionClass) {
     super(extensionClass);
@@ -36,10 +35,7 @@ public class KubernetesHelmTask extends AbstractJKubeTask {
       if (manifest == null || !manifest.isFile()) {
         logManifestNotFoundWarning(manifest);
       }
-      HelmConfig helm = initHelmConfig(kubernetesExtension.getDefaultHelmType(), kubernetesExtension.javaProject,
-      kubernetesExtension.getKubernetesTemplateOrDefault(),
-        kubernetesExtension.helm).build();
-      jKubeServiceHub.getHelmService().generateHelmCharts(helm);
+      jKubeServiceHub.getHelmService().generateHelmCharts(kubernetesExtension.helm);
     } catch (IOException exception) {
       throw new IllegalStateException(exception.getMessage(), exception);
     }
