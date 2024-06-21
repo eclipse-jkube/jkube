@@ -20,19 +20,20 @@ import javax.inject.Inject;
 
 
 public class KubernetesHelmDependencyUpdateTask extends AbstractHelmTask {
-    @Inject
-    public KubernetesHelmDependencyUpdateTask(Class<? extends KubernetesExtension> extensionClass) {
-        super(extensionClass);
-        setDescription("Update the on-disk dependencies to mirror Chart.yaml");
-    }
 
-    @Override
-    protected void executeTask(HelmConfig helmConfig) {
-        try {
-            jKubeServiceHub.getHelmService().dependencyUpdate(helmConfig);
-        } catch (Exception exp) {
-            kitLogger.error("Error performing helm dependency update", exp);
-            throw new IllegalStateException(exp.getMessage(), exp);
-        }
+  @Inject
+  public KubernetesHelmDependencyUpdateTask(Class<? extends KubernetesExtension> extensionClass) {
+    super(extensionClass);
+    setDescription("Update the on-disk dependencies to mirror Chart.yaml");
+  }
+
+  @Override
+  public void run() {
+    try {
+      jKubeServiceHub.getHelmService().dependencyUpdate(kubernetesExtension.helm);
+    } catch (Exception exp) {
+      kitLogger.error("Error performing helm dependency update", exp);
+      throw new IllegalStateException(exp.getMessage(), exp);
     }
+  }
 }

@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class KubernetesHelmTask extends AbstractHelmTask {
+
   @Inject
   public KubernetesHelmTask(Class<? extends KubernetesExtension> extensionClass) {
     super(extensionClass);
@@ -28,13 +29,13 @@ public class KubernetesHelmTask extends AbstractHelmTask {
   }
 
   @Override
-  protected void executeTask(HelmConfig helmConfig) {
+  public void run() {
     try {
       File manifest = kubernetesExtension.getKubernetesManifestOrDefault();
       if (manifest == null || !manifest.isFile()) {
         logManifestNotFoundWarning(manifest);
       }
-      jKubeServiceHub.getHelmService().generateHelmCharts(helmConfig);
+      jKubeServiceHub.getHelmService().generateHelmCharts(kubernetesExtension.helm);
     } catch (IOException exception) {
       throw new IllegalStateException(exception.getMessage(), exception);
     }

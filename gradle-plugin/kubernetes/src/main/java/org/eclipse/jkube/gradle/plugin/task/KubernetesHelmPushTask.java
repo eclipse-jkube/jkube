@@ -28,10 +28,10 @@ public class KubernetesHelmPushTask extends AbstractHelmTask {
   }
 
   @Override
-  protected void executeTask(HelmConfig helmConfig) {
+  public void run() {
     try {
-      initHelmPushConfig(helmConfig, kubernetesExtension.javaProject);
-      jKubeServiceHub.getHelmService().uploadHelmChart(helmConfig);
+      initHelmPushConfig(kubernetesExtension.helm, kubernetesExtension.javaProject);
+      jKubeServiceHub.getHelmService().uploadHelmChart(kubernetesExtension.helm);
     } catch (Exception exp) {
       kitLogger.error("Error performing Helm push", exp);
       throw new IllegalStateException(exp.getMessage(), exp);
