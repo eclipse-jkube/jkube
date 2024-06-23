@@ -140,7 +140,7 @@ public class PortForwardService {
                     } else {
                         candidatePods = Collections.singletonList(pod);
                     }
-                    Pod newPod = getNewestPod(candidatePods); // may be null
+                    Pod newPod = KubernetesHelper.getNewestPod(candidatePods); // may be null
                     if (!podEquals(nextForwardedPod[0], newPod)) {
                         nextForwardedPod[0] = newPod;
                         podChanged.signal();
@@ -200,23 +200,9 @@ public class PortForwardService {
         PodList list = pods.list();
         if (list != null) {
             List<Pod> items = list.getItems();
-            return getNewestPod(items);
+            return KubernetesHelper.getNewestPod(items);
         }
         return null;
-    }
-
-    private Pod getNewestPod(List<Pod> items) {
-        Pod targetPod = null;
-        if (items != null) {
-            for (Pod pod : items) {
-                if (KubernetesHelper.isPodWaiting(pod) || KubernetesHelper.isPodRunning(pod)) {
-                    if (targetPod == null || (KubernetesHelper.isPodReady(pod) && KubernetesHelper.isNewerResource(pod, targetPod))) {
-                        targetPod = pod;
-                    }
-                }
-            }
-        }
-        return targetPod;
     }
 
     // Visible for test

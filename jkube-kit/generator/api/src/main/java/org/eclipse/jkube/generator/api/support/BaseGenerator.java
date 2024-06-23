@@ -234,12 +234,6 @@ public abstract class BaseGenerator implements Generator {
         return true;
     }
 
-    protected void addLatestTagIfSnapshot(BuildConfiguration.BuildConfigurationBuilder buildBuilder) {
-        if (getProject().getVersion().endsWith("-SNAPSHOT")) {
-            buildBuilder.tags(Collections.singletonList("latest"));
-        }
-    }
-
     protected void addTagsFromConfig(BuildConfiguration.BuildConfigurationBuilder buildConfigurationBuilder) {
         String commaSeparatedTags = getConfigWithFallback(Config.TAGS, "jkube.generator.tags", null);
         if (StringUtils.isNotBlank(commaSeparatedTags)) {

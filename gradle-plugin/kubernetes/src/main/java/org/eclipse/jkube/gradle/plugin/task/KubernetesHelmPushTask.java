@@ -18,10 +18,9 @@ import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import javax.inject.Inject;
 
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmPushConfig;
 
-public class KubernetesHelmPushTask extends AbstractJKubeTask {
+public class KubernetesHelmPushTask extends AbstractHelmTask {
   @Inject
   public KubernetesHelmPushTask(Class<? extends KubernetesExtension> extensionClass) {
     super(extensionClass);
@@ -30,15 +29,9 @@ public class KubernetesHelmPushTask extends AbstractJKubeTask {
 
   @Override
   public void run() {
-    if (kubernetesExtension.getSkipOrDefault()) {
-      return;
-    }
     try {
-      HelmConfig helm = initHelmConfig(kubernetesExtension.getDefaultHelmType(), kubernetesExtension.javaProject,
-        kubernetesExtension.getKubernetesTemplateOrDefault(),
-        kubernetesExtension.helm).build();
-      initHelmPushConfig(helm, kubernetesExtension.javaProject);
-      jKubeServiceHub.getHelmService().uploadHelmChart(helm);
+      initHelmPushConfig(kubernetesExtension.helm, kubernetesExtension.javaProject);
+      jKubeServiceHub.getHelmService().uploadHelmChart(kubernetesExtension.helm);
     } catch (Exception exp) {
       kitLogger.error("Error performing Helm push", exp);
       throw new IllegalStateException(exp.getMessage(), exp);

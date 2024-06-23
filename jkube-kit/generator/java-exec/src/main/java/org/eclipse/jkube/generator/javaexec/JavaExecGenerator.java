@@ -155,7 +155,6 @@ public class JavaExecGenerator extends BaseGenerator {
       addJolokiaPort(buildBuilder);
       addPrometheusPort(buildBuilder);
 
-      addLatestTagIfSnapshot(buildBuilder);
       addTagsFromConfig(buildBuilder);
       buildBuilder.workdir(getBuildWorkdir());
       buildBuilder.entryPoint(getBuildEntryPoint());

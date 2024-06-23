@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.17-SNAPSHOT
+* Fix #3161: JavaExecGenerator should honor %t setting and not unconditionally add `latest` tag
 * Fix #2098: Add support for multi-platform container image builds in jib build strategy
 * Fix #2335: Add support for configuring nodeSelector spec for controller via xml/groovy DSL configuration
 * Fix #2459: Allow configuring Buildpacks build via ImageConfiguration

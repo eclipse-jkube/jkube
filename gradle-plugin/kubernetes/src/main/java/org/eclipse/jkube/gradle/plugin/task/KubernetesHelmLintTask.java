@@ -18,9 +18,8 @@ import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import javax.inject.Inject;
 
-import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmConfig;
+public class KubernetesHelmLintTask extends AbstractHelmTask {
 
-public class KubernetesHelmLintTask extends AbstractJKubeTask {
   @Inject
   public KubernetesHelmLintTask(Class<? extends KubernetesExtension> extensionClass) {
     super(extensionClass);
@@ -29,15 +28,8 @@ public class KubernetesHelmLintTask extends AbstractJKubeTask {
 
   @Override
   public void run() {
-    if (kubernetesExtension.getSkipOrDefault()) {
-      return;
-    }
     try {
-      final HelmConfig helm = initHelmConfig(kubernetesExtension.getDefaultHelmType(), kubernetesExtension.javaProject,
-        kubernetesExtension.getKubernetesTemplateOrDefault(),
-        kubernetesExtension.helm)
-        .build();
-      jKubeServiceHub.getHelmService().lint(helm);
+      jKubeServiceHub.getHelmService().lint(kubernetesExtension.helm);
     } catch (Exception exp) {
       kitLogger.error("Error performing helm lint", exp);
       throw new IllegalStateException(exp.getMessage(), exp);

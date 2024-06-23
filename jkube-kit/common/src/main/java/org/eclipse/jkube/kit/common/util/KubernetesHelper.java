@@ -13,12 +13,10 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -859,6 +857,9 @@ public class KubernetesHelper {
         }
         if (StringUtils.isNotBlank(kubernetesClientConfig.getCaCertData())) {
             clusterBuilder.withCertificateAuthorityData(kubernetesClientConfig.getCaCertData());
+        }
+        if (kubernetesClientConfig.isTrustCerts()) {
+            clusterBuilder.withInsecureSkipTlsVerify(true);
         }
         return new NamedClusterBuilder().withName(Optional.ofNullable(kubernetesClientConfig.getCurrentContext())
             .map(NamedContext::getContext)

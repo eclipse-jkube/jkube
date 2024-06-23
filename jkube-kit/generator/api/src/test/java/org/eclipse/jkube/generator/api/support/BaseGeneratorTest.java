@@ -355,20 +355,6 @@ class BaseGeneratorTest {
   }
 
   @Test
-  @DisplayName("add latest tag if project's version is SNAPSHOT")
-  void addLatestTagIfSnapshot() {
-    ctx = ctx.toBuilder().project(ctx.getProject().toBuilder().version("1.2-SNAPSHOT").build()).build();
-    BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
-    new TestBaseGenerator(ctx, "test-generator").addLatestTagIfSnapshot(builder);
-    BuildConfiguration config = builder.build();
-    List<String> tags = config.getTags();
-    assertThat(tags)
-        .singleElement()
-        .asString()
-        .endsWith("latest");
-  }
-
-  @Test
   @DisplayName("add tags from config")
   void addTagsFromConfig() {
     BuildConfiguration.BuildConfigurationBuilder builder = BuildConfiguration.builder();
