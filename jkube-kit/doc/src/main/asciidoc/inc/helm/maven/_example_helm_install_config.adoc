@@ -1,0 +1,12 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <helm>
+      <releaseName>test-release</dependencySkipRefresh>
+      <installDependencyUpdate>false</dependencyVerify>
+      <installWaitReady>false</installWaitReady>
+    </helm>
+  </configuration>
+</plugin>
+----
