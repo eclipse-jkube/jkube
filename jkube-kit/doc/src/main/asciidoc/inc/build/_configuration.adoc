@@ -30,7 +30,7 @@ https://docs.docker.com/engine/reference/api/docker_remote_api_v1.24/#build-imag
   These options map to the ones listed as query parameters in the
   https://docs.docker.com/engine/api/v1.41/#operation/ImageCreate[Docker Remote API] and are
   restricted to simple options (e.g.: fromImage, fromSrc, platform).
-|
+| `jkube.container-image.createImageOptions`
 
 | *cleanup*
 | Cleanup dangling (untagged) images after each build (including any containers created from them). Default is `try` which tries to remove the old image, but doesn't fail the build if this is not possible because e.g. the image is still used by a running container. Use `remove` if you want to fail the build and `none` if no cleanup is requested.
@@ -90,7 +90,7 @@ endif::[]
 |  Configure https://buildpacks.io/docs/for-platform-operators/concepts/builder/[BuildPack builder] OCI image for BuildPack Build. This field is applicable only in `buildpacks` build strategy. This overrides builder image specified in local `~/.pack/config.toml`. If not specified this defaults to `null`.
 
   This field is only applicable for `buildpacks` build strategy.
-|
+| `jkube.container-image.buildpacksBuilderImage`
 
 | [[build-config-from-ext]]**fromExt**
 a| Extended definition for a base image. This field holds a map of defined in `key = "value"` format. The known keys are:

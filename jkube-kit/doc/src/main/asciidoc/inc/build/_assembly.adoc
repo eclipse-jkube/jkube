@@ -14,7 +14,7 @@ logic (see <<jkube-plugin, JKube Plugin>> for more details).
 | Assembly name, which is `maven` by default. This name is used for the archives and directories created during the build.
   This directory holds the files specified by the assembly. If an <<external-dockerfile,external Dockerfile>> is used then
   this name is also the relative directory which contains the assembly files.
-|
+|  `jkube.container-image.assembly.name`
 
 | *targetDir*
 | Directory under which the files and artifacts contained in the assembly will be copied within the container.
@@ -40,7 +40,7 @@ logic (see <<jkube-plugin, JKube Plugin>> for more details).
 | *excludeFinalOutputArtifact*
 | By default, the project's final artifact will be included in the assembly, set this flag to true in case the
   artifact should be excluded from the assembly.
-|
+| `jkube.container-image.assembly.excludeFinalOutputArtifact`
 
 | *mode*
 a| Mode how the assembled files should be collected:
