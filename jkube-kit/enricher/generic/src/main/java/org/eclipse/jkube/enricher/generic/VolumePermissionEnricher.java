@@ -55,16 +55,6 @@ public class VolumePermissionEnricher extends BaseEnricher {
     enum Config implements Configs.Config {
         IMAGE_NAME("imageName", "quay.io/quay/busybox"),
         PERMISSION("permission", "777"),
-        /**
-         * @deprecated Use configuration field in PersistentVolumeClaimStorageClassEnricher
-         */
-        @Deprecated
-        DEFAULT_STORAGE_CLASS("defaultStorageClass", null),
-        /**
-         * @deprecated Use configuration field in PersistentVolumeClaimStorageClassEnricher
-         */
-        @Deprecated
-        USE_ANNOTATION("useStorageClassAnnotation", "false"),
         CPU_LIMIT("cpuLimit", null),
         CPU_REQUEST("cpuRequest", null),
         MEMORY_LIMIT("memoryLimit", null),
@@ -205,27 +195,5 @@ public class VolumePermissionEnricher extends BaseEnricher {
                 return resourcesMap;
             }
         });
-    }
-
-    /**
-     * Get useAnnotation from enricher configuration
-     * TODO: This method is kept only for backward compatibility. This should
-     *       be removed in future. See <a href="https://github.com/eclipse-jkube/jkube/issues/1989">GitHub Issue</a> for more details
-     *
-     * @return boolean value indicating whether StorageClass annotation should be used or not
-     */
-    public boolean shouldUseAnnotation() {
-        return Boolean.parseBoolean(getConfig(Config.USE_ANNOTATION));
-    }
-
-    /**
-     * Get Default StorageClass from enricher configuration
-     *
-     * TODO: This method is kept only for backward compatibility. This should
-     *       be removed in future. See <a href="https://github.com/eclipse-jkube/jkube/issues/1989">GitHub Issue</a> for more details
-     * @return default storage class
-     */
-    public String getDefaultStorageClass() {
-        return getConfig(Config.DEFAULT_STORAGE_CLASS);
     }
 }

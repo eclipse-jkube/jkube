@@ -37,8 +37,8 @@ class VolumePermissionIT {
   static Stream<Arguments> data() {
     return Stream.of(
         arguments("default", new String[] {}),
-        arguments("custom-storageclass-annotation", new String[] {"-Pjkube.enricher.jkube-volume-permission.defaultStorageClass=cheese", "-Pjkube.enricher.jkube-volume-permission.useStorageClassAnnotation=true"}),
-        arguments("custom-storageclass", new String[] {"-Pjkube.enricher.jkube-volume-permission.defaultStorageClass=cheese"})
+        arguments("custom-storageclass-annotation", new String[] {"-Pjkube.enricher.jkube-persistentvolumeclaim-storageclass.defaultStorageClass=cheese", "-Pjkube.enricher.jkube-persistentvolumeclaim-storageclass.useStorageClassAnnotation=true"}),
+        arguments("custom-storageclass", new String[] {"-Pjkube.enricher.jkube-persistentvolumeclaim-storageclass.defaultStorageClass=cheese"})
     );
   }
 

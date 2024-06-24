@@ -40,7 +40,7 @@ class PersistentVolumeClaimStorageClassEnricherTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"jkube-persistentvolumeclaim-storageclass", "jkube-volume-permission"})
+  @ValueSource(strings = {"jkube-persistentvolumeclaim-storageclass"})
   void enrich_withPersistentVolumeClaim_shouldAddStorageClassToSpec(String enricher) {
     // Given
     Properties properties = new Properties();
@@ -63,7 +63,7 @@ class PersistentVolumeClaimStorageClassEnricherTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = {"jkube-persistentvolumeclaim-storageclass", "jkube-volume-permission"})
+  @ValueSource(strings = {"jkube-persistentvolumeclaim-storageclass"})
   void enrich_withPersistentVolumeClaimAndUseAnnotationEnabled_shouldAddStorageClassAnnotation(String enricher) {
     // Given
     Properties properties = new Properties();
