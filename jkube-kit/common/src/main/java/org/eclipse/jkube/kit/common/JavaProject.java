@@ -89,13 +89,6 @@ public class JavaProject implements Serializable {
    */
   private File baseDirectory;
   /**
-   * Project's resources directory
-   * 
-   * @param resourcesDirectory resources directory where project resources look for.
-   * @return The resources directory for the project. 
-   */
-  private File resourcesDirectory;
-  /**
    * Directory where all build files are located (e.g. target)
    *
    * @param buildDirectory New build directory for the project.
@@ -308,7 +301,6 @@ public class JavaProject implements Serializable {
     this.scmTag = scmTag;
     this.buildPackageDirectory = buildPackageDirectory;
     this.maintainers = maintainers;
-    this.resourcesDirectory = baseDirectory != null ? new File(baseDirectory.getAbsolutePath() + "/src/main/resources") : new File("src/main/resources");
   }
 }
 

@@ -16,6 +16,7 @@ package org.eclipse.jkube.generator.api;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.net.URL;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -102,7 +103,12 @@ public class DefaultGeneratorManager implements GeneratorManager {
       if (generator.isApplicable(ret)) {
         log.info("Running generator %s", generator.getName());
         ret = generator.customize(ret, genCtx.isPrePackagePhase());
-        log.info("The following properties file are used %s", genCtx.getProject().getPropertiesFile());
+        URL propFileURL = genCtx.getProject().getPropertiesFile();
+        if (propFileURL != null) {
+          log.info("The following properties file is used %s", propFileURL);
+        } else {
+          log.info("No properties file found");
+        }
       }
     }
     return ret;

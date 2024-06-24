@@ -20,6 +20,8 @@ import java.util.Properties;
 import lombok.Getter;
 import lombok.Setter;
 
+// This class expends Properties class
+// with URL of properties file path.
 public class PropertiesExtender extends Properties {
   @Getter
   @Setter
