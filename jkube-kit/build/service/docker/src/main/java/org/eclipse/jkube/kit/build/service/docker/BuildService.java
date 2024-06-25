@@ -77,7 +77,7 @@ public class BuildService {
 
         List<String> tags = imageConfig.getBuildConfiguration().getTags();
         if (!tags.isEmpty()) {
-            log.info("%s: Tag with %s", imageConfig.getDescription(), EnvUtil.stringJoin(tags, ","));
+            log.info("%s: Tag with %s", imageConfig.getDescription(), String.join(",", tags));
 
             for (String tag : tags) {
                 if (tag != null) {

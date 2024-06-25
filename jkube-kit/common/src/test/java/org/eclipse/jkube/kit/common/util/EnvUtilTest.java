@@ -207,19 +207,6 @@ class EnvUtilTest {
     }
 
     @Test
-    void testStringJoin(){
-        //Given
-        List<String> list = new ArrayList<>();
-        String separator = ",";
-        list.add("element1");
-        list.add("element2");
-        //When
-        String result = EnvUtil.stringJoin(list,separator);
-        //Then
-        assertThat(result).isEqualTo("element1,element2");
-    }
-
-    @Test
     void testExtractMavenPropertyName() {
         assertThat(EnvUtil.extractMavenPropertyName("${project.baseDir}")).isEqualTo("project.baseDir");
         assertThat(EnvUtil.extractMavenPropertyName("roject.notbaseDi")).isNull();
