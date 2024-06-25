@@ -48,6 +48,6 @@ class KubernetesConfigViewTaskTest {
     configViewTask.runTask();
     // Then
     verify(taskEnvironment.logger, times(1))
-        .lifecycle(matches("k8s: \n---\noffline: true\nbuildStrategy: \"s2i\""));
+        .lifecycle(matches(String.format("k8s: %n---\noffline: true\nbuildStrategy: \"s2i\"")));
   }
 }
