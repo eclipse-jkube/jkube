@@ -33,6 +33,8 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
 
@@ -125,6 +127,7 @@ class SpringBootWatcherIntegrationTest {
   }
 
   @Test
+  @DisabledOnOs(OS.WINDOWS)
   void withAllRequirementsShouldStartWatcherProcess() throws Exception {
     try {
       // Given
