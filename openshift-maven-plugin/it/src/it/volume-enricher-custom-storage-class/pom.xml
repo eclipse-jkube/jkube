@@ -35,9 +35,9 @@
           <configuration>
             <enricher>
              <config>
-               <jkube-volume-permission>
-                 <defaultStorageClass>cheese</defaultStorageClass>
-               </jkube-volume-permission>
+                 <jkube-persistentvolumeclaim-storageclass>
+                     <defaultStorageClass>cheese</defaultStorageClass>
+                 </jkube-persistentvolumeclaim-storageclass>
              </config>
             </enricher>
           </configuration>

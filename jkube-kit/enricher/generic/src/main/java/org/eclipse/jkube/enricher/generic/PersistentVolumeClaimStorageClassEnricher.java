@@ -66,11 +66,7 @@ public class PersistentVolumeClaimStorageClassEnricher extends BaseEnricher {
   }
 
   private boolean shouldUseAnnotation() {
-    if (Boolean.TRUE.equals(Boolean.parseBoolean(getConfig(Config.USE_ANNOTATION)))) {
-      return true;
-    }
-    VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher((JKubeEnricherContext) getContext());
-    return Boolean.TRUE.equals(volumePermissionEnricher.shouldUseAnnotation());
+    return Boolean.parseBoolean(getConfig(Config.USE_ANNOTATION));
   }
 
   private String getStorageClass() {
@@ -78,7 +74,6 @@ public class PersistentVolumeClaimStorageClassEnricher extends BaseEnricher {
     if (StringUtils.isNotBlank(storageClassConfig)) {
       return storageClassConfig;
     }
-    VolumePermissionEnricher volumePermissionEnricher = new VolumePermissionEnricher((JKubeEnricherContext) getContext());
-    return volumePermissionEnricher.getDefaultStorageClass();
+    return null;
   }
 }

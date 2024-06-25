@@ -22,20 +22,6 @@ Enricher which fixes the permission of persistent volume mount with the help of 
 Defaults to `777`.
 | `jkube.enricher.jkube-volume-permission.permission`
 
-| *defaultStorageClass*
-| _Deprecated: Use <<jkube-persistentvolumeclaim-storageclass, PersistentVolumeClaimStorageClassEnricher>>'s defaultStorageClass field_
-
-PersistentVolume storage class.
-| `jkube.enricher.jkube-volume-permission.defaultStorageClass`
-
-| *useStorageClassAnnotation*
-| _Deprecated: Use <<jkube-persistentvolumeclaim-storageclass, PersistentVolumeClaimStorageClassEnricher>>'s defaultStorageClass field_
-
-If enabled, storage class would be added to PersistentVolumeClaim metadata as `volume.beta.kubernetes.io/storage-class=<storageClassName>` annotation rather than `.spec.storageClassName`
-
-Defaults to `false`
-| `jkube.enricher.jkube-volume-permission.useStorageClassAnnotation`
-
 | *cpuLimit*
 | Set PersistentVolume *initContainer*'s `.resources` CPU limit
 | `jkube.enricher.jkube-volume-permission.cpuLimit`
