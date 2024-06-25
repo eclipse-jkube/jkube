@@ -85,7 +85,7 @@ class OpenShiftResourceMojoTest {
     final File generatedArtifact = new File(resourceMojo.targetDir, "openshift.yml");
     assertThat(generatedArtifact)
       .exists()
-      .content().isEqualTo("---\napiVersion: v1\nkind: List\n");
+      .content().isEqualTo(String.format("---%napiVersion: v1%nkind: List%n"));
     verify(resourceMojo.projectHelper, times(1))
       .attachArtifact(resourceMojo.project, "yml", "openshift", generatedArtifact);
   }
