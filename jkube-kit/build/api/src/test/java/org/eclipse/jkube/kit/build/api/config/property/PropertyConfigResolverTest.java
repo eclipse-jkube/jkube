@@ -77,6 +77,11 @@ class PropertyConfigResolverTest {
     javaProject.getProperties().put("jkube.container-image.platforms.1", "linux/amd64");
     javaProject.getProperties().put("jkube.container-image.platforms.2", "linux/arm64");
     javaProject.getProperties().put("jkube.container-image.healthcheck.interval", "10s");
+    javaProject.getProperties().put("jkube.container-image.registry", "example-registry.io");
+    javaProject.getProperties().put("jkube.container-image.buildpacksBuilderImage", "custom-pack-builder-image:latest");
+    javaProject.getProperties().put("jkube.container-image.createImageOptions.platform", "linux/amd64");
+    javaProject.getProperties().put("jkube.container-image.assembly.name", "assembly1");
+    javaProject.getProperties().put("jkube.container-image.assembly.excludeFinalOutputArtifact", "false");
   }
 
   @Test
@@ -166,6 +171,31 @@ class PropertyConfigResolverTest {
     @Test
     void setsHealthCheckInterval() {
       assertThat(resolved.getBuild().getHealthCheck().getInterval()).isEqualTo("10s");
+    }
+
+    @Test
+    void setsRegistry() {
+      assertThat(resolved.getRegistry()).isEqualTo("example-registry.io");
+    }
+
+    @Test
+    void setsCreateImageOptions() {
+      assertThat(resolved.getBuild().getCreateImageOptions()).containsEntry("platform", "linux/amd64");
+    }
+
+    @Test
+    void setsBuildPackBuilderImage() {
+      assertThat(resolved.getBuild().getBuildpacksBuilderImage()).isEqualTo("custom-pack-builder-image:latest");
+    }
+
+    @Test
+    void setsAssemblyName() {
+      assertThat(resolved.getBuild().getAssembly().getName()).isEqualTo("assembly1");
+    }
+
+    @Test
+    void setsAssemblyExcludeFinalOutputArtifact() {
+      assertThat(resolved.getBuild().getAssembly().isExcludeFinalOutputArtifact()).isFalse();
     }
   }
 

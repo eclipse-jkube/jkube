@@ -17,7 +17,7 @@
 
 | <<registry, *registry*>>
 | Registry to use for this image. If the `name` already contains a registry this takes precedence. See <<registry,Registry handling>> for more details.
-|
+| `jkube.container-image.registry`
 
 | <<config-image-build, *build*>>
 |

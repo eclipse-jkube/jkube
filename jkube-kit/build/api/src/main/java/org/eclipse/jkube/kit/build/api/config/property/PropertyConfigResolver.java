@@ -49,6 +49,7 @@ public class PropertyConfigResolver {
     return ImageConfiguration.builder()
       .name(valueProvider.getString(ConfigKey.NAME, fromConfig.getName()))
       .alias(valueProvider.getString(ConfigKey.ALIAS, fromConfig.getAlias()))
+      .registry(valueProvider.getString(ConfigKey.REGISTRY, fromConfig.getRegistry()))
       .build(extractBuildConfiguration(fromConfig, valueProvider))
       .watch(extractWatchConfig(fromConfig, valueProvider))
       .build();
@@ -66,10 +67,12 @@ public class PropertyConfigResolver {
     final BuildConfiguration config = fromConfig.getBuild() != null ?
       fromConfig.getBuild() : new BuildConfiguration();
     return config.toBuilder()
+      .buildpacksBuilderImage(valueProvider.getString(ConfigKey.BUILDPACKS_BUILDER_IMAGE, valueOrNull(config, BuildConfiguration::getBuildpacksBuilderImage)))
       .cmd(extractArguments(valueProvider, ConfigKey.CMD, valueOrNull(config, BuildConfiguration::getCmd)))
       .cleanup(valueProvider.getString(ConfigKey.CLEANUP, valueOrNull(config, BuildConfiguration::getCleanup)))
       .nocache(valueProvider.getBoolean(ConfigKey.NOCACHE, valueOrNull(config, BuildConfiguration::getNocache)))
       .clearCacheFrom().cacheFrom(valueProvider.getList(ConfigKey.CACHEFROM, valueOr(config, BuildConfiguration::getCacheFrom, Collections.emptyList())))
+      .createImageOptions(valueProvider.getMap(ConfigKey.CREATE_IMAGE_OPTIONS, valueOrNull(config, BuildConfiguration::getCreateImageOptions)))
       .optimise(valueProvider.getBoolean(ConfigKey.OPTIMISE, valueOrNull(config, BuildConfiguration::getOptimise)))
       .entryPoint(extractArguments(valueProvider, ConfigKey.ENTRYPOINT, valueOrNull(config, BuildConfiguration::getEntryPoint)))
       .assembly(extractAssembly(valueOrNull(config, BuildConfiguration::getAssembly), valueProvider))
@@ -104,12 +107,14 @@ public class PropertyConfigResolver {
   private AssemblyConfiguration extractAssembly(AssemblyConfiguration originalConfig, ValueProvider valueProvider) {
     final AssemblyConfiguration config = originalConfig != null ? originalConfig : new AssemblyConfiguration();
     return config.toBuilder()
+      .name(valueProvider.getString(ConfigKey.ASSEMBLY_NAME, valueOrNull(originalConfig, AssemblyConfiguration::getName)))
       .targetDir(valueProvider.getString(ConfigKey.ASSEMBLY_TARGET_DIR, valueOrNull(originalConfig, AssemblyConfiguration::getTargetDir)))
       .exportTargetDir(valueProvider.getBoolean(ConfigKey.ASSEMBLY_EXPORT_TARGET_DIR, valueOrNull(originalConfig, AssemblyConfiguration::getExportTargetDir)))
       .permissionsString(valueProvider.getString(ConfigKey.ASSEMBLY_PERMISSIONS, valueOrNull(originalConfig, AssemblyConfiguration::getPermissionsRaw)))
       .user(valueProvider.getString(ConfigKey.ASSEMBLY_USER, valueOrNull(originalConfig, AssemblyConfiguration::getUser)))
       .modeString(valueProvider.getString(ConfigKey.ASSEMBLY_MODE, valueOrNull(originalConfig, AssemblyConfiguration::getModeRaw)))
       .tarLongFileMode(valueProvider.getString(ConfigKey.ASSEMBLY_TARLONGFILEMODE, valueOrNull(originalConfig, AssemblyConfiguration::getTarLongFileMode)))
+      .excludeFinalOutputArtifact(valueProvider.getBoolean(ConfigKey.ASSEMBLY_EXCLUDE_FINAL_OUTPUT_ARTIFACT, Optional.ofNullable(valueOrNull(originalConfig, AssemblyConfiguration::isExcludeFinalOutputArtifact)).orElse(false)))
       .build();
   }
 
