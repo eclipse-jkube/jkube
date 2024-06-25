@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -105,7 +106,7 @@ class WildflyJARGeneratorTest {
       assertThat(fileSets).isNotEmpty()
           .last()
           .hasFieldOrPropertyWithValue("directory", targetDir.toFile())
-          .extracting(AssemblyFileSet::getIncludes).asList()
+          .extracting(AssemblyFileSet::getIncludes).asInstanceOf(InstanceOfAssertFactories.list(String.class))
           .singleElement()
           .isEqualTo("myrepo");
     }
@@ -137,7 +138,7 @@ class WildflyJARGeneratorTest {
       assertThat(fileSets).isNotEmpty()
           .last()
           .hasFieldOrPropertyWithValue("directory", targetDir.toFile())
-          .extracting(AssemblyFileSet::getIncludes).asList()
+          .extracting(AssemblyFileSet::getIncludes).asInstanceOf(InstanceOfAssertFactories.list(String.class))
           .singleElement()
           .isEqualTo("myrepo");
     }

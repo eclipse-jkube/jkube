@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.ExecAction;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -511,14 +512,14 @@ class VertxHealthCheckEnricherTest {
         assertThat(livenessProbe).isNotNull()
             .extracting(Probe::getExec)
             .extracting(ExecAction::getCommand)
-            .asList()
+                .asInstanceOf(InstanceOfAssertFactories.list(String.class))
             .hasSize(3);
 
         Probe readinessProbe = enricher.getReadinessProbe();
         assertThat(readinessProbe).isNotNull()
             .extracting(Probe::getExec)
             .extracting(ExecAction::getCommand)
-            .asList()
+                .asInstanceOf(InstanceOfAssertFactories.list(String.class))
             .hasSize(3);
     }
 
@@ -541,7 +542,7 @@ class VertxHealthCheckEnricherTest {
         Probe readinessProbe = enricher.getReadinessProbe();
         assertThat(readinessProbe).isNotNull()
             .extracting(Probe::getExec)
-            .extracting(ExecAction::getCommand).asList()
+            .extracting(ExecAction::getCommand).asInstanceOf(InstanceOfAssertFactories.list(String.class))
             .hasSize(3);
     }
 
@@ -561,7 +562,7 @@ class VertxHealthCheckEnricherTest {
         Probe livenessProbe = enricher.getLivenessProbe();
         assertThat(livenessProbe).isNotNull()
             .extracting(Probe::getExec)
-            .extracting(ExecAction::getCommand).asList()
+            .extracting(ExecAction::getCommand).asInstanceOf(InstanceOfAssertFactories.list(String.class))
             .hasSize(3);
 
         Probe readinessProbe = enricher.getReadinessProbe();
@@ -670,7 +671,7 @@ class VertxHealthCheckEnricherTest {
         assertThat(livenessProbe).isNotNull()
             .hasFieldOrPropertyWithValue("tcpSocket", null)
             .extracting(Probe::getExec).isNotNull()
-            .extracting(ExecAction::getCommand).asList()
+            .extracting(ExecAction::getCommand).asInstanceOf(InstanceOfAssertFactories.list(String.class))
             .singleElement()
             .isEqualTo("ls");
     }
@@ -690,7 +691,7 @@ class VertxHealthCheckEnricherTest {
         assertThat(readinessProbe).isNotNull()
             .hasFieldOrPropertyWithValue("tcpSocket", null)
             .extracting(Probe::getExec).isNotNull()
-            .extracting(ExecAction::getCommand).asList()
+            .extracting(ExecAction::getCommand).asInstanceOf(InstanceOfAssertFactories.list(String.class))
             .singleElement()
             .isEqualTo("ls");
 
@@ -698,7 +699,7 @@ class VertxHealthCheckEnricherTest {
         assertThat(livenessProbe).isNotNull()
             .hasFieldOrPropertyWithValue("tcpSocket", null)
             .extracting(Probe::getExec).isNotNull()
-            .extracting(ExecAction::getCommand).asList()
+            .extracting(ExecAction::getCommand).asInstanceOf(InstanceOfAssertFactories.list(String.class))
             .singleElement()
             .isEqualTo("ls");
     }
