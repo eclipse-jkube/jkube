@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import org.apache.maven.plugin.MojoExecutionException;

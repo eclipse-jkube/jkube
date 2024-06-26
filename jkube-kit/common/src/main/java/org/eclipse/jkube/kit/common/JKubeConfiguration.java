@@ -24,6 +24,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 
 /**
  * @author roland
@@ -38,6 +39,7 @@ public class JKubeConfiguration implements Serializable {
   private static final long serialVersionUID = 7459084747241070651L;
 
   private JavaProject project;
+  private ClusterConfiguration clusterConfiguration;
   private String sourceDirectory;
   private String outputDirectory;
   private Map<String, String> buildArgs;

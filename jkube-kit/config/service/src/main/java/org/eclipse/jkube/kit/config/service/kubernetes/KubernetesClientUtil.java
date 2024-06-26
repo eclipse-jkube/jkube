@@ -28,7 +28,7 @@ import io.fabric8.kubernetes.client.dsl.ScalableResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
