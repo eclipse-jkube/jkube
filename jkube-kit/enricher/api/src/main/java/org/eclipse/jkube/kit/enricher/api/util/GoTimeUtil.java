@@ -57,7 +57,7 @@ public class GoTimeUtil {
             return null;
         }
         String duration = durationP.trim();
-        if (duration.length() == 0) {
+        if (duration.isEmpty()) {
             return null;
         }
 
