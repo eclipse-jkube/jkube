@@ -25,7 +25,6 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -78,8 +77,9 @@ class SpringBootWatcherIntegrationTest {
     final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
       .log(logger)
       .platformMode(RuntimeMode.KUBERNETES)
-      .configuration(JKubeConfiguration.builder().build())
-      .clusterAccess(new ClusterAccess(ClusterConfiguration.from(kubernetesClient.getConfiguration()).namespace("test").build()))
+      .configuration(JKubeConfiguration.builder()
+        .clusterConfiguration(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build())
+        .build())
       .build();
     watcherContext = WatcherContext.builder()
       .logger(logger)

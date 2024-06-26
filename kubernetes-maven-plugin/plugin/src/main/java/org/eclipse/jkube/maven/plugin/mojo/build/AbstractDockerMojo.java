@@ -41,7 +41,6 @@ import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.build.RegistryAuthConfiguration;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -311,9 +310,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected KitLogger log;
 
-    // Access for creating OpenShift binary builds
-    protected ClusterAccess clusterAccess;
-
     // The JKube service hub
     protected JKubeServiceHub jkubeServiceHub;
 
@@ -375,7 +371,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected void init() {
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
         authConfigFactory = new DockerAuthConfigFactory(log);
-        clusterAccess = new ClusterAccess(initClusterConfiguration());
         runtimeMode = getConfiguredRuntimeMode();
     }
 
@@ -398,7 +393,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 jkubeServiceHub = JKubeServiceHub.builder()
                     .log(log)
                     .configuration(initJKubeConfiguration())
-                    .clusterAccess(clusterAccess)
                     .platformMode(getConfiguredRuntimeMode())
                     .dockerServiceHub(DockerServiceHub.newInstance(log, dockerAccess))
                     .buildServiceConfig(buildServiceConfigBuilder().build())
@@ -434,6 +428,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             .buildArgs(buildArgs)
             .pullRegistryConfig(getRegistryConfig(pullRegistry))
             .pushRegistryConfig(getRegistryConfig(pushRegistry))
+            .clusterConfiguration(initClusterConfiguration())
             .build();
     }
 

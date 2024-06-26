@@ -49,7 +49,6 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Serialization;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -94,9 +93,10 @@ class DebugServiceTest {
     logger = spy(new KitLogger.SilentLogger());
     final JKubeServiceHub serviceHub = JKubeServiceHub.builder()
       .log(logger)
-      .configuration(JKubeConfiguration.builder().build())
+      .configuration(JKubeConfiguration.builder()
+        .clusterConfiguration(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build())
+        .build())
       .platformMode(RuntimeMode.KUBERNETES)
-      .clusterAccess(new ClusterAccess(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build()))
       .build();
     debugContext = DebugContext.builder()
         .namespace("namespace")
