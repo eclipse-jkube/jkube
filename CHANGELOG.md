@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.17-SNAPSHOT
+* Fix #3202: GoTimeUtil 'duration.length() == 0' can be replaced with 'duration.isEmpty()'
 * Fix #1989: Remove storageClass related fields from VolumePermissionEnricher
 * Fix #3161: JavaExecGenerator should honor %t setting and not unconditionally add `latest` tag
 * Fix #2098: Add support for multi-platform container image builds in jib build strategy
