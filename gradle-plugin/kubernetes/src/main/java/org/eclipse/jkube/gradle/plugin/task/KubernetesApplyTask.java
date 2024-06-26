@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
+import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.service.ApplyService;
@@ -92,6 +93,6 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     applyService.setRollingUpgradePreserveScale(kubernetesExtension.getRollingUpgradePreserveScaleOrDefault());
     applyService.setRecreateMode(kubernetesExtension.getRecreateOrDefault());
     applyService.setNamespace(kubernetesExtension.getNamespaceOrNull());
-    applyService.setFallbackNamespace(resolveFallbackNamespace(kubernetesExtension.resources, clusterAccess));
+    applyService.setFallbackNamespace(resolveFallbackNamespace(kubernetesExtension.resources, new ClusterAccess(initClusterConfiguration())));
   }
 }

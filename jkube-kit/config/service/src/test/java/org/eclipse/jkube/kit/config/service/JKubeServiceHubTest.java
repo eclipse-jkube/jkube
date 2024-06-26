@@ -13,12 +13,21 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import io.fabric8.kubernetes.api.model.APIGroupBuilder;
+import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
+import io.fabric8.kubernetes.client.Client;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.http.HttpClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.service.MigrateService;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -32,35 +41,39 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedConstruction;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Path;
+
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.eclipse.jkube.kit.config.resource.RuntimeMode.KUBERNETES;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings({"unused"})
+@EnableKubernetesMockClient(crud = true)
 class JKubeServiceHubTest {
+  @TempDir
+  Path temporaryFolder;
 
   private JKubeServiceHub.JKubeServiceHubBuilder jKubeServiceHubBuilder;
-  private OpenShiftClient openShiftClient;
+  KubernetesMockServer kubernetesMockServer;
+  OpenShiftClient openShiftClient;
 
   @BeforeEach
   void setUp() {
-    final ClusterAccess clusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
-    openShiftClient = mock(OpenShiftClient.class);
-    when(clusterAccess.createDefaultClient()).thenReturn(openShiftClient);
-    when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
     jKubeServiceHubBuilder = JKubeServiceHub.builder()
         .platformMode(KUBERNETES)
-        .configuration(mock(JKubeConfiguration.class, RETURNS_DEEP_STUBS))
-        .clusterAccess(clusterAccess)
+        .configuration(JKubeConfiguration.builder()
+          .clusterConfiguration(ClusterConfiguration.from(openShiftClient.getConfiguration()).build())
+          .project(JavaProject.builder()
+            .baseDirectory(temporaryFolder.toFile())
+            .build())
+          .build())
         .log(new KitLogger.SilentLogger())
         .dockerServiceHub(mock(DockerServiceHub.class, RETURNS_DEEP_STUBS))
         .offline(false)
@@ -170,7 +183,7 @@ class JKubeServiceHubTest {
     // Given
     jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT);
     try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
-      when(openShiftClient.isSupported()).thenReturn(true);
+      kubernetesMockServer.setUnsupported("openshift.io");
       // When
       final UndeployService result = jKubeServiceHub.getUndeployService();
       // Then
@@ -185,7 +198,9 @@ class JKubeServiceHubTest {
     // Given
     jKubeServiceHubBuilder.platformMode(RuntimeMode.OPENSHIFT);
     try (JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
-      when(openShiftClient.hasApiGroup("openshift.io", false)).thenReturn(true);
+      kubernetesMockServer.expect().get().withPath("/apis")
+        .andReturn(HTTP_OK, new APIGroupListBuilder().addToGroups(new APIGroupBuilder().withName("apps.openshift.io").build()).build())
+        .once();
       // When
       final UndeployService result = jKubeServiceHub.getUndeployService();
       // Then
@@ -248,29 +263,18 @@ class JKubeServiceHubTest {
   }
 
   @Test
-  void clusterAccessIsNotInitializedIfProvided() {
-    // Given
-    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build();
-         MockedConstruction<ClusterAccess> clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class)) {
-      assertThat(clusterAccessMockedConstruction.constructed()).asList().isEmpty();
-      // When
-      jKubeServiceHub.getClusterAccess();
-      // Then
-      assertThat(clusterAccessMockedConstruction.constructed()).asList().isEmpty();
-    }
-  }
-
-  @Test
   void clusterAccessIsInitializedLazily() {
     // Given
-    jKubeServiceHubBuilder.clusterAccess(null);
-    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build();
-         MockedConstruction<ClusterAccess> clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class)) {
-      assertThat(clusterAccessMockedConstruction.constructed()).asList().isEmpty();
+    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
       // When
       jKubeServiceHub.getClusterAccess();
       // Then
-      assertThat(clusterAccessMockedConstruction.constructed()).asList().hasSize(1);
+      assertThat(jKubeServiceHub.getClusterAccess())
+        .isNotNull();
+      assertThat(jKubeServiceHub.getClusterAccess().createDefaultClient())
+        .extracting(Client::getMasterUrl)
+        .extracting("host", "port")
+        .containsExactly(kubernetesMockServer.getHostName(), kubernetesMockServer.getPort());
     }
   }
 
@@ -300,10 +304,16 @@ class JKubeServiceHubTest {
 
   @Test
   void closeClosesInitializedClient() {
+    KubernetesClient kubernetesClient;
     try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
-      jKubeServiceHub.getClient();
+      kubernetesClient = jKubeServiceHub.getClient();
     }
     // Then
-    verify(openShiftClient, times(1)).close();
+    assertThat(kubernetesClient)
+      .isNotNull()
+      .extracting(Client::getHttpClient)
+      .extracting(HttpClient::isClosed)
+      .asInstanceOf(InstanceOfAssertFactories.BOOLEAN)
+      .isTrue();
   }
 }

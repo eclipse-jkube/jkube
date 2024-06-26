@@ -27,7 +27,6 @@ import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.access.ClusterAccess;
-import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
@@ -51,7 +50,6 @@ public class JKubeServiceHub implements Closeable {
     private final BuildServiceConfig buildServiceConfig;
     @Getter
     private final ResourceServiceConfig resourceServiceConfig;
-    private final ClusterAccess clusterAccess;
     @Getter
     @Setter
     private RuntimeMode platformMode;
@@ -70,12 +68,11 @@ public class JKubeServiceHub implements Closeable {
 
     @Builder(toBuilder = true)
     public JKubeServiceHub(
-            ClusterAccess clusterAccess, RuntimeMode platformMode, KitLogger log,
+            RuntimeMode platformMode, KitLogger log,
             DockerServiceHub dockerServiceHub, JKubeConfiguration configuration,
             BuildServiceConfig buildServiceConfig, ResourceServiceConfig resourceServiceConfig,
             LazyBuilder<JKubeServiceHub, ResourceService> resourceService,
             boolean offline) {
-        this.clusterAccess = clusterAccess;
         this.platformMode = platformMode;
         this.log = log;
         this.dockerServiceHub = dockerServiceHub;
@@ -129,11 +126,7 @@ public class JKubeServiceHub implements Closeable {
         if (offline) {
             throw new IllegalArgumentException("Connection to Cluster required. Please check if offline mode is set to false");
         }
-        if (clusterAccess != null) {
-            return clusterAccess;
-        }
-        return new ClusterAccess(ClusterConfiguration.from(
-          System.getProperties(), configuration.getProject().getProperties()).build());
+        return new ClusterAccess(configuration.getClusterConfiguration());
     }
 
     public RuntimeMode getRuntimeMode() {

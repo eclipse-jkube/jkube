@@ -57,7 +57,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected final KubernetesExtension kubernetesExtension;
   protected KitLogger kitLogger;
-  protected ClusterAccess clusterAccess;
   protected JKubeServiceHub jKubeServiceHub;
   protected static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
   protected List<ImageConfiguration> resolvedImages;
@@ -80,7 +79,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   protected void init() {
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
     kitLogger = createLogger(null);
-    clusterAccess = new ClusterAccess(initClusterConfiguration());
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);
     resolvedImages = resolveImages();
@@ -142,8 +140,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
                 .registry(kubernetesExtension.getPushRegistryOrNull() != null ?
                   kubernetesExtension.getPushRegistryOrNull() : kubernetesExtension.getRegistryOrDefault())
                 .build())
+            .clusterConfiguration(initClusterConfiguration())
             .build())
-        .clusterAccess(clusterAccess)
         .offline(kubernetesExtension.getOfflineOrDefault())
         .platformMode(kubernetesExtension.getRuntimeMode())
         .resourceServiceConfig(initResourceServiceConfig())
@@ -176,7 +174,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .prePackagePhase(false)
         .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault())
         .sourceDirectory(kubernetesExtension.getBuildSourceDirectoryOrDefault())
-        .openshiftNamespace(StringUtils.isNotBlank(kubernetesExtension.getNamespaceOrNull()) ? kubernetesExtension.getNamespaceOrNull() : clusterAccess.getNamespace())
+        .openshiftNamespace(StringUtils.isNotBlank(kubernetesExtension.getNamespaceOrNull()) ? kubernetesExtension.getNamespaceOrNull() : new ClusterAccess(initClusterConfiguration()).getNamespace())
         .buildTimestamp(getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
             DOCKER_BUILD_TIMESTAMP))
         .filter(kubernetesExtension.getFilterOrNull());

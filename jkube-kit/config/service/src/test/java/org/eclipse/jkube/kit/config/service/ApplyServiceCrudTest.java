@@ -41,7 +41,6 @@ import io.fabric8.openshift.api.model.ProjectRequestBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,7 +62,6 @@ import static org.mockito.Mockito.verify;
 
 @EnableKubernetesMockClient(crud = true)
 class ApplyServiceCrudTest {
-
   KubernetesMockServer kubernetesMockServer;
   KubernetesClient kubernetesClient;
   private KitLogger log;
@@ -76,9 +74,10 @@ class ApplyServiceCrudTest {
     apiGroupList = new APIGroupList();
     final JKubeServiceHub serviceHub = JKubeServiceHub.builder()
       .log(log)
-      .configuration(JKubeConfiguration.builder().build())
+      .configuration(JKubeConfiguration.builder()
+        .clusterConfiguration(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build())
+        .build())
       .platformMode(RuntimeMode.KUBERNETES)
-      .clusterAccess(new ClusterAccess(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build()))
       .build();
     applyService = serviceHub.getApplyService();
     applyService.setNamespace("default");
