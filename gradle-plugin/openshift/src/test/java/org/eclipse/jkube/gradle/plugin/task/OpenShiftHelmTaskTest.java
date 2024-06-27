@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 
@@ -58,7 +59,7 @@ class OpenShiftHelmTaskTest {
     // When & Then
     assertThatIllegalStateException()
         .isThrownBy(kubernetesHelmTask::runTask)
-        .withMessageContaining("META-INF/jkube/openshift")
+        .withMessageContaining("META-INF" + File.separator + "jkube" + File.separator + "openshift")
         .withCauseInstanceOf(NoSuchFileException.class);
   }
 
