@@ -239,5 +239,6 @@ public class ProfileUtil {
      * Get the watcher configuration
      */
     public static final ProcessorConfigurationExtractor WATCHER_CONFIG = Profile::getWatcherConfig;
+    
 
 }
