@@ -91,7 +91,7 @@ class OpenShiftResourceMojoTest {
   }
 
   @Test
-  void executeInternal_resolvesGroupInImageNameToClusterAccessNamespace_whenNamespaceDetected() throws MojoExecutionException, MojoFailureException {
+  void executeInternal_resolvesGroupInImageNameToClusterConfigurationNamespace_whenNamespaceDetected() throws MojoExecutionException, MojoFailureException {
     // Given
     resourceMojo.project.setArtifactId("test-project");
     ImageConfiguration imageConfiguration = ImageConfiguration.builder()

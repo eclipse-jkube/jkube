@@ -20,7 +20,6 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -59,10 +58,9 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
       try {
         List<HasMetadata> resources = KubernetesHelper.loadResources(getManifest(kubernetesClient));
         WatcherContext context = createWatcherContext();
-        ClusterAccess clusterAccess = new ClusterAccess(initClusterConfiguration());
 
         WatcherManager.watch(resolvedImages,
-            applicableNamespace(null, kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources, clusterAccess),
+            applicableNamespace(null, kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources, kubernetesClient),
             resources,
             context);
       } catch (KubernetesClientException kubernetesClientException) {

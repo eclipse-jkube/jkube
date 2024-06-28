@@ -263,22 +263,6 @@ class JKubeServiceHubTest {
   }
 
   @Test
-  void clusterAccessIsInitializedLazily() {
-    // Given
-    try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build()) {
-      // When
-      jKubeServiceHub.getClusterAccess();
-      // Then
-      assertThat(jKubeServiceHub.getClusterAccess())
-        .isNotNull();
-      assertThat(jKubeServiceHub.getClusterAccess().createDefaultClient())
-        .extracting(Client::getMasterUrl)
-        .extracting("host", "port")
-        .containsExactly(kubernetesMockServer.getHostName(), kubernetesMockServer.getPort());
-    }
-  }
-
-  @Test
   void getClientWithOfflineConnectionIsNotAllowed() {
     // Given
     jKubeServiceHubBuilder.offline(true);

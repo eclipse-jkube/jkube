@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +27,6 @@ import org.eclipse.jkube.kit.common.service.MigrateService;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceService;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
@@ -62,7 +62,6 @@ public class JKubeServiceHub implements Closeable {
     private LazyBuilder<JKubeServiceHub, MigrateService> migrateService;
     private LazyBuilder<JKubeServiceHub, DebugService> debugService;
     private LazyBuilder<JKubeServiceHub, HelmService> helmService;
-    private LazyBuilder<JKubeServiceHub, ClusterAccess> clusterAccessLazyBuilder;
     private LazyBuilder<JKubeServiceHub, KubernetesClient> kubernetesClientLazyBuilder;
     private final boolean offline;
 
@@ -100,8 +99,7 @@ public class JKubeServiceHub implements Closeable {
     }
 
     private void initLazyBuilders() {
-        clusterAccessLazyBuilder = new LazyBuilder<>(JKubeServiceHub::initClusterAccessIfNecessary);
-        kubernetesClientLazyBuilder = new LazyBuilder<>(hub -> getClusterAccess().createDefaultClient());
+        kubernetesClientLazyBuilder = new LazyBuilder<>(hub -> initKubernetesClientIfNecessary());
         buildServiceManager = new LazyBuilder<>(BuildServiceManager::new);
         pluginManager = new LazyBuilder<>(PluginManager::new);
         applyService = new LazyBuilder<>(ApplyService::new);
@@ -122,11 +120,11 @@ public class JKubeServiceHub implements Closeable {
         helmService = new LazyBuilder<>(hub -> new HelmService(hub.getConfiguration(), hub.getResourceServiceConfig(), log));
     }
 
-    private ClusterAccess initClusterAccessIfNecessary() {
+    private KubernetesClient initKubernetesClientIfNecessary() {
         if (offline) {
             throw new IllegalArgumentException("Connection to Cluster required. Please check if offline mode is set to false");
         }
-        return new ClusterAccess(configuration.getClusterConfiguration());
+        return new KubernetesClientBuilder().withConfig(configuration.getClusterConfiguration().getConfig()).build();
     }
 
     public RuntimeMode getRuntimeMode() {
@@ -171,10 +169,6 @@ public class JKubeServiceHub implements Closeable {
 
     public KubernetesClient getClient() {
         return kubernetesClientLazyBuilder.get(this);
-    }
-
-    public ClusterAccess getClusterAccess() {
-        return clusterAccessLazyBuilder.get(this);
     }
 
 }

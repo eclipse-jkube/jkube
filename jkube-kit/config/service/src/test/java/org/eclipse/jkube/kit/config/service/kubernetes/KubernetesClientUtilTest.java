@@ -22,15 +22,12 @@ import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.kubernetes.client.Watcher;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.doDeleteAndWait;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+
 @SuppressWarnings("unused")
 @EnableKubernetesMockClient(crud = true)
 class KubernetesClientUtilTest {
@@ -91,16 +88,13 @@ class KubernetesClientUtilTest {
   }
 
   @Test
-  void applicableNamespace_whenNamespaceProvidedViaClusterAccess_shouldReturnProvidedNamespace() {
+  void applicableNamespace_whenNamespaceProvidedViaKubernetesClient_shouldReturnProvidedNamespace() {
     // Given
-    ClusterAccess mockedClusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
-    when(mockedClusterAccess.getNamespace()).thenReturn("ns1");
-
     // When
-    String resolvedNamespace = KubernetesClientUtil.applicableNamespace(null, null, null, mockedClusterAccess);
+    String resolvedNamespace = KubernetesClientUtil.applicableNamespace(null, null, null, kubernetesClient);
 
     // Then
-    assertThat(resolvedNamespace).isEqualTo("ns1");
+    assertThat(resolvedNamespace).isEqualTo(kubernetesClient.getNamespace());
   }
 
   @Test
@@ -128,16 +122,13 @@ class KubernetesClientUtilTest {
   }
 
   @Test
-  void resolveFallbackNamespace_whenNamespaceProvidedViaClusterAccess_shouldReturnProvidedNamespace() {
+  void resolveFallbackNamespace_whenNamespaceProvidedViaKubernetesClient_shouldReturnProvidedNamespace() {
     // Given
-    ClusterAccess mockedClusterAccess = mock(ClusterAccess.class, RETURNS_DEEP_STUBS);
-    when(mockedClusterAccess.getNamespace()).thenReturn("ns1");
-
     // When
-    String resolvedNamespace = KubernetesClientUtil.resolveFallbackNamespace(null, mockedClusterAccess);
+    String resolvedNamespace = KubernetesClientUtil.resolveFallbackNamespace(null, kubernetesClient);
 
     // Then
-    assertThat(resolvedNamespace).isEqualTo("ns1");
+    assertThat(resolvedNamespace).isEqualTo(kubernetesClient.getNamespace());
   }
   @Test
   void getPodStatusMessagePostfix_whenActionIsDeleted_shouldReturnPodDeletedMessage() {

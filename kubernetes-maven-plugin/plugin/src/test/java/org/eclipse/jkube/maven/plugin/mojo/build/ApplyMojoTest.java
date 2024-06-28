@@ -15,13 +15,13 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
-import io.fabric8.openshift.client.NamespacedOpenShiftClient;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
 import org.apache.maven.plugin.MojoExecutionException;
@@ -32,38 +32,28 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
+@EnableKubernetesMockClient(crud = true)
 class ApplyMojoTest {
 
-  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private File kubernetesManifestFile;
   private MavenProject mavenProject;
-  private NamespacedOpenShiftClient defaultKubernetesClient;
-  private String kubeConfigNamespace;
+  private KubernetesClient defaultKubernetesClient;
 
   private ApplyMojo applyMojo;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
-    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, context) -> {
-      when(mock.createDefaultClient()).thenReturn(defaultKubernetesClient);
-      when(mock.getNamespace()).thenAnswer(invocation -> kubeConfigNamespace);
-    });
     kubernetesManifestFile = Files.createFile(temporaryFolder.resolve("kubernetes.yml")).toFile();
     mavenProject = mock(MavenProject.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
-    defaultKubernetesClient = mock(NamespacedOpenShiftClient.class);
-    when(defaultKubernetesClient.adapt(any())).thenReturn(defaultKubernetesClient);
-    when(defaultKubernetesClient.getMasterUrl()).thenReturn(URI.create("https://www.example.com").toURL());
     // @formatter:off
     applyMojo = new ApplyMojo() {{
+        access = ClusterConfiguration.from(defaultKubernetesClient.getConfiguration()).build();
         project = mavenProject;
         settings = mock(Settings.class);
         kubernetesManifest = kubernetesManifestFile;
@@ -74,7 +64,6 @@ class ApplyMojoTest {
 
   @AfterEach
   void tearDown() {
-    clusterAccessMockedConstruction.close();
     mavenProject = null;
     applyMojo = null;
   }
@@ -128,13 +117,12 @@ class ApplyMojoTest {
   @Test
   void resolveEffectiveNamespace_whenNoNamespaceConfigured() throws MojoExecutionException, MojoFailureException {
     // Given
-    kubeConfigNamespace = "clusteraccess-namespace";
     // When
     applyMojo.execute();
     // Then
     assertThat(applyMojo.applyService)
         .hasFieldOrPropertyWithValue("namespace", null)
-        .hasFieldOrPropertyWithValue("fallbackNamespace", "clusteraccess-namespace");
+        .hasFieldOrPropertyWithValue("fallbackNamespace", defaultKubernetesClient.getNamespace());
   }
 
 }

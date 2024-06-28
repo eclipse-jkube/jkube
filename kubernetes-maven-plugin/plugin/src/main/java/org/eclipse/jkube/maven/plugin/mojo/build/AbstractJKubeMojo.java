@@ -161,6 +161,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     protected void init() throws MojoFailureException {
         log = createLogger(null);
+        access = initClusterConfiguration();
         try {
           javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         } catch (DependencyResolutionRequiredException e) {
@@ -239,7 +240,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
                     .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                     .passwordDecryptionMethod(this::decrypt)
                     .build())
-                .clusterConfiguration(initClusterConfiguration())
+                .clusterConfiguration(access)
                 .build())
             .offline(offline)
             .platformMode(getRuntimeMode())

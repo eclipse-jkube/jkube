@@ -22,13 +22,14 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.client.Client;
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.ScalableResource;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.ImageName;
 
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
@@ -171,8 +172,8 @@ public class KubernetesClientUtil {
         crClient.waitUntilCondition(Objects::isNull, seconds, TimeUnit.SECONDS);
     }
 
-    public static String applicableNamespace(HasMetadata resource, String namespace, ResourceConfig resourceConfig, ClusterAccess clusterAccess) {
-        return applicableNamespace(resource, namespace, resolveFallbackNamespace(resourceConfig, clusterAccess));
+    public static String applicableNamespace(HasMetadata resource, String namespace, ResourceConfig resourceConfig, KubernetesClient kubernetesClient) {
+        return applicableNamespace(resource, namespace, resolveFallbackNamespace(resourceConfig, kubernetesClient));
     }
 
     public static String applicableNamespace(HasMetadata resource, String namespace, String fallbackNamespace) {
@@ -185,11 +186,12 @@ public class KubernetesClientUtil {
         return StringUtils.isNotBlank(fallbackNamespace) ? fallbackNamespace : KubernetesHelper.getDefaultNamespace();
     }
 
-    public static String resolveFallbackNamespace(ResourceConfig resourceConfig, ClusterAccess clusterAccess) {
+    public static String resolveFallbackNamespace(ResourceConfig resourceConfig, KubernetesClient kubernetesClient) {
         return Optional.ofNullable(resourceConfig)
             .map(ResourceConfig::getNamespace)
-            .orElse(Optional.ofNullable(clusterAccess)
-                .map(ClusterAccess::getNamespace)
+            .orElse(Optional.ofNullable(kubernetesClient)
+                .map(Client::getConfiguration)
+                .map(Config::getNamespace)
                 .orElse(null));
     }
 
