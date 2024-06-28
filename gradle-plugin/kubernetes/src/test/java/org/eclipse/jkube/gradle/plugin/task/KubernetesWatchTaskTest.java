@@ -14,13 +14,14 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.assertj.core.api.AssertionsForClassTypes;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 import org.junit.jupiter.api.AfterEach;
@@ -30,11 +31,10 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
-import java.net.URL;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -42,6 +42,7 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+@EnableKubernetesMockClient(crud = true)
 class KubernetesWatchTaskTest {
 
   @RegisterExtension
@@ -49,10 +50,10 @@ class KubernetesWatchTaskTest {
 
   private MockedConstruction<DockerAccessFactory> dockerAccessFactoryMockedConstruction;
   private MockedConstruction<DockerBuildService> dockerBuildServiceMockedConstruction;
-  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
   private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
   private TestKubernetesExtension extension;
+  private KubernetesClient kubernetesClient;
 
   @BeforeEach
   void setUp() {
@@ -62,14 +63,10 @@ class KubernetesWatchTaskTest {
     dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class, (mock, ctx) -> {
       when(mock.isApplicable()).thenReturn(true);
     });
-    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
-      final KubernetesClient kubernetesClient = mock(KubernetesClient.class);
-      when(kubernetesClient.getMasterUrl()).thenReturn(new URL("http://kubernetes-cluster"));
-      when(mock.createDefaultClient()).thenReturn(kubernetesClient);
-    });
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
     kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
     extension = new TestKubernetesExtension();
+    extension.access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     kubernetesHelperMockedStatic.when(KubernetesHelper::getDefaultNamespace).thenReturn(null);
     extension.isFailOnNoKubernetesJson = false;
@@ -79,7 +76,6 @@ class KubernetesWatchTaskTest {
   void tearDown() {
     watcherManagerMockedStatic.close();
     kubernetesHelperMockedStatic.close();
-    clusterAccessMockedConstruction.close();
     dockerBuildServiceMockedConstruction.close();
     dockerAccessFactoryMockedConstruction.close();
   }
@@ -107,6 +103,6 @@ class KubernetesWatchTaskTest {
     // Then
     AssertionsForClassTypes.assertThat(watchTask.jKubeServiceHub.getBuildService()).isNotNull()
         .isInstanceOf(DockerBuildService.class);
-    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), isNull(), any(), any()), times(1));
+    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq(kubernetesClient.getNamespace()), any(), any()), times(1));
   }
 }

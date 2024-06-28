@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.DebugContext;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
@@ -36,7 +35,6 @@ import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -49,7 +47,6 @@ import static org.mockito.Mockito.withSettings;
 class DebugMojoTest {
 
   private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
-  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private File kubernetesManifestFile;
   private MavenProject mavenProject;
 
@@ -63,7 +60,6 @@ class DebugMojoTest {
           doReturn(oc).when(oc).adapt(OpenShiftClient.class);
           when(mock.getClient()).thenReturn(oc);
         });
-    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class);
     kubernetesManifestFile = Files.createFile(temporaryFolder.resolve("kubernetes.yml")).toFile();
     mavenProject = mock(MavenProject.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
@@ -79,7 +75,6 @@ class DebugMojoTest {
 
   @AfterEach
   void tearDown() {
-    clusterAccessMockedConstruction.close();
     jKubeServiceHubMockedConstruction.close();
     mavenProject = null;
     debugMojo = null;

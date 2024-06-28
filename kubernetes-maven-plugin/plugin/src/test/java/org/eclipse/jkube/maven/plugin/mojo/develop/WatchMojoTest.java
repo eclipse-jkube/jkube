@@ -14,7 +14,6 @@
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import java.io.File;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -22,9 +21,9 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -49,6 +48,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.withSettings;
 
+@EnableKubernetesMockClient(crud = true)
 class WatchMojoTest {
   private File kubernetesManifestFile;
 
@@ -56,8 +56,8 @@ class WatchMojoTest {
   private Settings mavenSettings;
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
   private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
-  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private TestWatchMojo watchMojo;
+  private KubernetesClient kubernetesClient;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws Exception {
@@ -65,18 +65,13 @@ class WatchMojoTest {
     final File targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     jKubeServiceHubMockedConstruction = mockConstruction(JKubeServiceHub.class,
       withSettings().defaultAnswer(RETURNS_DEEP_STUBS), (mock, context) -> {
-        final KubernetesClient kc = mock(KubernetesClient.class, RETURNS_DEEP_STUBS);
-        when(kc.getMasterUrl()).thenReturn(URI.create("https://www.example.com").toURL());
-        when(mock.getClient()).thenReturn(kc);
+        when(mock.getClient()).thenReturn(kubernetesClient);
         when(mock.getConfiguration()).thenReturn(JKubeConfiguration.builder()
           .project(JavaProject.builder()
             .baseDirectory(temporaryFolder.toFile())
             .build())
           .build());
       });
-    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
-      when(mock.getNamespace()).thenReturn("namespace-from-config");
-    });
     kubernetesManifestFile =  Files.createTempFile(srcDir, "kubernetes", ".yml").toFile();
     mavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
     when(mavenProject.getProperties()).thenReturn(new Properties());
@@ -103,20 +98,19 @@ class WatchMojoTest {
   @AfterEach
   void tearDown() {
     watcherManagerMockedStatic.close();
-    clusterAccessMockedConstruction.close();
     jKubeServiceHubMockedConstruction.close();
   }
 
   @Test
-  void executeInternal_whenNoNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
+  void executeInternal_whenNoNamespaceConfigured_shouldDelegateToWatcherManagerWithKubernetesClientNamespace() throws Exception {
     // When
     watchMojo.execute();
     // Then
-    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("namespace-from-config"), any(), any()), times(1));
+    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq(kubernetesClient.getNamespace()), any(), any()), times(1));
   }
 
   @Test
-  void executeInternal_whenNamespaceConfiguredInResourceConfig_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
+  void executeInternal_whenNamespaceConfiguredInResourceConfig_shouldDelegateToWatcherManagerWithResourceConfigNamespace() throws Exception {
     // Given
     ResourceConfig resources = ResourceConfig.builder()
       .namespace("namespace-from-resource_config")
@@ -129,7 +123,7 @@ class WatchMojoTest {
   }
 
   @Test
-  void executeInternal_whenNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterAccessNamespace() throws Exception {
+  void executeInternal_whenNamespaceConfigured_shouldDelegateToWatcherManagerWithConfiguredNamespace() throws Exception {
     // Given
     watchMojo.setNamespace("configured-namespace");
     // When

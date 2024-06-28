@@ -47,6 +47,6 @@ public class WatcherContext {
   private JKubeBuildStrategy jKubeBuildStrategy;
 
   public String getNamespace() {
-    return getJKubeServiceHub().getClusterAccess().getNamespace();
+    return getJKubeServiceHub().getClient().getNamespace();
   }
 }

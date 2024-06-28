@@ -22,7 +22,6 @@ import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.access.ClusterAccess;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
@@ -94,10 +93,9 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
             KubernetesResourceUtil.validateKubernetesMasterUrl(masterUrl);
             List<HasMetadata> appliedK8sResources = KubernetesHelper.loadResources(getManifest(kubernetesClient));
             WatcherContext context = getWatcherContext();
-            ClusterAccess clusterAccess = new ClusterAccess(initClusterConfiguration());
 
             WatcherManager.watch(getResolvedImages(),
-                applicableNamespace(null, namespace, resources, clusterAccess),
+                applicableNamespace(null, namespace, resources, kubernetesClient),
                 appliedK8sResources,
                 context);
 
