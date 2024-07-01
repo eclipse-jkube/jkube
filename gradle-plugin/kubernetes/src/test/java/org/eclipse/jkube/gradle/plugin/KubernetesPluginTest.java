@@ -81,7 +81,7 @@ class KubernetesPluginTest {
     final Map<String, Collection<Class<? extends Task>>> result = new KubernetesPlugin().getTaskPrecedence();
     // Then
     assertThat(result)
-        .hasSize(7)
+        .hasSize(8)
         .containsEntry("k8sApply", Collections.singletonList(KubernetesResourceTask.class))
         .containsEntry("k8sDebug",
             Arrays.asList(KubernetesBuildTask.class, KubernetesResourceTask.class, KubernetesApplyTask.class))
@@ -89,6 +89,7 @@ class KubernetesPluginTest {
         .containsEntry("k8sHelm", Collections.singletonList(KubernetesResourceTask.class))
         .containsEntry("k8sHelmDependencyUpdate", Collections.singletonList(KubernetesHelmTask.class))
         .containsEntry("k8sHelmPush", Collections.singletonList(KubernetesHelmTask.class))
-        .containsEntry("k8sHelmLint", Collections.singletonList(KubernetesHelmTask.class));
+        .containsEntry("k8sHelmLint", Collections.singletonList(KubernetesHelmTask.class))
+        .containsEntry("k8sHelmInstall", Collections.singletonList(KubernetesHelmTask.class));
   }
 }

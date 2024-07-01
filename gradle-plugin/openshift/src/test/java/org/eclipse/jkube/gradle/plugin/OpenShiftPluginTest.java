@@ -39,7 +39,7 @@ class OpenShiftPluginTest {
     final Map<String, Collection<Class<? extends Task>>> result = new OpenShiftPlugin().getTaskPrecedence();
     // Then
     assertThat(result)
-        .hasSize(7)
+        .hasSize(8)
         .containsEntry("ocApply", Arrays.asList(KubernetesResourceTask.class, OpenShiftResourceTask.class))
         .containsEntry("ocDebug", Arrays.asList(KubernetesBuildTask.class, OpenShiftBuildTask.class,
             KubernetesResourceTask.class, OpenShiftResourceTask.class, KubernetesApplyTask.class, OpenShiftApplyTask.class))
@@ -47,6 +47,7 @@ class OpenShiftPluginTest {
       .containsEntry("ocHelm", Arrays.asList(KubernetesResourceTask.class, OpenShiftResourceTask.class))
       .containsEntry("ocHelmDependencyUpdate", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class))
       .containsEntry("ocHelmPush", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class))
-      .containsEntry("ocHelmLint", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class));
+      .containsEntry("ocHelmLint", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class))
+      .containsEntry("ocHelmInstall", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class));
   }
 }
