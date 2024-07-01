@@ -13,52 +13,54 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
+import io.fabric8.kubernetes.api.model.APIGroupBuilder;
+import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 
-import java.net.URL;
-
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
+@EnableKubernetesMockClient(crud = true)
 class OpenShiftWatchTaskTest {
 
   @RegisterExtension
   private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
-  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
   private MockedStatic<KubernetesHelper> kubernetesHelperMockedStatic;
   private TestOpenShiftExtension extension;
+  private KubernetesMockServer kubernetesMockServer;
+  private OpenShiftClient openShiftClient;
 
   @BeforeEach
   void setUp() {
-    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
-      final OpenShiftClient openShiftClient = mock(OpenShiftClient.class);
-      when(openShiftClient.getMasterUrl()).thenReturn(new URL("http://openshiftapps.com:6443"));
-      when(openShiftClient.adapt(OpenShiftClient.class)).thenReturn(openShiftClient);
-      when(mock.createDefaultClient()).thenReturn(openShiftClient);
-    });
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
     kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
     extension = new TestOpenShiftExtension();
+    extension.access = ClusterConfiguration.from(openShiftClient.getConfiguration()).build();
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    kubernetesMockServer.expect().get().withPath("/apis")
+      .andReturn(HTTP_OK, new APIGroupListBuilder()
+        .addToGroups(new APIGroupBuilder().withName("test.openshift.io").build())
+        .build())
+      .always();
     kubernetesHelperMockedStatic.when(KubernetesHelper::getDefaultNamespace).thenReturn(null);
     extension.isFailOnNoKubernetesJson = false;
   }
@@ -66,7 +68,6 @@ class OpenShiftWatchTaskTest {
   @AfterEach
   void tearDown() {
     watcherManagerMockedStatic.close();
-    clusterAccessMockedConstruction.close();
     kubernetesHelperMockedStatic.close();
   }
 
@@ -89,6 +90,6 @@ class OpenShiftWatchTaskTest {
     // When
     watchTask.runTask();
     // Then
-    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), isNull(), any(), any()), times(1));
+    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq(openShiftClient.getNamespace()), any(), any()), times(1));
   }
 }

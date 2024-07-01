@@ -21,7 +21,6 @@ import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 
@@ -50,7 +49,6 @@ import static org.mockito.Mockito.withSettings;
 class LogMojoTest {
 
   private MockedConstruction<JKubeServiceHub> jKubeServiceHubMockedConstruction;
-  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private MockedConstruction<PodLogService> podLogServiceMockedConstruction;
   private File kubernetesManifestFile;
   private MavenProject mavenProject;
@@ -65,7 +63,6 @@ class LogMojoTest {
           doReturn(oc).when(oc).adapt(OpenShiftClient.class);
           when(mock.getClient()).thenReturn(oc);
         });
-    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class);
     podLogServiceMockedConstruction = mockConstruction(PodLogService.class);
     kubernetesManifestFile = Files.createTempFile(temporaryFolder, "kubernetes", ".yml").toFile();
     mavenProject = mock(MavenProject.class);
@@ -82,7 +79,6 @@ class LogMojoTest {
 
   @AfterEach
   void tearDown() {
-    clusterAccessMockedConstruction.close();
     jKubeServiceHubMockedConstruction.close();
     mavenProject = null;
     logMojo = null;

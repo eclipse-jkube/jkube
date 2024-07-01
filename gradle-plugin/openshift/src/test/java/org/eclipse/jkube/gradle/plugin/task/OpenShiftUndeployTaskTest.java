@@ -17,13 +17,17 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collections;
 
+import io.fabric8.kubernetes.api.model.APIGroupBuilder;
+import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftUndeployService;
 
-import io.fabric8.openshift.client.OpenShiftClient;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,32 +35,35 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@EnableKubernetesMockClient(crud = true)
 class OpenShiftUndeployTaskTest {
 
   @RegisterExtension
   public final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
 
   private MockedConstruction<OpenshiftUndeployService> openshiftUndeployServiceMockedConstruction;
-  private MockedConstruction<ClusterAccess> clusterAccessMockedConstruction;
   private TestOpenShiftExtension extension;
+  private KubernetesMockServer kubernetesMockServer;
+  private OpenShiftClient openShiftClient;
 
   @BeforeEach
   void setUp() {
-    clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class, (mock, ctx) -> {
-      final OpenShiftClient openShiftClient = mock(OpenShiftClient.class);
-      when(mock.createDefaultClient()).thenReturn(openShiftClient);
-      when(openShiftClient.hasApiGroup("openshift.io", false)).thenReturn(true);
-    });
     openshiftUndeployServiceMockedConstruction = mockConstruction(OpenshiftUndeployService.class);
     extension = new TestOpenShiftExtension();
+    extension.access = ClusterConfiguration.from(openShiftClient.getConfiguration()).build();
+    kubernetesMockServer.expect().get().withPath("/apis")
+      .andReturn(HTTP_OK, new APIGroupListBuilder()
+        .addToGroups(new APIGroupBuilder().withName("test.openshift.io").build())
+        .build())
+      .always();
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     when(taskEnvironment.project.getName()).thenReturn("test-project");
   }
@@ -64,7 +71,6 @@ class OpenShiftUndeployTaskTest {
   @AfterEach
   void tearDown() {
     openshiftUndeployServiceMockedConstruction.close();
-    clusterAccessMockedConstruction.close();
   }
 
   @Test

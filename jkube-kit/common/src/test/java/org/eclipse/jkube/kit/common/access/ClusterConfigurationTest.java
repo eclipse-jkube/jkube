@@ -11,8 +11,9 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.access;
+package org.eclipse.jkube.kit.common.access;
 
+import io.fabric8.kubernetes.api.model.NamedContextBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,7 @@ class ClusterConfigurationTest {
     properties.put("jkube.password", "the pa$$w*rd");
     properties.put("jkube.masterUrl", "https://example.com");
     properties.put("jkube.corner-case", "corner");
+    properties.put("jkube.currentContext", "ctx1");
     properties.put("manufactur8.jkube.corner-case", "cased");
     // When
     final Config config = ClusterConfiguration.from(properties).build().getConfig();
@@ -38,6 +40,7 @@ class ClusterConfigurationTest {
     assertThat(config).isNotNull()
             .hasFieldOrPropertyWithValue("username", "user name")
             .hasFieldOrPropertyWithValue("password", "the pa$$w*rd")
+            .hasFieldOrPropertyWithValue("currentContext", new NamedContextBuilder().withName("ctx1").build())
             .hasFieldOrPropertyWithValue("masterUrl", "https://example.com/");
   }
 
@@ -104,6 +107,7 @@ class ClusterConfigurationTest {
       .withClientKeyData("clientKeyData")
       .withClientKeyAlgo("clientKeyAlgo")
       .withClientKeyPassphrase("clientKeyPassphrase")
+      .withCurrentContext(new NamedContextBuilder().withName("ctx1").build())
       .withTrustStoreFile("trustStoreFile")
       .withTrustStorePassphrase("trustStorePassphrase")
       .withKeyStoreFile("keyStoreFile")
@@ -126,6 +130,7 @@ class ClusterConfigurationTest {
       .hasFieldOrPropertyWithValue("clientKeyData", "clientKeyData")
       .hasFieldOrPropertyWithValue("clientKeyAlgo", "clientKeyAlgo")
       .hasFieldOrPropertyWithValue("clientKeyPassphrase", "clientKeyPassphrase")
+      .hasFieldOrPropertyWithValue("currentContext", new NamedContextBuilder().withName("ctx1").build())
       .hasFieldOrPropertyWithValue("trustStoreFile", "trustStoreFile")
       .hasFieldOrPropertyWithValue("trustStorePassphrase", "trustStorePassphrase")
       .hasFieldOrPropertyWithValue("keyStoreFile", "keyStoreFile")

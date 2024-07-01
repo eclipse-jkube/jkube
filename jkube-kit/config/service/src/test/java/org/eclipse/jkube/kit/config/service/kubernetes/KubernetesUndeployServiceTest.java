@@ -34,8 +34,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Serialization;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -72,8 +71,9 @@ class KubernetesUndeployServiceTest {
     final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
       .log(logger)
       .platformMode(RuntimeMode.KUBERNETES)
-      .configuration(JKubeConfiguration.builder().build())
-      .clusterAccess(new ClusterAccess(ClusterConfiguration.from(kubernetesClient.getConfiguration()).namespace("test").build()))
+      .configuration(JKubeConfiguration.builder()
+        .clusterConfiguration(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build())
+        .build())
       .build();
     kubernetesUndeployService = new KubernetesUndeployService(jKubeServiceHub, logger);
   }

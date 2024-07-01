@@ -22,7 +22,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,7 +91,7 @@ class OpenShiftResourceMojoTest {
   }
 
   @Test
-  void executeInternal_resolvesGroupInImageNameToClusterAccessNamespace_whenNamespaceDetected() throws MojoExecutionException, MojoFailureException {
+  void executeInternal_resolvesGroupInImageNameToClusterConfigurationNamespace_whenNamespaceDetected() throws MojoExecutionException, MojoFailureException {
     // Given
     resourceMojo.project.setArtifactId("test-project");
     ImageConfiguration imageConfiguration = ImageConfiguration.builder()

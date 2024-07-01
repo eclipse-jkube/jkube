@@ -11,10 +11,14 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.config.access;
+package org.eclipse.jkube.kit.common.access;
 
+import io.fabric8.kubernetes.api.model.NamedContext;
+import io.fabric8.kubernetes.api.model.NamedContextBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
+
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Optional;
@@ -32,9 +36,10 @@ import org.apache.commons.lang3.StringUtils;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class ClusterConfiguration {
+public class ClusterConfiguration implements Serializable {
 
   private static final String PROPERTY_PREFIX = "jkube.";
+  private static final long serialVersionUID = 8756257530678486528L;
 
   private String username;
   private String password;
@@ -49,6 +54,7 @@ public class ClusterConfiguration {
   private String clientKeyData;
   private String clientKeyAlgo;
   private String clientKeyPassphrase;
+  private String currentContext;
   private String trustStoreFile;
   private String trustStorePassphrase;
   private String keyStoreFile;
@@ -134,6 +140,12 @@ public class ClusterConfiguration {
       configBuilder.withTrustCerts(this.trustCerts);
     }
 
+    if (StringUtils.isNotBlank(this.currentContext)) {
+      configBuilder.withCurrentContext(new NamedContextBuilder()
+          .withName(this.currentContext)
+        .build());
+    }
+
     return configBuilder.build();
 
   }
@@ -153,6 +165,7 @@ public class ClusterConfiguration {
       .clientKeyData(kubernetesConfig.getClientKeyData())
       .clientKeyAlgo(kubernetesConfig.getClientKeyAlgo())
       .clientKeyPassphrase(kubernetesConfig.getClientKeyPassphrase())
+      .currentContext(Optional.ofNullable(kubernetesConfig.getCurrentContext()).map(NamedContext::getName).orElse(null))
       .trustStoreFile(kubernetesConfig.getTrustStoreFile())
       .trustStorePassphrase(kubernetesConfig.getTrustStorePassphrase())
       .keyStoreFile(kubernetesConfig.getKeyStoreFile())

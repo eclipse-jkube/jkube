@@ -60,7 +60,7 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
         WatcherContext context = createWatcherContext();
 
         WatcherManager.watch(resolvedImages,
-            applicableNamespace(null, kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources, clusterAccess),
+            applicableNamespace(null, kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources, kubernetesClient),
             resources,
             context);
       } catch (KubernetesClientException kubernetesClientException) {

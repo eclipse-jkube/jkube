@@ -20,7 +20,6 @@ import org.eclipse.jkube.kit.build.service.docker.watch.CopyFilesTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.ExecTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.JavaProject;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
@@ -46,7 +45,6 @@ class DockerImageWatcherTest {
   @BeforeEach
   public void setUp() {
     WatcherContext watcherContext = mock(WatcherContext.class, RETURNS_DEEP_STUBS);
-    ClusterAccess mockedClusterAccess = mock(ClusterAccess.class);
     watchService = mock(WatchService.class);
     DockerServiceHub mockedDockerServiceHub = mock(DockerServiceHub.class,RETURNS_DEEP_STUBS);
     dockerImageWatcher = new DockerImageWatcher(watcherContext);
@@ -57,7 +55,6 @@ class DockerImageWatcherTest {
         .groupId("org.example")
         .artifactId("test")
         .version("1.0.0-SNAPSHOT").build());
-    when(watcherContext.getJKubeServiceHub().getClusterAccess()).thenReturn(mockedClusterAccess);
   }
 
   @Test

@@ -42,8 +42,7 @@ import io.fabric8.openshift.client.OpenShiftClient;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Serialization;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.openshift.WebServerEventCollector;
 
@@ -72,7 +71,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableKubernetesMockClient
 class ApplyServiceTest {
-
     KubernetesMockServer mockServer;
     OpenShiftClient client;
 
@@ -82,9 +80,10 @@ class ApplyServiceTest {
     void setUp() {
       final JKubeServiceHub serviceHub = JKubeServiceHub.builder()
         .log(new KitLogger.SilentLogger())
-        .configuration(JKubeConfiguration.builder().build())
+        .configuration(JKubeConfiguration.builder()
+          .clusterConfiguration(ClusterConfiguration.from(client.getConfiguration()).build())
+          .build())
         .platformMode(RuntimeMode.KUBERNETES)
-        .clusterAccess(new ClusterAccess(ClusterConfiguration.from(client.getConfiguration()).build()))
         .build();
       applyService = serviceHub.getApplyService();
       applyService.setNamespace("default");

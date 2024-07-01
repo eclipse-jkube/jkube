@@ -60,7 +60,6 @@ class OpenShiftBuildServiceTest {
     jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     final OpenShiftClient oc = mock(OpenShiftClient.class);
     when(jKubeServiceHub.getClient()).thenReturn(oc);
-    when(jKubeServiceHub.getClusterAccess().createDefaultClient()).thenReturn(oc);
     when(jKubeServiceHub.getConfiguration()).thenReturn(JKubeConfiguration.builder()
         .project(JavaProject.builder()
             .buildFinalName("test-project")

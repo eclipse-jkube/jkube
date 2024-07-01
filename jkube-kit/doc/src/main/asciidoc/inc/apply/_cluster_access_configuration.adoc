@@ -88,6 +88,10 @@ endif::[]
 | Client Key Passphrase on which to operate.
 | `jkube.clientKeyPassphrase`
 
+| *currentContext*
+| Client Kubernetes Context that is currently in use
+| `jkube.currentContext`
+
 | *trustStoreFile*
 | Trust Store File on which to operate.
 | `jkube.trustStoreFile`

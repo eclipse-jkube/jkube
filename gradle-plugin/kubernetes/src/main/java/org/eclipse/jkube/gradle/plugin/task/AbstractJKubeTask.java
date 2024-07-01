@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -33,8 +34,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
@@ -57,7 +57,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected final KubernetesExtension kubernetesExtension;
   protected KitLogger kitLogger;
-  protected ClusterAccess clusterAccess;
   protected JKubeServiceHub jKubeServiceHub;
   protected static final String DOCKER_BUILD_TIMESTAMP = "docker/build.timestamp";
   protected List<ImageConfiguration> resolvedImages;
@@ -79,8 +78,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   protected void init() {
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
+    kubernetesExtension.access = initClusterConfiguration();
     kitLogger = createLogger(null);
-    clusterAccess = new ClusterAccess(initClusterConfiguration());
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);
     resolvedImages = resolveImages();
@@ -142,8 +141,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
                 .registry(kubernetesExtension.getPushRegistryOrNull() != null ?
                   kubernetesExtension.getPushRegistryOrNull() : kubernetesExtension.getRegistryOrDefault())
                 .build())
+            .clusterConfiguration(kubernetesExtension.access)
             .build())
-        .clusterAccess(clusterAccess)
         .offline(kubernetesExtension.getOfflineOrDefault())
         .platformMode(kubernetesExtension.getRuntimeMode())
         .resourceServiceConfig(initResourceServiceConfig())
@@ -176,7 +175,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .prePackagePhase(false)
         .useProjectClasspath(kubernetesExtension.getUseProjectClassPathOrDefault())
         .sourceDirectory(kubernetesExtension.getBuildSourceDirectoryOrDefault())
-        .openshiftNamespace(StringUtils.isNotBlank(kubernetesExtension.getNamespaceOrNull()) ? kubernetesExtension.getNamespaceOrNull() : clusterAccess.getNamespace())
+        .openshiftNamespace(StringUtils.isNotBlank(kubernetesExtension.getNamespaceOrNull()) ? kubernetesExtension.getNamespaceOrNull() : new KubernetesClientBuilder().withConfig(kubernetesExtension.access.getConfig()).build().getNamespace())
         .buildTimestamp(getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
             DOCKER_BUILD_TIMESTAMP))
         .filter(kubernetesExtension.getFilterOrNull());

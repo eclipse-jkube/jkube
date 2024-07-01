@@ -251,7 +251,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         if (buildServiceConfig.getResourceConfig() != null && buildServiceConfig.getResourceConfig().getNamespace() != null) {
             applicableOpenShiftNamespace = buildServiceConfig.getResourceConfig().getNamespace();
         } else {
-            applicableOpenShiftNamespace = jKubeServiceHub.getClusterAccess().getNamespace();
+            applicableOpenShiftNamespace = jKubeServiceHub.getClient().getNamespace();
         }
     }
 

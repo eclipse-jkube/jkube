@@ -28,8 +28,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Serialization;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
-import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -73,8 +72,9 @@ class OpenshiftUndeployServiceTest {
     final JKubeServiceHub jKubeServiceHub = JKubeServiceHub.builder()
       .log(logger)
       .platformMode(RuntimeMode.KUBERNETES)
-      .configuration(JKubeConfiguration.builder().build())
-      .clusterAccess(new ClusterAccess(ClusterConfiguration.from(openShiftClient.getConfiguration()).namespace("test").build()))
+      .configuration(JKubeConfiguration.builder()
+        .clusterConfiguration(ClusterConfiguration.from(openShiftClient.getConfiguration()).build())
+        .build())
       .build();
     resourceConfig = ResourceConfig.builder().namespace("test").build();
     openshiftUndeployService = new OpenshiftUndeployService(jKubeServiceHub, logger);
