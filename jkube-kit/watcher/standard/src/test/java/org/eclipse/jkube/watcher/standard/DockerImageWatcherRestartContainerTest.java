@@ -40,7 +40,6 @@ import io.fabric8.openshift.client.dsl.DeployableScalableResource;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.build.service.docker.WatchService;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
-import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 import org.junit.jupiter.api.BeforeEach;
