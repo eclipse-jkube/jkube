@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.resource.helm;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -32,7 +31,6 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 
 import io.fabric8.openshift.api.model.Template;
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -174,16 +172,10 @@ class HelmServiceIT {
     final Path expectations = new File(HelmServiceIT.class.getResource("/it/expected").toURI()).toPath();
     final Path generatedYamls = helmOutputDir.toPath();
     for (Path expected : Files.walk(expectations).filter(Files::isRegularFile).collect(Collectors.toList())) {
-      final Map<String, ?> expectedContent = Serialization.unmarshal(replacePlaceholders(expected), Map.class);
-      final Map<String, ?> actualContent = Serialization.unmarshal(
-        replacePlaceholders(generatedYamls.resolve(expectations.relativize(expected))), Map.class);
+
+      final Map<String, ?> expectedContent = Serialization.unmarshal(expected, Map.class);
+      final Map<String, ?> actualContent = Serialization.unmarshal(generatedYamls.resolve(expectations.relativize(expected)), Map.class);
       assertThat(actualContent).isEqualTo(expectedContent);
     }
-  }
-
-  private static String replacePlaceholders(final Path yamlWithJsonPlaceholders) throws IOException {
-    return FileUtils.readFileToString(yamlWithJsonPlaceholders.toFile(), StandardCharsets.UTF_8)
-        .replace("\"{{\"{{\"}}", "").replace("{{\"}}\"}}", "")
-        .replace("{", "(").replace("}", ")");
   }
 }
