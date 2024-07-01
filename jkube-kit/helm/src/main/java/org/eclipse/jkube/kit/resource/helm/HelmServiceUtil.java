@@ -22,8 +22,10 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.Serialization;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.JKubeAnnotations;
 
 import java.io.File;
@@ -80,6 +82,10 @@ public class HelmServiceUtil {
   protected static final String PROPERTY_HELM_DEBUG = "jkube.helm.debug";
   protected static final String PROPERTY_HELM_DEPENDENCY_VERIFY = "jkube.helm.dependencyVerify";
   protected static final String PROPERTY_HELM_DEPENDENCY_SKIP_REFRESH = "jkube.helm.dependencySkipRefresh";
+  protected static final String PROPERTY_HELM_RELEASE_NAME = "jkube.helm.release.name";
+  protected static final String PROPERTY_HELM_INSTALL_DEPENDENCY_UPDATE = "jkube.helm.install.dependencyUpdate";
+  protected static final String PROPERTY_HELM_INSTALL_WAIT_READY = "jkube.helm.install.waitReady";
+  protected static final String PROPERTY_HELM_DISABLE_OPENAPI_VALIDATION = "jkube.helm.disableOpenAPIValidation";
 
   private HelmServiceUtil() { }
 
@@ -123,6 +129,11 @@ public class HelmServiceUtil {
     helmConfig.setDebug(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_DEBUG, project, helmConfig::isDebug));
     helmConfig.setDependencyVerify(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_DEPENDENCY_VERIFY, project, helmConfig::isDependencyVerify));
     helmConfig.setDependencySkipRefresh(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_DEPENDENCY_SKIP_REFRESH, project, helmConfig::isDependencySkipRefresh));
+    helmConfig.setReleaseName(resolveFromPropertyOrDefault(PROPERTY_HELM_RELEASE_NAME, project, helmConfig::getReleaseName, () -> JKubeProjectUtil.createDefaultResourceName(new GroupArtifactVersion(project.getGroupId(), project.getArtifactId(), project.getVersion()).getSanitizedArtifactId())));
+    helmConfig.setInstallDependencyUpdate(original == null || original.isInstallDependencyUpdate());
+    helmConfig.setInstallDependencyUpdate(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_INSTALL_DEPENDENCY_UPDATE, project, helmConfig::isInstallDependencyUpdate));
+    helmConfig.setInstallWaitReady(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_INSTALL_WAIT_READY, project, helmConfig::isInstallWaitReady));
+    helmConfig.setDisableOpenAPIValidation(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_DISABLE_OPENAPI_VALIDATION, project, helmConfig::isDisableOpenAPIValidation));
     return helmConfig.toBuilder();
   }
 

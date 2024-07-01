@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,8 +36,11 @@ import java.util.stream.Stream;
 
 import com.marcnuri.helm.DependencyCommand;
 import com.marcnuri.helm.Helm;
+import com.marcnuri.helm.InstallCommand;
 import com.marcnuri.helm.LintCommand;
 import com.marcnuri.helm.LintResult;
+import com.marcnuri.helm.Release;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -49,6 +53,8 @@ import org.eclipse.jkube.kit.common.util.FileUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.Serialization;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
+import org.eclipse.jkube.kit.config.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments;
 
@@ -63,6 +69,7 @@ import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.DEFAULT_FILTER;
 import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.interpolate;
+import static org.eclipse.jkube.kit.common.util.KubernetesHelper.exportKubernetesClientConfigToFile;
 import static org.eclipse.jkube.kit.common.util.MapUtil.getNestedMap;
 import static org.eclipse.jkube.kit.common.util.TemplateUtil.escapeYamlTemplate;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.listYamls;
@@ -85,11 +92,17 @@ public class HelmService {
   private final JKubeConfiguration jKubeConfiguration;
   private final ResourceServiceConfig resourceServiceConfig;
   private final KitLogger logger;
+  private KubernetesClient kubernetesClient;
 
   public HelmService(JKubeConfiguration jKubeConfiguration, ResourceServiceConfig resourceServiceConfig, KitLogger logger) {
+    this(jKubeConfiguration, resourceServiceConfig, logger, null);
+  }
+
+  HelmService(JKubeConfiguration jKubeConfiguration, ResourceServiceConfig resourceServiceConfig, KitLogger logger, KubernetesClient kubernetesClient) {
     this.jKubeConfiguration = jKubeConfiguration;
     this.resourceServiceConfig = resourceServiceConfig;
     this.logger = logger;
+    this.kubernetesClient = kubernetesClient;
   }
 
   /**
@@ -186,6 +199,56 @@ public class HelmService {
       Arrays.stream(dependencyUpdateCommand.call() 
        .split("\r?\n"))
        .forEach(l -> logger.info("[[W]]%s", l)); 
+    }
+  }
+
+  public void install(HelmConfig helmConfig) {
+    for (HelmConfig.HelmType helmType : helmConfig.getTypes()) {
+      logger.info("Installing Helm Chart %s %s", helmConfig.getChart(), helmConfig.getVersion());
+      InstallCommand installCommand = new Helm(Paths.get(helmConfig.getOutputDir(), helmType.getOutputDir()))
+        .install();
+      if (helmConfig.isInstallDependencyUpdate()) {
+        installCommand.dependencyUpdate();
+      }
+      if (StringUtils.isNotBlank(helmConfig.getReleaseName())) {
+        installCommand.withName(helmConfig.getReleaseName());
+      }
+      if (helmConfig.isInstallWaitReady()) {
+        installCommand.waitReady();
+      }
+      if (helmConfig.isDisableOpenAPIValidation()) {
+        installCommand.disableOpenApiValidation();
+      }
+      installCommand.withKubeConfig(createTemporaryKubeConfigForInstall());
+      Release release = installCommand.call();
+      logger.info("[[W]]NAME : %s", release.getName());
+      logger.info("[[W]]NAMESPACE : %s", release.getNamespace());
+      logger.info("[[W]]STATUS : %s", release.getStatus());
+      logger.info("[[W]]REVISION : %s", release.getRevision());
+      logger.info("[[W]]LAST DEPLOYED : %s", release.getLastDeployed().format(DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy")));
+      Arrays.stream(release.getOutput().split("---"))
+        .filter(o -> o.contains("Deleting outdated charts"))
+        .findFirst()
+        .ifPresent(s -> Arrays.stream(s.split("\r?\n"))
+          .filter(StringUtils::isNotBlank)
+          .forEach(l -> logger.info("[[W]]%s", l)));
+    }
+  }
+
+  private Path createTemporaryKubeConfigForInstall() {
+    if (kubernetesClient == null) {
+      kubernetesClient = new ClusterAccess(ClusterConfiguration.from(
+        System.getProperties(), jKubeConfiguration.getProject().getProperties()).build()).createDefaultClient();
+    }
+    try {
+      File kubeConfigParentDir = new File(jKubeConfiguration.getProject().getBuildDirectory(), "jkube-temp");
+      FileUtil.createDirectory(kubeConfigParentDir);
+      File helmInstallKubeConfig = new File(kubeConfigParentDir, "config");
+      helmInstallKubeConfig.deleteOnExit();
+      exportKubernetesClientConfigToFile(kubernetesClient.getConfiguration(), helmInstallKubeConfig.toPath());
+      return helmInstallKubeConfig.toPath();
+    } catch (IOException ioException) {
+      throw new JKubeException("Failure in creating temporary kubeconfig file", ioException);
     }
   }
 
