@@ -230,7 +230,7 @@ items:
     name: expose
   spec:
     port:
-      targetPort: 443
+      targetPort: https
     to:
       kind: Service
       name: expose
@@ -256,7 +256,7 @@ items:
     name: ssh
   spec:
     port:
-      targetPort: 22
+      targetPort: ssh
     to:
       kind: Service
       name: ssh

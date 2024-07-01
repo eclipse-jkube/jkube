@@ -142,7 +142,7 @@ items:
       name: autotls
     spec:
       port:
-        targetPort: 8080
+        targetPort: http
       to:
         kind: Service
         name: autotls

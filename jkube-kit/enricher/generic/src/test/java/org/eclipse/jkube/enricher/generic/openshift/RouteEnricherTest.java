@@ -96,8 +96,8 @@ class RouteEnricherTest {
                 .containsExactly("Service", "Route")
             )
             .last()
-            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-            .contains("test-svc", "test-svc.jkube.eclipse.org", "Service", "test-svc", 8080);
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.value")
+            .contains("test-svc", "test-svc.jkube.eclipse.org", "Service", "test-svc", "http");
     }
 
     @Test
@@ -173,8 +173,8 @@ class RouteEnricherTest {
 
         // Then
         assertThat(route).isNotNull()
-            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
-            .contains("test-svc", "example.com", "Service", "test-svc", 8080);
+            .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.value")
+            .contains("test-svc", "example.com", "Service", "test-svc", "http");
     }
 
     @Test
@@ -268,7 +268,7 @@ class RouteEnricherTest {
     }
 
     @Test
-    void routeTargetPortFromServicePort() {
+    void portName_RouteTargetPortFromServicePort() {
         // Given
         ServiceBuilder serviceBuilder = new ServiceBuilder()
                 .editOrNewMetadata()
@@ -284,16 +284,72 @@ class RouteEnricherTest {
                 .endPort()
                 .addToSelector("group", "test")
                 .withType("LoadBalancer")
-                .editMatchingPort(e -> Boolean.TRUE).withPort(80).endPort().endSpec();
+                .endSpec();
 
         // When
         Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
 
         // Then
         assertThat(route).isNotNull()
-                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.intVal")
+                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.value")
+                .contains("test-svc", "example.com", "Service", "test-svc", "http");
+    }
+
+    @Test
+    void routeTargetPortFromServicePort() {
+        // Given
+        ServiceBuilder serviceBuilder = new ServiceBuilder()
+                .editOrNewMetadata()
+                .withName("test-svc")
+                .addToLabels("expose", "true")
+                .endMetadata()
+                .editOrNewSpec()
+                .addNewPort()
+                .withPort(80)
+                .withProtocol("TCP")
+                .withTargetPort(new IntOrString(8080))
+                .endPort()
+                .addToSelector("group", "test")
+                .withType("LoadBalancer")
+                .endSpec();
+
+        // When
+        Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
+
+        // Then
+        assertThat(route).isNotNull()
+                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.value")
                 .contains("test-svc", "example.com", "Service", "test-svc", 8080);
     }
+
+    @Test
+    void port_RouteTargetPortFromServicePort() {
+        // Given
+        ServiceBuilder serviceBuilder = new ServiceBuilder()
+                .editOrNewMetadata()
+                .withName("test-svc")
+                .addToLabels("expose", "true")
+                .endMetadata()
+                .editOrNewSpec()
+                .addNewPort()
+                .withPort(80)
+                .withProtocol("TCP")
+                .endPort()
+                .addToSelector("group", "test")
+                .withType("LoadBalancer")
+                .endSpec();
+
+        // When
+        Route route = RouteEnricher.createOpinionatedRouteFromService(serviceBuilder, "example.com", "edge", "Allow", false);
+
+        // Then
+        assertThat(route).isNotNull()
+                .extracting("metadata.name", "spec.host", "spec.to.kind", "spec.to.name", "spec.port.targetPort.value")
+                .contains("test-svc", "example.com", "Service", "test-svc", 80);
+    }
+
+
+
 
     @Test
     void create_withNoExposeLabelPort8443_shouldCreateRoute() {
@@ -314,6 +370,7 @@ class RouteEnricherTest {
     private ServiceBuilder getMockServiceBuilder() {
         return getMockServiceBuilder(8080, Collections.singletonMap("expose", "true"));
     }
+
 
     private ServiceBuilder getMockServiceBuilder(int port, Map<String, String> labels) {
         // @formatter:off
@@ -371,5 +428,6 @@ class RouteEnricherTest {
     private void mockJKubeEnricherContextResourceConfigWithRouteDomain(String routeDomain) {
         when(context.getConfiguration().getResource().getRouteDomain()).thenReturn(routeDomain);
     }
+
 }
 

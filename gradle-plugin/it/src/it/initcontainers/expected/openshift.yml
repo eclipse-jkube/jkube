@@ -126,7 +126,7 @@ items:
       name: initcontainers
     spec:
       port:
-        targetPort: 8080
+        targetPort: http
       to:
         kind: Service
         name: initcontainers
