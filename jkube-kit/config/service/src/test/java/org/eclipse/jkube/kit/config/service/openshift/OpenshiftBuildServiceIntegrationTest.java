@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -47,6 +48,7 @@ import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
+import org.eclipse.jkube.kit.config.resource.MetaDataConfig;
 
 import com.google.common.collect.ImmutableMap;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -103,6 +105,10 @@ class OpenshiftBuildServiceIntegrationTest {
   private BuildServiceConfig.BuildServiceConfigBuilder defaultConfig;
 
   private ResourceConfig resourceConfig;
+  
+  private MetaDataConfig labels;
+  
+  private Properties props;
 
   @BeforeEach
   void init(@TempDir Path temporaryFolder) throws Exception {
@@ -120,8 +126,12 @@ class OpenshiftBuildServiceIntegrationTest {
     jKubeBuildTarArchiver = mockConstruction(JKubeBuildTarArchiver.class, (mock, ctx) ->
         when(mock.createArchive(any(File.class), any(BuildDirs.class), eq(ArchiveCompression.none)))
         .thenReturn(emptyDockerBuildTar));
-
-    resourceConfig = ResourceConfig.builder().namespace("ns1").build();
+    
+    props = new Properties();
+    props.setProperty("buildName", projectName);
+    
+    labels = MetaDataConfig.builder().all(props).pod(props).build();
+    resourceConfig = ResourceConfig.builder().namespace("ns1").labels(labels).build();
 
     jKubeServiceHub = mock(JKubeServiceHub.class, RETURNS_DEEP_STUBS);
     when(jKubeServiceHub.getClient()).thenReturn(client);
@@ -563,6 +573,7 @@ class OpenshiftBuildServiceIntegrationTest {
         .build();
 
     if (!buildConfigExists) {
+      mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=openshift.io%2Fbuild.name").andReply(collector.record("build-config-check").andReturn(200, bc)).always();
       mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("build-config-check").andReturn
           (404, "")).once();
       mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("build-config-check").andReturn
@@ -571,7 +582,7 @@ class OpenshiftBuildServiceIntegrationTest {
       if (bcSecret != null) {
         mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs").andReply(collector.record("new-build-config").andReturn(201, bcSecret)).once();
       }
-    } else {
+    } else {      
       mockServer.expect().patch().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("patch-build-config").andReturn
           (200, bc)).once();
       if (bcSecret != null) {
@@ -590,6 +601,7 @@ class OpenshiftBuildServiceIntegrationTest {
     if (!imageStreamExists) {
       mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams/" + resourceName).andReturn(404, "").once();
     }
+    mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=openshift.io%2Fbuild.name").andReply(collector.record("build-config-check").andReturn(200, bc)).always();
     mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams/" + resourceName).andReturn(200, imageStream).always();
 
     mockServer.expect().post().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams").andReturn(201, imageStream).once();
