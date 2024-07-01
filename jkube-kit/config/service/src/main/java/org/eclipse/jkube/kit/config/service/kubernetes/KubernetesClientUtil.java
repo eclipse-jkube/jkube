@@ -137,21 +137,11 @@ public class KubernetesClientUtil {
             return "";
         }
 
-
-        for (PodCondition condition : conditions) {
-            String type = condition.getType();
-            if (StringUtils.isNotBlank(type)) {
-                if ("ready".equalsIgnoreCase(type)) {
-                    String statusText = condition.getStatus();
-                    if (StringUtils.isNotBlank(statusText)) {
-                        if (Boolean.parseBoolean(statusText)) {
-                            return type;
-                        }
-                    }
-                }
-            }
-        }
-        return "";
+        return conditions.stream()
+                .filter(condition -> "ready".equalsIgnoreCase(condition.getType()) && Boolean.parseBoolean(condition.getStatus()))
+                .map(PodCondition::getType)
+                .findFirst()
+                .orElse("");
     }
 
     public static GenericKubernetesResource doGetCustomResource(KubernetesClient kubernetesClient, GenericKubernetesResource resource, String namespace) {
