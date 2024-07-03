@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
+import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
@@ -53,7 +54,11 @@ class ApplyMojoTest {
     when(mavenProject.getProperties()).thenReturn(new Properties());
     // @formatter:off
     applyMojo = new ApplyMojo() {{
-        access = ClusterConfiguration.from(defaultKubernetesClient.getConfiguration()).build();
+        access = ClusterConfiguration.from(
+          new ConfigBuilder(defaultKubernetesClient.getConfiguration())
+            .withNamespace("kubernetes-client-config-namespace")
+            .build()
+        ).build();
         project = mavenProject;
         settings = mock(Settings.class);
         kubernetesManifest = kubernetesManifestFile;
@@ -122,7 +127,7 @@ class ApplyMojoTest {
     // Then
     assertThat(applyMojo.applyService)
         .hasFieldOrPropertyWithValue("namespace", null)
-        .hasFieldOrPropertyWithValue("fallbackNamespace", defaultKubernetesClient.getNamespace());
+        .hasFieldOrPropertyWithValue("fallbackNamespace", "kubernetes-client-config-namespace");
   }
 
 }

@@ -37,6 +37,7 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -136,6 +137,7 @@ class OpenshiftBuildServiceIntegrationTest {
             .buildDirectory(target)
             .build())
         .pullRegistryConfig(RegistryConfig.builder().build())
+        .clusterConfiguration(ClusterConfiguration.from(client.getConfiguration()).build())
         .build());
 
     image = ImageConfiguration.builder()

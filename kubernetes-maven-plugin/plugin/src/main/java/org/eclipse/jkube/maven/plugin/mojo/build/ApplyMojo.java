@@ -18,7 +18,6 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
@@ -227,7 +226,7 @@ public class ApplyMojo extends AbstractJKubeMojo implements ManifestProvider {
         applyService.setRollingUpgradePreserveScale(isRollingUpgradePreserveScale());
         applyService.setRecreateMode(recreate);
         applyService.setNamespace(namespace);
-        applyService.setFallbackNamespace(resolveFallbackNamespace(resources, jkubeServiceHub.getClient()));
+        applyService.setFallbackNamespace(resolveFallbackNamespace(resources, clusterConfiguration));
 
         boolean openShift = OpenshiftHelper.isOpenShift(kubernetes);
         if (openShift) {

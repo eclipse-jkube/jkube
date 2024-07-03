@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.kubernetes.client.Watcher;
+import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.junit.jupiter.api.Test;
 
@@ -89,9 +90,9 @@ class KubernetesClientUtilTest {
 
   @Test
   void applicableNamespace_whenNamespaceProvidedViaKubernetesClient_shouldReturnProvidedNamespace() {
-    // Given
     // When
-    String resolvedNamespace = KubernetesClientUtil.applicableNamespace(null, null, null, kubernetesClient);
+    String resolvedNamespace = KubernetesClientUtil.applicableNamespace(null, null, null,
+      ClusterConfiguration.from(kubernetesClient.getConfiguration()).build());
 
     // Then
     assertThat(resolvedNamespace).isEqualTo(kubernetesClient.getNamespace());
@@ -123,13 +124,14 @@ class KubernetesClientUtilTest {
 
   @Test
   void resolveFallbackNamespace_whenNamespaceProvidedViaKubernetesClient_shouldReturnProvidedNamespace() {
-    // Given
     // When
-    String resolvedNamespace = KubernetesClientUtil.resolveFallbackNamespace(null, kubernetesClient);
+    String resolvedNamespace = KubernetesClientUtil
+      .resolveFallbackNamespace(null, ClusterConfiguration.from(kubernetesClient.getConfiguration()).build());
 
     // Then
     assertThat(resolvedNamespace).isEqualTo(kubernetesClient.getNamespace());
   }
+
   @Test
   void getPodStatusMessagePostfix_whenActionIsDeleted_shouldReturnPodDeletedMessage() {
     // Given

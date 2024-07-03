@@ -310,6 +310,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo
 
     protected KitLogger log;
 
+    // Resolved Cluster Configuration
+    protected ClusterConfiguration clusterConfiguration;
+
     // The JKube service hub
     protected JKubeServiceHub jkubeServiceHub;
 
@@ -371,6 +374,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected void init() {
         log = new AnsiLogger(getLog(), useColorForLogging(), verbose, !settings.getInteractiveMode(), getLogPrefix());
         authConfigFactory = new DockerAuthConfigFactory(log);
+        clusterConfiguration = initClusterConfiguration();
         runtimeMode = getConfiguredRuntimeMode();
     }
 
@@ -428,7 +432,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
             .buildArgs(buildArgs)
             .pullRegistryConfig(getRegistryConfig(pullRegistry))
             .pushRegistryConfig(getRegistryConfig(pushRegistry))
-            .clusterConfiguration(initClusterConfiguration())
+            .clusterConfiguration(clusterConfiguration)
             .build();
     }
 

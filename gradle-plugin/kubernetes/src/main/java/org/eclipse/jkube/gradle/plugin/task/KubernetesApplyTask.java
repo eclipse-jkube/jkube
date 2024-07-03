@@ -92,6 +92,6 @@ public class KubernetesApplyTask extends AbstractJKubeTask {
     applyService.setRollingUpgradePreserveScale(kubernetesExtension.getRollingUpgradePreserveScaleOrDefault());
     applyService.setRecreateMode(kubernetesExtension.getRecreateOrDefault());
     applyService.setNamespace(kubernetesExtension.getNamespaceOrNull());
-    applyService.setFallbackNamespace(resolveFallbackNamespace(kubernetesExtension.resources, jKubeServiceHub.getClient()));
+    applyService.setFallbackNamespace(resolveFallbackNamespace(kubernetesExtension.resources, clusterConfiguration));
   }
 }
