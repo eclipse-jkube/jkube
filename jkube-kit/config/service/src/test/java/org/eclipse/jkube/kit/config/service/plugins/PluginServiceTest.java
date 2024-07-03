@@ -13,16 +13,11 @@
  */
 package org.eclipse.jkube.kit.config.service.plugins;
 
-
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.api.JKubePlugin;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -45,7 +40,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-@EnableKubernetesMockClient(crud = true)
 class PluginServiceTest {
 
   @TempDir
@@ -53,8 +47,6 @@ class PluginServiceTest {
 
   private KitLogger logger;
   private JKubeServiceHub jKubeServiceHub;
-  private KubernetesMockServer mockServer;
-  private KubernetesClient kubernetesClient;
 
   @BeforeEach
   void setUp() {
@@ -64,7 +56,6 @@ class PluginServiceTest {
         .project(JavaProject.builder()
           .outputDirectory(temporaryFolder)
           .build())
-        .clusterConfiguration(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build())
         .build(),
       new BuildServiceConfig(), new ResourceServiceConfig(), new LazyBuilder<>(hub -> null), true);
   }

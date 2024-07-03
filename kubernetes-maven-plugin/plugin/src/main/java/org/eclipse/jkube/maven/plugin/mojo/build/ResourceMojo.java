@@ -20,7 +20,6 @@ import java.util.List;
 
 import javax.validation.ConstraintViolationException;
 
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 
@@ -233,7 +232,7 @@ public class ResourceMojo extends AbstractJKubeMojo {
             .useProjectClasspath(useProjectClasspath)
             .strategy(JKubeBuildStrategy.docker)
             .prePackagePhase(true)
-            .openshiftNamespace(StringUtils.isNotBlank(this.namespace) ? this.namespace: new KubernetesClientBuilder().withConfig(access.getConfig()).build().getNamespace())
+            .openshiftNamespace(StringUtils.isNotBlank(this.namespace) ? this.namespace: clusterConfiguration.getNamespace())
             .buildTimestamp(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(), DOCKER_BUILD_TIMESTAMP))
             .build());
         return generatorManager.generateAndMerge(images);

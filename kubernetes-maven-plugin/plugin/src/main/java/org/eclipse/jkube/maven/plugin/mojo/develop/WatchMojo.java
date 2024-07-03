@@ -95,7 +95,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
             WatcherContext context = getWatcherContext();
 
             WatcherManager.watch(getResolvedImages(),
-                applicableNamespace(null, namespace, resources, kubernetesClient),
+                applicableNamespace(null, namespace, resources, clusterConfiguration),
                 appliedK8sResources,
                 context);
 

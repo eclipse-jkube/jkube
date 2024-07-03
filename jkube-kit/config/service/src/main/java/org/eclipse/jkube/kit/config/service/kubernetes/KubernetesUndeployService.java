@@ -51,7 +51,7 @@ public class KubernetesUndeployService implements UndeployService {
 
   @Override
   public void undeploy(List<File> resourceDirs, ResourceConfig resourceConfig, File... manifestFiles) throws IOException {
-    final String fallbackNamespace = KubernetesClientUtil.resolveFallbackNamespace(resourceConfig, jKubeServiceHub.getClient());
+    final String fallbackNamespace = KubernetesClientUtil.resolveFallbackNamespace(resourceConfig, jKubeServiceHub.getConfiguration().getClusterConfiguration());
     final List<File> manifests = Stream.of(manifestFiles)
         .filter(Objects::nonNull).filter(File::exists).filter(File::isFile)
         .collect(Collectors.toList());

@@ -144,6 +144,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     protected KitLogger log;
 
+    protected ClusterConfiguration clusterConfiguration;
+
     // The JKube service hub
     protected JKubeServiceHub jkubeServiceHub;
 
@@ -161,7 +163,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     protected void init() throws MojoFailureException {
         log = createLogger(null);
-        access = initClusterConfiguration();
+        clusterConfiguration = initClusterConfiguration();
         try {
           javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);
         } catch (DependencyResolutionRequiredException e) {
@@ -240,7 +242,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
                     .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                     .passwordDecryptionMethod(this::decrypt)
                     .build())
-                .clusterConfiguration(access)
+                .clusterConfiguration(clusterConfiguration)
                 .build())
             .offline(offline)
             .platformMode(getRuntimeMode())
