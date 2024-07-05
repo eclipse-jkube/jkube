@@ -69,7 +69,7 @@ public class BuildOptions {
     }
 
     public BuildOptions buildArgs(Map<String, String> buildArgs) {
-        if (buildArgs != null && buildArgs.size() > 0) {
+        if (buildArgs != null && !buildArgs.isEmpty()) {
             options.put("buildargs", JsonFactory.newJsonObject(buildArgs).toString());
         }
         return this;
