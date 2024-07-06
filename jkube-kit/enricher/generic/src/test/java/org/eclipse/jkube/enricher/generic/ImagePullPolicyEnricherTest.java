@@ -223,7 +223,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(DaemonSetSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
@@ -236,7 +236,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(DeploymentSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
@@ -250,7 +250,7 @@ class ImagePullPolicyEnricherTest {
             .extracting(DeploymentSpec::getTemplate)
             .extracting(PodTemplateSpec::getSpec)
             .extracting(PodSpec::getContainers)
-            .asList();
+            .asInstanceOf(InstanceOfAssertFactories.list(Object.class));
     assertThatContainerList
         .hasSize(2);
     assertThatContainerList
@@ -270,7 +270,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(JobSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
@@ -283,7 +283,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(ReplicaSetSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
@@ -296,7 +296,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(ReplicationControllerSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);
@@ -309,7 +309,7 @@ class ImagePullPolicyEnricherTest {
         .extracting(StatefulSetSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .singleElement(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImagePullPolicy)
         .isEqualTo(expectedImagePullPolicy);

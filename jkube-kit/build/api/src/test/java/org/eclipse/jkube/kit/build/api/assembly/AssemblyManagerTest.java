@@ -19,12 +19,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
+import org.eclipse.jkube.kit.common.AssemblyFileEntry;
+import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -85,7 +87,7 @@ class AssemblyManagerTest {
         .hasFieldOrPropertyWithValue("assemblyDirectory",
             buildDirs.toPath().resolve("testImage").resolve("build").toFile())
         .extracting(AssemblyFiles::getUpdatedEntriesAndRefresh)
-        .asList().isEmpty();
+        .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileEntry.class)).isEmpty();
   }
 
   @Test

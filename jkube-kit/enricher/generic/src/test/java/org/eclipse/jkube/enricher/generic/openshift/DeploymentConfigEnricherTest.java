@@ -16,6 +16,8 @@ package org.eclipse.jkube.enricher.generic.openshift;
 import java.util.Properties;
 import java.util.function.Consumer;
 
+import io.fabric8.kubernetes.api.model.Container;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -247,7 +249,7 @@ class DeploymentConfigEnricherTest {
         .hasFieldOrPropertyWithValue("spec.revisionHistoryLimit", 2)
         .hasFieldOrPropertyWithValue("spec.template.metadata.labels.app", "test-app")
         .hasFieldOrPropertyWithValue("spec.strategy.type", strategyType)
-        .extracting("spec.template.spec.containers").asList()
+        .extracting("spec.template.spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .first()
         .hasFieldOrPropertyWithValue("name", "test-container")
         .hasFieldOrPropertyWithValue("image", "test-image:1.0.0");

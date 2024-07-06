@@ -54,7 +54,7 @@ class RouteEnricherBehavioralTest {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().isEmpty();
+    assertThat(klb.build()).extracting(KubernetesList::getItems).asInstanceOf(InstanceOfAssertFactories.list(Service.class)).isEmpty();
   }
 
   @Test
@@ -65,7 +65,7 @@ class RouteEnricherBehavioralTest {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
+    assertThat(klb.build()).extracting(KubernetesList::getItems).asInstanceOf(InstanceOfAssertFactories.list(Service.class)).singleElement()
       .isInstanceOf(Service.class);
   }
 
@@ -77,7 +77,7 @@ class RouteEnricherBehavioralTest {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
+    assertThat(klb.build()).extracting(KubernetesList::getItems).asInstanceOf(InstanceOfAssertFactories.list(Service.class)).singleElement()
       .isInstanceOf(Service.class);
   }
 
@@ -115,7 +115,7 @@ class RouteEnricherBehavioralTest {
       // When
       new RouteEnricher(context).create(PlatformMode.kubernetes, klb);
       // Then
-      assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
+      assertThat(klb.build()).extracting(KubernetesList::getItems).asInstanceOf(InstanceOfAssertFactories.list(Service.class)).singleElement()
         .isInstanceOf(Service.class);
     }
 

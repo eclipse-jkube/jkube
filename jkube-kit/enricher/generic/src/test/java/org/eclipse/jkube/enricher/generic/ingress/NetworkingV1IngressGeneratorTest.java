@@ -18,7 +18,9 @@ import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressRule;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
@@ -43,9 +45,9 @@ class NetworkingV1IngressGeneratorTest {
         assertThat(ingress).isNotNull()
             .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
             .extracting(Ingress::getSpec).isNotNull()
-            .extracting(IngressSpec::getRules).asList().singleElement()
+            .extracting(IngressSpec::getRules).asInstanceOf(InstanceOfAssertFactories.list(IngressRule.class)).singleElement()
             .hasFieldOrPropertyWithValue("host", "test-svc.org.eclipse.jkube")
-            .extracting("http.paths").asList().singleElement()
+            .extracting("http.paths").asInstanceOf(InstanceOfAssertFactories.list(IngressRulePathConfig.class)).singleElement()
             .hasFieldOrPropertyWithValue("path", "/")
             .hasFieldOrPropertyWithValue("pathType", "ImplementationSpecific");
     }
@@ -95,7 +97,7 @@ class NetworkingV1IngressGeneratorTest {
         // Then
         assertThat(ingress)
             .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
-            .extracting("spec.rules").asList()
+            .extracting("spec.rules").asInstanceOf(InstanceOfAssertFactories.list(IngressRule.class))
             .singleElement()
             .hasFieldOrPropertyWithValue("host", "foo.bar.com");
     }

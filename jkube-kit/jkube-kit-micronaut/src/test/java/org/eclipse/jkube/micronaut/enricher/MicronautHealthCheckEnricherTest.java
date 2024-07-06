@@ -86,7 +86,7 @@ class MicronautHealthCheckEnricherTest {
         .extracting(DeploymentSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .element(0, InstanceOfAssertFactories.type(Container.class))
         .hasFieldOrPropertyWithValue("livenessProbe", null)
         .hasFieldOrPropertyWithValue("readinessProbe", null);
@@ -106,7 +106,7 @@ class MicronautHealthCheckEnricherTest {
         .extracting(DeploymentSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .element(0, InstanceOfAssertFactories.type(Container.class))
         .hasFieldOrPropertyWithValue("livenessProbe", null)
         .hasFieldOrPropertyWithValue("readinessProbe", null);
@@ -125,7 +125,7 @@ class MicronautHealthCheckEnricherTest {
         .hasSize(2)
         .element(1, InstanceOfAssertFactories.type(Deployment.class))
         .extracting("spec.template.spec.containers")
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .element(0, InstanceOfAssertFactories.type(Container.class))
         .extracting(
             "livenessProbe.httpGet.path",
@@ -148,7 +148,7 @@ class MicronautHealthCheckEnricherTest {
         .hasSize(2)
         .element(1, InstanceOfAssertFactories.type(Deployment.class))
         .extracting("spec.template.spec.containers")
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .element(0, InstanceOfAssertFactories.type(Container.class))
         .extracting(
             "livenessProbe.httpGet.path",
@@ -175,7 +175,7 @@ class MicronautHealthCheckEnricherTest {
         .hasSize(2)
         .element(1, InstanceOfAssertFactories.type(Deployment.class))
         .extracting("spec.template.spec.containers")
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .element(0, InstanceOfAssertFactories.type(Container.class))
         .extracting(
             "livenessProbe.httpGet.path",

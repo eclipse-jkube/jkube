@@ -101,7 +101,7 @@ class DefaultServiceEnricherExternalServiceTest {
         .hasFieldOrPropertyWithValue("metadata.labels.foo", "bar")
         .extracting(Service::getSpec)
         .extracting(ServiceSpec::getPorts)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(ServicePort.class))
         .first(InstanceOfAssertFactories.type(ServicePort.class))
         .hasFieldOrPropertyWithValue("name", "http")
         .hasFieldOrPropertyWithValue("port", 8080);

@@ -15,6 +15,10 @@ package org.eclipse.jkube.enricher.generic.ingress;
 
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
+import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
+import org.eclipse.jkube.kit.config.resource.IngressTlsConfig;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -78,13 +82,13 @@ class ExtensionsV1Beta1IngressConverterTest {
             .hasFieldOrPropertyWithValue("metadata.name", "test-ing")
             .hasFieldOrPropertyWithValue("spec.ingressClassName", "external-lb")
             .satisfies(ir -> assertThat(ir.getSpec().getTls())
-                .asList().singleElement()
+                .asInstanceOf(InstanceOfAssertFactories.list(IngressTlsConfig.class)).singleElement()
                 .hasFieldOrPropertyWithValue("secretName", "test-jkube-ingress")
-                .extracting("hosts").asList().singleElement()
+                .extracting("hosts").asInstanceOf(InstanceOfAssertFactories.list(String.class)).singleElement()
                 .isEqualTo("test-svc.org.eclipse.jkube"))
-            .extracting("spec.rules").asList().singleElement()
+            .extracting("spec.rules").asInstanceOf(InstanceOfAssertFactories.list(IngressRuleConfig.class)).singleElement()
             .hasFieldOrPropertyWithValue("host", "test-svc.org.eclipse.jkube")
-            .extracting("http.paths").asList().first()
+            .extracting("http.paths").asInstanceOf(InstanceOfAssertFactories.list(IngressRulePathConfig.class)).first()
             .hasFieldOrPropertyWithValue("path", "/testpath")
             .hasFieldOrPropertyWithValue("pathType", "Prefix")
             .hasFieldOrPropertyWithValue("backend.serviceName", "test")

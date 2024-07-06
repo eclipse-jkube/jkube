@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -99,7 +100,7 @@ class MicronautGeneratorTest {
     assertThat(result).singleElement()
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .containsExactly("8080", "8778", "9779");
   }
 

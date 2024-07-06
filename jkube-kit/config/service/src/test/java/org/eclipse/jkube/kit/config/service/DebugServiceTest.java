@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.config.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
@@ -44,6 +45,7 @@ import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.zjsonpatch.JsonPatch;
 import okhttp3.mockwebserver.RecordedRequest;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JKubeException;
@@ -153,7 +155,7 @@ class DebugServiceTest {
     debugService.enableDebugging(deployment, "file.name", false);
     // Then
     assertThat(kubernetesClient.apps().deployments().withName("test-app").get())
-        .extracting("spec.template.spec.containers").asList()
+        .extracting("spec.template.spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .flatExtracting("env")
         .extracting("name", "value")
         .containsExactlyInAnyOrder(
@@ -169,7 +171,7 @@ class DebugServiceTest {
     debugService.enableDebugging(replicaSet, "file.name", false);
     // Then
     assertThat(kubernetesClient.apps().replicaSets().withName("test-app").get())
-        .extracting("spec.template.spec.containers").asList()
+        .extracting("spec.template.spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .flatExtracting("env")
         .extracting("name", "value")
         .containsExactlyInAnyOrder(
@@ -186,7 +188,7 @@ class DebugServiceTest {
     debugService.enableDebugging(replicationController, "file.name", false);
     // Then
     assertThat(kubernetesClient.replicationControllers().withName("test-app").get())
-        .extracting("spec.template.spec.containers").asList()
+        .extracting("spec.template.spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .flatExtracting("env")
         .extracting("name", "value")
         .containsExactlyInAnyOrder(
@@ -210,7 +212,7 @@ class DebugServiceTest {
     debugService.enableDebugging(deploymentConfig, "file.name", false);
     // Then
     assertThat(kubernetesClient.adapt(OpenShiftClient.class).deploymentConfigs().withName("test-app").get())
-        .extracting("spec.template.spec.containers").asList()
+        .extracting("spec.template.spec.containers").asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .flatExtracting("env")
         .extracting("name", "value")
         .containsExactlyInAnyOrder(

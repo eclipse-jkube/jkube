@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.remotedev;
 
+import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
@@ -107,7 +108,7 @@ class LocalServiceManagerTest {
       .extracting(Serialization::unmarshal)
       .asInstanceOf(InstanceOfAssertFactories.type(Service.class))
       .satisfies(s -> assertThat(s.getMetadata().getAnnotations()).containsEntry("k8s", "io"))
-      .extracting("spec.ports").asList()
+      .extracting("spec.ports").asInstanceOf(InstanceOfAssertFactories.list(ContainerPort.class))
       .extracting("port")
       .containsExactly(31337);
   }
@@ -138,7 +139,7 @@ class LocalServiceManagerTest {
       .extracting(s -> s.getMetadata().getAnnotations().get("jkube/previous-service"))
       .extracting(Serialization::unmarshal)
       .isInstanceOf(Service.class)
-      .extracting("spec.ports").asList()
+      .extracting("spec.ports").asInstanceOf(InstanceOfAssertFactories.list(ContainerPort.class))
       .extracting("port")
       .containsExactly(42);
   }
@@ -159,7 +160,7 @@ class LocalServiceManagerTest {
     // Then
     assertThat(kubernetesClient.services().withName("service").get())
       .hasFieldOrPropertyWithValue("metadata.name", "service")
-      .extracting("spec.ports").asList()
+      .extracting("spec.ports").asInstanceOf(InstanceOfAssertFactories.list(ContainerPort.class))
       .extracting("targetPort")
       .containsExactly(new IntOrString(42));
   }

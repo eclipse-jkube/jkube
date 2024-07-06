@@ -130,7 +130,7 @@ class KubernetesResourceUtilTest {
         .hasFieldOrPropertyWithValue("name", "demo")
         .hasFieldOrPropertyWithValue("image", "spring-boot-test:latest")
         .hasFieldOrPropertyWithValue("args", Collections.singletonList("/usr/local/s2i/run"))
-        .extracting("ports").asList().extracting("containerPort")
+        .extracting("ports").asInstanceOf(InstanceOfAssertFactories.list(Container.class)).extracting("containerPort")
         .containsExactly(8080, 9779, 8778);
   }
 
@@ -164,7 +164,7 @@ class KubernetesResourceUtilTest {
         .hasFieldOrPropertyWithValue("resources.requests.memory.amount", "256")
         .hasFieldOrPropertyWithValue("resources.limits.cpu.amount", "1.0")
         .hasFieldOrPropertyWithValue("resources.limits.memory.amount", "512")
-        .extracting("ports").asList().extracting("containerPort")
+        .extracting("ports").asInstanceOf(InstanceOfAssertFactories.list(Container.class)).extracting("containerPort")
         .containsExactly(8080, 9779, 8778);
   }
 
@@ -298,7 +298,7 @@ class KubernetesResourceUtilTest {
           .extracting(DeploymentSpec::getTemplate)
           .extracting(PodTemplateSpec::getSpec)
           .extracting(PodSpec::getContainers)
-          .asList()
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
           .singleElement(InstanceOfAssertFactories.type(Container.class))
           .hasFieldOrPropertyWithValue("env", Collections.singletonList(new EnvVarBuilder().withName("E1").withValue("V1").build()))
           .hasFieldOrPropertyWithValue("name", "foo");
@@ -336,7 +336,7 @@ class KubernetesResourceUtilTest {
           .extracting(DeploymentSpec::getTemplate)
           .extracting(PodTemplateSpec::getSpec)
           .extracting(PodSpec::getContainers)
-          .asList()
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
           .singleElement(InstanceOfAssertFactories.type(Container.class))
           .hasFieldOrPropertyWithValue("name", "foo");
     }
@@ -391,7 +391,7 @@ class KubernetesResourceUtilTest {
           .extracting(DeploymentSpec::getTemplate)
           .extracting(PodTemplateSpec::getSpec)
           .extracting(PodSpec::getContainers)
-          .asList()
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
           .singleElement(InstanceOfAssertFactories.type(Container.class))
           .hasFieldOrPropertyWithValue("name", "c1");
     }
@@ -484,7 +484,7 @@ class KubernetesResourceUtilTest {
           .hasFieldOrPropertyWithValue("metadata.labels.l2", "v2")
           .extracting(Pod::getSpec)
           .extracting(PodSpec::getContainers)
-          .asList()
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
           .singleElement(InstanceOfAssertFactories.type(Container.class))
           .hasFieldOrPropertyWithValue("name", "c1")
           .hasFieldOrPropertyWithValue("image", "image1:latest");
