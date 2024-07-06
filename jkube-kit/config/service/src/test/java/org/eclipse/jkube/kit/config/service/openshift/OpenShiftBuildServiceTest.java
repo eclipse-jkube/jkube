@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.config.service.openshift;
 
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -21,6 +22,7 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
+import org.eclipse.jkube.kit.config.access.ClusterAccess;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
@@ -182,7 +184,7 @@ class OpenShiftBuildServiceTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
         .hasSize(2);
   }
 
@@ -203,7 +205,7 @@ class OpenShiftBuildServiceTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
         .hasSize(1);
   }
 

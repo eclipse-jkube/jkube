@@ -203,6 +203,6 @@ class SecurityHardeningEnricherTest {
       .hasFieldOrPropertyWithValue("securityContext.runAsUser", 10000L)
       .hasFieldOrPropertyWithValue("securityContext.runAsNonRoot", true)
       .hasFieldOrPropertyWithValue("securityContext.seccompProfile.type", "RuntimeDefault")
-      .extracting("securityContext.capabilities.drop").asList()
+      .extracting("securityContext.capabilities.drop").asInstanceOf(InstanceOfAssertFactories.list(String.class))
       .containsExactlyInAnyOrder("NET_RAW", "ALL");
 }

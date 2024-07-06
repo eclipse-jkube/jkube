@@ -133,9 +133,9 @@ class JavaExecGeneratorTest {
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
-        .extracting(AssemblyConfiguration::getLayers).asList().hasSize(1)
+        .extracting(AssemblyConfiguration::getLayers).asInstanceOf(InstanceOfAssertFactories.list(Assembly.class)).hasSize(1)
         .first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
-        .extracting(Assembly::getFileSets).asList()
+        .extracting(Assembly::getFileSets).asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class))
         .hasSize(3)
         .extracting("directory", "includes")
         .containsExactlyInAnyOrder(

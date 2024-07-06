@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
@@ -136,6 +137,6 @@ class JKubeConfigurationTest {
         .hasFieldOrPropertyWithValue("buildArgs.http_proxy", "127.0.0.1:8001")
         .hasFieldOrPropertyWithValue("pullRegistryConfig.registry", "the-pull-registry")
         .hasFieldOrPropertyWithValue("pushRegistryConfig.registry", "the-push-registry")
-        .extracting(JKubeConfiguration::getReactorProjects).asList().isEmpty();
+        .extracting(JKubeConfiguration::getReactorProjects).asInstanceOf(InstanceOfAssertFactories.list(JavaProject.class)).isEmpty();
   }
 }

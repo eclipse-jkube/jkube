@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import groovy.lang.Closure;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.codehaus.groovy.runtime.GStringImpl;
 import org.junit.jupiter.api.Test;
 
@@ -75,7 +76,7 @@ class GroovyUtilTest {
     final Map<String, Object> result = closureTo(closure, Map.class);
     // Then
     assertThat(result).hasSize(1)
-        .extracting("array").asList().containsExactly("one", "two", Collections.singletonMap("nested", "closure"));
+        .extracting("array").asInstanceOf(InstanceOfAssertFactories.list(Object.class)).containsExactly("one", "two", Collections.singletonMap("nested", "closure"));
   }
 
   /**
@@ -105,7 +106,7 @@ class GroovyUtilTest {
     // When
     final Optional<List<StructuredClass>> result = invokeOrParseClosureList(closure, StructuredClass.class);
     // Then
-    assertThat(result).isPresent().get().asList()
+    assertThat(result).isPresent().get().asInstanceOf(InstanceOfAssertFactories.list(StructuredClass.class))
         .hasSize(2)
         .extracting("property", "nested.nestedProperty")
         .containsExactly(

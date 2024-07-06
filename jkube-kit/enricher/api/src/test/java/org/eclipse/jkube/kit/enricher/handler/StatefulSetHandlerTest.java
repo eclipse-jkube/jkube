@@ -20,6 +20,7 @@ import java.util.Properties;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -101,7 +102,7 @@ class StatefulSetHandlerTest {
                 .hasFieldOrPropertyWithValue("serviceName", "testing")
                 .extracting(StatefulSetSpec::getTemplate).isNotNull()
                 .extracting(PodTemplateSpec::getSpec)
-                .extracting(PodSpec::getVolumes).asList()
+                .extracting(PodSpec::getVolumes).asInstanceOf(InstanceOfAssertFactories.list(PodSpec.class))
                 .isNotEmpty()
                 .first()
                 .hasFieldOrPropertyWithValue("name", "test")

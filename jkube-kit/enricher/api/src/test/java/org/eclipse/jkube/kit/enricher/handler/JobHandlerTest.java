@@ -17,16 +17,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
 import org.eclipse.jkube.kit.config.resource.VolumeConfig;
 
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.batch.v1.Job;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -97,7 +99,7 @@ class JobHandlerTest {
                 .extracting(JobSpec::getTemplate).isNotNull()
                 .extracting(PodTemplateSpec::getSpec)
                 .hasFieldOrPropertyWithValue("restartPolicy", "OnFailure")
-                .extracting(PodSpec::getVolumes).asList()
+                .extracting(PodSpec::getVolumes).asInstanceOf(InstanceOfAssertFactories.list(Volume.class))
                 .first()
                 .hasFieldOrPropertyWithValue("name", "test")
                 .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")

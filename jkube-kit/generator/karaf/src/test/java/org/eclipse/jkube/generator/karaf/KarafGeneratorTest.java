@@ -22,6 +22,8 @@ import java.util.Properties;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.kit.common.Assembly;
+import org.eclipse.jkube.kit.common.AssemblyFileSet;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -104,9 +106,9 @@ class KarafGeneratorTest {
     assertThat(result.iterator().next().getBuildConfiguration().getAssembly())
         .hasFieldOrPropertyWithValue("name", "deployments")
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", false)
-        .extracting(AssemblyConfiguration::getLayers).asList()
+        .extracting(AssemblyConfiguration::getLayers).asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
         .singleElement()
-        .extracting("fileSets").asList()
+        .extracting("fileSets").asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class))
         .extracting("directory", "outputDirectory", "directoryMode", "fileMode")
         .containsExactly(
             tuple(

@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -22,6 +24,7 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.ReplicaSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.PrefixedLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
@@ -159,8 +162,8 @@ class ImageEnricherTest {
               .hasFieldOrPropertyWithValue("kind", kind)
           )
           .satisfies(l -> assertThat(l)
-              .extracting("spec.template.spec.containers").first().asList()
-              .extracting("env").first().asList().first()
+              .extracting("spec.template.spec.containers").first().asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+              .extracting("env").first().asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class)).first()
               .hasFieldOrPropertyWithValue("name", expectedKey)
               .hasFieldOrPropertyWithValue("value", expectedValue)
           );

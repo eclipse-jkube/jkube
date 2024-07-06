@@ -27,6 +27,7 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.openshift.api.model.TemplateBuilder;
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Maintainer;
 
@@ -148,7 +149,7 @@ class HelmServiceUtilTest {
     assertThat(result)
       .hasFieldOrPropertyWithValue("chart", "artifact-id")
       .hasFieldOrPropertyWithValue("version", "1337")
-      .extracting(HelmConfig::getTypes).asList()
+      .extracting(HelmConfig::getTypes).asInstanceOf(InstanceOfAssertFactories.list(HelmConfig.HelmType.class))
       .containsExactlyInAnyOrder(
           HelmConfig.HelmType.KUBERNETES,
           HelmConfig.HelmType.OPENSHIFT

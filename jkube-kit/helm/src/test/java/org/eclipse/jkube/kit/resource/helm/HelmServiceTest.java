@@ -279,7 +279,7 @@ class HelmServiceTest {
         entry("name", "Chart Name"),
         entry("version", "1337")
       )
-      .extracting("dependencies").asList().singleElement()
+      .extracting("dependencies").asInstanceOf(InstanceOfAssertFactories.list(Map.class)).singleElement()
       .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
       .contains(
         entry("name", "nginx"),

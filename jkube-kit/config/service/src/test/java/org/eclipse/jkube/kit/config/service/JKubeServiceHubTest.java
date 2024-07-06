@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.config.service;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -252,11 +253,11 @@ class JKubeServiceHubTest {
     // Given
     try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build();
          MockedConstruction<ClusterAccess> clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class)) {
-      assertThat(clusterAccessMockedConstruction.constructed()).asList().isEmpty();
+      assertThat(clusterAccessMockedConstruction.constructed()).asInstanceOf(InstanceOfAssertFactories.list(ClusterAccess.class)).isEmpty();
       // When
       jKubeServiceHub.getClusterAccess();
       // Then
-      assertThat(clusterAccessMockedConstruction.constructed()).asList().isEmpty();
+      assertThat(clusterAccessMockedConstruction.constructed()).asInstanceOf(InstanceOfAssertFactories.list(ClusterAccess.class)).isEmpty();
     }
   }
 
@@ -266,11 +267,11 @@ class JKubeServiceHubTest {
     jKubeServiceHubBuilder.clusterAccess(null);
     try (final JKubeServiceHub jKubeServiceHub = jKubeServiceHubBuilder.build();
          MockedConstruction<ClusterAccess> clusterAccessMockedConstruction = mockConstruction(ClusterAccess.class)) {
-      assertThat(clusterAccessMockedConstruction.constructed()).asList().isEmpty();
+      assertThat(clusterAccessMockedConstruction.constructed()).asInstanceOf(InstanceOfAssertFactories.list(ClusterAccess.class)).isEmpty();
       // When
       jKubeServiceHub.getClusterAccess();
       // Then
-      assertThat(clusterAccessMockedConstruction.constructed()).asList().hasSize(1);
+      assertThat(clusterAccessMockedConstruction.constructed()).asInstanceOf(InstanceOfAssertFactories.list(ClusterAccess.class)).hasSize(1);
     }
   }
 

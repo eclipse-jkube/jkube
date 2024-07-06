@@ -77,7 +77,7 @@ class InitContainerConfigTest {
         .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent")
         .hasFieldOrPropertyWithValue("cmd", Arguments.builder().exec(Arrays.asList("sleep", "10")).build())
         .extracting(InitContainerConfig::getVolumes)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(VolumeConfig.class))
         .singleElement(InstanceOfAssertFactories.type(VolumeConfig.class))
         .hasFieldOrPropertyWithValue("name", "workdir")
         .hasFieldOrPropertyWithValue("path", "/work-dir");

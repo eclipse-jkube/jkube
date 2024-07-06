@@ -15,6 +15,8 @@ package org.eclipse.jkube.enricher.generic;
 
 import java.util.Collections;
 
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
 import io.fabric8.kubernetes.api.model.Container;
@@ -72,7 +74,7 @@ class ContainerEnvJavaOptionsMergeVisitorTest {
     kubernetesListBuilder.accept(new ContainerEnvJavaOptionsMergeEnricher
         .ContainerEnvJavaOptionsMergeVisitor(Collections.singletonList(imageConfiguration)));
     // Then
-    assertThat(kubernetesListBuilder.build().getItems()).asList()
+    assertThat(kubernetesListBuilder.build().getItems()).asInstanceOf(InstanceOfAssertFactories.list(KubernetesList.class))
         .hasSize(1)
         .flatExtracting("spec.template.spec.containers")
         .flatExtracting("env").isEmpty();
@@ -91,7 +93,7 @@ class ContainerEnvJavaOptionsMergeVisitorTest {
     kubernetesListBuilder.accept(new ContainerEnvJavaOptionsMergeEnricher
         .ContainerEnvJavaOptionsMergeVisitor(Collections.singletonList(imageConfiguration)));
     // Then
-    assertThat(kubernetesListBuilder.build().getItems()).asList()
+    assertThat(kubernetesListBuilder.build().getItems()).asInstanceOf(InstanceOfAssertFactories.list(KubernetesList.class))
         .hasSize(1)
         .flatExtracting("spec.template.spec.containers")
         .flatExtracting("env").isEmpty();
@@ -114,7 +116,7 @@ class ContainerEnvJavaOptionsMergeVisitorTest {
     kubernetesListBuilder.accept(new ContainerEnvJavaOptionsMergeEnricher
         .ContainerEnvJavaOptionsMergeVisitor(Collections.singletonList(imageConfiguration)));
     // Then
-    assertThat(containerList(kubernetesListBuilder)).asList()
+    assertThat(containerList(kubernetesListBuilder)).asInstanceOf(InstanceOfAssertFactories.list(KubernetesList.class))
         .hasSize(2)
         .filteredOn("image", "the-image:latest")
         .hasSize(1)
@@ -123,7 +125,7 @@ class ContainerEnvJavaOptionsMergeVisitorTest {
             new EnvVar("JAVA_OPTIONS", "-DsomeOption -DotherOption", null),
             new EnvVar("OTHER", "OTHER_VALUE", null)
         );
-    assertThat(containerList(kubernetesListBuilder)).asList()
+    assertThat(containerList(kubernetesListBuilder)).asInstanceOf(InstanceOfAssertFactories.list(KubernetesList.class))
         .filteredOn("image", "other-image:latest")
         .hasSize(1)
         .flatExtracting("env")

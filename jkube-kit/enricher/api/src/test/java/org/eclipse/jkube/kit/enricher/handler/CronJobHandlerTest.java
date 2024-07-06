@@ -15,8 +15,10 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.batch.v1.CronJob;
 import io.fabric8.kubernetes.api.model.batch.v1.JobSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
@@ -97,7 +99,7 @@ class CronJobHandlerTest {
             .extracting(JobSpec::getTemplate)
             .extracting(PodTemplateSpec::getSpec)
             .hasFieldOrPropertyWithValue("restartPolicy", "Never")
-            .extracting(PodSpec::getVolumes).asList().first()
+            .extracting(PodSpec::getVolumes).asInstanceOf(InstanceOfAssertFactories.list(Volume.class)).first()
             .hasFieldOrPropertyWithValue("name", "test")
             .hasFieldOrPropertyWithValue("hostPath.path", "/test/path")
         );

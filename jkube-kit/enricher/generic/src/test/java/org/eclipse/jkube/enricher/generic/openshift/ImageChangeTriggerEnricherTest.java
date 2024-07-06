@@ -15,6 +15,7 @@ package org.eclipse.jkube.enricher.generic.openshift;
 
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -130,7 +131,7 @@ class ImageChangeTriggerEnricherTest {
         .extracting(DeploymentConfigSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .first(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getImage)
         .isEqualTo("");
@@ -151,10 +152,10 @@ class ImageChangeTriggerEnricherTest {
     imageChangeTriggerEnricher.create(PlatformMode.openshift, kubernetesListBuilder);
 
     // Then
-    assertThat(kubernetesListBuilder.buildItems()).asList()
+    assertThat(kubernetesListBuilder.buildItems()).asInstanceOf(InstanceOfAssertFactories.list(KubernetesList.class))
         .singleElement()
         .extracting("spec.triggers")
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(DeploymentTriggerPolicy.class))
         .isEmpty();
   }
 
@@ -176,10 +177,10 @@ class ImageChangeTriggerEnricherTest {
   private void assertDeploymentConfigHasTriggers(KubernetesListBuilder kubernetesListBuilder, int triggersSize, DeploymentTriggerPolicy... triggerPolicies) {
     List<HasMetadata> items = kubernetesListBuilder.buildItems();
     assertThat(items)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(DeploymentConfig.class))
         .singleElement()
         .extracting("spec.triggers")
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(DeploymentTriggerPolicy.class))
         .hasSize(triggersSize)
         .containsExactlyInAnyOrder(triggerPolicies);
   }

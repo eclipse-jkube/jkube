@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 
@@ -47,7 +48,7 @@ class ProjectEnricherTest {
         // Then
         assertThat(klb.build())
             .extracting(KubernetesList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(Project.class))
             .singleElement()
             .isInstanceOf(Project.class)
             .hasFieldOrPropertyWithValue("metadata.name", "foo");
@@ -64,11 +65,11 @@ class ProjectEnricherTest {
         // Then
         assertThat(klb.build())
             .extracting(KubernetesList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(Project.class))
             .singleElement()
             .isInstanceOf(Project.class)
             .extracting("spec.finalizers")
-            .asList().first().isEqualTo("hoo");
+            .asInstanceOf(InstanceOfAssertFactories.list(String.class)).first().isEqualTo("hoo");
     }
 
     @Test
@@ -82,7 +83,7 @@ class ProjectEnricherTest {
         // Then
         assertThat(klb.build())
             .extracting(KubernetesList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(Project.class))
             .singleElement()
             .isInstanceOf(Project.class)
             .hasFieldOrPropertyWithValue("status.phase", "Complete");
@@ -98,7 +99,7 @@ class ProjectEnricherTest {
         // Then
         assertThat(klb.build())
             .extracting(KubernetesList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(Service.class))
             .singleElement()
             .isInstanceOf(Service.class)
             .hasFieldOrPropertyWithValue("metadata.name", null);
