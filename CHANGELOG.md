@@ -22,9 +22,10 @@ Usage:
 ```
 ### 1.17-SNAPSHOT
 * Fix #1989: Remove storageClass related fields from VolumePermissionEnricher
-* Fix #3161: JavaExecGenerator should honor %t setting and not unconditionally add `latest` tag
 * Fix #2098: Add support for multi-platform container image builds in jib build strategy
+* Fix #2110: Add new helm dependency update goal task (`k8s:helm-dependency-update` for maven and `k8sHelmDependencyUpdate` for gradle)
 * Fix #2335: Add support for configuring nodeSelector spec for controller via xml/groovy DSL configuration
+* Fix #2381: All base images provide support for Java 21
 * Fix #2459: Allow configuring Buildpacks build via ImageConfiguration
 * Fix #2462: `k8s:debug` throws error when using `buildpacks` build strategy
 * Fix #2463: Buildpacks should clear build cache when `nocache` option is enabled
@@ -35,10 +36,11 @@ Usage:
 * Fix #2885: Provide a way to set labels on images defined by Generators
 * Fix #2901: Ensure Docker build arguments from properties are used during images pre-pulling
 * Fix #2904: `docker.buildArg.*` properties not taken into account in OpenShift plugins
+* Fix #2911: Base images don't use manual container detection and rely on Java's built-in mechanisms 
 * Fix #3007: Kubernetes Maven Plugin generating resource manifests with line feeds on Windows
 * Fix #3067: Helm Push uses configured docker global and push registries instead of pull 
-* Fix #2110: Add new helm dependency update goal task (`k8s:helm-dependency-update` for maven and `k8sHelmDependencyUpdate` for gradle)
 * Fix #3122: JKube should also pass project directory in `buildpacks` build strategy
+* Fix #3161: JavaExecGenerator should honor %t setting and not unconditionally add `latest` tag
 * Fix #2467: Add support for specifying imagePullSecrets via resource configuration
 
 _**Note**_:
