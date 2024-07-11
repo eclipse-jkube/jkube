@@ -470,17 +470,17 @@ class KubernetesHelperTest {
     @DisplayName("should work with KubernetesClient config provided by KubernetesMockServer")
     void exportKubernetesClientConfigToFile_worksWithKubernetesMockServer(@TempDir Path temporaryFolder) throws IOException {
         // When
-        final Path result = KubernetesMockServerUtil.exportKubernetesClientConfigToFile(mockServer, temporaryFolder.resolve("config"));
+        final Path result = KubernetesHelper.exportKubernetesClientConfigToFile(mockClient.getConfiguration(), temporaryFolder.resolve("config"));
         // Then
         final io.fabric8.kubernetes.api.model.Config kc = Serialization
           .unmarshal(result.toFile(), io.fabric8.kubernetes.api.model.Config.class);
         assertThat(kc)
-          .hasFieldOrPropertyWithValue("currentContext", "mock-server")
+          .hasFieldOrPropertyWithValue("currentContext", "fabric8-mock-server-context")
           .satisfies(c -> assertThat(c.getContexts())
             .singleElement(InstanceOfAssertFactories.type(NamedContext.class))
-            .hasFieldOrPropertyWithValue("name", "mock-server")
+            .hasFieldOrPropertyWithValue("name", "fabric8-mock-server-context")
             .hasFieldOrPropertyWithValue("context.namespace", "test")
-            .hasFieldOrPropertyWithValue("context.user", "mock-server-user")
+            .hasFieldOrPropertyWithValue("context.user", "fabric8-mock-server-user")
             .extracting("context.cluster").asString()
             .matches("localhost:\\d+")
           )
@@ -492,7 +492,7 @@ class KubernetesHelperTest {
           )
           .satisfies(c -> assertThat(c.getUsers())
             .singleElement(InstanceOfAssertFactories.type(NamedAuthInfo.class))
-            .hasFieldOrPropertyWithValue("name", "mock-server-user"));
+            .hasFieldOrPropertyWithValue("name", "fabric8-mock-server-user"));
     }
 
     @Test
