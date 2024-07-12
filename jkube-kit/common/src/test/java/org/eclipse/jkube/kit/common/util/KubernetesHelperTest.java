@@ -532,6 +532,27 @@ class KubernetesHelperTest {
             .hasFieldOrPropertyWithValue("user.authProvider.config.key1", "value1"));
     }
 
+    @Test
+    @DisplayName("should work with valid kube config")
+    void exportKubernetesClientConfigToFile_whenTrustCertsEnabled_thenDoNotAddCertData(@TempDir Path temporaryFolder) throws IOException {
+        // Given
+        io.fabric8.kubernetes.client.Config kubernetesClientConfig = createKubernetesClientConfig();
+        kubernetesClientConfig.setTrustCerts(true);
+
+        // When
+        Path exportedKubeConfig = KubernetesHelper.exportKubernetesClientConfigToFile(kubernetesClientConfig, temporaryFolder.resolve("config"));
+
+        // Then
+        assertThat(exportedKubeConfig).isNotNull();
+        assertThat(Serialization.unmarshal(exportedKubeConfig.toFile(), io.fabric8.kubernetes.api.model.Config.class))
+          .satisfies(c -> assertThat(c.getClusters())
+            .singleElement(InstanceOfAssertFactories.type(NamedCluster.class))
+            .hasFieldOrPropertyWithValue("name", "example-openshiftapps-com:6443")
+            .hasFieldOrPropertyWithValue("cluster.server", "https://example-openshiftapps-com:6443/")
+            .hasFieldOrPropertyWithValue("cluster.certificateAuthority", null)
+            .hasFieldOrPropertyWithValue("cluster.certificateAuthorityData", null));
+    }
+
     private Config createKubernetesClientConfig() {
         NamedContext currentContext = new NamedContextBuilder().withName("cluster1-context")
           .withNewContext()

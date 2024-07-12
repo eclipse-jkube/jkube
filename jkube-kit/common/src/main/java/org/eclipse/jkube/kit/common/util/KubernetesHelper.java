@@ -852,10 +852,10 @@ public class KubernetesHelper {
         if (StringUtils.isNotBlank(kubernetesClientConfig.getMasterUrl())) {
             clusterBuilder.withServer(kubernetesClientConfig.getMasterUrl());
         }
-        if (StringUtils.isNotBlank(kubernetesClientConfig.getCaCertFile())) {
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getCaCertFile()) && !kubernetesClientConfig.isTrustCerts()) {
             clusterBuilder.withCertificateAuthority(kubernetesClientConfig.getCaCertFile());
         }
-        if (StringUtils.isNotBlank(kubernetesClientConfig.getCaCertData())) {
+        if (StringUtils.isNotBlank(kubernetesClientConfig.getCaCertData()) && !kubernetesClientConfig.isTrustCerts()) {
             clusterBuilder.withCertificateAuthorityData(kubernetesClientConfig.getCaCertData());
         }
         if (kubernetesClientConfig.isTrustCerts()) {
