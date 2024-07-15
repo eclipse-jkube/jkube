@@ -15,7 +15,6 @@ package org.eclipse.jkube.kit.config.service.ingresscontroller;
 
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodListBuilder;
-import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReview;
 import io.fabric8.kubernetes.api.model.authorization.v1.SelfSubjectAccessReviewBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressClassBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressClassListBuilder;
