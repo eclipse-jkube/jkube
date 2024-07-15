@@ -161,8 +161,8 @@ class DockerImageWatcherRestartContainerTest {
     assertThat(podTemplateSpec)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
-        .first(InstanceOfAssertFactories.type(Container.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+        .first()
         .extracting(Container::getImage)
         .isEqualTo(expectedImage);
   }
