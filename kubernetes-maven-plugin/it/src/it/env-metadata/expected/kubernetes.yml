@@ -72,6 +72,7 @@ items:
       spec:
         containers:
         - env:
+          - name: MY_ENV_empty
           - name: MY_ENV_key
             value: MY_ENV_value
           - name: KUBERNETES_NAMESPACE

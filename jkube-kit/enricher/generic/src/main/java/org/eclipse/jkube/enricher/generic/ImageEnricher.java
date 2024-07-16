@@ -284,7 +284,7 @@ public class ImageEnricher extends BaseEnricher {
                 EnvVar newEnvVar =
                     new EnvVarBuilder()
                         .withName(resourceEnvEntry.getKey())
-                        .withValue(resourceEnvEntry.getValue())
+                        .withValue(Optional.ofNullable(resourceEnvEntry.getValue()).orElse(""))
                         .build();
 
                 EnvVar oldEnvVar = containerEnvVars.stream()

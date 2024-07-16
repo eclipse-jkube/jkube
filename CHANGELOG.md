@@ -42,6 +42,7 @@ Usage:
 * Fix #3122: JKube should also pass project directory in `buildpacks` build strategy
 * Fix #3161: JavaExecGenerator should honor %t setting and not unconditionally add `latest` tag
 * Fix #2467: Add support for specifying imagePullSecrets via resource configuration
+* Fix #3220: ImageEnricher#mergeEnvVariables causes error for empty env
 
 _**Note**_:
 - `defaultStorageClass` and `useStorageClassAnnotation` fields have been removed from VolumePermissionEnricher (`jkube-volume-permission`). Users are advised to use these fields from PersistentVolumeClaimStorageClassEnricher (`jkube-persistentvolumeclaim-storageclass`) instead.

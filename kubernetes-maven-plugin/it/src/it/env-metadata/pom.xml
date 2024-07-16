@@ -51,6 +51,7 @@
         <configuration>
           <resources>
             <env>
+              <MY_ENV_empty></MY_ENV_empty>
               <MY_ENV_key>MY_ENV_value</MY_ENV_key>
               <KUBERNETES_NAMESPACE>this_will_not_be_overridden</KUBERNETES_NAMESPACE>
             </env>
