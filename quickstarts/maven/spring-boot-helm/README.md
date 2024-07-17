@@ -93,13 +93,13 @@ mvn -Pprod clean package k8s:build k8s:resource k8s:helm
 
 The resulting Helm chart will be located in the `target/jkube/helm/spring-boot-helm` directory.
 
-If you're testing this in Minikube, you can deploy the Helm chart using the following command:
+If you're testing this in Minikube, you can deploy the Helm chart using the `k8s:helm-install` goal or `helm CLI`:
 
 ```shell
-helm install spring-boot-helm target/jkube/helm/spring-boot-helm/kubernetes/
+mvn k8s:helm-install
 ```
 
-You can also override some of the values defined in the `values.yaml` file using the `--set` flag:
+With `helm` CLI, You can also override some of the values defined in the `values.yaml` file using the `--set` flag:
 
 ```shell
 helm install spring-boot-helm target/jkube/helm/spring-boot-helm/kubernetes/ --set deployment.replicas=5 --set service.spec.type=NodePort

@@ -279,14 +279,15 @@ ifeval::["{plugin-type}" == "gradle"]
 ==== Installing the generated Helm chart
 endif::[]
 
-In a next step you can install this via the https://github.com/helm/helm/releases[helm command line tool] as follows:
 
 ifeval::["{plugin-type}" == "maven"]
+In a next step you can install this via <<jkube:helm-install, {goal-prefix}:helm-install>> goal as follows:
 include::maven/_helm_install.adoc[]
 
 In addition, this goal will also create a tar-archive below `${basedir}/target` which contains the chart with its template.
 endif::[]
 ifeval::["{plugin-type}" == "gradle"]
+In a next step you can install this via <<jkubeHelmInstall, {task-prefix}HelmInstall>> task as follows:
 include::gradle/_helm_install.adoc[]
 
 In addition, this task will also create a tar-archive below `outputDir` which contains the chart with its template.
