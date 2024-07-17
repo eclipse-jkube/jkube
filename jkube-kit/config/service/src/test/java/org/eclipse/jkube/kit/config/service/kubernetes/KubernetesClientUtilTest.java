@@ -13,7 +13,10 @@
  */
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResourceBuilder;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.base.CustomResourceDefinitionContext;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -22,8 +25,6 @@ import io.fabric8.kubernetes.client.Watcher;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.doDeleteAndWait;
@@ -158,13 +159,14 @@ class KubernetesClientUtilTest {
   @Test
   void getPodCondition_whenPodConditionIsReadyAndTrue_shouldReturnReady() {
     // Given
-    Pod pod = new Pod();
-    PodStatus podStatus = new PodStatus();
-    PodCondition podCondition = new PodCondition();
-    podCondition.setType("ready");
-    podCondition.setStatus("True");
-    podStatus.setConditions(Collections.singletonList(podCondition));
-    pod.setStatus(podStatus);
+    Pod pod = new PodBuilder()
+      .withNewStatus()
+      .addNewCondition()
+      .withType("ready")
+      .withStatus("True")
+      .endCondition()
+      .endStatus()
+      .build();
 
     // When
     String condition = KubernetesClientUtil.getPodCondition(pod);
@@ -176,13 +178,14 @@ class KubernetesClientUtilTest {
   @Test
   void getPodCondition_whenPodConditionIsReadyAndFalse_shouldReturnEmptyString() {
     // Given
-    Pod pod = new Pod();
-    PodStatus podStatus = new PodStatus();
-    PodCondition podCondition = new PodCondition();
-    podCondition.setType("ready");
-    podCondition.setStatus("False");
-    podStatus.setConditions(Collections.singletonList(podCondition));
-    pod.setStatus(podStatus);
+    Pod pod = new PodBuilder()
+      .withNewStatus()
+      .addNewCondition()
+      .withType("ready")
+      .withStatus("False")
+      .endCondition()
+      .endStatus()
+      .build();
 
     // When
     String condition = KubernetesClientUtil.getPodCondition(pod);
@@ -194,13 +197,14 @@ class KubernetesClientUtilTest {
   @Test
   void getPodCondition_whenPodConditionIsNotReady_shouldReturnEmptyString() {
     // Given
-    Pod pod = new Pod();
-    PodStatus podStatus = new PodStatus();
-    PodCondition podCondition = new PodCondition();
-    podCondition.setType("notready");
-    podCondition.setStatus("True");
-    podStatus.setConditions(Collections.singletonList(podCondition));
-    pod.setStatus(podStatus);
+    Pod pod = new PodBuilder()
+      .withNewStatus()
+      .addNewCondition()
+      .withType("notready")
+      .withStatus("True")
+      .endCondition()
+      .endStatus()
+      .build();
 
     // When
     String condition = KubernetesClientUtil.getPodCondition(pod);
