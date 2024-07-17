@@ -1,0 +1,45 @@
+ifeval::["{plugin-type}" == "maven"]
+[[jkube:helm-install]]
+== *{goal-prefix}:helm-install*
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[[jkubeHelmInstall]]
+=== *{task-prefix}HelmInstall*
+endif::[]
+
+This feature allows you to install your Eclipse JKube-generated
+https://helm.sh/docs/topics/charts[Helm charts]
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_mvn_helm_install.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_gradle_helm_install.adoc[]
+endif::[]
+
+.Helm Install configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *releaseName*
+| Name of Helm Release (instance of a chart running in a Kubernetes cluster).
+| `jkube.helm.release.name`
+
+| *installDependencyUpdate*
+| update dependencies if they are missing before installing the chart
+| `jkube.helm.install.dependencyUpdate`
+
+| *installWaitReady*
+| if set, will wait until all Pods, PVCs, Services, and minimum number of Pods of a Deployment, StatefulSet, or ReplicaSet are in a ready state before marking the release as successful.
+| `jkube.helm.install.waitReady`
+
+|===
+
+.Example Helm Install configuration
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_example_helm_install_config.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_example_helm_install_config.adoc[]
+endif::[]

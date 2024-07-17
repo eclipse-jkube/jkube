@@ -16,3 +16,5 @@ include::{kitdoc-path}/inc/helm/_jkube_helm_push.adoc[]
 include::{kitdoc-path}/inc/helm/_jkube_helm_lint.adoc[]
 
 include::{kitdoc-path}/inc/helm/_jkube_helm_dependency_update.adoc[]
+
+include::{kitdoc-path}/inc/helm/_jkube_helm_install.adoc[]
