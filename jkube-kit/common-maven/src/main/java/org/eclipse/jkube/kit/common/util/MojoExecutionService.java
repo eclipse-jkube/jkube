@@ -66,7 +66,7 @@ public class MojoExecutionService {
 
         try {
             String executionId = null;
-            if (goal != null && goal.length() > 0 && goal.indexOf('#') > -1) {
+            if (goal != null && !goal.isEmpty() && goal.indexOf('#') > -1) {
                 int pos = goal.indexOf('#');
                 executionId = goal.substring(pos + 1);
                 goal = goal.substring(0, pos);
