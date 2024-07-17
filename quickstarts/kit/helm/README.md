@@ -20,7 +20,7 @@ Run the `mvn package` from your terminal.
 
 Once the process completes, a success informative message is printed.
 
-You can now install the generated chart using the `helm install jkube-example ./target/helm/kubernetes` command.
+You can install the generated chart by invoking `getHelmService().install(helmConfig)` programmatically or using the `helm install jkube-example ./target/helm/kubernetes` command.
 
 
 ```shell script
