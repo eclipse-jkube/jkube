@@ -285,7 +285,7 @@ class DockerFileBuilderTest {
         final Scanner scanner = new Scanner(dockerFile);
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
-            if (line.trim().length() == 0) {
+            if (line.trim().isEmpty()) {
                 continue;
             }
             String[] commandAndArguments = line.trim().split("\\s+", 2);
