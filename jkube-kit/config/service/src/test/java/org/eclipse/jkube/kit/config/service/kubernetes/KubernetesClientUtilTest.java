@@ -156,4 +156,61 @@ class KubernetesClientUtilTest {
     assertThat(messagePostfix).isEqualTo(": Error");
   }
 
+  @Test
+  void getPodCondition_whenPodConditionIsReadyAndTrue_shouldReturnReady() {
+    // Given
+    Pod pod = new PodBuilder()
+      .withNewStatus()
+      .addNewCondition()
+      .withType("ready")
+      .withStatus("True")
+      .endCondition()
+      .endStatus()
+      .build();
+
+    // When
+    String condition = KubernetesClientUtil.getPodCondition(pod);
+
+    // Then
+    assertThat(condition).isEqualTo("ready");
+  }
+
+  @Test
+  void getPodCondition_whenPodConditionIsReadyAndFalse_shouldReturnEmptyString() {
+    // Given
+    Pod pod = new PodBuilder()
+      .withNewStatus()
+      .addNewCondition()
+      .withType("ready")
+      .withStatus("False")
+      .endCondition()
+      .endStatus()
+      .build();
+
+    // When
+    String condition = KubernetesClientUtil.getPodCondition(pod);
+
+    // Then
+    assertThat(condition).isEmpty();
+  }
+
+  @Test
+  void getPodCondition_whenPodConditionIsNotReady_shouldReturnEmptyString() {
+    // Given
+    Pod pod = new PodBuilder()
+      .withNewStatus()
+      .addNewCondition()
+      .withType("notready")
+      .withStatus("True")
+      .endCondition()
+      .endStatus()
+      .build();
+
+    // When
+    String condition = KubernetesClientUtil.getPodCondition(pod);
+
+    // Then
+    assertThat(condition).isEmpty();
+  }
+
 }
