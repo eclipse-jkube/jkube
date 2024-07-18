@@ -43,7 +43,8 @@ class RegistryConfigTest {
         .hasFieldOrPropertyWithValue("registry", "the-registry")
         .hasFieldOrPropertyWithValue("skipExtendedAuth", true)
         .hasFieldOrPropertyWithValue("authConfig", null)
-        .extracting(RegistryConfig::getSettings).asInstanceOf(InstanceOfAssertFactories.list(RegistryConfig.class)).hasSize(1)
+        .extracting(RegistryConfig::getSettings).asInstanceOf(InstanceOfAssertFactories.list(RegistryServerConfiguration.class))
+        .hasSize(1)
         .extracting("id", "username")
         .containsExactly(tuple("server-1", "the-user"));
   }
