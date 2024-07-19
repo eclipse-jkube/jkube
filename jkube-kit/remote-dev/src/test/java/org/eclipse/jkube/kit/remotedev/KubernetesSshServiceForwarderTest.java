@@ -17,6 +17,8 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodConditionBuilder;
 import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
@@ -33,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import static org.eclipse.jkube.kit.common.util.AsyncUtil.await;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
@@ -84,7 +87,7 @@ class KubernetesSshServiceForwarderTest {
     assertThat(result)
       .extracting(Pod::getSpec)
       .extracting(PodSpec::getContainers)
-      .asList()
+      .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
       .singleElement()
       .hasFieldOrPropertyWithValue("image", "quay.io/jkube/jkube-remote-dev:0.0.24");
   }
@@ -103,10 +106,10 @@ class KubernetesSshServiceForwarderTest {
     assertThat(result)
       .extracting(Pod::getSpec)
       .extracting(PodSpec::getContainers)
-      .asList()
+      .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
       .singleElement()
       .extracting("ports")
-      .asList()
+      .asInstanceOf(InstanceOfAssertFactories.list(ContainerPort.class))
       .extracting("containerPort")
       .containsExactly(2222, 1337);
   }
