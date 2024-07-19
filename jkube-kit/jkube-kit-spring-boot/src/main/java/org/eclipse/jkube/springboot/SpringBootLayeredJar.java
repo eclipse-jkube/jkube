@@ -13,19 +13,20 @@
  */
 package org.eclipse.jkube.springboot;
 
-import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.ExternalCommand;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.util.Serialization;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 public class SpringBootLayeredJar {
@@ -65,10 +66,15 @@ public class SpringBootLayeredJar {
   }
 
   public List<String> listLayers() {
-    final LayerListCommand layerListCommand = new LayerListCommand(kitLogger, layeredJar);
-    try {
-      layerListCommand.execute();
-      return layerListCommand.getLayers();
+    try (JarFile jarFile = new JarFile(layeredJar)) {
+      List<Map<String, List<String>>> layers = Serialization.unmarshal(jarFile.getInputStream(jarFile.getEntry("BOOT-INF/layers.idx")), List.class);
+      if (layers == null) {
+        throw new IOException("Unable to find layers information in BOOT-INF/layers.idx file");
+      }
+
+      return layers.stream()
+          .flatMap(m -> m.keySet().stream())
+          .collect(Collectors.toList());
     } catch (IOException ioException) {
       throw new IllegalStateException("Failure in getting spring boot jar layers information", ioException);
     }
@@ -98,18 +104,4 @@ public class SpringBootLayeredJar {
     }
   }
 
-  @Getter
-  private static class LayerListCommand extends LayerToolsCommand {
-
-    private final List<String> layers;
-    protected LayerListCommand(KitLogger log, File layeredJar) {
-      super(log, null, layeredJar, "list");
-      layers = new ArrayList<>();
-    }
-
-    @Override
-    protected void processLine(String line) {
-      layers.add(line);
-    }
-  }
 }
