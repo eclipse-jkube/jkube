@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.AuthProviderConfigBuilder;
@@ -469,6 +470,10 @@ class KubernetesHelperTest {
     @Test
     @DisplayName("should work with KubernetesClient config provided by KubernetesMockServer")
     void exportKubernetesClientConfigToFile_worksWithKubernetesMockServer(@TempDir Path temporaryFolder) throws IOException {
+        String expectedHostName = mockServer.getHostName();
+        int expectedPort = mockServer.getPort();
+        String expectedClusterServerUrl = "https://" + expectedHostName + ":" + expectedPort + "/";
+        String expectedNameUrl = "localhost:" + expectedPort;
         // When
         final Path result = KubernetesHelper.exportKubernetesClientConfigToFile(mockClient.getConfiguration(), temporaryFolder.resolve("config"));
         // Then
@@ -488,8 +493,13 @@ class KubernetesHelperTest {
             .singleElement(InstanceOfAssertFactories.type(NamedCluster.class))
             .hasFieldOrPropertyWithValue("cluster.insecureSkipTlsVerify", true)
             .extracting("cluster.server", "name")
-            .allMatch(s -> s.toString().matches("(https://)?localhost:\\d+/?"))
-          )
+                .satisfies(serverUrls -> {
+                  List<String> actualUrls = ((List<?>) serverUrls).stream()
+                      .map(Object::toString)
+                      .collect(Collectors.toList());
+                  assertThat(actualUrls).hasSize(2)
+                      .contains(expectedClusterServerUrl, expectedNameUrl);
+                }))
           .satisfies(c -> assertThat(c.getUsers())
             .singleElement(InstanceOfAssertFactories.type(NamedAuthInfo.class))
             .hasFieldOrPropertyWithValue("name", "fabric8-mock-server-user"));
