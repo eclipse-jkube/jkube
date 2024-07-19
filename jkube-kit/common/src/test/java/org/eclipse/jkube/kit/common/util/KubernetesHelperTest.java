@@ -470,10 +470,6 @@ class KubernetesHelperTest {
     @Test
     @DisplayName("should work with KubernetesClient config provided by KubernetesMockServer")
     void exportKubernetesClientConfigToFile_worksWithKubernetesMockServer(@TempDir Path temporaryFolder) throws IOException {
-        String expectedHostName = mockServer.getHostName();
-        int expectedPort = mockServer.getPort();
-        String expectedClusterServerUrl = "https://" + expectedHostName + ":" + expectedPort + "/";
-        String expectedNameUrl = "localhost:" + expectedPort;
         // When
         final Path result = KubernetesHelper.exportKubernetesClientConfigToFile(mockClient.getConfiguration(), temporaryFolder.resolve("config"));
         // Then
@@ -498,7 +494,8 @@ class KubernetesHelperTest {
                       .map(Object::toString)
                       .collect(Collectors.toList());
                   assertThat(actualUrls).hasSize(2)
-                      .contains(expectedClusterServerUrl, expectedNameUrl);
+                      .contains("https://" + mockServer.getHostName() + ":" + mockServer.getPort() + "/",
+                          "localhost:" + mockServer.getPort());
                 }))
           .satisfies(c -> assertThat(c.getUsers())
             .singleElement(InstanceOfAssertFactories.type(NamedAuthInfo.class))
