@@ -91,7 +91,7 @@
           </execution>
         </executions>
         <configuration>
-          <systemProperties>
+          <systemPropertyVariables>
             <property>
               <name>itDir</name>
               <value>${project.basedir}</value>
@@ -100,7 +100,7 @@
               <name>jKubeVersion</name>
               <value>${project.version}</value>
             </property>
-          </systemProperties>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
     </plugins>
