@@ -629,7 +629,7 @@ class KubernetesResourceUtilTest {
   private void verifyBuilder(PodTemplateSpecBuilder builder, List<Container> initContainers) {
     PodTemplateSpec spec = builder.build();
     List<Container> initContainersInSpec = spec.getSpec().getInitContainers();
-    if (initContainersInSpec.size() == 0) {
+    if (initContainersInSpec.isEmpty()) {
       assertThat(initContainers).isNull();;
     } else {
       assertThat(initContainers).hasSameSizeAs(initContainersInSpec);
