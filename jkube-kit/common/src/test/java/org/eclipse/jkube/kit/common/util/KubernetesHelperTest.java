@@ -495,7 +495,7 @@ class KubernetesHelperTest {
                       .collect(Collectors.toList());
                   assertThat(actualUrls).hasSize(2)
                       .contains(String.format("https://%s:%d/", mockServer.getHostName(), mockServer.getPort()),
-                          String.format("localhost:" + mockServer.getPort()));
+                          String.format("localhost:%d", mockServer.getPort()));
                 }))
           .satisfies(c -> assertThat(c.getUsers())
             .singleElement(InstanceOfAssertFactories.type(NamedAuthInfo.class))
