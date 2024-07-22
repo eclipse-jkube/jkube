@@ -79,8 +79,7 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
                     }
                 }
                 // add a new image change trigger for the build stream
-                if (containerToImageMap.size() != 0) {
-                    if(enableImageChangeTrigger && isOpenShiftMode()) {
+            if (!containerToImageMap.isEmpty() && enableImageChangeTrigger && isOpenShiftMode()) {
                         for (Map.Entry<String, String> entry : containerToImageMap.entrySet()) {
                             String containerName = entry.getKey();
 
@@ -106,7 +105,7 @@ public class ImageChangeTriggerEnricher extends BaseEnricher {
                         }
                     }
 
-                }
+
             }
         });
     }
