@@ -18,6 +18,7 @@ import java.io.IOException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +43,9 @@ class RegistryConfigTest {
         .hasFieldOrPropertyWithValue("registry", "the-registry")
         .hasFieldOrPropertyWithValue("skipExtendedAuth", true)
         .hasFieldOrPropertyWithValue("authConfig", null)
-        .extracting(RegistryConfig::getSettings).asList().hasSize(1).extracting("id", "username")
+        .extracting(RegistryConfig::getSettings).asInstanceOf(InstanceOfAssertFactories.list(RegistryServerConfiguration.class))
+        .hasSize(1)
+        .extracting("id", "username")
         .containsExactly(tuple("server-1", "the-user"));
   }
 }
