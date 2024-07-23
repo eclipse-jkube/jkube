@@ -116,7 +116,7 @@ class ControllerResourceConfigTest {
             .hasFieldOrPropertyWithValue("imagePullPolicy", "IfNotPresent")
             .hasFieldOrPropertyWithValue("cmd", Arguments.builder().exec(Arrays.asList("sleep", "10")).build())
             .extracting(InitContainerConfig::getVolumes)
-            .asInstanceOf(InstanceOfAssertFactories.LIST)
+            .asInstanceOf(InstanceOfAssertFactories.list(VolumeConfig.class))
             .singleElement(InstanceOfAssertFactories.type(VolumeConfig.class))
             .hasFieldOrPropertyWithValue("name", "workdir")
             .hasFieldOrPropertyWithValue("path", "/work-dir"))
