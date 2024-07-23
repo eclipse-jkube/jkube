@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.fabric8.kubernetes.api.model.AuthProviderConfigBuilder;
@@ -488,8 +489,14 @@ class KubernetesHelperTest {
             .singleElement(InstanceOfAssertFactories.type(NamedCluster.class))
             .hasFieldOrPropertyWithValue("cluster.insecureSkipTlsVerify", true)
             .extracting("cluster.server", "name")
-            .allMatch(s -> s.toString().matches("(https://)?localhost:\\d+/?"))
-          )
+                .satisfies(serverUrls -> {
+                  List<String> actualUrls = ((List<?>) serverUrls).stream()
+                      .map(Object::toString)
+                      .collect(Collectors.toList());
+                  assertThat(actualUrls).hasSize(2)
+                      .contains(String.format("https://%s:%d/", mockServer.getHostName(), mockServer.getPort()),
+                          String.format("localhost:%d", mockServer.getPort()));
+                }))
           .satisfies(c -> assertThat(c.getUsers())
             .singleElement(InstanceOfAssertFactories.type(NamedAuthInfo.class))
             .hasFieldOrPropertyWithValue("name", "fabric8-mock-server-user"));
