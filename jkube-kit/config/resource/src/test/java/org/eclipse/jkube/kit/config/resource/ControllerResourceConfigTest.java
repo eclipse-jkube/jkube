@@ -117,7 +117,7 @@ class ControllerResourceConfigTest {
             .hasFieldOrPropertyWithValue("cmd", Arguments.builder().exec(Arrays.asList("sleep", "10")).build())
             .extracting(InitContainerConfig::getVolumes)
             .asInstanceOf(InstanceOfAssertFactories.list(VolumeConfig.class))
-            .singleElement(InstanceOfAssertFactories.type(VolumeConfig.class))
+            .singleElement()
             .hasFieldOrPropertyWithValue("name", "workdir")
             .hasFieldOrPropertyWithValue("path", "/work-dir"))
         .satisfies(c -> assertThat(c.getVolumes())
