@@ -165,7 +165,7 @@ public class JKubeProjectUtil {
 
     public static String createDefaultResourceName(String artifactId, String ... suffixes) {
         String suffix = StringUtils.join(suffixes, "-");
-        String ret = artifactId + (suffix.length() > 0 ? "-" + suffix : "");
+        String ret = artifactId + (!suffix.isEmpty() ? "-" + suffix : "");
         if (ret.length() > MAX_RESOURCE_NAME_LENGTH) {
             ret = ret.substring(0, MAX_RESOURCE_NAME_LENGTH);
         }
