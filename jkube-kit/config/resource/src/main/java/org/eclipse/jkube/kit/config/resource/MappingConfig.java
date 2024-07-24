@@ -38,6 +38,6 @@ public class MappingConfig {
     }
 
     public boolean isValid() {
-        return kind != null && filenameTypes != null && filenameTypes.length() > 0;
+        return kind != null && filenameTypes != null && !filenameTypes.isEmpty();
     }
 }

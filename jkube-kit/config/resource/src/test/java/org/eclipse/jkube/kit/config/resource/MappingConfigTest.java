@@ -58,9 +58,9 @@ class MappingConfigTest {
   void isValid_withMissingKind_shouldReturnFalse() {
     // Given
     MappingConfig config = MappingConfig.builder()
-      .apiVersion("custom-cron-tab.example.com/v1")
-      .filenameTypes("crontab,cr")
-      .build();
+        .apiVersion("custom-cron-tab.example.com/v1")
+        .filenameTypes("crontab,cr")
+        .build();
     // When
     boolean result = config.isValid();
     // Then
@@ -71,9 +71,23 @@ class MappingConfigTest {
   void isValid_withMissingFileNameTypes_shouldReturnFalse() {
     // Given
     MappingConfig config = MappingConfig.builder()
-      .apiVersion("custom-cron-tab.example.com/v1")
-      .kind("Foo")
-      .build();
+        .apiVersion("custom-cron-tab.example.com/v1")
+        .kind("Foo")
+        .build();
+    // When
+    boolean result = config.isValid();
+    // Then
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  void isValid_withEmptyFileNameTypes_shouldReturnFalse() {
+    // Given
+    MappingConfig config = MappingConfig.builder()
+        .apiVersion("custom-cron-tab.example.com/v1")
+        .kind("Foo")
+        .filenameTypes("")
+        .build();
     // When
     boolean result = config.isValid();
     // Then
@@ -110,7 +124,7 @@ class MappingConfigTest {
   @Test
   void equalsAndHashCodeShouldMatch() {
     // Given
-    MappingConfig  mc1 = MappingConfig.builder().kind("Foo").filenameTypes("foos").build();
+    MappingConfig mc1 = MappingConfig.builder().kind("Foo").filenameTypes("foos").build();
     MappingConfig mc2 = MappingConfig.builder().kind("Foo").filenameTypes("foos").build();
     // When + Then
     assertThat(mc1)
