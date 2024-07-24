@@ -76,7 +76,7 @@ public class KarafHealthCheckEnricher extends AbstractHealthCheckEnricher {
         Object startupFeatures = lookup.get();
         if (!(startupFeatures instanceof Map)) {
             throw new IllegalArgumentException(String.format("For element %s was expected a complex object but a simple object was found of type %s and value %s",
-                "startupFeatures", startupFeatures.getClass(), startupFeatures.toString()));
+                "startupFeatures", startupFeatures.getClass(), startupFeatures));
         }
 
         final Map<String, Object> startUpFeaturesObject = (Map<String, Object>) startupFeatures;
