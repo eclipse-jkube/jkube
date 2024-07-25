@@ -72,7 +72,7 @@ class ServiceHandlerTest {
             .first()
             .satisfies(s -> assertThat(s.getSpec())
                 .hasFieldOrPropertyWithValue("type", "NodePort")
-                .extracting(ServiceSpec::getPorts).asList()
+                .extracting(ServiceSpec::getPorts).asInstanceOf(InstanceOfAssertFactories.list(ServiceSpec.class))
                 .first()
                 .hasFieldOrPropertyWithValue("protocol", "TCP")
                 .hasFieldOrPropertyWithValue("name", "port-test")
