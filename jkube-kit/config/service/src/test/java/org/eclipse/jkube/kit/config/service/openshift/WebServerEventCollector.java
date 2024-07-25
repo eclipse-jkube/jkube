@@ -63,7 +63,7 @@ public class WebServerEventCollector {
         LinkedList<String> evts = new LinkedList<>(this.events);
         for (String exp : expectedEvents) {
             boolean found = false;
-            while (!found && evts.size() > 0) {
+            while (!found && !evts.isEmpty()) {
                 String ev = evts.pop();
                 found = exp.equals(ev);
             }
