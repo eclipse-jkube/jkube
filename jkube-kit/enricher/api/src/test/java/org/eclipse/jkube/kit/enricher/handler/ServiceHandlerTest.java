@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.ServiceConfig;
@@ -72,7 +73,7 @@ class ServiceHandlerTest {
             .first()
             .satisfies(s -> assertThat(s.getSpec())
                 .hasFieldOrPropertyWithValue("type", "NodePort")
-                .extracting(ServiceSpec::getPorts).asList()
+                .extracting(ServiceSpec::getPorts).asInstanceOf(InstanceOfAssertFactories.list(ServicePort.class))
                 .first()
                 .hasFieldOrPropertyWithValue("protocol", "TCP")
                 .hasFieldOrPropertyWithValue("name", "port-test")
