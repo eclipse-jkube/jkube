@@ -271,7 +271,7 @@ public final class UrlBuilder {
         }
 
         public String build() {
-            if (queryParams.size() > 0) {
+            if (!queryParams.isEmpty()) {
                 StringBuilder ret = new StringBuilder(url);
                 ret.append("?");
                 // Sort to make order predictable e.g. for unit testing
