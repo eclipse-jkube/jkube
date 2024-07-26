@@ -57,6 +57,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import static org.eclipse.jkube.kit.service.jib.JibServiceUtil.containerFromImageConfiguration;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
@@ -317,17 +318,17 @@ class JibServiceUtilTest {
       assertThat(result).hasSize(3)
         .anySatisfy(fel -> assertThat(fel)
           .hasFieldOrPropertyWithValue("name", "layer-1")
-          .extracting(FileEntriesLayer::getEntries).asInstanceOf(InstanceOfAssertFactories.list(type.class)).extracting("extractionPath.unixPath")
+          .extracting(FileEntriesLayer::getEntries).asInstanceOf(InstanceOfAssertFactories.list(FileEntriesLayer.class)).extracting("extractionPath.unixPath")
           .containsExactly("/l1.1.txt", "/l1.2.txt")
         )
         .anySatisfy(fel -> assertThat(fel)
           .hasFieldOrPropertyWithValue("name", "")
-          .extracting(FileEntriesLayer::getEntries).asInstanceOf(InstanceOfAssertFactories.list(type.class)).extracting("extractionPath.unixPath")
+          .extracting(FileEntriesLayer::getEntries).asInstanceOf(InstanceOfAssertFactories.list(FileEntriesLayer.class)).extracting("extractionPath.unixPath")
           .containsExactly("/l2.1.txt", "/l2.2.txt")
         )
         .anySatisfy(fel -> assertThat(fel)
           .hasFieldOrPropertyWithValue("name", "jkube-generated-layer-final-artifact")
-          .extracting(FileEntriesLayer::getEntries).asInstanceOf(InstanceOfAssertFactories.list(type.class)).extracting("extractionPath.unixPath")
+          .extracting(FileEntriesLayer::getEntries).asInstanceOf(InstanceOfAssertFactories.list(FileEntriesLayer.class)).extracting("extractionPath.unixPath")
           .containsExactly("/deployments/edge.case")
         )
         .extracting(FileEntriesLayer::getName)

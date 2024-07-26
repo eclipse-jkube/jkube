@@ -10,6 +10,7 @@
  */
 package org.eclipse.jkube.gradle.plugin;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +72,7 @@ class GroovyUtilTest {
     final Map<String, Object> result = closureTo(closure, Map.class);
     // Then
     assertThat(result).hasSize(1).extracting("array")
-        .asInstanceOf(InstanceOfAssertFactories.list(type.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Object.class))
         .containsExactly("one", "two", Collections.singletonMap("nested", "closure"));
   }
 
@@ -103,7 +104,7 @@ class GroovyUtilTest {
     final Optional<List<StructuredClass>> result =
         invokeOrParseClosureList(closure, StructuredClass.class);
     // Then
-    assertThat(result).isPresent().get().asInstanceOf(InstanceOfAssertFactories.list(type.class))
+    assertThat(result).isPresent().get().asInstanceOf(InstanceOfAssertFactories.list(StructuredClass.class))
         .hasSize(2).extracting("property", "nested.nestedProperty")
         .containsExactly(tuple("value", "nestedValue"), tuple("value2", "nestedValue2"));
   }

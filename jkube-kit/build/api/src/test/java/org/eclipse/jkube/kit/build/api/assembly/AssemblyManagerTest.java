@@ -28,6 +28,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
@@ -76,7 +77,7 @@ class AssemblyManagerTest {
         .hasFieldOrPropertyWithValue("assemblyDirectory",
             buildDirs.toPath().resolve("testImage").resolve("build").toFile())
         .extracting(AssemblyFiles::getUpdatedEntriesAndRefresh)
-        .asInstanceOf(InstanceOfAssertFactories.list(type.class)).isEmpty();
+        .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFiles.class)).isEmpty();
   }
 
   @Test
