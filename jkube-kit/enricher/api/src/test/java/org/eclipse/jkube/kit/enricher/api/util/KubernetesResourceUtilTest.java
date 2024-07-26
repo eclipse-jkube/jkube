@@ -13,6 +13,36 @@
  */
 package org.eclipse.jkube.kit.enricher.api.util;
 
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.tuple;
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
+import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
+import org.eclipse.jkube.kit.config.resource.InitContainerConfig;
+import org.eclipse.jkube.kit.config.resource.VolumeConfig;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createNewInitContainersFromConfig;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.handleKubernetesClientException;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isContainerImage;
+import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeResources;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.spy;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
+
 import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -33,37 +63,6 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import io.fabric8.kubernetes.client.KubernetesClientException;
-import org.assertj.core.api.InstanceOfAssertFactories;
-import org.assertj.core.api.InstanceOfAssertFactory;
-import org.eclipse.jkube.kit.common.KitLogger;
-import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
-import org.eclipse.jkube.kit.config.resource.ControllerResourceConfig;
-import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
-import org.eclipse.jkube.kit.config.resource.InitContainerConfig;
-import org.eclipse.jkube.kit.config.resource.VolumeConfig;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
-
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.createNewInitContainersFromConfig;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.handleKubernetesClientException;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.isContainerImage;
-import static org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceUtil.mergeResources;
-import static org.mockito.Mockito.spy;
 
 class KubernetesResourceUtilTest {
   private KitLogger log;

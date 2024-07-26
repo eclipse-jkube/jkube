@@ -13,16 +13,17 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.eclipse.jkube.kit.common.Configs;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 /**
  * Enriches Karaf containers with health check probes.
@@ -76,7 +77,7 @@ public class KarafHealthCheckEnricher extends AbstractHealthCheckEnricher {
         Object startupFeatures = lookup.get();
         if (!(startupFeatures instanceof Map)) {
             throw new IllegalArgumentException(String.format("For element %s was expected a complex object but a simple object was found of type %s and value %s",
-                "startupFeatures", startupFeatures.getClass(), startupFeatures.toString());
+                "startupFeatures", startupFeatures.getClass(), startupFeatures));
         }
 
         final Map<String, Object> startUpFeaturesObject = (Map<String, Object>) startupFeatures;
