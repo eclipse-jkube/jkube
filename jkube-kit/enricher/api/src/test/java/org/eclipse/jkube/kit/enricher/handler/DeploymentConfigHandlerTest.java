@@ -67,7 +67,7 @@ class DeploymentConfigHandlerTest {
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("metadata.name", "controller")
-        .extracting("spec.template.spec.containers").asList().isEmpty();
+        .extracting("spec.template.spec.containers").asInstanceOf(InstanceOfAssertFactories.list(type.class)).isEmpty();
   }
 
   @Test
@@ -83,7 +83,7 @@ class DeploymentConfigHandlerTest {
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("metadata.name", "controller")
-        .extracting("spec.template.spec.containers").asList().hasSize(2)
+        .extracting("spec.template.spec.containers").asInstanceOf(InstanceOfAssertFactories.list(type.class)).hasSize(2)
         .extracting("image", "name")
         .containsExactly(new Tuple("busybox:latest", "g-a"), new Tuple("jkubeio/java:latest", "jkubeio-a"));
   }
@@ -96,7 +96,7 @@ class DeploymentConfigHandlerTest {
     // When
     final PodTemplateSpec result = deploymentConfigHandler.getPodTemplateSpec(controllerResourceConfig, images);
     // Then
-    assertThat(result).extracting("spec.containers").asList().isEmpty();
+    assertThat(result).extracting("spec.containers").asInstanceOf(InstanceOfAssertFactories.list(type.class)).isEmpty();
   }
 
   @Test

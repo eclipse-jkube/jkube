@@ -1,15 +1,12 @@
 /*
- * Copyright (c) 2019 Red Hat, Inc.
- * This program and the accompanying materials are made
- * available under the terms of the Eclipse Public License 2.0
- * which is available at:
+ * Copyright (c) 2019 Red Hat, Inc. This program and the accompanying materials are made available
+ * under the terms of the Eclipse Public License 2.0 which is available at:
  *
- *     https://www.eclipse.org/legal/epl-2.0/
+ * https://www.eclipse.org/legal/epl-2.0/
  *
  * SPDX-License-Identifier: EPL-2.0
  *
- * Contributors:
- *   Red Hat, Inc. - initial API and implementation
+ * Contributors: Red Hat, Inc. - initial API and implementation
  */
 package org.eclipse.jkube.kit.build.api.assembly;
 
@@ -51,12 +48,8 @@ class AssemblyManagerTest {
     assemblyManager = AssemblyManager.getInstance();
     targetDirectory = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     logger = spy(new KitLogger.SilentLogger());
-    project = JavaProject.builder()
-            .buildDirectory(targetDirectory)
-            .build();
-    configuration = JKubeConfiguration.builder()
-            .project(project)
-            .build();
+    project = JavaProject.builder().buildDirectory(targetDirectory).build();
+    configuration = JKubeConfiguration.builder().project(project).build();
   }
 
   @Test
@@ -72,56 +65,51 @@ class AssemblyManagerTest {
     // Given
     final File buildDirs = Files.createDirectory(temporaryFolder.resolve("buildDirs")).toFile();
     configuration = configuration.toBuilder()
-            .project(project.toBuilder().baseDirectory(buildDirs).build())
-            .build();
-    ImageConfiguration imageConfiguration = ImageConfiguration.builder()
-        .name("testImage").build(createBuildConfig())
-        .build();
+        .project(project.toBuilder().baseDirectory(buildDirs).build()).build();
+    ImageConfiguration imageConfiguration =
+        ImageConfiguration.builder().name("testImage").build(createBuildConfig()).build();
     // When
-    AssemblyFiles assemblyFiles = assemblyManager.getAssemblyFiles(imageConfiguration, configuration);
+    AssemblyFiles assemblyFiles =
+        assemblyManager.getAssemblyFiles(imageConfiguration, configuration);
     // Then
-    assertThat(assemblyFiles)
-        .isNotNull()
+    assertThat(assemblyFiles).isNotNull()
         .hasFieldOrPropertyWithValue("assemblyDirectory",
             buildDirs.toPath().resolve("testImage").resolve("build").toFile())
         .extracting(AssemblyFiles::getUpdatedEntriesAndRefresh)
-        .asList().isEmpty();
+        .asInstanceOf(InstanceOfAssertFactories.list(type.class)).isEmpty();
   }
 
   @Test
   void copyMultipleValidVerifyGivenDockerfile() throws IOException {
-    AssemblyConfiguration assemblyConfiguration = AssemblyConfiguration.builder().name("other-layer").build();
-    BuildConfiguration buildConfig = createBuildConfig().toBuilder()
-        .assembly(assemblyConfiguration)
-        .build();
+    AssemblyConfiguration assemblyConfiguration =
+        AssemblyConfiguration.builder().name("other-layer").build();
+    BuildConfiguration buildConfig =
+        createBuildConfig().toBuilder().assembly(assemblyConfiguration).build();
 
     AssemblyManager.verifyAssemblyReferencedInDockerfile(
-        new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_multiple_valid.test").getPath()),
-        buildConfig.getFilter(), assemblyConfiguration, new Properties(),
-        logger);
-    verify(logger,times(0)).warn(anyString(), any());
+        new File(getClass()
+            .getResource("/docker/Dockerfile_assembly_verify_copy_multiple_valid.test").getPath()),
+        buildConfig.getFilter(), assemblyConfiguration, new Properties(), logger);
+    verify(logger, times(0)).warn(anyString(), any());
   }
 
   @Test
   void copyMultipleInvalidVerifyGivenDockerfile() throws IOException {
-    AssemblyConfiguration assemblyConfiguration = AssemblyConfiguration.builder().name("other-layer").build();
-    BuildConfiguration buildConfig = createBuildConfig().toBuilder()
-        .assembly(assemblyConfiguration)
-        .build();
+    AssemblyConfiguration assemblyConfiguration =
+        AssemblyConfiguration.builder().name("other-layer").build();
+    BuildConfiguration buildConfig =
+        createBuildConfig().toBuilder().assembly(assemblyConfiguration).build();
 
     AssemblyManager.verifyAssemblyReferencedInDockerfile(
-        new File(getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
-        buildConfig.getFilter(), assemblyConfiguration, new Properties(),
-        logger);
-    verify(logger,times(1)).warn(anyString(), any());
+        new File(
+            getClass().getResource("/docker/Dockerfile_assembly_verify_copy_valid.test").getPath()),
+        buildConfig.getFilter(), assemblyConfiguration, new Properties(), logger);
+    verify(logger, times(1)).warn(anyString(), any());
   }
 
   private BuildConfiguration createBuildConfig() {
     return BuildConfiguration.builder()
-        .assembly(AssemblyConfiguration.builder()
-            .name("maven")
-            .targetDir("/maven")
-            .build())
+        .assembly(AssemblyConfiguration.builder().name("maven").targetDir("/maven").build())
         .build();
   }
 
@@ -141,11 +129,8 @@ class AssemblyManagerTest {
   void ensureThatArtifactFileIsSet_withNullProjectArtifact() throws IOException {
     // Given
     Files.createFile(targetDirectory.toPath().resolve("foo-project-0.0.1.jar"));
-    JavaProject project = JavaProject.builder()
-        .buildDirectory(targetDirectory)
-        .packaging("jar")
-        .buildFinalName("foo-project-0.0.1")
-        .build();
+    JavaProject project = JavaProject.builder().buildDirectory(targetDirectory).packaging("jar")
+        .buildFinalName("foo-project-0.0.1").build();
     // When
     final File artifactFile = assemblyManager.ensureThatArtifactFileIsSet(project);
     // Then
