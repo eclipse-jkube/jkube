@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.enricher.handler;
 
 import io.fabric8.kubernetes.api.model.ExecAction;
+import io.fabric8.kubernetes.api.model.HTTPHeader;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Probe;
 import org.eclipse.jkube.kit.config.resource.ProbeConfig;
@@ -25,6 +26,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 
 class ProbeHandlerTest {
     private Probe probe;
@@ -105,7 +107,7 @@ class ProbeHandlerTest {
             .hasFieldOrPropertyWithValue("httpGet", null)
             .hasFieldOrPropertyWithValue("tcpSocket", null)
             .extracting(Probe::getExec).isNotNull()
-            .extracting(ExecAction::getCommand).asList()
+            .extracting(ExecAction::getCommand).asInstanceOf(list(String.class))
             .hasSize(2)
             .containsExactly("cat", "/tmp/probe");
     }
@@ -270,11 +272,12 @@ class ProbeHandlerTest {
             .hasFieldOrPropertyWithValue("httpGet.host", "www.example.com")
             .hasFieldOrPropertyWithValue("httpGet.port", new IntOrString(8080))
             .hasFieldOrPropertyWithValue("httpGet.scheme", "HTTPS")
-            .satisfies(p -> assertThat(p).extracting("httpGet.httpHeaders").asList().element(0)
+            .satisfies(p -> assertThat(p).extracting("httpGet.httpHeaders")
+                .asInstanceOf(list(HTTPHeader.class)).element(0)
                 .hasFieldOrPropertyWithValue("name", "Accept")
                 .hasFieldOrPropertyWithValue("value", "application/json")
             )
-            .satisfies(p -> assertThat(p).extracting("httpGet.httpHeaders").asList().element(1)
+            .satisfies(p -> assertThat(p).extracting("httpGet.httpHeaders").asInstanceOf(list(HTTPHeader.class)).element(1)
                 .hasFieldOrPropertyWithValue("name", "User-Agent")
                 .hasFieldOrPropertyWithValue("value", "MyUserAgent")
             );
