@@ -180,6 +180,6 @@ class HelmServiceInstallIT {
     // When + Then
     assertThatIllegalStateException()
       .isThrownBy(() -> helmService.install(helmConfig))
-      .withMessage(String.format("An error occurred while updating chart dependencies: directory %s\\the-dependency not found", tempDir));
+      .withMessage(String.format("An error occurred while updating chart dependencies: directory %s%sthe-dependency not found", tempDir,File.separator));
   }
 }
