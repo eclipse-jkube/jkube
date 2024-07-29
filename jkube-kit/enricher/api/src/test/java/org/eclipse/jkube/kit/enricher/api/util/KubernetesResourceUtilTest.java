@@ -485,8 +485,8 @@ class KubernetesResourceUtilTest {
           .hasFieldOrPropertyWithValue("metadata.labels.l2", "v2")
           .extracting(Pod::getSpec)
           .extracting(PodSpec::getContainers)
-          .asInstanceOf(InstanceOfAssertFactories.list(Type.class))
-          .singleElement(InstanceOfAssertFactories.type(Container.class))
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+          .singleElement()
           .hasFieldOrPropertyWithValue("name", "c1")
           .hasFieldOrPropertyWithValue("image", "image1:latest");
     }
