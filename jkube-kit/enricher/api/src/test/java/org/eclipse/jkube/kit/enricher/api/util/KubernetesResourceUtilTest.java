@@ -46,14 +46,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-
-
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
@@ -301,7 +298,7 @@ class KubernetesResourceUtilTest {
           .extracting(PodTemplateSpec::getSpec)
           .extracting(PodSpec::getContainers)
           .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
-          .singleElement(InstanceOfAssertFactories.type(Container.class))
+          .singleElement()
           .hasFieldOrPropertyWithValue("env", Collections.singletonList(new EnvVarBuilder().withName("E1").withValue("V1").build()))
           .hasFieldOrPropertyWithValue("name", "foo");
     }
@@ -339,7 +336,7 @@ class KubernetesResourceUtilTest {
           .extracting(PodTemplateSpec::getSpec)
           .extracting(PodSpec::getContainers)
           .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
-          .singleElement(InstanceOfAssertFactories.type(Container.class))
+          .singleElement()
           .hasFieldOrPropertyWithValue("name", "foo");
     }
 
@@ -394,7 +391,7 @@ class KubernetesResourceUtilTest {
           .extracting(PodTemplateSpec::getSpec)
           .extracting(PodSpec::getContainers)
           .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
-          .singleElement(InstanceOfAssertFactories.type(Container.class))
+          .singleElement()
           .hasFieldOrPropertyWithValue("name", "c1");
     }
 
