@@ -47,7 +47,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Type;
+
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
