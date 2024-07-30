@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -131,7 +132,7 @@ class KubernetesResourceUtilTest {
         .hasFieldOrPropertyWithValue("name", "demo")
         .hasFieldOrPropertyWithValue("image", "spring-boot-test:latest")
         .hasFieldOrPropertyWithValue("args", Collections.singletonList("/usr/local/s2i/run"))
-        .extracting("ports").asInstanceOf(InstanceOfAssertFactories.list(Type.class)).extracting("containerPort")
+        .extracting("ports").asInstanceOf(InstanceOfAssertFactories.list(ContainerPort.class)).extracting("containerPort")
         .containsExactly(8080, 9779, 8778);
   }
 
@@ -165,7 +166,7 @@ class KubernetesResourceUtilTest {
         .hasFieldOrPropertyWithValue("resources.requests.memory.amount", "256")
         .hasFieldOrPropertyWithValue("resources.limits.cpu.amount", "1.0")
         .hasFieldOrPropertyWithValue("resources.limits.memory.amount", "512")
-        .extracting("ports").asInstanceOf(InstanceOfAssertFactories.list(Type.class)).extracting("containerPort")
+        .extracting("ports").asInstanceOf(InstanceOfAssertFactories.list(ContainerPort.class)).extracting("containerPort")
         .containsExactly(8080, 9779, 8778);
   }
 
@@ -299,7 +300,7 @@ class KubernetesResourceUtilTest {
           .extracting(DeploymentSpec::getTemplate)
           .extracting(PodTemplateSpec::getSpec)
           .extracting(PodSpec::getContainers)
-          .asInstanceOf(InstanceOfAssertFactories.list(Type.class))
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
           .singleElement(InstanceOfAssertFactories.type(Container.class))
           .hasFieldOrPropertyWithValue("env", Collections.singletonList(new EnvVarBuilder().withName("E1").withValue("V1").build()))
           .hasFieldOrPropertyWithValue("name", "foo");
@@ -337,7 +338,7 @@ class KubernetesResourceUtilTest {
           .extracting(DeploymentSpec::getTemplate)
           .extracting(PodTemplateSpec::getSpec)
           .extracting(PodSpec::getContainers)
-          .asInstanceOf(InstanceOfAssertFactories.list(Type.class))
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
           .singleElement(InstanceOfAssertFactories.type(Container.class))
           .hasFieldOrPropertyWithValue("name", "foo");
     }
@@ -392,7 +393,7 @@ class KubernetesResourceUtilTest {
           .extracting(DeploymentSpec::getTemplate)
           .extracting(PodTemplateSpec::getSpec)
           .extracting(PodSpec::getContainers)
-          .asInstanceOf(InstanceOfAssertFactories.list(Type.class))
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
           .singleElement(InstanceOfAssertFactories.type(Container.class))
           .hasFieldOrPropertyWithValue("name", "c1");
     }
