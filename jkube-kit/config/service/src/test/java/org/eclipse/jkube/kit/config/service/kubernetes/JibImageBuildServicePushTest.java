@@ -43,14 +43,19 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.jkube.kit.common.util.AsyncUtil.await;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -66,7 +71,6 @@ class JibImageBuildServicePushTest {
 
   private boolean sendCredentialsOverHttp;
   private String remoteOciServer;
-
 
   private KitLogger logger;
   private JKubeServiceHub jKubeServiceHub;
@@ -88,6 +92,7 @@ class JibImageBuildServicePushTest {
     remoteOciServer = helmLib.RepoOciServerStart(
       new RepoServerOptions(null, "oci-user", "oci-password")
     ).out;
+    waitForOciServerToAcceptConnections();
 
     // Configure OCI server in image and JKube
     imageConfiguration = ImageConfiguration.builder()
@@ -132,6 +137,22 @@ class JibImageBuildServicePushTest {
         .at(tarPath)
         .named(imageConfiguration.getName()))
       );
+  }
+
+  private void waitForOciServerToAcceptConnections() throws ExecutionException, InterruptedException, TimeoutException {
+    await(() -> {
+      try {
+        final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/")
+          .openConnection();
+        connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
+        connection.connect();
+        return connection.getResponseCode() == HttpURLConnection.HTTP_OK;
+      } catch (IOException e) {
+        return false;
+      }
+    })
+      .apply(t -> t)
+      .get(5, TimeUnit.SECONDS);
   }
 
   @AfterEach
