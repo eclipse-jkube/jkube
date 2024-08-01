@@ -107,6 +107,11 @@
     <image.springboot-native.upstream.docker>registry.access.redhat.com/ubi9/ubi-minimal:${version.image.ubi-minimal}</image.springboot-native.upstream.docker>
     <image.springboot-native.upstream.istag>registry.access.redhat.com/ubi9/ubi-minimal:${version.image.ubi-minimal}</image.springboot-native.upstream.istag>
 
+    <!-- Micronaut -->
+    <image.micronaut-native.upstream.s2i>registry.access.redhat.com/ubi9/ubi-minimal:${version.image.ubi-minimal}</image.micronaut-native.upstream.s2i>
+    <image.micronaut-native.upstream.docker>registry.access.redhat.com/ubi9/ubi-minimal:${version.image.ubi-minimal}</image.micronaut-native.upstream.docker>
+    <image.micronaut-native.upstream.istag>registry.access.redhat.com/ubi9/ubi-minimal:${version.image.ubi-minimal}</image.micronaut-native.upstream.istag>
+
     <!-- Quarkus -->
     <image.quarkus-native.upstream.s2i>quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0</image.quarkus-native.upstream.s2i>
     <image.quarkus-native.upstream.docker>registry.access.redhat.com/ubi9/ubi-minimal:${version.image.ubi-minimal}</image.quarkus-native.upstream.docker>
