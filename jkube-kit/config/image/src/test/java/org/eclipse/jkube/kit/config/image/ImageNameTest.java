@@ -19,11 +19,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ImageNameTest {
@@ -135,34 +137,29 @@ class ImageNameTest {
             .isThrownBy(() -> new ImageName(tooLongName))
             .withMessageContaining("Repository name must not be more than 255 characters");
     }
-    
-    @Test
-    void namesUsedByDockerTests() {
-        StringBuilder longTag = new StringBuilder();
-        for (int i = 0; i < 130; i++) {
-            longTag.append("a");
-        }
-        String[] illegal = {
-            "fo$z$", "Foo@3cc", "Foo$3", "Foo*3", "Fo^3", "Foo!3", "F)xcz(", "fo%asd", "FOO/bar",
-            "repo:fo$z$", "repo:Foo@3cc", "repo:Foo$3", "repo:Foo*3", "repo:Fo^3", "repo:Foo!3",
-            "repo:%goodbye", "repo:#hashtagit", "repo:F)xcz(", "repo:-foo", "repo:..","repo:" + longTag.toString(),
-            "-busybox:test", "-test/busybox:test", "-index:5000/busybox:test"
 
-        };
+    static Stream<String> generateIllegalDockerNames() {
+      String longTag = StringUtils.repeat('a', 130);
+      return Stream.of("fo$z$", "Foo@3cc", "Foo$3", "Foo*3", "Fo^3", "Foo!3", "F)xcz(", "fo%asd", "FOO/bar",
+          "repo:fo$z$", "repo:Foo@3cc", "repo:Foo$3", "repo:Foo*3", "repo:Fo^3", "repo:Foo!3",
+          "repo:%goodbye", "repo:#hashtagit", "repo:F)xcz(", "repo:-foo", "repo:..", "repo:" + longTag,
+          "-busybox:test", "-test/busybox:test", "-index:5000/busybox:test");
+    }
 
-        for (String i : illegal) {
-            assertThatIllegalArgumentException()
-                    .as("Name '%s' should fail", i)
-                    .isThrownBy(() -> new ImageName(i));
-        }
+    @ParameterizedTest
+    @DisplayName("illegal docker name, should throw exception")
+    @MethodSource("generateIllegalDockerNames")
+    void givenIllegalNames_whenCreateImageName_shouldThrowIllegalArgumentException(String name) {
+      assertThatIllegalArgumentException()
+          .as("Name '%s' should fail", name)
+          .isThrownBy(() -> new ImageName(name));
+    }
 
-        String[] legal = {
-            "fooo/bar", "fooaa/test", "foooo:t", "HOSTNAME.DOMAIN.COM:443/foo/bar"
-        };
-
-        for (String l : legal) {
-            new ImageName(l);
-        }
+    @ParameterizedTest
+    @DisplayName("legal docker name, should proceed without exception")
+    @ValueSource(strings = { "fooo/bar", "fooaa/test", "foooo:t", "HOSTNAME.DOMAIN.COM:443/foo/bar" })
+    void givenLegalNames_whenCreateImageName_shouldNotThrowException(String name) {
+      assertDoesNotThrow(() -> new ImageName(name));
     }
 
     @Test
