@@ -66,61 +66,58 @@ public class PortForwardService {
         final Condition podChanged = monitor.newCondition();
         final Pod[] nextForwardedPod = new Pod[1];
 
-        final Thread forwarderThread = new Thread() {
-            @Override
-            public void run() {
+        final Thread forwarderThread = new Thread(() -> {
 
-                Pod currentPod = null;
-                Closeable currentPortForward = null;
+            Pod currentPod = null;
+            Closeable currentPortForward = null;
 
-                try {
-                    monitor.lock();
+            try {
+                monitor.lock();
 
-                    while (true) {
-                        if (podEquals(currentPod, nextForwardedPod[0])) {
-                            podChanged.await();
-                        } else {
-                            Pod nextPod = nextForwardedPod[0]; // may be null
-                            try {
-                                monitor.unlock();
-                                // out of critical section
-
-                                if (currentPortForward != null) {
-                                    log.info("Closing port-forward from pod %s", KubernetesHelper.getName(currentPod));
-                                    currentPortForward.close();
-                                    currentPortForward = null;
-                                }
-
-                                if (nextPod != null) {
-                                    log.info("Starting port-forward to pod %s", KubernetesHelper.getName(nextPod));
-                                    currentPortForward = forwardPortAsync(kubernetes, KubernetesHelper.getName(nextPod), containerPort, localPort);
-                                } else {
-                                    log.info("Waiting for a pod to become ready before starting port-forward");
-                                }
-                                currentPod = nextPod;
-                            } finally {
-                                monitor.lock();
-                            }
-                        }
-
-                    }
-
-                } catch (InterruptedException e) {
-                    log.debug("Port-forwarding thread interrupted", e);
-                    Thread.currentThread().interrupt();
-                } catch (Exception e) {
-                    log.warn("Error while port-forwarding to pod", e);
-                } finally {
-                    monitor.unlock();
-
-                    if (currentPortForward != null) {
+                while (true) {
+                    if (podEquals(currentPod, nextForwardedPod[0])) {
+                        podChanged.await();
+                    } else {
+                        Pod nextPod = nextForwardedPod[0]; // may be null
                         try {
-                            currentPortForward.close();
-                        } catch (Exception e) {}
+                            monitor.unlock();
+                            // out of critical section
+
+                            if (currentPortForward != null) {
+                                log.info("Closing port-forward from pod %s", KubernetesHelper.getName(currentPod));
+                                currentPortForward.close();
+                                currentPortForward = null;
+                            }
+
+                            if (nextPod != null) {
+                                log.info("Starting port-forward to pod %s", KubernetesHelper.getName(nextPod));
+                                currentPortForward = forwardPortAsync(kubernetes, KubernetesHelper.getName(nextPod), containerPort, localPort);
+                            } else {
+                                log.info("Waiting for a pod to become ready before starting port-forward");
+                            }
+                            currentPod = nextPod;
+                        } finally {
+                            monitor.lock();
+                        }
                     }
+
+                }
+
+            } catch (InterruptedException e) {
+                log.debug("Port-forwarding thread interrupted", e);
+                Thread.currentThread().interrupt();
+            } catch (Exception e) {
+                log.warn("Error while port-forwarding to pod", e);
+            } finally {
+                monitor.unlock();
+
+                if (currentPortForward != null) {
+                    try {
+                        currentPortForward.close();
+                    } catch (Exception e) {}
                 }
             }
-        };
+        });
 
         // Switching forward to the current pod if present
         Pod newPod = getNewestPod(kubernetes, podSelector);
@@ -169,16 +166,13 @@ public class PortForwardService {
 				Thread.currentThread().interrupt();
 			}
         };
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    handle.close();
-                } catch (Exception e) {
-                    // suppress
-                }
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                handle.close();
+            } catch (Exception e) {
+                // suppress
             }
-        });
+        }));
 
         return handle;
     }
