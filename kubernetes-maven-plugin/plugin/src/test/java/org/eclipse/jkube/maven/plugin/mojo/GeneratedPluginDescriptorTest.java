@@ -57,7 +57,8 @@ class GeneratedPluginDescriptorTest {
         arguments("helm-dependency-update", "compile", "integration-test"),
         arguments("helm-push", "compile", "install"),
         arguments("helm-lint", "compile", "integration-test"),
-        arguments("helm-install", "compile", "install"));
+        arguments("helm-install", "compile", "install"),
+        arguments("helm-uninstall", "compile", "install"));
   }
 
   @DisplayName("verify, phase and required dependency resolution")

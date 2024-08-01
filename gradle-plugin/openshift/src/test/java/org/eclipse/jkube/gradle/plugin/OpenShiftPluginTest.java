@@ -19,10 +19,12 @@ import java.util.Map;
 
 import org.eclipse.jkube.gradle.plugin.task.KubernetesApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmInstallTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftBuildTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmInstallTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
 
@@ -39,7 +41,7 @@ class OpenShiftPluginTest {
     final Map<String, Collection<Class<? extends Task>>> result = new OpenShiftPlugin().getTaskPrecedence();
     // Then
     assertThat(result)
-        .hasSize(8)
+        .hasSize(9)
         .containsEntry("ocApply", Arrays.asList(KubernetesResourceTask.class, OpenShiftResourceTask.class))
         .containsEntry("ocDebug", Arrays.asList(KubernetesBuildTask.class, OpenShiftBuildTask.class,
             KubernetesResourceTask.class, OpenShiftResourceTask.class, KubernetesApplyTask.class, OpenShiftApplyTask.class))
@@ -48,6 +50,7 @@ class OpenShiftPluginTest {
       .containsEntry("ocHelmDependencyUpdate", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class))
       .containsEntry("ocHelmPush", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class))
       .containsEntry("ocHelmLint", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class))
-      .containsEntry("ocHelmInstall", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class));
+      .containsEntry("ocHelmInstall", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class))
+      .containsEntry("ocHelmUninstall", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class, KubernetesHelmInstallTask.class, OpenShiftHelmInstallTask.class));
   }
 }
