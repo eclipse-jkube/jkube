@@ -4,7 +4,11 @@
 The Micronaut generator (named `micronaut`) detects a Micronaut project by analyzing the plugin
 
 ifeval::["{plugin-type}" == "maven"]
-dependencies searching for `io.micronaut.build:micronaut-maven-plugin`.
+dependencies searching for :
+
+- `io.micronaut.build:micronaut-maven-plugin` (for Micronaut 3) or,
+- `io.micronaut.maven:micronaut-maven-plugin` (for Micronaut 4)
+
 endif::[]
 ifeval::["{plugin-type}" == "gradle"]
 dependencies searching for `io.micronaut.application:io.micronaut.application.gradle.plugin`.
@@ -12,3 +16,19 @@ endif::[]
 
 This generator is based on the <<generator-java-exec, Java Application>> Generator and inherits all
 of its configuration values.
+
+The base images chosen are the following, however, these can be overridden using `jkube.generator.from` property:
+[[generator-micronaut-from]]
+.Webapp Base Images
+[cols="1,4,4"]
+|===
+| | Docker Build | S2I Build
+
+| *Native*
+| `registry.access.redhat.com/ubi9/ubi-minimal:9.3`
+| `registry.access.redhat.com/ubi9/ubi-minimal:9.3`
+
+| *Normal Build*
+| `quay.io/jkube/jkube-java`
+| `quay.io/jkube/jkube-java`
+|===
