@@ -169,16 +169,13 @@ public class PortForwardService {
 				Thread.currentThread().interrupt();
 			}
         };
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                try {
-                    handle.close();
-                } catch (Exception e) {
-                    // suppress
-                }
+       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+           try {
+              handle.close();
+            } catch (Exception e) {
+                 // suppress
             }
-        });
+          }));
 
         return handle;
     }
