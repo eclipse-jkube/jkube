@@ -169,6 +169,7 @@ public class PortForwardService {
 				Thread.currentThread().interrupt();
 			}
         };
+	    
        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
            try {
               handle.close();
