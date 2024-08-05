@@ -29,6 +29,8 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -59,12 +61,16 @@ class MicronautGeneratorTest {
     assertThat(result).isFalse();
   }
 
-  @Test
-  void isApplicableWithMavenPlugin() {
+  @ParameterizedTest(name = "isApplicable with micronaut maven plugin groupId {0}, artifactId {1} should return true")
+  @CsvSource(value = {
+    "io.micronaut.build,micronaut-maven-plugin",
+    "io.micronaut.maven,micronaut-maven-plugin"
+  })
+  void isApplicableWithMavenPlugin(String groupId, String artifactId) {
     // Given
     ctx.getProject().setPlugins(Collections.singletonList(Plugin.builder()
-        .groupId("io.micronaut.build")
-        .artifactId("micronaut-maven-plugin")
+        .groupId(groupId)
+        .artifactId(artifactId)
         .build()
     ));
     // When
