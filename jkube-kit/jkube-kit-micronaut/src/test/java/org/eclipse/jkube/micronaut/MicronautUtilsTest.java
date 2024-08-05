@@ -17,12 +17,16 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Properties;
 
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
+import static org.eclipse.jkube.micronaut.MicronautUtils.hasNativeImagePackaging;
 import static org.eclipse.jkube.micronaut.MicronautUtils.isHealthEnabled;
 
 class MicronautUtilsTest {
@@ -93,4 +97,29 @@ class MicronautUtilsTest {
     assertThat(props).isEmpty();
   }
 
+  @ParameterizedTest
+  @CsvSource(value = {
+    "native-image,true",
+    "jar,false"
+  })
+  void hasNativeImagePackaging_whenPackagingProvided_thenShouldReturnExpectedResult(String packaging, boolean expectedValue) {
+    // Given
+    Properties properties = new Properties();
+    properties.put("packaging", packaging);
+    JavaProject javaProject = JavaProject.builder()
+      .properties(properties)
+      .build();
+    // When + Then
+    assertThat(hasNativeImagePackaging(javaProject)).isEqualTo(expectedValue);
+  }
+
+  @Test
+  void hasNativeImagePackaging_whenNativeImagePluginProvided_thenShouldReturnExpectedResult() {
+    // Given
+    JavaProject javaProject = JavaProject.builder()
+      .gradlePlugin("org.graalvm.buildtools.gradle.NativeImagePlugin")
+      .build();
+    // When + Then
+    assertThat(hasNativeImagePackaging(javaProject)).isTrue();
+  }
 }

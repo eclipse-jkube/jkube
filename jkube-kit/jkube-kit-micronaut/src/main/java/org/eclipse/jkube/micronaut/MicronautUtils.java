@@ -56,4 +56,16 @@ public class MicronautUtils {
         JKubeProjectUtil.hasPlugin(javaProject, "io.micronaut.maven", "micronaut-maven-plugin") ||
         JKubeProjectUtil.hasPlugin(javaProject, "io.micronaut.application", "io.micronaut.application.gradle.plugin");
   }
+
+  public static boolean hasNativeImagePackaging(JavaProject javaProject) {
+    if (javaProject != null) {
+      if (javaProject.getProperties() != null &&
+        javaProject.getProperties().getProperty("packaging") != null &&
+        javaProject.getProperties().getProperty("packaging").equals("native-image")) {
+          return true;
+      }
+      return javaProject.getGradlePlugins() != null && javaProject.getGradlePlugins().contains("org.graalvm.buildtools.gradle.NativeImagePlugin");
+    }
+    return false;
+  }
 }
