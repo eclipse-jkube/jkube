@@ -18,9 +18,6 @@ import com.google.cloud.tools.jib.api.Jib;
 import com.google.cloud.tools.jib.api.TarImage;
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
 import com.google.cloud.tools.jib.global.JibSystemProperties;
-import com.marcnuri.helm.jni.HelmLib;
-import com.marcnuri.helm.jni.NativeLibrary;
-import com.marcnuri.helm.jni.RepoServerOptions;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -29,6 +26,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.TestOciServer;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -36,26 +34,20 @@ import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.jkube.kit.common.util.AsyncUtil.await;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -64,22 +56,15 @@ import static org.mockito.Mockito.verify;
 
 class JibImageBuildServicePushTest {
 
-  private static HelmLib helmLib;
-
   @TempDir
   private Path temporaryFolder;
 
   private boolean sendCredentialsOverHttp;
-  private String remoteOciServer;
+  private TestOciServer remoteOciServer;
 
   private KitLogger logger;
   private JKubeServiceHub jKubeServiceHub;
   private ImageConfiguration imageConfiguration;
-
-  @BeforeAll
-  static void setUpAll() {
-    helmLib = NativeLibrary.getInstance().load();
-  }
 
   @BeforeEach
   void setUp() throws Exception {
@@ -89,10 +74,7 @@ class JibImageBuildServicePushTest {
     logger = spy(new KitLogger.SilentLogger());
 
     // Setup OCI server
-    remoteOciServer = helmLib.RepoOciServerStart(
-      new RepoServerOptions(null, "oci-user", "oci-password")
-    ).out;
-    waitForOciServerToAcceptConnections();
+    remoteOciServer = new TestOciServer();
 
     // Configure OCI server in image and JKube
     imageConfiguration = ImageConfiguration.builder()
@@ -100,7 +82,7 @@ class JibImageBuildServicePushTest {
       .build(BuildConfiguration.builder()
         .from("scratch")
         .build())
-      .registry(remoteOciServer)
+      .registry(remoteOciServer.getUrl())
       .build();
     jKubeServiceHub = JKubeServiceHub.builder()
       .log(logger)
@@ -110,12 +92,12 @@ class JibImageBuildServicePushTest {
         .project(JavaProject.builder().baseDirectory(temporaryFolder.toFile()).build())
         .pullRegistryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
         .pushRegistryConfig(RegistryConfig.builder()
-          .registry(remoteOciServer)
+          .registry(remoteOciServer.getUrl())
           .settings(Collections.singletonList(
             RegistryServerConfiguration.builder()
-              .id(remoteOciServer)
-              .username("oci-user")
-              .password("oci-password")
+              .id(remoteOciServer.getUrl())
+              .username(remoteOciServer.getUser())
+              .password(remoteOciServer.getPassword())
               .build()))
           .passwordDecryptionMethod(s -> s)
           .build())
@@ -125,7 +107,7 @@ class JibImageBuildServicePushTest {
     // Build fake container image
     final Path tarPath = temporaryFolder
       .resolve("localhost")
-      .resolve(remoteOciServer.split(":")[1])
+      .resolve(remoteOciServer.getUrl().split(":")[1])
       .resolve("test")
       .resolve("test-image")
       .resolve("0.0.1")
@@ -139,24 +121,9 @@ class JibImageBuildServicePushTest {
       );
   }
 
-  private void waitForOciServerToAcceptConnections() throws ExecutionException, InterruptedException, TimeoutException {
-    await(() -> {
-      try {
-        final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/")
-          .openConnection();
-        connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
-        connection.connect();
-        return connection.getResponseCode() == HttpURLConnection.HTTP_OK;
-      } catch (IOException e) {
-        return false;
-      }
-    })
-      .apply(t -> t)
-      .get(5, TimeUnit.SECONDS);
-  }
-
   @AfterEach
-  void tearDown() {
+  void tearDown() throws Exception {
+    remoteOciServer.close();
     if (!sendCredentialsOverHttp) {
       System.clearProperty(JibSystemProperties.SEND_CREDENTIALS_OVER_HTTP);
     }
@@ -214,12 +181,12 @@ class JibImageBuildServicePushTest {
     @Test
     void logsImagePush() {
       verify(logger, times(1))
-        .info("Pushing image: %s", remoteOciServer + "/test/test-image:0.0.1");
+        .info("Pushing image: %s", remoteOciServer.getUrl() + "/test/test-image:0.0.1");
     }
 
     @Test
     void pushesImage() throws Exception {
-      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/test/test-image/tags/list")
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer.getUrl() + "/v2/test/test-image/tags/list")
         .openConnection();
       connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
       connection.connect();
@@ -250,12 +217,12 @@ class JibImageBuildServicePushTest {
     @Test
     void logsImagePush() {
       verify(logger, times(1))
-        .info("Pushing image: %s", remoteOciServer + "/test/test-image:multiplatform");
+        .info("Pushing image: %s", remoteOciServer.getUrl() + "/test/test-image:multiplatform");
     }
 
     @Test
     void pushesImage() throws Exception {
-      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/test/test-image/tags/list")
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer.getUrl() + "/v2/test/test-image/tags/list")
         .openConnection();
       connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
       connection.connect();
@@ -266,7 +233,7 @@ class JibImageBuildServicePushTest {
 
     @Test
     void pushedImageManifestIsMultiplatform() throws Exception {
-      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/test/test-image/manifests/multiplatform")
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer.getUrl() + "/v2/test/test-image/manifests/multiplatform")
         .openConnection();
       connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
       connection.setRequestProperty("Accept", "application/vnd.docker.distribution.manifest.list.v2+json");
