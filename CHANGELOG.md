@@ -45,6 +45,7 @@ Usage:
 * Fix #2467: Add support for specifying imagePullSecrets via resource configuration
 * Fix #3220: ImageEnricher#mergeEnvVariables causes error for empty env
 * Fix #3228: Springboot 3.3.1 layertools output format breaks LayeredJarGenerator
+* Fix #3294: MicronautGenerator not getting invoked for Micronaut4 Maven project
 
 _**Note**_:
 - `defaultStorageClass` and `useStorageClassAnnotation` fields have been removed from VolumePermissionEnricher (`jkube-volume-permission`). Users are advised to use these fields from PersistentVolumeClaimStorageClassEnricher (`jkube-persistentvolumeclaim-storageclass`) instead.

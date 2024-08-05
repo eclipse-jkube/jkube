@@ -17,6 +17,7 @@ import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
+import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -130,7 +131,8 @@ class KubernetesResourceUtilTest {
         .hasFieldOrPropertyWithValue("name", "demo")
         .hasFieldOrPropertyWithValue("image", "spring-boot-test:latest")
         .hasFieldOrPropertyWithValue("args", Collections.singletonList("/usr/local/s2i/run"))
-        .extracting("ports").asList().extracting("containerPort")
+        .extracting("ports").asInstanceOf(InstanceOfAssertFactories.list(ContainerPort.class))
+        .extracting("containerPort")
         .containsExactly(8080, 9779, 8778);
   }
 
@@ -629,7 +631,7 @@ class KubernetesResourceUtilTest {
   private void verifyBuilder(PodTemplateSpecBuilder builder, List<Container> initContainers) {
     PodTemplateSpec spec = builder.build();
     List<Container> initContainersInSpec = spec.getSpec().getInitContainers();
-    if (initContainersInSpec.size() == 0) {
+    if (initContainersInSpec.isEmpty()) {
       assertThat(initContainers).isNull();;
     } else {
       assertThat(initContainers).hasSameSizeAs(initContainersInSpec);

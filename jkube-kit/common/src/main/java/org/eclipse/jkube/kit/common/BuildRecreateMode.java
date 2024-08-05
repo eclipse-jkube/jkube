@@ -60,7 +60,7 @@ public enum BuildRecreateMode {
         return valueOf(param.toLowerCase());
     }
 
-    private BuildRecreateMode(boolean bc, boolean is) {
+    BuildRecreateMode(boolean bc, boolean is) {
         this.isBuildConfig = bc;
         this.isImageStream = is;
     }
