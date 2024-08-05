@@ -112,7 +112,7 @@ public final class PluginServiceFactory<C> {
 
     private synchronized  <T> void createOrRemoveService(Map<ServiceEntry, T> serviceMap, String line)
             throws ReflectiveOperationException {
-        if (line.length() > 0 && !COMMENT_LINE_PATTERN.matcher(line).matches()) {
+        if (!line.isEmpty() && !COMMENT_LINE_PATTERN.matcher(line).matches()) {
             ServiceEntry entry = new ServiceEntry(line);
             if (entry.isRemove()) {
                 // Removing is a bit complex since we need to find out
