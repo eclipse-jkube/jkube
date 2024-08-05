@@ -22,15 +22,16 @@ REPOSITORY="https://repo.eclipse.org/content/repositories/dash-licenses/org/ecli
 TARGET_DIR="$PROJECT_ROOT/target"
 DEPENDENCY_LIST="$TARGET_DIR/dependencies.txt"
 TOOL_JAR="$TARGET_DIR/eclipse-dash.jar"
+VERSION="1.1.1-SNAPSHOT"
 
 function downloadTool() {
   if [[ ! -f "$TOOL_JAR" ]]
   then
     if [[ -z "$ECLIPSE_DASH_VERSION" ]]
     then
-      echo "Getting latest Eclipse Dash 0.0.1-SNAPSHOT version"
-      version=$(curl -s "${REPOSITORY}/0.0.1-SNAPSHOT/maven-metadata.xml" | xpath -q -e "/metadata/versioning/snapshotVersions/snapshotVersion[extension='jar']/value/text()")
-      downloadUrl="${REPOSITORY}/0.0.1-SNAPSHOT/org.eclipse.dash.licenses-${version}.jar"
+      echo "Getting latest Eclipse Dash ${VERSION} version"
+      snapshotVersion=$(curl -s "${REPOSITORY}/${VERSION}/maven-metadata.xml" | xpath -q -e "/metadata/versioning/snapshotVersions/snapshotVersion[extension='jar']/value/text()")
+      downloadUrl="${REPOSITORY}/${VERSION}/org.eclipse.dash.licenses-${snapshotVersion}.jar"
     else
       echo "Using provided Eclipse Dash version ($ECLIPSE_DASH_VERSION)"
       downloadUrl="${REPOSITORY}/${ECLIPSE_DASH_VERSION}/org.eclipse.dash.licenses-${ECLIPSE_DASH_VERSION}.jar"
