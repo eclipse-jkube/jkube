@@ -17,9 +17,11 @@ import com.google.cloud.tools.jib.api.ImageReference;
 import com.google.cloud.tools.jib.api.JibContainerBuilder;
 import com.google.cloud.tools.jib.api.buildplan.AbsoluteUnixPath;
 import com.google.cloud.tools.jib.api.buildplan.FileEntriesLayer;
+import com.google.cloud.tools.jib.api.buildplan.FileEntry;
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
 import com.google.cloud.tools.jib.api.buildplan.Platform;
 import com.google.cloud.tools.jib.api.buildplan.Port;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -317,17 +319,23 @@ class JibServiceUtilTest {
       assertThat(result).hasSize(3)
         .anySatisfy(fel -> assertThat(fel)
           .hasFieldOrPropertyWithValue("name", "layer-1")
-          .extracting(FileEntriesLayer::getEntries).asList().extracting("extractionPath.unixPath")
+          .extracting(FileEntriesLayer::getEntries)
+          .asInstanceOf(InstanceOfAssertFactories.list(FileEntry.class))
+          .extracting("extractionPath.unixPath")
           .containsExactly("/l1.1.txt", "/l1.2.txt")
         )
         .anySatisfy(fel -> assertThat(fel)
           .hasFieldOrPropertyWithValue("name", "")
-          .extracting(FileEntriesLayer::getEntries).asList().extracting("extractionPath.unixPath")
+          .extracting(FileEntriesLayer::getEntries)
+          .asInstanceOf(InstanceOfAssertFactories.list(FileEntry.class))
+          .extracting("extractionPath.unixPath")
           .containsExactly("/l2.1.txt", "/l2.2.txt")
         )
         .anySatisfy(fel -> assertThat(fel)
           .hasFieldOrPropertyWithValue("name", "jkube-generated-layer-final-artifact")
-          .extracting(FileEntriesLayer::getEntries).asList().extracting("extractionPath.unixPath")
+          .extracting(FileEntriesLayer::getEntries)
+          .asInstanceOf(InstanceOfAssertFactories.list(FileEntry.class))
+          .extracting("extractionPath.unixPath")
           .containsExactly("/deployments/edge.case")
         )
         .extracting(FileEntriesLayer::getName)
