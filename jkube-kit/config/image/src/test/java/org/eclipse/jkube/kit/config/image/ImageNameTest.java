@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.config.image;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -138,28 +139,29 @@ class ImageNameTest {
             .withMessageContaining("Repository name must not be more than 255 characters");
     }
 
-    static Stream<String> generateIllegalDockerNames() {
-      String longTag = StringUtils.repeat('a', 130);
-      return Stream.of("fo$z$", "Foo@3cc", "Foo$3", "Foo*3", "Fo^3", "Foo!3", "F)xcz(", "fo%asd", "FOO/bar",
+    @Nested
+    @DisplayName("used by docker")
+    class UsedByDockerTests {
+      @ParameterizedTest
+      @DisplayName("illegal docker name, should throw exception")
+      @ValueSource(strings = { "fo$z$", "Foo@3cc", "Foo$3", "Foo*3", "Fo^3", "Foo!3", "F)xcz(", "fo%asd", "FOO/bar",
           "repo:fo$z$", "repo:Foo@3cc", "repo:Foo$3", "repo:Foo*3", "repo:Fo^3", "repo:Foo!3",
-          "repo:%goodbye", "repo:#hashtagit", "repo:F)xcz(", "repo:-foo", "repo:..", "repo:" + longTag,
-          "-busybox:test", "-test/busybox:test", "-index:5000/busybox:test");
-    }
+          "repo:%goodbye", "repo:#hashtagit", "repo:F)xcz(", "repo:-foo", "repo:..",
+          "-busybox:test", "-test/busybox:test", "-index:5000/busybox:test",
+          "repo:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      })
+      void givenIllegalNames_whenCreateImageName_shouldThrowIllegalArgumentException(String name) {
+        assertThatIllegalArgumentException()
+            .as("Name '%s' should fail", name)
+            .isThrownBy(() -> new ImageName(name));
+      }
 
-    @ParameterizedTest
-    @DisplayName("illegal docker name, should throw exception")
-    @MethodSource("generateIllegalDockerNames")
-    void givenIllegalNames_whenCreateImageName_shouldThrowIllegalArgumentException(String name) {
-      assertThatIllegalArgumentException()
-          .as("Name '%s' should fail", name)
-          .isThrownBy(() -> new ImageName(name));
-    }
-
-    @ParameterizedTest
-    @DisplayName("legal docker name, should proceed without exception")
-    @ValueSource(strings = { "fooo/bar", "fooaa/test", "foooo:t", "HOSTNAME.DOMAIN.COM:443/foo/bar" })
-    void givenLegalNames_whenCreateImageName_shouldNotThrowException(String name) {
-      assertDoesNotThrow(() -> new ImageName(name));
+      @ParameterizedTest
+      @DisplayName("legal docker name, should proceed without exception")
+      @ValueSource(strings = { "fooo/bar", "fooaa/test", "foooo:t", "HOSTNAME.DOMAIN.COM:443/foo/bar" })
+      void givenLegalNames_whenCreateImageName_shouldNotThrowException(String name) {
+        assertDoesNotThrow(() -> new ImageName(name));
+      }
     }
 
     @Test
