@@ -147,6 +147,11 @@
       <groupId>com.networknt</groupId>
       <artifactId>json-schema-validator</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.marcnuri.helm-java</groupId>
+      <artifactId>helm-java</artifactId>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 

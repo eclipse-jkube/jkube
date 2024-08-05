@@ -19,9 +19,6 @@ import com.google.cloud.tools.jib.api.RegistryUnauthorizedException;
 import com.google.cloud.tools.jib.api.TarImage;
 import com.google.cloud.tools.jib.api.buildplan.ImageFormat;
 import com.google.cloud.tools.jib.global.JibSystemProperties;
-import com.marcnuri.helm.jni.HelmLib;
-import com.marcnuri.helm.jni.NativeLibrary;
-import com.marcnuri.helm.jni.RepoServerOptions;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
@@ -31,11 +28,11 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
+import org.eclipse.jkube.kit.common.TestOciServer;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -55,35 +52,27 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class JibServiceTest {
 
-  private static HelmLib helmLib;
   @TempDir
   private Path tempDir;
-  private String remoteOciServer;
+  private TestOciServer remoteOciServer;
   private JibLogger jibLogger;
   private TestAuthConfigFactory testAuthConfigFactory;
   private JKubeConfiguration configuration;
   private ImageConfiguration imageConfiguration;
 
-  @BeforeAll
-  static void setUpAll() {
-    helmLib = NativeLibrary.getInstance().load();
-  }
-
   @BeforeEach
   void setUp() {
-    remoteOciServer = helmLib.RepoOciServerStart(
-      new RepoServerOptions(null, "oci-user", "oci-password")
-    ).out;
+    remoteOciServer = new TestOciServer();
     jibLogger = new JibLogger(new KitLogger.SilentLogger());
     testAuthConfigFactory = new TestAuthConfigFactory();
     configuration = JKubeConfiguration.builder()
       .pullRegistryConfig(RegistryConfig.builder().build())
       .pushRegistryConfig(RegistryConfig.builder()
-        .registry(remoteOciServer)
+        .registry(remoteOciServer.getUrl())
         .settings(Collections.singletonList(RegistryServerConfiguration.builder()
-          .id(remoteOciServer)
-          .username("oci-user")
-          .password("oci-password")
+          .id(remoteOciServer.getUrl())
+          .username(remoteOciServer.getUser())
+          .password(remoteOciServer.getPassword())
           .build()))
         .build())
       .project(JavaProject.builder()
@@ -91,11 +80,16 @@ class JibServiceTest {
         .build())
       .build();
     imageConfiguration = ImageConfiguration.builder()
-      .name(remoteOciServer + "/" + "the-image-name")
+      .name(remoteOciServer.getUrl() + "/" + "the-image-name")
       .build(BuildConfiguration.builder()
         .from("scratch")
         .build())
       .build();
+  }
+
+  @AfterEach
+  void tearDown() throws Exception {
+    remoteOciServer.close();
   }
 
   @Test
@@ -207,7 +201,7 @@ class JibServiceTest {
       try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
         jibService.push();
       }
-      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/the-image-name/tags/list")
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer.getUrl() + "/v2/the-image-name/tags/list")
         .openConnection();
       connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
       connection.connect();
@@ -227,7 +221,7 @@ class JibServiceTest {
       try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
         jibService.push();
       }
-      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/the-image-name/tags/list")
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer.getUrl() + "/v2/the-image-name/tags/list")
         .openConnection();
       connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
       connection.connect();
@@ -248,7 +242,7 @@ class JibServiceTest {
       try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
         jibService.push();
       }
-      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer + "/v2/the-image-name/manifests/latest")
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer.getUrl() + "/v2/the-image-name/manifests/latest")
         .openConnection();
       connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
       connection.setRequestProperty("Accept", "application/vnd.docker.distribution.manifest.list.v2+json");
