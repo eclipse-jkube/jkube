@@ -40,8 +40,7 @@ import com.marcnuri.helm.InstallCommand;
 import com.marcnuri.helm.LintCommand;
 import com.marcnuri.helm.LintResult;
 import com.marcnuri.helm.Release;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
+import com.marcnuri.helm.UninstallCommand;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -87,6 +86,7 @@ public class HelmService {
 
   private static final String VALUES_FRAGMENT_REGEX = "^values\\.helm\\.(?<ext>yaml|yml|json)$";
   public static final Pattern VALUES_FRAGMENT_PATTERN = Pattern.compile(VALUES_FRAGMENT_REGEX, Pattern.CASE_INSENSITIVE);
+  private static final String SYSTEM_LINE_SEPARATOR_REGEX = "\r?\n";
 
   private final JKubeConfiguration jKubeConfiguration;
   private final ResourceServiceConfig resourceServiceConfig;
@@ -190,7 +190,7 @@ public class HelmService {
         dependencyUpdateCommand.skipRefresh();
       }
       Arrays.stream(dependencyUpdateCommand.call() 
-       .split("\r?\n"))
+       .split(SYSTEM_LINE_SEPARATOR_REGEX))
        .forEach(l -> logger.info("[[W]]%s", l)); 
     }
   }
@@ -222,10 +222,20 @@ public class HelmService {
       Arrays.stream(release.getOutput().split("---"))
         .filter(o -> o.contains("Deleting outdated charts"))
         .findFirst()
-        .ifPresent(s -> Arrays.stream(s.split("\r?\n"))
+        .ifPresent(s -> Arrays.stream(s.split(SYSTEM_LINE_SEPARATOR_REGEX))
           .filter(StringUtils::isNotBlank)
           .forEach(l -> logger.info("[[W]]%s", l)));
     }
+  }
+
+  public void uninstall(HelmConfig helmConfig) {
+    logger.info("Uninstalling Helm Chart %s %s", helmConfig.getChart(), helmConfig.getVersion());
+    UninstallCommand uninstallCommand = Helm.uninstall(helmConfig.getReleaseName())
+      .withKubeConfig(createTemporaryKubeConfigForInstall());
+
+    Arrays.stream(uninstallCommand.call().split(SYSTEM_LINE_SEPARATOR_REGEX))
+      .filter(StringUtils::isNotBlank)
+      .forEach(l -> logger.info("[[W]]%s", l));
   }
 
   private Path createTemporaryKubeConfigForInstall() {
