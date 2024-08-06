@@ -30,6 +30,7 @@ class ClusterConfigurationTest {
     final Properties properties = new Properties();
     properties.put("jkube.username", "user name");
     properties.put("jkube.password", "the pa$$w*rd");
+    properties.put("jkube.namespace", "myns1");
     properties.put("jkube.masterUrl", "https://example.com");
     properties.put("jkube.corner-case", "corner");
     properties.put("jkube.currentContext", "ctx1");
@@ -40,7 +41,9 @@ class ClusterConfigurationTest {
     assertThat(config).isNotNull()
             .hasFieldOrPropertyWithValue("username", "user name")
             .hasFieldOrPropertyWithValue("password", "the pa$$w*rd")
-            .hasFieldOrPropertyWithValue("currentContext", new NamedContextBuilder().withName("ctx1").build())
+            .hasFieldOrPropertyWithValue("namespace", "myns1")
+            .hasFieldOrPropertyWithValue("currentContext.name", "ctx1")
+            .hasFieldOrPropertyWithValue("currentContext.context.namespace", "myns1")
             .hasFieldOrPropertyWithValue("masterUrl", "https://example.com/");
   }
 
@@ -130,7 +133,7 @@ class ClusterConfigurationTest {
       .hasFieldOrPropertyWithValue("clientKeyData", "clientKeyData")
       .hasFieldOrPropertyWithValue("clientKeyAlgo", "clientKeyAlgo")
       .hasFieldOrPropertyWithValue("clientKeyPassphrase", "clientKeyPassphrase")
-      .hasFieldOrPropertyWithValue("currentContext", new NamedContextBuilder().withName("ctx1").build())
+      .hasFieldOrPropertyWithValue("currentContext", new NamedContextBuilder().withName("ctx1").withNewContext().withNamespace("namespace").endContext().build())
       .hasFieldOrPropertyWithValue("trustStoreFile", "trustStoreFile")
       .hasFieldOrPropertyWithValue("trustStorePassphrase", "trustStorePassphrase")
       .hasFieldOrPropertyWithValue("keyStoreFile", "keyStoreFile")
