@@ -143,6 +143,9 @@ public class ClusterConfiguration implements Serializable {
     if (StringUtils.isNotBlank(this.currentContext)) {
       configBuilder.withCurrentContext(new NamedContextBuilder()
           .withName(this.currentContext)
+          .withNewContext()
+          .withNamespace(getNamespace())
+          .endContext()
         .build());
     }
 
