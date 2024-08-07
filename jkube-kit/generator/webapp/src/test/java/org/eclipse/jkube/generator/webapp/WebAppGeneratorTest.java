@@ -23,9 +23,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
+import  org.eclipse.jkube.kit.common.AssemblyFile;
+import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -126,7 +129,7 @@ class WebAppGeneratorTest {
             }})
           .extracting(BuildConfiguration::getAssembly)
           .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
-          .extracting("inline.files").asList().extracting("destName")
+          .extracting("inline.files").asInstanceOf(InstanceOfAssertFactories.list(AssemblyFile.class)).extracting("destName")
           .containsExactly("ROOT.war");
     }
 
@@ -172,7 +175,7 @@ class WebAppGeneratorTest {
           .extracting(BuildConfiguration::getAssembly)
           .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
           .hasFieldOrPropertyWithValue("user", "root")
-          .extracting("inline.files").asList().extracting("destName")
+          .extracting("inline.files").asInstanceOf(InstanceOfAssertFactories.list(AssemblyFile.class)).extracting("destName")
           .containsExactly("some-context.war");
     }
 
