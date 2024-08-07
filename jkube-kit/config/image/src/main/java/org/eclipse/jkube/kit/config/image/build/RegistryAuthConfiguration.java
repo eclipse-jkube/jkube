@@ -53,7 +53,7 @@ public class RegistryAuthConfiguration implements Serializable {
             "email", email
         };
         for (int i = 0; i < content.length; i += 2) {
-            if (content[i + 1] != null && content[i + 1].length() > 0) {
+            if (content[i + 1] != null && !content[i + 1].isEmpty()) {
                 authMap.put(content[i], content[i+1]);
             }
         }
