@@ -1,0 +1,10 @@
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <helm>
+      <releaseName>test-release</releaseName>
+    </helm>
+  </configuration>
+</plugin>
+----

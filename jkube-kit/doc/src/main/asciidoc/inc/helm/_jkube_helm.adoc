@@ -299,3 +299,20 @@ include::maven/_jkube_helm_maven_execution.adoc[]
 include::_jkube_helm_multimodule.adoc[]
 endif::[]
 
+ifeval::["{plugin-type}" == "maven"]
+=== Uninstalling the installed Helm release
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+==== Uninstalling the installed Helm release
+endif::[]
+
+
+ifeval::["{plugin-type}" == "maven"]
+You can uninstall installed Helm release from {cluster} via <<jkube:helm-uninstall, {goal-prefix}:helm-uninstall>> goal as follows:
+include::maven/_helm_uninstall.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+You can uninstall installed Helm release from {cluster}  via <<jkubeHelmUninstall, {task-prefix}HelmUninstall>> task as follows:
+include::gradle/_helm_uninstall.adoc[]
+
+endif::[]
