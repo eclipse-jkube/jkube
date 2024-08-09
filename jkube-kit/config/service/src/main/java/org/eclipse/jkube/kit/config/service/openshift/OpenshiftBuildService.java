@@ -466,7 +466,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         // Don't query for logs directly, Watch over the build pod:
         waitUntilPodIsReady(buildName + "-build", 120, log);
         log.info("Waiting for build " + buildName + " to complete...");
-        try (LogWatch logWatch = client.pods().inNamespace(applicableOpenShiftNamespace).withName(buildName + "-build").watchLog()) {
+        try (LogWatch logWatch = client.builds().inNamespace(applicableOpenShiftNamespace).withName(buildName).watchLog()) {
             KubernetesHelper.printLogsAsync(logWatch, line -> log.info("[[s]]%s", line))
               .whenComplete((v, t) -> {
                   if (t != null) {
