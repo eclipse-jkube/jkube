@@ -21,6 +21,7 @@ import java.util.Map;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesApplyTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesBuildTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesConfigViewTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmInstallTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesResourceTask;
@@ -32,6 +33,7 @@ import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmInstallTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmLintTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmTask;
+import org.eclipse.jkube.gradle.plugin.task.OpenShiftHelmUninstallTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftPushTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftRemoteDevTask;
 import org.eclipse.jkube.gradle.plugin.task.OpenShiftResourceTask;
@@ -59,6 +61,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
     ret.put("ocHelmLint", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class));
     ret.put("ocHelmDependencyUpdate", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class));
     ret.put("ocHelmInstall", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class));
+    ret.put("ocHelmUninstall", Arrays.asList(KubernetesHelmTask.class, OpenShiftHelmTask.class, KubernetesHelmInstallTask.class, OpenShiftHelmInstallTask.class));
     return ret;
   }
 
@@ -77,6 +80,7 @@ public class OpenShiftPlugin extends AbstractJKubePlugin<OpenShiftExtension> {
     register(project, "ocHelmLint", OpenShiftHelmLintTask.class);
     register(project, "ocHelmDependencyUpdate", OpenShiftHelmDependencyUpdateTask.class);
     register(project, "ocHelmInstall", OpenShiftHelmInstallTask.class);
+    register(project, "ocHelmUninstall", OpenShiftHelmUninstallTask.class);
     register(project, "ocRemoteDev", OpenShiftRemoteDevTask.class);
     register(project, "ocWatch", OpenShiftWatchTask.class);
   }

@@ -28,6 +28,7 @@ import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmInstallTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmLintTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmPushTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmTask;
+import org.eclipse.jkube.gradle.plugin.task.KubernetesHelmUninstallTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesLogTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesPushTask;
 import org.eclipse.jkube.gradle.plugin.task.KubernetesRemoteDevTask;
@@ -55,6 +56,7 @@ public class KubernetesPlugin extends AbstractJKubePlugin<KubernetesExtension> {
     ret.put("k8sHelmLint", Collections.singletonList(KubernetesHelmTask.class));
     ret.put("k8sHelmDependencyUpdate", Collections.singletonList(KubernetesHelmTask.class));
     ret.put("k8sHelmInstall", Collections.singletonList(KubernetesHelmTask.class));
+    ret.put("k8sHelmUninstall", Arrays.asList(KubernetesHelmTask.class, KubernetesHelmInstallTask.class));
     return ret;
   }
 
@@ -73,6 +75,7 @@ public class KubernetesPlugin extends AbstractJKubePlugin<KubernetesExtension> {
     register(project, "k8sHelmLint", KubernetesHelmLintTask.class);
     register(project, "k8sHelmDependencyUpdate", KubernetesHelmDependencyUpdateTask.class);
     register(project, "k8sHelmInstall", KubernetesHelmInstallTask.class);
+    register(project, "k8sHelmUninstall", KubernetesHelmUninstallTask.class);
     register(project, "k8sRemoteDev", KubernetesRemoteDevTask.class);
     register(project, "k8sWatch", KubernetesWatchTask.class);
   }
