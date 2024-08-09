@@ -137,7 +137,7 @@ items:
     name: openliberty
   spec:
     port:
-      targetPort: 9080
+      targetPort: glrpc
     to:
       kind: Service
       name: openliberty

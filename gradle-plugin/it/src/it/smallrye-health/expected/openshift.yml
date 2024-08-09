@@ -137,7 +137,7 @@ items:
     name: smallrye-health
   spec:
     port:
-      targetPort: 8080
+      targetPort: http
     to:
       kind: Service
       name: smallrye-health

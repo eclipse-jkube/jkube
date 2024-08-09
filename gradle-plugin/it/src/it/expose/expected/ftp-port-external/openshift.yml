@@ -132,7 +132,7 @@ items:
     name: expose
   spec:
     port:
-      targetPort: 21
+      targetPort: ftp
     to:
       kind: Service
       name: expose

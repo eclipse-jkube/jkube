@@ -131,7 +131,7 @@ items:
     name: well-known-labels
   spec:
     port:
-      targetPort: 8080
+      targetPort: http
     to:
       kind: Service
       name: well-known-labels

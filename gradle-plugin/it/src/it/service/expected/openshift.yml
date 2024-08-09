@@ -133,7 +133,7 @@ items:
     name: svc1
   spec:
     port:
-      targetPort: 8080
+      targetPort: port1
     to:
       kind: Service
       name: svc1
