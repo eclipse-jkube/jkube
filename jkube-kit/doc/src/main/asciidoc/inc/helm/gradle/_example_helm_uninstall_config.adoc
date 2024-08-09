@@ -1,0 +1,8 @@
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+kubernetes {
+  helm {
+    releaseName = "test-release"
+  }
+}
+----

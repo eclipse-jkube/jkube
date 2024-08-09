@@ -1,0 +1,36 @@
+ifeval::["{plugin-type}" == "maven"]
+[[jkube:helm-uninstall]]
+== *{goal-prefix}:helm-uninstall*
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+[[jkubeHelmUninstall]]
+=== *{task-prefix}HelmUninstall*
+endif::[]
+
+This feature allows you to remove Helm release from {cluster}
+
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_mvn_helm_uninstall.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_gradle_helm_uninstall.adoc[]
+endif::[]
+
+.Helm Uninstall configuration
+[cols="1,5,1"]
+|===
+| Element | Description | Property
+
+| *releaseName*
+| Name of Helm Release (instance of a chart running in a {cluster} cluster).
+| `jkube.helm.release.name`
+
+|===
+
+.Example Helm Uninstall configuration
+ifeval::["{plugin-type}" == "maven"]
+include::maven/_example_helm_uninstall_config.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+include::gradle/_example_helm_uninstall_config.adoc[]
+endif::[]

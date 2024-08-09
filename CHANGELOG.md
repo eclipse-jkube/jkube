@@ -34,6 +34,7 @@ Usage:
 * Fix #2662: Sanitize VCS remote URL used in `jkube.eclipse.org/git-url` annotation
 * Fix #2663: Add new helm install goal task (`k8s:helm-install` for maven and `k8sHelmInstall` for gradle)
 * Fix #2665: Added support for explicit path for readiness and liveness probes in SpringBootHealthCheckEnricher
+* Fix #2666: Add new helm uninstall goal task (`k8s:helm-uninstall` for maven and `k8sHelmUninstall` for gradle)
 * Fix #2860: Correctly pass Docker build-arg from the build configuration to the Openshift build strategy
 * Fix #2885: Provide a way to set labels on images defined by Generators
 * Fix #2901: Ensure Docker build arguments from properties are used during images pre-pulling

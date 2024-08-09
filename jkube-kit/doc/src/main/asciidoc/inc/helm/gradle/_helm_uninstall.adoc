@@ -1,0 +1,4 @@
+[source, sh, subs="+attributes"]
+----
+./gradlew {task-prefix}HelmUninstall
+----

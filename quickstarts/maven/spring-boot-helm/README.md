@@ -105,6 +105,11 @@ With `helm` CLI, You can also override some of the values defined in the `values
 helm install spring-boot-helm target/jkube/helm/spring-boot-helm/kubernetes/ --set deployment.replicas=5 --set service.spec.type=NodePort
 ```
 
+Once you've finished testing your app, you can remove this installed helm release from cluster via `k8s:helm-uninstall` goal
+```shell
+mvn k8s:helm-uninstall
+```
+
 ## Customizing Chart via Maven properties
 
 Helm chart properties can be overridden through command line:

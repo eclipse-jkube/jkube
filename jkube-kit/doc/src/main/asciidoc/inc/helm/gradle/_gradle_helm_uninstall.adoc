@@ -1,0 +1,10 @@
+To uninstall a Helm release you need to invoke the `{task-prefix}HelmUninstall` gradle task on the command line:
+
+[source, sh, subs="+attributes"]
+----
+gradle {task-prefix}Resource {task-prefix}Helm {task-prefix}HelmInstall {task-prefix}HelmUninstall
+----
+
+[NOTE]
+The `{task-prefix}Resource`, `{task-prefix}Helm` and `{task-prefix}HelmInstall` tasks are required to ensure that Helm release gets installed in {cluster}.
+If you already have the Helm release installed on {cluster}, then you can omit these tasks.
