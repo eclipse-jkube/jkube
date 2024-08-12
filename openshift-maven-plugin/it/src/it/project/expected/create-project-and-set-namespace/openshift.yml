@@ -137,7 +137,7 @@ items:
       namespace: project-to-create-and-operate
     spec:
       port:
-        targetPort: 8080
+        targetPort: "http"
       to:
         kind: Service
         name: project

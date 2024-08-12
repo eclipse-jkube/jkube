@@ -132,7 +132,7 @@ items:
     name: expose
   spec:
     port:
-      targetPort: 80
+      targetPort: http
     to:
       kind: Service
       name: expose

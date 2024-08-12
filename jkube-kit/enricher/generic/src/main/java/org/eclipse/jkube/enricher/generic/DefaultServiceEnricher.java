@@ -611,7 +611,7 @@ public class DefaultServiceEnricher extends BaseEnricher {
         return protocol;
     }
 
-    private static ServicePort getServicePortToExpose(ServiceBuilder serviceBuilder){
+    public static ServicePort getServicePortToExpose(ServiceBuilder serviceBuilder){
         ServiceSpec spec = serviceBuilder.buildSpec();
             if (spec != null) {
             final List<ServicePort> ports = spec.getPorts();
@@ -636,13 +636,5 @@ public class DefaultServiceEnricher extends BaseEnricher {
            return  null;
        }
        return servicePort.getPort();
-    }
-
-    public static Integer getTargetPortToExpose(ServiceBuilder serviceBuilder) {
-        ServicePort servicePort = getServicePortToExpose(serviceBuilder);
-        if (servicePort == null || servicePort.getTargetPort() == null){
-            return  null;
-        }
-        return servicePort.getTargetPort().getIntVal();
     }
 }

@@ -157,7 +157,7 @@ items:
     name: spring-boot-managementhealthprobes
   spec:
     port:
-      targetPort: 8080
+      targetPort: http
     to:
       kind: Service
       name: spring-boot-managementhealthprobes
