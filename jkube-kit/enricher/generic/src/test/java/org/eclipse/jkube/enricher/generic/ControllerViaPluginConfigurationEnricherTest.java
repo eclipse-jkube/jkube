@@ -13,7 +13,13 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
-import io.fabric8.kubernetes.api.model.*;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.PodSpec;
+import io.fabric8.kubernetes.api.model.PodTemplateSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
@@ -173,8 +179,8 @@ class ControllerViaPluginConfigurationEnricherTest {
   private void assertGeneratedListContainsDeploymentWithNameAndEnvVar(KubernetesListBuilder kubernetesListBuilder, String name) {
     assertThat(kubernetesListBuilder.build())
         .extracting(KubernetesList::getItems)
-        .asInstanceOf(InstanceOfAssertFactories.list(StatefulSet.class))
-        .singleElement(InstanceOfAssertFactories.type(Deployment.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Deployment.class))
+        .singleElement()
         .hasFieldOrPropertyWithValue("metadata.name", name)
         .extracting(Deployment::getSpec)
         .extracting(DeploymentSpec::getTemplate)
@@ -191,7 +197,7 @@ class ControllerViaPluginConfigurationEnricherTest {
     assertThat(kubernetesListBuilder.build())
         .extracting(KubernetesList::getItems)
         .asInstanceOf(InstanceOfAssertFactories.list(StatefulSet.class))
-        .singleElement(InstanceOfAssertFactories.type(StatefulSet.class))
+        .singleElement()
         .hasFieldOrPropertyWithValue("metadata.name", name)
         .extracting(StatefulSet::getSpec)
         .extracting(StatefulSetSpec::getTemplate)
