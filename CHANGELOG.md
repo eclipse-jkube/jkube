@@ -20,6 +20,8 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+### 1.18-SNAPSHOT
+
 ### 1.17.0 (2024-08-13)
 * Fix #494: Support for Micronaut Framework Native Images
 * Fix #1989: Remove storageClass related fields from VolumePermissionEnricher
