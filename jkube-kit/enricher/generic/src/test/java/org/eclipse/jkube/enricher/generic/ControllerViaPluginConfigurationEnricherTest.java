@@ -14,6 +14,7 @@
 package org.eclipse.jkube.enricher.generic;
 
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
@@ -26,6 +27,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetSpec;
 import io.fabric8.openshift.api.model.DeploymentConfig;
+import io.fabric8.openshift.api.model.DeploymentTriggerPolicy;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.enricher.generic.openshift.DeploymentConfigEnricher;
 import org.eclipse.jkube.enricher.generic.openshift.ImageChangeTriggerEnricher;
@@ -169,7 +171,7 @@ class ControllerViaPluginConfigurationEnricherTest {
     // Then
     assertThat(kubernetesListBuilder.build().getItems()).asInstanceOf(InstanceOfAssertFactories.list(DeploymentConfig.class))
       .singleElement()
-      .extracting("spec.triggers").asList().hasSize(2)
+      .extracting("spec.triggers").asInstanceOf(InstanceOfAssertFactories.list(DeploymentTriggerPolicy.class)).hasSize(2)
       .extracting("type")
       .containsExactlyInAnyOrder("ImageChange", "ConfigChange");
   }
@@ -177,34 +179,34 @@ class ControllerViaPluginConfigurationEnricherTest {
   private void assertGeneratedListContainsDeploymentWithNameAndEnvVar(KubernetesListBuilder kubernetesListBuilder, String name) {
     assertThat(kubernetesListBuilder.build())
         .extracting(KubernetesList::getItems)
-        .asList()
-        .singleElement(InstanceOfAssertFactories.type(Deployment.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Deployment.class))
+        .singleElement()
         .hasFieldOrPropertyWithValue("metadata.name", name)
         .extracting(Deployment::getSpec)
         .extracting(DeploymentSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .first(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getEnv)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class))
         .contains(new EnvVarBuilder().withName("FOO").withValue("bar").build());
   }
 
   private void assertGeneratedListContainsStatefulSetWithNameAndEnvVar(KubernetesListBuilder kubernetesListBuilder, String name) {
     assertThat(kubernetesListBuilder.build())
         .extracting(KubernetesList::getItems)
-        .asList()
-        .singleElement(InstanceOfAssertFactories.type(StatefulSet.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(StatefulSet.class))
+        .singleElement()
         .hasFieldOrPropertyWithValue("metadata.name", name)
         .extracting(StatefulSet::getSpec)
         .extracting(StatefulSetSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
         .first(InstanceOfAssertFactories.type(Container.class))
         .extracting(Container::getEnv)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class))
         .contains(new EnvVarBuilder().withName("FOO").withValue("bar").build());
   }
 
