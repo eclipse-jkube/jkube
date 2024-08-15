@@ -129,7 +129,7 @@ public class ImageName {
     }
 
     public boolean hasRegistry() {
-        return registry != null && registry.length() > 0;
+        return registry != null && !registry.isEmpty();
     }
 
     public boolean isFullyQualifiedName() {
