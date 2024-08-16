@@ -24,6 +24,7 @@ import io.fabric8.kubernetes.api.model.networking.v1.HTTPIngressPath;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressRule;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressTLS;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -119,7 +120,7 @@ class IngressEnricherTest {
             .hasFieldOrPropertyWithValue("apiVersion", "networking.k8s.io/v1")
             .hasFieldOrPropertyWithValue("metadata.name", providedService.getMetadata().getName())
             .extracting(Ingress::getSpec)
-            .satisfies(is -> assertThat(is).extracting("tls").asInstanceOf(InstanceOfAssertFactories.list(IngressSpec.class)).element(0)
+            .satisfies(is -> assertThat(is).extracting("tls").asInstanceOf(InstanceOfAssertFactories.list(IngressTLS.class)).element(0)
                 .hasFieldOrPropertyWithValue("secretName", "testsecret-tls")
                 .extracting("hosts").asInstanceOf(InstanceOfAssertFactories.list(String.class)).containsExactly("https-example.foo.com"))
             .extracting(IngressSpec::getRules)
@@ -186,7 +187,7 @@ class IngressEnricherTest {
         List<IngressRuleConfig> ingressRuleXMLConfig = IngressEnricher.getIngressRuleXMLConfig(resourceConfig);
 
         // Then
-        assertThat(ingressRuleXMLConfig).asInstanceOf(InstanceOfAssertFactories.list(IngressRuleConfig.class)).hasSize(1);
+        assertThat(ingressRuleXMLConfig).hasSize(1);
     }
 
     @Test
@@ -195,7 +196,7 @@ class IngressEnricherTest {
         List<IngressRuleConfig> ingressRuleConfigs = IngressEnricher.getIngressRuleXMLConfig(null);
 
         // Then
-        assertThat(ingressRuleConfigs).asInstanceOf(InstanceOfAssertFactories.list(IngressRuleConfig.class)).isEmpty();
+        assertThat(ingressRuleConfigs).isEmpty();
     }
 
     @Test
@@ -213,7 +214,7 @@ class IngressEnricherTest {
         List<IngressTlsConfig> ingressTlsConfigs = IngressEnricher.getIngressTlsXMLConfig(resourceConfig);
 
         // Then
-        assertThat(ingressTlsConfigs).asInstanceOf(InstanceOfAssertFactories.list(IngressTlsConfig.class)).hasSize(1);
+        assertThat(ingressTlsConfigs).hasSize(1);
     }
 
     @Test
@@ -222,7 +223,7 @@ class IngressEnricherTest {
         List<IngressTlsConfig> ingressTlsConfigs = IngressEnricher.getIngressTlsXMLConfig(null);
 
         // Then
-        assertThat(ingressTlsConfigs).asInstanceOf(InstanceOfAssertFactories.list(IngressTlsConfig.class)).isEmpty();
+        assertThat(ingressTlsConfigs).isEmpty();
     }
 
     @Test
