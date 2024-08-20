@@ -13,11 +13,15 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
-import java.net.URL;
-import java.net.URLClassLoader;
+import org.eclipse.jkube.kit.common.JavaProject;
+
+import java.util.Arrays;
 import java.util.Properties;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.createPropertiesFromApplicationConfig;
+
 public class ThorntailUtil {
+    public static final String[] THORNTAIL_APP_CONFIG_FILES_LIST = new String[] {"project-defaults.yml"};
 
     private ThorntailUtil() {}
 
@@ -25,11 +29,10 @@ public class ThorntailUtil {
      * Returns the thorntail configuration (supports `project-defaults.yml`)
      * or an empty properties object if not found
      *
-     * @param compileClassLoader URLClassLoader for resource access
+     * @param javaProject Java Project
      * @return thorntail configuration properties
      */
-    public static Properties getThorntailProperties(URLClassLoader compileClassLoader) {
-        URL ymlResource = compileClassLoader.findResource("project-defaults.yml");
-        return YamlUtil.getPropertiesFromYamlResource(ymlResource);
+    public static Properties getThorntailProperties(JavaProject javaProject) {
+        return createPropertiesFromApplicationConfig(javaProject, Arrays.asList(THORNTAIL_APP_CONFIG_FILES_LIST));
     }
 }

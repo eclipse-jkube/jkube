@@ -23,7 +23,6 @@ import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
 import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
 import static org.eclipse.jkube.micronaut.MicronautUtils.hasMicronautPlugin;
@@ -81,7 +80,7 @@ public class MicronautGenerator extends JavaExecGenerator {
     @Override
     protected String getDefaultWebPort() {
         return extractPort(
-            getMicronautConfiguration(getClassLoader(getProject())), super.getDefaultWebPort()
+            getMicronautConfiguration(getProject()), super.getDefaultWebPort()
         );
     }
 }

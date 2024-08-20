@@ -14,17 +14,25 @@
 package org.eclipse.jkube.kit.common.util;
 
 import io.fabric8.kubernetes.client.utils.Utils;
+import org.eclipse.jkube.kit.common.JavaProject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Supplier;
+
+import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
+import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
 
 public class PropertiesUtil {
 
@@ -91,5 +99,30 @@ public class PropertiesUtil {
       map.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
     }
     return map;
+  }
+
+  public static Properties createPropertiesFromApplicationConfig(JavaProject project, List<String> appConfigSources) {
+    final List<Supplier<Properties>> sources = getPropertySuppliersList(project, appConfigSources);
+    for (Supplier<Properties> source : sources) {
+      final Properties props = source.get();
+      if (!props.isEmpty()) {
+        props.putAll(toMap(project.getProperties()));
+        return props;
+      }
+    }
+    return project.getProperties();
+  }
+
+  private static List<Supplier<Properties>> getPropertySuppliersList(JavaProject javaProject, List<String> propertySources) {
+    final URLClassLoader urlClassLoader = getClassLoader(javaProject);
+    List<Supplier<Properties>> sources = new ArrayList<>();
+    for (String source : propertySources) {
+      if (source.endsWith(".properties")) {
+        sources.add(() -> getPropertiesFromResource(urlClassLoader.findResource(source)));
+      } else {
+        sources.add(() -> getPropertiesFromYamlResource(urlClassLoader.findResource(source)));
+      }
+    }
+    return sources;
   }
 }
