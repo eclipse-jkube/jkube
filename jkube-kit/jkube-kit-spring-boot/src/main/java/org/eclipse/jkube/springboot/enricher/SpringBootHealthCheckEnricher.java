@@ -24,6 +24,8 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 import org.apache.commons.lang3.StringUtils;
 
+import static org.eclipse.jkube.kit.common.util.SpringBootUtil.hasSpringWebFluxDependency;
+
 /**
  * Enriches spring-boot containers with health checks if the actuator module is present.
  */
@@ -112,8 +114,13 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
               springBootConfiguration.getManagementContextPath() : "";
         } else {
             scheme = StringUtils.isNotBlank(springBootConfiguration.getServerKeystore()) ? SCHEME_HTTPS : SCHEME_HTTP;
-            prefix = StringUtils.isNotBlank(springBootConfiguration.getServerContextPath()) ?
-              springBootConfiguration.getServerContextPath() : "";
+            if (hasSpringWebFluxDependency(getContext().getProject()) && StringUtils.isNotBlank(springBootConfiguration.getWebFluxBasePath())) {
+                prefix = springBootConfiguration.getWebFluxBasePath();
+            } else if (StringUtils.isNotBlank(springBootConfiguration.getServerContextPath())) {
+                prefix = springBootConfiguration.getServerContextPath();
+            } else {
+                prefix = "";
+            }
             prefix += StringUtils.isNotBlank(springBootConfiguration.getServletPath()) ?
               springBootConfiguration.getServletPath() : "";
             prefix += StringUtils.isNotBlank(springBootConfiguration.getManagementContextPath()) ?

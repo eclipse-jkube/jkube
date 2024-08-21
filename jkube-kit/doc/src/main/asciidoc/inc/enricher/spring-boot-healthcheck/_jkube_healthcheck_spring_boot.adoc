@@ -12,6 +12,8 @@ ifeval::["{plugin-type}" == "gradle"]
 include::gradle/_actuator_dependency.adoc[]
 endif::[]
 
+If you're using Spring Boot WebFlux, this enricher would automatically read `spring.webflux.base-path` property to infer base path for health check endpoints.
+
 The enricher will try to discover the settings from the `application.properties` / `application.yaml` Spring Boot configuration file.
 
 `/actuator/health` is the default endpoint for the liveness and readiness probes.

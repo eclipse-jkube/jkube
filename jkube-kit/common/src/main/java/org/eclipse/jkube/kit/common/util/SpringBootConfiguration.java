@@ -35,6 +35,7 @@ public class SpringBootConfiguration {
   private String managementContextPath;
   private String actuatorBasePath;
   private String actuatorDefaultBasePath;
+  private String webFluxBasePath;
   private boolean managementHealthProbesEnabled;
 
   public static SpringBootConfiguration from(JavaProject project) {
@@ -63,7 +64,8 @@ public class SpringBootConfiguration {
       .serverContextPath(properties.getProperty("server.context-path"))
       .managementContextPath(properties.getProperty("management.context-path"))
       .actuatorBasePath("")
-      .actuatorDefaultBasePath("");
+      .actuatorDefaultBasePath("")
+      .webFluxBasePath(properties.getProperty("spring.webflux.base-path"));
     if (majorVersion > 1) {
       configBuilder
         .managementPort(Optional.ofNullable(properties.getProperty("management.server.port")).map(Integer::parseInt).orElse(null))

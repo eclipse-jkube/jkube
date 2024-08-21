@@ -389,6 +389,29 @@ class SpringBootUtilTest {
         assertThat(nativeArtifactFound).hasName("sample");
     }
 
+    @Test
+    void hasSpringWebFluxDependency_whenWebFluxDependencyPresent_thenReturnTrue() {
+        // Given
+        JavaProject javaProject = JavaProject.builder().dependency(Dependency.builder()
+            .groupId("org.springframework.boot")
+            .artifactId("spring-boot-starter-webflux")
+            .build())
+          .build();
+        // When + Then
+        assertThat(SpringBootUtil.hasSpringWebFluxDependency(javaProject)).isTrue();
+    }
+
+    @Test
+    void hasSpringWebFluxDependency_whenNoWebFluxDependencyPresent_thenReturnFalse() {
+        // Given
+        JavaProject javaProject = JavaProject.builder().dependency(Dependency.builder()
+            .groupId("org.springframework.boot")
+            .artifactId("spring-boot-starter-web")
+            .build()).build();
+        // When + Then
+        assertThat(SpringBootUtil.hasSpringWebFluxDependency(javaProject)).isFalse();
+    }
+
     static URLClassLoader createClassLoader(File temporaryFolder, String resource) throws IOException {
         File applicationProp =  new File(Objects.requireNonNull(SpringBootUtilTest.class.getResource(resource)).getPath());
         File classesInTarget = new File(new File(temporaryFolder, "target"), "classes");
