@@ -40,7 +40,7 @@ class HelmLintMojoTest {
 
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     originalPrintStream = System.out;
     outputStream = new ByteArrayOutputStream();
     System.setOut(new PrintStream(outputStream));
