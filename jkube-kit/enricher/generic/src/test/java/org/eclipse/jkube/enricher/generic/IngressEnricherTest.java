@@ -13,14 +13,18 @@
  */
 package org.eclipse.jkube.enricher.generic;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.HTTPIngressPath;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressRule;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressTLS;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -110,27 +114,27 @@ class IngressEnricherTest {
 
         // Then
         assertThat(kubernetesListBuilder)
-            .extracting(KubernetesListBuilder::buildItems).asList()
+            .extracting(KubernetesListBuilder::buildItems).asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
             .hasSize(2)
             .element(1).asInstanceOf(InstanceOfAssertFactories.type(Ingress.class))
             .hasFieldOrPropertyWithValue("apiVersion", "networking.k8s.io/v1")
             .hasFieldOrPropertyWithValue("metadata.name", providedService.getMetadata().getName())
             .extracting(Ingress::getSpec)
-            .satisfies(is -> assertThat(is).extracting("tls").asList().element(0)
+            .satisfies(is -> assertThat(is).extracting("tls").asInstanceOf(InstanceOfAssertFactories.list(IngressTLS.class)).element(0)
                 .hasFieldOrPropertyWithValue("secretName", "testsecret-tls")
-                .extracting("hosts").asList().containsExactly("https-example.foo.com"))
+                .extracting("hosts").asInstanceOf(InstanceOfAssertFactories.list(String.class)).containsExactly("https-example.foo.com"))
             .extracting(IngressSpec::getRules)
-            .satisfies(r -> assertThat(r).asList().element(0)
+            .satisfies(r -> assertThat(r).asInstanceOf(InstanceOfAssertFactories.list(IngressRule.class)).element(0)
                 .hasFieldOrPropertyWithValue("host", "foo.bar.com")
-                .extracting("http.paths").asList().element(0)
+                .extracting("http.paths").asInstanceOf(InstanceOfAssertFactories.list(HTTPIngressPath.class)).element(0)
                 .hasFieldOrPropertyWithValue("path", "/icons")
                 .hasFieldOrPropertyWithValue("pathType", "ImplementationSpecific")
                 .hasFieldOrPropertyWithValue("backend.service.name", "hello-k8s")
                 .hasFieldOrPropertyWithValue("backend.service.port.number", 80)
             )
-            .satisfies(r -> assertThat(r).asList().element(1)
+            .satisfies(r -> assertThat(r).asInstanceOf(InstanceOfAssertFactories.list(IngressRule.class)).element(1)
                 .hasFieldOrPropertyWithValue("host", "*.foo.com")
-                .extracting("http.paths").asList().element(0)
+                .extracting("http.paths").asInstanceOf(InstanceOfAssertFactories.list(HTTPIngressPath.class)).element(0)
                 .hasFieldOrPropertyWithValue("path", "/icons-storage")
                 .hasFieldOrPropertyWithValue("pathType", "Exact")
                 .hasFieldOrPropertyWithValue("backend.resource.apiGroup", "k8s.example.com")
@@ -183,7 +187,7 @@ class IngressEnricherTest {
         List<IngressRuleConfig> ingressRuleXMLConfig = IngressEnricher.getIngressRuleXMLConfig(resourceConfig);
 
         // Then
-        assertThat(ingressRuleXMLConfig).asList().hasSize(1);
+        assertThat(ingressRuleXMLConfig).hasSize(1);
     }
 
     @Test
@@ -192,7 +196,7 @@ class IngressEnricherTest {
         List<IngressRuleConfig> ingressRuleConfigs = IngressEnricher.getIngressRuleXMLConfig(null);
 
         // Then
-        assertThat(ingressRuleConfigs).asList().isEmpty();
+        assertThat(ingressRuleConfigs).isEmpty();
     }
 
     @Test
@@ -210,7 +214,7 @@ class IngressEnricherTest {
         List<IngressTlsConfig> ingressTlsConfigs = IngressEnricher.getIngressTlsXMLConfig(resourceConfig);
 
         // Then
-        assertThat(ingressTlsConfigs).asList().hasSize(1);
+        assertThat(ingressTlsConfigs).hasSize(1);
     }
 
     @Test
@@ -219,7 +223,7 @@ class IngressEnricherTest {
         List<IngressTlsConfig> ingressTlsConfigs = IngressEnricher.getIngressTlsXMLConfig(null);
 
         // Then
-        assertThat(ingressTlsConfigs).asList().isEmpty();
+        assertThat(ingressTlsConfigs).isEmpty();
     }
 
     @Test
@@ -243,10 +247,10 @@ class IngressEnricherTest {
 
         // Then
         assertThat(kubernetesListBuilder)
-            .extracting(KubernetesListBuilder::buildItems).asList()
+            .extracting(KubernetesListBuilder::buildItems).asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
             .hasSize(2)
             .element(1)
-            .extracting("spec.rules").asList()
+            .extracting("spec.rules").asInstanceOf(InstanceOfAssertFactories.list(IngressRule.class))
             .extracting("host")
             .containsExactly("test.192.168.39.25.nip.io");
     }
