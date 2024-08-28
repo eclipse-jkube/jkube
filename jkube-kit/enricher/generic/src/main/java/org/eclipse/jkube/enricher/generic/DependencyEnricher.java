@@ -133,7 +133,7 @@ public class DependencyEnricher extends BaseEnricher {
             return null;
         });
         processArtifactSetResources(this.kubernetesTemplateDependencyArtifacts, items -> {
-            List<HasMetadata> templates = Arrays.asList(items.toArray(new HasMetadata[0]));
+            HasMetadata[] templates = items.toArray(new HasMetadata[0]);
 
             // lets remove all the plain resources (without any ${PARAM} expressions) which match objects
             // in the Templates found from the k8s-templates.yml files which still contain ${PARAM} expressions
