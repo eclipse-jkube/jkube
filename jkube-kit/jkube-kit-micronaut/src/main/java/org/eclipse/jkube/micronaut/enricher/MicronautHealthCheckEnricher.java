@@ -77,7 +77,7 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
     if (!hasMicronautPlugin(getContext().getProject())){
       return false;
     }
-    return isHealthEnabled(getMicronautConfiguration(getClassLoader(getContext().getProject())));
+    return isHealthEnabled(getMicronautConfiguration(getContext().getProject()));
   }
 
   private Probe buildProbe(Integer initialDelaySeconds, Integer periodSeconds){

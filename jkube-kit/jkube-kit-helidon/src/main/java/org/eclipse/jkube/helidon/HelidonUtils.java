@@ -16,19 +16,13 @@ package org.eclipse.jkube.helidon;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
-import java.net.URLClassLoader;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Properties;
-import java.util.function.Supplier;
 
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
-import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.fromApplicationConfig;
 
 public class HelidonUtils {
   private static final String HELIDON_HTTP_PORT = "server.port";
+  private static final String[] HELIDON_APP_CONFIG_FILES_LIST = new String[] {"META-INF/microprofile-config.properties", "application.yaml", "application.yml"};
 
   private HelidonUtils() { }
 
@@ -46,20 +40,7 @@ public class HelidonUtils {
   }
 
   public static Properties getHelidonConfiguration(JavaProject javaProject) {
-    final URLClassLoader urlClassLoader = getClassLoader(javaProject);
-    final List<Supplier<Properties>> sources = Arrays.asList(
-        () -> getPropertiesFromResource(urlClassLoader.findResource("META-INF/microprofile-config.properties")),
-        () -> getPropertiesFromYamlResource(urlClassLoader.findResource("application.yaml")),
-        () -> getPropertiesFromYamlResource(urlClassLoader.findResource("application.yml"))
-    );
-    for (Supplier<Properties> source : sources) {
-      final Properties props = source.get();
-      if (!props.isEmpty()) {
-        props.putAll(toMap(javaProject.getProperties()));
-        return props;
-      }
-    }
-    return javaProject.getProperties();
+    return fromApplicationConfig(javaProject, HELIDON_APP_CONFIG_FILES_LIST);
   }
 
   public static String extractPort(Properties properties, String defaultValue) {

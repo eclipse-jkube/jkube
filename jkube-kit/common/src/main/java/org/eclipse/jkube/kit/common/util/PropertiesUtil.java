@@ -14,10 +14,12 @@
 package org.eclipse.jkube.kit.common.util;
 
 import io.fabric8.kubernetes.client.utils.Utils;
+import org.eclipse.jkube.kit.common.JavaProject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -25,6 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+
+import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
+import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
 
 public class PropertiesUtil {
 
@@ -91,5 +96,23 @@ public class PropertiesUtil {
       map.put(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
     }
     return map;
+  }
+
+  public static Properties fromApplicationConfig(JavaProject javaProject, String[] appConfigSources) {
+    final URLClassLoader urlClassLoader = getClassLoader(javaProject);
+    for (String source : appConfigSources) {
+      final Properties properties;
+      if (source.endsWith(".properties")) {
+        properties = getPropertiesFromResource(urlClassLoader.findResource(source));
+      } else {
+        properties = getPropertiesFromYamlResource(urlClassLoader.findResource(source));
+      }
+      // Consider only the first non-empty application config source
+      if (!properties.isEmpty()) {
+        properties.putAll(toMap(javaProject.getProperties()));
+        return properties;
+      }
+    }
+    return javaProject.getProperties();
   }
 }

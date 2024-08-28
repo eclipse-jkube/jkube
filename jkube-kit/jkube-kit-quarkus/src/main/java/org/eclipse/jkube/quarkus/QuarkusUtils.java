@@ -14,10 +14,8 @@
 package org.eclipse.jkube.quarkus;
 
 import java.io.File;
-import java.net.URLClassLoader;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,15 +25,13 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.toMap;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.fromApplicationConfig;
 import static org.eclipse.jkube.kit.common.util.SemanticVersionUtil.isVersionAtLeast;
-import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
 
 public class QuarkusUtils {
 
   public static final String QUARKUS_GROUP_ID = "io.quarkus";
+  private static final String[] QUARKUS_APP_CONFIG_FILES_LIST = new String[] {"application.properties", "application.yaml", "application.yml"};
   private static final String RED_HAT_QUARKUS_BUILD_GROUP_ID = "com.redhat.quarkus.platform";
   public static final String QUARKUS_PLATFORM_GROUP_ID = "io.quarkus.platform";
   private static final String QUARKUS_HTTP_PORT = "quarkus.http.port";
@@ -100,22 +96,8 @@ public class QuarkusUtils {
    * @param project from which to read the configuration
    * @return the applicable Quarkus configuration properties
    */
-  @SuppressWarnings("unchecked")
   public static Properties getQuarkusConfiguration(JavaProject project) {
-    final URLClassLoader urlClassLoader = getClassLoader(project);
-    final Supplier<Properties>[] sources = new Supplier[]{
-        () -> getPropertiesFromResource(urlClassLoader.findResource("application.properties")),
-        () -> getPropertiesFromYamlResource(urlClassLoader.findResource("application.yaml")),
-        () -> getPropertiesFromYamlResource(urlClassLoader.findResource("application.yml"))
-    };
-    for (Supplier<Properties> source : sources) {
-      final Properties props = source.get();
-      if (!props.isEmpty()) {
-        props.putAll(toMap(project.getProperties()));
-        return props;
-      }
-    }
-    return project.getProperties();
+    return fromApplicationConfig(project, QUARKUS_APP_CONFIG_FILES_LIST);
   }
 
   private static Optional<String> getActiveProfile(JavaProject project) {

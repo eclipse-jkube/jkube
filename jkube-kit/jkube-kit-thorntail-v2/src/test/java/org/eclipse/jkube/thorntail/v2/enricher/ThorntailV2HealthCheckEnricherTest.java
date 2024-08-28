@@ -13,11 +13,15 @@
  */
 package org.eclipse.jkube.thorntail.v2.enricher;
 
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Properties;
 
-import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
+import org.eclipse.jkube.kit.common.Dependency;
+import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -29,21 +33,21 @@ import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class ThorntailV2HealthCheckEnricherTest {
   private JKubeEnricherContext context;
   private Properties properties;
   private KubernetesListBuilder klb;
 
+  @TempDir
+  private Path temporaryFolder;
+
   @BeforeEach
-  void setUp() {
-    context = mock(JKubeEnricherContext.class,RETURNS_DEEP_STUBS);
+  void setUp() throws IOException {
     properties = new Properties();
     ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
@@ -62,10 +66,19 @@ class ThorntailV2HealthCheckEnricherTest {
           .endTemplate()
         .endSpec()
         .build());
-    when(context.getProperties()).thenReturn(properties);
-    when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
-    when(context.hasDependency("io.thorntail", "monitor")).thenReturn(true);
-    when(context.getProjectClassLoaders()).thenReturn( new ProjectClassLoaders(new URLClassLoader(new URL[0], ThorntailV2HealthCheckEnricherTest.class.getClassLoader())));
+    context = JKubeEnricherContext.builder()
+      .project(JavaProject.builder()
+        .properties(properties)
+        .dependenciesWithTransitive(Collections.singletonList(Dependency.builder()
+          .groupId("io.thorntail")
+          .artifactId("monitor")
+          .version("2.7.0.Final")
+          .build()))
+        .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
+        .build())
+      .processorConfig(processorConfig)
+      .log(new KitLogger.SilentLogger())
+      .build();
   }
 
   @Test
@@ -132,7 +145,9 @@ class ThorntailV2HealthCheckEnricherTest {
   @Test
   void createWithNoThorntailDependency() {
     // Given
-    when(context.hasDependency("io.thorntail", "monitor")).thenReturn(false);
+    context = context.toBuilder()
+      .project(context.getProject().toBuilder().dependenciesWithTransitive(Collections.emptyList()).build())
+      .build();
     // When
     new ThorntailV2HealthCheckEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then

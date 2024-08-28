@@ -91,7 +91,7 @@ public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher 
     }
 
     protected int getPort() {
-        final Properties properties = ThorntailUtil.getThorntailProperties(getContext().getProjectClassLoaders().getCompileClassLoader());
+        final Properties properties = ThorntailUtil.getThorntailProperties(getContext().getProject());
         properties.putAll(System.getProperties());
         if (properties.containsKey("thorntail.http.port")) {
             return Integer.parseInt((String) properties.get("thorntail.http.port"));
