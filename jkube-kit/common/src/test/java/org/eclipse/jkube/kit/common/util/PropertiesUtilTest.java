@@ -16,8 +16,6 @@ package org.eclipse.jkube.kit.common.util;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
@@ -125,8 +123,8 @@ class PropertiesUtilTest {
   }
 
   @Nested
-  @DisplayName("createPropertiesFromApplicationConfig")
-  class CreatePropertiesFromApplicationConfig {
+  @DisplayName("fromApplicationConfig")
+  class FromApplicationConfig {
     @TempDir
     private Path temporaryFolder;
 
@@ -145,7 +143,7 @@ class PropertiesUtilTest {
     @DisplayName("no source provided, return empty Properties")
     void noSourceProvided_thenReturnEmptyProperty() {
       // When
-      Properties properties = PropertiesUtil.createPropertiesFromApplicationConfig(javaProject, Collections.emptyList());
+      Properties properties = PropertiesUtil.fromApplicationConfig(javaProject, new String[0]);
       // Then
       assertThat(properties).isEmpty();
     }
@@ -154,7 +152,7 @@ class PropertiesUtilTest {
     @DisplayName("application.yml source")
     void yml() {
       // When
-      Properties properties = PropertiesUtil.createPropertiesFromApplicationConfig(javaProject, Collections.singletonList("application.yml"));
+      Properties properties = PropertiesUtil.fromApplicationConfig(javaProject, new String[]{"application.yml"});
       // Then
       assertThat(properties).containsExactly(
         entry("application.name", "name-via-yaml"));
@@ -164,7 +162,7 @@ class PropertiesUtilTest {
     @DisplayName("application.properties source")
     void properties() {
       // When
-      Properties properties = PropertiesUtil.createPropertiesFromApplicationConfig(javaProject, Collections.singletonList("application.properties"));
+      Properties properties = PropertiesUtil.fromApplicationConfig(javaProject, new String[]{"application.properties"});
       // Then
       assertThat(properties).containsExactly(
         entry("application.name", "name-via-properties"));
@@ -174,10 +172,20 @@ class PropertiesUtilTest {
     @DisplayName("multiple sources provided, then first one takes precedence")
     void multipleSources_thenFirstOneTakesPrecedence() {
       // When
-      Properties properties = PropertiesUtil.createPropertiesFromApplicationConfig(javaProject, Arrays.asList("application.properties", "application.yml"));
+      Properties properties = PropertiesUtil.fromApplicationConfig(javaProject, new String[]{"application.properties", "application.yml"});
       // Then
       assertThat(properties).containsExactly(
         entry("application.name", "name-via-properties"));
+    }
+
+    @Test
+    @DisplayName("multiple sources provided, then first one takes precedence")
+    void multipleSourcesWithEmpty_thenFirstNonEmptyTakesPrecedence() {
+      // When
+      Properties properties = PropertiesUtil.fromApplicationConfig(javaProject, new String[]{"not-there", "application.yml", "application.properties"});
+      // Then
+      assertThat(properties).containsExactly(
+        entry("application.name", "name-via-yaml"));
     }
   }
 }

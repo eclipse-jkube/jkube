@@ -14,7 +14,6 @@
 package org.eclipse.jkube.quarkus;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.stream.Collectors;
@@ -26,13 +25,13 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.util.FileUtil.stripPrefix;
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.createPropertiesFromApplicationConfig;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.fromApplicationConfig;
 import static org.eclipse.jkube.kit.common.util.SemanticVersionUtil.isVersionAtLeast;
 
 public class QuarkusUtils {
 
   public static final String QUARKUS_GROUP_ID = "io.quarkus";
-  public static final String[] QUARKUS_APP_CONFIG_FILES_LIST = new String[] {"application.properties", "application.yaml", "application.yml"};
+  private static final String[] QUARKUS_APP_CONFIG_FILES_LIST = new String[] {"application.properties", "application.yaml", "application.yml"};
   private static final String RED_HAT_QUARKUS_BUILD_GROUP_ID = "com.redhat.quarkus.platform";
   public static final String QUARKUS_PLATFORM_GROUP_ID = "io.quarkus.platform";
   private static final String QUARKUS_HTTP_PORT = "quarkus.http.port";
@@ -98,7 +97,7 @@ public class QuarkusUtils {
    * @return the applicable Quarkus configuration properties
    */
   public static Properties getQuarkusConfiguration(JavaProject project) {
-    return createPropertiesFromApplicationConfig(project, Arrays.asList(QUARKUS_APP_CONFIG_FILES_LIST));
+    return fromApplicationConfig(project, QUARKUS_APP_CONFIG_FILES_LIST);
   }
 
   private static Optional<String> getActiveProfile(JavaProject project) {

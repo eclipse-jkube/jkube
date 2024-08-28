@@ -16,13 +16,12 @@ package org.eclipse.jkube.micronaut;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
-import java.util.Arrays;
 import java.util.Properties;
 
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.createPropertiesFromApplicationConfig;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.fromApplicationConfig;
 
 public class MicronautUtils {
-  public static final String[] MICRONAUT_APP_CONFIG_FILES_LIST = new String[] {"application.properties", "application.yml", "application.json"};
+  private static final String[] MICRONAUT_APP_CONFIG_FILES_LIST = new String[] {"application.properties", "application.yml", "application.yaml", "application.json"};
   private MicronautUtils() {}
 
   public static String extractPort(Properties properties, String defaultValue) {
@@ -34,7 +33,7 @@ public class MicronautUtils {
   }
 
   public static Properties getMicronautConfiguration(JavaProject javaProject) {
-    return createPropertiesFromApplicationConfig(javaProject, Arrays.asList(MICRONAUT_APP_CONFIG_FILES_LIST));
+    return fromApplicationConfig(javaProject, MICRONAUT_APP_CONFIG_FILES_LIST);
   }
 
   public static boolean hasMicronautPlugin(JavaProject javaProject) {

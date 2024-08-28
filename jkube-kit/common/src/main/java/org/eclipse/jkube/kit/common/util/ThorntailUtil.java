@@ -15,13 +15,12 @@ package org.eclipse.jkube.kit.common.util;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 
-import java.util.Arrays;
 import java.util.Properties;
 
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.createPropertiesFromApplicationConfig;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.fromApplicationConfig;
 
 public class ThorntailUtil {
-    public static final String[] THORNTAIL_APP_CONFIG_FILES_LIST = new String[] {"project-defaults.yml"};
+    private static final String[] THORNTAIL_APP_CONFIG_FILES_LIST = new String[] {"project-defaults.yml"};
 
     private ThorntailUtil() {}
 
@@ -33,6 +32,6 @@ public class ThorntailUtil {
      * @return thorntail configuration properties
      */
     public static Properties getThorntailProperties(JavaProject javaProject) {
-        return createPropertiesFromApplicationConfig(javaProject, Arrays.asList(THORNTAIL_APP_CONFIG_FILES_LIST));
+        return fromApplicationConfig(javaProject, THORNTAIL_APP_CONFIG_FILES_LIST);
     }
 }

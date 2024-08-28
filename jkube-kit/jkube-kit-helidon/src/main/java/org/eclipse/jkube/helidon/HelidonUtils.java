@@ -16,14 +16,13 @@ package org.eclipse.jkube.helidon;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
-import java.util.Arrays;
 import java.util.Properties;
 
-import static org.eclipse.jkube.kit.common.util.PropertiesUtil.createPropertiesFromApplicationConfig;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.fromApplicationConfig;
 
 public class HelidonUtils {
   private static final String HELIDON_HTTP_PORT = "server.port";
-  public static final String[] HELIDON_APP_CONFIG_FILES_LIST = new String[] {"META-INF/microprofile-config.properties", "application.yaml", "application.yml"};
+  private static final String[] HELIDON_APP_CONFIG_FILES_LIST = new String[] {"META-INF/microprofile-config.properties", "application.yaml", "application.yml"};
 
   private HelidonUtils() { }
 
@@ -41,7 +40,7 @@ public class HelidonUtils {
   }
 
   public static Properties getHelidonConfiguration(JavaProject javaProject) {
-    return createPropertiesFromApplicationConfig(javaProject, Arrays.asList(HELIDON_APP_CONFIG_FILES_LIST));
+    return fromApplicationConfig(javaProject, HELIDON_APP_CONFIG_FILES_LIST);
   }
 
   public static String extractPort(Properties properties, String defaultValue) {

@@ -22,14 +22,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-import java.util.function.Supplier;
 
 import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
@@ -101,28 +98,21 @@ public class PropertiesUtil {
     return map;
   }
 
-  public static Properties createPropertiesFromApplicationConfig(JavaProject project, List<String> appConfigSources) {
-    final List<Supplier<Properties>> sources = getPropertySuppliersList(project, appConfigSources);
-    for (Supplier<Properties> source : sources) {
-      final Properties props = source.get();
-      if (!props.isEmpty()) {
-        props.putAll(toMap(project.getProperties()));
-        return props;
-      }
-    }
-    return project.getProperties();
-  }
-
-  private static List<Supplier<Properties>> getPropertySuppliersList(JavaProject javaProject, List<String> propertySources) {
+  public static Properties fromApplicationConfig(JavaProject javaProject, String[] appConfigSources) {
     final URLClassLoader urlClassLoader = getClassLoader(javaProject);
-    List<Supplier<Properties>> sources = new ArrayList<>();
-    for (String source : propertySources) {
+    for (String source : appConfigSources) {
+      final Properties properties;
       if (source.endsWith(".properties")) {
-        sources.add(() -> getPropertiesFromResource(urlClassLoader.findResource(source)));
+        properties = getPropertiesFromResource(urlClassLoader.findResource(source));
       } else {
-        sources.add(() -> getPropertiesFromYamlResource(urlClassLoader.findResource(source)));
+        properties = getPropertiesFromYamlResource(urlClassLoader.findResource(source));
+      }
+      // Consider only the first non-empty application config source
+      if (!properties.isEmpty()) {
+        properties.putAll(toMap(javaProject.getProperties()));
+        return properties;
       }
     }
-    return sources;
+    return javaProject.getProperties();
   }
 }
