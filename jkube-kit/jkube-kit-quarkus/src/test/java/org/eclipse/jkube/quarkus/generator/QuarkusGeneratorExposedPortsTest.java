@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -69,7 +70,7 @@ class QuarkusGeneratorExposedPortsTest {
     assertThat(result).singleElement()
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .containsExactly("8080", "8778", "9779");
   }
 
@@ -83,7 +84,7 @@ class QuarkusGeneratorExposedPortsTest {
     assertThat(result).singleElement()
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
-        .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .containsExactly("8080");
   }
 
@@ -101,7 +102,7 @@ class QuarkusGeneratorExposedPortsTest {
     assertThat(result).singleElement()
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
-        .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .containsExactly("1337", "8778", "9779");
   }
 
@@ -120,7 +121,7 @@ class QuarkusGeneratorExposedPortsTest {
     assertThat(result).singleElement()
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
-        .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .containsExactly("31337", "8778", "9779");
   }
 
