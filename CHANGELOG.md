@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.18-SNAPSHOT
+* Fix #1125: Support WebFlux SpringBoot projects when it comes to generate probes for actuators
 
 ### 1.17.0 (2024-08-13)
 * Fix #494: Support for Micronaut Framework Native Images

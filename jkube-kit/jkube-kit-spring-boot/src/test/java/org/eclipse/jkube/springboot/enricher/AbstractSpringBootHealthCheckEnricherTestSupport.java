@@ -30,7 +30,10 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -699,6 +702,79 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         assertHTTPGetPathAndPort(livenessProbe,getActuatorDefaultBasePath() + "/health",8080);
         Probe readinessProbe = enricher.getReadinessProbe();
         assertHTTPGetPathAndPort(readinessProbe,getActuatorDefaultBasePath() + "/health",8080);
+    }
+
+    @Nested
+    @DisplayName("Spring Web Flux Dependency present")
+    class SpringWebFlux {
+        @BeforeEach
+        void setup() {
+            context.getProject().setDependencies(Collections.singletonList(Dependency.builder()
+              .groupId("org.springframework.boot")
+              .artifactId("spring-boot-starter-webflux")
+              .version(getSpringBootVersion())
+              .build()));
+            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES))
+              .thenReturn(true);
+        }
+
+        @Nested
+        @DisplayName("spring.webflux.base-path property configured")
+        class SpringWebFluxBasePathConfigured {
+            @BeforeEach
+            void setUp() {
+                props.put("spring.webflux.base-path", "/webflux");
+            }
+
+            @AfterEach
+            void tearDown() {
+                props.clear();
+            }
+
+            @Test
+            @DisplayName("when management server sharing main server port, then liveness, readiness probes use web flux base path in endpoints")
+            void whenProbesGenerated_thenProbesAddWebFluxBasePath() {
+                // Given
+                props.put("management.port", "8383");
+                props.put("management.server.port", "8383");
+                writeProps();
+                SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
+                // When
+                Probe livenessProbe = enricher.getLivenessProbe();
+                Probe readinessProbe = enricher.getReadinessProbe();
+                // Then
+                assertHTTPGetPathAndPort(livenessProbe, getActuatorDefaultBasePath() + "/health",8383);
+                assertHTTPGetPathAndPort(readinessProbe,getActuatorDefaultBasePath() + "/health",8383);
+            }
+
+            @Test
+            @DisplayName("when a separate management server port configured, then spring.webflux.base-path is ignored")
+            void whenManagementServerRunningOnDifferentPort_thenProbesDoNotUseWebFluxBasePath() {
+                // Given
+                writeProps();
+                SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
+                // When
+                Probe livenessProbe = enricher.getLivenessProbe();
+                Probe readinessProbe = enricher.getReadinessProbe();
+                // Then
+                assertHTTPGetPathAndPort(livenessProbe,"/webflux" + getActuatorDefaultBasePath() + "/health",8080);
+                assertHTTPGetPathAndPort(readinessProbe,"/webflux" + getActuatorDefaultBasePath() + "/health",8080);
+            }
+        }
+
+        @Test
+        @DisplayName("when no explicit base path configured, then use default base path")
+        void whenManagementServerRunningOnDifferentPort_thenProbesDoNotUseWebFluxBasePath() {
+            // Given
+            writeProps();
+            SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
+            // When
+            Probe livenessProbe = enricher.getLivenessProbe();
+            Probe readinessProbe = enricher.getReadinessProbe();
+            // Then
+            assertHTTPGetPathAndPort(livenessProbe,getActuatorDefaultBasePath() + "/health",8080);
+            assertHTTPGetPathAndPort(readinessProbe,getActuatorDefaultBasePath() + "/health",8080);
+        }
     }
 
     private void assertHTTPGetPathAndPort(Probe probe, String path, int port) {

@@ -39,6 +39,7 @@ public class SpringBootUtil {
     public static final String DEV_TOOLS_REMOTE_SECRET = "spring.devtools.remote.secret";
     public static final String DEV_TOOLS_REMOTE_SECRET_ENV = "SPRING_DEVTOOLS_REMOTE_SECRET";
 
+    private static final String SPRING_WEB_FLUX_ARTIFACT_ID = "spring-boot-starter-webflux";
     private static final String PLACEHOLDER_PREFIX = "${";
     private static final String PLACEHOLDER_SUFFIX = "}";
     private static final String VALUE_SEPARATOR = ":";
@@ -148,6 +149,10 @@ public class SpringBootUtil {
             }
         }
         return null;
+    }
+
+    public static boolean hasSpringWebFluxDependency(JavaProject javaProject) {
+        return JKubeProjectUtil.hasDependency(javaProject, SPRING_BOOT_GROUP_ID, SPRING_WEB_FLUX_ARTIFACT_ID);
     }
 }
 
