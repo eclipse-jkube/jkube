@@ -17,6 +17,8 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
+
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
@@ -53,7 +55,7 @@ class IngressEnricherBehavioralTest {
     // When
     new IngressEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().isEmpty();
+    assertThat(klb.build()).extracting(KubernetesList::getItems).asInstanceOf(InstanceOfAssertFactories.LIST).isEmpty();
   }
 
   @Test
@@ -64,7 +66,7 @@ class IngressEnricherBehavioralTest {
     // When
     new IngressEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
+    assertThat(klb.build()).extracting(KubernetesList::getItems).asInstanceOf(InstanceOfAssertFactories.LIST).singleElement()
       .isInstanceOf(Service.class);
   }
 
@@ -112,7 +114,7 @@ class IngressEnricherBehavioralTest {
     // When
     new IngressEnricher(context).create(PlatformMode.kubernetes, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
+    assertThat(klb.build()).extracting(KubernetesList::getItems).asInstanceOf(InstanceOfAssertFactories.LIST).singleElement()
       .isInstanceOf(Service.class);
   }
 
@@ -131,7 +133,7 @@ class IngressEnricherBehavioralTest {
       .hasFieldOrPropertyWithValue("metadata.name", "http")
       .hasFieldOrPropertyWithValue("spec.defaultBackend.service.name", "http")
       .hasFieldOrPropertyWithValue("spec.defaultBackend.service.port.number", 80)
-      .extracting("spec.rules").asList().isEmpty();
+      .extracting("spec.rules").asInstanceOf(InstanceOfAssertFactories.LIST).isEmpty();
   }
 
   @Test
@@ -150,6 +152,6 @@ class IngressEnricherBehavioralTest {
       .hasFieldOrPropertyWithValue("metadata.name", "http")
       .hasFieldOrPropertyWithValue("spec.backend.serviceName", "http")
       .hasFieldOrPropertyWithValue("spec.backend.servicePort.value", 80)
-      .extracting("spec.rules").asList().isEmpty();
+      .extracting("spec.rules").asInstanceOf(InstanceOfAssertFactories.LIST).isEmpty();
   }
 }
