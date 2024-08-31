@@ -14,6 +14,11 @@
 package org.eclipse.jkube.kit.config.image.build;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
@@ -27,21 +32,21 @@ import static org.eclipse.jkube.kit.config.image.build.CleanupMode.TRY_TO_REMOVE
  */
 class CleanupModeTest {
 
-    @Test
-    void parse() {
+    @ParameterizedTest
+    @MethodSource("provideParseTestData")
+    void parse(String input, CleanupMode expected) {
+        assertThat(CleanupMode.parse(input)).isEqualTo(expected);
+    }
 
-        Object[] data = {
-            null, TRY_TO_REMOVE,
-            "try", TRY_TO_REMOVE,
-            "FaLsE", NONE,
-            "NONE", NONE,
-            "true", REMOVE,
-            "removE", REMOVE
-        };
-
-        for (int i = 0; i < data.length; i += 2) {
-            assertThat(CleanupMode.parse((String) data[i])).isEqualTo(data[i + 1]);
-        }
+    static Stream<Arguments> provideParseTestData() {
+        return Stream.of(
+            Arguments.of(null, CleanupMode.TRY_TO_REMOVE),
+            Arguments.of("try", CleanupMode.TRY_TO_REMOVE),
+            Arguments.of("FaLsE", CleanupMode.NONE),
+            Arguments.of("NONE", CleanupMode.NONE),
+            Arguments.of("true", CleanupMode.REMOVE),
+            Arguments.of("removE", CleanupMode.REMOVE)
+        );
     }
 
     @Test
