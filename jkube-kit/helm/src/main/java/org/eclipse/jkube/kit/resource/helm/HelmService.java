@@ -465,7 +465,7 @@ public class HelmService {
     if (input instanceof Map) {
       final Map<String, Object> inputMap = (Map<String, Object>) input;
       final SortedMap<String, Object> result = new TreeMap<>();
-      inputMap.entrySet().stream().forEach(entry -> result.put(entry.getKey(), sortValuesYamlRecursive(entry.getValue())));
+      inputMap.forEach((key, value) -> result.put(key, sortValuesYamlRecursive(value)));
       return result;
     } else {
       return input;
