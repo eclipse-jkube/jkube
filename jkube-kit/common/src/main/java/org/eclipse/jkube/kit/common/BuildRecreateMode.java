@@ -57,7 +57,7 @@ public enum BuildRecreateMode {
         } else if (param.equalsIgnoreCase("true")) {
             return all;
         }
-        return valueOf(param.toLowerCase());
+        return valueOf(param);
     }
 
     BuildRecreateMode(boolean bc, boolean is) {
