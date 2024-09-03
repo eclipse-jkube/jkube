@@ -23,7 +23,6 @@ import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.kit.common.PropertiesExtender;
 
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 
@@ -44,6 +43,7 @@ public class SpringBootUtil {
     private static final String PLACEHOLDER_PREFIX = "${";
     private static final String PLACEHOLDER_SUFFIX = "}";
     private static final String VALUE_SEPARATOR = ":";
+    private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
 
     private SpringBootUtil() {}
 
@@ -66,22 +66,19 @@ public class SpringBootUtil {
      * @param compileClassLoader compile class loader
      * @return properties object
      */
-    public static PropertiesExtender getSpringBootApplicationProperties(String springActiveProfile, URLClassLoader compileClassLoader) {
+    public static Properties getSpringBootApplicationProperties(String springActiveProfile, URLClassLoader compileClassLoader) {
         URL ymlResource = compileClassLoader.findResource("application.yml");
         URL propertiesResource = compileClassLoader.findResource("application.properties");
-        
+
         Properties props = YamlUtil.getPropertiesFromYamlResource(springActiveProfile, ymlResource);
         props.putAll(getPropertiesFromResource(propertiesResource));
-        props = new SpringBootPropertyPlaceholderHelper(PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX, VALUE_SEPARATOR, true)
+        if (ymlResource != null) {
+            props.put(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION, ymlResource.toString());
+        } else if (propertiesResource != null) {
+            props.put(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION, propertiesResource.toString());
+        }
+        return new SpringBootPropertyPlaceholderHelper(PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX, VALUE_SEPARATOR, true)
             .replaceAllPlaceholders(props);
-        
-        // Extend Properties object with resources file path
-        PropertiesExtender propsExtender = new PropertiesExtender();
-        URL propertiesFile = ymlResource != null ? ymlResource : propertiesResource;
-        propsExtender.setPropertiesFile(propertiesFile);
-        propsExtender.putAll(props);
-        
-        return propsExtender;
     }
 
     /**

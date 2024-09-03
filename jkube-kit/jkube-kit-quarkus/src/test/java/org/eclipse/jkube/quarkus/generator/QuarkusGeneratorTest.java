@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -52,6 +53,9 @@ import org.mockito.MockedConstruction;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -70,6 +74,7 @@ class QuarkusGeneratorTest {
   private Properties projectProps;
   private JavaProject project;
   private GeneratorContext ctx;
+  private KitLogger logger;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -77,6 +82,7 @@ class QuarkusGeneratorTest {
     projectProps = new Properties();
     projectProps.put("jkube.generator.name", "quarkus");
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
+    logger = spy(new KitLogger.SilentLogger());
     project = JavaProject.builder()
       .version("0.0.1-SNAPSHOT")
       .baseDirectory(targetDir)
@@ -86,11 +92,26 @@ class QuarkusGeneratorTest {
       .outputDirectory(targetDir)
       .build();
     ctx = GeneratorContext.builder()
-      .logger(new KitLogger.SilentLogger())
+      .logger(logger)
       .project(project)
       .config(config)
       .strategy(JKubeBuildStrategy.s2i)
       .build();
+  }
+
+  @Test
+  void constructorShouldLogQuarkusApplicationConfigPath() {
+    // Given
+    ctx = ctx.toBuilder()
+      .project(project.toBuilder()
+        .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/generator-extract-ports")).getPath())
+        .build())
+      .build();
+    // When
+    QuarkusGenerator quarkusGenerator = new QuarkusGenerator(ctx);
+    // Then
+    assertThat(quarkusGenerator).isNotNull();
+    verify(logger, times(1)).debug("quarkus: Quarkus Application Config loaded from : %s", getClass().getResource("/generator-extract-ports/application.properties"));
   }
 
   @Nested

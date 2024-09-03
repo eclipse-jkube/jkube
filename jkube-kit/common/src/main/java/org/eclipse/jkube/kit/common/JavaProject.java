@@ -21,7 +21,6 @@ import lombok.Singular;
 
 import java.io.File;
 import java.io.Serializable;
-import java.net.URL;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
@@ -38,14 +37,7 @@ import java.util.Properties;
 public class JavaProject implements Serializable {
 
   private static final long serialVersionUID = 6438404976521622633L;
-  
-  /**
-   * Properties file for the project
-   *
-   * @param propertiesFile for the project.
-   * @return Properties file for the project.
-   */
-  private URL propertiesFile;
+
   /**
    * Project's name.
    *

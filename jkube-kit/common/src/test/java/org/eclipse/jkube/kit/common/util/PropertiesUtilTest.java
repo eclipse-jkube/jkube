@@ -154,8 +154,10 @@ class PropertiesUtilTest {
       // When
       Properties properties = PropertiesUtil.fromApplicationConfig(javaProject, new String[]{"application.yml"});
       // Then
-      assertThat(properties).containsExactly(
-        entry("application.name", "name-via-yaml"));
+      assertThat(properties)
+        .containsOnly(
+          entry("jkube.internal.application-config-file.path", PropertiesUtilTest.class.getResource("/util/properties-util/yaml/application.yml")),
+          entry("application.name", "name-via-yaml"));
     }
 
     @Test
@@ -164,8 +166,10 @@ class PropertiesUtilTest {
       // When
       Properties properties = PropertiesUtil.fromApplicationConfig(javaProject, new String[]{"application.properties"});
       // Then
-      assertThat(properties).containsExactly(
-        entry("application.name", "name-via-properties"));
+      assertThat(properties)
+        .containsOnly(
+          entry("jkube.internal.application-config-file.path", PropertiesUtilTest.class.getResource("/util/properties-util/properties/application.properties")),
+          entry("application.name", "name-via-properties"));
     }
 
     @Test
@@ -174,8 +178,10 @@ class PropertiesUtilTest {
       // When
       Properties properties = PropertiesUtil.fromApplicationConfig(javaProject, new String[]{"application.properties", "application.yml"});
       // Then
-      assertThat(properties).containsExactly(
-        entry("application.name", "name-via-properties"));
+      assertThat(properties)
+        .containsOnly(
+          entry("jkube.internal.application-config-file.path", PropertiesUtilTest.class.getResource("/util/properties-util/properties/application.properties")),
+          entry("application.name", "name-via-properties"));
     }
 
     @Test
@@ -184,8 +190,10 @@ class PropertiesUtilTest {
       // When
       Properties properties = PropertiesUtil.fromApplicationConfig(javaProject, new String[]{"not-there", "application.yml", "application.properties"});
       // Then
-      assertThat(properties).containsExactly(
-        entry("application.name", "name-via-yaml"));
+      assertThat(properties)
+        .containsOnly(
+          entry("jkube.internal.application-config-file.path", PropertiesUtilTest.class.getResource("/util/properties-util/yaml/application.yml")),
+          entry("application.name", "name-via-yaml"));
     }
   }
 }

@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.quarkus.enricher;
 
+import java.util.Properties;
 import java.util.function.Function;
 
 import org.eclipse.jkube.kit.common.Configs;
@@ -39,9 +40,13 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
  * Enriches Quarkus containers with health checks if the quarkus-smallrye-health is present
  */
 public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
+    private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
+    private final Properties quarkusApplicationConfiguration;
 
     public QuarkusHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-quarkus");
+        quarkusApplicationConfiguration = getQuarkusConfiguration(getContext().getProject());
+        log.debug("Quarkus Application Config loaded from : %s", quarkusApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
     }
 
     @AllArgsConstructor
@@ -89,7 +94,7 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         }
         return new ProbeBuilder()
             .withNewHttpGet()
-              .withNewPort(asInteger(extractPort(getContext().getProject(), getQuarkusConfiguration(getContext().getProject()), getConfig(Config.PORT))))
+              .withNewPort(asInteger(extractPort(getContext().getProject(), quarkusApplicationConfiguration, getConfig(Config.PORT))))
               .withPath(resolveHealthPath(pathResolver.apply(getContext().getProject())))
               .withScheme(getConfig(Config.SCHEME))
             .endHttpGet()

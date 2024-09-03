@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.Dependency;
@@ -37,11 +38,15 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class ThorntailV2HealthCheckEnricherTest {
   private JKubeEnricherContext context;
   private Properties properties;
   private KubernetesListBuilder klb;
+  private KitLogger logger;
 
   @TempDir
   private Path temporaryFolder;
@@ -51,6 +56,7 @@ class ThorntailV2HealthCheckEnricherTest {
     properties = new Properties();
     ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
+    logger = spy(new KitLogger.SilentLogger());
     // @formatter:off
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
@@ -77,8 +83,23 @@ class ThorntailV2HealthCheckEnricherTest {
         .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
         .build())
       .processorConfig(processorConfig)
-      .log(new KitLogger.SilentLogger())
+      .log(logger)
       .build();
+  }
+
+  @Test
+  void constructorShouldLogThorntailApplicationConfigPath() {
+    // Given
+    context = context.toBuilder()
+      .project(context.getProject().toBuilder()
+        .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/application-config/properties")).getPath())
+        .build())
+      .build();
+    // When
+    ThorntailV2HealthCheckEnricher thorntailV2HealthCheckEnricher = new ThorntailV2HealthCheckEnricher(context);
+    // Then
+    assertThat(thorntailV2HealthCheckEnricher).isNotNull();
+    verify(logger, times(1)).debug("jkube-healthcheck-thorntail-v2: Thorntail Application Config loaded from : %s", getClass().getResource("/application-config/properties/project-defaults.yml"));
   }
 
   @Test

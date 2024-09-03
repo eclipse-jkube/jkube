@@ -32,6 +32,7 @@ import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlResource;
 
 public class PropertiesUtil {
+  private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
 
   private PropertiesUtil() {}
 
@@ -102,14 +103,16 @@ public class PropertiesUtil {
     final URLClassLoader urlClassLoader = getClassLoader(javaProject);
     for (String source : appConfigSources) {
       final Properties properties;
+      URL applicationConfigSource = urlClassLoader.findResource(source);
       if (source.endsWith(".properties")) {
-        properties = getPropertiesFromResource(urlClassLoader.findResource(source));
+        properties = getPropertiesFromResource(applicationConfigSource);
       } else {
-        properties = getPropertiesFromYamlResource(urlClassLoader.findResource(source));
+        properties = getPropertiesFromYamlResource(applicationConfigSource);
       }
       // Consider only the first non-empty application config source
       if (!properties.isEmpty()) {
         properties.putAll(toMap(javaProject.getProperties()));
+        properties.put(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION, applicationConfigSource);   
         return properties;
       }
     }
