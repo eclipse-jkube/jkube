@@ -1,0 +1,3 @@
+thorntail:
+  http:
+    port: 8081
