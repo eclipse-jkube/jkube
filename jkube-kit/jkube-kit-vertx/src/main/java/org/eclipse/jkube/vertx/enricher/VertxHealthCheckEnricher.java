@@ -146,8 +146,8 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
         Optional<Integer> timeout = getIntegerValue(Config.TIMEOUT, readiness);
         Optional<Integer> successThreshold = getIntegerValue(Config.SUCCESS_THRESHOLD, readiness);
         Optional<Integer> failureThreshold = getIntegerValue(Config.FAILURE_THRESHOLD, readiness);
-        List<String> command = getListValue(Config.COMMAND, readiness).orElse(Collections.<String>emptyList());
-        Map<String, String> headers = getMapValue(Config.HEADERS, readiness).orElse(Collections.<String, String>emptyMap());
+        List<String> command = getListValue(Config.COMMAND, readiness).orElse(Collections.emptyList());
+        Map<String, String> headers = getMapValue(Config.HEADERS, readiness).orElse(Collections.emptyMap());
 
 
         // Validate
