@@ -52,9 +52,10 @@ class MicronautUtilsGetMicronautConfigurationTest {
     // When
     final Properties props = getMicronautConfiguration(javaProject);
     // Then
-    assertThat(props).containsExactly(
+    assertThat(props).contains(
         entry("micronaut.application.name", "port-config-test-" + nameSuffix),
-        entry("micronaut.server.port", "1337"));
+        entry("micronaut.server.port", "1337"))
+      .containsKey("jkube.internal.application-config-file.path");
   }
 
 }

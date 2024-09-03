@@ -40,20 +40,40 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class SpringBootGeneratorTest {
 
   private GeneratorContext context;
+  private KitLogger logger;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
+    logger = spy(new KitLogger.SilentLogger());
     context = GeneratorContext.builder()
-      .logger(new KitLogger.SilentLogger())
+      .logger(logger)
       .project(JavaProject.builder()
         .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
         .version("1.0.0")
         .build())
       .build();
+  }
+
+  @Test
+  void constructorShouldLogSpringBootApplicationConfigPath() {
+    // Given
+    context = context.toBuilder()
+      .project(context.getProject().toBuilder()
+        .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/port-override-application-properties")).getPath())
+        .build())
+      .build();
+    // When
+    SpringBootGenerator springBootGenerator = new SpringBootGenerator(context);
+    // Then
+    assertThat(springBootGenerator).isNotNull();
+    verify(logger, times(1)).debug("spring-boot: Spring Boot Application Config loaded from : %s", Objects.requireNonNull(getClass().getResource("/port-override-application-properties/application.properties")).toString());
   }
 
   @Test
@@ -224,7 +244,7 @@ class SpringBootGeneratorTest {
 
   private void withPlugin(Plugin plugin) {
     context = context.toBuilder()
-      .project(JavaProject.builder().plugin(plugin).build())
+      .project(context.getProject().toBuilder().plugin(plugin).build())
       .build();
   }
 }

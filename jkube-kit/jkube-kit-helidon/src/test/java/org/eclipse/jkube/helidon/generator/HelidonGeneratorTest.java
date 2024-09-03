@@ -41,10 +41,14 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class HelidonGeneratorTest {
   @TempDir
@@ -54,11 +58,13 @@ class HelidonGeneratorTest {
   private Properties projectProps;
   private JavaProject project;
   private GeneratorContext ctx;
+  private KitLogger logger;
 
   @BeforeEach
   public void setUp() throws IOException {
     ProcessorConfig config = new ProcessorConfig();
     projectProps = new Properties();
+    logger = spy(new KitLogger.SilentLogger());
     projectProps.put("jkube.generator.name", "helidon");
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     project = JavaProject.builder()
@@ -73,11 +79,26 @@ class HelidonGeneratorTest {
         .packaging("jar")
         .build();
     ctx = GeneratorContext.builder()
-        .logger(new KitLogger.SilentLogger())
+        .logger(logger)
         .project(project)
         .config(config)
         .strategy(JKubeBuildStrategy.s2i)
         .build();
+  }
+
+  @Test
+  void constructorShouldLogHelidonApplicationConfigPath() {
+    // Given
+    ctx = ctx.toBuilder()
+      .project(project.toBuilder()
+        .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/custom-port-microprofile-configuration")).getPath())
+        .build())
+      .build();
+    // When
+    HelidonGenerator helidonGenerator = new HelidonGenerator(ctx);
+    // Then
+    assertThat(helidonGenerator).isNotNull();
+    verify(logger, times(1)).debug("helidon: Helidon Application Config loaded from : %s", getClass().getResource("/custom-port-microprofile-configuration/META-INF/microprofile-config.properties"));
   }
 
   @Test

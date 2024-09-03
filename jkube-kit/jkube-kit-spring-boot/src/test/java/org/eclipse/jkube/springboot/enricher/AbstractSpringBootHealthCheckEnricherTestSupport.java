@@ -20,6 +20,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.TreeMap;
 
@@ -43,6 +44,8 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -52,6 +55,7 @@ import static org.mockito.Mockito.when;
  */
 public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     private Properties props;
+    private KitLogger logger;
 
     protected JKubeEnricherContext context;
 
@@ -60,9 +64,10 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     @BeforeEach
     void init(@TempDir Path project) throws IOException {
         props = new Properties();
+        logger = spy(new KitLogger.SilentLogger());
         projectClassLoaders = mock(ProjectClassLoaders.class, RETURNS_DEEP_STUBS);
         context = spy(JKubeEnricherContext.builder()
-          .log(new KitLogger.SilentLogger())
+          .log(logger)
           .project(JavaProject.builder()
             .properties(props)
             .baseDirectory(project.toFile())
@@ -83,6 +88,21 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     protected abstract String getActuatorDefaultBasePath();
     private boolean isSpringBootOne() {
         return getSpringBootVersion().substring(0, getSpringBootVersion().indexOf('.')).equals("1");
+    }
+
+    @Test
+    void constructorShouldLogSpringBootApplicationConfigPath() {
+        // Given
+        context = context.toBuilder()
+          .project(context.getProject().toBuilder()
+            .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/port-override-application-properties")).getPath())
+            .build())
+          .build();
+        // When
+        SpringBootHealthCheckEnricher springBootHealthCheckEnricher = new SpringBootHealthCheckEnricher(context);
+        // Then
+        assertThat(springBootHealthCheckEnricher).isNotNull();
+        verify(logger, times(1)).debug("jkube-healthcheck-spring-boot: Spring Boot Application Config loaded from : %s", Objects.requireNonNull(getClass().getResource("/port-override-application-properties/application.properties")).toString());
     }
 
     @Test
