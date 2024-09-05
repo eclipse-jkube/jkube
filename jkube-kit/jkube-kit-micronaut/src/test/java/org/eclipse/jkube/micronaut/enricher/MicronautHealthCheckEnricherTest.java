@@ -86,8 +86,8 @@ class MicronautHealthCheckEnricherTest {
         .extracting(DeploymentSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
-        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+        .first()
         .hasFieldOrPropertyWithValue("livenessProbe", null)
         .hasFieldOrPropertyWithValue("readinessProbe", null);
   }
@@ -106,8 +106,8 @@ class MicronautHealthCheckEnricherTest {
         .extracting(DeploymentSpec::getTemplate)
         .extracting(PodTemplateSpec::getSpec)
         .extracting(PodSpec::getContainers)
-        .asList()
-        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+        .first()
         .hasFieldOrPropertyWithValue("livenessProbe", null)
         .hasFieldOrPropertyWithValue("readinessProbe", null);
   }
@@ -125,14 +125,14 @@ class MicronautHealthCheckEnricherTest {
         .hasSize(2)
         .element(1, InstanceOfAssertFactories.type(Deployment.class))
         .extracting("spec.template.spec.containers")
-        .asList()
-        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+        .first()
         .extracting(
             "livenessProbe.httpGet.path",
             "readinessProbe.httpGet.path",
             "readinessProbe.httpGet.port.IntVal"
         )
-        .contains("/health", "/health", null);
+        .contains("/health", "/health", 1818);
   }
 
   @Test
@@ -148,14 +148,14 @@ class MicronautHealthCheckEnricherTest {
         .hasSize(2)
         .element(1, InstanceOfAssertFactories.type(Deployment.class))
         .extracting("spec.template.spec.containers")
-        .asList()
-        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+        .first()
         .extracting(
             "livenessProbe.httpGet.path",
             "readinessProbe.httpGet.path",
             "readinessProbe.httpGet.port.IntVal"
         )
-        .contains("/health", "/health", null);
+        .contains("/health", "/health", 1818);
   }
 
   @Test
@@ -175,8 +175,8 @@ class MicronautHealthCheckEnricherTest {
         .hasSize(2)
         .element(1, InstanceOfAssertFactories.type(Deployment.class))
         .extracting("spec.template.spec.containers")
-        .asList()
-        .element(0, InstanceOfAssertFactories.type(Container.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+        .first()
         .extracting(
             "livenessProbe.httpGet.path",
             "readinessProbe.httpGet.path",

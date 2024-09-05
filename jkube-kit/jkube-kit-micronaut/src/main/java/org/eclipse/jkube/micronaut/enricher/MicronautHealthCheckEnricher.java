@@ -27,7 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
+import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
 import static org.eclipse.jkube.micronaut.MicronautUtils.hasMicronautPlugin;
 import static org.eclipse.jkube.micronaut.MicronautUtils.isHealthEnabled;
@@ -85,10 +85,15 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
       return null;
     }
 
-    final String firstImagePort = getImages().stream().findFirst()
+    String port = getImages().stream().findFirst()
         .map(ImageConfiguration::getBuild).map(BuildConfiguration::getPorts)
         .orElse(Collections.emptyList()).stream()
         .findFirst().orElse(null);
+
+    if (port == null) {
+      port = extractPort(getMicronautConfiguration(getContext().getProject()), null);
+    }
+
     return new ProbeBuilder()
         .withInitialDelaySeconds(initialDelaySeconds)
         .withPeriodSeconds(periodSeconds)
@@ -97,7 +102,7 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
         .withTimeoutSeconds(toInteger(Config.TIMEOUT_SECONDS))
         .withNewHttpGet()
         .withScheme(getConfig(Config.SCHEME))
-        .withNewPort(asInteger(getConfig(Config.PORT, firstImagePort)))
+        .withNewPort(asInteger(getConfig(Config.PORT, port)))
         .withPath(getConfig(Config.PATH))
         .endHttpGet()
         .build();
