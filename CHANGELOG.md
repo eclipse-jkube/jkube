@@ -24,6 +24,7 @@ Usage:
 * Fix #1125: Support WebFlux SpringBoot projects when it comes to generate probes for actuators
 * Fix #2844: `oc:build` on openshift use `pods/log` to retrieve logs from build
 * Fix #3326: Micronaut healthcheck enricher infers overridden server port in application.properties
+* Fix #3354: Build fails with `imageStream` for `buildRecreate` value
 
 ### 1.17.0 (2024-08-13)
 * Fix #494: Support for Micronaut Framework Native Images
