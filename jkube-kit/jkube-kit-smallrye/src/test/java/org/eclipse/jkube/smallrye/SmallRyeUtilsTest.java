@@ -19,24 +19,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class SmallRyeUtilsTest {
   private JavaProject javaProject;
 
   @BeforeEach
   public void setUp() {
-    javaProject = mock(JavaProject.class);
+    javaProject = JavaProject.builder().build();
   }
 
   @Test
   void hasSmallRyeDependency_whenNoSmallRyeFound_thenReturnFalse() {
     // Given
-    mockDependencies(Collections.emptyList());
+    javaProject.setDependencies(Collections.emptyList());
 
     // When
     boolean result = SmallRyeUtils.hasSmallRyeDependency(javaProject);
@@ -48,7 +45,7 @@ class SmallRyeUtilsTest {
   @Test
   void hasSmallRyeDependency_whenSmallRyeFound_thenReturnTrue() {
     // Given
-    mockDependencies(Collections.singletonList(Dependency.builder()
+    javaProject.setDependencies(Collections.singletonList(Dependency.builder()
         .groupId("io.smallrye")
         .artifactId("smallrye-health")
         .build()));
@@ -58,9 +55,5 @@ class SmallRyeUtilsTest {
 
     // Then
     assertThat(result).isTrue();
-  }
-
-  private void mockDependencies(List<Dependency> dependencyList) {
-    when(javaProject.getDependencies()).thenReturn(dependencyList);
   }
 }
