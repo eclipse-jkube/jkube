@@ -232,18 +232,17 @@ class WildflyJARGeneratorTest {
     }
     
     private GeneratorContext contextForSlimServer(Map<String, Object> bootableJarConfig, Path dir) {
-      Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
-          .configuration(bootableJarConfig).build();
-      List<Plugin> lst = new ArrayList<>();
-      lst.add(plugin);
+
+        Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
+                .configuration(bootableJarConfig).build();
+        List<Plugin> lst = new ArrayList<>();
+        lst.add(plugin);
 
         return context.toBuilder()
-              .project(JavaProject.builder()
-                      .plugins(lst)
-                      .baseDirectory(dir!=null?dir.toFile():null)
-                      .build()
-              )
-              .build();
+                .project(JavaProject.builder()
+                        .plugins(lst)
+                        .baseDirectory(dir != null ? dir.toFile() : null)
+                        .build()).build();
     }
 
     private GeneratorContext createGeneratorContext() {
