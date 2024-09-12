@@ -88,11 +88,7 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
     String port = getImages().stream().findFirst()
         .map(ImageConfiguration::getBuild).map(BuildConfiguration::getPorts)
         .orElse(Collections.emptyList()).stream()
-        .findFirst().orElse(null);
-
-    if (port == null) {
-      port = extractPort(getMicronautConfiguration(getContext().getProject()), null);
-    }
+        .findFirst().orElse(extractPort(getMicronautConfiguration(getContext().getProject()), null));
 
     return new ProbeBuilder()
         .withInitialDelaySeconds(initialDelaySeconds)
