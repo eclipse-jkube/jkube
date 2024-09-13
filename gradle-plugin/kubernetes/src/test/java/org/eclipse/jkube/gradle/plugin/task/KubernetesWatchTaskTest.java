@@ -59,9 +59,7 @@ class KubernetesWatchTaskTest {
     // Mock required for environments with no DOCKER available (don't remove)
     dockerAccessFactoryMockedConstruction = mockConstruction(DockerAccessFactory.class,
         (mock, ctx) -> when(mock.createDockerAccess(any())).thenReturn(mock(DockerAccess.class)));
-    dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class, (mock, ctx) -> {
-      when(mock.isApplicable()).thenReturn(true);
-    });
+        dockerBuildServiceMockedConstruction = mockConstruction(DockerBuildService.class, (mock, ctx) -> when(mock.isApplicable()).thenReturn(true));
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
     kubernetesHelperMockedStatic = mockStatic(KubernetesHelper.class);
     extension = new TestKubernetesExtension();
