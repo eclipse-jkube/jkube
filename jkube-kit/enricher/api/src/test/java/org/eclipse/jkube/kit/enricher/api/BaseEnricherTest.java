@@ -48,11 +48,11 @@ class BaseEnricherTest {
 
   private static class TestEnricher extends BaseEnricher {
     @AllArgsConstructor
+    @Getter
     public enum Config implements Configs.Config {
       TEST_PROPERTY("testProperty", null);
-      @Getter
+
       private final String key;
-      @Getter
       private final String defaultValue;
     }
     public TestEnricher(EnricherContext enricherContext) {
