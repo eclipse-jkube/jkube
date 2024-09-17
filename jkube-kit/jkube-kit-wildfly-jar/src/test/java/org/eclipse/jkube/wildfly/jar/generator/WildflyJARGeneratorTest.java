@@ -48,11 +48,9 @@ class WildflyJARGeneratorTest {
     Path temporaryFolder;
 
     private GeneratorContext context;
-    private JavaProject project;
 
     @BeforeEach
     void setUp() {
-        project = JavaProject.builder().build();
         context = GeneratorContext.builder().build();
     }
 
