@@ -95,12 +95,12 @@ class VolumePermissionEnricherTest {
             .extracting(PodTemplate::getTemplate)
             .extracting(PodTemplateSpec::getSpec)
             .extracting(PodSpec::getInitContainers)
-            .asList()
-            .singleElement(InstanceOfAssertFactories.type(Container.class))
+            .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+            .singleElement()
             .hasFieldOrPropertyWithValue("resources", null)
             .extracting(Container::getVolumeMounts)
-            .asList()
-            .singleElement(InstanceOfAssertFactories.type(VolumeMount.class))
+            .asInstanceOf(InstanceOfAssertFactories.list(VolumeMount.class))
+            .singleElement()
             .extracting(VolumeMount::getMountPath)
             .isEqualTo("blub");
     }
@@ -147,8 +147,8 @@ class VolumePermissionEnricherTest {
                 .extracting(PodTemplate::getTemplate)
                 .extracting(PodTemplateSpec::getSpec)
                 .extracting(PodSpec::getInitContainers)
-                .asList()
-                .singleElement(InstanceOfAssertFactories.type(Container.class))
+                .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+                .singleElement()
                 .hasFieldOrPropertyWithValue("image", tc.imageName)
                 .hasFieldOrPropertyWithValue("name", tc.initContainerName)
                 .hasFieldOrPropertyWithValue("command", getExpectedCommand(tc))
@@ -210,8 +210,8 @@ class VolumePermissionEnricherTest {
             .extracting(PodTemplate::getTemplate)
             .extracting(PodTemplateSpec::getSpec)
             .extracting(PodSpec::getInitContainers)
-            .asList()
-            .singleElement(InstanceOfAssertFactories.type(Container.class))
+            .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+            .singleElement()
             .hasFieldOrPropertyWithValue("image", "example.org/foo/bar:latest");
     }
 
@@ -245,8 +245,8 @@ class VolumePermissionEnricherTest {
             .extracting(PodTemplate::getTemplate)
             .extracting(PodTemplateSpec::getSpec)
             .extracting(PodSpec::getInitContainers)
-            .asList()
-            .singleElement(InstanceOfAssertFactories.type(Container.class))
+            .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+            .singleElement()
             .extracting(Container::getResources)
             .hasFieldOrPropertyWithValue("requests", requestsMap)
             .hasFieldOrPropertyWithValue("limits", limitMap);
