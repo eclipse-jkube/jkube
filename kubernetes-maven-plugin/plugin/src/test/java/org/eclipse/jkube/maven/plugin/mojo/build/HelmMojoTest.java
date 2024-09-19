@@ -135,7 +135,7 @@ class HelmMojoTest {
       .hasFieldOrPropertyWithValue("metadata.name", "the-template-for-params");
     final Map<String, Object> savedChart = Serialization.unmarshal(
       projectDir.resolve("target").resolve("jkube").resolve("helm").resolve("empty-project")
-        .resolve("kubernetes").resolve("values.yaml").toFile(), new TypeReference<Map<String, Object>>() {});
+        .resolve("kubernetes").resolve("values.yaml"), new TypeReference<Map<String, Object>>() {});
     assertThat(savedChart).containsEntry("key", "value");
   }
 

@@ -13,6 +13,8 @@
 #
 
 ---
+{{- $shouldDeploy := .Values.shouldSetSail -}}
+{{ if eq $shouldDeploy true }}
 apiVersion: v1
 kind: List
 items:
@@ -32,5 +34,11 @@ items:
       provider: jkube
       version: 1337
       helm-variable: ${GLOBAL_TEMPLATE_ENV_VAR}
-      escape-test: "{{ }} should be escaped to prevent helm errors"
+      value-that-looks-like-helm-test: "{{ $The term 'helm' finds its roots in Old English }}"
+      value-that-is-a-helm-expression: {{ .Values.abandonShip }}
+    toppings: |-
+      {{- range $index, $topping := .Values.pizzaToppings }}
+        {{ $index }}: {{ $topping }}
+      {{- end }} 
     name: test
+{{ end }}
