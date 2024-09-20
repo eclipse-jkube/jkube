@@ -85,7 +85,7 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
       return null;
     }
 
-    String port = getImages().stream().findFirst()
+    final String firstImagePort = getImages().stream().findFirst()
         .map(ImageConfiguration::getBuild).map(BuildConfiguration::getPorts)
         .orElse(Collections.emptyList()).stream()
         .findFirst().orElse(extractPort(getMicronautConfiguration(getContext().getProject()), null));
@@ -98,7 +98,7 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
         .withTimeoutSeconds(toInteger(Config.TIMEOUT_SECONDS))
         .withNewHttpGet()
         .withScheme(getConfig(Config.SCHEME))
-        .withNewPort(asInteger(getConfig(Config.PORT, port)))
+        .withNewPort(asInteger(getConfig(Config.PORT, firstImagePort)))
         .withPath(getConfig(Config.PATH))
         .endHttpGet()
         .build();
