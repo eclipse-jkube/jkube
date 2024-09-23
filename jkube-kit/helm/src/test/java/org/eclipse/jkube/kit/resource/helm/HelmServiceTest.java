@@ -269,7 +269,7 @@ class HelmServiceTest {
         assertThatIllegalArgumentException()
           .isThrownBy(() ->
             new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger()).generateHelmCharts(helmConfig.build()))
-          .withMessageStartingWith("Failure in parsing Helm test template, please check your *.test.helm.yaml files");
+          .withMessageStartingWith("Failure in parsing Helm fragment (test-pod.test.helm.yaml)");
       }
     }
 
