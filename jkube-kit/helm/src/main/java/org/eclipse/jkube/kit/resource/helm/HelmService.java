@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.resource.helm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
@@ -84,6 +85,9 @@ public class HelmService {
   private static final String CHART_FRAGMENT_REGEX = "^chart\\.helm\\.(?<ext>yaml|yml|json)$";
   public static final Pattern CHART_FRAGMENT_PATTERN = Pattern.compile(CHART_FRAGMENT_REGEX, Pattern.CASE_INSENSITIVE);
 
+  private static final String CHART_TEST_FRAGMENT_REGEX = "^(?<name>.*?)(-(?<type>[^-]+))?\\.test\\.helm\\.(?<ext>yaml|yml|json)$";
+  private static final Pattern CHART_TEST_FRAGMENT_PATTERN = Pattern.compile(CHART_TEST_FRAGMENT_REGEX, Pattern.CASE_INSENSITIVE);
+
   private static final String VALUES_FRAGMENT_REGEX = "^values\\.helm\\.(?<ext>yaml|yml|json)$";
   public static final Pattern VALUES_FRAGMENT_PATTERN = Pattern.compile(VALUES_FRAGMENT_REGEX, Pattern.CASE_INSENSITIVE);
   private static final String SYSTEM_LINE_SEPARATOR_REGEX = "\r?\n";
@@ -123,6 +127,8 @@ public class HelmService {
       createChartYaml(helmConfig, outputDir);
       logger.debug("Copying additional files");
       copyAdditionalFiles(helmConfig, outputDir);
+      logger.debug("Copying test files");
+      processTestFiles(templatesDir);
       logger.debug("Gathering parameters for placeholders");
       final List<HelmParameter> parameters = collectParameters(helmConfig);
       logger.debug("Generating values.yaml");
@@ -143,6 +149,19 @@ public class HelmService {
           ArchiveCompression.fromFileName(tarballFile.getName()), null, prependNameAsDirectory);
       Optional.ofNullable(helmConfig.getGeneratedChartListeners()).orElse(Collections.emptyList())
           .forEach(listener -> listener.chartFileGenerated(helmConfig, helmType, tarballFile));
+    }
+  }
+
+  private void processTestFiles(File templatesDir) throws IOException {
+    List<File> helmTestFragments = findHelmFragmentsInResourceDir(CHART_TEST_FRAGMENT_PATTERN, resourceServiceConfig).collect(Collectors.toList());
+    File templatesTestsDir = new File(templatesDir, "tests");
+    try {
+      processTemplateFiles(helmTestFragments, templatesTestsDir, ".test.helm.yaml");
+    } catch (Exception exception) {
+      throw new IllegalArgumentException("Failure in parsing Helm test template, please check your *.test.helm.yaml files");
+    }
+    for (File templateTest : FileUtil.listFilesAndDirsRecursivelyInDirectory(templatesTestsDir)) {
+      Files.write(templateTest.toPath(), interpolate(templateTest, jKubeConfiguration.getProperties(), DEFAULT_FILTER).getBytes());
     }
   }
 
@@ -330,12 +349,16 @@ public class HelmService {
   }
 
   private static void processSourceFiles(File sourceDir, File templatesDir) throws IOException {
-    for (File file : listYamls(sourceDir)) {
+    processTemplateFiles(listYamls(sourceDir), templatesDir, ".yml");
+  }
+
+  private static void processTemplateFiles(List<File> files, File templatesDir, String postfix) throws IOException {
+    for (File file : files) {
       final KubernetesResource dto = Serialization.unmarshal(file);
       if (dto instanceof Template) {
         splitAndSaveTemplate((Template) dto, templatesDir);
       } else {
-        final String fileName = FileUtil.stripPostfix(FileUtil.stripPostfix(file.getName(), ".yml"), YAML_EXTENSION) + YAML_EXTENSION;
+        final String fileName = FileUtil.stripPostfix(FileUtil.stripPostfix(file.getName(), postfix), YAML_EXTENSION) + YAML_EXTENSION;
         File targetFile = new File(templatesDir, fileName);
         // lets escape any {{ or }} characters to avoid creating invalid templates
         String text = FileUtils.readFileToString(file, Charset.defaultCharset());
@@ -392,18 +415,22 @@ public class HelmService {
   }
 
   private static File resolveHelmFragment(Pattern filePattern, ResourceServiceConfig resourceServiceConfig) {
+    return findHelmFragmentsInResourceDir(filePattern, resourceServiceConfig).findAny().orElse(null);
+  }
+
+  private static Stream<File> findHelmFragmentsInResourceDir(Pattern filePattern, ResourceServiceConfig resourceServiceConfig) {
     final List<File> fragmentDirs = resourceServiceConfig.getResourceDirs();
     if (fragmentDirs != null) {
       for (File fragmentDir : fragmentDirs) {
         if (fragmentDir.exists() && fragmentDir.isDirectory()) {
           final File[] fragments = fragmentDir.listFiles((dir, name) -> filePattern.matcher(name).matches());
           if (fragments != null) {
-            return Stream.of(fragments).filter(File::exists).findAny().orElse(null);
+            return Stream.of(fragments).filter(File::exists);
           }
         }
       }
     }
-    return null;
+    return Stream.empty();
   }
 
   private static void copyAdditionalFiles(HelmConfig helmConfig, File outputDir) throws IOException {
