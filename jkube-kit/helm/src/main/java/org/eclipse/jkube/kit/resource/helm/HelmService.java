@@ -463,7 +463,7 @@ public class HelmService {
 
   private static void interpolateChartTemplates(List<HelmParameter> helmParameters, File templatesDir) throws IOException {
     // now lets replace all the parameter expressions in each template
-    for (File file : listYamls(templatesDir)) {
+    for (File file : listYamls(templatesDir, true)) {
       interpolateTemplateParameterExpressionsWithHelmExpressions(file, helmParameters);
     }
   }

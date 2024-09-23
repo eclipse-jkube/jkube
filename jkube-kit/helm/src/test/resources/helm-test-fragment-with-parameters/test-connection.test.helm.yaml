@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ${application.name}-test-connection
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - image: ${image}
+      args: ['${application.name}:${application.port}']

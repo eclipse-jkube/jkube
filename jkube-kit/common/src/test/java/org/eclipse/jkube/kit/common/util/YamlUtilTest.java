@@ -123,7 +123,18 @@ class YamlUtilTest {
     assertThat(result).containsExactlyInAnyOrder(
       file1.toFile(),
       file3.toFile()
-    );
+    ).doesNotContain(file2.toFile());
+  }
+
+  @Test
+  void listYamls_whenRecursiveListingEnabled_thenShouldListRecursiveDirs(@TempDir Path directory) throws IOException {
+    // Given
+    Files.createDirectory(directory.resolve("tests"));
+    final Path file = Files.createFile(directory.resolve("tests").resolve("test-pod.yaml"));
+    // When
+    final List<File> result = YamlUtil.listYamls(directory.toFile(), true);
+    // Then
+    assertThat(result).containsExactly(file.toFile());
   }
 
   @Test
