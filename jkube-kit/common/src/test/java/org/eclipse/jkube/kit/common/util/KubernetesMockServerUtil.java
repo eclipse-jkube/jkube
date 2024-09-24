@@ -21,6 +21,11 @@ import io.fabric8.kubernetes.api.model.APIResourceList;
 import io.fabric8.kubernetes.api.model.APIResourceListBuilder;
 import io.fabric8.kubernetes.client.VersionInfo;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import org.apache.commons.io.IOUtils;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 public class KubernetesMockServerUtil {
 
@@ -49,6 +54,15 @@ public class KubernetesMockServerUtil {
       .always();
   }
 
+  public static void prepareMockWebServerExpectationsForOpenApiV3Endpoints(KubernetesMockServer server) throws IOException {
+    server.expect().get().withPath("/openapi/v3?timeout=32s")
+      .andReturn(200, IOUtils.toString(Objects.requireNonNull(KubernetesMockServerUtil.class.getResourceAsStream("/util/kubernetes-openapi-v3-schema.json")), StandardCharsets.UTF_8.toString()))
+      .always();
+    server.expect().get().withPath("/openapi/v3/api/v1?hash=64470CFAF8CA1AC72CDF17D98F7AB1B4FA6357371209C6FBEAA1B607D1B09E70C979B0BA231366442A884E6888CF86F0205FF562FCA388657C7250E472112154&timeout=32s")
+      .andReturn(200, IOUtils.toString(Objects.requireNonNull(KubernetesMockServerUtil.class.getResourceAsStream("/util/kubernetes-openapi-v3-api-v1-schema-pod.json")), StandardCharsets.UTF_8.toString()))
+      .always();
+  }
+
   private static APIResourceList createNewAPIResourceList() {
     APIResourceListBuilder apiResourceListBuilder = new APIResourceListBuilder();
     apiResourceListBuilder.addToResources(new APIResourceBuilder()
@@ -56,6 +70,12 @@ public class KubernetesMockServerUtil {
       .withKind("Service")
       .withName("services")
       .withSingularName("service")
+      .build());
+    apiResourceListBuilder.addToResources(new APIResourceBuilder()
+      .withNamespaced()
+      .withKind("Pod")
+      .withName("pods")
+      .withSingularName("pod")
       .build());
     apiResourceListBuilder.addToResources(new APIResourceBuilder()
       .withName("deployments")

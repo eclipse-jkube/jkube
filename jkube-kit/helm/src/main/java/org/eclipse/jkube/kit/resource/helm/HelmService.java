@@ -41,6 +41,7 @@ import com.marcnuri.helm.InstallCommand;
 import com.marcnuri.helm.LintCommand;
 import com.marcnuri.helm.LintResult;
 import com.marcnuri.helm.Release;
+import com.marcnuri.helm.TestCommand;
 import com.marcnuri.helm.UninstallCommand;
 import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -245,6 +246,23 @@ public class HelmService {
     Arrays.stream(uninstallCommand.call().split(SYSTEM_LINE_SEPARATOR_REGEX))
       .filter(StringUtils::isNotBlank)
       .forEach(l -> logger.info("[[W]]%s", l));
+  }
+
+  public void test(HelmConfig helmConfig) {
+    logger.info("Testing Helm Chart %s %s", helmConfig.getChart(), helmConfig.getVersion());
+    TestCommand testCommand = Helm.test(helmConfig.getReleaseName());
+    if (helmConfig.getTimeout() > 0) {
+      testCommand.withTimeout(helmConfig.getTimeout());
+    }
+    testCommand.withKubeConfig(createTemporaryKubeConfigForInstall());
+
+    Release release = testCommand.call();
+    logger.info("[[W]]NAME : %s", release.getName());
+    logger.info("[[W]]NAMESPACE : %s", release.getNamespace());
+    logger.info("[[W]]STATUS : %s", release.getStatus());
+    logger.info("[[W]]REVISION : %s", release.getRevision());
+    logger.info("[[W]]LAST DEPLOYED : %s", release.getLastDeployed().format(DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy")));
+    logger.info("[[W]]Phase : Succeeded");
   }
 
   private Path createTemporaryKubeConfigForInstall() {

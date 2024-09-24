@@ -57,6 +57,7 @@ public class HelmConfig {
   private List<String> keywords;
   private String engine;
   private List<File> additionalFiles;
+  private int timeout;
   /**
    * OpenShift Template YAML files containing the parameters to interpolate in the Chart templates, and generate
    * the values.yaml file.
