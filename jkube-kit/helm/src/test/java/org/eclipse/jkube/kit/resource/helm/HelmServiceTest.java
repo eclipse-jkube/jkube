@@ -231,6 +231,37 @@ class HelmServiceTest {
           .hasFieldOrPropertyWithValue("command", Collections.singletonList("wget"))
           .hasFieldOrPropertyWithValue("args", Collections.singletonList("name-configured-via-properties:79"));
       }
+
+      @Test
+      @DisplayName("when helm test fragment provided with helm parameters, then helm test resource added and interpolated to templates/tests directory")
+      void whenHelmTestFragmentAndHelmParameters_thenFragmentCopiedToTemplatesTestDirAndHelmParametersInterpolated() throws IOException {
+        // Given
+        helmConfig.parameters(Arrays.asList(
+          HelmParameter.builder().name("application.name").value("name-configured-via-parameters").build(),
+          HelmParameter.builder().name("application.port").value("79").build(),
+          HelmParameter.builder().name("image").value("{{ .Values.image | default \"busybox\" }}").build()
+        ));
+        resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
+            new File(Objects.requireNonNull(getClass().getResource("/helm-test-fragment-with-parameters")).getFile())))
+          .build();
+        // When
+        new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
+          .generateHelmCharts(helmConfig.build());
+        // Then
+        assertThat(new String(Files.readAllBytes(helmOutputDirectory.resolve("kubernetes").resolve("templates").resolve("tests").resolve("test-connection.yaml"))))
+          .isEqualTo(String.format("---%n" +
+            "apiVersion: v1%n" +
+            "kind: Pod%n" +
+            "metadata:%n" +
+            "  annotations:%n" +
+            "    helm.sh/hook: test%n" +
+            "  name: \"{{ .Values.application.name }}-test-connection\"%n" +
+            "spec:%n" +
+            "  containers:%n" +
+            "  - image: {{ .Values.image | default \"busybox\" }}%n" +
+            "    args:%n" +
+            "    - \"{{ .Values.application.name }}:{{ .Values.application.port }}\"%n"));
+      }
     }
 
     @Nested
