@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -101,17 +100,8 @@ public class YamlUtil {
   }
 
   public static List<File> listYamls(File directory) {
-    return listYamls(directory, false);
-  }
-
-  public static List<File> listYamls(File directory, boolean shouldListRecursively) {
-    Stream<File> fileStream;
-    if (shouldListRecursively) {
-      fileStream = Optional.ofNullable(directory).map(FileUtil::listFilesAndDirsRecursivelyInDirectory).orElse(Collections.emptyList()).stream();
-    } else {
-      fileStream = Stream.of(Optional.ofNullable(directory).map(File::listFiles).orElse(new File[0]));
-    }
-    return fileStream.filter(File::isFile)
+    return Stream.of(Optional.ofNullable(directory).map(File::listFiles).orElse(new File[0]))
+      .filter(File::isFile)
       .filter(YamlUtil::isYaml)
       .collect(Collectors.toList());
   }
