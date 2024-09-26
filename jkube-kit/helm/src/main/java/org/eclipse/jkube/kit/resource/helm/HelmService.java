@@ -223,18 +223,7 @@ public class HelmService {
         installCommand.disableOpenApiValidation();
       }
       installCommand.withKubeConfig(createTemporaryKubeConfigForInstall());
-      Release release = installCommand.call();
-      logger.info("[[W]]NAME : %s", release.getName());
-      logger.info("[[W]]NAMESPACE : %s", release.getNamespace());
-      logger.info("[[W]]STATUS : %s", release.getStatus());
-      logger.info("[[W]]REVISION : %s", release.getRevision());
-      logger.info("[[W]]LAST DEPLOYED : %s", release.getLastDeployed().format(DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy")));
-      Arrays.stream(release.getOutput().split("---"))
-        .filter(o -> o.contains("Deleting outdated charts"))
-        .findFirst()
-        .ifPresent(s -> Arrays.stream(s.split(SYSTEM_LINE_SEPARATOR_REGEX))
-          .filter(StringUtils::isNotBlank)
-          .forEach(l -> logger.info("[[W]]%s", l)));
+      logRelease(installCommand.call());
     }
   }
 
@@ -255,14 +244,22 @@ public class HelmService {
       testCommand.withTimeout(helmConfig.getTimeout());
     }
     testCommand.withKubeConfig(createTemporaryKubeConfigForInstall());
+    logRelease(testCommand.call());
+  }
 
-    Release release = testCommand.call();
-    logger.info("[[W]]NAME : %s", release.getName());
-    logger.info("[[W]]NAMESPACE : %s", release.getNamespace());
-    logger.info("[[W]]STATUS : %s", release.getStatus());
-    logger.info("[[W]]REVISION : %s", release.getRevision());
-    logger.info("[[W]]LAST DEPLOYED : %s", release.getLastDeployed().format(DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy")));
-    logger.info("[[W]]Phase : Succeeded");
+  private void logRelease(Release release) {
+    logger.info("[[W]]NAME: %s", release.getName());
+    logger.info("[[W]]NAMESPACE: %s", release.getNamespace());
+    logger.info("[[W]]STATUS: %s", release.getStatus());
+    logger.info("[[W]]REVISION: %s", release.getRevision());
+    logger.info("[[W]]LAST DEPLOYED: %s", release.getLastDeployed().format(DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy")));
+    logger.info("[[W]]Phase: Succeeded");
+    Arrays.stream(release.getOutput().split("---"))
+      .filter(o -> o.contains("Deleting outdated charts"))
+      .findFirst()
+      .ifPresent(s -> Arrays.stream(s.split(SYSTEM_LINE_SEPARATOR_REGEX))
+        .filter(StringUtils::isNotBlank)
+        .forEach(l -> logger.info("[[W]]%s", l)));
   }
 
   private Path createTemporaryKubeConfigForInstall() {

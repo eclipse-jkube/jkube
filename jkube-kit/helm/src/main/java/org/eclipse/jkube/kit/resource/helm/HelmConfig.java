@@ -34,8 +34,6 @@ import java.util.stream.Stream;
 
 /**
  * Configuration for a helm chart
- * @author roland
- * @since 11/08/16
  */
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -57,7 +55,6 @@ public class HelmConfig {
   private List<String> keywords;
   private String engine;
   private List<File> additionalFiles;
-  private int timeout;
   /**
    * OpenShift Template YAML files containing the parameters to interpolate in the Chart templates, and generate
    * the values.yaml file.
@@ -83,6 +80,10 @@ public class HelmConfig {
   private boolean installDependencyUpdate;
   private boolean installWaitReady;
   private boolean disableOpenAPIValidation;
+  /**
+   * Timeout in seconds
+   */
+  private int timeout;
 
 
   @JsonProperty("dependencies")
