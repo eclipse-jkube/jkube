@@ -88,10 +88,10 @@ class OpenShiftHelmInstallTaskTest {
     // When
     openShiftHelmInstallTask.runTask();
     // Then
-    verify(taskEnvironment.logger).lifecycle("oc: NAME : empty-project");
-    verify(taskEnvironment.logger).lifecycle("oc: NAMESPACE : ");
-    verify(taskEnvironment.logger).lifecycle("oc: STATUS : deployed");
-    verify(taskEnvironment.logger).lifecycle("oc: REVISION : 1");
+    verify(taskEnvironment.logger).lifecycle("oc: NAME: empty-project");
+    verify(taskEnvironment.logger).lifecycle("oc: NAMESPACE: ");
+    verify(taskEnvironment.logger).lifecycle("oc: STATUS: deployed");
+    verify(taskEnvironment.logger).lifecycle("oc: REVISION: 1");
     verify(taskEnvironment.logger).lifecycle("oc: Saving 1 charts");
     verify(taskEnvironment.logger).lifecycle("oc: Deleting outdated charts");
   }
