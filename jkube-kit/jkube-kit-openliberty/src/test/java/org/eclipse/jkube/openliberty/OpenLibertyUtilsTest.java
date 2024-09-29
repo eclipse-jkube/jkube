@@ -36,8 +36,10 @@ class OpenLibertyUtilsTest {
 
   @BeforeEach
   void setup() {
-    javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
-    when(javaProject.getBaseDirectory()).thenReturn(temporaryFolder);
+    javaProject = JavaProject.builder().build();
+    javaProject = JavaProject.builder()
+            .baseDirectory(temporaryFolder)
+            .build();
   }
 
   @Test
