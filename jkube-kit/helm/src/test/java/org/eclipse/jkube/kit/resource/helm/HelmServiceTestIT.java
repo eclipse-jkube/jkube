@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import com.marcnuri.helm.Helm;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretListBuilder;
@@ -23,6 +24,7 @@ import io.fabric8.mockwebserver.Context;
 import io.fabric8.mockwebserver.ServerRequest;
 import io.fabric8.mockwebserver.ServerResponse;
 import okhttp3.mockwebserver.MockWebServer;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -38,9 +40,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
@@ -73,24 +75,22 @@ class HelmServiceTestIT {
     prepareMockWebServerExpectationsForAggregatedDiscoveryEndpoints(server);
     kubernetesClient = server.createClient();
     logOutput = new ByteArrayOutputStream();
-    final Path outputDir = tempDir.resolve("output");
+    Helm.create().withDir(tempDir).withName("test-project").call();
+    Path helmChartOutputDir = tempDir.resolve("output").resolve("jkube").resolve("helm");
+    Files.createDirectories(helmChartOutputDir.resolve("kubernetes"));
+    FileUtils.copyDirectory(tempDir.resolve("test-project").toFile(), helmChartOutputDir.resolve("kubernetes").toFile());
     helmService = new HelmService(JKubeConfiguration.builder()
       .project(JavaProject.builder()
         .buildDirectory(tempDir.resolve("target").toFile())
         .build())
       .clusterConfiguration(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build())
       .build(), ResourceServiceConfig.builder()
-      .resourceDirs(Collections.singletonList(
-        new File(Objects.requireNonNull(HelmServiceInstallIT.class.getResource("/it/helm-service-test/resources")).getFile())))
       .build(), new KitLogger.PrintStreamLogger(new PrintStream(logOutput)));
     helmConfig = HelmConfig.builder()
-      .chart("helm-test")
+      .chart("test-project")
       .version("0.1.0")
-      .chartExtension("tgz")
       .types(Collections.singletonList(HelmConfig.HelmType.KUBERNETES))
-      .tarballOutputDir(outputDir.toFile().getAbsolutePath())
-      .outputDir(outputDir.toString())
-      .sourceDir(new File(Objects.requireNonNull(HelmServiceInstallIT.class.getResource("/it/sources")).toURI()).getAbsolutePath())
+      .outputDir(helmChartOutputDir.toString())
       .releaseName("test-project")
       .disableOpenAPIValidation(true)
       .build();
@@ -115,7 +115,6 @@ class HelmServiceTestIT {
         .andReturn(200, IOUtils.toString(Objects.requireNonNull(HelmServiceTestIT.class.getResourceAsStream("/it/helm-service-test/kubernetes-openapi-v3-api-v1-schema-pod.json")), StandardCharsets.UTF_8))
         .always();
       // Chart is installed
-      helmService.generateHelmCharts(helmConfig);
       helmService.install(helmConfig);
       Secret secret = kubernetesClient.secrets().withName("sh.helm.release.v1.test-project.v1").get();
       server.expect().get().withPath("/api/v1/namespaces/test/secrets?labelSelector=name%3Dtest-project%2Cowner%3Dhelm")
@@ -157,7 +156,7 @@ class HelmServiceTestIT {
       assertThat(logOutput)
         .asString()
           .containsSubsequence(
-            "[INFO] Testing Helm Chart helm-test 0.1.0",
+            "[INFO] Testing Helm Chart test-project 0.1.0",
             "[INFO] [[W]]NAME: test-project",
             "[INFO] [[W]]NAMESPACE: ",
             "[INFO] [[W]]STATUS: deployed",
