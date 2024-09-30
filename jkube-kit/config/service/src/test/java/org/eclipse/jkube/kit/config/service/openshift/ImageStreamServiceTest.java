@@ -246,7 +246,7 @@ class ImageStreamServiceTest {
         assertThat(kubernetesList)
             .isNotNull()
             .extracting(DefaultKubernetesResourceList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(DefaultKubernetesResourceList.class))
             .element(0)
             .asInstanceOf(InstanceOfAssertFactories.type(ImageStream.class))
             .hasFieldOrPropertyWithValue("metadata.name", "foo")
