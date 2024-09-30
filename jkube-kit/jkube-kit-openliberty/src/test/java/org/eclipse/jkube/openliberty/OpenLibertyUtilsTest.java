@@ -36,7 +36,6 @@ class OpenLibertyUtilsTest {
 
   @BeforeEach
   void setup() {
-    javaProject = JavaProject.builder().build();
     javaProject = JavaProject.builder()
             .baseDirectory(temporaryFolder)
             .build();
