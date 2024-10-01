@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.openshift.api.model.TagReference;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -246,7 +247,7 @@ class ImageStreamServiceTest {
         assertThat(kubernetesList)
             .isNotNull()
             .extracting(DefaultKubernetesResourceList::getItems)
-            .asInstanceOf(InstanceOfAssertFactories.list(DefaultKubernetesResourceList.class))
+            .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
             .element(0)
             .asInstanceOf(InstanceOfAssertFactories.type(ImageStream.class))
             .hasFieldOrPropertyWithValue("metadata.name", "foo")
