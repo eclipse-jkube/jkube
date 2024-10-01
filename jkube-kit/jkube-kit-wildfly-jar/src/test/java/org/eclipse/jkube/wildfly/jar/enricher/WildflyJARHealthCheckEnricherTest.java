@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import lombok.Data;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -41,10 +42,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@Data
 class WildflyJARHealthCheckEnricherTest {
 
     protected JKubeEnricherContext context;
@@ -53,9 +53,10 @@ class WildflyJARHealthCheckEnricherTest {
 
     @BeforeEach
     public void setUp() {
-        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-        project = mock(JavaProject.class);
-        when(context.getProject()).thenReturn(project);
+       project = JavaProject.builder().build();
+       context = JKubeEnricherContext.builder()
+               .project(project)
+               .build();
     }
     private void setupExpectations(Map<String, Object> bootableJarConfig, Map<String, Map<String, Object>> jkubeConfig) {
       Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
@@ -291,11 +292,17 @@ class WildflyJARHealthCheckEnricherTest {
     }
 
     private void wildFlyJarDependencyWithVersion(String wildflyJarVersion) {
-        when(project.getDependencies()).thenReturn(Collections.singletonList(Dependency.builder()
-                .groupId("org.wildfly.plugins")
-                .artifactId("wildfly-jar-maven-plugin")
-                .version(wildflyJarVersion)
-                .build()));
+        context = context.toBuilder()
+                .project(project.toBuilder()
+                        .dependency(Dependency.builder()
+                                .groupId("org.wildfly.plugins")
+                                .artifactId("wildfly-jar-maven-plugin")
+                                .version(wildflyJarVersion)
+                                .build())
+                        .build())
+                .build();
+
+
     }
 
     @SuppressWarnings("unchecked")
