@@ -56,7 +56,6 @@ class WildflyJARHealthCheckEnricherTest {
                 .project(project)
                 .build();
     }
-
     private void setupExpectations(Map<String, Object> bootableJarConfig, Map<String, Map<String, Object>> jkubeConfig) {
         Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
                 .configuration(bootableJarConfig).build();
@@ -67,8 +66,7 @@ class WildflyJARHealthCheckEnricherTest {
         configBuilder.processorConfig(c);
         context = context.toBuilder()
                 .project(project.toBuilder()
-                        .plugins(lst)
-                        .build())
+                .plugins(lst).build())
                 .processorConfig(c)
                 .build();
     }
