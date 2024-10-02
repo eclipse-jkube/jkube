@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 
 class WildflyJARHealthCheckEnricherTest {
@@ -52,29 +51,35 @@ class WildflyJARHealthCheckEnricherTest {
 
     @BeforeEach
     public void setUp() {
-       project = JavaProject.builder().build();
-       context = JKubeEnricherContext.builder()
-               .project(project)
-               .build();
+        project = JavaProject.builder().build();
+        context = JKubeEnricherContext.builder()
+                .project(project)
+                .build();
     }
+
     private void setupExpectations(Map<String, Object> bootableJarConfig, Map<String, Map<String, Object>> jkubeConfig) {
-      Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
-          .configuration(bootableJarConfig).build();
+        Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
+                .configuration(bootableJarConfig).build();
         List<Plugin> lst = new ArrayList<>();
         lst.add(plugin);
         ProcessorConfig c = new ProcessorConfig(null, null, jkubeConfig);
         Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
         configBuilder.processorConfig(c);
-        when(project.getPlugins()).thenReturn(lst);
-        when(context.getProject()).thenReturn(project);
-        when(context.getConfiguration()).thenReturn(configBuilder.build());
+        context = context.toBuilder()
+                .project(project.toBuilder()
+                        .plugins(lst)
+                        .build())
+                .processorConfig(c)
+                .build();
     }
 
     private void setupExpectations(Map<String, Map<String, Object>> jkubeConfig) {
         ProcessorConfig c = new ProcessorConfig(null, null, jkubeConfig);
         Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
         configBuilder.processorConfig(c);
-        when(context.getConfiguration()).thenReturn(configBuilder.build());
+        context = context.toBuilder()
+                .processorConfig(c)
+                .build();
     }
 
     @Test
@@ -96,10 +101,10 @@ class WildflyJARHealthCheckEnricherTest {
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
 
         Probe livenessProbe = enricher.getLivenessProbe();
-        assertHttpGet(livenessProbe, "HTTP","/health/live", 9990);
+        assertHttpGet(livenessProbe, "HTTP", "/health/live", 9990);
 
         Probe readinessProbe = enricher.getReadinessProbe();
-        assertHttpGet(readinessProbe, "HTTP","/health/ready", 9990);
+        assertHttpGet(readinessProbe, "HTTP", "/health/ready", 9990);
 
         Probe startupProbe = enricher.getStartupProbe();
         assertThat(startupProbe).isNull();
@@ -133,18 +138,18 @@ class WildflyJARHealthCheckEnricherTest {
         Map<String, Object> jarConfig = new HashMap<>();
         jarConfig.put("cloud", null);
         Map<String, Map<String, Object>> config = createFakeConfig(
-                 "{\"readinessPath\":\"/foo/ready\","
-                + "\"livenessPath\":\"/foo/live\","
-                + "\"startupPath\":\"/foo/started\","
-                + "\"port\":\"8080\","
-                + "\"scheme\":\"https\","
-                + "\"livenessInitialDelay\":\"99\","
-                + "\"readinessInitialDelay\":\"77\","
-                + "\"startupInitialDelay\":\"57\","
-                + "\"failureThreshold\":\"27\","
-                + "\"successThreshold\":\"10\","
-                + "\"periodSeconds\":\"15\""
-                + "}");
+                "{\"readinessPath\":\"/foo/ready\","
+                        + "\"livenessPath\":\"/foo/live\","
+                        + "\"startupPath\":\"/foo/started\","
+                        + "\"port\":\"8080\","
+                        + "\"scheme\":\"https\","
+                        + "\"livenessInitialDelay\":\"99\","
+                        + "\"readinessInitialDelay\":\"77\","
+                        + "\"startupInitialDelay\":\"57\","
+                        + "\"failureThreshold\":\"27\","
+                        + "\"successThreshold\":\"10\","
+                        + "\"periodSeconds\":\"15\""
+                        + "}");
         setupExpectations(jarConfig, config);
 
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
@@ -161,22 +166,22 @@ class WildflyJARHealthCheckEnricherTest {
     @Test
     @DisplayName("custom configuration with wildfly jar version after 25.0, should add startup probe")
     void withCustomConfigurationComingFromConf_withWildflyJarAfter25_0shouldAdd_startupProbe() {
-        wildFlyJarDependencyWithVersion( "26.1.1.Final");
+        wildFlyJarDependencyWithVersion("26.1.1.Final");
         Map<String, Object> jarConfig = new HashMap<>();
         jarConfig.put("cloud", null);
         Map<String, Map<String, Object>> config = createFakeConfig(
-                 "{\"readinessPath\":\"/foo/ready\","
-                + "\"livenessPath\":\"/foo/live\","
-                + "\"startupPath\":\"/foo/started\","
-                + "\"port\":\"1234\","
-                + "\"scheme\":\"https\","
-                + "\"livenessInitialDelay\":\"99\","
-                + "\"readinessInitialDelay\":\"77\","
-                + "\"startupInitialDelay\":\"10\","
-                + "\"failureThreshold\":\"3\","
-                + "\"successThreshold\":\"1\","
-                + "\"periodSeconds\":\"10\""
-                + "}");
+                "{\"readinessPath\":\"/foo/ready\","
+                        + "\"livenessPath\":\"/foo/live\","
+                        + "\"startupPath\":\"/foo/started\","
+                        + "\"port\":\"1234\","
+                        + "\"scheme\":\"https\","
+                        + "\"livenessInitialDelay\":\"99\","
+                        + "\"readinessInitialDelay\":\"77\","
+                        + "\"startupInitialDelay\":\"10\","
+                        + "\"failureThreshold\":\"3\","
+                        + "\"successThreshold\":\"1\","
+                        + "\"periodSeconds\":\"10\""
+                        + "}");
         setupExpectations(jarConfig, config);
 
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
@@ -216,7 +221,7 @@ class WildflyJARHealthCheckEnricherTest {
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
 
         Probe livenessProbe = enricher.getLivenessProbe();
-        assertHttpGet(livenessProbe, "HTTP", "/health/live",9990);
+        assertHttpGet(livenessProbe, "HTTP", "/health/live", 9990);
 
         Probe readinessProbe = enricher.getReadinessProbe();
         assertHttpGet(readinessProbe, "HTTP", "/health/ready", 9990);
@@ -237,7 +242,7 @@ class WildflyJARHealthCheckEnricherTest {
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
 
         Probe livenessProbe = enricher.getLivenessProbe();
-        assertHttpGet(livenessProbe, "HTTP","/health/live", 9990);
+        assertHttpGet(livenessProbe, "HTTP", "/health/live", 9990);
 
         Probe readinessProbe = enricher.getReadinessProbe();
         assertHttpGet(readinessProbe, "HTTP", "/health/ready", 9990);
@@ -261,17 +266,17 @@ class WildflyJARHealthCheckEnricherTest {
     @Test
     void kubernetesHostName() {
         KubernetesListBuilder list = new KubernetesListBuilder().addToItems(new DeploymentBuilder()
-            .withNewSpec()
-            .withNewTemplate()
-            .withNewSpec()
-            .addNewContainer()
-            .withName("app")
-            .withImage("app:latest")
-            .endContainer()
-            .endSpec()
-            .endTemplate()
-            .endSpec()
-            .build());
+                .withNewSpec()
+                .withNewTemplate()
+                .withNewSpec()
+                .addNewContainer()
+                .withName("app")
+                .withImage("app:latest")
+                .endContainer()
+                .endSpec()
+                .endTemplate()
+                .endSpec()
+                .build());
         WildflyJARHealthCheckEnricher enricher = new WildflyJARHealthCheckEnricher(context);
         enricher.create(PlatformMode.kubernetes, list);
         final List<ContainerBuilder> containerBuilders = new LinkedList<>();
@@ -283,11 +288,11 @@ class WildflyJARHealthCheckEnricherTest {
         });
 
         assertThat(containerBuilders).singleElement()
-            .extracting(ContainerFluent::buildEnv).asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class))
-            .singleElement()
-            .hasFieldOrPropertyWithValue("name", "HOSTNAME")
-            .extracting("valueFrom.fieldRef.fieldPath").isNotNull()
-            .isEqualTo("metadata.name");
+                .extracting(ContainerFluent::buildEnv).asInstanceOf(InstanceOfAssertFactories.list(EnvVar.class))
+                .singleElement()
+                .hasFieldOrPropertyWithValue("name", "HOSTNAME")
+                .extracting("valueFrom.fieldRef.fieldPath").isNotNull()
+                .isEqualTo("metadata.name");
     }
 
     private void wildFlyJarDependencyWithVersion(String wildflyJarVersion) {
@@ -313,28 +318,28 @@ class WildflyJARHealthCheckEnricherTest {
     }
 
     private void assertHttpGet(Probe probe, String scheme, String path, int port) {
-      assertThat(probe).isNotNull()
-          .extracting(Probe::getHttpGet)
-          .hasFieldOrPropertyWithValue("host", null)
-          .hasFieldOrPropertyWithValue("scheme", scheme)
-          .hasFieldOrPropertyWithValue("path", path)
-          .hasFieldOrPropertyWithValue("port.intVal", port);
+        assertThat(probe).isNotNull()
+                .extracting(Probe::getHttpGet)
+                .hasFieldOrPropertyWithValue("host", null)
+                .hasFieldOrPropertyWithValue("scheme", scheme)
+                .hasFieldOrPropertyWithValue("path", path)
+                .hasFieldOrPropertyWithValue("port.intVal", port);
     }
 
     private void assertProbeAdded(Probe probe, String path, int port,
                                   int initialDelay, int failureThreshold, int successThreshold, int periodSeconds) {
-      assertHttpGet(probe, "HTTPS", path, port);
-      assertThat(probe).isNotNull()
-          .returns(initialDelay, Probe::getInitialDelaySeconds)
-          .returns(failureThreshold, Probe::getFailureThreshold)
-          .returns(successThreshold, Probe::getSuccessThreshold)
-          .returns(periodSeconds, Probe::getPeriodSeconds);
+        assertHttpGet(probe, "HTTPS", path, port);
+        assertThat(probe).isNotNull()
+                .returns(initialDelay, Probe::getInitialDelaySeconds)
+                .returns(failureThreshold, Probe::getFailureThreshold)
+                .returns(successThreshold, Probe::getSuccessThreshold)
+                .returns(periodSeconds, Probe::getPeriodSeconds);
     }
 
     private void assertNoProbesAdded(WildflyJARHealthCheckEnricher enricher) {
-      assertThat(enricher)
-          .returns(null, WildflyJARHealthCheckEnricher::getLivenessProbe)
-          .returns(null, WildflyJARHealthCheckEnricher::getReadinessProbe)
-          .returns(null, WildflyJARHealthCheckEnricher::getStartupProbe);
+        assertThat(enricher)
+                .returns(null, WildflyJARHealthCheckEnricher::getLivenessProbe)
+                .returns(null, WildflyJARHealthCheckEnricher::getReadinessProbe)
+                .returns(null, WildflyJARHealthCheckEnricher::getStartupProbe);
     }
 }
