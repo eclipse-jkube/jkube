@@ -25,7 +25,9 @@ import java.util.Map;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.DefaultKubernetesResourceList;
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.openshift.api.model.TagReference;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Serialization;
@@ -245,12 +247,12 @@ class ImageStreamServiceTest {
         assertThat(kubernetesList)
             .isNotNull()
             .extracting(DefaultKubernetesResourceList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
             .element(0)
             .asInstanceOf(InstanceOfAssertFactories.type(ImageStream.class))
             .hasFieldOrPropertyWithValue("metadata.name", "foo")
             .extracting("spec.tags")
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(TagReference.class))
             .element(0)
             .hasFieldOrPropertyWithValue("name", "latest")
             .hasFieldOrPropertyWithValue("from.kind", "ImageStreamImage")
