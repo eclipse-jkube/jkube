@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 
 class WildflyJARHealthCheckEnricherTest {
@@ -65,16 +64,20 @@ class WildflyJARHealthCheckEnricherTest {
         ProcessorConfig c = new ProcessorConfig(null, null, jkubeConfig);
         Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
         configBuilder.processorConfig(c);
-        when(project.getPlugins()).thenReturn(lst);
-        when(context.getProject()).thenReturn(project);
-        when(context.getConfiguration()).thenReturn(configBuilder.build());
+        context = context.toBuilder()
+                .project(project.toBuilder()
+                .plugins(lst).build())
+                .processorConfig(c)
+                .build();
     }
 
     private void setupExpectations(Map<String, Map<String, Object>> jkubeConfig) {
         ProcessorConfig c = new ProcessorConfig(null, null, jkubeConfig);
         Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
         configBuilder.processorConfig(c);
-        when(context.getConfiguration()).thenReturn(configBuilder.build());
+        context = context.toBuilder()
+                .processorConfig(c)
+                .build();
     }
 
     @Test
