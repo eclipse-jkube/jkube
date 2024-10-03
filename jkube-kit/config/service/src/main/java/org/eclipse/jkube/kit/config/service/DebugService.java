@@ -29,7 +29,6 @@ import org.eclipse.jkube.kit.common.DebugConstants;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
-import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.portforward.PortForwardPodWatcher;
 
 import io.fabric8.kubernetes.api.model.Container;
