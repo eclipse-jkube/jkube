@@ -164,7 +164,7 @@ class WildflyJARHealthCheckEnricherTest {
     @Test
     @DisplayName("custom configuration with wildfly jar version after 25.0, should add startup probe")
     void withCustomConfigurationComingFromConf_withWildflyJarAfter25_0shouldAdd_startupProbe() {
-        wildFlyJarDependencyWithVersion( "26.1.1.Final");
+        wildFlyJarDependencyWithVersion("26.1.1.Final");
         Map<String, Object> jarConfig = new HashMap<>();
         jarConfig.put("cloud", null);
         Map<String, Map<String, Object>> config = createFakeConfig(
