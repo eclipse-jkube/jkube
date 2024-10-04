@@ -1,0 +1,26 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Kubernetes",
+    "version": "v1.28.0"
+  },
+  "paths": {
+    "/api/v1/namespaces/{namespace}/pods/{name}": {
+      "patch": {
+        "parameters": [
+          {
+            "uniqueItems": true,
+            "type": "string",
+            "name": "fieldValidation",
+            "in": "query"
+          }
+        ],
+        "x-kubernetes-group-version-kind": {
+          "group": "",
+          "kind": "Pod",
+          "version": "v1"
+        }
+      }
+    }
+  }
+}

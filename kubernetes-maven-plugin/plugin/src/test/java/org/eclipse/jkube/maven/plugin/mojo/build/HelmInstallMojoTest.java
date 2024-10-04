@@ -111,11 +111,11 @@ class HelmInstallMojoTest {
     helmInstallMojo.execute();
     // Then
     assertThat(outputStream.toString())
-      .contains("NAME : empty-project")
-      .contains("NAMESPACE : ")
-      .contains("STATUS : deployed")
-      .contains("REVISION : 1")
-      .contains("LAST DEPLOYED : ")
+      .contains("NAME: empty-project")
+      .contains("NAMESPACE: ")
+      .contains("STATUS: deployed")
+      .contains("REVISION: 1")
+      .contains("LAST DEPLOYED: ")
       .contains("Saving 1 charts")
       .contains("Deleting outdated charts");
   }

@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.FatJarDetector;
 import org.eclipse.jkube.kit.common.AssemblyFileSet;
@@ -94,7 +95,7 @@ class OpenLibertyGeneratorTest {
     assertThat(result).singleElement()
         .extracting(ImageConfiguration::getBuildConfiguration)
         .extracting(BuildConfiguration::getPorts)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(String.class))
         .containsExactly("9080", "8778", "9779");
   }
 

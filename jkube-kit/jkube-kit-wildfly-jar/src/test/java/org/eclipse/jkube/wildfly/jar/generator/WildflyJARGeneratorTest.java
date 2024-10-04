@@ -38,8 +38,6 @@ import static org.assertj.core.api.Assertions.assertThatRuntimeException;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_DIST;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.JBOSS_MAVEN_REPO;
 import static org.eclipse.jkube.wildfly.jar.generator.WildflyJARGenerator.PLUGIN_OPTIONS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * @author roland
@@ -50,12 +48,10 @@ class WildflyJARGeneratorTest {
     Path temporaryFolder;
 
     private GeneratorContext context;
-    private JavaProject project;
 
     @BeforeEach
     void setUp() {
-      context = mock(GeneratorContext.class);
-      project = mock(JavaProject.class);
+        context = GeneratorContext.builder().build();
     }
 
     @Test
@@ -91,7 +87,7 @@ class WildflyJARGeneratorTest {
       Path targetDir = Files.createDirectory(temporaryFolder.resolve("target"));
       Files.createDirectory(targetDir.resolve("myrepo"));
 
-      GeneratorContext ctx = contextForSlimServer(project, options, temporaryFolder);
+      GeneratorContext ctx = contextForSlimServer(options, temporaryFolder);
       WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
 
       List<String> extraOptions = generator.getExtraJavaOptions();
@@ -123,7 +119,7 @@ class WildflyJARGeneratorTest {
       pluginOptions.put(JBOSS_MAVEN_DIST, null);
       pluginOptions.put(JBOSS_MAVEN_REPO, repoDir.toString());
 
-      GeneratorContext ctx = contextForSlimServer(project, options, null);
+      GeneratorContext ctx = contextForSlimServer(options, null);
       WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
 
       List<String> extraOptions = generator.getExtraJavaOptions();
@@ -155,7 +151,7 @@ class WildflyJARGeneratorTest {
       pluginOptions.put(JBOSS_MAVEN_DIST, null);
       pluginOptions.put(JBOSS_MAVEN_REPO, repoDir.toString());
 
-      GeneratorContext ctx = contextForSlimServer(project, options, null);
+      GeneratorContext ctx = contextForSlimServer(options, null);
       WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
 
       List<String> extraOptions = generator.getExtraJavaOptions();
@@ -178,7 +174,7 @@ class WildflyJARGeneratorTest {
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_DIST, null);
-        GeneratorContext ctx = contextForSlimServer(project, options, null);
+        GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull()
@@ -192,7 +188,7 @@ class WildflyJARGeneratorTest {
         Map<String, String> pluginOptions = new HashMap<>();
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_REPO, "myrepo");
-        GeneratorContext ctx = contextForSlimServer(project, options, null);
+        GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull()
@@ -207,7 +203,7 @@ class WildflyJARGeneratorTest {
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_REPO, "myrepo");
         pluginOptions.put(JBOSS_MAVEN_DIST, "false");
-        GeneratorContext ctx = contextForSlimServer(project, options, null);
+        GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull()
@@ -222,7 +218,7 @@ class WildflyJARGeneratorTest {
         options.put(PLUGIN_OPTIONS, pluginOptions);
         pluginOptions.put(JBOSS_MAVEN_REPO, "myrepo");
         pluginOptions.put(JBOSS_MAVEN_DIST, "true");
-        GeneratorContext ctx = contextForSlimServer(project, options, null);
+        GeneratorContext ctx = contextForSlimServer(options, null);
         WildflyJARGenerator generator = new WildflyJARGenerator(ctx);
         List<String> extraOptions = generator.getExtraJavaOptions();
         assertThat(extraOptions).isNotNull()
@@ -233,25 +229,24 @@ class WildflyJARGeneratorTest {
                 .isEqualTo("-Dmaven.repo.local=/deployments/myrepo"));
     }
     
-    private GeneratorContext contextForSlimServer(JavaProject project, Map<String, Object> bootableJarConfig, Path dir) {
-      Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
-          .configuration(bootableJarConfig).build();
-      List<Plugin> lst = new ArrayList<>();
-      lst.add(plugin);
+    private GeneratorContext contextForSlimServer(Map<String, Object> bootableJarConfig, Path dir) {
 
-      when(project.getPlugins()).thenReturn(lst);
-      when(context.getProject()).thenReturn(project);
-      if (dir != null) {
-        when(project.getBaseDirectory()).thenReturn(dir.toFile());
-      }
-      return context;
+        Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
+                .configuration(bootableJarConfig).build();
+        List<Plugin> lst = new ArrayList<>();
+        lst.add(plugin);
+
+        return context.toBuilder()
+                .project(JavaProject.builder()
+                        .plugins(lst)
+                        .baseDirectory(dir != null ? dir.toFile() : null)
+                        .build()).build();
     }
 
     private GeneratorContext createGeneratorContext() {
-      when(context.getProject()).thenReturn(project);
-      when(project.getOutputDirectory()).thenReturn(temporaryFolder.toFile());
-      when(project.getPlugins()).thenReturn(Collections.emptyList());
-      when(project.getVersion()).thenReturn("1.0.0");
-      return context;
+        return context.toBuilder().project(JavaProject.builder().outputDirectory(temporaryFolder.toFile())
+              .plugins(Collections.emptyList())
+              .version("1.0.0")
+              .build()).build();
     }
 }

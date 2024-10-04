@@ -271,6 +271,7 @@ For the `values.yaml` file you can provide a `values.helm.yaml` fragment in the 
 These fragments will be merged with the opinionated and configured defaults.
 The values provided in the fragments will override any of the generated default values taking precedence over them.
 
+For providing https://helm.sh/docs/topics/chart_tests/[Helm Chart Test] files, you can provide a fragment ending with `.test.helm.yaml` suffix in `src/main/jkube` directory.
 // TODO: Remove if Once header depth is aligned in both plugins
 ifeval::["{plugin-type}" == "maven"]
 === Installing the generated Helm chart
