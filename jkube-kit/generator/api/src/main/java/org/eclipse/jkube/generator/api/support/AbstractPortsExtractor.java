@@ -122,7 +122,8 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 	 */
 	private Map<String, String> readConfig(File f) throws IOException {
 		Map<String, String> map;
-		if (f.getName().endsWith(JSON_EXTENSION) || f.getName().endsWith(YAML_EXTENSION) || f.getName().endsWith(YML_EXTENSION)) {
+		if (f.getName().endsWith(JSON_EXTENSION) || f.getName().endsWith(YAML_EXTENSION)
+				|| f.getName().endsWith(YML_EXTENSION)) {
 			map = flatten(Serialization.unmarshal(f, Map.class));
 		} else if (f.getName().endsWith(PROPERTIES_EXTENSION)) {
 			Properties properties = new Properties();
@@ -153,7 +154,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 				flat.put(stringKey, (String) value);
 			} else if (value instanceof Map) {
 				for (Map.Entry<String, String> entry : flatten((Map) value).entrySet()) {
-					flat.put(new StringBuilder(stringKey).append(DOT).append(entry.getKey()).toString(),
+					flat.put(stringKey + DOT + entry.getKey(),
 							entry.getValue());
 				}
 			} else {
