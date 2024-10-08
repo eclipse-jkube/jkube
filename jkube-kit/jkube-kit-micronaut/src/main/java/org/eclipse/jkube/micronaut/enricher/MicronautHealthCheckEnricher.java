@@ -27,7 +27,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
-import static org.eclipse.jkube.kit.common.util.JKubeProjectUtil.getClassLoader;
+import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
 import static org.eclipse.jkube.micronaut.MicronautUtils.hasMicronautPlugin;
 import static org.eclipse.jkube.micronaut.MicronautUtils.isHealthEnabled;
@@ -88,7 +88,8 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
     final String firstImagePort = getImages().stream().findFirst()
         .map(ImageConfiguration::getBuild).map(BuildConfiguration::getPorts)
         .orElse(Collections.emptyList()).stream()
-        .findFirst().orElse(null);
+        .findFirst().orElse(extractPort(getMicronautConfiguration(getContext().getProject()), null));
+
     return new ProbeBuilder()
         .withInitialDelaySeconds(initialDelaySeconds)
         .withPeriodSeconds(periodSeconds)
