@@ -17,11 +17,13 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.ServiceSpec;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.api.InstanceOfAssertFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.junit.jupiter.api.BeforeEach;
@@ -107,7 +109,7 @@ class LocalServiceManagerTest {
       .extracting(Serialization::unmarshal)
       .asInstanceOf(InstanceOfAssertFactories.type(Service.class))
       .satisfies(s -> assertThat(s.getMetadata().getAnnotations()).containsEntry("k8s", "io"))
-      .extracting("spec.ports").asList()
+      .extracting("spec.ports").asInstanceOf(InstanceOfAssertFactories.list(ServicePort.class))
       .extracting("port")
       .containsExactly(31337);
   }
@@ -138,7 +140,7 @@ class LocalServiceManagerTest {
       .extracting(s -> s.getMetadata().getAnnotations().get("jkube/previous-service"))
       .extracting(Serialization::unmarshal)
       .isInstanceOf(Service.class)
-      .extracting("spec.ports").asList()
+      .extracting("spec.ports").asInstanceOf(InstanceOfAssertFactories.list(ServicePort.class))
       .extracting("port")
       .containsExactly(42);
   }
@@ -159,7 +161,7 @@ class LocalServiceManagerTest {
     // Then
     assertThat(kubernetesClient.services().withName("service").get())
       .hasFieldOrPropertyWithValue("metadata.name", "service")
-      .extracting("spec.ports").asList()
+      .extracting("spec.ports").asInstanceOf(InstanceOfAssertFactories.list(ServicePort.class))
       .extracting("targetPort")
       .containsExactly(new IntOrString(42));
   }
