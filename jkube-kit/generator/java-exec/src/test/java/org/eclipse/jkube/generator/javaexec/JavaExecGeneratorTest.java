@@ -135,11 +135,9 @@ class JavaExecGeneratorTest {
         .hasFieldOrPropertyWithValue("excludeFinalOutputArtifact", true)
         .extracting(AssemblyConfiguration::getLayers)
         .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class))
-        .hasSize(1)
-        .first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
+        .hasSize(1).first().asInstanceOf(InstanceOfAssertFactories.type(Assembly.class))
         .extracting(Assembly::getFileSets)
-        .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class))
-        .hasSize(3)
+        .asInstanceOf(InstanceOfAssertFactories.list(AssemblyFileSet.class)).hasSize(3)
         .extracting("directory", "includes")
         .containsExactlyInAnyOrder(
             tuple(new File("src/main/jkube-includes"), Collections.emptyList()),
