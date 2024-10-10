@@ -83,7 +83,7 @@ public class HelmConfig {
   /**
    * Timeout in seconds
    */
-  private int timeout;
+  private int testTimeout;
 
 
   @JsonProperty("dependencies")

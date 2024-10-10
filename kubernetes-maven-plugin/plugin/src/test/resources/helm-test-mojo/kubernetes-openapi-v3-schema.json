@@ -1,0 +1,7 @@
+{
+  "paths": {
+    "api/v1": {
+      "serverRelativeURL": "/openapi/v3/api/v1"
+    }
+  }
+}
