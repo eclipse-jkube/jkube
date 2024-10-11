@@ -78,11 +78,6 @@ public abstract class AbstractNativeClientBuilder implements ClientBuilder {
     }
 
     private DnsResolver nullDnsResolver() {
-        return new DnsResolver() {
-            @Override
-            public InetAddress[] resolve(final String host) throws UnknownHostException {
-                return host -> new InetAddress[] {null};
-            }
-        };
+    	return host -> new InetAddress[] {null};
     }
 }
