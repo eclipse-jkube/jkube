@@ -57,10 +57,7 @@ class ChartTest {
         .hasFieldOrPropertyWithValue("home", "e.t.")
         .hasFieldOrPropertyWithValue("version", "1337")
         .hasToString("Chart{name='chart', home='e.t.', version='1337'}")
-            .extracting("sources")
-            .asInstanceOf(InstanceOfAssertFactories.list(String.class))
-            .containsExactly("source");
-
+        .extracting("sources").asInstanceOf(InstanceOfAssertFactories.list(String.class)).containsExactly("source");
   }
 
   @Test
