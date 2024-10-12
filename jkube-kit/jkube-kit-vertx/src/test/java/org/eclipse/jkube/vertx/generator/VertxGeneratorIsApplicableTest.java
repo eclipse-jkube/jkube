@@ -40,7 +40,6 @@ class VertxGeneratorIsApplicableTest {
     context = GeneratorContext.builder()
             .project(project)
             .build();
-    when(context.getProject()).thenReturn(project);
   }
 
   static Stream<Arguments> data() {
