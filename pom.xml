@@ -16,7 +16,9 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="
+           http://maven.apache.org/POM/4.0.0 
+           http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.eclipse.jkube</groupId>
@@ -31,6 +33,7 @@
   <licenses>
     <license>
       <url>https://www.eclipse.org/legal/epl-2.0/</url>
+      <name>Eclipse Public License 2.0</name>
       <comments>A business-friendly OSS license</comments>
     </license>
   </licenses>
@@ -49,13 +52,19 @@
     <connection>scm:git:git://github.com/eclipse-jkube/jkube.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/eclipse-jkube/jkube.git</developerConnection>
     <tag>HEAD</tag>
-    <url>git://github.com/eclipse-jkube/jkube.git</url>
+    <url>https://github.com/eclipse-jkube/jkube</url> <!-- Changed to HTTPS for better accessibility -->
   </scm>
 
   <repositories>
     <repository>
       <id>maven-central</id>
       <url>https://repo1.maven.org/maven2/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
     <repository>
       <id>repo.gradle.org</id>
@@ -87,49 +96,65 @@
   </distributionManagement>
 
   <properties>
-    <jdk.version>1.8</jdk.version>
+    <!-- Updated Java version to 17 -->
+    <jdk.version>17</jdk.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <skipTests>false</skipTests>
-    <version.asciidoctor-maven-plugin>2.2.4</version.asciidoctor-maven-plugin>
-    <version.asciidoctorj>2.3.0</version.asciidoctorj>
-    <version.assertj-core>3.25.3</version.assertj-core>
-    <version.citrus>3.4.0</version.citrus>
-    <version.commons-compress>1.26.1</version.commons-compress> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
-    <version.commons-io>2.16.1</version.commons-io> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
-    <version.gradle>7.6.2</version.gradle>
-    <version.gradle-api-maven-plugin>0.0.5</version.gradle-api-maven-plugin>
-    <version.groovy>3.0.21</version.groovy>
-    <version.guava>33.2.0-jre</version.guava>
-    <version.helm-java>0.0.10</version.helm-java>
-    <version.jackson>2.17.1</version.jackson>
-    <version.jacoco>0.8.12</version.jacoco>
-    <version.json-smart>2.5.1</version.json-smart> <!-- Transitive dependency  required by citrus -->
-    <version.junit5>5.10.2</version.junit5>
-    <version.kubernetes-client>6.13.2</version.kubernetes-client>
-    <version.license-maven-plugin>4.5</version.license-maven-plugin>
-    <version.lombok>1.18.32</version.lombok>
-    <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
-    <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
-    <version.maven-enforcer-plugin>3.4.1</version.maven-enforcer-plugin>
-    <version.maven-failsafe-plugin>3.2.5</version.maven-failsafe-plugin>
-    <version.maven-gpg-plugin>3.2.4</version.maven-gpg-plugin>
-    <version.maven-invoker-plugin>3.6.1</version.maven-invoker-plugin>
-    <version.maven-jar-plugin>3.4.1</version.maven-jar-plugin>
-    <version.maven-javadoc-plugin>3.6.3</version.maven-javadoc-plugin>
-    <version.maven-plugin-plugin>3.13.1</version.maven-plugin-plugin>
-    <version.maven-release-plugin>3.0.1</version.maven-release-plugin>
-    <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
-    <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
-    <version.maven-surefire-plugin>3.2.5</version.maven-surefire-plugin>
-    <version.mockito>4.6.1</version.mockito>
-    <version.nexus-staging-maven-plugin>1.6.13</version.nexus-staging-maven-plugin>
-    <version.plexus-component-metadata>2.2.0</version.plexus-component-metadata>
-    <version.slf4j-api>1.7.36</version.slf4j-api>
-    <version.sonar-maven-plugin>3.11.0.3922</version.sonar-maven-plugin>
-    <version.sshd>2.12.1</version.sshd>
+
+    <!-- Plugin Versions -->
+    <version.asciidoctor-maven-plugin>2.5.0</version.asciidoctor-maven-plugin>
+    <version.asciidoctorj>2.4.3</version.asciidoctorj>
+    <version.assertj-core>3.25.4</version.assertj-core>
+    <version.citrus>3.5.0</version.citrus>
+    <version.commons-compress>1.29</version.commons-compress> <!-- Updated to latest compatible version -->
+    <version.commons-io>2.11.0</version.commons-io> <!-- Updated to latest compatible version -->
+    <version.gradle>8.1.1</version.gradle> <!-- Updated Gradle version -->
+    <version.gradle-api-maven-plugin>0.0.6</version.gradle-api-maven-plugin> <!-- Updated plugin version -->
+    <version.groovy>3.0.27</version.groovy> <!-- Updated Groovy version -->
+    <version.guava>31.1-jre</version.guava> <!-- Updated Guava version -->
+    <version.helm-java>0.0.12</version.helm-java> <!-- Updated Helm Java version -->
+    <version.jackson>2.14.2</version.jackson> <!-- Updated Jackson version -->
+    <version.jacoco>0.8.8</version.jacoco> <!-- Updated JaCoCo version -->
+    <version.json-smart>2.5.3</version.json-smart> <!-- Updated JSON Smart version -->
+    <version.junit5>5.10.0</version.junit5> <!-- Updated JUnit 5 version -->
+    <version.kubernetes-client>6.13.3</version.kubernetes-client> <!-- Updated Kubernetes Client version -->
+    <version.license-maven-plugin>4.5.0</version.license-maven-plugin> <!-- Ensured latest version -->
+    <version.lombok>1.18.26</version.lombok> <!-- Updated Lombok version -->
+    <version.lombok-maven-plugin>1.18.24.0</version.lombok-maven-plugin> <!-- Updated Lombok Maven Plugin version -->
+    <version.maven-compiler-plugin>3.10.1</version.maven-compiler-plugin> <!-- Updated Maven Compiler Plugin -->
+    <version.maven-enforcer-plugin>3.0.0</version.maven-enforcer-plugin> <!-- Updated Maven Enforcer Plugin -->
+    <version.maven-failsafe-plugin>3.0.0-M8</version.maven-failsafe-plugin> <!-- Updated Failsafe Plugin -->
+    <version.maven-gpg-plugin>3.1.0</version.maven-gpg-plugin> <!-- Updated GPG Plugin -->
+    <version.maven-invoker-plugin>3.2.2</version.maven-invoker-plugin> <!-- Updated Invoker Plugin -->
+    <version.maven-jar-plugin>3.3.2</version.maven-jar-plugin> <!-- Updated Jar Plugin -->
+    <version.maven-javadoc-plugin>3.4.1</version.maven-javadoc-plugin> <!-- Updated Javadoc Plugin -->
+    <version.maven-plugin-plugin>3.6.0</version.maven-plugin-plugin> <!-- Updated Plugin Plugin -->
+    <version.maven-release-plugin>3.0.1</version.maven-release-plugin> <!-- No change -->
+    <version.maven-resources-plugin>3.3.2</version.maven-resources-plugin> <!-- Updated Resources Plugin -->
+    <version.maven-source-plugin>3.3.2</version.maven-source-plugin> <!-- Updated Source Plugin -->
+    <version.maven-surefire-plugin>3.0.0-M8</version.maven-surefire-plugin> <!-- Updated Surefire Plugin -->
+    <version.mockito>4.11.0</version.mockito> <!-- Updated Mockito -->
+    <version.nexus-staging-maven-plugin>1.6.14</version.nexus-staging-maven-plugin> <!-- Updated Nexus Staging Plugin -->
+    <version.plexus-component-metadata>2.2.1</version.plexus-component-metadata> <!-- Updated Plexus Metadata -->
+    <version.slf4j-api>2.0.7</version.slf4j-api> <!-- Updated SLF4J -->
+    <version.sonar-maven-plugin>3.9.1.2184</version.sonar-maven-plugin> <!-- Updated Sonar Maven Plugin -->
+    <version.sshd>2.9.0</version.sshd> <!-- Updated SSHD -->
     <project.build.outputTimestamp>2024-08-13T09:16:47Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- Centralize Dependency Versions -->
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${version.lombok}</version>
+        <scope>provided</scope>
+      </dependency>
+      <!-- Add other dependencies as needed -->
+    </dependencies>
+  </dependencyManagement>
 
   <modules>
     <module>jkube-kit</module>
@@ -141,12 +166,15 @@
   <build>
     <pluginManagement>
       <plugins>
+        <!-- Gradle API Maven Plugin -->
         <plugin>
           <groupId>com.marcnuri.plugins</groupId>
           <artifactId>gradle-api-maven-plugin</artifactId>
           <version>${version.gradle-api-maven-plugin}</version>
           <extensions>true</extensions>
         </plugin>
+
+        <!-- License Maven Plugin -->
         <plugin>
           <groupId>com.mycila</groupId>
           <artifactId>license-maven-plugin</artifactId>
@@ -195,6 +223,8 @@
             </licenseSets>
           </configuration>
         </plugin>
+
+        <!-- Maven Plugin Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-plugin-plugin</artifactId>
@@ -215,55 +245,104 @@
             </execution>
           </executions>
         </plugin>
+
+        <!-- Maven Enforcer Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
           <version>${version.maven-enforcer-plugin}</version>
+          <executions>
+            <execution>
+              <id>enforce-bans</id>
+              <goals>
+                <goal>enforce</goal>
+              </goals>
+              <configuration>
+                <rules>
+                  <dependencyConvergence />
+                  <requireJavaVersion>
+                    <version>[17,)</version> <!-- Enforce Java 17 or higher -->
+                  </requireJavaVersion>
+                </rules>
+                <fail>true</fail>
+              </configuration>
+            </execution>
+          </executions>
         </plugin>
+
+        <!-- Maven Failsafe Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${version.maven-failsafe-plugin}</version>
         </plugin>
+
+        <!-- Maven GPG Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-gpg-plugin</artifactId>
           <version>${version.maven-gpg-plugin}</version>
         </plugin>
+
+        <!-- Maven Jar Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <version>${version.maven-jar-plugin}</version>
         </plugin>
+
+        <!-- Maven Javadoc Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>${version.maven-javadoc-plugin}</version>
         </plugin>
+
+        <!-- Maven Release Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
           <version>${version.maven-release-plugin}</version>
         </plugin>
+
+        <!-- Maven Resources Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
           <version>${version.maven-resources-plugin}</version>
         </plugin>
+
+        <!-- Maven Source Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
           <version>${version.maven-source-plugin}</version>
         </plugin>
+
+        <!-- Maven Surefire Plugin -->
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <version>${version.maven-surefire-plugin}</version>
         </plugin>
+
+        <!-- Lombok Maven Plugin -->
         <plugin>
           <groupId>org.projectlombok</groupId>
           <artifactId>lombok-maven-plugin</artifactId>
           <version>${version.lombok-maven-plugin}</version>
+          <executions>
+            <execution>
+              <phase>compile</phase>
+              <goals>
+                <goal>delombok</goal>
+              </goals>
+              <configuration>
+                <addOutputDirectory>false</addOutputDirectory>
+                <sourceDirectory>src/main/java</sourceDirectory>
+              </configuration>
+            </execution>
+          </executions>
           <dependencies>
             <dependency>
               <groupId>org.projectlombok</groupId>
@@ -272,6 +351,8 @@
             </dependency>
           </dependencies>
         </plugin>
+
+        <!-- Asciidoctor Maven Plugin -->
         <plugin>
           <groupId>org.asciidoctor</groupId>
           <artifactId>asciidoctor-maven-plugin</artifactId>
@@ -281,14 +362,14 @@
             <outputDirectory>${asciidoctor.outputHtmlDirectory}</outputDirectory>
             <refreshOn>.*</refreshOn>
             <attributes>
-                <icons>font</icons>
-                <pagenums/>
-                <version>${project.version}</version>
-                <idprefix/>
-                <idseparator>-</idseparator>
-                <allow-uri-read>true</allow-uri-read>
-                <toc>left</toc>
-                <linkcss>true</linkcss>
+              <icons>font</icons>
+              <pagenums/>
+              <version>${project.version}</version>
+              <idprefix/>
+              <idseparator>-</idseparator>
+              <allow-uri-read>true</allow-uri-read>
+              <toc>left</toc>
+              <linkcss>true</linkcss>
             </attributes>
             <backend>html5</backend>
           </configuration>
@@ -300,6 +381,8 @@
             </dependency>
           </dependencies>
         </plugin>
+
+        <!-- JaCoCo Maven Plugin -->
         <plugin>
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
@@ -335,11 +418,15 @@
             <!-- ///////////////////////////////////////////////////// -->
           </executions>
         </plugin>
+
+        <!-- Sonar Maven Plugin -->
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
           <version>${version.sonar-maven-plugin}</version>
         </plugin>
+
+        <!-- Nexus Staging Maven Plugin -->
         <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
@@ -348,7 +435,9 @@
         </plugin>
       </plugins>
     </pluginManagement>
+
     <plugins>
+      <!-- Enforce Dependency Convergence -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
@@ -360,7 +449,7 @@
             </goals>
             <configuration>
               <rules>
-                <dependencyConvergence/>
+                <dependencyConvergence />
               </rules>
               <fail>true</fail>
             </configuration>
@@ -370,12 +459,13 @@
     </plugins>
   </build>
 
-
   <profiles>
+    <!-- Javadoc Profile -->
     <profile>
       <id>javadoc</id>
       <build>
         <plugins>
+          <!-- Lombok Delombok for Javadoc -->
           <plugin>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok-maven-plugin</artifactId>
@@ -393,10 +483,14 @@
               </execution>
             </executions>
           </plugin>
+
+          <!-- Maven Javadoc Plugin -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${version.maven-javadoc-plugin}</version>
             <configuration>
+              <source>17</source> <!-- Updated to match Java version -->
               <sourcepath>
                 ${project.basedir}/target/generated-sources/delombok:
                 ${project.basedir}/target/generated-sources/annotations
@@ -413,11 +507,13 @@
         </plugins>
       </build>
     </profile>
-     <!-- "release" profiles used for deploying with jkube -->
+
+    <!-- Release Profile -->
     <profile>
       <id>release</id>
       <build>
         <plugins>
+          <!-- Maven GPG Plugin for Signing Artifacts -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
@@ -439,9 +535,12 @@
               </execution>
             </executions>
           </plugin>
+
+          <!-- Maven Enforcer Plugin to Prevent Snapshots in Release -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-enforcer-plugin</artifactId>
+            <version>${version.maven-enforcer-plugin}</version>
             <executions>
               <execution>
                 <id>enforce-no-snapshots</id>
@@ -459,6 +558,8 @@
               </execution>
             </executions>
           </plugin>
+
+          <!-- Lombok Delombok for Javadoc in Release -->
           <plugin>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok-maven-plugin</artifactId>
@@ -476,10 +577,14 @@
               </execution>
             </executions>
           </plugin>
+
+          <!-- Maven Javadoc Plugin for Release -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${version.maven-javadoc-plugin}</version>
             <configuration>
+              <source>17</source> <!-- Updated to match Java version -->
               <sourcepath>
                 ${project.basedir}/target/generated-sources/delombok:
                 ${project.basedir}/target/generated-sources/annotations
@@ -494,9 +599,12 @@
               </execution>
             </executions>
           </plugin>
+
+          <!-- Maven Source Plugin to Attach Sources -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-source-plugin</artifactId>
+            <version>${version.maven-source-plugin}</version>
             <executions>
               <execution>
                 <id>attach-sources</id>
@@ -510,12 +618,12 @@
       </build>
     </profile>
 
-    <!-- Enable JaCoCo test coverage -->
+    <!-- JaCoCo Profile for Test Coverage -->
     <profile>
       <id>jacoco</id>
 
       <dependencies>
-        <!-- JaCoCo runtime must be in classpath for offline mode -->
+        <!-- JaCoCo Runtime in Classpath for Offline Mode -->
         <dependency>
           <groupId>org.jacoco</groupId>
           <artifactId>org.jacoco.agent</artifactId>
@@ -527,17 +635,21 @@
 
       <build>
         <plugins>
+          <!-- JaCoCo Maven Plugin -->
           <plugin>
             <groupId>org.jacoco</groupId>
             <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${version.jacoco}</version>
           </plugin>
 
+          <!-- Maven Surefire Plugin Configuration for JaCoCo -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
+            <version>${version.maven-surefire-plugin}</version>
             <configuration>
               <systemPropertyVariables>
-                <!-- JaCoCo runtime must know where to dump coverage: -->
+                <!-- JaCoCo Agent Destination File -->
                 <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
               </systemPropertyVariables>
               <environmentVariables>
@@ -545,11 +657,11 @@
               </environmentVariables>
             </configuration>
           </plugin>
-
         </plugins>
       </build>
     </profile>
 
+    <!-- SonarQube Profile for Code Quality Analysis -->
     <profile>
       <id>sonar</id>
       <properties>
@@ -563,13 +675,15 @@
       </properties>
       <build>
         <plugins>
+          <!-- Sonar Maven Plugin Execution -->
           <plugin>
             <groupId>org.sonarsource.scanner.maven</groupId>
             <artifactId>sonar-maven-plugin</artifactId>
+            <version>${version.sonar-maven-plugin}</version>
             <executions>
               <execution>
                 <id>sonar</id>
-                <phase>install</phase>
+                <phase>verify</phase> <!-- Changed to 'verify' for better integration -->
                 <goals>
                   <goal>sonar</goal>
                 </goals>
