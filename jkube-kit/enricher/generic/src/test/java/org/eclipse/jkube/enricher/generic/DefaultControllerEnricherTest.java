@@ -152,7 +152,7 @@ class DefaultControllerEnricherTest {
             .extracting(PodTemplateSpec::getSpec)
             .extracting(PodSpec::getContainers)
             .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
-            .first(InstanceOfAssertFactories.type(Container.class))
+            .first()
             .hasFieldOrPropertyWithValue("imagePullPolicy", expectedImagePullPolicy);
     }
 
