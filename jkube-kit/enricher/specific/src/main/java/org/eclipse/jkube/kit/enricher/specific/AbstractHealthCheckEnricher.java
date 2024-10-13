@@ -39,13 +39,14 @@ public abstract class AbstractHealthCheckEnricher extends BaseEnricher {
     public static final String ENRICH_ALL_CONTAINERS = "jkube.enricher.basic.enrichAllContainers";
 
     @AllArgsConstructor
+    @Getter
     private enum Config implements Configs.Config {
         ENRICH_ALL_CONTAINERS("enrichAllContainers", "false"),
         ENRICH_CONTAINERS("enrichContainers", null);
 
-        @Getter
+
         protected String key;
-        @Getter
+
         protected String defaultValue;
     }
 

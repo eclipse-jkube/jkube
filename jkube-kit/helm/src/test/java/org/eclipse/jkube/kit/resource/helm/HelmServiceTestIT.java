@@ -128,7 +128,7 @@ class HelmServiceTestIT {
     @DisplayName("when valid chart but test timeout too low, then throw exception")
     void tooLowTimeout_thenThrowException() {
       // Given
-      helmConfig.setTimeout(1);
+      helmConfig.setTestTimeout(1);
       // Then
       assertThatIllegalStateException()
         .isThrownBy(() -> helmService.test(helmConfig))
