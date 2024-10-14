@@ -26,6 +26,7 @@ Usage:
 * Fix #2375: Add support for generating helm test resources via fragments
 * Fix #2667: Add new helm test goal task (`k8s:helm-test` for maven and `k8sHelmTest` for gradle)
 * Fix #3354: Build fails with `imageStream` for `buildRecreate` value
+* Fix #3376: Dockerfile optimization
 
 ### 1.17.0 (2024-08-13)
 * Fix #494: Support for Micronaut Framework Native Images
