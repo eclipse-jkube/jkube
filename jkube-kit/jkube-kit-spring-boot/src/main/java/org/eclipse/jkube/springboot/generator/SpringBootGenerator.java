@@ -84,7 +84,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     @Override
     protected Map<String, String> getEnv(boolean prePackagePhase) {
-        return nestedGenerator.getEnv(super::getEnv, prePackagePhase);
+        return nestedGenerator.getEnv(ppp -> super.getEnv(ppp), prePackagePhase);
     }
 
     @Override
