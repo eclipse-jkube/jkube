@@ -58,6 +58,12 @@ public class KubernetesMockServerUtil {
       .withSingularName("service")
       .build());
     apiResourceListBuilder.addToResources(new APIResourceBuilder()
+      .withNamespaced()
+      .withKind("Pod")
+      .withName("pods")
+      .withSingularName("pod")
+      .build());
+    apiResourceListBuilder.addToResources(new APIResourceBuilder()
       .withName("deployments")
       .withKind("Deployment")
       .withSingularName("deployment")

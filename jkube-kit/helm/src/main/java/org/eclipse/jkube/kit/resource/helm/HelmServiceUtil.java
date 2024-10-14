@@ -86,6 +86,8 @@ public class HelmServiceUtil {
   protected static final String PROPERTY_HELM_INSTALL_DEPENDENCY_UPDATE = "jkube.helm.install.dependencyUpdate";
   protected static final String PROPERTY_HELM_INSTALL_WAIT_READY = "jkube.helm.install.waitReady";
   protected static final String PROPERTY_HELM_DISABLE_OPENAPI_VALIDATION = "jkube.helm.disableOpenAPIValidation";
+  protected static final String PROPERTY_HELM_TEST_TIMEOUT = "jkube.helm.test.timeout";
+  protected static final String HELM_DEFAULT_TIMEOUT = "300";
 
   private HelmServiceUtil() { }
 
@@ -134,6 +136,7 @@ public class HelmServiceUtil {
     helmConfig.setInstallDependencyUpdate(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_INSTALL_DEPENDENCY_UPDATE, project, helmConfig::isInstallDependencyUpdate));
     helmConfig.setInstallWaitReady(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_INSTALL_WAIT_READY, project, helmConfig::isInstallWaitReady));
     helmConfig.setDisableOpenAPIValidation(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_DISABLE_OPENAPI_VALIDATION, project, helmConfig::isDisableOpenAPIValidation));
+    helmConfig.setTestTimeout(Integer.parseInt(resolveFromPropertyOrDefault(PROPERTY_HELM_TEST_TIMEOUT, project, () -> helmConfig.getTestTimeout() > 0 ? Integer.toString(helmConfig.getTestTimeout()) : null, () -> HELM_DEFAULT_TIMEOUT)));
     return helmConfig.toBuilder();
   }
 

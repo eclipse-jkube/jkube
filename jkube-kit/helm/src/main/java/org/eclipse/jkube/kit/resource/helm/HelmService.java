@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.Consumer;
@@ -40,7 +41,9 @@ import com.marcnuri.helm.InstallCommand;
 import com.marcnuri.helm.LintCommand;
 import com.marcnuri.helm.LintResult;
 import com.marcnuri.helm.Release;
+import com.marcnuri.helm.TestCommand;
 import com.marcnuri.helm.UninstallCommand;
+import io.fabric8.kubernetes.api.model.GenericKubernetesResource;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -77,12 +80,16 @@ import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.setAuthenticat
 
 public class HelmService {
 
+  private static final String YML_EXTENSION = ".yml";
   private static final String YAML_EXTENSION = ".yaml";
   public static final String CHART_FILENAME = "Chart" + YAML_EXTENSION;
   private static final String VALUES_FILENAME = "values" + YAML_EXTENSION;
 
   private static final String CHART_FRAGMENT_REGEX = "^chart\\.helm\\.(?<ext>yaml|yml|json)$";
   public static final Pattern CHART_FRAGMENT_PATTERN = Pattern.compile(CHART_FRAGMENT_REGEX, Pattern.CASE_INSENSITIVE);
+
+  private static final String CHART_TEST_FRAGMENT_REGEX = "^.+\\.test\\.helm\\.(?<ext>yaml|yml|json)$";
+  private static final Pattern CHART_TEST_FRAGMENT_PATTERN = Pattern.compile(CHART_TEST_FRAGMENT_REGEX, Pattern.CASE_INSENSITIVE);
 
   private static final String VALUES_FRAGMENT_REGEX = "^values\\.helm\\.(?<ext>yaml|yml|json)$";
   public static final Pattern VALUES_FRAGMENT_PATTERN = Pattern.compile(VALUES_FRAGMENT_REGEX, Pattern.CASE_INSENSITIVE);
@@ -123,6 +130,8 @@ public class HelmService {
       createChartYaml(helmConfig, outputDir);
       logger.debug("Copying additional files");
       copyAdditionalFiles(helmConfig, outputDir);
+      logger.debug("Copying test files");
+      processTestFiles(templatesDir);
       logger.debug("Gathering parameters for placeholders");
       final List<HelmParameter> parameters = collectParameters(helmConfig);
       logger.debug("Generating values.yaml");
@@ -145,6 +154,7 @@ public class HelmService {
           .forEach(listener -> listener.chartFileGenerated(helmConfig, helmType, tarballFile));
     }
   }
+
 
   /**
    * Uploads the charts defined in the provided {@link HelmConfig} to the applicable configured repository.
@@ -189,9 +199,9 @@ public class HelmService {
       if (helmConfig.isDependencySkipRefresh()) {
         dependencyUpdateCommand.skipRefresh();
       }
-      Arrays.stream(dependencyUpdateCommand.call() 
+      Arrays.stream(dependencyUpdateCommand.call()
        .split(SYSTEM_LINE_SEPARATOR_REGEX))
-       .forEach(l -> logger.info("[[W]]%s", l)); 
+       .forEach(l -> logger.info("[[W]]%s", l));
     }
   }
 
@@ -213,18 +223,7 @@ public class HelmService {
         installCommand.disableOpenApiValidation();
       }
       installCommand.withKubeConfig(createTemporaryKubeConfigForInstall());
-      Release release = installCommand.call();
-      logger.info("[[W]]NAME : %s", release.getName());
-      logger.info("[[W]]NAMESPACE : %s", release.getNamespace());
-      logger.info("[[W]]STATUS : %s", release.getStatus());
-      logger.info("[[W]]REVISION : %s", release.getRevision());
-      logger.info("[[W]]LAST DEPLOYED : %s", release.getLastDeployed().format(DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy")));
-      Arrays.stream(release.getOutput().split("---"))
-        .filter(o -> o.contains("Deleting outdated charts"))
-        .findFirst()
-        .ifPresent(s -> Arrays.stream(s.split(SYSTEM_LINE_SEPARATOR_REGEX))
-          .filter(StringUtils::isNotBlank)
-          .forEach(l -> logger.info("[[W]]%s", l)));
+      logRelease(installCommand.call());
     }
   }
 
@@ -236,6 +235,31 @@ public class HelmService {
     Arrays.stream(uninstallCommand.call().split(SYSTEM_LINE_SEPARATOR_REGEX))
       .filter(StringUtils::isNotBlank)
       .forEach(l -> logger.info("[[W]]%s", l));
+  }
+
+  public void test(HelmConfig helmConfig) {
+    logger.info("Testing Helm Chart %s %s", helmConfig.getChart(), helmConfig.getVersion());
+    TestCommand testCommand = Helm.test(helmConfig.getReleaseName());
+    if (helmConfig.getTestTimeout() > 0) {
+      testCommand.withTimeout(helmConfig.getTestTimeout());
+    }
+    testCommand.withKubeConfig(createTemporaryKubeConfigForInstall());
+    logRelease(testCommand.call());
+  }
+
+  private void logRelease(Release release) {
+    logger.info("[[W]]NAME: %s", release.getName());
+    logger.info("[[W]]NAMESPACE: %s", release.getNamespace());
+    logger.info("[[W]]STATUS: %s", release.getStatus());
+    logger.info("[[W]]REVISION: %s", release.getRevision());
+    logger.info("[[W]]LAST DEPLOYED: %s", release.getLastDeployed().format(DateTimeFormatter.ofPattern("E MMM dd HH:mm:ss yyyy")));
+    logger.info("[[W]]Phase: Succeeded");
+    Arrays.stream(release.getOutput().split("---"))
+      .filter(o -> o.contains("Deleting outdated charts"))
+      .findFirst()
+      .ifPresent(s -> Arrays.stream(s.split(SYSTEM_LINE_SEPARATOR_REGEX))
+        .filter(StringUtils::isNotBlank)
+        .forEach(l -> logger.info("[[W]]%s", l)));
   }
 
   private Path createTemporaryKubeConfigForInstall() {
@@ -324,9 +348,20 @@ public class HelmService {
     return outputDir;
   }
 
-
   public static boolean containsYamlFiles(File directory) {
     return !listYamls(directory).isEmpty();
+  }
+
+  private void processTestFiles(File templatesDir) throws IOException {
+    final File templatesTestsDir = new File(templatesDir, "tests");
+    final Set<File> helmTestFragments = findHelmFragmentsInResourceDir(CHART_TEST_FRAGMENT_PATTERN, resourceServiceConfig)
+      .filter(Objects::nonNull)
+      .collect(Collectors.toSet());
+    for (File testFragment : helmTestFragments) {
+      final GenericKubernetesResource testTemplate = readFragment(testFragment, GenericKubernetesResource.class);
+      final String fileName = FileUtil.stripPostfix(FileUtil.stripPostfix(FileUtil.stripPostfix(testFragment.getName(), YML_EXTENSION), YAML_EXTENSION), ".test.helm") + YAML_EXTENSION;
+      ResourceUtil.save(new File(templatesTestsDir, fileName), testTemplate, ResourceFileType.yaml);
+    }
   }
 
   private static void processSourceFiles(File sourceDir, File templatesDir) throws IOException {
@@ -335,9 +370,9 @@ public class HelmService {
       if (dto instanceof Template) {
         splitAndSaveTemplate((Template) dto, templatesDir);
       } else {
-        final String fileName = FileUtil.stripPostfix(FileUtil.stripPostfix(file.getName(), ".yml"), YAML_EXTENSION) + YAML_EXTENSION;
+        final String fileName = FileUtil.stripPostfix(FileUtil.stripPostfix(file.getName(), YML_EXTENSION), YAML_EXTENSION) + YAML_EXTENSION;
         File targetFile = new File(templatesDir, fileName);
-        // lets escape any {{ or }} characters to avoid creating invalid templates
+        // let's escape any {{ or }} characters to avoid creating invalid templates
         String text = FileUtils.readFileToString(file, Charset.defaultCharset());
         text = escapeYamlTemplate(text);
         FileUtils.write(targetFile, text, Charset.defaultCharset());
@@ -356,7 +391,7 @@ public class HelmService {
 
   private void createChartYaml(HelmConfig helmConfig, File outputDir) throws IOException {
     final Chart chartFromHelmConfig = chartFromHelmConfig(helmConfig);
-    final Chart chartFromFragment = readFragment(CHART_FRAGMENT_PATTERN, Chart.class);
+    final Chart chartFromFragment = readFragment(resolveHelmFragment(CHART_FRAGMENT_PATTERN, resourceServiceConfig), Chart.class);
     final Chart mergedChart = Serialization.merge(chartFromHelmConfig, chartFromFragment);
     ResourceUtil.save(new File(outputDir, CHART_FILENAME), mergedChart, ResourceFileType.yaml);
   }
@@ -378,8 +413,7 @@ public class HelmService {
       .build();
   }
 
-  private <T> T readFragment(Pattern filePattern, Class<T> type) {
-    final File helmChartFragment = resolveHelmFragment(filePattern, resourceServiceConfig);
+  private <T> T readFragment(File helmChartFragment, Class<T> type) {
     if (helmChartFragment != null) {
       try {
         return Serialization.unmarshal(
@@ -392,18 +426,22 @@ public class HelmService {
   }
 
   private static File resolveHelmFragment(Pattern filePattern, ResourceServiceConfig resourceServiceConfig) {
+    return findHelmFragmentsInResourceDir(filePattern, resourceServiceConfig).findAny().orElse(null);
+  }
+
+  private static Stream<File> findHelmFragmentsInResourceDir(Pattern filePattern, ResourceServiceConfig resourceServiceConfig) {
     final List<File> fragmentDirs = resourceServiceConfig.getResourceDirs();
     if (fragmentDirs != null) {
       for (File fragmentDir : fragmentDirs) {
         if (fragmentDir.exists() && fragmentDir.isDirectory()) {
           final File[] fragments = fragmentDir.listFiles((dir, name) -> filePattern.matcher(name).matches());
           if (fragments != null) {
-            return Stream.of(fragments).filter(File::exists).findAny().orElse(null);
+            return Stream.of(fragments).filter(File::exists);
           }
         }
       }
     }
-    return null;
+    return Stream.empty();
   }
 
   private static void copyAdditionalFiles(HelmConfig helmConfig, File outputDir) throws IOException {
@@ -439,9 +477,11 @@ public class HelmService {
   }
 
   private static void interpolateChartTemplates(List<HelmParameter> helmParameters, File templatesDir) throws IOException {
-    // now lets replace all the parameter expressions in each template
-    for (File file : listYamls(templatesDir)) {
-      interpolateTemplateParameterExpressionsWithHelmExpressions(file, helmParameters);
+    // now let's replace all the parameter expressions in each template
+    for (File directory : new File[]{templatesDir, new File(templatesDir, "tests")}) {
+      for (File file : listYamls(directory)) {
+        interpolateTemplateParameterExpressionsWithHelmExpressions(file, helmParameters);
+      }
     }
   }
 
@@ -451,7 +491,7 @@ public class HelmService {
         // Placeholders replaced by Go expressions don't need to be persisted in the values.yaml file
         .filter(hp -> !hp.isGolangExpression())
         .collect(Collectors.toMap(HelmParameter::getName, HelmParameter::getValue));
-    final Map<String, Object> valuesFromFragment = readFragment(VALUES_FRAGMENT_PATTERN, Map.class);
+    final Map<String, Object> valuesFromFragment = readFragment(resolveHelmFragment(VALUES_FRAGMENT_PATTERN, resourceServiceConfig), Map.class);
     final Map<String, Object> mergedValues = Serialization.merge(getNestedMap(valuesFromParameters), valuesFromFragment);
     final Map<String, Object> sortedValues = sortValuesYaml(mergedValues);
     ResourceUtil.save(new File(outputDir, VALUES_FILENAME), sortedValues, ResourceFileType.yaml);

@@ -88,10 +88,10 @@ class KubernetesHelmInstallTaskTest {
     // When
     kubernetesHelmInstallTask.runTask();
     // Then
-    verify(taskEnvironment.logger).lifecycle("k8s: NAME : empty-project");
-    verify(taskEnvironment.logger).lifecycle("k8s: NAMESPACE : ");
-    verify(taskEnvironment.logger).lifecycle("k8s: STATUS : deployed");
-    verify(taskEnvironment.logger).lifecycle("k8s: REVISION : 1");
+    verify(taskEnvironment.logger).lifecycle("k8s: NAME: empty-project");
+    verify(taskEnvironment.logger).lifecycle("k8s: NAMESPACE: ");
+    verify(taskEnvironment.logger).lifecycle("k8s: STATUS: deployed");
+    verify(taskEnvironment.logger).lifecycle("k8s: REVISION: 1");
     verify(taskEnvironment.logger).lifecycle("k8s: Saving 1 charts");
     verify(taskEnvironment.logger).lifecycle("k8s: Deleting outdated charts");
   }

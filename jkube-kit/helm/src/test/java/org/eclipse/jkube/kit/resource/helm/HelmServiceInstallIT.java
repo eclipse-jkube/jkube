@@ -93,10 +93,10 @@ class HelmServiceInstallIT {
     // When
     helmService.install(helmConfig);
     // Then
-    verify(kitLogger, times(1)).info("[[W]]NAME : %s", "test-project");
-    verify(kitLogger, times(1)).info("[[W]]NAMESPACE : %s", "");
-    verify(kitLogger, times(1)).info("[[W]]STATUS : %s", "deployed");
-    verify(kitLogger, times(1)).info("[[W]]REVISION : %s", "1");
+    verify(kitLogger, times(1)).info("[[W]]NAME: %s", "test-project");
+    verify(kitLogger, times(1)).info("[[W]]NAMESPACE: %s", "");
+    verify(kitLogger, times(1)).info("[[W]]STATUS: %s", "deployed");
+    verify(kitLogger, times(1)).info("[[W]]REVISION: %s", "1");
   }
 
   @Test

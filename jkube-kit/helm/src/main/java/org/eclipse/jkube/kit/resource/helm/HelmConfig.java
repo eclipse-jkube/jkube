@@ -34,8 +34,6 @@ import java.util.stream.Stream;
 
 /**
  * Configuration for a helm chart
- * @author roland
- * @since 11/08/16
  */
 @Builder(toBuilder = true)
 @AllArgsConstructor
@@ -82,6 +80,10 @@ public class HelmConfig {
   private boolean installDependencyUpdate;
   private boolean installWaitReady;
   private boolean disableOpenAPIValidation;
+  /**
+   * Timeout in seconds
+   */
+  private int testTimeout;
 
 
   @JsonProperty("dependencies")
