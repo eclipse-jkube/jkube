@@ -1,0 +1,54 @@
+/*
+ * Copyright (c) 2019 Red Hat, Inc.
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at:
+ *
+ *     https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *   Red Hat, Inc. - initial API and implementation
+ */
+plugins {
+    id("com.github.johnrengelman.shadow") version "7.1.0"
+    id("io.micronaut.application") version "3.7.10"
+    id("org.eclipse.jkube.kubernetes") version "1.17.0"
+    id("org.eclipse.jkube.openshift") version "1.17.0"
+}
+
+version = "0.1"
+group = "org.eclipse.jkube.integration.tests.gradle.micronaut"
+
+repositories {
+    mavenCentral()
+}
+
+micronaut {
+    runtime("netty")
+    processing {
+        incremental(true)
+        annotations("org.eclipse.jkube.integration.tests.gradle.micronaut.*")
+    }
+}
+
+dependencies {
+    annotationProcessor("io.micronaut:micronaut-http-validation")
+    implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut:micronaut-management")
+    implementation("io.micronaut:micronaut-runtime")
+    implementation("jakarta.annotation:jakarta.annotation-api")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    implementation("io.micronaut:micronaut-validation")
+
+}
+
+
+application {
+    mainClass.set("org.eclipse.jkube.integration.tests.gradle.micronaut.Application")
+}
+java {
+    sourceCompatibility = JavaVersion.toVersion("11")
+    targetCompatibility = JavaVersion.toVersion("11")
+}

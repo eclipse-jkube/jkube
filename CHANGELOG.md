@@ -25,6 +25,7 @@ Usage:
 * Fix #2844: `oc:build` on openshift use `pods/log` to retrieve logs from build
 * Fix #2375: Add support for generating helm test resources via fragments
 * Fix #2667: Add new helm test goal task (`k8s:helm-test` for maven and `k8sHelmTest` for gradle)
+* Fix #3326: Micronaut healthcheck enricher infers overridden server port in application.properties
 * Fix #3354: Build fails with `imageStream` for `buildRecreate` value
 
 ### 1.17.0 (2024-08-13)
