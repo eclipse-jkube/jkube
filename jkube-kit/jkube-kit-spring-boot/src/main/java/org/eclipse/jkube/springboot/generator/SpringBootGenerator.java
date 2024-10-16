@@ -84,6 +84,9 @@ public class SpringBootGenerator extends JavaExecGenerator {
 
     @Override
     protected Map<String, String> getEnv(boolean prePackagePhase) {
+        //TODO: Java8 compatibility, remove warning.
+        // Remove annotation once baseline is set to Java11+
+        //noinspection Convert2MethodRef
         return nestedGenerator.getEnv(ppp -> super.getEnv(ppp), prePackagePhase);
     }
 
