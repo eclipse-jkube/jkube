@@ -36,17 +36,22 @@ import java.util.Properties;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class HelidonHealthCheckEnricherTest {
   private JKubeEnricherContext context;
   private JavaProject javaProject;
   private Properties properties;
   private KubernetesListBuilder klb;
+  private KitLogger logger;
 
   @BeforeEach
   void setup() {
     properties = new Properties();
     klb = new KubernetesListBuilder();
+    logger = spy(new KitLogger.SilentLogger());
     klb.addToItems(new DeploymentBuilder()
       .editOrNewSpec()
       .editOrNewTemplate()
@@ -67,10 +72,25 @@ class HelidonHealthCheckEnricherTest {
       .dependenciesWithTransitive(new ArrayList<>())
       .build();
     context = JKubeEnricherContext.builder()
-      .log(new KitLogger.SilentLogger())
+      .log(logger)
       .project(javaProject)
       .processorConfig(new ProcessorConfig())
       .build();
+  }
+
+  @Test
+  void constructorShouldLogHelidonApplicationConfigPath() {
+    // Given
+    context = context.toBuilder()
+      .project(javaProject.toBuilder()
+      .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/custom-port-microprofile-configuration")).getPath())
+      .build())
+      .build();
+    // When
+    HelidonHealthCheckEnricher helidonHealthCheckEnricher = new HelidonHealthCheckEnricher(context);
+    // Then
+    assertThat(helidonHealthCheckEnricher).isNotNull();
+    verify(logger, times(1)).debug("jkube-healthcheck-helidon: Helidon Application Config loaded from : %s", getClass().getResource("/custom-port-microprofile-configuration/META-INF/microprofile-config.properties"));
   }
 
   @Test

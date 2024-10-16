@@ -30,9 +30,13 @@ import java.util.Properties;
 public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     private static final String IO_THORNTAIL = "io.thorntail";
+    private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
+    private final Properties thorntailApplicationConfiguration;
 
     public ThorntailV2HealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-thorntail-v2");
+        thorntailApplicationConfiguration = ThorntailUtil.getThorntailProperties(getContext().getProject());
+        log.debug("Thorntail Application Config loaded from : %s", thorntailApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
     }
 
     @AllArgsConstructor
@@ -91,10 +95,9 @@ public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher 
     }
 
     protected int getPort() {
-        final Properties properties = ThorntailUtil.getThorntailProperties(getContext().getProject());
-        properties.putAll(System.getProperties());
-        if (properties.containsKey("thorntail.http.port")) {
-            return Integer.parseInt((String) properties.get("thorntail.http.port"));
+        thorntailApplicationConfiguration.putAll(System.getProperties());
+        if (thorntailApplicationConfiguration.containsKey("thorntail.http.port")) {
+            return Integer.parseInt((String) thorntailApplicationConfiguration.get("thorntail.http.port"));
         }
 
         return Configs.asInt(getConfig(Config.PORT));
