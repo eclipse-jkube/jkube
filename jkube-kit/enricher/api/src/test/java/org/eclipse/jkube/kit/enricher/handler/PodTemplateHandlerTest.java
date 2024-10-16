@@ -13,9 +13,7 @@
  */
 package org.eclipse.jkube.kit.enricher.handler;
 
-import io.fabric8.kubernetes.api.model.LocalObjectReference;
-import io.fabric8.kubernetes.api.model.PodSpec;
-import io.fabric8.kubernetes.api.model.PodTemplateSpec;
+import io.fabric8.kubernetes.api.model.*;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -87,7 +85,7 @@ class PodTemplateHandlerTest {
         assertThat(podTemplateSpec.getSpec().getVolumes()).isEmpty();
         assertThat(podTemplateSpec.getSpec())
             .extracting(PodSpec::getContainers).isNotNull()
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
             .first()
             .hasFieldOrPropertyWithValue("name", "test-app")
             .hasFieldOrPropertyWithValue("image", "docker.io/test:latest")
@@ -128,7 +126,8 @@ class PodTemplateHandlerTest {
 
       assertThat(podTemplateSpec.getSpec().getContainers()).isNotNull();
       assertThat(podTemplateSpec.getSpec())
-          .extracting(PodSpec::getVolumes).asList()
+          .extracting(PodSpec::getVolumes)
+          .asInstanceOf(InstanceOfAssertFactories.list(Volume.class))
           .isNotEmpty()
           .first()
           .hasFieldOrPropertyWithValue("name", "test")
