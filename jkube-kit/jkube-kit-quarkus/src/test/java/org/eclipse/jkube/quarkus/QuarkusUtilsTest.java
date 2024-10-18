@@ -109,6 +109,7 @@ class QuarkusUtilsTest {
     final Properties props = getQuarkusConfiguration(javaProject);
     // Then
     assertThat(props).containsOnly(
+        entry("jkube.internal.application-config-file.path", QuarkusUtilsTest.class.getResource("/utils-test/config/properties/application.properties")),
         entry("quarkus.http.port", "42"),
         entry("%dev.quarkus.http.port", "8082"));
   }
@@ -124,6 +125,7 @@ class QuarkusUtilsTest {
     final Properties props = getQuarkusConfiguration(javaProject);
     // Then
     assertThat(props).containsOnly(
+        entry("jkube.internal.application-config-file.path", QuarkusUtilsTest.class.getResource("/utils-test/config/properties/application.properties")),
         entry("quarkus.http.port", "1337"),
         entry("%dev.quarkus.http.port", "8082"));
   }
@@ -138,6 +140,7 @@ class QuarkusUtilsTest {
     final Properties props = getQuarkusConfiguration(javaProject);
     // Then
     assertThat(props).containsOnly(
+      entry("jkube.internal.application-config-file.path", QuarkusUtilsTest.class.getResource("/utils-test/config/yaml/application.yml")),
         entry("quarkus.http.port", "31337"),
         entry("%dev.quarkus.http.port", "13373"));
   }

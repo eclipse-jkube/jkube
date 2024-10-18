@@ -43,6 +43,7 @@ public class SpringBootUtil {
     private static final String PLACEHOLDER_PREFIX = "${";
     private static final String PLACEHOLDER_SUFFIX = "}";
     private static final String VALUE_SEPARATOR = ":";
+    private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
 
     private SpringBootUtil() {}
 
@@ -71,8 +72,13 @@ public class SpringBootUtil {
 
         Properties props = YamlUtil.getPropertiesFromYamlResource(springActiveProfile, ymlResource);
         props.putAll(getPropertiesFromResource(propertiesResource));
+        if (ymlResource != null) {
+            props.put(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION, ymlResource.toString());
+        } else if (propertiesResource != null) {
+            props.put(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION, propertiesResource.toString());
+        }
         return new SpringBootPropertyPlaceholderHelper(PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX, VALUE_SEPARATOR, true)
-        .replaceAllPlaceholders(props);
+            .replaceAllPlaceholders(props);
     }
 
     /**

@@ -85,7 +85,8 @@ class MicronautUtilsTest {
     // When
     final Properties props = getMicronautConfiguration(javaProject);
     // Then
-    assertThat(props).containsExactly(
+    assertThat(props).containsOnly(
+        entry("jkube.internal.application-config-file.path", MicronautUtilsTest.class.getResource("/utils-test/port-config/properties/application.properties")),
         entry("micronaut.application.name", "port-config-test-PROPERTIES"),
         entry("micronaut.server.port", "1337"));
   }
