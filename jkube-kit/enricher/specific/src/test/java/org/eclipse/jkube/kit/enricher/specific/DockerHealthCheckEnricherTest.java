@@ -17,10 +17,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Arguments;
@@ -202,7 +204,7 @@ class DockerHealthCheckEnricherTest {
     private void assertNoProbes(KubernetesList list) {
       assertThat(list.getItems()).singleElement()
           .extracting("spec.template.spec.containers")
-          .asList()
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
           .first()
           .hasFieldOrPropertyWithValue("livenessProbe", null)
           .hasFieldOrPropertyWithValue("readinessProbe", null);
@@ -210,14 +212,16 @@ class DockerHealthCheckEnricherTest {
 
     private void assertHealthCheckMatching(HasMetadata resource, String type, String command, int timeoutSeconds, int periodSeconds, int failureThreshold) {
       assertThat(resource)
-          .extracting("spec.template.spec.containers").asList()
+          .extracting("spec.template.spec.containers")
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
           .first()
           .extracting(type).isNotNull()
           .hasFieldOrPropertyWithValue("timeoutSeconds", timeoutSeconds)
           .hasFieldOrPropertyWithValue("periodSeconds", periodSeconds)
           .hasFieldOrPropertyWithValue("failureThreshold", failureThreshold)
           .satisfies(r -> assertThat(r)
-              .extracting("exec.command").asList()
+              .extracting("exec.command")
+              .asInstanceOf(InstanceOfAssertFactories.list(String.class))
               .first()
               .isEqualTo(command));
     }
