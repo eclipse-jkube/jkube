@@ -107,10 +107,10 @@ class PodTemplateHandlerTest {
 
         PodTemplateSpec podTemplateSpec = podTemplateHandler.getPodTemplate(config, null, images);
         assertThat(podTemplateSpec.getSpec())
-            .hasFieldOrPropertyWithValue("serviceAccountName", null)
-            .returns(true, spec -> spec.getVolumes().isEmpty())
-            .extracting(PodSpec::getContainers)
-            .isNotNull();
+                .hasFieldOrPropertyWithValue("serviceAccountName", null)
+                .returns(true, spec -> spec.getVolumes().isEmpty())
+                .extracting(PodSpec::getContainers)
+                .isNotNull();
     }
 
     @Test
