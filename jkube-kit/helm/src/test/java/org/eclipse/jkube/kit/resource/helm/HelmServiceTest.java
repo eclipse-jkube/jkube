@@ -26,6 +26,9 @@ import java.util.Objects;
 import java.util.Properties;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodSpec;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -37,6 +40,8 @@ import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig.HelmType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -111,106 +116,199 @@ class HelmServiceTest {
       );
   }
 
-  @Test
-  void generateHelmCharts_withInvalidChartYamlFragmentProvided_throwsException() {
-    // Given
-    helmConfig.types(Collections.singletonList(HelmType.KUBERNETES));
-    resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
-      new File(Objects.requireNonNull(getClass().getResource("/invalid-helm-chart-fragment")).getFile())))
-      .build();
-    // When + Then
-    assertThatIllegalArgumentException()
-      .isThrownBy(() ->
-        new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger()).generateHelmCharts(helmConfig.build()))
-      .withMessageStartingWith("Failure in parsing Helm fragment (Chart.helm.yaml): ");
-  }
+  @Nested
+  @DisplayName("generateHelmCharts with fragments")
+  class GenerateHelmChartsWithFragments {
+    @BeforeEach
+    void setUp() {
+      helmConfig.types(Collections.singletonList(HelmType.KUBERNETES));
+    }
 
-  @Test
-  void generateHelmCharts_withInvalidValuesYamlFragmentProvided_throwsException() {
-    // Given
-    helmConfig.types(Collections.singletonList(HelmType.KUBERNETES));
-    resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
-      new File(Objects.requireNonNull(getClass().getResource("/invalid-helm-values-fragment")).getFile())))
-      .build();
-    // When + Then
-    assertThatIllegalArgumentException()
-      .isThrownBy(() ->
-        new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger()).generateHelmCharts(helmConfig.build()))
-      .withMessageStartingWith("Failure in parsing Helm fragment (values.helm.yaml): ");
-  }
+    @Nested
+    @DisplayName("valid fragments")
+    class ValidFragments {
+      @BeforeEach
+      void setUp() {
+        resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
+            new File(Objects.requireNonNull(getClass().getResource("/valid-helm-fragments")).getFile())))
+          .build();
+      }
 
-  @Test
-  void generateHelmCharts_withValidChartYamlFragment_usesMergedChart() throws Exception {
-    // Given
-    jKubeConfiguration.getProject().getProperties().put("chart.name", "name-from-fragment");
-    resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
-        new File(Objects.requireNonNull(getClass().getResource("/valid-helm-fragments")).getFile())))
-      .build();
-    helmConfig
-      .types(Collections.singletonList(HelmType.KUBERNETES))
-      .apiVersion("v1")
-      .chart("Chart Name")
-      .version("1337")
-      .description("Description from helmconfig")
-      .home("https://example.com")
-      .sources(Collections.singletonList("https://source.example.com"))
-      .keywords(Collections.singletonList("ci"))
-      .maintainers(Collections.singletonList(Maintainer.builder().name("maintainer-from-config").build()))
-      .icon("test-icon")
-      .appVersion("1.33.7")
-      .engine("gotpl")
-      .dependencies(Collections.singletonList(HelmDependency.builder().name("dependency-from-config").build()));
-    // When
-    new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
-      .generateHelmCharts(helmConfig.build());
-    // Then
-    final Map<?, ?> savedChart = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("Chart.yaml").toFile(), Map.class);
-    assertThat(savedChart)
-      .hasFieldOrPropertyWithValue("apiVersion", "v1")
-      .hasFieldOrPropertyWithValue("name", "name-from-fragment")
-      .hasFieldOrPropertyWithValue("version", "version-from-fragment")
-      .hasFieldOrPropertyWithValue("description", "Description from helmconfig")
-      .hasFieldOrPropertyWithValue("home", "https://example.com")
-      .hasFieldOrPropertyWithValue("icon", "test-icon")
-      .hasFieldOrPropertyWithValue("appVersion", "1.33.7")
-      .hasFieldOrPropertyWithValue("engine", "gotpl")
-      .hasFieldOrPropertyWithValue("keywords", Collections.singletonList("fragment"))
-      .hasFieldOrPropertyWithValue("sources", Collections.singletonList("https://source.example.com"))
-      .hasFieldOrPropertyWithValue("maintainers", Collections.singletonList(Collections.singletonMap("name", "maintainer-from-config")))
-      .hasFieldOrPropertyWithValue("dependencies", Collections.singletonList(Collections.singletonMap("name", "dependency-from-config")))
-      .extracting("annotations").asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
-      .containsOnly(entry("example.com/jkube", "norad"));
-  }
+      @Test
+      @DisplayName("when valid chart.yaml fragment provided, then merge chart.yaml")
+      void withValidChartYamlFragment_usesMergedChart() throws Exception {
+        // Given
+        jKubeConfiguration.getProject().getProperties().put("chart.name", "name-from-fragment");
+        helmConfig
+          .apiVersion("v1")
+          .chart("Chart Name")
+          .version("1337")
+          .description("Description from helmconfig")
+          .home("https://example.com")
+          .sources(Collections.singletonList("https://source.example.com"))
+          .keywords(Collections.singletonList("ci"))
+          .maintainers(Collections.singletonList(Maintainer.builder().name("maintainer-from-config").build()))
+          .icon("test-icon")
+          .appVersion("1.33.7")
+          .engine("gotpl")
+          .dependencies(Collections.singletonList(HelmDependency.builder().name("dependency-from-config").build()));
+        // When
+        new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
+          .generateHelmCharts(helmConfig.build());
+        // Then
+        final Map<?, ?> savedChart = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("Chart.yaml").toFile(), Map.class);
+        assertThat(savedChart)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("name", "name-from-fragment")
+          .hasFieldOrPropertyWithValue("version", "version-from-fragment")
+          .hasFieldOrPropertyWithValue("description", "Description from helmconfig")
+          .hasFieldOrPropertyWithValue("home", "https://example.com")
+          .hasFieldOrPropertyWithValue("icon", "test-icon")
+          .hasFieldOrPropertyWithValue("appVersion", "1.33.7")
+          .hasFieldOrPropertyWithValue("engine", "gotpl")
+          .hasFieldOrPropertyWithValue("keywords", Collections.singletonList("fragment"))
+          .hasFieldOrPropertyWithValue("sources", Collections.singletonList("https://source.example.com"))
+          .hasFieldOrPropertyWithValue("maintainers", Collections.singletonList(Collections.singletonMap("name", "maintainer-from-config")))
+          .hasFieldOrPropertyWithValue("dependencies", Collections.singletonList(Collections.singletonMap("name", "dependency-from-config")))
+          .extracting("annotations").asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+          .containsOnly(entry("example.com/jkube", "norad"));
+      }
 
-  @Test
-  void generateHelmCharts_withValidValuesYamlFragment_usesMergedValues() throws Exception {
-    // Given
-    jKubeConfiguration.getProject().getProperties().put("property.in.fragment", "the-value");
-    resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
-        new File(Objects.requireNonNull(getClass().getResource("/valid-helm-fragments")).getFile())))
-      .build();
-    helmConfig
-      .types(Collections.singletonList(HelmType.KUBERNETES))
-      .parameters(Arrays.asList(
-        HelmParameter.builder().name("ingress.name").value("the-ingress-from-parameter").build(),
-        HelmParameter.builder().name("ingress.enabled").value("is overridden").build()
-      ));
-    // When
-    new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
-      .generateHelmCharts(helmConfig.build());
-    // Then
-    final Map<?, ?> savedValues = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("values.yaml").toFile(), Map.class);
-    assertThat(savedValues)
-      .hasFieldOrPropertyWithValue("replaceableProperty", "the-value")
-      .hasFieldOrPropertyWithValue("replicaCount", 1)
-      .hasFieldOrPropertyWithValue("ingress.name", "the-ingress-from-parameter")
-      .hasFieldOrPropertyWithValue("ingress.enabled", false)
-      .hasFieldOrPropertyWithValue("ingress.tls", Collections.emptyList())
-      .extracting("ingress.annotations").asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
-      .containsOnly(
-        entry("kubernetes.io/ingress.class", "nginx"),
-        entry("kubernetes.io/tls-acme", "true")
-      );
+      @Test
+      @DisplayName("when valid values.yaml fragment provided, then merge values.yaml")
+      void withValidValuesYamlFragment_usesMergedValues() throws Exception {
+        // Given
+        jKubeConfiguration.getProject().getProperties().put("property.in.fragment", "the-value");
+        helmConfig
+          .parameters(Arrays.asList(
+            HelmParameter.builder().name("ingress.name").value("the-ingress-from-parameter").build(),
+            HelmParameter.builder().name("ingress.enabled").value("is overridden").build()
+          ));
+        // When
+        new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
+          .generateHelmCharts(helmConfig.build());
+        // Then
+        final Map<?, ?> savedValues = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("values.yaml").toFile(), Map.class);
+        assertThat(savedValues)
+          .hasFieldOrPropertyWithValue("replaceableProperty", "the-value")
+          .hasFieldOrPropertyWithValue("replicaCount", 1)
+          .hasFieldOrPropertyWithValue("ingress.name", "the-ingress-from-parameter")
+          .hasFieldOrPropertyWithValue("ingress.enabled", false)
+          .hasFieldOrPropertyWithValue("ingress.tls", Collections.emptyList())
+          .extracting("ingress.annotations").asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
+          .containsOnly(
+            entry("kubernetes.io/ingress.class", "nginx"),
+            entry("kubernetes.io/tls-acme", "true")
+          );
+      }
+
+      @Test
+      @DisplayName("when helm test fragment provided, then helm test resource added to templates/tests directory")
+      void whenHelmTestFragmentProvided_thenFragmentCopiedToTemplatesTestDir() throws IOException {
+        // Given
+        jKubeConfiguration.getProject().getProperties().put("application.name", "name-configured-via-properties");
+        jKubeConfiguration.getProject().getProperties().put("application.port", "79");
+        resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
+            new File(Objects.requireNonNull(getClass().getResource("/valid-helm-fragments")).getFile())))
+          .build();
+        // When
+        new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
+          .generateHelmCharts(helmConfig.build());
+        // Then
+        final Pod helmTestConnectionPod = Serialization.unmarshal(helmOutputDirectory.resolve("kubernetes").resolve("templates").resolve("tests").resolve("test-connection.yaml").toFile(), Pod.class);
+        assertThat(helmTestConnectionPod)
+          .hasFieldOrPropertyWithValue("apiVersion", "v1")
+          .hasFieldOrPropertyWithValue("kind", "Pod")
+          .hasFieldOrPropertyWithValue("metadata.name", "name-configured-via-properties-test-connection")
+          .hasFieldOrPropertyWithValue("metadata.annotations", Collections.singletonMap("helm.sh/hook", "test"))
+          .hasFieldOrPropertyWithValue("spec.restartPolicy", "Never")
+          .extracting(Pod::getSpec)
+          .extracting(PodSpec::getContainers)
+          .asInstanceOf(InstanceOfAssertFactories.list(Container.class))
+          .singleElement()
+          .hasFieldOrPropertyWithValue("name", "wget")
+          .hasFieldOrPropertyWithValue("image", "busybox")
+          .hasFieldOrPropertyWithValue("command", Collections.singletonList("wget"))
+          .hasFieldOrPropertyWithValue("args", Collections.singletonList("name-configured-via-properties:79"));
+      }
+
+      @Test
+      @DisplayName("when helm test fragment provided with helm parameters, then helm test resource added and interpolated to templates/tests directory")
+      void whenHelmTestFragmentAndHelmParameters_thenFragmentCopiedToTemplatesTestDirAndHelmParametersInterpolated() throws IOException {
+        // Given
+        helmConfig.parameters(Arrays.asList(
+          HelmParameter.builder().name("application.name").value("name-configured-via-parameters").build(),
+          HelmParameter.builder().name("application.port").value("79").build(),
+          HelmParameter.builder().name("image").value("{{ .Values.image | default \"busybox\" }}").build()
+        ));
+        resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
+            new File(Objects.requireNonNull(getClass().getResource("/helm-test-fragment-with-parameters")).getFile())))
+          .build();
+        // When
+        new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger())
+          .generateHelmCharts(helmConfig.build());
+        // Then
+        assertThat(new String(Files.readAllBytes(helmOutputDirectory.resolve("kubernetes").resolve("templates").resolve("tests").resolve("test-connection.yaml"))))
+          .isEqualTo(String.format("---%n" +
+            "apiVersion: v1%n" +
+            "kind: Pod%n" +
+            "metadata:%n" +
+            "  annotations:%n" +
+            "    helm.sh/hook: test%n" +
+            "  name: \"{{ .Values.application.name }}-test-connection\"%n" +
+            "spec:%n" +
+            "  containers:%n" +
+            "  - image: {{ .Values.image | default \"busybox\" }}%n" +
+            "    args:%n" +
+            "    - \"{{ .Values.application.name }}:{{ .Values.application.port }}\"%n"));
+      }
+    }
+
+    @Nested
+    @DisplayName("invalid fragments")
+    class InvalidFragments {
+      @Test
+      @DisplayName("invalid chart.yaml fragment, throw exception")
+      void withInvalidChartYamlFragmentProvided_throwsException() {
+        // Given
+        givenResourceDir("/invalid-helm-chart-fragment");
+        // When + Then
+        assertThatIllegalArgumentException()
+          .isThrownBy(() ->
+            new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger()).generateHelmCharts(helmConfig.build()))
+          .withMessageStartingWith("Failure in parsing Helm fragment (Chart.helm.yaml): ");
+      }
+
+      @Test
+      @DisplayName("invalid values.yaml fragment, throw exception")
+      void withInvalidValuesYamlFragmentProvided_throwsException() {
+        // Given
+        givenResourceDir("/invalid-helm-values-fragment");
+        // When + Then
+        assertThatIllegalArgumentException()
+          .isThrownBy(() ->
+            new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger()).generateHelmCharts(helmConfig.build()))
+          .withMessageStartingWith("Failure in parsing Helm fragment (values.helm.yaml): ");
+      }
+
+      @Test
+      @DisplayName("invalid test.helm.yaml fragment, throw exception")
+      void withInvalidHelmTestYamlFragmentProvided_throwsException() {
+        // Given
+        givenResourceDir("/invalid-helm-test-fragment");
+        // When + Then
+        assertThatIllegalArgumentException()
+          .isThrownBy(() ->
+            new HelmService(jKubeConfiguration, resourceServiceConfig, new KitLogger.SilentLogger()).generateHelmCharts(helmConfig.build()))
+          .withMessageStartingWith("Failure in parsing Helm fragment (test-pod.test.helm.yaml)");
+      }
+    }
+
+    private void givenResourceDir(String resourceDir) {
+      resourceServiceConfig = ResourceServiceConfig.builder().resourceDirs(Collections.singletonList(
+          new File(Objects.requireNonNull(getClass().getResource(resourceDir)).getFile())))
+        .build();
+    }
   }
 
   @Test
@@ -279,7 +377,7 @@ class HelmServiceTest {
         entry("name", "Chart Name"),
         entry("version", "1337")
       )
-      .extracting("dependencies").asList().singleElement()
+      .extracting("dependencies").asInstanceOf(InstanceOfAssertFactories.list(HelmDependency.class)).singleElement()
       .asInstanceOf(InstanceOfAssertFactories.map(String.class, String.class))
       .contains(
         entry("name", "nginx"),

@@ -490,7 +490,7 @@ class KubernetesHelperTest {
             .hasFieldOrPropertyWithValue("cluster.insecureSkipTlsVerify", true)
             .extracting("cluster.server", "name")
                 .satisfies(serverUrls -> {
-                  List<String> actualUrls = ((List<?>) serverUrls).stream()
+                  List<String> actualUrls = serverUrls.stream()
                       .map(Object::toString)
                       .collect(Collectors.toList());
                   assertThat(actualUrls).hasSize(2)

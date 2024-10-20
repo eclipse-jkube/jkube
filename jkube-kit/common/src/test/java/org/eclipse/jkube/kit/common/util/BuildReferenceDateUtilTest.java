@@ -34,7 +34,7 @@ class BuildReferenceDateUtilTest {
   File temporaryFolder;
 
   @Test
-  void testGetBuildReferenceDateWhenFileDoesntExist() throws IOException {
+  void testGetBuildReferenceDateWhenFileDoesntExist() {
     assertThat(BuildReferenceDateUtil.getBuildReferenceDate("target", "docker")).isNotNull();
   }
 

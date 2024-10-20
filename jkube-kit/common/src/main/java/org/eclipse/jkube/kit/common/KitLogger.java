@@ -114,22 +114,22 @@ public interface KitLogger {
 
         @Override
         public void debug(String format, Object... params) {
-            out.println(String.format(format, params));
+            out.printf("[DEBUG] " + format + "%n", params);
         }
 
         @Override
         public void info(String format, Object... params) {
-            out.println(String.format(format, params));
+            out.printf("[INFO] " + format + "%n", params);
         }
 
         @Override
         public void warn(String format, Object... params) {
-            out.println(String.format(format, params));
+            out.printf("[WARN] " + format + "%n", params);
         }
 
         @Override
         public void error(String format, Object... params) {
-            out.println(String.format(format, params));
+            out.printf("[ERROR] " + format + "%n", params);
         }
 
         @Override
