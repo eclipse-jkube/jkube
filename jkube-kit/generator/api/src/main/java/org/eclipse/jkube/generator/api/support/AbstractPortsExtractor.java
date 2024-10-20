@@ -153,7 +153,7 @@ public abstract class AbstractPortsExtractor implements PortsExtractor {
 				flat.put(stringKey, (String) value);
 			} else if (value instanceof Map) {
 				for (Map.Entry<String, String> entry : flatten((Map) value).entrySet()) {
-					flat.put(new StringBuilder(stringKey).append(DOT).append(entry.getKey()).toString(),
+					flat.put(stringKey + DOT + entry.getKey(),
 							entry.getValue());
 				}
 			} else {
