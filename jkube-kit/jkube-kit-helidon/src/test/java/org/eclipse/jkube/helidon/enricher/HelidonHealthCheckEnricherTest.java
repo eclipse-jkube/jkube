@@ -18,6 +18,7 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Probe;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.AssertionsForInterfaceTypes;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -28,7 +29,9 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -36,22 +39,19 @@ import java.util.Properties;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class HelidonHealthCheckEnricherTest {
   private JKubeEnricherContext context;
   private JavaProject javaProject;
   private Properties properties;
   private KubernetesListBuilder klb;
-  private KitLogger logger;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   void setup() {
     properties = new Properties();
     klb = new KubernetesListBuilder();
-    logger = spy(new KitLogger.SilentLogger());
+    out = new ByteArrayOutputStream();
     klb.addToItems(new DeploymentBuilder()
       .editOrNewSpec()
       .editOrNewTemplate()
@@ -72,7 +72,7 @@ class HelidonHealthCheckEnricherTest {
       .dependenciesWithTransitive(new ArrayList<>())
       .build();
     context = JKubeEnricherContext.builder()
-      .log(logger)
+      .log(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .project(javaProject)
       .processorConfig(new ProcessorConfig())
       .build();
@@ -90,7 +90,9 @@ class HelidonHealthCheckEnricherTest {
     HelidonHealthCheckEnricher helidonHealthCheckEnricher = new HelidonHealthCheckEnricher(context);
     // Then
     assertThat(helidonHealthCheckEnricher).isNotNull();
-    verify(logger, times(1)).debug("jkube-healthcheck-helidon: Helidon Application Config loaded from : %s", getClass().getResource("/custom-port-microprofile-configuration/META-INF/microprofile-config.properties"));
+    Assertions.assertThat(out.toString())
+      .contains("jkube-healthcheck-helidon: Helidon Application Config loaded from: " +
+        HelidonHealthCheckEnricherTest.class.getResource("/custom-port-microprofile-configuration/META-INF/microprofile-config.properties"));
   }
 
   @Test

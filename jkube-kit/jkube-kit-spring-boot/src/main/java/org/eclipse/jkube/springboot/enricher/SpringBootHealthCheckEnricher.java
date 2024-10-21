@@ -28,13 +28,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Properties;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.hasSpringWebFluxDependency;
 
 /**
  * Enriches spring-boot containers with health checks if the actuator module is present.
  */
 public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
-    private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
 
     public static final String ENRICHER_NAME = "jkube-healthcheck-spring-boot";
 
@@ -71,7 +71,8 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
         Properties springBootApplicationConfig = SpringBootUtil.getSpringBootApplicationProperties(
           SpringBootUtil.getSpringBootActiveProfile(getContext().getProject()),
           JKubeProjectUtil.getClassLoader(getContext().getProject()));
-        log.debug("Spring Boot Application Config loaded from : %s", springBootApplicationConfig.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
+        log.debug("Spring Boot Application Config loaded from: %s",
+          springBootApplicationConfig.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
     }
 
     @Override

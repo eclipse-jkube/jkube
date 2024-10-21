@@ -13,8 +13,10 @@
  */
 package org.eclipse.jkube.springboot.generator;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -40,20 +42,17 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class SpringBootGeneratorTest {
 
   private GeneratorContext context;
-  private KitLogger logger;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
-    logger = spy(new KitLogger.SilentLogger());
+    out = new ByteArrayOutputStream();
     context = GeneratorContext.builder()
-      .logger(logger)
+      .logger(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .project(JavaProject.builder()
         .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
         .version("1.0.0")
@@ -73,7 +72,9 @@ class SpringBootGeneratorTest {
     SpringBootGenerator springBootGenerator = new SpringBootGenerator(context);
     // Then
     assertThat(springBootGenerator).isNotNull();
-    verify(logger, times(1)).debug("spring-boot: Spring Boot Application Config loaded from : %s", Objects.requireNonNull(getClass().getResource("/port-override-application-properties/application.properties")).toString());
+    assertThat(out.toString())
+      .contains("spring-boot: Spring Boot Application Config loaded from: " +
+        SpringBootGeneratorTest.class.getResource("/port-override-application-properties/application.properties"));
   }
 
   @Test

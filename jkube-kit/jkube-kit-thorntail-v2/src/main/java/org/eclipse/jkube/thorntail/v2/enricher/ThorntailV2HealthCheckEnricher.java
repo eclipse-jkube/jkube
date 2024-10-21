@@ -24,19 +24,21 @@ import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 
 import java.util.Properties;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
+
 /**
  * Enriches thorntail-v2 containers with health checks if the monitoring fraction is present.
  */
 public class ThorntailV2HealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     private static final String IO_THORNTAIL = "io.thorntail";
-    private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
     private final Properties thorntailApplicationConfiguration;
 
     public ThorntailV2HealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-thorntail-v2");
         thorntailApplicationConfiguration = ThorntailUtil.getThorntailProperties(getContext().getProject());
-        log.debug("Thorntail Application Config loaded from : %s", thorntailApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
+        log.debug("Thorntail Application Config loaded from: %s",
+          thorntailApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
     }
 
     @AllArgsConstructor

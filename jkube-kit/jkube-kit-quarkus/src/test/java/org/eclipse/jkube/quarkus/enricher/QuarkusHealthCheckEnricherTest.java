@@ -33,7 +33,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,9 +43,6 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class QuarkusHealthCheckEnricherTest {
 
@@ -51,13 +50,13 @@ class QuarkusHealthCheckEnricherTest {
   private KubernetesListBuilder klb;
   private JavaProject javaProject;
   private JKubeEnricherContext context;
-  private KitLogger logger;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   void setUp() {
     properties = new Properties();
     klb = new KubernetesListBuilder();
-    logger = spy(new KitLogger.SilentLogger());
+    out = new ByteArrayOutputStream();
     // @formatter:off
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
@@ -79,7 +78,7 @@ class QuarkusHealthCheckEnricherTest {
       .dependenciesWithTransitive(new ArrayList<>())
       .build();
     context = JKubeEnricherContext.builder()
-      .log(logger)
+      .log(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .project(javaProject)
       .processorConfig(new ProcessorConfig())
       .build();
@@ -97,7 +96,9 @@ class QuarkusHealthCheckEnricherTest {
     QuarkusHealthCheckEnricher quarkusHealthCheckEnricher = new QuarkusHealthCheckEnricher(context);
     // Then
     assertThat(quarkusHealthCheckEnricher).isNotNull();
-    verify(logger, times(1)).debug("jkube-healthcheck-quarkus: Quarkus Application Config loaded from : %s", getClass().getResource("/utils-test/config/properties/application.properties"));
+    assertThat(out.toString())
+      .contains("jkube-healthcheck-quarkus: Quarkus Application Config loaded from: " +
+        QuarkusHealthCheckEnricherTest.class.getResource("/utils-test/config/properties/application.properties"));
   }
 
   @Test

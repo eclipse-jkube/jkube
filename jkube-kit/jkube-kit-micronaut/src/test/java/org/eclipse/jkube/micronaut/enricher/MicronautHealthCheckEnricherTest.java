@@ -13,7 +13,9 @@
  */
 package org.eclipse.jkube.micronaut.enricher;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.Objects;
 
@@ -39,16 +41,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class MicronautHealthCheckEnricherTest {
 
   private JKubeEnricherContext context;
   private JavaProject project;
   private KubernetesListBuilder klb;
-  private KitLogger logger;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   void setUp() {
@@ -56,12 +55,12 @@ class MicronautHealthCheckEnricherTest {
         .outputDirectory(new File("target"))
         .build();
     klb = new KubernetesListBuilder();
-    logger = spy(new KitLogger.SilentLogger());
+    out = new ByteArrayOutputStream();
     klb.addToItems(new ServiceBuilder()
         .withNewMetadata().withName("make-it-real").endMetadata()
         .build());
     context = JKubeEnricherContext.builder()
-        .log(logger)
+        .log(new KitLogger.PrintStreamLogger(new PrintStream(out)))
         .processorConfig(new ProcessorConfig())
         .project(project)
         .build();
@@ -79,7 +78,9 @@ class MicronautHealthCheckEnricherTest {
     MicronautHealthCheckEnricher micronautHealthCheckEnricher = new MicronautHealthCheckEnricher(context);
     // Then
     assertThat(micronautHealthCheckEnricher).isNotNull();
-    verify(logger, times(1)).debug("jkube-healthcheck-micronaut: Micronaut Application Config loaded from : %s", getClass().getResource("/utils-test/port-config/properties/application.properties"));
+    assertThat(out.toString())
+      .contains("jkube-healthcheck-micronaut: Micronaut Application Config loaded from: " +
+        MicronautHealthCheckEnricherTest.class.getResource("/utils-test/port-config/properties/application.properties"));
   }
 
   @Test

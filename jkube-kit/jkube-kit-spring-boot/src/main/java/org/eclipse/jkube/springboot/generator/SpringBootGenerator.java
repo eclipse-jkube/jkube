@@ -33,8 +33,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.DEV_TOOLS_REMOTE_SECRET;
-import static org.eclipse.jkube.kit.common.util.SpringBootUtil.getSpringBootApplicationProperties;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.isSpringBootRepackage;
 import static org.eclipse.jkube.springboot.SpringBootDevtoolsUtils.addDevToolsFilesToFatJar;
 import static org.eclipse.jkube.springboot.SpringBootDevtoolsUtils.ensureSpringDevToolSecretToken;
@@ -44,7 +44,6 @@ import static org.eclipse.jkube.springboot.generator.SpringBootGenerator.Config.
  * @author roland
  */
 public class SpringBootGenerator extends JavaExecGenerator {
-  private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
 
     @AllArgsConstructor
     public enum Config implements Configs.Config {
@@ -64,7 +63,8 @@ public class SpringBootGenerator extends JavaExecGenerator {
         Properties springBootApplicationConfig = SpringBootUtil.getSpringBootApplicationProperties(
           SpringBootUtil.getSpringBootActiveProfile(getContext().getProject()),
           JKubeProjectUtil.getClassLoader(getContext().getProject()));
-        log.debug("Spring Boot Application Config loaded from : %s", springBootApplicationConfig.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
+        log.debug("Spring Boot Application Config loaded from: %s",
+          springBootApplicationConfig.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
     }
 
     @Override

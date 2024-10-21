@@ -13,8 +13,10 @@
  */
 package org.eclipse.jkube.quarkus.generator;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -53,9 +55,6 @@ import org.mockito.MockedConstruction;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.Mockito.mockConstruction;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -74,7 +73,7 @@ class QuarkusGeneratorTest {
   private Properties projectProps;
   private JavaProject project;
   private GeneratorContext ctx;
-  private KitLogger logger;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   void setUp() throws IOException {
@@ -82,7 +81,7 @@ class QuarkusGeneratorTest {
     projectProps = new Properties();
     projectProps.put("jkube.generator.name", "quarkus");
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-    logger = spy(new KitLogger.SilentLogger());
+    out = new ByteArrayOutputStream();
     project = JavaProject.builder()
       .version("0.0.1-SNAPSHOT")
       .baseDirectory(targetDir)
@@ -92,7 +91,7 @@ class QuarkusGeneratorTest {
       .outputDirectory(targetDir)
       .build();
     ctx = GeneratorContext.builder()
-      .logger(logger)
+      .logger(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .project(project)
       .config(config)
       .strategy(JKubeBuildStrategy.s2i)
@@ -111,7 +110,9 @@ class QuarkusGeneratorTest {
     QuarkusGenerator quarkusGenerator = new QuarkusGenerator(ctx);
     // Then
     assertThat(quarkusGenerator).isNotNull();
-    verify(logger, times(1)).debug("quarkus: Quarkus Application Config loaded from : %s", getClass().getResource("/generator-extract-ports/application.properties"));
+    assertThat(out.toString())
+      .contains("quarkus: Quarkus Application Config loaded from: " +
+        QuarkusGeneratorTest.class.getResource("/generator-extract-ports/application.properties"));
   }
 
   @Nested

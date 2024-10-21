@@ -28,13 +28,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.micronaut.MicronautUtils.extractPort;
 import static org.eclipse.jkube.micronaut.MicronautUtils.getMicronautConfiguration;
 import static org.eclipse.jkube.micronaut.MicronautUtils.hasMicronautPlugin;
 import static org.eclipse.jkube.micronaut.MicronautUtils.isHealthEnabled;
 
 public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
-  private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
+
   private final Properties micronautApplicationConfiguration;
 
   @AllArgsConstructor
@@ -59,7 +60,8 @@ public class MicronautHealthCheckEnricher extends AbstractHealthCheckEnricher {
   public MicronautHealthCheckEnricher(JKubeEnricherContext buildContext) {
     super(buildContext, "jkube-healthcheck-micronaut");
     micronautApplicationConfiguration = getMicronautConfiguration(getContext().getProject());
-    log.debug("Micronaut Application Config loaded from : %s", micronautApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
+    log.debug("Micronaut Application Config loaded from: %s",
+      micronautApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
   }
 
   @Override

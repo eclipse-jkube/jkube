@@ -21,16 +21,15 @@ import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 
 public class ThorntailV2Generator extends JavaExecGenerator {
-    private final Properties thorntailApplicationConfiguration;
-    private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
 
     public ThorntailV2Generator(GeneratorContext context) {
         super(context, "thorntail-v2", JDK.JDK_11);
-        thorntailApplicationConfiguration = ThorntailUtil.getThorntailProperties(getContext().getProject());
-        log.debug("Thorntail Application Config loaded from %s", thorntailApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
+        log.debug("Thorntail Application Config loaded from %s",
+          ThorntailUtil.getThorntailProperties(getContext().getProject()).get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
     }
 
     @Override

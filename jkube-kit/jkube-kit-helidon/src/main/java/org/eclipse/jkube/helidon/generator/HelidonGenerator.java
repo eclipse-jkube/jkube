@@ -26,18 +26,19 @@ import java.util.Properties;
 import static org.eclipse.jkube.helidon.HelidonUtils.extractPort;
 import static org.eclipse.jkube.helidon.HelidonUtils.getHelidonConfiguration;
 import static org.eclipse.jkube.helidon.HelidonUtils.hasHelidonDependencies;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 
 public class HelidonGenerator extends JavaExecGenerator {
   public static final String HELIDON = "helidon";
   private final HelidonNestedGenerator nestedGenerator;
-  private static final String JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION = "jkube.internal.application-config-file.path";
   private final Properties helidonApplicationConfiguration;
 
   public HelidonGenerator(GeneratorContext context) {
     super(context, HELIDON);
     nestedGenerator = HelidonNestedGenerator.from(context, getGeneratorConfig());
     helidonApplicationConfiguration = getHelidonConfiguration(getContext().getProject());
-    log.debug("Helidon Application Config loaded from : %s", helidonApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
+    log.debug("Helidon Application Config loaded from: %s",
+      helidonApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
   }
 
   @Override

@@ -92,7 +92,7 @@ class HelidonUtilsTest {
     final Properties props = HelidonUtils.getHelidonConfiguration(javaProject);
     // Then
     assertThat(props).containsOnly(
-        entry("jkube.internal.application-config-file.path", getClass().getResource("/utils-test/config/yaml/application.yml")),
+        entry("jkube.internal.application-config-file.path", HelidonUtilsTest.class.getResource("/utils-test/config/yaml/application.yml")),
         entry("app.greeting", "Hello"),
         entry("server.port", "8080"),
         entry("server.host", "0.0.0.0"));
@@ -110,7 +110,7 @@ class HelidonUtilsTest {
     final Properties props = HelidonUtils.getHelidonConfiguration(javaProject);
     // Then
     assertThat(props).containsOnly(
-        entry("jkube.internal.application-config-file.path", getClass().getResource("/utils-test/config/properties/META-INF/microprofile-config.properties")),
+        entry("jkube.internal.application-config-file.path", HelidonUtilsTest.class.getResource("/utils-test/config/properties/META-INF/microprofile-config.properties")),
         entry("app.greeting", "Hello"),
         entry("server.port", "8080"),
         entry("server.host", "0.0.0.0"));

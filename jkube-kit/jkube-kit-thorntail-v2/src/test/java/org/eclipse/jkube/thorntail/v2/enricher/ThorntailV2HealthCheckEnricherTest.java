@@ -13,7 +13,9 @@
  */
 package org.eclipse.jkube.thorntail.v2.enricher;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -38,15 +40,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class ThorntailV2HealthCheckEnricherTest {
   private JKubeEnricherContext context;
   private Properties properties;
   private KubernetesListBuilder klb;
-  private KitLogger logger;
+  private ByteArrayOutputStream out;
 
   @TempDir
   private Path temporaryFolder;
@@ -56,7 +55,7 @@ class ThorntailV2HealthCheckEnricherTest {
     properties = new Properties();
     ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
-    logger = spy(new KitLogger.SilentLogger());
+    out = new ByteArrayOutputStream();
     // @formatter:off
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
@@ -83,7 +82,7 @@ class ThorntailV2HealthCheckEnricherTest {
         .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
         .build())
       .processorConfig(processorConfig)
-      .log(logger)
+      .log(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .build();
   }
 
@@ -99,7 +98,9 @@ class ThorntailV2HealthCheckEnricherTest {
     ThorntailV2HealthCheckEnricher thorntailV2HealthCheckEnricher = new ThorntailV2HealthCheckEnricher(context);
     // Then
     assertThat(thorntailV2HealthCheckEnricher).isNotNull();
-    verify(logger, times(1)).debug("jkube-healthcheck-thorntail-v2: Thorntail Application Config loaded from : %s", getClass().getResource("/application-config/properties/project-defaults.yml"));
+    assertThat(out.toString())
+      .contains("jkube-healthcheck-thorntail-v2: Thorntail Application Config loaded from: " +
+        ThorntailV2HealthCheckEnricherTest.class.getResource("/application-config/properties/project-defaults.yml"));
   }
 
   @Test

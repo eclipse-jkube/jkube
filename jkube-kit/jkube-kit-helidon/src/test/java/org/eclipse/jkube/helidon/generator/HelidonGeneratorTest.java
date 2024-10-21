@@ -34,8 +34,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -46,9 +48,6 @@ import java.util.Properties;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class HelidonGeneratorTest {
   @TempDir
@@ -58,13 +57,13 @@ class HelidonGeneratorTest {
   private Properties projectProps;
   private JavaProject project;
   private GeneratorContext ctx;
-  private KitLogger logger;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   public void setUp() throws IOException {
     ProcessorConfig config = new ProcessorConfig();
     projectProps = new Properties();
-    logger = spy(new KitLogger.SilentLogger());
+    out = new ByteArrayOutputStream();
     projectProps.put("jkube.generator.name", "helidon");
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     project = JavaProject.builder()
@@ -79,7 +78,7 @@ class HelidonGeneratorTest {
         .packaging("jar")
         .build();
     ctx = GeneratorContext.builder()
-        .logger(logger)
+      .logger(new KitLogger.PrintStreamLogger(new PrintStream(out)))
         .project(project)
         .config(config)
         .strategy(JKubeBuildStrategy.s2i)
@@ -98,7 +97,9 @@ class HelidonGeneratorTest {
     HelidonGenerator helidonGenerator = new HelidonGenerator(ctx);
     // Then
     assertThat(helidonGenerator).isNotNull();
-    verify(logger, times(1)).debug("helidon: Helidon Application Config loaded from : %s", getClass().getResource("/custom-port-microprofile-configuration/META-INF/microprofile-config.properties"));
+    assertThat(out.toString())
+      .contains("helidon: Helidon Application Config loaded from: " +
+        HelidonGeneratorTest.class.getResource("/custom-port-microprofile-configuration/META-INF/microprofile-config.properties"));
   }
 
   @Test

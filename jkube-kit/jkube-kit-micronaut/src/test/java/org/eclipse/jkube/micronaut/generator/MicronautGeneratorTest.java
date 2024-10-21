@@ -13,7 +13,9 @@
  */
 package org.eclipse.jkube.micronaut.generator;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,23 +37,20 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class MicronautGeneratorTest {
 
   private GeneratorContext ctx;
   private MicronautGenerator micronautGenerator;
-  private KitLogger logger;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) {
     final Properties projectProperties = new Properties();
-    logger = spy(new KitLogger.SilentLogger());
+    out = new ByteArrayOutputStream();
     projectProperties.put("jkube.generator.micronaut.mainClass", "com.example.Main");
     ctx = GeneratorContext.builder()
-      .logger(logger)
+      .logger(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .project(JavaProject.builder()
         .version("1.33.7-SNAPSHOT")
         .properties(projectProperties)
@@ -66,14 +65,16 @@ class MicronautGeneratorTest {
     // Given
     ctx = ctx.toBuilder()
       .project(ctx.getProject().toBuilder()
-        .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/utils-test/port-config/properties")).getPath())
+        .compileClassPathElement(Objects.requireNonNull(MicronautGeneratorTest.class.getResource("/utils-test/port-config/properties")).getPath())
         .build())
       .build();
     // When
     micronautGenerator = new MicronautGenerator(ctx);
     // Then
     assertThat(micronautGenerator).isNotNull();
-    verify(logger, times(1)).debug("micronaut: Micronaut Application Config loaded from : %s", getClass().getResource("/utils-test/port-config/properties/application.properties"));
+    assertThat(out.toString())
+      .contains("micronaut: Micronaut Application Config loaded from: " +
+        MicronautGeneratorTest.class.getResource("/utils-test/port-config/properties/application.properties"));
   }
 
   @Test
