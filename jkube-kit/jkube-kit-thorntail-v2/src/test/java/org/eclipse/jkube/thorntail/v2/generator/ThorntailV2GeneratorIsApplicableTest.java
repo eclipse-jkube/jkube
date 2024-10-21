@@ -17,31 +17,35 @@ package org.eclipse.jkube.thorntail.v2.generator;
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.Mockito;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class ThorntailV2GeneratorIsApplicableTest {
 
-  private JavaProject project;
   private GeneratorContext context;
 
   @BeforeEach
-  void setUp() {
-    project = mock(JavaProject.class, Mockito.RETURNS_DEEP_STUBS);
-    context = mock(GeneratorContext.class, Mockito.RETURNS_DEEP_STUBS);
-    when(context.getProject()).thenReturn(project);
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
+    context = GeneratorContext.builder()
+      .project(JavaProject.builder()
+        .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
+        .build())
+      .logger(new KitLogger.SilentLogger())
+      .build();
   }
 
   public static Stream<Arguments> data() {
@@ -65,9 +69,11 @@ class ThorntailV2GeneratorIsApplicableTest {
   void isApplicable(String testDescription, List<Plugin> pluginList, List<Dependency> dependencyList,
                     List<String> gradlePluginList, boolean expectedValue) {
     // Given
-    when(project.getPlugins()).thenReturn(pluginList);
-    when(project.getDependencies()).thenReturn(dependencyList);
-    when(project.getGradlePlugins()).thenReturn(gradlePluginList);
+    context = context.toBuilder().project(context.getProject().toBuilder()
+      .plugins(pluginList)
+      .dependencies(dependencyList)
+      .gradlePlugins(gradlePluginList)
+      .build()).build();
     // When
     final boolean result = new ThorntailV2Generator(context).isApplicable(Collections.emptyList());
     // Then

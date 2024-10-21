@@ -13,8 +13,10 @@
  */
 package org.eclipse.jkube.springboot.generator;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -44,16 +46,35 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 class SpringBootGeneratorTest {
 
   private GeneratorContext context;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws IOException {
+    out = new ByteArrayOutputStream();
     context = GeneratorContext.builder()
-      .logger(new KitLogger.SilentLogger())
+      .logger(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .project(JavaProject.builder()
         .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
         .version("1.0.0")
         .build())
       .build();
+  }
+
+  @Test
+  void constructorShouldLogSpringBootApplicationConfigPath() {
+    // Given
+    context = context.toBuilder()
+      .project(context.getProject().toBuilder()
+        .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/port-override-application-properties")).getPath())
+        .build())
+      .build();
+    // When
+    SpringBootGenerator springBootGenerator = new SpringBootGenerator(context);
+    // Then
+    assertThat(springBootGenerator).isNotNull();
+    assertThat(out.toString())
+      .contains("spring-boot: Spring Boot Application Config loaded from: " +
+        SpringBootGeneratorTest.class.getResource("/port-override-application-properties/application.properties"));
   }
 
   @Test
@@ -224,7 +245,7 @@ class SpringBootGeneratorTest {
 
   private void withPlugin(Plugin plugin) {
     context = context.toBuilder()
-      .project(JavaProject.builder().plugin(plugin).build())
+      .project(context.getProject().toBuilder().plugin(plugin).build())
       .build();
   }
 }

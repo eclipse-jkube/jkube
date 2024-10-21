@@ -13,10 +13,13 @@
  */
 package org.eclipse.jkube.thorntail.v2.enricher;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Properties;
 
 import org.eclipse.jkube.kit.common.Dependency;
@@ -42,6 +45,7 @@ class ThorntailV2HealthCheckEnricherTest {
   private JKubeEnricherContext context;
   private Properties properties;
   private KubernetesListBuilder klb;
+  private ByteArrayOutputStream out;
 
   @TempDir
   private Path temporaryFolder;
@@ -51,6 +55,7 @@ class ThorntailV2HealthCheckEnricherTest {
     properties = new Properties();
     ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
+    out = new ByteArrayOutputStream();
     // @formatter:off
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
@@ -77,8 +82,25 @@ class ThorntailV2HealthCheckEnricherTest {
         .outputDirectory(Files.createDirectory(temporaryFolder.resolve("target")).toFile())
         .build())
       .processorConfig(processorConfig)
-      .log(new KitLogger.SilentLogger())
+      .log(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .build();
+  }
+
+  @Test
+  void constructorShouldLogThorntailApplicationConfigPath() {
+    // Given
+    context = context.toBuilder()
+      .project(context.getProject().toBuilder()
+        .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/application-config/properties")).getPath())
+        .build())
+      .build();
+    // When
+    ThorntailV2HealthCheckEnricher thorntailV2HealthCheckEnricher = new ThorntailV2HealthCheckEnricher(context);
+    // Then
+    assertThat(thorntailV2HealthCheckEnricher).isNotNull();
+    assertThat(out.toString())
+      .contains("jkube-healthcheck-thorntail-v2: Thorntail Application Config loaded from: " +
+        ThorntailV2HealthCheckEnricherTest.class.getResource("/application-config/properties/project-defaults.yml"));
   }
 
   @Test

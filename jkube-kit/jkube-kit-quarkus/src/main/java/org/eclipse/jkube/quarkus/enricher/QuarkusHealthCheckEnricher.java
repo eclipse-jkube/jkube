@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.quarkus.enricher;
 
+import java.util.Properties;
 import java.util.function.Function;
 
 import org.eclipse.jkube.kit.common.Configs;
@@ -28,6 +29,7 @@ import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
 import static org.eclipse.jkube.kit.common.Configs.asInteger;
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.QUARKUS_GROUP_ID;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.concatPath;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.isStartupEndpointSupported;
@@ -39,9 +41,13 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
  * Enriches Quarkus containers with health checks if the quarkus-smallrye-health is present
  */
 public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
+    private final Properties quarkusApplicationConfiguration;
 
     public QuarkusHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, "jkube-healthcheck-quarkus");
+        quarkusApplicationConfiguration = getQuarkusConfiguration(getContext().getProject());
+        log.debug("Quarkus Application Config loaded from: %s",
+          quarkusApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
     }
 
     @AllArgsConstructor
@@ -73,7 +79,7 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         return discoverQuarkusHealthCheck(asInteger(getConfig(Config.LIVENESS_INITIAL_DELAY, "10")),
             QuarkusUtils::resolveQuarkusLivenessPath);
     }
-    
+
     @Override
     protected Probe getStartupProbe() {
         if (isStartupEndpointSupported(getContext().getProject())) {
@@ -89,7 +95,7 @@ public class QuarkusHealthCheckEnricher extends AbstractHealthCheckEnricher {
         }
         return new ProbeBuilder()
             .withNewHttpGet()
-              .withNewPort(asInteger(extractPort(getContext().getProject(), getQuarkusConfiguration(getContext().getProject()), getConfig(Config.PORT))))
+              .withNewPort(asInteger(extractPort(getContext().getProject(), quarkusApplicationConfiguration, getConfig(Config.PORT))))
               .withPath(resolveHealthPath(pathResolver.apply(getContext().getProject())))
               .withScheme(getConfig(Config.SCHEME))
             .endHttpGet()

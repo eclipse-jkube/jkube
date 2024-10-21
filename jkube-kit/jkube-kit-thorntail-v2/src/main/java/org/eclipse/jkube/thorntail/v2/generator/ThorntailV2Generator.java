@@ -15,16 +15,21 @@ package org.eclipse.jkube.thorntail.v2.generator;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
+import org.eclipse.jkube.kit.common.util.ThorntailUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 import java.util.List;
 import java.util.Map;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
+
 public class ThorntailV2Generator extends JavaExecGenerator {
 
     public ThorntailV2Generator(GeneratorContext context) {
         super(context, "thorntail-v2", JDK.JDK_11);
+        log.debug("Thorntail Application Config loaded from %s",
+          ThorntailUtil.getThorntailProperties(getContext().getProject()).get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
     }
 
     @Override

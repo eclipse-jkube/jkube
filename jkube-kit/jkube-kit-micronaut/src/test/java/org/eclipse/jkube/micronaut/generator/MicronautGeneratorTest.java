@@ -13,10 +13,14 @@
  */
 package org.eclipse.jkube.micronaut.generator;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -38,19 +42,39 @@ class MicronautGeneratorTest {
 
   private GeneratorContext ctx;
   private MicronautGenerator micronautGenerator;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
-  void setUp() {
+  void setUp(@TempDir Path temporaryFolder) {
     final Properties projectProperties = new Properties();
+    out = new ByteArrayOutputStream();
     projectProperties.put("jkube.generator.micronaut.mainClass", "com.example.Main");
     ctx = GeneratorContext.builder()
-      .logger(new KitLogger.SilentLogger())
+      .logger(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .project(JavaProject.builder()
         .version("1.33.7-SNAPSHOT")
         .properties(projectProperties)
+        .outputDirectory(temporaryFolder.resolve("target").toFile())
         .build())
       .build();
     micronautGenerator = new MicronautGenerator(ctx);
+  }
+
+  @Test
+  void constructorShouldLogHelidonApplicationConfigPath() {
+    // Given
+    ctx = ctx.toBuilder()
+      .project(ctx.getProject().toBuilder()
+        .compileClassPathElement(Objects.requireNonNull(MicronautGeneratorTest.class.getResource("/utils-test/port-config/properties")).getPath())
+        .build())
+      .build();
+    // When
+    micronautGenerator = new MicronautGenerator(ctx);
+    // Then
+    assertThat(micronautGenerator).isNotNull();
+    assertThat(out.toString())
+      .contains("micronaut: Micronaut Application Config loaded from: " +
+        MicronautGeneratorTest.class.getResource("/utils-test/port-config/properties/application.properties"));
   }
 
   @Test

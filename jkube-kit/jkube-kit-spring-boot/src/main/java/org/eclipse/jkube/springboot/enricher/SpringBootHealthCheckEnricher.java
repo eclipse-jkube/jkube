@@ -19,11 +19,16 @@ import io.fabric8.kubernetes.api.model.ProbeBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
+import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 import org.eclipse.jkube.kit.common.util.SpringBootConfiguration;
+import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.specific.AbstractHealthCheckEnricher;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Properties;
+
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.SpringBootUtil.hasSpringWebFluxDependency;
 
 /**
@@ -63,6 +68,11 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     public SpringBootHealthCheckEnricher(JKubeEnricherContext buildContext) {
         super(buildContext, ENRICHER_NAME);
+        Properties springBootApplicationConfig = SpringBootUtil.getSpringBootApplicationProperties(
+          SpringBootUtil.getSpringBootActiveProfile(getContext().getProject()),
+          JKubeProjectUtil.getClassLoader(getContext().getProject()));
+        log.debug("Spring Boot Application Config loaded from: %s",
+          springBootApplicationConfig.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
     }
 
     @Override
