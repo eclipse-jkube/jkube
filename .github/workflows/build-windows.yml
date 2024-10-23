@@ -1,0 +1,54 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+name: 'Build :: Windows'
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Eclipse JKube Build on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@398bb08048482c421b1da00a58a1b472a306eb85
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            downloads.gradle.org:443
+            github.com:443
+            repo.gradle.org:443
+            repo.maven.apache.org:443
+            repo1.maven.org:443
+            repository.jboss.org:443
+            services.gradle.org:443
+            objects.githubusercontent.com:443
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - name: Setup Java 17
+        uses: actions/setup-java@0ab4596768b603586c0de567f2430c30f5b0d2b0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build JKube
+        # Remove this exclusion for gradle it module once https://github.com/eclipse-jkube/jkube/issues/3406 gets fixed
+        run: ./mvnw.cmd -B clean install -pl -gradle-plugin/it
