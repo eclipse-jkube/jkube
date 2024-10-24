@@ -32,7 +32,7 @@ class DependencyResourcesIT {
   void k8sResource_whenRun_generatesK8sManifestsIncludingDependencies() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("dependency-resources")
-        .withArguments("clean", "jar", "k8sResource", "--stacktrace")
+        .withArguments("jar", "k8sResource", "--stacktrace")
         .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(
@@ -49,12 +49,12 @@ class DependencyResourcesIT {
   void k8sResource_whenRunWithReplicas_generatesK8sManifestsIncludingDependencies() throws IOException, ParseException {
     // When
     final BuildResult result = gradleRunner.withITProject("dependency-resources")
-        .withArguments("-Pjkube.replicas=1337", "clean", "jar", "k8sResource", "--stacktrace")
+        .withArguments("-Pjkube.targetDir=build/classes/java/main/META-INF/jkube-replicas-override", "-Pjkube.replicas=1337", "jar", "k8sResource", "--stacktrace")
         .build();
     // Then
     ResourceVerify.verifyResourceDescriptors(
         gradleRunner.resolveFile("dependent", "build", "classes", "java", "main",
-            "META-INF", "jkube", "kubernetes.yml"),
+            "META-INF", "jkube-replicas-override", "kubernetes.yml"),
         gradleRunner.resolveFile("expected", "kubernetes-with-replica-override.yml"));
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Using resource templates from")
