@@ -43,7 +43,7 @@ jobs:
             services.gradle.org:443
             objects.githubusercontent.com:443
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Setup Java 17
         uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73
         with:
