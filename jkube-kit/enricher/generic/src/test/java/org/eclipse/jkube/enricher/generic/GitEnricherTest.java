@@ -190,7 +190,7 @@ class GitEnricherTest {
             git = Git.init().setDirectory(baseDirectory).setInitialBranch("test-branch").call();
             git.add().addFilepattern(".").call();
             git.remoteAdd().setName("origin").setUri(new URIish("https://example.com/origin.git")).call();
-            commit = git.commit().setMessage("Initial commit").call();
+            commit = git.commit().setMessage("Initial commit").setSign(false).call();
         }
 
 
