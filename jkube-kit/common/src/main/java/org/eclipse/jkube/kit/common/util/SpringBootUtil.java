@@ -24,6 +24,7 @@ import java.util.Properties;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 
 /**
@@ -71,8 +72,13 @@ public class SpringBootUtil {
 
         Properties props = YamlUtil.getPropertiesFromYamlResource(springActiveProfile, ymlResource);
         props.putAll(getPropertiesFromResource(propertiesResource));
+        if (ymlResource != null) {
+            props.put(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION, ymlResource.toString());
+        } else if (propertiesResource != null) {
+            props.put(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION, propertiesResource.toString());
+        }
         return new SpringBootPropertyPlaceholderHelper(PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX, VALUE_SEPARATOR, true)
-        .replaceAllPlaceholders(props);
+            .replaceAllPlaceholders(props);
     }
 
     /**

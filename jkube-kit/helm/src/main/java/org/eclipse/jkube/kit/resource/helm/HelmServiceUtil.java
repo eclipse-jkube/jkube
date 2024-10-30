@@ -136,7 +136,7 @@ public class HelmServiceUtil {
     helmConfig.setInstallDependencyUpdate(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_INSTALL_DEPENDENCY_UPDATE, project, helmConfig::isInstallDependencyUpdate));
     helmConfig.setInstallWaitReady(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_INSTALL_WAIT_READY, project, helmConfig::isInstallWaitReady));
     helmConfig.setDisableOpenAPIValidation(resolveBooleanFromPropertyOrDefault(PROPERTY_HELM_DISABLE_OPENAPI_VALIDATION, project, helmConfig::isDisableOpenAPIValidation));
-    helmConfig.setTimeout(Integer.parseInt(resolveFromPropertyOrDefault(PROPERTY_HELM_TEST_TIMEOUT, project, () -> helmConfig.getTimeout() > 0 ? Integer.toString(helmConfig.getTimeout()) : null, () -> HELM_DEFAULT_TIMEOUT)));
+    helmConfig.setTestTimeout(Integer.parseInt(resolveFromPropertyOrDefault(PROPERTY_HELM_TEST_TIMEOUT, project, () -> helmConfig.getTestTimeout() > 0 ? Integer.toString(helmConfig.getTestTimeout()) : null, () -> HELM_DEFAULT_TIMEOUT)));
     return helmConfig.toBuilder();
   }
 

@@ -64,8 +64,8 @@ class OCIManifestTest {
         .hasFieldOrPropertyWithValue("config.digest", "sha256:fe8b2f27ce12b302342d4a5da2b2945ab869c7acb9e1b718c5426d91ce38cfc4")
         .hasFieldOrPropertyWithValue("config.size", 312L)
         .extracting(OCIManifest::getLayers)
-        .asList()
-        .singleElement(InstanceOfAssertFactories.type(OCIManifestLayer.class))
+        .asInstanceOf(InstanceOfAssertFactories.list(OCIManifestLayer.class))
+        .singleElement()
         .hasFieldOrPropertyWithValue("size", 9272L)
         .hasFieldOrPropertyWithValue("mediaType", "application/vnd.cncf.helm.chart.content.v1.tar+gzip")
         .hasFieldOrPropertyWithValue("digest", "sha256:fe8b2f27ce12b302342d4a5da2b2945ab869c7acb9e1b718c5426d91ce38cfc4");

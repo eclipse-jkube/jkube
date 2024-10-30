@@ -52,9 +52,9 @@ jobs:
             services.gradle.org:443
 
       - name: Checkout
-        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Setup Java 17
-        uses: actions/setup-java@b36c23c0d998641eff861008f374ee103c25ac73
+        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b
         with:
           java-version: '17'
           distribution: 'temurin'

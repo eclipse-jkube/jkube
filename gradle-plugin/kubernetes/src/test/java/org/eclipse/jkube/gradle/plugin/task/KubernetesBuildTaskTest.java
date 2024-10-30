@@ -13,7 +13,6 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import java.io.IOException;
 import java.util.Collections;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;

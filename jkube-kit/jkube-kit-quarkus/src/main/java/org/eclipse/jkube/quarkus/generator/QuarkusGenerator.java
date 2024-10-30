@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 import org.eclipse.jkube.generator.javaexec.JavaExecGenerator;
@@ -30,6 +31,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
+import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.extractPort;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.getQuarkusConfiguration;
 import static org.eclipse.jkube.quarkus.QuarkusUtils.hasQuarkusPlugin;
@@ -37,12 +39,16 @@ import static org.eclipse.jkube.quarkus.QuarkusUtils.hasQuarkusPlugin;
 public class QuarkusGenerator extends JavaExecGenerator {
 
   public static final String QUARKUS = "quarkus";
+  private final Properties quarkusApplicationConfiguration;
 
   private final QuarkusNestedGenerator nestedGenerator;
 
   public QuarkusGenerator(GeneratorContext context) {
     super(context, QUARKUS);
     nestedGenerator = QuarkusNestedGenerator.from(context, getGeneratorConfig());
+    quarkusApplicationConfiguration = getQuarkusConfiguration(getContext().getProject());
+    log.debug("Quarkus Application Config loaded from: %s",
+      quarkusApplicationConfiguration.get(JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION));
   }
 
   @AllArgsConstructor
@@ -68,7 +74,7 @@ public class QuarkusGenerator extends JavaExecGenerator {
 
   @Override
   protected String getDefaultWebPort() {
-    return extractPort(getProject(), getQuarkusConfiguration(getProject()), super.getDefaultWebPort());
+    return extractPort(getProject(), quarkusApplicationConfiguration, super.getDefaultWebPort());
   }
 
   @Override

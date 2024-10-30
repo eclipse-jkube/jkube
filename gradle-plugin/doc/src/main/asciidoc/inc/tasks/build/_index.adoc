@@ -19,4 +19,6 @@ include::{kitdoc-path}/inc/helm/_jkube_helm_dependency_update.adoc[]
 
 include::{kitdoc-path}/inc/helm/_jkube_helm_install.adoc[]
 
+include::{kitdoc-path}/inc/helm/_jkube_helm_test.adoc[]
+
 include::{kitdoc-path}/inc/helm/_jkube_helm_uninstall.adoc[]

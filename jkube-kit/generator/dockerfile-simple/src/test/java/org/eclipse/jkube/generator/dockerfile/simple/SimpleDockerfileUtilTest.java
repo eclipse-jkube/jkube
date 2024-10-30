@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.generator.dockerfile.simple;
 
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.DisplayName;
@@ -95,7 +96,7 @@ class SimpleDockerfileUtilTest {
           .hasFieldOrPropertyWithValue("name", "%g/%a:%l")
           .extracting(ImageConfiguration::getBuild)
           .extracting(BuildConfiguration::getPorts).isNotNull()
-          .asList()
+          .asInstanceOf(InstanceOfAssertFactories.list(String.class))
           .hasSize(5)
           .containsExactly("80/tcp", "8080/udp", "80", "8080", "99/udp");
     }

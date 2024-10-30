@@ -41,9 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+
 
 class WildflyJARHealthCheckEnricherTest {
 
@@ -53,9 +51,10 @@ class WildflyJARHealthCheckEnricherTest {
 
     @BeforeEach
     public void setUp() {
-        context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-        project = mock(JavaProject.class);
-        when(context.getProject()).thenReturn(project);
+       project = JavaProject.builder().build();
+       context = JKubeEnricherContext.builder()
+               .project(project)
+               .build();
     }
     private void setupExpectations(Map<String, Object> bootableJarConfig, Map<String, Map<String, Object>> jkubeConfig) {
       Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
@@ -65,16 +64,20 @@ class WildflyJARHealthCheckEnricherTest {
         ProcessorConfig c = new ProcessorConfig(null, null, jkubeConfig);
         Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
         configBuilder.processorConfig(c);
-        when(project.getPlugins()).thenReturn(lst);
-        when(context.getProject()).thenReturn(project);
-        when(context.getConfiguration()).thenReturn(configBuilder.build());
+        context = context.toBuilder()
+                .project(context.getProject().toBuilder()
+                .plugins(lst).build())
+                .processorConfig(c)
+                .build();
     }
 
     private void setupExpectations(Map<String, Map<String, Object>> jkubeConfig) {
         ProcessorConfig c = new ProcessorConfig(null, null, jkubeConfig);
         Configuration.ConfigurationBuilder configBuilder = Configuration.builder();
         configBuilder.processorConfig(c);
-        when(context.getConfiguration()).thenReturn(configBuilder.build());
+        context = context.toBuilder()
+                .processorConfig(c)
+                .build();
     }
 
     @Test
@@ -161,7 +164,7 @@ class WildflyJARHealthCheckEnricherTest {
     @Test
     @DisplayName("custom configuration with wildfly jar version after 25.0, should add startup probe")
     void withCustomConfigurationComingFromConf_withWildflyJarAfter25_0shouldAdd_startupProbe() {
-        wildFlyJarDependencyWithVersion( "26.1.1.Final");
+        wildFlyJarDependencyWithVersion("26.1.1.Final");
         Map<String, Object> jarConfig = new HashMap<>();
         jarConfig.put("cloud", null);
         Map<String, Map<String, Object>> config = createFakeConfig(
@@ -291,11 +294,17 @@ class WildflyJARHealthCheckEnricherTest {
     }
 
     private void wildFlyJarDependencyWithVersion(String wildflyJarVersion) {
-        when(project.getDependencies()).thenReturn(Collections.singletonList(Dependency.builder()
-                .groupId("org.wildfly.plugins")
-                .artifactId("wildfly-jar-maven-plugin")
-                .version(wildflyJarVersion)
-                .build()));
+        context = context.toBuilder()
+                .project(context.getProject().toBuilder()
+                        .dependency(Dependency.builder()
+                                .groupId("org.wildfly.plugins")
+                                .artifactId("wildfly-jar-maven-plugin")
+                                .version(wildflyJarVersion)
+                                .build())
+                        .build())
+                .build();
+
+
     }
 
     @SuppressWarnings("unchecked")

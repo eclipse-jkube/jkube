@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.config.service.openshift;
 
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.build.service.docker.ArchiveService;
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
@@ -181,7 +182,7 @@ class OpenShiftBuildServiceTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
         .hasSize(2);
   }
 
@@ -202,7 +203,7 @@ class OpenShiftBuildServiceTest {
         .extracting(ImageConfiguration::getBuild)
         .extracting(BuildConfiguration::getAssembly)
         .extracting(AssemblyConfiguration::getLayers)
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(Assembly.class))
         .hasSize(1);
   }
 

@@ -132,7 +132,7 @@ public class FileUtil {
         if (slashIndex >= 0) {
             return path.substring(slashIndex + 1);
         } else {
-            throw new IllegalArgumentException(String.format("URL %s should contain a name file to be downloaded.", url.toString()));
+            throw new IllegalArgumentException(String.format("URL %s should contain a name file to be downloaded.", url));
         }
 
     }
@@ -189,7 +189,7 @@ public class FileUtil {
             return null;
         }
         final StringBuilder relativeFilePath = new StringBuilder();
-        relativeFilePath.append(oldPath.relativize(newPath).toString());
+        relativeFilePath.append(oldPath.relativize(newPath));
         if (newFilePath.endsWith(File.separator)) {
             relativeFilePath.append(File.separator);
         }

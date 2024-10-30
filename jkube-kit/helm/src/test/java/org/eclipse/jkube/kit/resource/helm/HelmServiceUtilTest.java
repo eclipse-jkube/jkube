@@ -94,7 +94,7 @@ class HelmServiceUtilTest {
       .hasFieldOrPropertyWithValue("installDependencyUpdate", true)
       .hasFieldOrPropertyWithValue("installWaitReady", false)
       .hasFieldOrPropertyWithValue("disableOpenAPIValidation", false)
-      .hasFieldOrPropertyWithValue("timeout", 300);
+      .hasFieldOrPropertyWithValue("testTimeout", 300);
     assertThat(result.getSourceDir()).endsWith(separatorsToSystem("target/classes/META-INF/jkube/"));
     assertThat(result.getOutputDir()).endsWith(separatorsToSystem("target/jkube/helm/artifact-id"));
     assertThat(result.getTarballOutputDir()).endsWith(separatorsToSystem("target/jkube/helm/artifact-id"));
@@ -120,7 +120,7 @@ class HelmServiceUtilTest {
         .installDependencyUpdate(false)
         .installWaitReady(true)
         .disableOpenAPIValidation(true)
-        .timeout(10)
+        .testTimeout(10)
         .build();
     // When
     final HelmConfig result = HelmServiceUtil
@@ -148,7 +148,7 @@ class HelmServiceUtilTest {
       .hasFieldOrPropertyWithValue("installDependencyUpdate", false)
       .hasFieldOrPropertyWithValue("installWaitReady", true)
       .hasFieldOrPropertyWithValue("disableOpenAPIValidation", true)
-      .hasFieldOrPropertyWithValue("timeout", 10);
+      .hasFieldOrPropertyWithValue("testTimeout", 10);
   }
 
   @Test

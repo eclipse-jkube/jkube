@@ -57,6 +57,7 @@ class SpringBootUtilTest {
         Properties result =  SpringBootUtil.getSpringBootApplicationProperties(cl);
         //Then
         assertThat(result).containsOnly(
+                entry("jkube.internal.application-config-file.path", tempDir.toPath().resolve("target/classes/application.properties").toUri().toURL().toString()),
                 entry("spring.application.name", "demoservice"),
                 entry("server.port", "9090")
         );

@@ -1,0 +1,11 @@
+To run tests on a Helm release you need to invoke the `{goal-prefix}:helm-test` Maven goal on the command line:
+
+[source, sh, subs="+attributes"]
+----
+mvn {goal-prefix}:resource {goal-prefix}:helm {goal-prefix}:helm-install {goal-prefix}:test
+----
+
+[NOTE]
+The `{goal-prefix}:resource`, `{goal-prefix}:helm` and `{goal-prefix}:helm-install` goals are required to ensure that Helm release gets installed in {cluster}.
+If you already have the Helm release installed on {cluster}, then you can omit these goals. You also need to make sure that you've a helm test template inside your
+helm chart.

@@ -317,22 +317,6 @@
                 <goal>report</goal>
               </goals>
             </execution>
-            <!-- TODO: Remove once JMockit is no longer in the project -->
-            <execution>
-              <id>instrument</id>
-              <phase>process-classes</phase>
-              <goals>
-                <goal>instrument</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>restore</id>
-              <phase>test</phase>
-              <goals>
-                <goal>restore-instrumented-classes</goal>
-              </goals>
-            </execution>
-            <!-- ///////////////////////////////////////////////////// -->
           </executions>
         </plugin>
         <plugin>

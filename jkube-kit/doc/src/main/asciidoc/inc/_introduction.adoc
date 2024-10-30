@@ -12,6 +12,3 @@ This repository covers the following abstraction which helps you to flexibly cre
 * **Profiles** combine a set of generator and enrichers with a configuration and give it a name so that the used generators and enrichers can be tuned to the details.
 
 [plantuml,jkube-kit-components]
-....
-include::diagrams/overview.plantuml[tags=uml]
-....

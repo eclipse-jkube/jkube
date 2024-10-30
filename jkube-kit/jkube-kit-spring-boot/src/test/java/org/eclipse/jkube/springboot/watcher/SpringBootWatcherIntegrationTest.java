@@ -154,7 +154,7 @@ class SpringBootWatcherIntegrationTest {
       assertThat(javaProcessArgumentCaptor.getValue())
         .contains("spring-boot: Running: ")
         .contains(String.format("%s/bin/java -cp ", testJavaHome))
-        .contains(String.format("%s/target/spring-boot-lib.jar:%s/target/spring-boot-devtools.jar ", project, project))
+        .contains(String.format("%s/target/spring-boot-lib.jar:%s/target/spring-boot-devtools.jar ", project.toRealPath(), project.toRealPath()))
         .contains("-Dspring.devtools.remote.secret=this-is-a-test ")
         .contains("org.springframework.boot.devtools.RemoteSpringApplication ")
         .contains("http://localhost:");

@@ -75,7 +75,7 @@ public class JibService implements AutoCloseable {
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     try {
       executorService.shutdown();
       if (!executorService.awaitTermination(JIB_EXECUTOR_SHUTDOWN_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {

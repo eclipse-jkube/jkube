@@ -34,13 +34,16 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -54,11 +57,13 @@ class HelidonGeneratorTest {
   private Properties projectProps;
   private JavaProject project;
   private GeneratorContext ctx;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   public void setUp() throws IOException {
     ProcessorConfig config = new ProcessorConfig();
     projectProps = new Properties();
+    out = new ByteArrayOutputStream();
     projectProps.put("jkube.generator.name", "helidon");
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
     project = JavaProject.builder()
@@ -73,11 +78,28 @@ class HelidonGeneratorTest {
         .packaging("jar")
         .build();
     ctx = GeneratorContext.builder()
-        .logger(new KitLogger.SilentLogger())
+      .logger(new KitLogger.PrintStreamLogger(new PrintStream(out)))
         .project(project)
         .config(config)
         .strategy(JKubeBuildStrategy.s2i)
         .build();
+  }
+
+  @Test
+  void constructorShouldLogHelidonApplicationConfigPath() {
+    // Given
+    ctx = ctx.toBuilder()
+      .project(project.toBuilder()
+        .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/custom-port-microprofile-configuration")).getPath())
+        .build())
+      .build();
+    // When
+    HelidonGenerator helidonGenerator = new HelidonGenerator(ctx);
+    // Then
+    assertThat(helidonGenerator).isNotNull();
+    assertThat(out.toString())
+      .contains("helidon: Helidon Application Config loaded from: " +
+        HelidonGeneratorTest.class.getResource("/custom-port-microprofile-configuration/META-INF/microprofile-config.properties"));
   }
 
   @Test

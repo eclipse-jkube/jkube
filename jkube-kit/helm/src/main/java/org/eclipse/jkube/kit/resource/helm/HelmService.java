@@ -240,8 +240,8 @@ public class HelmService {
   public void test(HelmConfig helmConfig) {
     logger.info("Testing Helm Chart %s %s", helmConfig.getChart(), helmConfig.getVersion());
     TestCommand testCommand = Helm.test(helmConfig.getReleaseName());
-    if (helmConfig.getTimeout() > 0) {
-      testCommand.withTimeout(helmConfig.getTimeout());
+    if (helmConfig.getTestTimeout() > 0) {
+      testCommand.withTimeout(helmConfig.getTestTimeout());
     }
     testCommand.withKubeConfig(createTemporaryKubeConfigForInstall());
     logRelease(testCommand.call());

@@ -33,7 +33,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -48,11 +50,13 @@ class QuarkusHealthCheckEnricherTest {
   private KubernetesListBuilder klb;
   private JavaProject javaProject;
   private JKubeEnricherContext context;
+  private ByteArrayOutputStream out;
 
   @BeforeEach
   void setUp() {
     properties = new Properties();
     klb = new KubernetesListBuilder();
+    out = new ByteArrayOutputStream();
     // @formatter:off
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
@@ -74,10 +78,27 @@ class QuarkusHealthCheckEnricherTest {
       .dependenciesWithTransitive(new ArrayList<>())
       .build();
     context = JKubeEnricherContext.builder()
-      .log(new KitLogger.SilentLogger())
+      .log(new KitLogger.PrintStreamLogger(new PrintStream(out)))
       .project(javaProject)
       .processorConfig(new ProcessorConfig())
       .build();
+  }
+
+  @Test
+  void constructorShouldLogQuarkusApplicationConfigPath() {
+    // Given
+    context = context.toBuilder()
+      .project(javaProject.toBuilder()
+        .compileClassPathElement(Objects.requireNonNull(getClass().getResource("/utils-test/config/properties")).getPath())
+        .build())
+      .build();
+    // When
+    QuarkusHealthCheckEnricher quarkusHealthCheckEnricher = new QuarkusHealthCheckEnricher(context);
+    // Then
+    assertThat(quarkusHealthCheckEnricher).isNotNull();
+    assertThat(out.toString())
+      .contains("jkube-healthcheck-quarkus: Quarkus Application Config loaded from: " +
+        QuarkusHealthCheckEnricherTest.class.getResource("/utils-test/config/properties/application.properties"));
   }
 
   @Test

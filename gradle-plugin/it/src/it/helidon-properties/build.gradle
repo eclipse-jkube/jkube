@@ -33,9 +33,7 @@ ext {
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
-    gradlePluginPortal()
 }
 
 dependencies {

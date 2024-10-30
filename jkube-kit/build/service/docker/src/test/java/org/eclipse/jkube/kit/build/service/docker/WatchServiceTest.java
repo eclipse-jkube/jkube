@@ -89,7 +89,7 @@ class WatchServiceTest {
         .postExec("ls -lt /deployments")
         .build())
       .build();
-    Path path = Files.createDirectory(tempDir.resolve("target"));
+    Files.createDirectory(tempDir.resolve("target"));
     watchContext = WatchContext.builder()
       .buildContext(JKubeConfiguration.builder()
         .project(JavaProject.builder()
@@ -101,8 +101,9 @@ class WatchServiceTest {
   }
 
   @AfterEach
-  void tearDown() {
-    executorService.shutdown();
+  void tearDown() throws Exception {
+    executorService.shutdownNow();
+    executorService.awaitTermination(1, TimeUnit.SECONDS);
   }
 
   @Nested

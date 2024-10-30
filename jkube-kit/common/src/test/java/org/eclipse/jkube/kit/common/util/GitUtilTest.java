@@ -134,7 +134,7 @@ class GitUtilTest {
     Git git = Git.init().setDirectory(gitFolder).setInitialBranch("test-branch").call();
     git.add().addFilepattern(".").call();
     git.remoteAdd().setName("origin").setUri(new URIish("https://example.com/origin.git")).call();
-    git.commit().setMessage("Initial commit").call();
+    git.commit().setMessage("Initial commit").setSign(false).call();
     return git;
   }
 }

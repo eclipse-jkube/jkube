@@ -317,3 +317,22 @@ You can uninstall installed Helm release from {cluster}  via <<jkubeHelmUninstal
 include::gradle/_helm_uninstall.adoc[]
 
 endif::[]
+
+ifeval::["{plugin-type}" == "maven"]
+=== Testing the installed Helm release
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+==== Testing the installed Helm release
+endif::[]
+
+It's possible to provide Helm test fragments by placing them in `src/main/jkube` directory with `.test.helm.yaml` file extension. {plugin} would 
+automatically place them in Helm Chart's `templates/tests/` directory.
+
+ifeval::["{plugin-type}" == "maven"]
+You can run the Helm release test from {cluster} via <<jkube:helm-test, {goal-prefix}:helm-test>> goal as follows:
+include::maven/_helm_test.adoc[]
+endif::[]
+ifeval::["{plugin-type}" == "gradle"]
+You can run the Helm release test from {cluster}  via <<jkubeHelmTest, {task-prefix}HelmTest>> task as follows:
+include::gradle/_helm_test.adoc[]
+endif::[]
