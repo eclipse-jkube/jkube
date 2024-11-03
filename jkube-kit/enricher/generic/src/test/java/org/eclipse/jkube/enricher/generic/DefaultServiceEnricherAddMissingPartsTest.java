@@ -16,6 +16,9 @@ package org.eclipse.jkube.enricher.generic;
 import java.util.Arrays;
 import java.util.Properties;
 
+
+import io.fabric8.kubernetes.api.model.ServicePort;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
@@ -69,7 +72,7 @@ class DefaultServiceEnricherAddMissingPartsTest {
         .isInstanceOf(Service.class)
         .hasFieldOrPropertyWithValue("spec.type", null)
         .extracting("spec.ports")
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(ServicePort.class))
         .extracting("name", "port", "protocol")
         .containsOnly(new Tuple("http", 80, "TCP"));
   }
@@ -88,7 +91,7 @@ class DefaultServiceEnricherAddMissingPartsTest {
         .isInstanceOf(Service.class)
         .hasFieldOrPropertyWithValue("spec.type", null)
         .extracting("spec.ports")
-        .asList()
+        .asInstanceOf(InstanceOfAssertFactories.list(ServicePort.class))
         .extracting("name", "port", "protocol")
         .containsOnly(new Tuple("menandmice-dns", 1337, "TCP"));
   }
