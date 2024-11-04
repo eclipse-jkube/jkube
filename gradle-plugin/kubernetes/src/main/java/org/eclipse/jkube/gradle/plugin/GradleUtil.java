@@ -114,7 +114,7 @@ public class GradleUtil {
 
   private static List<Dependency> extractDependencies(Project gradleProject,
       Function<ResolutionResult, Set<? extends DependencyResult>> resolutionToDependency) {
-    return new ArrayList<Configuration>(gradleProject.getConfigurations()).stream()
+    return new ArrayList<>(gradleProject.getConfigurations()).stream()
         .filter(GradleUtil::canBeResolved)
         .flatMap(c -> {
           final Map<ComponentIdentifier, ResolvedArtifactResult> artifacts = artifactMap(c);
