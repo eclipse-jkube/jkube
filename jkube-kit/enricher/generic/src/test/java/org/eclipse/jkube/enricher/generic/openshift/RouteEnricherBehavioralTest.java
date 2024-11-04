@@ -28,6 +28,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +55,9 @@ class RouteEnricherBehavioralTest {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().isEmpty();
+    assertThat(klb.build()).extracting(KubernetesList::getItems)
+      .asInstanceOf(InstanceOfAssertFactories.list(ArrayList.class))
+    .isEmpty();
   }
 
   @Test
@@ -65,8 +68,10 @@ class RouteEnricherBehavioralTest {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
-      .isInstanceOf(Service.class);
+    assertThat(klb.build()).extracting(KubernetesList::getItems)
+      .asInstanceOf(InstanceOfAssertFactories.list(ArrayList.class))
+      .singleElement()
+    .isInstanceOf(Service.class);
   }
 
   @Test
@@ -77,7 +82,9 @@ class RouteEnricherBehavioralTest {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
+    assertThat(klb.build()).extracting(KubernetesList::getItems)
+            .asInstanceOf(InstanceOfAssertFactories.list(ArrayList.class))
+            .singleElement()
       .isInstanceOf(Service.class);
   }
 
@@ -115,7 +122,9 @@ class RouteEnricherBehavioralTest {
       // When
       new RouteEnricher(context).create(PlatformMode.kubernetes, klb);
       // Then
-      assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
+      assertThat(klb.build()).extracting(KubernetesList::getItems)
+              .asInstanceOf(InstanceOfAssertFactories.list(ArrayList.class))
+              .singleElement()
         .isInstanceOf(Service.class);
     }
 
