@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Service;
@@ -28,7 +29,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,7 +56,7 @@ class RouteEnricherBehavioralTest {
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
     assertThat(klb.build()).extracting(KubernetesList::getItems)
-      .asInstanceOf(InstanceOfAssertFactories.list(ArrayList.class))
+      .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
     .isEmpty();
   }
 
@@ -69,7 +69,7 @@ class RouteEnricherBehavioralTest {
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
     assertThat(klb.build()).extracting(KubernetesList::getItems)
-      .asInstanceOf(InstanceOfAssertFactories.list(ArrayList.class))
+      .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
       .singleElement()
     .isInstanceOf(Service.class);
   }
@@ -83,7 +83,7 @@ class RouteEnricherBehavioralTest {
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
     assertThat(klb.build()).extracting(KubernetesList::getItems)
-            .asInstanceOf(InstanceOfAssertFactories.list(ArrayList.class))
+            .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
             .singleElement()
       .isInstanceOf(Service.class);
   }
@@ -123,7 +123,7 @@ class RouteEnricherBehavioralTest {
       new RouteEnricher(context).create(PlatformMode.kubernetes, klb);
       // Then
       assertThat(klb.build()).extracting(KubernetesList::getItems)
-              .asInstanceOf(InstanceOfAssertFactories.list(ArrayList.class))
+              .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
               .singleElement()
         .isInstanceOf(Service.class);
     }
