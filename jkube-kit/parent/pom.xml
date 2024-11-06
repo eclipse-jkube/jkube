@@ -59,7 +59,7 @@
     <version.plexus-utils>3.5.0</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
-    <version.ow2.asm>9.7</version.ow2.asm>
+    <version.ow2.asm>9.7.1</version.ow2.asm>
 
     <!-- =======================================================  -->
     <version.image.jkube-images>0.0.24</version.image.jkube-images>
