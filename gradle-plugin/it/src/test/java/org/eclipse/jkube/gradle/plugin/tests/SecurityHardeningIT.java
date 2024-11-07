@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.gradle.plugin.tests;
 
-import net.minidev.json.parser.ParseException;
+
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
