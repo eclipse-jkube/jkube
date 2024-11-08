@@ -13,14 +13,17 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
-import org.eclipse.jkube.kit.config.resource.PlatformMode;
-import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
-
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
+import io.fabric8.kubernetes.api.model.HasMetadata;
+
+import org.assertj.core.api.InstanceOfAssertFactories;
+import org.eclipse.jkube.kit.config.resource.PlatformMode;
+import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
+
 import io.fabric8.openshift.api.model.Project;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +50,7 @@ class ProjectEnricherTest {
         // Then
         assertThat(klb.build())
             .extracting(KubernetesList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
             .singleElement()
             .isInstanceOf(Project.class)
             .hasFieldOrPropertyWithValue("metadata.name", "foo");
@@ -64,11 +67,11 @@ class ProjectEnricherTest {
         // Then
         assertThat(klb.build())
             .extracting(KubernetesList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
             .singleElement()
             .isInstanceOf(Project.class)
             .extracting("spec.finalizers")
-            .asList().first().isEqualTo("hoo");
+            .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class)).first().isEqualTo("hoo");
     }
 
     @Test
@@ -82,7 +85,7 @@ class ProjectEnricherTest {
         // Then
         assertThat(klb.build())
             .extracting(KubernetesList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
             .singleElement()
             .isInstanceOf(Project.class)
             .hasFieldOrPropertyWithValue("status.phase", "Complete");
@@ -98,7 +101,7 @@ class ProjectEnricherTest {
         // Then
         assertThat(klb.build())
             .extracting(KubernetesList::getItems)
-            .asList()
+            .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
             .singleElement()
             .isInstanceOf(Service.class)
             .hasFieldOrPropertyWithValue("metadata.name", null);
