@@ -14,7 +14,6 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
-import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import javax.inject.Inject;
 import java.io.File;
