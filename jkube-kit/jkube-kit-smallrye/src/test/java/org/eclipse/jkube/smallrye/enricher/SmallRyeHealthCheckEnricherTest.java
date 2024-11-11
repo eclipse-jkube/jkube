@@ -27,9 +27,9 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayOutputStream;
+
 import java.io.File;
-import java.io.PrintStream;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -42,14 +42,13 @@ class SmallRyeHealthCheckEnricherTest {
   private JavaProject javaProject;
   private Properties properties;
   private KubernetesListBuilder klb;
-  private ByteArrayOutputStream out;
+
 
   @BeforeEach
   void setup() {
     properties = new Properties();
-    ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
-    out = new ByteArrayOutputStream();
+
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
         .editOrNewTemplate()
@@ -71,7 +70,7 @@ class SmallRyeHealthCheckEnricherTest {
             .dependenciesWithTransitive(new ArrayList<>())
             .build();
     context = JKubeEnricherContext.builder()
-            .log(new KitLogger.PrintStreamLogger(new PrintStream(out)))
+            .log(new KitLogger.SilentLogger()) 
             .project(javaProject)
             .processorConfig(new ProcessorConfig())
             .build();
