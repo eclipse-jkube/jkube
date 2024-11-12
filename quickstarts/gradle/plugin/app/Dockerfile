@@ -16,8 +16,10 @@ FROM quay.io/jkube/jkube-java:0.0.15
 
 ENV JAVA_APP_DIR=/deployments
 
-COPY maven/build/libs/*.jar /deployments/app.jar
-COPY maven/build/classes/java/main/jkube-extra/* /deployments/files/
+WORKDIR ${JAVA_APP_DIR}
+
+COPY maven/build/libs/*.jar app.jar
+COPY maven/build/classes/java/main/jkube-extra/* files/
 
 EXPOSE 8080
 
