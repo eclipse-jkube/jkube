@@ -111,7 +111,7 @@
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
     <version.maven-enforcer-plugin>3.4.1</version.maven-enforcer-plugin>
-    <version.maven-failsafe-plugin>3.2.5</version.maven-failsafe-plugin>
+    <version.maven-failsafe-plugin>3.5.2</version.maven-failsafe-plugin>
     <version.maven-gpg-plugin>3.2.4</version.maven-gpg-plugin>
     <version.maven-invoker-plugin>3.6.1</version.maven-invoker-plugin>
     <version.maven-jar-plugin>3.4.2</version.maven-jar-plugin>
