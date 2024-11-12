@@ -52,7 +52,7 @@ buildSrc/
 The Dockerfile is tuned to copy the generated and downloaded files to the container image so that they can be consumed by the application.
 
 ```dockerfile
-COPY maven/build/classes/java/main/jkube-extra/* /deployments/files/
+COPY maven/build/classes/java/main/jkube-extra/* files/
 ```
 
 The application will attempt to load these files:
@@ -66,14 +66,13 @@ public String version() throws IOException {
 }
 ```
 
-
 ## Running the example
 
 If you have Minikube, it's as simple as running the following commands from the main quickstart project directory:
 
 ```shell
-app : $ eval $(minikube docker-env)
-app : $ ../gradlew k8sBuild k8sResource k8sApply
+eval $(minikube docker-env)
+./gradlew k8sBuild k8sResource k8sApply
 ```
 
 You need to run `minikube service app` from the command line, and a web browser window will open showing the latest Spring Boot Reference Documentation in PDF.

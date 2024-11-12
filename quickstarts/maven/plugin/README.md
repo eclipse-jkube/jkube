@@ -51,7 +51,7 @@ Note how the plugin module is declared as a Kubernetes Maven Plugin dependency:
 The Dockerfile is tuned to copy the generated and downloaded files to the container image so that they can be consumed by the application.
 
 ```dockerfile
-COPY maven/target/classes/jkube-extra/* /deployments/files/
+COPY maven/target/classes/jkube-extra/* files/
 ```
 
 The application will attempt to load these files:
@@ -75,4 +75,5 @@ eval $(minikube docker-env)
 mvn clean install
 ```
 
-Since JKube's Maven goals are bound to the install phase, this should automatically deploy the application on Minikube. You only need to run `minikube service app` from the command line, and a web browser window will open showing the latest Spring Boot Reference Documentation in PDF.
+Since JKube's Maven goals are bound to the install phase, this should automatically deploy the application on Minikube.
+You only need to run `minikube service app` from the command line, and a web browser window will open showing the latest Spring Boot Reference Documentation in PDF.
