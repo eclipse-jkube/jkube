@@ -27,7 +27,6 @@ Usage:
 * Fix #2667: Add new helm test goal task (`k8s:helm-test` for maven and `k8sHelmTest` for gradle)
 * Fix #3326: Micronaut healthcheck enricher infers overridden server port in application.properties
 * Fix #3354: Build fails with `imageStream` for `buildRecreate` value
-* Fix #3517: LocalServiceManagerTest: Unused import 'import org.assertj.core.api.InstanceOfAssertFactory;
 
 ### 1.17.0 (2024-08-13)
 * Fix #494: Support for Micronaut Framework Native Images
