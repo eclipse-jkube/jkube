@@ -129,7 +129,7 @@
     <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
     <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
 
-    <jib-core.version>0.27.0</jib-core.version>
+    <jib-core.version>0.27.2</jib-core.version>
 
     <pack.version>0.34.2</pack.version>
     <pack.windows.binary-extension>exe</pack.windows.binary-extension>
