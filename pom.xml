@@ -124,7 +124,7 @@
     <version.mockito>4.6.1</version.mockito>
     <version.nexus-staging-maven-plugin>1.6.13</version.nexus-staging-maven-plugin>
     <version.plexus-component-metadata>2.2.0</version.plexus-component-metadata>
-    <version.slf4j-api>1.7.36</version.slf4j-api>
+    <version.slf4j-api>2.0.16</version.slf4j-api>
     <version.sonar-maven-plugin>3.11.0.3922</version.sonar-maven-plugin>
     <version.sshd>2.12.1</version.sshd>
     <project.build.outputTimestamp>2024-08-13T09:16:47Z</project.build.outputTimestamp>
