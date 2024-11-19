@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 //import static org.mockito.Mockito.mock;
-//import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.when;
 
 class VertxGeneratorIsApplicableTest {
   private JavaProject project;
@@ -40,6 +40,7 @@ class VertxGeneratorIsApplicableTest {
   void setUp() {
     project = JavaProject.builder().build();
     context = GeneratorContext.builder().project(project).build();
+    when(context.getProject()).thenReturn(project);
   }
 
   static Stream<Arguments> data() {
