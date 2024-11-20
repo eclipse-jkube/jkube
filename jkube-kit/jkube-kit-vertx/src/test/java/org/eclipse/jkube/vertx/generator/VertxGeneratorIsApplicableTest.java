@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.mock;
+//import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class VertxGeneratorIsApplicableTest {
@@ -38,8 +38,8 @@ class VertxGeneratorIsApplicableTest {
 
   @BeforeEach
   void setUp() {
-    project = mock(JavaProject.class, Mockito.RETURNS_DEEP_STUBS);
-    context = mock(GeneratorContext.class, Mockito.RETURNS_DEEP_STUBS);
+    project = JavaProject.builder().build();
+    context = GeneratorContext.builder().project(project).build();
     when(context.getProject()).thenReturn(project);
   }
 
@@ -56,8 +56,9 @@ class VertxGeneratorIsApplicableTest {
   @MethodSource("data")
   void isApplicable(String testDescription, List<Plugin> pluginList, List<Dependency> dependencyList, boolean expectedValue) {
     // Given
-    when(project.getPlugins()).thenReturn(pluginList);
-    when(project.getDependencies()).thenReturn(dependencyList);
+	  context = context.toBuilder()
+			  .project(project.toBuilder().plugins(pluginList).dependencies(dependencyList).build())
+			  .build();
     // When
     final boolean result = new VertxGenerator(context).isApplicable(Collections.emptyList());
     // Then
