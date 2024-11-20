@@ -35,7 +35,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <version.bouncycastle.bcpkix>1.78.1</version.bouncycastle.bcpkix>
-    <version.commons-codec>1.17.0</version.commons-codec>
+    <version.commons-codec>1.17.1</version.commons-codec>
     <version.commons-lang3>3.14.0</version.commons-lang3>
     <version.commons-text>1.12.0</version.commons-text>
     <version.gson>2.10.1</version.gson>
@@ -46,13 +46,13 @@
     <version.javassist>3.30.2-GA</version.javassist>
     <!-- Don't upgrade Eclipse JGit to 6.x for Java 8 compatibility -->
     <version.jgit>5.13.3.202401111512-r</version.jgit>
-    <version.jnr-unixsocket>0.38.22</version.jnr-unixsocket>
+    <version.jnr-unixsocket>0.38.23</version.jnr-unixsocket>
     <version.jsr305>3.0.2</version.jsr305>
     <version.maven-archiver>3.6.3</version.maven-archiver>
     <version.maven-core>3.8.1</version.maven-core>
-    <version.maven-filtering>3.3.2</version.maven-filtering>
+    <version.maven-filtering>3.4.0</version.maven-filtering>
     <version.maven-plugin-annotations>3.15.1</version.maven-plugin-annotations>
-    <version.networknt.validator>1.4.0</version.networknt.validator>
+    <version.networknt.validator>1.5.3</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
     <version.plexus-classworlds>2.8.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
@@ -129,7 +129,7 @@
     <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
     <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
 
-    <jib-core.version>0.27.0</jib-core.version>
+    <jib-core.version>0.27.2</jib-core.version>
 
     <pack.version>0.34.2</pack.version>
     <pack.windows.binary-extension>exe</pack.windows.binary-extension>
