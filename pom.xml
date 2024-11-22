@@ -122,7 +122,7 @@
     <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
     <version.maven-surefire-plugin>3.5.2</version.maven-surefire-plugin>
     <version.mockito>4.6.1</version.mockito>
-    <version.nexus-staging-maven-plugin>1.6.13</version.nexus-staging-maven-plugin>
+    <version.nexus-staging-maven-plugin>1.7.0</version.nexus-staging-maven-plugin>
     <version.plexus-component-metadata>2.2.0</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.sonar-maven-plugin>3.11.0.3922</version.sonar-maven-plugin>
