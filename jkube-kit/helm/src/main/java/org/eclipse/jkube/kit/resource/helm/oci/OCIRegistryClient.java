@@ -29,6 +29,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 import static java.net.HttpURLConnection.HTTP_ACCEPTED;
@@ -37,12 +40,12 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.eclipse.jkube.kit.common.util.AsyncUtil.get;
 
 public class OCIRegistryClient {
-  private static final String DOCKER_CONTENT_DIGEST = "Docker-Content-Digest";
+  private static final String DOCKER_CONTENT_DIGEST = "docker-content-digest";
   private static final String USER_AGENT = "EclipseJKube";
   private static final String OCI_IMAGE_MANIFEST_MEDIA_TYPE = "application/vnd.oci.image.manifest.v1+json";
   private static final String HELM_CONFIG_MEDIA_TYPE = "application/vnd.cncf.helm.config.v1+json";
   private static final String HELM_CHART_CONTENT_MEDIA_TYPE = "application/vnd.cncf.helm.chart.content.v1.tar+gzip";
-  private static final String LOCATION_HEADER = "Location";
+  private static final String LOCATION_HEADER = "location";
   private static final long OCI_UPLOAD_HTTP_REQUEST_TIMEOUT = 30;
   private final OCIRegistryEndpoint ociRegistryEndpoint;
   private final HttpClient httpClient;
@@ -130,8 +133,7 @@ public class OCIRegistryClient {
   }
 
   private String parseLocationHeaderFromResponse(HttpResponse<byte[]> response) {
-    String locationHeader = response.header(LOCATION_HEADER);
-
+    String locationHeader = header(response, LOCATION_HEADER);
     // Only path is returned via GitHub Container Registry
     if (locationHeader != null && locationHeader.startsWith("/")) {
       locationHeader = ociRegistryEndpoint.getBaseUrl() + locationHeader;
@@ -147,11 +149,20 @@ public class OCIRegistryClient {
   }
 
   private static String extractDockerContentDigestFromResponseHeaders(HttpResponse<byte[]> response) throws BadUploadException {
-    String dockerContentDigest = response.header(DOCKER_CONTENT_DIGEST);
+    String dockerContentDigest = header(response, DOCKER_CONTENT_DIGEST);
     if (StringUtils.isNotBlank(dockerContentDigest)) {
       return dockerContentDigest;
     }
     throw new BadUploadException("No " + DOCKER_CONTENT_DIGEST + " header found in upload response");
+  }
+
+  private static String header(HttpResponse<byte[]> response, String name) {
+    for (Map.Entry<String, List<String>> header : response.headers().entrySet()) {
+      if (header.getKey().toLowerCase(Locale.ROOT).equals(name) && header.getValue() != null && !header.getValue().isEmpty()) {
+        return header.getValue().get(0);
+      }
+    }
+    return null;
   }
 
   private static String createChartManifestPayload(OCIManifestLayer chartConfig, OCIManifestLayer chartTarball) {
