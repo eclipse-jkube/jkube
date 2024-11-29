@@ -13,9 +13,9 @@
  */
 package org.eclipse.jkube.kit.config.service.openshift;
 
+import io.fabric8.mockwebserver.http.Headers;
+import io.fabric8.mockwebserver.http.RecordedRequest;
 import io.fabric8.mockwebserver.utils.ResponseProvider;
-import okhttp3.Headers;
-import okhttp3.mockwebserver.RecordedRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;

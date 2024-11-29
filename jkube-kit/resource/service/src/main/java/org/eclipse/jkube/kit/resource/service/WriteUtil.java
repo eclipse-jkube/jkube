@@ -27,8 +27,11 @@ import org.eclipse.jkube.kit.enricher.api.util.KubernetesResourceFragments;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.eclipse.jkube.kit.resource.service.TemplateUtil.getSingletonTemplate;
 
@@ -52,7 +55,14 @@ class WriteUtil {
     // no need to worry about this for dropping Route.
     final Template template = getSingletonTemplate(resources);
     if (template != null) {
-      template.getObjects().sort(COMPARATOR);
+      final List<HasMetadata> items = new ArrayList<>();
+      for (Object object : template.getObjects()) {
+        if (object instanceof HasMetadata) {
+          items.add((HasMetadata) object);
+        }
+      }
+      items.sort(COMPARATOR);
+      template.setObjects(items.stream().map(Object.class::cast).collect(Collectors.toList()));
       entity = template;
     }
 
