@@ -54,7 +54,7 @@
 
         <dependency>
             <groupId>io.fabric8</groupId>
-            <artifactId>openshift-server-mock</artifactId>
+            <artifactId>kubernetes-server-mock</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

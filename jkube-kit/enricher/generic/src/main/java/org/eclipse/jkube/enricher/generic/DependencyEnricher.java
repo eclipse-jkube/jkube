@@ -141,10 +141,14 @@ public class DependencyEnricher extends BaseEnricher {
             for (HasMetadata resource : templates) {
                 if (resource instanceof Template) {
                     Template template = (Template) resource;
-                    List<HasMetadata> objects = template.getObjects();
+                    List<?> objects = template.getObjects();
                     if (objects != null) {
                         removeTemplateObjects(kubernetesItems, objects);
-                        kubernetesItems.addAll(objects);
+                        for (Object object : objects) {
+                            if (object instanceof HasMetadata) {
+                                kubernetesItems.add((HasMetadata) object);
+                            }
+                        }
                     }
                 }
             }
@@ -162,12 +166,16 @@ public class DependencyEnricher extends BaseEnricher {
         filterAndAddItemsToBuilder(builder, openshiftItems);
     }
 
-    private void removeTemplateObjects(List<HasMetadata> list, List<HasMetadata> objects) {
-        for (HasMetadata object : objects) {
+    private void removeTemplateObjects(List<HasMetadata> list, List<?> objects) {
+        for (Object object : objects) {
+            if (!(object instanceof HasMetadata)) {
+                continue;
+            }
+            HasMetadata hm = (HasMetadata) object;
             List<HasMetadata> copy = new ArrayList<>(list);
             for (HasMetadata resource : copy) {
-                if (Objects.equals(resource.getKind(), object.getKind()) &&
-                        Objects.equals(KubernetesHelper.getName(object), KubernetesHelper.getName(resource))) {
+                if (Objects.equals(resource.getKind(), hm.getKind()) &&
+                        Objects.equals(KubernetesHelper.getName(hm), KubernetesHelper.getName(resource))) {
                     list.remove(resource);
                 }
             }

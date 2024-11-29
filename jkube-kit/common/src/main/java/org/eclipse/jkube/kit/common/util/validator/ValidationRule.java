@@ -13,13 +13,9 @@
  */
 package org.eclipse.jkube.kit.common.util.validator;
 
-import com.networknt.schema.ValidationMessage;
 
-/**
- * Created by hshinde on 9/23/17.
- */
+import io.fabric8.kubernetes.schema.validator.ValidationMessage;
+
 public interface ValidationRule {
-    String TYPE = "type";
-
     boolean ignore(ValidationMessage msg);
 }

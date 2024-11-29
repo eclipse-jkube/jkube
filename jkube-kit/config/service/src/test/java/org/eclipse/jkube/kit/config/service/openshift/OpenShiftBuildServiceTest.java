@@ -110,7 +110,7 @@ class OpenShiftBuildServiceTest {
   @Test
   void initClient_withNoOpenShift_shouldThrowException() {
     // Given
-    when(jKubeServiceHub.getClient().adapt(OpenShiftClient.class).isSupported()).thenReturn(false);
+    when(jKubeServiceHub.getClient().hasApiGroup("openshift.io", false)).thenReturn(false);
     OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
     // When + Then
     assertThatIllegalStateException()

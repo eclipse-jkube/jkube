@@ -39,12 +39,13 @@ import io.fabric8.kubernetes.client.NamespacedKubernetesClient;
 import io.fabric8.kubernetes.client.dsl.NonDeletingOperation;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.mockwebserver.http.RecordedRequest;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.DeploymentConfigBuilder;
 import io.fabric8.openshift.api.model.DeploymentConfigSpecBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 import io.fabric8.zjsonpatch.JsonPatch;
-import okhttp3.mockwebserver.RecordedRequest;
+import io.vertx.core.Vertx;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.assertj.core.groups.Tuple;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -388,7 +389,7 @@ class DebugServiceTest {
           JsonPatch.apply(Serialization.unmarshal(r.getBody().inputStream(), JsonNode.class),
             Serialization.convertValue(deployment, JsonNode.class)),
           Deployment.class);
-        kubernetesClient.resource(new PodBuilder()
+        Vertx.currentContext().executeBlocking(() -> kubernetesClient.resource(new PodBuilder()
           .withMetadata(new ObjectMetaBuilder(d.getSpec().getTemplate().getMetadata())
             .withName("pod-in-debug-mode")
             .build())
@@ -396,7 +397,7 @@ class DebugServiceTest {
           .withStatus(new PodStatusBuilder()
             .withPhase("Running")
             .build())
-          .build()).create();
+          .build()).create());
         return d;
       })
       .always();

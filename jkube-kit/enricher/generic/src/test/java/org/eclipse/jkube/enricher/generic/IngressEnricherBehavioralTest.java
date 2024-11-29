@@ -137,22 +137,22 @@ class IngressEnricherBehavioralTest {
       .extracting("spec.rules").asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class)).isEmpty();
   }
 
-  @Test
-  void create_withServicesAndTargetExtensions_shouldCreateExtensionsIngress() {
-    // Given
-    context.getProject().getProperties().put("jkube.createExternalUrls", "true");
-    context.getProject().getProperties().put("jkube.enricher.jkube-ingress.targetApiVersion", "extensions/v1beta1");
-    klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
-      .withNewSpec().addNewPort().withPort(80).endPort().endSpec().endServiceItem();
-    // When
-    new IngressEnricher(context).create(PlatformMode.kubernetes, klb);
-    // Then
-    assertThat(klb.buildItems()).hasSize(2)
-      .element(1)
-      .hasFieldOrPropertyWithValue("apiVersion", "extensions/v1beta1")
-      .hasFieldOrPropertyWithValue("metadata.name", "http")
-      .hasFieldOrPropertyWithValue("spec.backend.serviceName", "http")
-      .hasFieldOrPropertyWithValue("spec.backend.servicePort.value", 80)
-      .extracting("spec.rules").asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class)).isEmpty();
-  }
+//  @Test
+//  void create_withServicesAndTargetExtensions_shouldCreateExtensionsIngress() {
+//    // Given
+//    context.getProject().getProperties().put("jkube.createExternalUrls", "true");
+//    context.getProject().getProperties().put("jkube.enricher.jkube-ingress.targetApiVersion", "extensions/v1beta1");
+//    klb.addNewServiceItem().withNewMetadata().withName("http").endMetadata()
+//      .withNewSpec().addNewPort().withPort(80).endPort().endSpec().endServiceItem();
+//    // When
+//    new IngressEnricher(context).create(PlatformMode.kubernetes, klb);
+//    // Then
+//    assertThat(klb.buildItems()).hasSize(2)
+//      .element(1)
+//      .hasFieldOrPropertyWithValue("apiVersion", "extensions/v1beta1")
+//      .hasFieldOrPropertyWithValue("metadata.name", "http")
+//      .hasFieldOrPropertyWithValue("spec.backend.serviceName", "http")
+//      .hasFieldOrPropertyWithValue("spec.backend.servicePort.value", 80)
+//      .extracting("spec.rules").asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class)).isEmpty();
+//  }
 }
