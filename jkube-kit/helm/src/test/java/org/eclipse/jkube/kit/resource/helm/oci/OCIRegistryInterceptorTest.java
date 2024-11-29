@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import io.fabric8.kubernetes.client.http.HttpClient;
+import io.fabric8.mockwebserver.http.RecordedRequest;
 import org.eclipse.jkube.kit.resource.helm.HelmRepository;
 
 import io.fabric8.kubernetes.client.http.HttpRequest;
@@ -26,7 +27,6 @@ import io.fabric8.kubernetes.client.http.HttpResponse;
 import io.fabric8.kubernetes.client.http.TestHttpResponse;
 import io.fabric8.kubernetes.client.utils.HttpClientUtils;
 import io.fabric8.mockwebserver.DefaultMockServer;
-import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
