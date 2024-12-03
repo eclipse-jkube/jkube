@@ -22,6 +22,7 @@ import org.assertj.core.api.AssertionsForInterfaceTypes;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -29,14 +30,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.Properties;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.Answers.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class AbstractMicroprofileHealthCheckEnricherTest {
   private JKubeEnricherContext context;
@@ -46,9 +45,7 @@ class AbstractMicroprofileHealthCheckEnricherTest {
 
   @BeforeEach
   public void setUp() {
-    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
     properties = new Properties();
-    ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
@@ -65,14 +62,18 @@ class AbstractMicroprofileHealthCheckEnricherTest {
         .endSpec()
         .build());
 
-    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-    javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
-    when(context.getProject()).thenReturn(javaProject);
-    when(context.getProperties()).thenReturn(properties);
-    when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
-    when(javaProject.getProperties()).thenReturn(properties);
-    when(javaProject.getBaseDirectory()).thenReturn(new File("/tmp/ignore"));
-    when(javaProject.getOutputDirectory()).thenReturn(new File("/tmp/ignore"));
+    javaProject = JavaProject.builder()
+                .properties(properties)
+                .outputDirectory(new File("/tmp/ignore"))
+                .baseDirectory(new File("/tmp/ignore"))
+                .dependenciesWithTransitive(new ArrayList<>())
+                .build();
+
+    context = JKubeEnricherContext.builder()
+            .log(new KitLogger.SilentLogger()) 
+            .project(javaProject)
+            .processorConfig(new ProcessorConfig())
+            .build();
   }
 
   @Test
@@ -161,18 +162,22 @@ class AbstractMicroprofileHealthCheckEnricherTest {
   }
 
   private void withMicroprofileHealthTransitiveDependency(String microProfileVersion) {
-    when(javaProject.getDependenciesWithTransitive()).thenReturn(Collections.singletonList(Dependency.builder()
-        .groupId("org.eclipse.microprofile.health")
-        .artifactId("microprofile-health-api")
-        .version(microProfileVersion)
-        .build()));
+    List<Dependency> dependencies = new ArrayList<>(javaProject.getDependencies());
+    dependencies.add(Dependency.builder()
+    .groupId("org.eclipse.microprofile.health")
+    .artifactId("microprofile-health-api")
+    .version(microProfileVersion)
+    .build());
+    javaProject.setDependenciesWithTransitive(dependencies);
   }
 
   private void withMicroprofileImplDependency() {
-    when(javaProject.getDependencies()).thenReturn(Collections.singletonList(Dependency.builder()
-        .groupId("org.example")
-        .artifactId("microprofile-fooimpl")
-        .build()));
+    List<Dependency> dependencies = new ArrayList<>(javaProject.getDependencies());
+    dependencies.add(Dependency.builder()
+    .groupId("org.example")
+    .artifactId("microprofile-fooimpl")
+    .build());
+    javaProject.setDependencies(dependencies);
   }
 
   private void assertProbesAdded(String livenessScheme, String livenessPath, String readyScheme, String readyPath, String startedScheme, String startedPath) {

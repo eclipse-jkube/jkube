@@ -92,41 +92,41 @@
     <skipTests>false</skipTests>
     <version.asciidoctor-maven-plugin>2.2.4</version.asciidoctor-maven-plugin>
     <version.asciidoctorj>2.3.0</version.asciidoctorj>
-    <version.assertj-core>3.25.3</version.assertj-core>
+    <version.assertj-core>3.26.3</version.assertj-core>
     <version.citrus>3.4.0</version.citrus>
-    <version.commons-compress>1.26.1</version.commons-compress> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
-    <version.commons-io>2.16.1</version.commons-io> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
-    <version.gradle>7.6.2</version.gradle>
+    <version.commons-compress>1.27.1</version.commons-compress> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
+    <version.commons-io>2.18.0</version.commons-io> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
+    <version.gradle>7.6.4</version.gradle>
     <version.gradle-api-maven-plugin>0.0.5</version.gradle-api-maven-plugin>
-    <version.groovy>3.0.21</version.groovy>
-    <version.guava>33.2.0-jre</version.guava>
-    <version.helm-java>0.0.10</version.helm-java>
-    <version.jackson>2.17.1</version.jackson>
+    <version.groovy>3.0.23</version.groovy>
+    <version.guava>33.3.1-jre</version.guava>
+    <version.helm-java>0.0.14</version.helm-java>
+    <version.jackson>2.18.2</version.jackson>
     <version.jacoco>0.8.12</version.jacoco>
     <version.json-smart>2.5.1</version.json-smart> <!-- Transitive dependency  required by citrus -->
-    <version.junit5>5.10.2</version.junit5>
-    <version.kubernetes-client>6.13.2</version.kubernetes-client>
-    <version.license-maven-plugin>4.5</version.license-maven-plugin>
-    <version.lombok>1.18.32</version.lombok>
+    <version.junit5>5.11.3</version.junit5>
+    <version.kubernetes-client>6.13.4</version.kubernetes-client>
+    <version.license-maven-plugin>4.6</version.license-maven-plugin>
+    <version.lombok>1.18.36</version.lombok>
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.13.0</version.maven-compiler-plugin>
-    <version.maven-enforcer-plugin>3.4.1</version.maven-enforcer-plugin>
-    <version.maven-failsafe-plugin>3.2.5</version.maven-failsafe-plugin>
-    <version.maven-gpg-plugin>3.2.4</version.maven-gpg-plugin>
-    <version.maven-invoker-plugin>3.6.1</version.maven-invoker-plugin>
-    <version.maven-jar-plugin>3.4.1</version.maven-jar-plugin>
-    <version.maven-javadoc-plugin>3.6.3</version.maven-javadoc-plugin>
-    <version.maven-plugin-plugin>3.13.1</version.maven-plugin-plugin>
-    <version.maven-release-plugin>3.0.1</version.maven-release-plugin>
+    <version.maven-enforcer-plugin>3.5.0</version.maven-enforcer-plugin>
+    <version.maven-failsafe-plugin>3.5.2</version.maven-failsafe-plugin>
+    <version.maven-gpg-plugin>3.2.7</version.maven-gpg-plugin>
+    <version.maven-invoker-plugin>3.8.1</version.maven-invoker-plugin>
+    <version.maven-jar-plugin>3.4.2</version.maven-jar-plugin>
+    <version.maven-javadoc-plugin>3.11.1</version.maven-javadoc-plugin>
+    <version.maven-plugin-plugin>3.15.1</version.maven-plugin-plugin>
+    <version.maven-release-plugin>3.1.1</version.maven-release-plugin>
     <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
     <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
-    <version.maven-surefire-plugin>3.2.5</version.maven-surefire-plugin>
+    <version.maven-surefire-plugin>3.5.2</version.maven-surefire-plugin>
     <version.mockito>4.6.1</version.mockito>
-    <version.nexus-staging-maven-plugin>1.6.13</version.nexus-staging-maven-plugin>
+    <version.nexus-staging-maven-plugin>1.7.0</version.nexus-staging-maven-plugin>
     <version.plexus-component-metadata>2.2.0</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.sonar-maven-plugin>3.11.0.3922</version.sonar-maven-plugin>
-    <version.sshd>2.12.1</version.sshd>
+    <version.sshd>2.14.0</version.sshd>
     <project.build.outputTimestamp>2024-08-13T09:16:47Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
@@ -317,22 +317,6 @@
                 <goal>report</goal>
               </goals>
             </execution>
-            <!-- TODO: Remove once JMockit is no longer in the project -->
-            <execution>
-              <id>instrument</id>
-              <phase>process-classes</phase>
-              <goals>
-                <goal>instrument</goal>
-              </goals>
-            </execution>
-            <execution>
-              <id>restore</id>
-              <phase>test</phase>
-              <goals>
-                <goal>restore-instrumented-classes</goal>
-              </goals>
-            </execution>
-            <!-- ///////////////////////////////////////////////////// -->
           </executions>
         </plugin>
         <plugin>

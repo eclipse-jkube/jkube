@@ -27,7 +27,7 @@ import java.time.Instant;
 public class SimpleJKubePlugin implements JKubePlugin {
 
   private static final String SPRING_BOOT_LATEST_DOC_URL =
-    "https://docs.spring.io/spring-boot/docs/current/reference/pdf/spring-boot-reference.pdf";
+    "https://docs.spring.io/spring-boot/docs/3.2.7/reference/pdf/spring-boot-reference.pdf";
 
   @Override
   public void addExtraFiles(File targetDir) {

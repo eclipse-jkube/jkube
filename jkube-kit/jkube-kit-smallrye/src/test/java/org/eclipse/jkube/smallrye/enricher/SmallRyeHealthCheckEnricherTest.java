@@ -20,21 +20,22 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+
 import java.io.File;
-import java.util.Collections;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.Answers.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class SmallRyeHealthCheckEnricherTest {
   private JKubeEnricherContext context;
@@ -42,11 +43,12 @@ class SmallRyeHealthCheckEnricherTest {
   private Properties properties;
   private KubernetesListBuilder klb;
 
+
   @BeforeEach
   void setup() {
     properties = new Properties();
-    ProcessorConfig processorConfig = new ProcessorConfig();
     klb = new KubernetesListBuilder();
+
     klb.addToItems(new DeploymentBuilder()
         .editOrNewSpec()
         .editOrNewTemplate()
@@ -62,14 +64,16 @@ class SmallRyeHealthCheckEnricherTest {
         .endSpec()
         .build());
 
-    context = mock(JKubeEnricherContext.class, RETURNS_DEEP_STUBS);
-    javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
-    when(context.getProject()).thenReturn(javaProject);
-    when(context.getProperties()).thenReturn(properties);
-    when(context.getConfiguration().getProcessorConfig()).thenReturn(processorConfig);
-    when(javaProject.getProperties()).thenReturn(properties);
-    when(javaProject.getBaseDirectory()).thenReturn(new File("/tmp/ignore"));
-    when(javaProject.getOutputDirectory()).thenReturn(new File("/tmp/ignore"));
+    javaProject = JavaProject.builder()
+            .properties(properties)
+            .outputDirectory(new File("/tmp/ignore"))
+            .dependenciesWithTransitive(new ArrayList<>())
+            .build();
+    context = JKubeEnricherContext.builder()
+            .log(new KitLogger.SilentLogger()) 
+            .project(javaProject)
+            .processorConfig(new ProcessorConfig())
+            .build();
   }
 
   @Test
@@ -157,20 +161,23 @@ class SmallRyeHealthCheckEnricherTest {
   }
 
   private void withMicroprofileHealthTransitiveDependency(String microProfileVersion) {
-    when(javaProject.getDependenciesWithTransitive()).thenReturn(Collections.singletonList(Dependency.builder()
+    final List<Dependency> deps = new ArrayList<>(javaProject.getDependencies());
+    deps.add(Dependency.builder()
             .groupId("org.eclipse.microprofile.health")
             .artifactId("microprofile-health-api")
             .version(microProfileVersion)
-        .build()));
+            .build());
+    javaProject.setDependenciesWithTransitive(deps);
   }
 
   private void withSmallRyeDependency() {
-    when(javaProject.getDependencies()).thenReturn(Collections.singletonList(Dependency.builder()
-        .groupId("io.smallrye")
-        .artifactId("smallrye-health")
-        .build()));
+    final List<Dependency> deps = new ArrayList<>(javaProject.getDependencies());
+    deps.add(Dependency.builder()
+            .groupId("io.smallrye")
+            .artifactId("smallrye-health")
+            .build());
+    javaProject.setDependencies(deps);
   }
-
 
   private void assertProbesAdded(String livenessScheme, String livenessPath, String readyScheme, String readyPath, String startedScheme, String startedPath) {
     Container container = getFirstContainerFromDeployment();

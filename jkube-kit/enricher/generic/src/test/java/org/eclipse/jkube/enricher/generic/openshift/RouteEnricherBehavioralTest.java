@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.enricher.generic.openshift;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.Service;
@@ -54,7 +55,9 @@ class RouteEnricherBehavioralTest {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().isEmpty();
+    assertThat(klb.build()).extracting(KubernetesList::getItems)
+      .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
+    .isEmpty();
   }
 
   @Test
@@ -65,8 +68,10 @@ class RouteEnricherBehavioralTest {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
-      .isInstanceOf(Service.class);
+    assertThat(klb.build()).extracting(KubernetesList::getItems)
+      .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
+      .singleElement()
+    .isInstanceOf(Service.class);
   }
 
   @Test
@@ -77,7 +82,9 @@ class RouteEnricherBehavioralTest {
     // When
     new RouteEnricher(context).create(PlatformMode.openshift, klb);
     // Then
-    assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
+    assertThat(klb.build()).extracting(KubernetesList::getItems)
+            .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
+            .singleElement()
       .isInstanceOf(Service.class);
   }
 
@@ -115,7 +122,9 @@ class RouteEnricherBehavioralTest {
       // When
       new RouteEnricher(context).create(PlatformMode.kubernetes, klb);
       // Then
-      assertThat(klb.build()).extracting(KubernetesList::getItems).asList().singleElement()
+      assertThat(klb.build()).extracting(KubernetesList::getItems)
+              .asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
+              .singleElement()
         .isInstanceOf(Service.class);
     }
 
