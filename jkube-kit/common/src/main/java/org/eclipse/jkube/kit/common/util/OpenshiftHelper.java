@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
@@ -53,7 +54,7 @@ public class OpenshiftHelper {
 
 
     public static KubernetesList processTemplatesLocally(Template entity, boolean failOnMissingParameterValue) {
-        List<HasMetadata> objects = null;
+        List<?> objects = null;
         if (entity != null) {
             objects = entity.getObjects();
             if (objects == null || objects.isEmpty()) {
@@ -86,7 +87,8 @@ public class OpenshiftHelper {
             return  Serialization.unmarshal(json, KubernetesList.class);
         } else {
             KubernetesList answer = new KubernetesList();
-            answer.setItems(objects);
+            Objects.requireNonNull(objects).stream().filter(o -> o instanceof HasMetadata)
+              .forEach(o -> answer.getItems().add((HasMetadata) o));
             return answer;
         }
     }
@@ -109,9 +111,9 @@ public class OpenshiftHelper {
     }
 
     public static Template combineTemplates(Template firstTemplate, Template template) {
-        List<HasMetadata> objects = template.getObjects();
+        List<?> objects = template.getObjects();
         if (objects != null) {
-            for (HasMetadata object : objects) {
+            for (Object object : objects) {
                 addTemplateObject(firstTemplate, object);
             }
         }
@@ -156,8 +158,8 @@ public class OpenshiftHelper {
         }
     }
 
-    private static void addTemplateObject(Template template, HasMetadata object) {
-        List<HasMetadata> objects = template.getObjects();
+    private static void addTemplateObject(Template template, Object object) {
+        List<Object> objects = template.getObjects();
         objects.add(object);
         template.setObjects(objects);
     }
