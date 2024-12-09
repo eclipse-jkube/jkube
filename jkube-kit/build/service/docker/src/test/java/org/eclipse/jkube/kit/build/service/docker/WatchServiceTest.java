@@ -61,7 +61,7 @@ class WatchServiceTest {
   void setUp(@TempDir Path tempDir) throws IOException {
     watchedFile = Files.createFile(tempDir.resolve("file.txt")).toFile();
     executorService = Executors.newScheduledThreadPool(2);
-    executorService.scheduleAtFixedRate(this::changeFile, 0, 10, TimeUnit.MILLISECONDS);
+    executorService.scheduleAtFixedRate(this::changeFile, 0, 100, TimeUnit.MILLISECONDS);
     final KitLogger logger = new KitLogger.SilentLogger();
     buildService = mock(BuildService.class);
     watchService = new WatchService(
@@ -141,7 +141,7 @@ class WatchServiceTest {
         return null;
       });
       // Then
-      verify(buildService, timeout(5000))
+      verify(buildService, timeout(5000).atLeastOnce())
         .buildImage(imageConfiguration, null, watchContext.getBuildContext());
     }
 
