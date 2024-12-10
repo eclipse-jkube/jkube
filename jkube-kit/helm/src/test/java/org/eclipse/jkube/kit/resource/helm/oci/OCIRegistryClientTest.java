@@ -137,7 +137,7 @@ class OCIRegistryClientTest {
       // When + Then
       assertThatIllegalStateException()
         .isThrownBy(() -> oci.uploadBlobIfNotUploadedYet(chart, chartTarballStream))
-        .withMessage("No Location header found in upload initiation response");
+        .withMessage("No location header found in upload initiation response");
     }
 
     @Test
@@ -186,7 +186,7 @@ class OCIRegistryClientTest {
       // When + Then
       assertThatThrownBy(() -> oci.uploadBlobIfNotUploadedYet(chart, chartTarballStream))
         .isInstanceOf(BadUploadException.class)
-        .hasMessage("No Docker-Content-Digest header found in upload response");
+        .hasMessage("No docker-content-digest header found in upload response");
     }
 
     @Test
@@ -247,7 +247,7 @@ class OCIRegistryClientTest {
       // When + Then
       assertThatExceptionOfType(BadUploadException.class)
         .isThrownBy(() -> oci.uploadOCIManifest(chart, chartConfigBlob, chartTarballBlob))
-        .withMessage("No Docker-Content-Digest header found in upload response");
+        .withMessage("No docker-content-digest header found in upload response");
     }
   }
 }
