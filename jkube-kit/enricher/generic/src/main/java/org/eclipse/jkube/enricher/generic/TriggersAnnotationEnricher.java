@@ -153,7 +153,7 @@ public class TriggersAnnotationEnricher extends BaseEnricher {
         });
 
         try {
-            return Serialization.asJson(triggerList);
+            return Serialization.asJson(triggerList).replaceAll("\r?\n", "\n");
         } catch (Exception e) {
             getLog().error("Error while creating ImageStreamTag triggers for Kubernetes resources: %s", e);
             return "[]";
