@@ -381,9 +381,12 @@ public class HelmService {
   }
 
   private static void splitAndSaveTemplate(Template template, File templatesDir) throws IOException {
-    for (HasMetadata object : Optional.ofNullable(template.getObjects()).orElse(Collections.emptyList())) {
-      String name = KubernetesResourceFragments.getNameWithSuffix(KubernetesHelper.getName(object),
-          KubernetesHelper.getKind(object)) + YAML_EXTENSION;
+    for (Object object : Optional.ofNullable(template.getObjects()).orElse(Collections.emptyList())) {
+      if (!(object instanceof HasMetadata)) {
+        continue;
+      }
+      String name = KubernetesResourceFragments.getNameWithSuffix(KubernetesHelper.getName((HasMetadata) object),
+          KubernetesHelper.getKind((HasMetadata) object)) + YAML_EXTENSION;
       File outFile = new File(templatesDir, name);
       ResourceUtil.save(outFile, object);
     }
