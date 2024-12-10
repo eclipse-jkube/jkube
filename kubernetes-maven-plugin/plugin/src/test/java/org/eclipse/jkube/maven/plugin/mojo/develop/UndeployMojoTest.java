@@ -71,7 +71,7 @@ class UndeployMojoTest {
         .log(new KitLogger.SilentLogger())
         .platformMode(RuntimeMode.KUBERNETES)
         .build();
-//      log = new KitLogger.SilentLogger();
+
       mojoExecution = new MojoExecution(new MojoDescriptor());
       mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
       mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
