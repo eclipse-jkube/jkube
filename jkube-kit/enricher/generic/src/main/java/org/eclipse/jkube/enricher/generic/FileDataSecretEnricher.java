@@ -85,9 +85,7 @@ public class FileDataSecretEnricher extends BaseEnricher {
     }
 
     private byte[] readContent(String location) throws IOException {
-        String data = new String(Files.readAllBytes(Paths.get(location)));
-        data = data.replaceAll("\r?\n", "\n");
-        return data.getBytes();
+        return Files.readAllBytes(Paths.get(location));
     }
 
     private String getOutput(String key) {

@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      labels:
+        app: secret-file
+        provider: jkube
+        version: "@ignore@"
+        group: org.eclipse.jkube.integration.tests.gradle
+      name: secret-file
+    data:
+      # This contains application properties content with windows style line endings (CRLF)
+      application.properties: a2V5MSA9IHZhbHVlMQ0Ka2V5MiA9IHZhbHVlMg0Ka2V5MyA9IHZhbHVlMw==
