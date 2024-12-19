@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.common.util.validator;
 
-import com.networknt.schema.ValidationMessage;
+import io.fabric8.kubernetes.schema.validator.ValidationMessage;
 
 /**
  * Model to represent ignore validation rules as tuple of json tree path and constraint ruleType
@@ -21,19 +21,10 @@ import com.networknt.schema.ValidationMessage;
  */
 public class IgnorePortValidationRule implements ValidationRule {
 
-    private final String ruleType;
-
-    public IgnorePortValidationRule(String aRuleType) {
-        this.ruleType = aRuleType;
-    }
-
-    public String getType() {
-        return ruleType;
-    }
-
     @Override
-    public boolean ignore(ValidationMessage msg) {
-        return msg.getType().equalsIgnoreCase(TYPE) &&
-                msg.getMessage().contains(": integer found, object expected");
+    public boolean ignore(ValidationMessage validationMessage) {
+        return validationMessage.getLevel() == ValidationMessage.Level.ERROR &&
+          (validationMessage.getSchema() != null && validationMessage.getSchema().endsWith("/io.k8s.apimachinery.pkg.util.intstr.IntOrString")) &&
+          validationMessage.getMessage().matches(".+/(targetPort|port)'] Instance type \\(integer\\) does not match any allowed primitive type \\(allowed: \\[\\\"string\\\"\\]\\)$");
     }
 }
