@@ -49,7 +49,7 @@ public class MicronautGenerator extends JavaExecGenerator {
 
     @Override
     protected Map<String, String> getEnv(boolean prePackagePhase) {
-        return nestedGenerator.getEnv(ppp -> super.getEnv(ppp), prePackagePhase);
+        return nestedGenerator.getEnv(super::getEnv, prePackagePhase);
     }
 
     @Override
