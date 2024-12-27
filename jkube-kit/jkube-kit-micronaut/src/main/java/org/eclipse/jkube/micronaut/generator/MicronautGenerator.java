@@ -49,7 +49,9 @@ public class MicronautGenerator extends JavaExecGenerator {
 
     @Override
     protected Map<String, String> getEnv(boolean prePackagePhase) {
-        return nestedGenerator.getEnv(super::getEnv, prePackagePhase);
+        //TODO: Java8 compatibility, remove warning. Remove annotation once baseline is set to Java11+
+        //noinspection Convert2MethodRef
+        return nestedGenerator.getEnv(ppp -> super.getEnv(ppp), prePackagePhase);
     }
 
     @Override
