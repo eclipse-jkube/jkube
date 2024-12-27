@@ -21,7 +21,6 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jkube.enricher.generic.ingress.ExtensionsV1beta1IngressConverter;
 import org.eclipse.jkube.enricher.generic.ingress.NetworkingV1IngressGenerator;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.config.resource.IngressConfig;
@@ -95,10 +94,10 @@ public class IngressEnricher extends BaseEnricher implements ServiceExposer {
           serviceBuilder, getRouteDomain(), getConfig(Config.HOST), getIngressRuleXMLConfig(resourceConfig), getIngressTlsXMLConfig(resourceConfig));
         HasMetadata generatedIngress = ingress;
 
-        String targetIngressApiVersion = getConfig(Config.TARGET_API_VERSION);
-        if (targetIngressApiVersion.equalsIgnoreCase("extensions/v1beta1")) {
-            generatedIngress = ExtensionsV1beta1IngressConverter.convert(ingress);
-        }
+//        String targetIngressApiVersion = getConfig(Config.TARGET_API_VERSION);
+//        if (targetIngressApiVersion.equalsIgnoreCase("extensions/v1beta1")) {
+//            generatedIngress = ExtensionsV1beta1IngressConverter.convert(ingress);
+//        }
         return generatedIngress;
     }
 
