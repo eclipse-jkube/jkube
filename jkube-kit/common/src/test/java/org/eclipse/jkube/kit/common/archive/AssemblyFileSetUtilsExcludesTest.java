@@ -30,7 +30,7 @@ class AssemblyFileSetUtilsExcludesTest {
   private List<Path> paths;
 
   @BeforeEach
-  public void setUp() throws Exception {
+  public void setUp() {
     paths = Arrays.asList(
         Paths.get("usr", "bin"),
         Paths.get("usr", ".git"),
