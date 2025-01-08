@@ -17,12 +17,15 @@ import net.minidev.json.parser.ParseException;
 import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@DisabledOnOs(OS.WINDOWS)
 class FileSecretIT {
   @RegisterExtension
   private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();

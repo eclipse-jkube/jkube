@@ -92,19 +92,19 @@
     <skipTests>false</skipTests>
     <version.asciidoctor-maven-plugin>2.2.4</version.asciidoctor-maven-plugin>
     <version.asciidoctorj>2.3.0</version.asciidoctorj>
-    <version.assertj-core>3.26.3</version.assertj-core>
+    <version.assertj-core>3.27.2</version.assertj-core>
     <version.citrus>3.4.0</version.citrus>
     <version.commons-compress>1.27.1</version.commons-compress> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
     <version.commons-io>2.18.0</version.commons-io> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
     <version.gradle>7.6.4</version.gradle>
     <version.gradle-api-maven-plugin>0.0.5</version.gradle-api-maven-plugin>
     <version.groovy>3.0.23</version.groovy>
-    <version.guava>33.3.1-jre</version.guava>
+    <version.guava>33.4.0-jre</version.guava>
     <version.helm-java>0.0.14</version.helm-java>
     <version.jackson>2.18.2</version.jackson>
     <version.jacoco>0.8.12</version.jacoco>
     <version.json-smart>2.5.1</version.json-smart> <!-- Transitive dependency  required by citrus -->
-    <version.junit5>5.11.3</version.junit5>
+    <version.junit5>5.11.4</version.junit5>
     <version.kubernetes-client>6.13.4</version.kubernetes-client>
     <version.license-maven-plugin>4.6</version.license-maven-plugin>
     <version.lombok>1.18.36</version.lombok>
@@ -113,9 +113,9 @@
     <version.maven-enforcer-plugin>3.5.0</version.maven-enforcer-plugin>
     <version.maven-failsafe-plugin>3.5.2</version.maven-failsafe-plugin>
     <version.maven-gpg-plugin>3.2.7</version.maven-gpg-plugin>
-    <version.maven-invoker-plugin>3.8.1</version.maven-invoker-plugin>
+    <version.maven-invoker-plugin>3.9.0</version.maven-invoker-plugin>
     <version.maven-jar-plugin>3.4.2</version.maven-jar-plugin>
-    <version.maven-javadoc-plugin>3.11.1</version.maven-javadoc-plugin>
+    <version.maven-javadoc-plugin>3.11.2</version.maven-javadoc-plugin>
     <version.maven-plugin-plugin>3.15.1</version.maven-plugin-plugin>
     <version.maven-release-plugin>3.1.1</version.maven-release-plugin>
     <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>

@@ -89,7 +89,7 @@ class OpenshiftHelmUninstallMojoTest {
 
   @Test
   @DisplayName("Helm release installed on Kuberentes cluster, then uninstall helm release")
-  void execute_whenReleasePresent_shouldUninstallChartFromKubernetesCluster() throws MojoExecutionException, MojoFailureException, IOException {
+  void execute_whenReleasePresent_shouldUninstallChartFromKubernetesCluster() throws MojoExecutionException, MojoFailureException {
     // Given
     openShiftHelmUninstallMojo.init();
     openShiftHelmUninstallMojo.jkubeServiceHub.getHelmService().install(openShiftHelmUninstallMojo.helm);
