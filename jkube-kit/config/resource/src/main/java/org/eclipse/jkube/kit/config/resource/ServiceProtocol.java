@@ -17,5 +17,5 @@ package org.eclipse.jkube.kit.config.resource;
  * @since 22/03/16
  */
 public enum ServiceProtocol {
-    UDP, TCP;
+    UDP, TCP
 }
