@@ -60,7 +60,7 @@ public abstract class AbstractJKubePlugin<E extends KubernetesExtension> impleme
               .map(taskByName(evaluatedProject))
               .filter(Objects::nonNull)
               // Cannot remove warning (object spread)
-              .forEach(t -> task.mustRunAfter(t));
+              .forEach(task::mustRunAfter);
           precedence.getOrDefault(task.getName(), Collections.emptyList())
               .forEach(taskDepClass -> task.mustRunAfter(evaluatedProject.getTasks().withType(taskDepClass)));
         });
