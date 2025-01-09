@@ -35,8 +35,6 @@ class IngressIT {
     return Stream.of(
         arguments("zero-config-no-host", "", "", "", "false"),
         arguments("zero-config-host-enricher-config", "test.example.com", "", "", "false"),
-        arguments("zero-config-extensionsv1beta1-enricher-config", "", "extensions/v1beta1", "", "false"),
-        arguments("zero-config-extensionsv1beta1-host-enricher-config", "test.example.com", "extensions/v1beta1", "", "false"),
         arguments("groovy-dsl-config", "", "", "org.eclipse.jkube.quickstart", "true")
     );
   }
