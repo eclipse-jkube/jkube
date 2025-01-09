@@ -59,7 +59,7 @@ class HelmIT {
   })
   void k8sResourceHelmFromFragment_whenRun_generatesHelmValues(String projectName) throws Exception {
     // When
-    final BuildResult result = gradleRunner.withITProject(projectName)
+    gradleRunner.withITProject(projectName)
       .withArguments("clean", "k8sResource", "k8sHelm").build();
     // Then
     ResourceVerify.verifyResourceDescriptors(
