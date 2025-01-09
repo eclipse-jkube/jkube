@@ -112,11 +112,12 @@ public abstract class KubernetesExtension {
 
   private static final boolean DEFAULT_OFFLINE = false;
   private static final String META_INF = "META-INF";
-  private static final Path DEFAULT_KUBERNETES_MANIFEST = Paths.get(META_INF, "jkube", "kubernetes.yml");
-  private static final Path DEFAULT_KUBERNETES_TEMPLATE = Paths.get(META_INF, "jkube", "kubernetes");
+  private static final String JKUBE = "jkube";
+  private static final Path DEFAULT_KUBERNETES_MANIFEST = Paths.get(META_INF, JKUBE, "kubernetes.yml");
+  private static final Path DEFAULT_KUBERNETES_TEMPLATE = Paths.get(META_INF, JKUBE, "kubernetes");
   private static final Path DEFAULT_JSON_LOG_DIR = Paths.get(JKUBE, "applyJson");
   private static final Path DEFAULT_RESOURCE_SOURCE_DIR = Paths.get("src", "main", JKUBE);
-  private static final Path DEFAULT_RESOURCE_TARGET_DIR = Paths.get("META-INF", JKUBE);
+  private static final Path DEFAULT_RESOURCE_TARGET_DIR = Paths.get(META_INF, JKUBE);
   private static final Path DEFAULT_WORK_DIR = Paths.get("jkube-temp");
 
   public transient JavaProject javaProject;
