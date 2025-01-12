@@ -303,7 +303,7 @@ class QuarkusHealthCheckEnricherTest {
     // Then
     assertContainers(klb)
         .extracting("livenessProbe.httpGet.port.IntVal", "readinessProbe.httpGet.port.IntVal", "startupProbe.httpGet.port.IntVal")
-        .containsExactly(tuple(1337, 1337, 1337));;
+        .containsExactly(tuple(1337, 1337, 1337));
   }
 
   private AbstractListAssert<?, List<? extends Container>, Container, ObjectAssert<Container>> assertContainers(
