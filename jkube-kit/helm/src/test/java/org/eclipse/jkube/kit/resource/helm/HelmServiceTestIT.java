@@ -14,18 +14,13 @@
 package org.eclipse.jkube.kit.resource.helm;
 
 import com.marcnuri.helm.Helm;
+import io.fabric8.kubeapitest.junit.EnableKubeAPIServer;
+import io.fabric8.kubeapitest.junit.KubeConfig;
 import io.fabric8.kubernetes.api.model.PodBuilder;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretListBuilder;
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesMixedDispatcher;
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import io.fabric8.mockwebserver.Context;
-import io.fabric8.mockwebserver.ServerRequest;
-import io.fabric8.mockwebserver.ServerResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -41,26 +36,24 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.eclipse.jkube.kit.common.util.KubernetesMockServerUtil.prepareMockWebServerExpectationsForAggregatedDiscoveryEndpoints;
 
 @DisplayName("HelmService.test")
+@EnableKubeAPIServer
 class HelmServiceTestIT {
+
+  @KubeConfig
+  static String kubeConfigYaml;
   @TempDir
   private Path tempDir;
-  private KubernetesMockServer server;
   private KubernetesClient kubernetesClient;
   private ByteArrayOutputStream logOutput;
   private HelmService helmService;
@@ -68,12 +61,11 @@ class HelmServiceTestIT {
 
   @BeforeEach
   void setUp() throws Exception {
-    final Map<ServerRequest, Queue<ServerResponse>> responses = new HashMap<>();
-    server = new KubernetesMockServer(new Context(), new MockWebServer(), responses, new KubernetesMixedDispatcher(responses), true);
-    server.init();
-    // Remove after https://github.com/fabric8io/kubernetes-client/issues/6062 is fixed
-    prepareMockWebServerExpectationsForAggregatedDiscoveryEndpoints(server);
-    kubernetesClient = server.createClient();
+    kubernetesClient = new KubernetesClientBuilder().withConfig(Config.fromKubeconfig(kubeConfigYaml)).build();
+    kubernetesClient.apps().deployments().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.pods().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.configMaps().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.secrets().withTimeout(1, TimeUnit.SECONDS).delete();
     logOutput = new ByteArrayOutputStream();
     Helm.create().withDir(tempDir).withName("test-project").call();
     Path helmChartOutputDir = tempDir.resolve("output").resolve("jkube").resolve("helm");
@@ -99,29 +91,14 @@ class HelmServiceTestIT {
   @AfterEach
   void stopKubernetesServer() {
     kubernetesClient.close();
-    server.destroy();
   }
 
   @Nested
   class WithChartInstalled {
 
     @BeforeEach
-    void setUp() throws Exception {
-      // OpenAPI validation endpoints required by helm test
-      server.expect().get().withPath("/openapi/v3?timeout=32s")
-        .andReturn(200, IOUtils.toString(Objects.requireNonNull(HelmServiceTestIT.class.getResourceAsStream("/it/helm-service-test/kubernetes-openapi-v3-schema.json")), StandardCharsets.UTF_8))
-        .always();
-      server.expect().get().withPath("/openapi/v3/api/v1?timeout=32s")
-        .andReturn(200, IOUtils.toString(Objects.requireNonNull(HelmServiceTestIT.class.getResourceAsStream("/it/helm-service-test/kubernetes-openapi-v3-api-v1-schema-pod.json")), StandardCharsets.UTF_8))
-        .always();
-      // Chart is installed
+    void installChart() {
       helmService.install(helmConfig);
-      Secret secret = kubernetesClient.secrets().withName("sh.helm.release.v1.test-project.v1").get();
-      server.expect().get().withPath("/api/v1/namespaces/test/secrets?labelSelector=name%3Dtest-project%2Cowner%3Dhelm")
-        .andReturn(200, new SecretListBuilder()
-          .addToItems(secret)
-          .build())
-        .once();
     }
 
     @Test

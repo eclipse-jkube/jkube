@@ -19,7 +19,7 @@ metadata:
   labels:
     app: test
     provider: jkube
-    version: "1337"
+    version: "v1337"
     helm-variable: {{ required "A valid .Values.GLOBAL_TEMPLATE_ENV_VAR entry required!" .Values.GLOBAL_TEMPLATE_ENV_VAR }}
   name: test
 spec:

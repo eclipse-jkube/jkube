@@ -14,9 +14,11 @@
 package org.eclipse.jkube.kit.resource.helm;
 
 import com.marcnuri.helm.Helm;
+import io.fabric8.kubeapitest.junit.EnableKubeAPIServer;
+import io.fabric8.kubeapitest.junit.KubeConfig;
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.openshift.api.model.Template;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -24,6 +26,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.resource.ResourceServiceConfig;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,26 +39,33 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.eclipse.jkube.kit.common.util.KubernetesMockServerUtil.prepareMockWebServerExpectationsForAggregatedDiscoveryEndpoints;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @DisplayName("HelmService.install")
-@EnableKubernetesMockClient(crud = true)
+@EnableKubeAPIServer
 class HelmServiceInstallIT {
+
+  @KubeConfig
+  static String kubeConfigYaml;
   @TempDir
   private Path tempDir;
+  private KubernetesClient kubernetesClient;
   private HelmConfig helmConfig;
   private HelmService helmService;
   private KitLogger kitLogger;
-  private KubernetesClient kubernetesClient;
-  private KubernetesMockServer server;
 
   @BeforeEach
   void setUp() throws URISyntaxException, IOException {
+    kubernetesClient = new KubernetesClientBuilder().withConfig(Config.fromKubeconfig(kubeConfigYaml)).build();
+    kubernetesClient.apps().deployments().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.pods().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.configMaps().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.secrets().withTimeout(1, TimeUnit.SECONDS).delete();
     kitLogger = spy(new KitLogger.SilentLogger());
     Template helmParameterTemplates = Serialization.unmarshal(HelmServiceInstallIT.class.getResource("/it/sources/global-template.yml"), Template.class);
     Path outputDir = tempDir.resolve("output");
@@ -75,14 +85,17 @@ class HelmServiceInstallIT {
         HelmParameter.builder().name("annotation.from.config.dotted").value("{{ .Chart.Name }}").build(),
         HelmParameter.builder().name("deployment.replicas").value(1).build()))
       .build();
-    // Remove after https://github.com/fabric8io/kubernetes-client/issues/6062 is fixed
-    prepareMockWebServerExpectationsForAggregatedDiscoveryEndpoints(server);
     helmService = new HelmService(JKubeConfiguration.builder()
       .project(JavaProject.builder()
         .buildDirectory(tempDir.resolve("target").toFile())
         .build())
       .clusterConfiguration(ClusterConfiguration.from(kubernetesClient.getConfiguration()).build())
       .build(), new ResourceServiceConfig(), kitLogger);
+  }
+
+  @AfterEach
+  void tearDown() {
+    kubernetesClient.close();
   }
 
   @Test
