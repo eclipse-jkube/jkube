@@ -778,6 +778,12 @@
         </exclusions>
       </dependency>
 
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>kube-api-test</artifactId>
+        <version>${version.kubernetes-client}</version>
+        <scope>test</scope>
+      </dependency>
       <!-- == doc ====================================== -->
       <dependency>
         <groupId>org.asciidoctor</groupId>

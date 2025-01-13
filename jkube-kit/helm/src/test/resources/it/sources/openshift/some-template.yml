@@ -18,7 +18,7 @@ metadata:
   labels:
     app: test
     provider: jkube
-    version: 1337
+    version: v1337
   name: test
 objects:
   - apiVersion: v1
@@ -27,7 +27,7 @@ objects:
       labels:
         app: test
         provider: jkube
-        version: 1337
+        version: v1337
         helm-variable: ${GLOBAL_TEMPLATE_ENV_VAR}
       name: test
     spec:

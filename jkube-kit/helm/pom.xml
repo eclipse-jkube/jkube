@@ -87,5 +87,32 @@
       <groupId>io.fabric8</groupId>
       <artifactId>openshift-server-mock</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kube-api-test</artifactId>
+    </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>java-8</id>
+      <activation>
+        <jdk>1.8</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration combine.self="override">
+              <testExcludes>
+                <testExclude>**/HelmServiceInstallIT.java</testExclude>
+                <testExclude>**/HelmServiceTestIT.java</testExclude>
+                <testExclude>**/HelmServiceUninstallIT.java</testExclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>

@@ -35,7 +35,7 @@ items:
     labels:
       app: test
       provider: jkube
-      version: 1337
+      version: v1337
     name: test
   spec:
     ports:
@@ -46,7 +46,7 @@ items:
     selector:
       app: test
       provider: jkube
-      version: 1337
+      version: v1337
     type: NodePort
 - apiVersion: apps/v1
   kind: Deployment
@@ -60,16 +60,16 @@ items:
     labels:
       app: test
       provider: jkube
-      version: 1337
+      version: v1337
     name: test
   spec:
     replicas: {{ .Values.deployment.replicas }}
     revisionHistoryLimit: 2
     selector:
       matchLabels:
-        app: spring-boot-yaml
+        app: test
         provider: jkube
-        group: org.eclipse.jkube.quickstarts.maven
+        version: v1337
     template:
       metadata:
         annotations:
@@ -79,7 +79,7 @@ items:
         labels:
           app: test
           provider: jkube
-          version: 1337
+          version: v1337
       spec:
         containers:
         - env:
