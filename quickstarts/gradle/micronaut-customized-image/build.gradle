@@ -54,12 +54,11 @@ java {
 }
 
 kubernetes {
-    buildStrategy = 'jib'
     images {
         image {
             name = "%g/%a:${project.version}"
             build {
-                from = "quay.io/jkube/jkube-java:0.0.16"
+                from = "quay.io/jkube/jkube-java:0.0.25"
                 tags = ["latest", "${project.version}"]
                 env {
                     JAVA_APP_JAR = "${project.name}-${project.version}-all.jar"
