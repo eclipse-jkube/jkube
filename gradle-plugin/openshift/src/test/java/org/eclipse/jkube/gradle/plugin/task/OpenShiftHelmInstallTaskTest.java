@@ -14,9 +14,11 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import com.marcnuri.helm.Helm;
+import io.fabric8.kubeapitest.junit.EnableKubeAPIServer;
+import io.fabric8.kubeapitest.junit.KubeConfig;
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
@@ -32,25 +34,29 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.eclipse.jkube.kit.common.util.KubernetesMockServerUtil.prepareMockWebServerExpectationsForAggregatedDiscoveryEndpoints;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@EnableKubernetesMockClient(crud = true)
+@EnableKubeAPIServer
 class OpenShiftHelmInstallTaskTest {
   @RegisterExtension
   private final TaskEnvironmentExtension taskEnvironment = new TaskEnvironmentExtension();
+  @KubeConfig
+  static String kubeConfigYaml;
   private KubernetesClient kubernetesClient;
-  private KubernetesMockServer server;
   private TestOpenShiftExtension extension;
 
   @BeforeEach
   void setUp() throws IOException {
     extension = new TestOpenShiftExtension();
-    // Remove after https://github.com/fabric8io/kubernetes-client/issues/6062 is fixed
-    prepareMockWebServerExpectationsForAggregatedDiscoveryEndpoints(server);
+    kubernetesClient = new KubernetesClientBuilder().withConfig(Config.fromKubeconfig(kubeConfigYaml)).build();
+    kubernetesClient.apps().deployments().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.pods().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.configMaps().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.secrets().withTimeout(1, TimeUnit.SECONDS).delete();
     Helm.create().withDir(taskEnvironment.getRoot().toPath()).withName("empty-project").call();
     Path helmChartOutputDir = taskEnvironment.getRoot().toPath().resolve("build").resolve("jkube").resolve("helm");
     Files.createDirectories(helmChartOutputDir.resolve("openshift"));
@@ -76,6 +82,7 @@ class OpenShiftHelmInstallTaskTest {
 
   @AfterEach
   void tearDown() {
+    kubernetesClient.close();
     System.clearProperty("jkube.kubernetesTemplate");
   }
 
