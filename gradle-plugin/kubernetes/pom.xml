@@ -185,6 +185,10 @@
             <artifactId>openshift-server-mock</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kube-api-test</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
@@ -208,4 +212,27 @@
             It's unrealistic to add a dependency for each of the gradle subprojects
          -->
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>java-8</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration combine.self="override">
+                            <testExcludes>
+                                <testExclude>**/KubernetesHelmInstallTaskTest.java</testExclude>
+                                <testExclude>**/KubernetesHelmTestTaskTest.java</testExclude>
+                                <testExclude>**/KubernetesHelmUninstallTaskTest.java</testExclude>
+                            </testExcludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
