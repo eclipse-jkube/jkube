@@ -172,6 +172,10 @@
             <artifactId>openshift-server-mock</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kube-api-test</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
@@ -267,4 +271,27 @@
 
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>java-8</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <build>
+                <plugins>
+                      <plugin>
+                          <artifactId>maven-compiler-plugin</artifactId>
+                          <configuration combine.self="override">
+                              <testExcludes>
+                                  <testExclude>**/HelmInstallMojoTest.java</testExclude>
+                                  <testExclude>**/HelmTestMojoTest.java</testExclude>
+                                  <testExclude>**/HelmUninstallMojoTest.java</testExclude>
+                              </testExcludes>
+                          </configuration>
+                      </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
