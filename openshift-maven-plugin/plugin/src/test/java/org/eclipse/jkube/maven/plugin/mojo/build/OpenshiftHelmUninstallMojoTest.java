@@ -14,11 +14,11 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import com.marcnuri.helm.Helm;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretListBuilder;
+import io.fabric8.kubeapitest.junit.EnableKubeAPIServer;
+import io.fabric8.kubeapitest.junit.KubeConfig;
+import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -33,27 +33,33 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.eclipse.jkube.kit.common.util.KubernetesMockServerUtil.prepareMockWebServerExpectationsForAggregatedDiscoveryEndpoints;
 
-@EnableKubernetesMockClient(crud = true)
+@EnableKubeAPIServer
 class OpenshiftHelmUninstallMojoTest {
+
+  @KubeConfig
+  static String kubeConfigYaml;
   @TempDir
   private Path projectDir;
+  private KubernetesClient kubernetesClient;
   private PrintStream originalPrintStream;
   private ByteArrayOutputStream outputStream;
   private OpenshiftHelmUninstallMojo openShiftHelmUninstallMojo;
-  private KubernetesClient kubernetesClient;
-  private KubernetesMockServer server;
 
   @BeforeEach
   void setUp() throws Exception {
+    kubernetesClient = new KubernetesClientBuilder().withConfig(Config.fromKubeconfig(kubeConfigYaml)).build();
+    kubernetesClient.apps().deployments().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.pods().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.configMaps().withTimeout(1, TimeUnit.SECONDS).delete();
+    kubernetesClient.secrets().withTimeout(1, TimeUnit.SECONDS).delete();
     originalPrintStream = System.out;
     outputStream = new ByteArrayOutputStream();
     System.setOut(new PrintStream(outputStream));
@@ -76,12 +82,11 @@ class OpenshiftHelmUninstallMojoTest {
       .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     openShiftHelmUninstallMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
     openShiftHelmUninstallMojo.project.setFile(projectDir.resolve("target").toFile());
-    // Remove after https://github.com/fabric8io/kubernetes-client/issues/6062 is fixed
-    prepareMockWebServerExpectationsForAggregatedDiscoveryEndpoints(server);
   }
 
   @AfterEach
   void tearDown() {
+    kubernetesClient.close();
     System.setOut(originalPrintStream);
     System.clearProperty("jkube.kubernetesTemplate");
     openShiftHelmUninstallMojo = null;
@@ -93,13 +98,6 @@ class OpenshiftHelmUninstallMojoTest {
     // Given
     openShiftHelmUninstallMojo.init();
     openShiftHelmUninstallMojo.jkubeServiceHub.getHelmService().install(openShiftHelmUninstallMojo.helm);
-    // Should be removed once https://github.com/fabric8io/kubernetes-client/issues/6220 gets fixed
-    Secret secret = kubernetesClient.secrets().withName("sh.helm.release.v1.empty-project.v1").get();
-    server.expect().get().withPath("/api/v1/namespaces/test/secrets?labelSelector=name%3Dempty-project%2Cowner%3Dhelm")
-      .andReturn(200, new SecretListBuilder()
-        .addToItems(secret)
-        .build())
-      .once();
     // When
     openShiftHelmUninstallMojo.execute();
     // Then
