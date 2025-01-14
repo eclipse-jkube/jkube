@@ -14,12 +14,11 @@
 package org.eclipse.jkube.kit.common.util.validator;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,20 +28,15 @@ import javax.validation.ConstraintViolationException;
 import javax.validation.Path;
 import javax.validation.metadata.ConstraintDescriptor;
 
+import io.fabric8.kubernetes.schema.validator.ValidationMessage;
+import io.fabric8.kubernetes.schema.validator.ValidationReport;
+import io.fabric8.kubernetes.schema.validator.Validator;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.ResourceClassifier;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.networknt.schema.JsonMetaSchema;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.NonValidationKeyword;
-import com.networknt.schema.ValidationMessage;
 
 /**
  * Validates Kubernetes/OpenShift resource descriptors using JSON schema validation method.
@@ -51,10 +45,8 @@ import com.networknt.schema.ValidationMessage;
 
 public class ResourceValidator {
 
-    public static final String SCHEMA_JSON = "schema/validation-schema.json";
     private KitLogger log;
     private final File[] resources;
-    private ResourceClassifier target = ResourceClassifier.KUBERNETES;
     private final List<ValidationRule> ignoreValidationRules = new ArrayList<>();
 
     /**
@@ -66,6 +58,7 @@ public class ResourceValidator {
         } else {
             resources = new File[]{inputFile};
         }
+        setupIgnoreRules();
     }
 
     /**
@@ -75,9 +68,7 @@ public class ResourceValidator {
      */
     public ResourceValidator(File inputFile, ResourceClassifier target, KitLogger log) {
         this(inputFile);
-        this.target = target;
         this.log = log;
-        setupIgnoreRules(this.target);
     }
 
     /*
@@ -86,9 +77,8 @@ public class ResourceValidator {
      * e.g. In DeploymentConfig(https://docs.openshift.com/container-platform/3.6/rest_api/openshift_v1.html#v1-deploymentconfig) model 'status' field is marked as
      * required.
      */
-    private void setupIgnoreRules(ResourceClassifier target) {
-        ignoreValidationRules.add(new IgnorePortValidationRule(ValidationRule.TYPE));
-        ignoreValidationRules.add(new IgnoreResourceMemoryLimitRule(ValidationRule.TYPE));
+    private void setupIgnoreRules() {
+        ignoreValidationRules.add(new IgnorePortValidationRule());
     }
 
 
@@ -102,29 +92,27 @@ public class ResourceValidator {
      * @throws IOException IOException
      */
     public int validate() throws IOException {
+        final Validator validator = Validator.newInstance();
         for(File resource: resources) {
             if (resource.isFile() && resource.exists()) {
                 log.info("validating %s resource", resource.toString());
                 JsonNode inputSpecNode = geFileContent(resource);
-                String kind = inputSpecNode.get("kind").toString();
-                for (URL schemaFile : Collections.list(ResourceValidator.class.getClassLoader().getResources(SCHEMA_JSON))) {
-                    JsonSchema schema = getJsonSchema(schemaFile, kind);
-                    Set<ValidationMessage> errors = schema.validate(inputSpecNode);
-                    processErrors(errors, resource);
+                final ValidationReport report = validator.validate(inputSpecNode);
+                if (report.hasErrors()) {
+                    processErrors(report.getMessages(), resource);
                 }
             }
         }
-
         return resources.length;
     }
 
-    private void processErrors(Set<ValidationMessage> errors, File resource) {
-        Set<ConstraintViolationImpl> constraintViolations = new HashSet<>();
+    private void processErrors(Collection<ValidationMessage> errors, File resource) {
+        final Set<ConstraintViolationImpl> constraintViolations = new HashSet<>();
         for (ValidationMessage errorMsg: errors) {
-            if(!ignoreError(errorMsg))
+            if (!ignoreError(errorMsg)) {
                 constraintViolations.add(new ConstraintViolationImpl(errorMsg));
+            }
         }
-
         if(!constraintViolations.isEmpty()) {
             throw new ConstraintViolationException(getErrorMessage(resource, constraintViolations), constraintViolations);
         }
@@ -153,59 +141,11 @@ public class ResourceValidator {
         return  validationError.toString();
     }
 
-    private JsonSchema getJsonSchema(URL schemaUrl, String kind) throws IOException {
-        final JsonMetaSchema v7 = JsonMetaSchema.getV7();
-        final String defaultUri = v7.getIri();
-        JsonObject jsonSchema = fixUrlIfUnversioned(getSchemaJson(schemaUrl), defaultUri);
-        checkIfKindPropertyExists(kind);
-        getResourceProperties(kind, jsonSchema);
-        final JsonMetaSchema metaSchema = JsonMetaSchema.builder(v7.getIri(), v7)
-            .keywords(createNonValidationKeywordList())
-            .build();
-        return new JsonSchemaFactory.Builder()
-            .defaultMetaSchemaIri(defaultUri).metaSchema(metaSchema).build()
-            .getSchema(jsonSchema.toString());
-    }
-
-    private void getResourceProperties(String kind, JsonObject jsonSchema) {
-        String kindKey = kind.replaceAll("\"", "").toLowerCase();
-        if (jsonSchema.get("resources") != null && jsonSchema.get("resources").getAsJsonObject().get(kindKey) != null) {
-            jsonSchema.add("properties" , jsonSchema.get("resources").getAsJsonObject()
-                    .getAsJsonObject(kindKey)
-                    .getAsJsonObject("properties"));
-        }
-    }
-
-    private void checkIfKindPropertyExists(String kind) {
-        if(kind == null) {
-            throw new JsonIOException("Invalid kind of resource or 'kind' is missing from resource definition");
-        }
-    }
-
     private JsonNode geFileContent(File file) throws IOException {
-        try (InputStream resourceStream = new FileInputStream(file)) {
+        try (InputStream resourceStream = Files.newInputStream(file.toPath())) {
             ObjectMapper jsonMapper = new ObjectMapper(new YAMLFactory());
             return jsonMapper.readTree(resourceStream);
         }
-    }
-
-    public JsonObject getSchemaJson(URL schemaUrl) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        String rootNode = objectMapper.readValue(schemaUrl, JsonNode.class).toString();
-        JsonObject jsonObject = new JsonParser().parse(rootNode).getAsJsonObject();
-        jsonObject.remove("id");
-        return jsonObject;
-    }
-
-    static List<NonValidationKeyword> createNonValidationKeywordList() {
-        List<NonValidationKeyword> nonValidationKeywords = new ArrayList<>();
-        nonValidationKeywords.add(new NonValidationKeyword("javaType"));
-        nonValidationKeywords.add(new NonValidationKeyword("javaInterfaces"));
-        nonValidationKeywords.add(new NonValidationKeyword("resources"));
-        nonValidationKeywords.add(new NonValidationKeyword("javaOmitEmpty"));
-        nonValidationKeywords.add(new NonValidationKeyword("existingJavaType"));
-        nonValidationKeywords.add(new NonValidationKeyword("$module"));
-        return nonValidationKeywords;
     }
 
     private static class ConstraintViolationImpl implements ConstraintViolation<ValidationMessage> {
@@ -273,18 +213,8 @@ public class ResourceValidator {
 
         @Override
         public String toString() {
-            return "[message=" + getMessage().replaceFirst("[$]", "") +", violation type="+errorMsg.getType()+"]";
+            return "[message=" + getMessage().replaceFirst("[$]", "") +", violation type="+errorMsg.getLevel().name()+"]";
         }
-    }
-
-    private static JsonObject fixUrlIfUnversioned(JsonObject jsonSchema, String versionedUri) {
-        final String uri = jsonSchema.get("$schema").getAsString();
-        if (uri.matches("^https?://json-schema.org/draft-05/schema[^/]*$")) {
-            final JsonObject ret = jsonSchema.deepCopy();
-            ret.addProperty("$schema", versionedUri);
-            return ret;
-        }
-        return jsonSchema;
     }
 
 }

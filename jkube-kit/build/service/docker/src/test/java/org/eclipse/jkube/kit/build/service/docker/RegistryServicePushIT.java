@@ -222,7 +222,7 @@ class RegistryServicePushIT {
     // When
     assertThatExceptionOfType(DockerAccessException.class)
         .isThrownBy(() -> registryService.pushImage(imageConfiguration, 0, registryConfig, false))
-        .withMessage("Unable to push 'example.org/foo/bar:latest' to registry 'example.org' : {\"message\":\"ERROR\"} (Server Error: 500)");
+        .withMessage("Unable to push 'example.org/foo/bar:latest' to registry 'example.org' : {\"message\":\"ERROR\"} (Internal Server Error: 500)");
   }
 
   @Test

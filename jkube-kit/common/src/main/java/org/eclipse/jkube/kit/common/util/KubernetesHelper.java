@@ -840,7 +840,7 @@ public class KubernetesHelper {
             kubeConfigBuilder.addToContexts(kubernetesClientConfig.getCurrentContext());
             kubeConfigBuilder.withCurrentContext(kubernetesClientConfig.getCurrentContext().getName());
             kubeConfigBuilder.addToUsers(createKubeConfigUserFromClient(kubernetesClientConfig));
-            KubeConfigUtils.persistKubeConfigIntoFile(kubeConfigBuilder.build(), targetKubeConfig.toString());
+            KubeConfigUtils.persistKubeConfigIntoFile(kubeConfigBuilder.build(), targetKubeConfig.toFile());
             return targetKubeConfig;
         } catch (IOException ioException) {
             throw new JKubeException("Failure in exporting KubernetesClient config : " + ioException.getMessage());

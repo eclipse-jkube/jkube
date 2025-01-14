@@ -13,9 +13,9 @@
  */
 package org.eclipse.jkube.kit.resource.helm;
 
+import io.fabric8.mockwebserver.http.Headers;
+import io.fabric8.mockwebserver.http.RecordedRequest;
 import io.fabric8.mockwebserver.utils.ResponseProvider;
-import okhttp3.Headers;
-import okhttp3.mockwebserver.RecordedRequest;
 
 import java.util.Map;
 
@@ -37,7 +37,7 @@ public class TestMockResponseProvider implements ResponseProvider<Object> {
 
   @Override
   public Headers getHeaders() {
-    return Headers.of(headers);
+    return Headers.builder().addAll(headers.entrySet()).build();
   }
 
   @Override

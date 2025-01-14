@@ -82,39 +82,6 @@
       </build>
     </profile>
     <profile>
-      <id>zero-config-extensionsv1beta1-host-enricher-config</id>
-      <properties>
-        <jkube.enricher.jkube-ingress.host>test.example.com</jkube.enricher.jkube-ingress.host>
-        <jkube.enricher.jkube-ingress.targetApiVersion>extensions/v1beta1</jkube.enricher.jkube-ingress.targetApiVersion>
-        <target>zero-config-extensionsv1beta1-host-enricher-config</target>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>@jkube.version@</version>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>zero-config-extensionsv1beta1-enricher-config</id>
-      <properties>
-        <jkube.enricher.jkube-ingress.targetApiVersion>extensions/v1beta1</jkube.enricher.jkube-ingress.targetApiVersion>
-        <target>zero-config-extensionsv1beta1-enricher-config</target>
-      </properties>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.eclipse.jkube</groupId>
-            <artifactId>kubernetes-maven-plugin</artifactId>
-            <version>@jkube.version@</version>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
       <id>xml-config</id>
       <properties>
         <jkube.domain>org.eclipse.jkube.quickstart</jkube.domain>

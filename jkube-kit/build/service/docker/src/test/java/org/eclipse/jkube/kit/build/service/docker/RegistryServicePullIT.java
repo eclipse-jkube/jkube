@@ -224,7 +224,7 @@ class RegistryServicePullIT {
     // When
     assertThatExceptionOfType(DockerAccessException.class)
         .isThrownBy(() -> registryService.pullImageWithPolicy("example.org/foo/bar:latest", imagePullManager, registryConfig, buildConfiguration))
-        .withMessage("Unable to pull 'example.org/foo/bar:latest' from registry 'example.org' : {\"message\":\"ERROR\"} (Server Error: 500)");
+        .withMessage("Unable to pull 'example.org/foo/bar:latest' from registry 'example.org' : {\"message\":\"ERROR\"} (Internal Server Error: 500)");
   }
 
   private RegistryConfig createNewRegistryConfig(String registry) {
