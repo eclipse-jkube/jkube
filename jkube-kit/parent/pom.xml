@@ -34,7 +34,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <version.bouncycastle.bcpkix>1.79</version.bouncycastle.bcpkix>
+    <version.bouncycastle.bcpkix>1.80</version.bouncycastle.bcpkix>
     <version.commons-codec>1.17.2</version.commons-codec>
     <version.commons-lang3>3.17.0</version.commons-lang3>
     <version.commons-text>1.13.0</version.commons-text>
