@@ -71,7 +71,7 @@ public class PodExecutor {
   void executeCommandInPod(Collection<HasMetadata> resources, String command) throws InterruptedException, WatchException, IOException {
     final KubernetesClient client = watcherContext.getJKubeServiceHub().getClient();
     try (
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()
     ) {
       final String namespace = watcherContext.getNamespace();
       final ExecListenerLatch latch = new ExecListenerLatch();
