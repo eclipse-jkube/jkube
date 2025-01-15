@@ -21,7 +21,8 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.7.17</version>
+    <version>3.4.1</version>
+    <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
   <groupId>org.eclipse.jkube.quickstarts.maven</groupId>
@@ -36,51 +37,31 @@
   </description>
 
   <properties>
+    <java.version>17</java.version>
     <jkube.version>${project.version}</jkube.version>
   </properties>
 
-  <distributionManagement>
-    <snapshotRepository>
-      <id>sonatype-nexus-snapshots</id>
-      <name>Sonatype Nexus Snapshots</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
-    <repository>
-      <id>sonatype-nexus-staging</id>
-      <name>Nexus Release Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
-
   <dependencies>
-
-    <!-- Boot generator  -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
     </dependency>
-
-    <dependency>
-      <groupId>org.jolokia</groupId>
-      <artifactId>jolokia-core</artifactId>
-    </dependency>
-
   </dependencies>
 
   <build>
     <plugins>
-
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+      </plugin>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
-
-
     </plugins>
   </build>
 
@@ -93,9 +74,7 @@
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>kubernetes-maven-plugin</artifactId>
             <version>${jkube.version}</version>
-
             <configuration>
-
               <resources>
                 <labels>
                   <all>
@@ -103,11 +82,7 @@
                   </all>
                 </labels>
               </resources>
-
               <generator>
-                <includes>
-                  <include>spring-boot</include>
-                </includes>
                 <config>
                   <spring-boot>
                     <color>always</color>
@@ -115,9 +90,6 @@
                 </config>
               </generator>
               <enricher>
-                <excludes>
-                  <exclude>jkube-expose</exclude>
-                </excludes>
                 <config>
                   <jkube-service>
                     <type>NodePort</type>
@@ -125,16 +97,6 @@
                 </config>
               </enricher>
             </configuration>
-
-            <executions>
-              <execution>
-                <goals>
-                  <goal>resource</goal>
-                  <goal>build</goal>
-                  <goal>helm</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
@@ -147,7 +109,6 @@
             <groupId>org.eclipse.jkube</groupId>
             <artifactId>openshift-maven-plugin</artifactId>
             <version>${jkube.version}</version>
-
             <configuration>
               <resources>
                 <labels>
@@ -156,11 +117,7 @@
                   </all>
                 </labels>
               </resources>
-
               <generator>
-                <includes>
-                  <include>spring-boot</include>
-                </includes>
                 <config>
                   <spring-boot>
                     <color>always</color>
@@ -168,9 +125,6 @@
                 </config>
               </generator>
               <enricher>
-                <excludes>
-                  <exclude>jkube-expose</exclude>
-                </excludes>
                 <config>
                   <jkube-service>
                     <type>NodePort</type>
@@ -178,15 +132,6 @@
                 </config>
               </enricher>
             </configuration>
-
-            <executions>
-              <execution>
-                <goals>
-                  <goal>resource</goal>
-                  <goal>build</goal>
-                </goals>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>
