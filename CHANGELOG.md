@@ -27,6 +27,7 @@ Usage:
 * Fix #2667: Add new helm test goal task (`k8s:helm-test` for maven and `k8sHelmTest` for gradle)
 * Fix #3326: Micronaut healthcheck enricher infers overridden server port in application.properties
 * Fix #3354: Build fails with `imageStream` for `buildRecreate` value
+* Fix #3578: Skip executable libs when searching Spring Boot native binary
 * Fix #3623: Updated jkube-images to 0.0.25
 
 ### 1.17.0 (2024-08-13)
