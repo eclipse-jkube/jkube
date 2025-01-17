@@ -30,10 +30,11 @@ public class BuildArgResolverUtil {
 
   private static final String ARG_PREFIX = "docker.buildArg.";
 
-  private BuildArgResolverUtil() { }
+  private BuildArgResolverUtil() {
+  }
 
   /**
-   * Merges Docker Build Args from the following sources:
+   * Merges Docker Build Args from the following source in the mentioned order of precedence (moving from higher to lower precedence):
    * <ul>
    *   <li>Build Args specified directly in ImageConfiguration</li>
    *   <li>Build Args specified via System Properties</li>
@@ -41,6 +42,9 @@ public class BuildArgResolverUtil {
    *   <li>Build Args specified via Plugin configuration</li>
    *   <li>Docker Proxy Build Args detected from ~/.docker/config.json</li>
    * </ul>
+   *
+   * <i><b>Note:</b> When identical Build Args are specified in multiple sources, their values are overridden according to the established order of precedence. A warning is also logged to highlight the Build Arg and the updated value.</i>
+   *
    * @param imageConfig ImageConfiguration where to get the Build Args from.
    * @param configuration {@link JKubeConfiguration}.
    * @return a Map containing merged Build Args from all sources.
@@ -59,13 +63,16 @@ public class BuildArgResolverUtil {
   }
 
   /**
-   * Merges Docker Build Args from the following sources:
+   * Merges Docker Build Args from the following source in the mentioned order of precedence (moving from higher to lower precedence):
    * <ul>
    *   <li>Build Args specified directly in ImageConfiguration</li>
    *   <li>Build Args specified via System Properties</li>
    *   <li>Build Args specified via Project Properties</li>
    *   <li>Build Args specified via Plugin configuration</li>
    * </ul>
+   *
+   * <i><b>Note:</b> When identical Build Args are specified in multiple sources, their values are overridden according to the established order of precedence. A warning is also logged to highlight the Build Arg and the updated value.</i>
+   *
    * @param imageConfig ImageConfiguration where to get the Build Args from.
    * @param configuration {@link JKubeConfiguration}.
    * @return a Map containing merged Build Args from all sources.
@@ -90,8 +97,11 @@ public class BuildArgResolverUtil {
         .flatMap(map -> map.entrySet().stream())
         .forEach(entry -> {
           if (buildArgs.containsKey(entry.getKey())) {
-            logger.warn(String.format("Multiple Build Args with the same key: %s=%s and %s=%s, overriding value of key to %s=%s", entry.getKey(),
-                buildArgs.get(entry.getKey()), entry.getKey(), entry.getValue(), entry.getKey(),entry.getValue()));
+            logger.warn(
+                String.format("Multiple Build Args with the same key: %s=%s and %s=%s, overriding value of key to %s=%s",
+                    entry.getKey(), buildArgs.get(entry.getKey()), entry.getKey(), entry.getValue(), entry.getKey(),
+                    entry.getValue())
+            );
           }
           buildArgs.put(entry.getKey(), entry.getValue());
         });
@@ -133,9 +143,9 @@ public class BuildArgResolverUtil {
             "ftpProxy", "ftp_proxy"
         };
 
-        for(int index = 0; index < proxyMapping.length; index += 2) {
+        for (int index = 0; index < proxyMapping.length; index += 2) {
           if (defaultProxyObj.containsKey(proxyMapping[index])) {
-            buildArgs.put(ARG_PREFIX + proxyMapping[index+1], defaultProxyObj.get(proxyMapping[index]));
+            buildArgs.put(ARG_PREFIX + proxyMapping[index + 1], defaultProxyObj.get(proxyMapping[index]));
           }
         }
       }
