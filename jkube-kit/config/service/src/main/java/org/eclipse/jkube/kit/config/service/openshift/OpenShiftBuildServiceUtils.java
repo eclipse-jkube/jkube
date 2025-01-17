@@ -26,6 +26,7 @@ import io.fabric8.openshift.api.model.ImageStreamTag;
 import io.fabric8.openshift.api.model.ImageStreamTagBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.IoUtil;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -110,7 +111,7 @@ public class OpenShiftBuildServiceUtils {
   }
 
   protected static BuildStrategy createBuildStrategy(
-      JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfig, String openshiftPullSecret) {
+      JKubeServiceHub jKubeServiceHub, ImageConfiguration imageConfig, String openshiftPullSecret, KitLogger logger) {
     final BuildServiceConfig config = jKubeServiceHub.getBuildServiceConfig();
     final JKubeBuildStrategy osBuildStrategy = config.getJKubeBuildStrategy();
     final BuildConfiguration buildConfig = imageConfig.getBuildConfiguration();
@@ -134,7 +135,7 @@ public class OpenShiftBuildServiceUtils {
               .withNamespace(StringUtils.isEmpty(fromNamespace) ? null : fromNamespace)
             .endFrom()
             .withEnv(checkForEnv(imageConfig))
-            .withBuildArgs(mergeBuildArgsWithoutLocalDockerConfigProxySettings(imageConfig, jKubeServiceHub.getConfiguration())
+            .withBuildArgs(mergeBuildArgsWithoutLocalDockerConfigProxySettings(imageConfig, jKubeServiceHub.getConfiguration(),logger)
                 .entrySet()
                 .stream()
                 .map(bcArg -> new EnvVarBuilder()

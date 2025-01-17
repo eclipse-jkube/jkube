@@ -27,6 +27,7 @@ import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -63,6 +64,7 @@ import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildServi
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -74,6 +76,7 @@ class OpenShiftBuildServiceUtilsTest {
 
   private JKubeServiceHub jKubeServiceHub;
   private ImageConfiguration imageConfiguration;
+  private KitLogger log;
 
   @BeforeEach
   void setUp() {
@@ -91,6 +94,7 @@ class OpenShiftBuildServiceUtilsTest {
             .from("ubi8/s2i-base")
             .build()
         ).build();
+    log = spy(new KitLogger.SilentLogger());
   }
 
   @AfterEach
@@ -159,7 +163,7 @@ class OpenShiftBuildServiceUtilsTest {
     when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.jib);
     // When + Then
     assertThatIllegalArgumentException()
-        .isThrownBy(() -> createBuildStrategy(jKubeServiceHub, imageConfiguration, null))
+        .isThrownBy(() -> createBuildStrategy(jKubeServiceHub, imageConfiguration, null, log))
         .withMessageContaining("Unsupported BuildStrategy jib");
   }
 
@@ -168,7 +172,7 @@ class OpenShiftBuildServiceUtilsTest {
     // Given
     when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     // When
-    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null);
+    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null, log);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("type", "Source")
@@ -182,7 +186,7 @@ class OpenShiftBuildServiceUtilsTest {
     // Given
     when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.s2i);
     // When
-    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
+    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull", log);
     // Then
     assertThat(result)
         .hasFieldOrPropertyWithValue("type", "Source")
@@ -205,7 +209,7 @@ class OpenShiftBuildServiceUtilsTest {
     @DisplayName("no pull secret specified")
     void withDockerBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
       // When
-      final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null);
+      final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null, log);
       // Then
       assertThat(result)
           .hasFieldOrPropertyWithValue("type", "Docker")
@@ -218,7 +222,7 @@ class OpenShiftBuildServiceUtilsTest {
     @DisplayName("pull secret specified, should reflect in Build Strategy")
     void withPullSecret_shouldReturnValidBuildStrategy() {
       // When
-      final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
+      final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull", log);
       // Then
       assertThat(result)
           .hasFieldOrPropertyWithValue("type", "Docker")
@@ -242,7 +246,7 @@ class OpenShiftBuildServiceUtilsTest {
                 .build())
             .build();
         // When
-        final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
+        final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull", log);
         // Then
         assertBuildArgPresentInBuildStrategy(result);
       }
@@ -259,7 +263,7 @@ class OpenShiftBuildServiceUtilsTest {
                 .build())
             .build());
         // When
-        final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull");
+        final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull", log);
         // Then
         assertBuildArgPresentInBuildStrategy(result);
       }
