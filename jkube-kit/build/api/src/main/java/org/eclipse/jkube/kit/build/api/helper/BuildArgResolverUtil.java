@@ -15,15 +15,16 @@ package org.eclipse.jkube.kit.build.api.helper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.JKubeException;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.stream.Stream;
 
 public class BuildArgResolverUtil {
 
@@ -44,12 +45,17 @@ public class BuildArgResolverUtil {
    * @param configuration {@link JKubeConfiguration}.
    * @return a Map containing merged Build Args from all sources.
    */
-  public static Map<String, String> mergeBuildArgsIncludingLocalDockerConfigProxySettings(ImageConfiguration imageConfig, JKubeConfiguration configuration) {
-    return mergeBuildArgsFrom(imageConfig.getBuild().getArgs(),
-            buildArgsFromProperties(System.getProperties()),
-            buildArgsFromProperties(configuration.getProject().getProperties()),
-            configuration.getBuildArgs(),
-            buildArgsFromDockerConfig());
+  public static Map<String, String> mergeBuildArgsIncludingLocalDockerConfigProxySettings(ImageConfiguration imageConfig,
+      JKubeConfiguration configuration, KitLogger logger) {
+    List<Map<String, String>> buildArgSources = new ArrayList<>();
+
+    // Add build arg sources following order of precedence
+    buildArgSources.add(buildArgsFromDockerConfig());
+    buildArgSources.add(configuration.getBuildArgs());
+    buildArgSources.add(buildArgsFromProperties(configuration.getProject().getProperties()));
+    buildArgSources.add(buildArgsFromProperties(System.getProperties()));
+    buildArgSources.add(imageConfig.getBuild().getArgs());
+    return mergeBuildArgsFrom(buildArgSources, logger);
   }
 
   /**
@@ -64,23 +70,28 @@ public class BuildArgResolverUtil {
    * @param configuration {@link JKubeConfiguration}.
    * @return a Map containing merged Build Args from all sources.
    */
-  public static Map<String, String> mergeBuildArgsWithoutLocalDockerConfigProxySettings(ImageConfiguration imageConfig, JKubeConfiguration configuration) {
-    return mergeBuildArgsFrom(imageConfig.getBuild().getArgs(),
-        buildArgsFromProperties(System.getProperties()),
-        buildArgsFromProperties(configuration.getProject().getProperties()),
-        configuration.getBuildArgs());
+  public static Map<String, String> mergeBuildArgsWithoutLocalDockerConfigProxySettings(ImageConfiguration imageConfig,
+      JKubeConfiguration configuration, KitLogger logger) {
+
+    List<Map<String, String>> buildArgSources = new ArrayList<>();
+
+    // Add build arg sources following order of precedence
+    buildArgSources.add(configuration.getBuildArgs());
+    buildArgSources.add(buildArgsFromProperties(configuration.getProject().getProperties()));
+    buildArgSources.add(buildArgsFromProperties(System.getProperties()));
+    buildArgSources.add(imageConfig.getBuild().getArgs());
+    return mergeBuildArgsFrom(buildArgSources, logger);
   }
 
-  @SafeVarargs
-  private static Map<String, String> mergeBuildArgsFrom(Map<String, String>... buildArgSources) {
+  private static Map<String, String> mergeBuildArgsFrom(List<Map<String, String>> buildArgSources, KitLogger logger) {
     final Map<String, String> buildArgs = new HashMap<>();
-    Stream.of(buildArgSources)
+    buildArgSources.stream()
         .filter(Objects::nonNull)
         .flatMap(map -> map.entrySet().stream())
         .forEach(entry -> {
           if (buildArgs.containsKey(entry.getKey())) {
-            throw new JKubeException(String.format("Multiple Build Args with the same key: %s=%s and %s=%s",
-                entry.getKey(), buildArgs.get(entry.getKey()), entry.getKey(), entry.getValue()));
+            logger.warn(String.format("Multiple Build Args with the same key: %s=%s and %s=%s, overriding value of key to %s=%s", entry.getKey(),
+                buildArgs.get(entry.getKey()), entry.getKey(), entry.getValue(), entry.getKey(),entry.getValue()));
           }
           buildArgs.put(entry.getKey(), entry.getValue());
         });
