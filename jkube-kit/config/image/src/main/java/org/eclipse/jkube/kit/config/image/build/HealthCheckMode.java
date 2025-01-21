@@ -24,6 +24,6 @@ public enum HealthCheckMode {
     /**
      * A command based health check.
      */
-    cmd;
+    cmd
 
 }
