@@ -24,6 +24,9 @@ ifeval::["{plugin-type}" == "maven"]
 endif::[]
 
 
-Please note that the system property setting will always override the project property. Also note that for all
-properties which are not Docker https://docs.docker.com/engine/reference/builder/#arg[predefined] properties, the
+The following order of precedence will be used for resolving Docker Build Args specified across multiple sources:
+
+**System Properties** (highest precedence) > **Project Properties** > **Plugin Configuration** (lowest precedence)
+
+Also note that for all properties which are not Docker https://docs.docker.com/engine/reference/builder/#arg[predefined] properties, the
 external Dockerfile must contain an `ARGS` instruction.
