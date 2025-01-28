@@ -278,7 +278,7 @@ public class VertxHealthCheckEnricher extends AbstractHealthCheckEnricher {
             } else {
                 throw new IllegalArgumentException(String.format(
                     ERROR_MESSAGE,
-                    config.getKey(), input.getClass(), input.toString()));
+                    config.getKey(), input.getClass(), input));
             }
 
         });
