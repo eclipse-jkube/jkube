@@ -82,7 +82,7 @@ public class BuildArgResolverUtil {
 
     List<Map<String, String>> buildArgSources = new ArrayList<>();
 
-    // Add build arg sources following order of precedence
+    // Add build arg sources following increasing order of precedence
     buildArgSources.add(configuration.getBuildArgs());
     buildArgSources.add(buildArgsFromProperties(configuration.getProject().getProperties()));
     buildArgSources.add(buildArgsFromProperties(System.getProperties()));
