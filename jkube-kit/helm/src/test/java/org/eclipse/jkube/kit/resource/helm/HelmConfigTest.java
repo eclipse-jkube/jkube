@@ -189,7 +189,7 @@ class HelmConfigTest {
     helmConfig.setGeneratedChartListeners(Arrays.asList((helmConfig1, type, chartFile) -> {
     }));
     // Then
-    assertThat(helmConfig.getApiVersion()).isEqualTo("v2");;
+    assertThat(helmConfig.getApiVersion()).isEqualTo("v2");
     assertThat(helmConfig.getVersion()).isEqualTo("version");
     assertThat(helmConfig.getSecurity()).isEqualTo("security");
     assertThat(helmConfig.getChart()).isEqualTo("chart");
