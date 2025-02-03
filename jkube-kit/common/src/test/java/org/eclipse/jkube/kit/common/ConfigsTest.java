@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ConfigsTest {
 
   public enum ConfigWithDefaults implements Configs.Config {
-    ONE, TWO;
+    ONE, TWO
   }
 
   @AllArgsConstructor
