@@ -14,8 +14,8 @@
 package org.eclipse.jkube.kit.build.api.helper;
 
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.JKubeException;
 import org.eclipse.jkube.kit.common.JavaProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
@@ -36,13 +36,16 @@ import java.util.Map;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class BuildArgResolverUtilMergeBuildArgsTest {
   private ImageConfiguration imageConfiguration;
   private JKubeConfiguration jKubeConfiguration;
   private Properties projectProperties;
   private Map<String, String> buildArgFromPluginConfiguration;
+  private KitLogger kitLogger;
 
   @BeforeEach
   void setUp() {
@@ -59,6 +62,7 @@ class BuildArgResolverUtilMergeBuildArgsTest {
         .build(BuildConfiguration.builder()
             .build())
         .build();
+    kitLogger = spy(new KitLogger.SilentLogger());
   }
 
   @Test
@@ -75,7 +79,8 @@ class BuildArgResolverUtilMergeBuildArgsTest {
         .build();
 
     // When
-    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration);
+    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(
+        imageConfiguration, jKubeConfiguration, kitLogger);
 
     // Then
     assertThat(mergedBuildArgs)
@@ -95,7 +100,8 @@ class BuildArgResolverUtilMergeBuildArgsTest {
     givenBuildArgsFromJKubeConfiguration("FULL_IMAGE", "busybox:latest");
 
     // When
-    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration);
+    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(
+        imageConfiguration, jKubeConfiguration, kitLogger);
 
     // Then
     assertThat(mergedBuildArgs)
@@ -106,42 +112,81 @@ class BuildArgResolverUtilMergeBuildArgsTest {
   }
 
   @Test
-  @DisplayName("build args in image config and system properties with same key, should throw exception")
-  void fromBuildConfigurationAndSystemPropertiesWithSameKey_shouldNotMergeBuildArgs() {
+  @DisplayName("build args in image config, system properties, project properties should merge for same keys following the order of precedence")
+  void fromAllSourcesWithSameKeys_shouldMergeBuildArgs_withLoggedWarnings() {
+    // Given
+    givenBuildArgsFromImageConfiguration("VERSION", "latest");
+    System.setProperty("docker.buildArg.VERSION", "1.0.0");
+    projectProperties.setProperty("docker.buildArg.VERSION", "1.1.0");
+    givenBuildArgsFromJKubeConfiguration("VERSION", "1.1.1");
+
+    // When
+    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(
+        imageConfiguration, jKubeConfiguration, kitLogger);
+
+    // Then
+    assertThat(mergedBuildArgs)
+        .containsEntry("VERSION", "latest");
+    verify(kitLogger, times(1)).warn(
+        "Multiple Build Args with the same key: VERSION=1.1.1 and VERSION=1.1.0, overriding value of key to VERSION=1.1.0");
+    verify(kitLogger, times(1)).warn(
+        "Multiple Build Args with the same key: VERSION=1.1.0 and VERSION=1.0.0, overriding value of key to VERSION=1.0.0");
+    verify(kitLogger, times(1)).warn(
+        "Multiple Build Args with the same key: VERSION=1.0.0 and VERSION=latest, overriding value of key to VERSION=latest");
+  }
+
+  @Test
+  @DisplayName("build args in image config and system properties with same key, should log a warning and override the value of key in system properties")
+  void fromBuildConfigurationAndSystemPropertiesWithSameKey_shouldMergeBuildArgs() {
     // Given
     givenBuildArgsFromImageConfiguration("VERSION", "latest");
     System.setProperty("docker.buildArg.VERSION", "1.0.0");
 
-    // When & Then
-    assertThatExceptionOfType(JKubeException.class)
-        .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration))
-        .withMessage("Multiple Build Args with the same key: VERSION=latest and VERSION=1.0.0");
+    // When
+    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(
+        imageConfiguration, jKubeConfiguration, kitLogger);
+
+    // Then
+    assertThat(mergedBuildArgs)
+        .containsEntry("VERSION", "latest");
+    verify(kitLogger, times(1)).warn(
+        "Multiple Build Args with the same key: VERSION=1.0.0 and VERSION=latest, overriding value of key to VERSION=latest");
   }
 
   @Test
-  @DisplayName("build args in image config and project properties with same key, should throw exception")
-  void fromBuildConfigurationAndProjectPropertiesWithSameKey_shouldNotMergeBuildArgs() {
+  @DisplayName("build args in image config and project properties with same key, should log a warning and override the value of key in project properties")
+  void fromBuildConfigurationAndProjectPropertiesWithSameKey_shouldMergeBuildArgs() {
     // Given
     givenBuildArgsFromImageConfiguration("VERSION", "latest");
     projectProperties.setProperty("docker.buildArg.VERSION", "1.0.0");
 
-    // When & Then
-    assertThatExceptionOfType(JKubeException.class)
-        .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration))
-        .withMessage("Multiple Build Args with the same key: VERSION=latest and VERSION=1.0.0");
+    // When
+    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(
+        imageConfiguration, jKubeConfiguration, kitLogger);
+
+    // Then
+    assertThat(mergedBuildArgs)
+        .containsEntry("VERSION", "latest");
+    verify(kitLogger, times(1)).warn(
+        "Multiple Build Args with the same key: VERSION=1.0.0 and VERSION=latest, overriding value of key to VERSION=latest");
   }
 
   @Test
-  @DisplayName("build args in image config and plugin config with same key, should throw exception")
-  void fromBuildConfigurationAndJKubeConfigurationWithSameKey_shouldNotMergeBuildArgs() {
+  @DisplayName("build args in image config and plugin config with same key, should log a warning and override the value of key in plugin config")
+  void fromBuildConfigurationAndJKubeConfigurationWithSameKey_shouldMergeBuildArgs() {
     // Given
     givenBuildArgsFromImageConfiguration("VERSION", "latest");
     givenBuildArgsFromJKubeConfiguration("VERSION", "1.0.0");
 
-    // When & Then
-    assertThatExceptionOfType(JKubeException.class)
-        .isThrownBy(() -> BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration))
-        .withMessage("Multiple Build Args with the same key: VERSION=latest and VERSION=1.0.0");
+    // When
+    Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(
+        imageConfiguration, jKubeConfiguration, kitLogger);
+
+    // Then
+    assertThat(mergedBuildArgs)
+        .containsEntry("VERSION", "latest");
+    verify(kitLogger, times(1)).warn(
+        "Multiple Build Args with the same key: VERSION=1.0.0 and VERSION=latest, overriding value of key to VERSION=latest");
   }
 
   @Nested
@@ -167,7 +212,8 @@ class BuildArgResolverUtilMergeBuildArgsTest {
     @DisplayName("mergeBuildArgsIncludingLocalDockerConfigProxySettings, should add proxy build args for docker build strategy")
     void shouldAddBuildArgsFromDockerConfigInDockerBuild() {
       // When
-      final Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration);
+      final Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsIncludingLocalDockerConfigProxySettings(
+          imageConfiguration, jKubeConfiguration, kitLogger);
       // Then
       assertThat(mergedBuildArgs)
           .containsEntry("docker.buildArg.http_proxy", "http://proxy.example.com:3128")
@@ -179,7 +225,8 @@ class BuildArgResolverUtilMergeBuildArgsTest {
     @DisplayName("mergeBuildArgsWithoutIncludingLocalDockerConfigProxySettings, should not add proxy build args for OpenShift build strategy")
     void shouldNotAddBuildArgsFromDockerConfig() {
       // When
-      final Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsWithoutLocalDockerConfigProxySettings(imageConfiguration, jKubeConfiguration);
+      final Map<String, String> mergedBuildArgs = BuildArgResolverUtil.mergeBuildArgsWithoutLocalDockerConfigProxySettings(
+          imageConfiguration, jKubeConfiguration, kitLogger);
       // Then
       assertThat(mergedBuildArgs)
           .doesNotContainEntry("docker.buildArg.http_proxy", "http://proxy.example.com:3128")

@@ -203,7 +203,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         ImageName imageName = new ImageName(imageConfig.getName());
         String buildName = computeS2IBuildName(imageConfig, config, imageName);
 
-        BuildStrategy buildStrategyResource = createBuildStrategy(jKubeServiceHub, imageConfig, openshiftPullSecret);
+        BuildStrategy buildStrategyResource = createBuildStrategy(jKubeServiceHub, imageConfig, openshiftPullSecret, this.log);
         BuildOutput buildOutput = createBuildOutput(imageConfig, imageName);
 
         // Fetch existing build config

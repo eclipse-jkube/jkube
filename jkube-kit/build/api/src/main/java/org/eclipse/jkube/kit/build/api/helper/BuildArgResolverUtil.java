@@ -15,24 +15,26 @@ package org.eclipse.jkube.kit.build.api.helper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
-import org.eclipse.jkube.kit.common.JKubeException;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.stream.Stream;
 
 public class BuildArgResolverUtil {
 
   private static final String ARG_PREFIX = "docker.buildArg.";
 
-  private BuildArgResolverUtil() { }
+  private BuildArgResolverUtil() {
+  }
 
   /**
-   * Merges Docker Build Args from the following sources:
+   * Merges Docker Build Args from the following source in the mentioned order of precedence (moving from higher to lower precedence):
    * <ul>
    *   <li>Build Args specified directly in ImageConfiguration</li>
    *   <li>Build Args specified via System Properties</li>
@@ -40,47 +42,66 @@ public class BuildArgResolverUtil {
    *   <li>Build Args specified via Plugin configuration</li>
    *   <li>Docker Proxy Build Args detected from ~/.docker/config.json</li>
    * </ul>
+   *
+   * <i><b>Note:</b> When identical Build Args are specified in multiple sources, their values are overridden according to the established order of precedence. A warning is also logged to highlight the Build Arg and the updated value.</i>
+   *
    * @param imageConfig ImageConfiguration where to get the Build Args from.
    * @param configuration {@link JKubeConfiguration}.
    * @return a Map containing merged Build Args from all sources.
    */
-  public static Map<String, String> mergeBuildArgsIncludingLocalDockerConfigProxySettings(ImageConfiguration imageConfig, JKubeConfiguration configuration) {
-    return mergeBuildArgsFrom(imageConfig.getBuild().getArgs(),
-            buildArgsFromProperties(System.getProperties()),
-            buildArgsFromProperties(configuration.getProject().getProperties()),
-            configuration.getBuildArgs(),
-            buildArgsFromDockerConfig());
+  public static Map<String, String> mergeBuildArgsIncludingLocalDockerConfigProxySettings(ImageConfiguration imageConfig,
+      JKubeConfiguration configuration, KitLogger logger) {
+    List<Map<String, String>> buildArgSources = new ArrayList<>();
+
+    // Add build arg sources following order of precedence
+    buildArgSources.add(buildArgsFromDockerConfig());
+    buildArgSources.add(configuration.getBuildArgs());
+    buildArgSources.add(buildArgsFromProperties(configuration.getProject().getProperties()));
+    buildArgSources.add(buildArgsFromProperties(System.getProperties()));
+    buildArgSources.add(imageConfig.getBuild().getArgs());
+    return mergeBuildArgsFrom(buildArgSources, logger);
   }
 
   /**
-   * Merges Docker Build Args from the following sources:
+   * Merges Docker Build Args from the following source in the mentioned order of precedence (moving from higher to lower precedence):
    * <ul>
    *   <li>Build Args specified directly in ImageConfiguration</li>
    *   <li>Build Args specified via System Properties</li>
    *   <li>Build Args specified via Project Properties</li>
    *   <li>Build Args specified via Plugin configuration</li>
    * </ul>
+   *
+   * <i><b>Note:</b> When identical Build Args are specified in multiple sources, their values are overridden according to the established order of precedence. A warning is also logged to highlight the Build Arg and the updated value.</i>
+   *
    * @param imageConfig ImageConfiguration where to get the Build Args from.
    * @param configuration {@link JKubeConfiguration}.
    * @return a Map containing merged Build Args from all sources.
    */
-  public static Map<String, String> mergeBuildArgsWithoutLocalDockerConfigProxySettings(ImageConfiguration imageConfig, JKubeConfiguration configuration) {
-    return mergeBuildArgsFrom(imageConfig.getBuild().getArgs(),
-        buildArgsFromProperties(System.getProperties()),
-        buildArgsFromProperties(configuration.getProject().getProperties()),
-        configuration.getBuildArgs());
+  public static Map<String, String> mergeBuildArgsWithoutLocalDockerConfigProxySettings(ImageConfiguration imageConfig,
+      JKubeConfiguration configuration, KitLogger logger) {
+
+    List<Map<String, String>> buildArgSources = new ArrayList<>();
+
+    // Add build arg sources following increasing order of precedence
+    buildArgSources.add(configuration.getBuildArgs());
+    buildArgSources.add(buildArgsFromProperties(configuration.getProject().getProperties()));
+    buildArgSources.add(buildArgsFromProperties(System.getProperties()));
+    buildArgSources.add(imageConfig.getBuild().getArgs());
+    return mergeBuildArgsFrom(buildArgSources, logger);
   }
 
-  @SafeVarargs
-  private static Map<String, String> mergeBuildArgsFrom(Map<String, String>... buildArgSources) {
+  private static Map<String, String> mergeBuildArgsFrom(List<Map<String, String>> buildArgSources, KitLogger logger) {
     final Map<String, String> buildArgs = new HashMap<>();
-    Stream.of(buildArgSources)
+    buildArgSources.stream()
         .filter(Objects::nonNull)
         .flatMap(map -> map.entrySet().stream())
         .forEach(entry -> {
           if (buildArgs.containsKey(entry.getKey())) {
-            throw new JKubeException(String.format("Multiple Build Args with the same key: %s=%s and %s=%s",
-                entry.getKey(), buildArgs.get(entry.getKey()), entry.getKey(), entry.getValue()));
+            logger.warn(
+                String.format("Multiple Build Args with the same key: %s=%s and %s=%s, overriding value of key to %s=%s",
+                    entry.getKey(), buildArgs.get(entry.getKey()), entry.getKey(), entry.getValue(), entry.getKey(),
+                    entry.getValue())
+            );
           }
           buildArgs.put(entry.getKey(), entry.getValue());
         });
@@ -122,9 +143,9 @@ public class BuildArgResolverUtil {
             "ftpProxy", "ftp_proxy"
         };
 
-        for(int index = 0; index < proxyMapping.length; index += 2) {
+        for (int index = 0; index < proxyMapping.length; index += 2) {
           if (defaultProxyObj.containsKey(proxyMapping[index])) {
-            buildArgs.put(ARG_PREFIX + proxyMapping[index+1], defaultProxyObj.get(proxyMapping[index]));
+            buildArgs.put(ARG_PREFIX + proxyMapping[index + 1], defaultProxyObj.get(proxyMapping[index]));
           }
         }
       }

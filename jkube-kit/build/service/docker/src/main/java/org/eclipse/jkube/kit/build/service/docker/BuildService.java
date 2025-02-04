@@ -64,7 +64,7 @@ public class BuildService {
     public void buildImage(ImageConfiguration imageConfig, ImagePullManager imagePullManager, JKubeConfiguration configuration)
             throws IOException {
 
-        Map<String, String> mergedBuildArgs = mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfig, configuration);
+        Map<String, String> mergedBuildArgs = mergeBuildArgsIncludingLocalDockerConfigProxySettings(imageConfig, configuration,this.log);
 
         if (imagePullManager != null) {
             autoPullBaseImage(imageConfig, imagePullManager, configuration, mergedBuildArgs);
