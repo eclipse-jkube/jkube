@@ -81,6 +81,6 @@ class KubernetesRemoteDevTaskTest {
     // Then
     assertThat(remoteDevelopmentService.constructed())
       .singleElement()
-      .satisfies(remoteDevelopmentService -> verify(remoteDevelopmentService, times(1)).stop());
+      .satisfies(service -> verify(service, times(1)).stop());
   }
 }
