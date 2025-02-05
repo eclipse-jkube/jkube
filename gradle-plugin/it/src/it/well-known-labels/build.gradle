@@ -25,7 +25,7 @@ repositories {
     mavenCentral()
 }
 
-def allProperties = new Properties();
+def allProperties = new Properties()
 allProperties.put("team","via-resource-groovy-dsl-labels-all")
 allProperties.put("language", "via-resource-groovy-dsl-labels-all")
 allProperties.put("provider", "via-resource-groovy-dsl-labels-all")
