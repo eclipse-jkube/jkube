@@ -25,9 +25,9 @@ repositories {
     mavenCentral()
 }
 
-Properties allAnnotations = new Properties();
-allAnnotations.put("keyinall", "valueinall");
-allAnnotations.put("multiline/config", "proxyMetadata:\n ISTIO_META_DNS_CAPTURE: \"false\"\nholdUntilProxyStarts: true");
+Properties allAnnotations = new Properties()
+allAnnotations.put("keyinall", "valueinall")
+allAnnotations.put("multiline/config", "proxyMetadata:\n ISTIO_META_DNS_CAPTURE: \"false\"\nholdUntilProxyStarts: true")
 
 kubernetes {
     offline = true
