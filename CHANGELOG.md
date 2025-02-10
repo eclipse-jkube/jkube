@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.19-SNAPSHOT
+* Fix #3660: remote-dev issue with ssh user (locked)
 
 ### 1.18.0 (2025-01-15)
 * Fix #1125: Support WebFlux SpringBoot projects when it comes to generate probes for actuators
