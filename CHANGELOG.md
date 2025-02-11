@@ -20,7 +20,7 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
-### 1.19-SNAPSHOT
+### 1.18.1 (2025-02-11)
 * Fix #3642: Config properties resolved for generated images
 * Fix #3660: remote-dev issue with ssh user (locked)
 
