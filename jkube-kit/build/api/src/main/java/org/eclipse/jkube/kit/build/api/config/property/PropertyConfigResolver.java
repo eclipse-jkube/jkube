@@ -46,7 +46,8 @@ public class PropertyConfigResolver {
     final String prefix = StringUtils.isBlank(fromConfig.getPropertyResolverPrefix()) ?
       DEFAULT_PREFIX : fromConfig.getPropertyResolverPrefix();
     final ValueProvider valueProvider = new ValueProvider(prefix, properties, DEFAULT_MODE);
-    return ImageConfiguration.builder()
+    final ImageConfiguration configuration = fromConfig != null ? fromConfig : new ImageConfiguration();
+    return configuration.toBuilder()
       .name(valueProvider.getString(ConfigKey.NAME, fromConfig.getName()))
       .alias(valueProvider.getString(ConfigKey.ALIAS, fromConfig.getAlias()))
       .registry(valueProvider.getString(ConfigKey.REGISTRY, fromConfig.getRegistry()))
