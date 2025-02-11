@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.19-SNAPSHOT
+* Fix #3642: Config properties resolved for generated images
 * Fix #3660: remote-dev issue with ssh user (locked)
 
 ### 1.18.0 (2025-01-15)

@@ -13,7 +13,9 @@
  */
 package org.eclipse.jkube.generator.api;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,16 +40,10 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 class DefaultGeneratorManagerTest {
 
-  private KitLogger logger;
+  private ByteArrayOutputStream out;
 
   private ImageConfiguration baseImageConfig;
   private GeneratorManager generatorManager;
@@ -55,7 +51,7 @@ class DefaultGeneratorManagerTest {
 
   @BeforeEach
   void setUp() {
-    logger = spy(new KitLogger.SilentLogger());
+    out = new ByteArrayOutputStream();
     final ProcessorConfig processorConfig = new ProcessorConfig();
     processorConfig.setIncludes(Collections.singletonList("fake-generator"));
     JavaProject javaProject = JavaProject.builder()
@@ -73,7 +69,7 @@ class DefaultGeneratorManagerTest {
       .build();
     generatorContext = GeneratorContext.builder()
         .config(processorConfig)
-        .logger(logger)
+        .logger(new KitLogger.PrintStreamLogger(new PrintStream(out)))
         .project(javaProject)
         .build();
     generatorManager = new DefaultGeneratorManager(generatorContext);
@@ -91,7 +87,28 @@ class DefaultGeneratorManagerTest {
       .singleElement()
       .hasFieldOrPropertyWithValue("alias", "processed-by-test")
       .hasFieldOrPropertyWithValue("name", "generated-by-test");
-    verify(logger, times(1)).info("Running generator %s", "fake-generator");
+    assertThat(out.toString())
+      .contains("Running generator fake-generator");
+  }
+
+  @Test
+  void withEmptyImageConfigurationsAndPropertyOverrides_shouldCreteImageConfigViaGenerator() {
+    // Given
+    final List<ImageConfiguration> images = Collections.emptyList();
+    generatorContext.getProject().getProperties().put("jkube.container-image.name", "overridden-image-name");
+    generatorContext.getProject().getProperties().put("jkube.container-image.platforms.1", "linux/amd64");
+    generatorContext.getProject().getProperties().put("jkube.container-image.platforms.2", "linux/arm64");
+    // When
+    final List<ImageConfiguration> result = generatorManager.generateAndMerge(images);
+    // Then
+    assertThat(result)
+      .isNotSameAs(images)
+      .singleElement()
+      .hasFieldOrPropertyWithValue("alias", "processed-by-test")
+      .hasFieldOrPropertyWithValue("name", "overridden-image-name")
+      .hasFieldOrPropertyWithValue("build.platforms", Arrays.asList("linux/amd64", "linux/arm64"));
+    assertThat(out.toString())
+      .contains("Running generator fake-generator");
   }
 
   @Test
@@ -116,7 +133,8 @@ class DefaultGeneratorManagerTest {
       .hasSize(1)
       .extracting(ImageConfiguration::getAlias)
       .contains("processed-by-test");
-    verify(logger, times(1)).info("Running generator %s", "fake-generator");
+    assertThat(out.toString())
+      .contains("Running generator fake-generator");
   }
 
   @Test
@@ -126,7 +144,8 @@ class DefaultGeneratorManagerTest {
     // When
     new DefaultGeneratorManager(generatorContext).generateAndMerge(Collections.singletonList(baseImageConfig));
     // Then
-    verify(logger).warn("None of the resolved images [%s] match the configured filter '%s'", "foo/bar:latest", "i-dont-exist");
+    assertThat(out.toString())
+      .contains("None of the resolved images [foo/bar:latest] match the configured filter 'i-dont-exist'");
   }
 
   @Test
@@ -136,7 +155,8 @@ class DefaultGeneratorManagerTest {
     // When
     new DefaultGeneratorManager(generatorContext).generateAndMerge(Collections.singletonList(baseImageConfig));
     // Then
-    verify(logger).warn("None of the resolved images [%s] match the configured filter '%s'", "foo/bar:latest", "filter1,filter2");
+    assertThat(out.toString())
+      .contains("None of the resolved images [foo/bar:latest] match the configured filter 'filter1,filter2'");
   }
 
   @Test
@@ -153,8 +173,9 @@ class DefaultGeneratorManagerTest {
     // When
     generatorManager.generateAndMerge(images);
     // Then
-    verify(logger).info(eq("Using Dockerfile: %s"), anyString());
-    verify(logger).info(eq("Using Docker Context Directory: %s"), any(File.class));
+    assertThat(out.toString())
+      .contains("Using Dockerfile: " + dockerFile.getAbsolutePath())
+      .contains("Using Docker Context Directory: " + temporaryFolder.getAbsolutePath());
   }
 
   @Nested
@@ -332,6 +353,7 @@ class DefaultGeneratorManagerTest {
   }
 
   // Loaded from META-INF/jkube/generator-default
+  @SuppressWarnings("unused")
   public static final class TestGenerator implements Generator {
 
     public TestGenerator(GeneratorContext ignored) {

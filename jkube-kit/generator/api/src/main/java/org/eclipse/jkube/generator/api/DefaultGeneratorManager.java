@@ -93,18 +93,19 @@ public class DefaultGeneratorManager implements GeneratorManager {
   }
 
   private List<ImageConfiguration> generateImages(List<ImageConfiguration> imageConfigs) {
-    List<ImageConfiguration> ret = imageConfigs;
     final KitLogger log = genCtx.getLogger();
     final List<Generator> usableGenerators = createUsableGeneratorList();
     log.verbose("Generators:");
     for (Generator generator : usableGenerators) {
       log.verbose(" - %s", generator.getName());
-      if (generator.isApplicable(ret)) {
+      if (generator.isApplicable(imageConfigs)) {
         log.info("Running generator %s", generator.getName());
-        ret = generator.customize(ret, genCtx.isPrePackagePhase());
+        imageConfigs = generator.customize(imageConfigs, genCtx.isPrePackagePhase());
       }
     }
-    return ret;
+    return imageConfigs.stream()
+      .map(ic -> propertyConfigResolver.resolve(ic, genCtx.getProject()))
+      .collect(Collectors.toList());
   }
 
   private List<ImageConfiguration> filterImages(List<ImageConfiguration> imagesToFilter) {
