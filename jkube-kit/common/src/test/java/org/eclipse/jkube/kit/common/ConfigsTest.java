@@ -89,7 +89,7 @@ class ConfigsTest {
 
   @Test
   void getStringValueTest() {
-    String test = RandomStringUtils.randomAlphabetic(10);
+    String test = RandomStringUtils.secureStrong().nextAlphabetic(10);
     assertThat(Configs.asString(test)).isEqualTo(test);
   }
 
