@@ -1,0 +1,84 @@
+name: Generate Maven SBOM
+
+on:
+  push:
+    branches:
+      - "master"
+    paths:
+      - "pom.xml"
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version'
+        default: 'main'
+        required: true
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRO: 'temurin'
+  PRODUCT_PATH: './'
+  PLUGIN_VERSION: '2.7.8'
+  SBOM_TYPE: 'makeAggregateBom'
+
+permissions:
+  contents: read
+
+jobs:
+  generate-sbom:
+    runs-on: ubuntu-latest
+    outputs:
+      project-version: ${{ steps.version.outputs.PROJECT_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Setup Java SDK
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12 # v4.7.0
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRO }}
+
+      - name: Generate sbom
+        env:
+          PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mvn org.cyclonedx:cyclonedx-maven-plugin:$PLUGIN_VERSION:$SBOM_TYPE -f "$PRODUCT_PATH/pom.xml"
+
+      - name: Extract product version
+        id: version
+        shell: bash
+        run: |
+          event="${{ github.event_name }}"
+          ref="${{ github.ref }}"
+          input="${{ github.event.inputs.version }}"
+
+          VERSION="$(jq -r '.metadata.component.version' < ./${{ env.PRODUCT_PATH }}/target/bom.json)"
+
+          if [[ "$event" == "push" && "$ref" == refs/heads/* ]] || \
+            [[ "$event" == "workflow_dispatch" && ! "$input" =~ ^v ]]; then
+            VERSION="${VERSION}@dev"
+          fi
+
+          echo "PROJECT_VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Product version: $VERSION"
+
+      - name: Upload sbom
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+        with:
+          name: sbom
+          path: ${{ env.PRODUCT_PATH }}/target/bom.json
+
+  store-sbom-data: # stores sbom and metadata in a predefined format for otterdog to pick up
+    needs: ['generate-sbom']
+    uses: eclipse-csi/workflows/.github/workflows/store-sbom-data.yml@main
+    with:
+      projectName: 'jkube'
+      projectVersion: ${{ needs.generate-sbom.outputs.project-version }}
+      bomArtifact: 'sbom'
+      bomFilename: 'bom.json'
+      parentProject: '6081f72a-5a7c-4c00-aa29-b2289c3f404c'
