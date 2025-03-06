@@ -156,7 +156,7 @@ class DefaultServiceEnricherTest {
         assertThat(resource)
             .hasFieldOrPropertyWithValue("spec.clusterIP", "None")
             .extracting("spec.ports")
-            .asInstanceOf(list(HasMetadata.class))
+            .asInstanceOf(list(ServicePort.class))
             .isEmpty();
     }
 
@@ -260,7 +260,7 @@ class DefaultServiceEnricherTest {
 
     private void assertPort(HasMetadata resource, int noOfPorts, int idx, int port, int targetPort, String name, String protocol) {
       assertThat(resource)
-          .extracting("spec.ports").asInstanceOf(list(HasMetadata.class))
+          .extracting("spec.ports").asInstanceOf(list(ServicePort.class))
           .hasSize(noOfPorts)
           .element(idx)
           .hasFieldOrPropertyWithValue("port", port)
