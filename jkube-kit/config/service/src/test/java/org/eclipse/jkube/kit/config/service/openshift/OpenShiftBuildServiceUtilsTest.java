@@ -278,11 +278,10 @@ class OpenShiftBuildServiceUtilsTest {
             .asInstanceOf(InstanceOfAssertFactories.LIST)
             .singleElement()
             .satisfies(
-                envVar -> {
-                  assertThat(envVar)
+                envVar -> assertThat(envVar)
                       .hasFieldOrPropertyWithValue("name", "BUILD_ARGS_KEY")
-                      .hasFieldOrPropertyWithValue("value", "build-args-value");
-                });
+                      .hasFieldOrPropertyWithValue("value", "build-args-value")
+                );
       }
     }
   }
