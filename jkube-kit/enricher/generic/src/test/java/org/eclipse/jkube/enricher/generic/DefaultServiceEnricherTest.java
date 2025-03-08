@@ -17,6 +17,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.TreeMap;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
+import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.resource.GroupArtifactVersion;
@@ -24,22 +27,20 @@ import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.kit.config.resource.ProcessorConfig;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import org.eclipse.jkube.kit.enricher.api.model.Configuration;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortToExpose;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import io.fabric8.kubernetes.api.model.ServicePort;
 
 /**
  * @author roland
@@ -156,7 +157,7 @@ class DefaultServiceEnricherTest {
         assertThat(resource)
             .hasFieldOrPropertyWithValue("spec.clusterIP", "None")
             .extracting("spec.ports")
-            .asList()
+            .asInstanceOf(list(ServicePort.class))
             .isEmpty();
     }
 
@@ -260,7 +261,7 @@ class DefaultServiceEnricherTest {
 
     private void assertPort(HasMetadata resource, int noOfPorts, int idx, int port, int targetPort, String name, String protocol) {
       assertThat(resource)
-          .extracting("spec.ports").asList()
+          .extracting("spec.ports").asInstanceOf(list(ServicePort.class))
           .hasSize(noOfPorts)
           .element(idx)
           .hasFieldOrPropertyWithValue("port", port)
