@@ -42,7 +42,7 @@ public class SpringBootConfiguration {
     final Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
       SpringBootUtil.getSpringBootActiveProfile(project),
       JKubeProjectUtil.getClassLoader(project));
-    final int majorVersion = SpringBootUtil.getSpringBootVersion(project)
+      final int majorVersion = SpringBootUtil.getSpringBootVersion(project)
       .map(semVer -> {
         try {
           return Integer.parseInt(semVer.substring(0, semVer.indexOf('.')));
@@ -58,7 +58,7 @@ public class SpringBootConfiguration {
       .managementPort(Optional.ofNullable(properties.getProperty("management.port")).map(Integer::parseInt).orElse(null))
       .serverPort(Integer.parseInt(properties.getProperty("server.port", DEFAULT_SERVER_PORT)))
       .serverKeystore(properties.getProperty("server.ssl.key-store"))
-      .managementHealthProbesEnabled(Boolean.parseBoolean(properties.getProperty("management.health.probes.enabled")))
+      .managementHealthProbesEnabled(Boolean.parseBoolean(properties.getProperty("management.endpoint.health.probes.enabled")))
       .managementKeystore(properties.getProperty("management.ssl.key-store"))
       .servletPath(properties.getProperty("server.servlet-path"))
       .serverContextPath(properties.getProperty("server.context-path"))
@@ -80,6 +80,12 @@ public class SpringBootConfiguration {
       configBuilder
         .servletPath(properties.getProperty("spring.mvc.servlet.path"))
         .managementContextPath(properties.getProperty("management.server.base-path"));
+    }
+    // keep backward compatibility with spring-boot < 2.3.x
+    // prioritize the new property in case both are set
+    // if (majorVersion < 3 && minorVersion < 4 && properties.getProperty("management.endpoint.health.probes.enabled") == null) {
+    if (SemanticVersionUtil.isVersionAtLeast(2, 3, Integer.toString(majorVersion)) && properties.getProperty("management.endpoint.health.probes.enabled") == null) {
+        configBuilder.managementHealthProbesEnabled(Boolean.parseBoolean(properties.getProperty("management.health.probes.enabled")));
     }
     return configBuilder.build();
   }
