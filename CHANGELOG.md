@@ -34,6 +34,7 @@ Usage:
 * Fix #3819: Env variable wrapper for easy interaction with system env variables
 * Fix #3823: Update native binary S2I base image from UBI 8 to UBI 9
 * Fix #3820: Skip flag does not work for helm tasks
+* Fix #3690: jkube-healthcheck-spring-boot enricher: rename property management.health.probes.enabled
 
 ### 1.18.2 (2025-11-03)
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
@@ -75,9 +76,9 @@ Usage:
 * Fix #2885: Provide a way to set labels on images defined by Generators
 * Fix #2901: Ensure Docker build arguments from properties are used during images pre-pulling
 * Fix #2904: `docker.buildArg.*` properties not taken into account in OpenShift plugins
-* Fix #2911: Base images don't use manual container detection and rely on Java's built-in mechanisms 
+* Fix #2911: Base images don't use manual container detection and rely on Java's built-in mechanisms
 * Fix #3007: Kubernetes Maven Plugin generating resource manifests with line feeds on Windows
-* Fix #3067: Helm Push uses configured docker global and push registries instead of pull 
+* Fix #3067: Helm Push uses configured docker global and push registries instead of pull
 * Fix #3122: JKube should also pass project directory in `buildpacks` build strategy
 * Fix #3161: JavaExecGenerator should honor %t setting and not unconditionally add `latest` tag
 * Fix #2467: Add support for specifying imagePullSecrets via resource configuration
@@ -141,7 +142,7 @@ These are added in favor of deprecating and removing the current project labels 
 * Fix #2200: Support for Helm `values.yaml` fragments
 * Fix #2356: Helm values.yaml parameter names preserve case
 * Fix #2369: Helm chart apiVersion can be configured
-* Fix #2379: Do not flatten image assembly layers in case of OpenShift Docker build strategy. 
+* Fix #2379: Do not flatten image assembly layers in case of OpenShift Docker build strategy.
 * Fix #2386: Helm icon inferred from annotations in independent resource files (not aggregated kubernetes/openshift.yaml)
 * Fix #2397: Default JKube work directory (`jkube.workDir`) changed from `${project.build.directory}/jkube` to `${project.build.directory}/jkube-temp`
 * Fix #2393: Remove timestamp from `org.label-schema.build-date` LABEL to utilize docker cache
@@ -222,7 +223,7 @@ _**Note**_:
 * Fix #1966: Old reference to fmp in documentation
 * Fix #1974: Remove unused methods in KubernetesResourceUtil
 * Fix #2003: check local port available on start remote-dev
-* Fix #2004: AnsiOutputStream exceptions don't prevent logging or program execution 
+* Fix #2004: AnsiOutputStream exceptions don't prevent logging or program execution
 * Fix #2008: resources validated after their generation by `k8s:resource`
 * Fix #2052: Remote Dev discovers remote ports for local services exposed in the cluster
 * Fix #2052: Remote Dev includes a SOCKS 5 proxy
@@ -243,7 +244,7 @@ _**Note**_:
 * Fix #443: Add health check enricher for SmallRye Health
 * Fix #508: Kubernetes Remote Development (inner-loop)
 * Fix #1668: Allow additional services (via fragments) besides the default
-* Fix #1684: Podman builds with errors are correctly processed and reported 
+* Fix #1684: Podman builds with errors are correctly processed and reported
 * Fix #1704: `k8s:watch` with `jkube.watch.mode=copy` works as expected
 * Fix #1888: KubernetesExtension has helper method to add image with builder
 
@@ -300,7 +301,7 @@ _**Note**_:
 * Fix #1298: Add integration test + documentation for RevisionHistoryEnricher in gradle plugins
 * Fix #1299: Add gradle integration tests and documentation for ServiceAccountEnricher in gradle plugins.
 * Fix #1301: Improve documentation and gradle integration test for TriggersAnnotationEnricher
-* Fix #1302: Port volume-permission maven integration tests + docs to gradle 
+* Fix #1302: Port volume-permission maven integration tests + docs to gradle
 * Fix #1303: Add gradle integration test and docs for AutoTLSEnricher
 * Fix #1308: Add documentation for DeploymentConfigEnricher
 * Fix #1309: Remove ExposeEnricher from profiles and documentation
@@ -337,7 +338,7 @@ _**Note**_:
 
 ### 1.6.0 (2022-02-03)
 * Fix #1047: Gradle image build should use the Quarkus generator for Quarkus projects
-* Fix #778: Support deserialization of fragments with mismatched field types of target Java class 
+* Fix #778: Support deserialization of fragments with mismatched field types of target Java class
 * Fix #802: Update Fabric8 kubernetes Client to v5.10.1
 * Fix #887: Incorrect warning about overriding environment variable
 * Fix #900: Fix #900: Remove `projectArtifactId` and `projectVersion` from `gradle.properties` in Spring Boot Helm Quickstart
@@ -459,7 +460,7 @@ Only the set of documented features are available to users.
 * Fix #450: Quarkus port is inferred from application.properties/yaml (considers profile too)
 * Fix #471: Remove the declaration of thrown runtime exceptions across javadoc
 * Fix #620: Added k8s support for NetworkPolicy
-* Fix #624: Unable to override Image Name in Simple Dockerfile Mode with `jkube.generator.name` 
+* Fix #624: Unable to override Image Name in Simple Dockerfile Mode with `jkube.generator.name`
 
 ### 1.1.1 (2021-02-23)
 * Fix #570: Disable namespace creation during k8s:resource with `jkube.namespace` flag
@@ -473,7 +474,7 @@ Only the set of documented features are available to users.
 * Fix #480: wildfly-jar doesn't depend on common-maven module
 * Fix #268: Generator and HealthCheck enrichers for Micronaut framework (JVM)
 * Fix #488: Controller enricher replica count can be set to `0` when ResourceConfig is provided
-* Fix #485: Filter with placeholders in Dockerfile is broken 
+* Fix #485: Filter with placeholders in Dockerfile is broken
 * Fix #387: Update Fabric8 Kubernetes Client to v4.13.0 to support `networking.k8s.io/v1` `Ingress`
 * Fix #473: Debug goals work with QuarkusGenerator generated container images
 * Fix #484: cacheFrom configuration parameter is missing
@@ -646,4 +647,3 @@ Only the set of documented features are available to users.
 
 ### 0.1.0 (2019-12-19)
 * Initial release
-
