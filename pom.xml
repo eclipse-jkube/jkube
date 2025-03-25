@@ -106,7 +106,7 @@
     <version.json-smart>2.5.2</version.json-smart> <!-- Transitive dependency  required by citrus -->
     <version.junit5>5.11.4</version.junit5>
     <version.kubernetes-client>6.13.5</version.kubernetes-client>
-    <version.license-maven-plugin>4.6</version.license-maven-plugin>
+    <version.license-maven-plugin>5.0.0</version.license-maven-plugin>
     <version.lombok>1.18.36</version.lombok>
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
     <version.maven-compiler-plugin>3.14.0</version.maven-compiler-plugin>
