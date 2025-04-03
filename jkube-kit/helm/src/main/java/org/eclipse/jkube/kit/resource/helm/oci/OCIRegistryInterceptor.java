@@ -145,7 +145,7 @@ public class OCIRegistryInterceptor implements Interceptor {
     if (responseBodyObj.containsKey(TOKEN_KEY)) {
       tokenFound = (String) responseBodyObj.get(TOKEN_KEY);
     }
-    if (responseBodyObj.containsKey(ACCESS_TOKEN_KEY)) {
+    if (StringUtils.isBlank(tokenFound) && responseBodyObj.containsKey(ACCESS_TOKEN_KEY)) {
       tokenFound = (String) responseBodyObj.get(ACCESS_TOKEN_KEY);
     }
 
