@@ -99,7 +99,7 @@
     <version.gradle>7.6.4</version.gradle>
     <version.gradle-api-maven-plugin>0.0.7</version.gradle-api-maven-plugin>
     <version.groovy>3.0.23</version.groovy>
-    <version.guava>33.4.0-jre</version.guava>
+    <version.guava>33.4.7-jre</version.guava>
     <version.helm-java>0.0.15</version.helm-java>
     <version.jackson>2.18.3</version.jackson>
     <version.jacoco>0.8.12</version.jacoco>
