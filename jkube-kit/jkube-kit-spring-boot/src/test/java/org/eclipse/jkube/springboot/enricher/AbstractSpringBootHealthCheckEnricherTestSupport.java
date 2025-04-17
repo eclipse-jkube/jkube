@@ -661,7 +661,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
     @Test
     void testBuildProbeExplicitPathCreation_whenManagementHealthProbesEnabledIsTrue(){
-        props.put("management.health.probes.enabled","true");
+        props.put("management.endpoint.health.probes.enabled","true");
         writeProps();
 
         Probe readinessProbe = new SpringBootHealthCheckEnricher(context).buildProbe(10, null, null, 3, 1,"/example");
@@ -670,7 +670,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
     @Test
     void testBuildProbeDefaultPathCreation_whenManagementHealthProbesEnabledIsFalse(){
-        props.put("management.health.probes.enabled","false");
+        props.put("management.endpoint.health.probes.enabled","false");
         writeProps();
 
         Probe readinessProbe = new SpringBootHealthCheckEnricher(context).buildProbe(10, null, null, 3, 1,"/example");
@@ -679,7 +679,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
     @Test
     void testLivenessAndReadinessProbesForExplicitPath_whenManagementHealthProbesEnabledIsTrue(){
-        props.put("management.health.probes.enabled","true");
+        props.put("management.endpoint.health.probes.enabled","true");
         writeProps();
 
         when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES))
@@ -712,7 +712,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
     @Test
     void testLivenessAndReadinessProbesForDefaultPath_whenManagementHealthProbesEnabledIsFalse(){
-        props.put("management.health.probes.enabled","false");
+        props.put("management.endpoint.health.probes.enabled","false");
         writeProps();
 
         when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES))
