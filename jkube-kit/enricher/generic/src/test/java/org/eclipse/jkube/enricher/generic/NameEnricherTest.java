@@ -118,7 +118,7 @@ class NameEnricherTest {
   }
 
   @Test
-  void create_withCustomNameAndAlreadyExistingName_shouldOverrideExistingName() {
+  void create_withCustomNameAndAlreadyExistingName_shouldKeepExistingName() {
     // Given
     klb = new KubernetesListBuilder();
     properties.put("jkube.enricher.jkube-name.name", "custom-name");
@@ -128,6 +128,20 @@ class NameEnricherTest {
     // Then
     assertThat(klb.build().getItems())
         .singleElement()
-        .hasFieldOrPropertyWithValue("metadata.name", "custom-name");
+        .hasFieldOrPropertyWithValue("metadata.name", "existing-name");
+  }
+
+  @Test
+  void create_withoutName_shouldSetGivenCustomName() {
+    // Given
+    klb = new KubernetesListBuilder();
+    properties.put("jkube.enricher.jkube-name.name", "custom-name");
+    // When
+    klb.addToItems(new ServiceBuilder().withNewMetadata().endMetadata().build());
+    new NameEnricher(context).create(PlatformMode.kubernetes, klb);
+    // Then
+    assertThat(klb.build().getItems())
+            .singleElement()
+            .hasFieldOrPropertyWithValue("metadata.name", "custom-name");
   }
 }
