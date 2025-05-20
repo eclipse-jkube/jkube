@@ -1,49 +1,29 @@
-<!--- https://www.eclipse.org/security/ --->
-_ISO 27005 defines vulnerability as:
-"A weakness of an asset or group of assets that can be exploited by one or more threats."_
+# Security Policy
+This Eclipse Foundation Project adheres to the [Eclipse Foundation Vulnerability Reporting Policy](https://www.eclipse.org/security/policy/).
 
-## The Eclipse Security Team
+## How To Report a Vulnerability
 
-The Eclipse Security Team provides help and advice to Eclipse projects
-on vulnerability issues and is the first point of contact
-for handling security vulnerabilities.
-Members of the Security Team are committers on Eclipse Projects
-and members of the Eclipse Architecture Council.
+If you think you have found a vulnerability in this repository, please report it to us through coordinated disclosure.
 
-Contact the [Eclipse Security Team](mailto:security@eclipse.org).
+**Please do not report security vulnerabilities through public issues, discussions, or pull requests.**
 
-**Note that, as a matter of policy, the security team does not open attachments.**
+Instead, report it using one of the following ways:
 
-## Reporting a Security Vulnerability
+* Contact the [Eclipse Foundation Security Team](mailto:security@eclipse-foundation.org) via email
+* Create a [confidential issue](https://gitlab.eclipse.org/security/vulnerability-reports/-/issues/new?issuable_template=new_vulnerability) in the Eclipse Foundation Vulnerability Reporting Tracker
 
-Vulnerabilities can be reported either via email to the Eclipse Security Team
-or directly with a project via the Eclipse Foundation's Bugzilla instance.
+You can find more information about reporting and disclosure at the [Eclipse Foundation Security page](https://www.eclipse.org/security/).
 
-The general security mailing list address is security@eclipse.org.
-Members of the Eclipse Security Team will receive messages sent to this address.
-This address should be used only for reporting undisclosed vulnerabilities;
-regular issue reports and questions unrelated to vulnerabilities in Eclipse software
-will be ignored.
-Note that this email address is not encrypted.
+Please include as much of the information listed below as you can to help us better understand and resolve the issue:
 
-The community is also encouraged to report vulnerabilities using the
-[Eclipse Foundation's Bugzilla instance](https://bugs.eclipse.org/bugs/enter_bug.cgi?product=Community&component=Vulnerability%20Reports&keywords=security&groups=Security_Advisories).
-Note that you will require an Eclipse Foundation account to create an issue report,
-but by doing so you will be able to participate directly in the resolution of the issue.
+* The type of issue (e.g., buffer overflow, SQL injection, or cross-site scripting)
+* Affected version(s)
+* Impact of the issue, including how an attacker might exploit the issue
+* Step-by-step instructions to reproduce the issue
+* The location of the affected source code (tag/branch/commit or direct URL)
+* Full paths of source file(s) related to the manifestation of the issue
+* Configuration required to reproduce the issue
+* Log files that are related to this issue (if possible)
+* Proof-of-concept or exploit code (if possible)
 
-Issue reports related to vulnerabilities must be marked as "committers-only",
-either automatically by clicking the provided link, by the reporter,
-or by a committer during the triage process.
-Note that issues marked "committers-only" are visible to all Eclipse committers.
-By default, a "committers-only" issue is also accessible to the reporter
-and individuals explicitly indicated in the "cc" list.
-
-## Disclosure
-
-Disclosure is initially limited to the reporter and all Eclipse Committers,
-but is expanded to include other individuals, and the general public.
-The timing and manner of disclosure is governed by the
-[Eclipse Security Policy](https://www.eclipse.org/security/policy.php).
-
-Publicly disclosed issues are listed on the
-[Disclosed Vulnerabilities Page](https://www.eclipse.org/security/known.php).
+This information will help us triage your report more quickly.
