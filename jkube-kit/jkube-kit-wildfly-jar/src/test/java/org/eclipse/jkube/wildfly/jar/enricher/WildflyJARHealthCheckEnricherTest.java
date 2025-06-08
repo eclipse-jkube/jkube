@@ -48,10 +48,17 @@ class WildflyJARHealthCheckEnricherTest {
 
     @BeforeEach
     public void setUp() {
+<<<<<<< HEAD
         JavaProject project = JavaProject.builder().build();
         context = JKubeEnricherContext.builder()
                 .project(project)
                 .build();
+=======
+       JavaProject project = JavaProject.builder().build();
+       context = JKubeEnricherContext.builder()
+               .project(project)
+               .build();
+>>>>>>> 783c517b2 (fix: add unit tests for WildflyJARHealthCheckEnricher)
     }
 
     private void setupExpectations(Map<String, Object> bootableJarConfig, Map<String, Map<String, Object>> jkubeConfig) {
