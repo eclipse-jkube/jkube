@@ -39,10 +39,13 @@ import org.eclipse.jkube.kit.config.image.ImageName;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -161,7 +164,11 @@ public class JibService implements AutoCloseable {
     if (imageConfiguration.getBuildConfiguration().getTags() != null) {
       imageConfiguration.getBuildConfiguration().getTags().forEach(to::withAdditionalTag);
     }
-    from.setCreationTime(Instant.now());
+    Instant creationTime = Optional.ofNullable(configuration.getProject().getBuildDate())
+            .orElse(LocalDate.now())
+            .atStartOfDay(ZoneId.of("UTC"))
+            .toInstant();
+    from.setCreationTime(creationTime);
     try {
       from.containerize(to);
       jibLogger.updateFinished();

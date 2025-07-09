@@ -44,6 +44,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
@@ -77,6 +78,7 @@ class JibServiceTest {
         .build())
       .project(JavaProject.builder()
         .baseDirectory(tempDir.toFile())
+        .buildDate(LocalDate.now())
         .build())
       .build();
     imageConfiguration = ImageConfiguration.builder()
