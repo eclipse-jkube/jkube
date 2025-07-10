@@ -47,15 +47,13 @@ class WildflyJARHealthCheckEnricherTest {
 
     protected JKubeEnricherContext context;
 
-    private JavaProject project;
-
     @BeforeEach
     public void setUp() {
-       project = JavaProject.builder().build();
        context = JKubeEnricherContext.builder()
-               .project(project)
+               .project(JavaProject.builder().build())
                .build();
     }
+
     private void setupExpectations(Map<String, Object> bootableJarConfig, Map<String, Map<String, Object>> jkubeConfig) {
       Plugin plugin = Plugin.builder().artifactId("wildfly-jar-maven-plugin").groupId("org.wildfly.plugins")
           .configuration(bootableJarConfig).build();
