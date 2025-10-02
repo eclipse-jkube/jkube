@@ -75,15 +75,10 @@
 
   <distributionManagement>
     <snapshotRepository>
-      <id>ossrh</id>
-      <name>Sonatype OSS Repository (Snapshots)</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <id>central-portal</id>
+      <name>Central Portal (Snapshots)</name>
+      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
     </snapshotRepository>
-    <repository>
-      <id>ossrh</id>
-      <name>Nexus Release Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
   </distributionManagement>
 
   <properties>
@@ -93,6 +88,7 @@
     <version.asciidoctor-maven-plugin>2.2.4</version.asciidoctor-maven-plugin>
     <version.asciidoctorj>2.3.0</version.asciidoctorj>
     <version.assertj-core>3.27.3</version.assertj-core>
+    <version.central-publishing-maven-plugin>0.9.0</version.central-publishing-maven-plugin>
     <version.citrus>3.4.0</version.citrus>
     <version.commons-compress>1.27.1</version.commons-compress> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
     <version.commons-io>2.19.0</version.commons-io> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
@@ -122,7 +118,6 @@
     <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
     <version.maven-surefire-plugin>3.5.3</version.maven-surefire-plugin>
     <version.mockito>4.6.1</version.mockito>
-    <version.nexus-staging-maven-plugin>1.7.0</version.nexus-staging-maven-plugin>
     <version.plexus-component-metadata>2.2.0</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.sonar-maven-plugin>3.11.0.3922</version.sonar-maven-plugin>
@@ -325,10 +320,14 @@
           <version>${version.sonar-maven-plugin}</version>
         </plugin>
         <plugin>
-          <groupId>org.sonatype.plugins</groupId>
-          <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>${version.nexus-staging-maven-plugin}</version>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>${version.central-publishing-maven-plugin}</version>
           <extensions>true</extensions>
+          <configuration>
+            <publishingServerId>central-portal</publishingServerId>
+            <autoPublish>true</autoPublish>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
