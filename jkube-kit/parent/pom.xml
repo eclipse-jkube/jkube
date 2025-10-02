@@ -54,7 +54,7 @@
     <version.maven-plugin-annotations>3.15.1</version.maven-plugin-annotations>
     <version.networknt.validator>1.5.9</version.networknt.validator>
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
-    <version.plexus-classworlds>2.8.0</version.plexus-classworlds>
+    <version.plexus-classworlds>2.9.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
     <version.plexus-utils>3.5.0</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
