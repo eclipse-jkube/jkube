@@ -54,6 +54,8 @@ class SpringBootConfigurationTest {
     properties.put("management.context-path", "management.context-path");
     properties.put("management.server.servlet.context-path", "management.server.servlet.context-path");
     properties.put("management.endpoints.web.base-path", "management.endpoints.web.base-path");
+    properties.put("management.health.probes.enabled", "true");
+    properties.put("management.endpoint.health.probes.enabled", "true");
     try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
       properties.store(fos, null);
     }
@@ -134,6 +136,12 @@ class SpringBootConfigurationTest {
     void getActuatorDefaultBasePath() {
       assertThat(springBootConfiguration.getActuatorDefaultBasePath()).isEqualTo("/actuator");
     }
+
+    @Test
+    @DisplayName("getManagementHealthProbesEnabled defaults to 'true'")
+    void getManagementHealthProbesEnabled() {
+      assertThat(springBootConfiguration.isManagementHealthProbesEnabled()).isTrue();
+    }
   }
 
   @Nested
@@ -148,6 +156,12 @@ class SpringBootConfigurationTest {
           .version("2.0")
           .build())
         .build());
+    }
+
+    @Test
+    @DisplayName("getManagementHealthProbesEnabled defaults to 'true'")
+    void getManagementHealthProbesEnabled() {
+      assertThat(springBootConfiguration.isManagementHealthProbesEnabled()).isTrue();
     }
 
     @Test
