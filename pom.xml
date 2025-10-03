@@ -117,7 +117,7 @@
     <version.maven-resources-plugin>3.3.1</version.maven-resources-plugin>
     <version.maven-source-plugin>3.3.1</version.maven-source-plugin>
     <version.maven-surefire-plugin>3.5.3</version.maven-surefire-plugin>
-    <version.mockito>4.6.1</version.mockito>
+    <version.mockito>5.20.0</version.mockito>
     <version.plexus-component-metadata>2.2.0</version.plexus-component-metadata>
     <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.sonar-maven-plugin>3.11.0.3922</version.sonar-maven-plugin>
