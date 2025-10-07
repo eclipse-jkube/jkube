@@ -49,11 +49,6 @@ public class XMLUtil {
 
     private XMLUtil() { }
 
-    public static Document createNewDocument() throws ParserConfigurationException {
-        DocumentBuilderFactory documentBuilderFactory = getDocumentBuilderFactory();
-        return documentBuilderFactory.newDocumentBuilder().newDocument();
-    }
-
     public static Document readXML(File xmlFile) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory documentBuilderFactory = getDocumentBuilderFactory();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
@@ -87,7 +82,7 @@ public class XMLUtil {
         return sb.build();
     }
 
-    private static DocumentBuilderFactory getDocumentBuilderFactory() throws ParserConfigurationException {
+    static DocumentBuilderFactory getDocumentBuilderFactory() throws ParserConfigurationException {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         documentBuilderFactory.setAttribute(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         documentBuilderFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");

@@ -47,7 +47,7 @@ class XMLUtilTest {
     void testXMLWrite(@TempDir File folder) throws IOException, ParserConfigurationException, TransformerException {
         // Given
         File cloneXML = new File(folder, "pom-clone.xml");
-        Document dom = XMLUtil.createNewDocument();
+        Document dom = XMLUtil.getDocumentBuilderFactory().newDocumentBuilder().newDocument();
         Element rootElement = dom.createElement("project");
         rootElement.appendChild(createSimpleTextNode(dom, "groupId", "org.eclipse.jkube"));
         rootElement.appendChild(createSimpleTextNode(dom, "artifactId", "jkube-kit"));
