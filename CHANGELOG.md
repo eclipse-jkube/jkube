@@ -21,6 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 ### 1.19-SNAPSHOT
+* Fix #3750: Remove unneeded XMLUtil.createNewDocument method
 
 ### 1.18.1 (2025-02-11)
 * Fix #3642: Config properties resolved for generated images
