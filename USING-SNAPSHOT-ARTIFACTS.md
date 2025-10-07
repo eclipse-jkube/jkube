@@ -1,6 +1,6 @@
 # How to use Eclipse JKube snapshot artifacts?
 
-Artifacts are hosted at [JKube's Sonatype Snapshot repository](https://oss.sonatype.org/content/repositories/snapshots/org/eclipse/jkube/)
+Artifacts are hosted at [JKube's Sonatype Snapshot repository](https://central.sonatype.com/repository/maven-snapshots/org/eclipse/jkube/)
 
 Our [Jenkins Snapshot release pipeline](https://ci.eclipse.org/jkube/job/ReleasePipelines/job/ReleaseSnapshots/) updates SNAPSHOT artifacts every night.
 
@@ -12,7 +12,7 @@ In order to use these artifacts, update your `pom.xml` with these:
 <pluginRepositories>
   <pluginRepository>
     <id>oss.sonatype.org</id>
-    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+    <url>https://central.sonatype.com/repository/maven-snapshots</url>
     <snapshots>
       <enabled>true</enabled>
       <updatePolicy>always</updatePolicy>
@@ -46,7 +46,7 @@ In order to use these artifacts in Gradle project, update your `settings.gradle`
 ```groovy
 pluginManagement {
     repositories {
-        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+        maven { url "https://central.sonatype.com/repository/maven-snapshots" }
     }
 }
 ```
