@@ -75,6 +75,7 @@ class JibImageBuildServicePushTest {
 
     // Setup OCI server
     remoteOciServer = new TestOciServer();
+    remoteOciServer.start();
 
     // Configure OCI server in image and JKube
     imageConfiguration = ImageConfiguration.builder()
