@@ -63,6 +63,7 @@ class JibServiceTest {
   @BeforeEach
   void setUp() {
     remoteOciServer = new TestOciServer();
+    remoteOciServer.start();
     jibLogger = new JibLogger(new KitLogger.SilentLogger());
     testAuthConfigFactory = new TestAuthConfigFactory();
     configuration = JKubeConfiguration.builder()
