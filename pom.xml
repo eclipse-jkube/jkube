@@ -97,11 +97,11 @@
     <version.groovy>3.0.23</version.groovy>
     <version.guava>33.4.0-jre</version.guava>
     <version.helm-java>0.0.16</version.helm-java>
-    <version.jackson>2.18.3</version.jackson>
+    <version.jackson>2.19.2</version.jackson>
     <version.jacoco>0.8.12</version.jacoco>
     <version.json-smart>2.5.2</version.json-smart> <!-- Transitive dependency  required by citrus -->
     <version.junit5>5.11.4</version.junit5>
-    <version.kubernetes-client>6.13.5</version.kubernetes-client>
+    <version.kubernetes-client>6.14.0</version.kubernetes-client>
     <version.license-maven-plugin>5.0.0</version.license-maven-plugin>
     <version.lombok>1.18.36</version.lombok>
     <version.lombok-maven-plugin>1.18.20.0</version.lombok-maven-plugin>
