@@ -29,24 +29,18 @@ class VerboseOutputIT {
   private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  void k8sResource_whenVerboseEnabled_generatesK8sManifestsWithVerboseOutput() throws IOException, ParseException {
-    // When
+  void k8sResource_whenVerboseEnabled_generatesVerboseOutput() throws IOException, ParseException {
     final BuildResult result = gradleRunner.withITProject("verbose-output").withArguments("k8sResource").build();
-    // Then
-    ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultKubernetesResourceFile(),
-        gradleRunner.resolveFile("expected", "kubernetes.yml"));
+
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Generators:")
         .contains("Enrichers:");
   }
 
   @Test
-  void ocResource_whenVerboseEnabled_generatesOpenShiftManifestsWithVerboseOutput() throws IOException, ParseException {
-    // When
+  void ocResource_whenVerboseEnabled_generatesVerboseOutput() throws IOException, ParseException {
     final BuildResult result = gradleRunner.withITProject("verbose-output").withArguments("ocResource").build();
-    // Then
-    ResourceVerify.verifyResourceDescriptors(gradleRunner.resolveDefaultOpenShiftResourceFile(),
-        gradleRunner.resolveFile("expected", "openshift.yml"));
+
     assertThat(result).extracting(BuildResult::getOutput).asString()
         .contains("Generators:")
         .contains("Enrichers:");

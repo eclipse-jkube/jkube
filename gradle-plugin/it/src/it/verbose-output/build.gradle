@@ -12,40 +12,13 @@ repositories {
     mavenCentral()
 }
 
-kubernetes {
-    offline = true
-    verbose = true
-    images {
-        image {
-            name = 'repository/verbose-output:latest'
-            build {
-                from = 'alpine'
-                assembly {
-                    targetDir = '/deployments'
-                }
-                entryPoint {
-                    shell = "java -jar /deployments/${project.name}-${project.version}.jar"
-                }
-            }
-        }
-    }
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.18'
 }
 
-openshift {
-    offline = true
+kubernetes {
     verbose = true
-    images {
-        image {
-            name = 'repository/verbose-output:latest'
-            build {
-                from = 'alpine'
-                assembly {
-                    targetDir = '/deployments'
-                }
-                entryPoint {
-                    shell = "java -jar /deployments/${project.name}-${project.version}.jar"
-                }
-            }
-        }
-    }
+}
+openshift {
+    verbose = true
 }
