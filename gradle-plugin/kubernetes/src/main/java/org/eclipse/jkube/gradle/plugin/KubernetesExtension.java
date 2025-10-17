@@ -240,6 +240,8 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Boolean> getSkipResource();
 
+  public abstract Property<Boolean> getVerbose();
+
   public abstract Property<Boolean> getSkipBuild();
 
   public abstract Property<Integer> getWatchInterval();
@@ -669,6 +671,10 @@ public abstract class KubernetesExtension {
 
   public boolean getSkipResourceOrDefault() {
     return getOrDefaultBoolean("jkube.skip.resource", this::getSkipResource, false);
+  }
+
+  public boolean getVerboseOrDefault() {
+      return getOrDefaultBoolean("jkube.docker.verbose", this::getVerbose, false);
   }
 
   public boolean getSkipBuildOrDefault() {

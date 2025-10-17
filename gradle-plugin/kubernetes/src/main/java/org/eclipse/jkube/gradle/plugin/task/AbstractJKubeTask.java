@@ -115,7 +115,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   protected final KitLogger createLogger(String prefix) {
-    return new GradleLogger(getLogger(), isAnsiEnabled(), getLogPrefix() + Optional.ofNullable(prefix).map(" "::concat).orElse(""));
+    return new GradleLogger(getLogger(), isAnsiEnabled(), getLogPrefix() + Optional.ofNullable(prefix).map(" "::concat).orElse(""), kubernetesExtension.getVerboseOrDefault());
   }
 
   protected JKubeServiceHub.JKubeServiceHubBuilder initJKubeServiceHubBuilder() {
