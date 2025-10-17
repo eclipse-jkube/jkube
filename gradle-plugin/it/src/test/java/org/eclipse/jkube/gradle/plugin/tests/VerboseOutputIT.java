@@ -13,13 +13,9 @@
  */
 package org.eclipse.jkube.gradle.plugin.tests;
 
-import net.minidev.json.parser.ParseException;
-import org.eclipse.jkube.kit.common.ResourceVerify;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-
-import java.io.IOException;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -29,7 +25,7 @@ class VerboseOutputIT {
   private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  void k8sResource_whenVerboseEnabled_generatesVerboseOutput() throws IOException, ParseException {
+  void k8sResource_whenVerboseEnabled_generatesVerboseOutput() {
     final BuildResult result = gradleRunner.withITProject("verbose-output").withArguments("k8sResource").build();
 
     assertThat(result).extracting(BuildResult::getOutput).asString()
@@ -38,7 +34,7 @@ class VerboseOutputIT {
   }
 
   @Test
-  void ocResource_whenVerboseEnabled_generatesVerboseOutput() throws IOException, ParseException {
+  void ocResource_whenVerboseEnabled_generatesVerboseOutput() {
     final BuildResult result = gradleRunner.withITProject("verbose-output").withArguments("ocResource").build();
 
     assertThat(result).extracting(BuildResult::getOutput).asString()
