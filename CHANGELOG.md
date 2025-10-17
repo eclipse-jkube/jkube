@@ -22,6 +22,7 @@ Usage:
 ```
 ### 1.19-SNAPSHOT
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
+* Fix #3740: Add verbose extension prop as per the gradle plugin docs
 
 ### 1.18.1 (2025-02-11)
 * Fix #3642: Config properties resolved for generated images
