@@ -262,6 +262,11 @@ public class TestOpenShiftExtension extends OpenShiftExtension {
   }
 
   @Override
+  public Property<Boolean> getVerbose() {
+    return property(Boolean.class);
+  }
+
+  @Override
   public Property<Boolean> getFailOnNoKubernetesJson() {
     return property(Boolean.class).value(isFailOnNoKubernetesJson);
   }

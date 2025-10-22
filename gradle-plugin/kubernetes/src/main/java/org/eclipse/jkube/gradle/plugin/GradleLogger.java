@@ -29,11 +29,13 @@ public class GradleLogger extends Slf4jKitLogger {
 
   private final Logger delegate;
   private final String prefix;
+  private final boolean verboseEnabled;
 
-  public GradleLogger(Logger delegate, boolean ansiEnabled, String prefix) {
+  public GradleLogger(Logger delegate, boolean ansiEnabled, String prefix, boolean verboseEnabled) {
     super(delegate);
     this.delegate = delegate;
     this.prefix = prefix;
+    this.verboseEnabled = verboseEnabled;
     Ansi.setEnabled(ansiEnabled);
   }
 
@@ -55,6 +57,11 @@ public class GradleLogger extends Slf4jKitLogger {
   @Override
   public void error(String format, Object... params) {
     delegate.error(withAnsi(ERROR, format, params));
+  }
+
+  @Override
+  public boolean isVerboseEnabled() {
+    return this.verboseEnabled;
   }
 
   private String withAnsi(AnsiUtil.Color color, String message, Object... params) {
