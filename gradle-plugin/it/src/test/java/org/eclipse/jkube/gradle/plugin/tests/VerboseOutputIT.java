@@ -16,7 +16,7 @@ package org.eclipse.jkube.gradle.plugin.tests;
 import org.gradle.testkit.runner.BuildResult;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-y
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class VerboseOutputIT {
