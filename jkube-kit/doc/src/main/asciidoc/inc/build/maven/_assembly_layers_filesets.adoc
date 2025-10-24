@@ -4,14 +4,16 @@
   <!-- ... -->
   <layers>
     <layer>
-      <id>static-files</id>
+      <id>static-files</id> <!--1-->
       <fileSets>
         <fileSet>
           <directory>src/static</directory>
-          <outputDirectory>static</outputDirectory>
+          <outputDirectory>static</outputDirectory> <!--2-->
         </fileSet>
       </fileSets>
     </layer>
   </layers>
 </assembly>
 ----
+<1> Each layer will be treated as a separate layer in the container image
+<2> The `outputDirectory` will be created under the target directory (e.g., `/deployments/static`). Use a specific folder name like `static`, `certs`, or `config`. Do not use existing system directories like `/tmp` or `/var`.

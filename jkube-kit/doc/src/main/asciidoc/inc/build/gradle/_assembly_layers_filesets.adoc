@@ -1,12 +1,15 @@
 [source,groovy,subs="attributes+"]
 ----
 assembly {
-    targetDir = "/deployments"
-    layers = [{
+    targetDir = "/deployments" //<1>
+    layers = [{ //<2>
         fileSets = [{
             directory = file("${project.rootDir}/build/dependencies")
-            outputDirectory = "static"
+            outputDirectory = "static" //<3>
        }]
     }]
 }
 ----
+<1> The target directory in the container where assembly files will be copied
+<2> Each layer will be treated as a separate layer in the container image
+<3> The `outputDirectory` will be created under the target directory (e.g., `/deployments/static`). Use a specific folder name like `static`, `certs`, or `config`. Do not use existing system directories like `/tmp` or `/var`.
