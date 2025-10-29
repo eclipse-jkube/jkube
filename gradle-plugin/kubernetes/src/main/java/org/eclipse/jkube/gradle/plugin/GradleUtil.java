@@ -160,11 +160,7 @@ public class GradleUtil {
   }
 
   private static SourceSetContainer extractSourceSets(Project gradleProject) {
-    try {
-      return gradleProject.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-    } catch (UnknownDomainObjectException ex) {
-      return null;
-    }
+    return gradleProject.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
   }
 
   private static List<String> extractClassPath(Project gradleProject) {
