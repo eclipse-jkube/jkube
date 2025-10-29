@@ -47,7 +47,7 @@ import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,14 +71,14 @@ class GradleUtilTest {
 
   private Project project;
 
-  private JavaPluginConvention javaPlugin;
+  private JavaPluginExtension javaPlugin;
 
   private List<Configuration> projectConfigurations;
 
   @BeforeEach
   void setUp() throws IOException {
     project = mock(Project.class, RETURNS_DEEP_STUBS);
-    javaPlugin = mock(JavaPluginConvention.class, RETURNS_DEEP_STUBS);
+    javaPlugin = mock(JavaPluginExtension.class, RETURNS_DEEP_STUBS);
     when(javaPlugin.getSourceSets().stream()).thenReturn(Stream.empty());
 
     final ConfigurationContainer cc = mock(ConfigurationContainer.class);
@@ -91,7 +91,7 @@ class GradleUtilTest {
     when(project.getProperties()).thenReturn(Collections.emptyMap());
     when(project.getBuildDir()).thenReturn(Files.createDirectory(folder.resolve("build")).toFile());
     when(project.getPlugins()).thenReturn(new DefaultPluginContainer(null, null, null));
-    when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(javaPlugin);
+    when(project.getExtensions().getByType(JavaPluginExtension.class)).thenReturn(javaPlugin);
   }
 
   @Test

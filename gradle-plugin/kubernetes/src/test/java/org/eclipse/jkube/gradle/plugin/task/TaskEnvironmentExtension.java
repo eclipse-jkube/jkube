@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.plugins.DefaultPluginContainer;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -60,7 +60,7 @@ public class TaskEnvironmentExtension implements BeforeEachCallback, AfterEachCa
     when(cc.toArray()).thenAnswer(i -> projectConfigurations.toArray());
 
     when(project.getBuildscript().getConfigurations().stream()).thenAnswer(i -> Stream.empty());
-    when(project.getConvention().getPlugin(JavaPluginConvention.class)).thenReturn(mock(JavaPluginConvention.class));
+    when(project.getExtensions().getByType(JavaPluginExtension.class)).thenReturn(mock(JavaPluginExtension.class));
     defaultTaskMockedConstruction = mockConstruction(DefaultTask.class, (mock, ctx) -> {
       when(mock.getProject()).thenReturn(project);
       when(mock.getLogger()).thenReturn(logger);

@@ -49,7 +49,7 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.GeneratedSubclasses;
-import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
@@ -160,7 +160,11 @@ public class GradleUtil {
   }
 
   private static SourceSetContainer extractSourceSets(Project gradleProject) {
-    return gradleProject.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets();
+    try {
+      return gradleProject.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
+    } catch (UnknownDomainObjectException ex) {
+      return null;
+    }
   }
 
   private static List<String> extractClassPath(Project gradleProject) {
