@@ -24,6 +24,7 @@ Usage:
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
 * Fix #3740: Add verbose extension prop as per the gradle plugin docs
 * Fix #3779: Compatibility with gradle 9
+* Fix #3780: ImageName should respect project.build.outputTimestamp when present
 
 ### 1.18.1 (2025-02-11)
 * Fix #3642: Config properties resolved for generated images
