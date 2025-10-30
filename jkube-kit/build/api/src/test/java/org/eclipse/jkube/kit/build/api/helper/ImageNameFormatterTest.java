@@ -12,7 +12,6 @@
  *   Red Hat, Inc. - initial API and implementation
  */
 package org.eclipse.jkube.kit.build.api.helper;
-import org.eclipse.jkube.kit.build.api.helper.ImageNameFormatter;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -178,5 +177,74 @@ class ImageNameFormatterTest {
         final String result = formatter.format("registry.gitlab.com/myproject/myrepo/mycontainer:${git.commit.id.abbrev}");
         // Then
         assertThat(result).isEqualTo("registry.gitlab.com/myproject/myrepo/mycontainer:der12");
+    }
+
+    @Test
+    void format_whenOutputTimestampSetAsEpochSeconds_thenUsesReproducibleTimestamp() {
+        // Given
+        project.setVersion("1.2.3-SNAPSHOT");
+        project.getProperties().put("project.build.outputTimestamp", "1672531200"); // 2023-01-01 00:00:00 UTC
+        formatter = new ImageNameFormatter(project, new Date());
+        // When
+        final String result = formatter.format("%g/%a:%t");
+        // Then
+        assertThat(result)
+            .isEqualTo("jkube/kubernetes-maven-plugin:snapshot-230101-000000-0000")
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
+    }
+
+    @Test
+    void format_whenOutputTimestampSetAsISO8601_thenUsesReproducibleTimestamp() {
+        // Given
+        project.setVersion("1.2.3-SNAPSHOT");
+        project.getProperties().put("project.build.outputTimestamp", "2023-01-01T00:00:00Z");
+        formatter = new ImageNameFormatter(project, new Date());
+        // When
+        final String result = formatter.format("%g/%a:%t");
+        // Then
+        assertThat(result)
+            .isEqualTo("jkube/kubernetes-maven-plugin:snapshot-230101-000000-0000")
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
+    }
+
+    @Test
+    void format_whenOutputTimestampSetWithSemVerBuildmetadata_thenUsesReproducibleTimestamp() {
+        // Given
+        project.setVersion("1.2.3-SNAPSHOT+semver.build_meta-data");
+        project.getProperties().put("project.build.outputTimestamp", "1672531200"); // 2023-01-01 00:00:00 UTC
+        formatter = new ImageNameFormatter(project, new Date());
+        // When
+        final String result = formatter.format("%g/%a:%t");
+        // Then
+        assertThat(result)
+            .isEqualTo("jkube/kubernetes-maven-plugin:snapshot-230101-000000-0000-semver.build_meta-data")
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
+    }
+
+    @Test
+    void format_whenOutputTimestampNotSet_thenUsesCurrentTime() {
+        // Given
+        project.setVersion("1.2.3-SNAPSHOT");
+        formatter = new ImageNameFormatter(project, new Date());
+        // When
+        final String result = formatter.format("%g/%a:%t");
+        // Then
+        assertThat(result)
+            .matches("^jkube/kubernetes-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}$")
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
+    }
+
+    @Test
+    void format_whenOutputTimestampInvalid_thenFallsBackToCurrentTime() {
+        // Given
+        project.setVersion("1.2.3-SNAPSHOT");
+        project.getProperties().put("project.build.outputTimestamp", "invalid-timestamp");
+        formatter = new ImageNameFormatter(project, new Date());
+        // When
+        final String result = formatter.format("%g/%a:%t");
+        // Then
+        assertThat(result)
+            .matches("^jkube/kubernetes-maven-plugin:snapshot-\\d{6}-\\d{6}-\\d{4}$")
+            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
     }
 }

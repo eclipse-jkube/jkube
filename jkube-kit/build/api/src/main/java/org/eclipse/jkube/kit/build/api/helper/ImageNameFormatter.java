@@ -14,9 +14,12 @@
 package org.eclipse.jkube.kit.build.api.helper;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.DEFAULT_FILTER;
 import static org.eclipse.jkube.kit.common.JKubeFileInterpolator.interpolate;
@@ -150,6 +153,12 @@ public class ImageNameFormatter implements NameFormatter {
          */
         private static final String DOCKER_IMAGE_TAG = "jkube.image.tag";
 
+        /**
+         * Maven property for reproducible builds timestamp.
+         * See <a href="https://maven.apache.org/guides/mini/guide-reproducible-builds.html">...</a>
+         */
+        private static final String OUTPUT_TIMESTAMP = "project.build.outputTimestamp";
+
         // how to resolve the version
         private final Mode mode;
 
@@ -207,11 +216,42 @@ public class ImageNameFormatter implements NameFormatter {
 
             switch (mode) {
             case SNAPSHOT_WITH_TIMESTAMP:
-                return "snapshot-" + new SimpleDateFormat("yyMMdd-HHmmss-SSSS").format(now) + buildmetadata;
+                Date timestamp = getTimestamp();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMdd-HHmmss-SSSS");
+                dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+                return "snapshot-" + dateFormat.format(timestamp) + buildmetadata;
             case SNAPSHOT_LATEST:
                 return "latest" + buildmetadata;
             default:
                 throw new IllegalStateException("mode is '" + mode.name() + "', which is not implemented.");
+            }
+        }
+
+        /**
+         * Gets the timestamp to use for image tagging.
+         * First checks for project.build.outputTimestamp property (for reproducible builds),
+         * then falls back to the current time.
+         *
+         * @return the timestamp to use for tagging
+         */
+        private Date getTimestamp() {
+            final String outputTimestamp = getProperty(OUTPUT_TIMESTAMP);
+            if (StringUtils.isBlank(outputTimestamp)) {
+                return now;
+            }
+
+            try {
+                // Try parsing as a number (seconds since epoch)
+                long epochSeconds = Long.parseLong(outputTimestamp);
+                return Date.from(Instant.ofEpochSecond(epochSeconds));
+            } catch (NumberFormatException e) {
+                // Not a number, try parsing as ISO 8601 timestamp
+                try {
+                    return Date.from(Instant.parse(outputTimestamp));
+                } catch (DateTimeParseException ex) {
+                    // Invalid format, fall back to now
+                    return now;
+                }
             }
         }
 
