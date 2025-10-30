@@ -179,46 +179,27 @@ class ImageNameFormatterTest {
         assertThat(result).isEqualTo("registry.gitlab.com/myproject/myrepo/mycontainer:der12");
     }
 
-    @Test
-    void format_whenOutputTimestampSetAsEpochSeconds_thenUsesReproducibleTimestamp() {
+    @ParameterizedTest(name = "version = {0}, outputTimestamp = {1} should generate {2}")
+    @MethodSource("outputTimestampReproducibleData")
+    void format_whenOutputTimestampSet_thenUsesReproducibleTimestamp(String version, String outputTimestamp, String expectedTag) {
         // Given
-        project.setVersion("1.2.3-SNAPSHOT");
-        project.getProperties().put("project.build.outputTimestamp", "1672531200"); // 2023-01-01 00:00:00 UTC
+        project.setVersion(version);
+        project.getProperties().put("project.build.outputTimestamp", outputTimestamp);
         formatter = new ImageNameFormatter(project, new Date());
         // When
         final String result = formatter.format("%g/%a:%t");
         // Then
         assertThat(result)
-            .isEqualTo("jkube/kubernetes-maven-plugin:snapshot-230101-000000-0000")
+            .isEqualTo(expectedTag)
             .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
     }
 
-    @Test
-    void format_whenOutputTimestampSetAsISO8601_thenUsesReproducibleTimestamp() {
-        // Given
-        project.setVersion("1.2.3-SNAPSHOT");
-        project.getProperties().put("project.build.outputTimestamp", "2023-01-01T00:00:00Z");
-        formatter = new ImageNameFormatter(project, new Date());
-        // When
-        final String result = formatter.format("%g/%a:%t");
-        // Then
-        assertThat(result)
-            .isEqualTo("jkube/kubernetes-maven-plugin:snapshot-230101-000000-0000")
-            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
-    }
-
-    @Test
-    void format_whenOutputTimestampSetWithSemVerBuildmetadata_thenUsesReproducibleTimestamp() {
-        // Given
-        project.setVersion("1.2.3-SNAPSHOT+semver.build_meta-data");
-        project.getProperties().put("project.build.outputTimestamp", "1672531200"); // 2023-01-01 00:00:00 UTC
-        formatter = new ImageNameFormatter(project, new Date());
-        // When
-        final String result = formatter.format("%g/%a:%t");
-        // Then
-        assertThat(result)
-            .isEqualTo("jkube/kubernetes-maven-plugin:snapshot-230101-000000-0000-semver.build_meta-data")
-            .satisfies(i -> assertThat(new ImageName(i)).isNotNull());
+    static Stream<Arguments> outputTimestampReproducibleData() {
+        return Stream.of(
+            arguments("1.2.3-SNAPSHOT", "1672531200", "jkube/kubernetes-maven-plugin:snapshot-230101-000000-0000"),
+            arguments("1.2.3-SNAPSHOT", "2023-01-01T00:00:00Z", "jkube/kubernetes-maven-plugin:snapshot-230101-000000-0000"),
+            arguments("1.2.3-SNAPSHOT+semver.build_meta-data", "1672531200", "jkube/kubernetes-maven-plugin:snapshot-230101-000000-0000-semver.build_meta-data")
+        );
     }
 
     @Test
