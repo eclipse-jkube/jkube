@@ -14,13 +14,8 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,8 +26,8 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
-import org.eclipse.jkube.kit.common.archive.ArchiveDecompressor;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 
@@ -155,7 +150,7 @@ public class SpringBootUtil {
     File[] nativeExecutableArtifacts = null;
     for (String location : new String[] {"", "native/nativeCompile/"}) {
       nativeExecutableArtifacts = new File(project.getBuildDirectory(), location)
-        .listFiles(f -> f.isFile() && f.canExecute() && !ArchiveDecompressor.isArchive(f));
+        .listFiles(f -> f.isFile() && f.canExecute() && isNativeBinary(f));
       if (nativeExecutableArtifacts != null && nativeExecutableArtifacts.length > 0) {
         break;
       }
@@ -174,6 +169,18 @@ public class SpringBootUtil {
       return filteredBinaries.iterator().next();
     }
     throw new IllegalStateException("More than one native executable file found in " + project.getBuildDirectory().getAbsolutePath());
+  }
+
+  private static boolean isNativeBinary(File f) {
+    try {
+      if (isWindows()) {
+        return PEHeaderUtil.isPEFile(f);
+      }
+      // For Unix-like systems, the executable check is already done
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   public static boolean hasSpringWebFluxDependency(JavaProject javaProject) {
