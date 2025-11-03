@@ -20,6 +20,9 @@ Usage:
 # ./scripts/changelog.sh semanticVersionNumber [linkLabelStartNumber]
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
+
+### 1.19-SNAPSHOT
+
 ### 1.18.2 (2025-11-03)
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
 * Fix #3740: Add verbose extension prop as per the gradle plugin docs
