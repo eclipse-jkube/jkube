@@ -13,7 +13,7 @@
  */
 plugins {
     id 'io.openliberty.tools.gradle.Liberty' version '3.8.2'
-    id 'org.eclipse.jkube.kubernetes' version '1.18.1'
+    id 'org.eclipse.jkube.kubernetes' version '1.18.2'
     id 'war'
 }
 

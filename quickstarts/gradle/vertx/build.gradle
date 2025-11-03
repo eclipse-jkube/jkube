@@ -14,8 +14,8 @@
 plugins {
   id 'java'
   id 'application'
-  id 'org.eclipse.jkube.kubernetes' version '1.18.1'
-  id 'org.eclipse.jkube.openshift' version '1.18.1'
+  id 'org.eclipse.jkube.kubernetes' version '1.18.2'
+  id 'org.eclipse.jkube.openshift' version '1.18.2'
   id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
