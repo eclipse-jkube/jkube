@@ -262,7 +262,7 @@ public class PEHeaderUtil {
   }
 
   private static boolean skipToPEHeader(InputStream is, int peHeaderOffset) throws IOException {
-    long bytesToSkip = peHeaderOffset - DOS_HEADER_SIZE;
+    long bytesToSkip = (long) peHeaderOffset - DOS_HEADER_SIZE;
     if (bytesToSkip > 0) {
       long skipped = is.skip(bytesToSkip);
       return skipped == bytesToSkip;
