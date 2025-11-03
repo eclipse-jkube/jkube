@@ -150,7 +150,7 @@ public class SpringBootUtil {
     File[] nativeExecutableArtifacts = null;
     for (String location : new String[] {"", "native/nativeCompile/"}) {
       nativeExecutableArtifacts = new File(project.getBuildDirectory(), location)
-        .listFiles(f -> f.isFile() && f.canExecute() && isNativeBinary(f));
+        .listFiles(SpringBootUtil::isExecutableNativeBinary);
       if (nativeExecutableArtifacts != null && nativeExecutableArtifacts.length > 0) {
         break;
       }
@@ -171,12 +171,24 @@ public class SpringBootUtil {
     throw new IllegalStateException("More than one native executable file found in " + project.getBuildDirectory().getAbsolutePath());
   }
 
-  private static boolean isNativeBinary(File f) {
+  /**
+   * Checks if a file is an executable native binary.
+   * This includes checking if the file is a regular file, executable, and a valid native binary
+   * (PE file on Windows, or not an archive on Unix-like systems).
+   *
+   * @param file the file to check
+   * @return true if the file is an executable native binary, false otherwise
+   */
+  private static boolean isExecutableNativeBinary(File file) {
+    if (!file.isFile() || !file.canExecute()) {
+      return false;
+    }
+
     try {
       if (isWindows()) {
-        return PEHeaderUtil.isPEFile(f);
+        return PEHeaderUtil.isPEFile(file);
       }
-      // For Unix-like systems, the executable check is already done
+      // For Unix-like systems, it's a native binary if it's executable and not an archive
       return true;
     } catch (Exception e) {
       return false;
