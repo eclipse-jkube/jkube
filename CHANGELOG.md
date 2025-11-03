@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.19-SNAPSHOT
+* Fix #3690: jkube-healthcheck-spring-boot enricher: rename property management.health.probes.enabled
 
 ### 1.18.2 (2025-11-03)
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
