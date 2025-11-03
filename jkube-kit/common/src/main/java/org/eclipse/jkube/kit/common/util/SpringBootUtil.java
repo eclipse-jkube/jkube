@@ -14,8 +14,13 @@
 package org.eclipse.jkube.kit.common.util;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +31,7 @@ import java.util.stream.Collectors;
 
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.archive.ArchiveDecompressor;
 
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
@@ -149,7 +155,7 @@ public class SpringBootUtil {
     File[] nativeExecutableArtifacts = null;
     for (String location : new String[] {"", "native/nativeCompile/"}) {
       nativeExecutableArtifacts = new File(project.getBuildDirectory(), location)
-        .listFiles(f -> f.isFile() && f.canExecute());
+        .listFiles(f -> f.isFile() && f.canExecute() && !ArchiveDecompressor.isArchive(f));
       if (nativeExecutableArtifacts != null && nativeExecutableArtifacts.length > 0) {
         break;
       }

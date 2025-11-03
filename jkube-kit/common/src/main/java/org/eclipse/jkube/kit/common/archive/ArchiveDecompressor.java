@@ -105,6 +105,38 @@ public class ArchiveDecompressor {
     }
   }
 
+  /**
+   * Checks if a given {@link File} is an archive or compressed file.
+   *
+   * @param file the file to check.
+   * @return true if the file is an archive or compressed file, false otherwise.
+   */
+  public static boolean isArchive(File file) {
+    // Fast path: check common archive extensions first to avoid I/O
+    if (hasArchiveExtension(file.getName())) {
+      return true;
+    }
+
+    // Fallback: content-based detection for files without standard extensions
+    try (InputStream fis = Files.newInputStream(file.toPath());
+         BufferedInputStream bis = new BufferedInputStream(fis)) {
+      return isCompressedFile(bis) || isArchive(bis);
+    } catch (IOException ex) {
+      return false;
+    }
+  }
+
+  private static boolean hasArchiveExtension(String fileName) {
+    String lowerName = fileName.toLowerCase();
+    return lowerName.endsWith(".tar") || lowerName.endsWith(".tgz") ||
+           lowerName.endsWith(".tar.gz") || lowerName.endsWith(".tar.bz2") ||
+           lowerName.endsWith(".tar.xz") || lowerName.endsWith(".zip") ||
+           lowerName.endsWith(".jar") || lowerName.endsWith(".war") ||
+           lowerName.endsWith(".ear") || lowerName.endsWith(".rar") ||
+           lowerName.endsWith(".7z") || lowerName.endsWith(".gz") ||
+           lowerName.endsWith(".bz2") || lowerName.endsWith(".xz");
+  }
+
   private static boolean isCompressedFile(InputStream inputStream) {
     try {
       CompressorStreamFactory.detect(inputStream);
