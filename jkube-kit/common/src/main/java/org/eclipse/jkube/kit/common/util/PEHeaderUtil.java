@@ -41,7 +41,8 @@ public class PEHeaderUtil {
   private static final int PE32_MAGIC = 0x10B;
   private static final int PE32_PLUS_MAGIC = 0x20B;
 
-  private PEHeaderUtil() {}
+  private PEHeaderUtil() {
+  }
 
   /**
    * Information extracted from a PE header.
@@ -86,7 +87,7 @@ public class PEHeaderUtil {
     @Override
     public String toString() {
       return String.format("PEInfo{valid=%s, machineType=%s, numberOfSections=%d, " +
-          "format=%s, subsystem=%s, isDll=%s, isExecutable=%s}",
+              "format=%s, subsystem=%s, isDll=%s, isExecutable=%s}",
           valid, machineType, numberOfSections, format, subsystem, isDll(), isExecutable());
     }
   }

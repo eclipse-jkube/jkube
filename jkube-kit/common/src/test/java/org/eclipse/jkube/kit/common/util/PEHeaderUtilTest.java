@@ -295,7 +295,7 @@ class PEHeaderUtilTest {
    * Creates a minimal valid PE file for testing purposes.
    *
    * @param machineType the machine type for the PE file
-   * @param isDll whether the file should be marked as a DLL
+   * @param isDll       whether the file should be marked as a DLL
    * @return the created PE file
    * @throws IOException if file creation fails
    */
@@ -310,7 +310,7 @@ class PEHeaderUtilTest {
    * Creates minimal valid PE file bytes for testing.
    *
    * @param machineType the machine type for the PE file
-   * @param isDll whether the file should be marked as a DLL
+   * @param isDll       whether the file should be marked as a DLL
    * @return byte array representing a minimal PE file
    */
   private byte[] createMinimalPEBytes(MachineType machineType, boolean isDll) {
