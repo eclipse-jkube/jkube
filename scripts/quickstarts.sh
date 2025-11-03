@@ -23,8 +23,11 @@ function mvnVersion() {
   JKUBE_VERSION=$1
   echo "Updating quickstarts pom files to JKube $JKUBE_VERSION"
   cd "$QUICKSTARTS" || exit 1
-  find . -type f -name "pom.xml" -printf '%h\0' | xargs -0 -P 1 -I{} sh -c \
-    "echo Setting version for {} && cd {} && mvn -nsu -N versions:set -DnewVersion=$JKUBE_VERSION -DgenerateBackupPoms=false && cd ${QUICKSTARTS} || exit 255"
+  find . -type f -name "pom.xml" -print0 | while IFS= read -r -d '' pomfile; do
+    dir=$(dirname "$pomfile")
+    echo "Setting version for $dir"
+    cd "$dir" && mvn -nsu -N versions:set -DnewVersion="$JKUBE_VERSION" -DgenerateBackupPoms=false && cd "$QUICKSTARTS" || exit 255
+  done
 }
 
 function gradleVersion() {
@@ -32,15 +35,15 @@ function gradleVersion() {
   echo "Updating quickstarts Gradle files to JKube $JKUBE_VERSION"
   cd "$QUICKSTARTS" || exit 1
   find . -type f -name "build.gradle" \
-    -exec sed -i "s/id 'org.eclipse.jkube.kubernetes' version .*$/id 'org.eclipse.jkube.kubernetes' version '$JKUBE_VERSION'/g" {} \;            \
-    -exec sed -i "s/id 'org.eclipse.jkube.openshift' version .*$/id 'org.eclipse.jkube.openshift' version '$JKUBE_VERSION'/g" {} \;              \
-    -exec sed -i "s/id(\"org.eclipse.jkube.kubernetes\") version .*$/id(\"org.eclipse.jkube.kubernetes\") version \"${JKUBE_VERSION}\"/g" {} \;  \
-    -exec sed -i "s/id(\"org.eclipse.jkube.openshift\") version .*$/id(\"org.eclipse.jkube.openshift\") version \"${JKUBE_VERSION}\"/g" {} \;    \
-    -exec sed -i "s/\:org.eclipse.jkube.openshift.gradle.plugin\:.*$/\:org.eclipse.jkube.openshift.gradle.plugin\:$JKUBE_VERSION'/g" {} \;       \
-    -exec sed -i "s/\:org.eclipse.jkube.kubernetes.gradle.plugin\:.*$/:org.eclipse.jkube.kubernetes.gradle.plugin\:$JKUBE_VERSION'/g" {} \;      \
-    -exec sed -i "s/\:jkube-kit-api\:.*$/\:jkube-kit-api\:$JKUBE_VERSION'/g" {} \;                                                               \
-    -exec sed -i "s/\:jkube-kit-enricher-api\:.*$/\:jkube-kit-enricher-api\:$JKUBE_VERSION'/g" {} \;                                             \
-    -exec sed -i "s/\:jkube-kit-generator-api\:.*$/\:jkube-kit-generator-api\:$JKUBE_VERSION'/g" {} \;
+    -exec sed -i '' "s/id 'org.eclipse.jkube.kubernetes' version .*$/id 'org.eclipse.jkube.kubernetes' version '$JKUBE_VERSION'/g" {} \;            \
+    -exec sed -i '' "s/id 'org.eclipse.jkube.openshift' version .*$/id 'org.eclipse.jkube.openshift' version '$JKUBE_VERSION'/g" {} \;              \
+    -exec sed -i '' "s/id(\"org.eclipse.jkube.kubernetes\") version .*$/id(\"org.eclipse.jkube.kubernetes\") version \"${JKUBE_VERSION}\"/g" {} \;  \
+    -exec sed -i '' "s/id(\"org.eclipse.jkube.openshift\") version .*$/id(\"org.eclipse.jkube.openshift\") version \"${JKUBE_VERSION}\"/g" {} \;    \
+    -exec sed -i '' "s/\:org.eclipse.jkube.openshift.gradle.plugin\:.*$/\:org.eclipse.jkube.openshift.gradle.plugin\:$JKUBE_VERSION'/g" {} \;       \
+    -exec sed -i '' "s/\:org.eclipse.jkube.kubernetes.gradle.plugin\:.*$/:org.eclipse.jkube.kubernetes.gradle.plugin\:$JKUBE_VERSION'/g" {} \;      \
+    -exec sed -i '' "s/\:jkube-kit-api\:.*$/\:jkube-kit-api\:$JKUBE_VERSION'/g" {} \;                                                               \
+    -exec sed -i '' "s/\:jkube-kit-enricher-api\:.*$/\:jkube-kit-enricher-api\:$JKUBE_VERSION'/g" {} \;                                             \
+    -exec sed -i '' "s/\:jkube-kit-generator-api\:.*$/\:jkube-kit-generator-api\:$JKUBE_VERSION'/g" {} \;
 
 }
 
@@ -53,15 +56,23 @@ function version() {
 function packageMaven() {
   echo "Packaging all Maven quickstart projects (excluding sub-modules)"
   cd "$QUICKSTARTS" || exit 1
-  find . -type f -name "pom.xml" -exec grep -q -z -v '../pom.xml</relativePath>' {} \; -printf '%h\0' | \
-    xargs -0 -L 1 -P 1 -I{} sh -c "cd {} && mvn clean package && cd ${QUICKSTARTS} || exit 255"
+  find . -type f -name "pom.xml" -print0 | while IFS= read -r -d '' pomfile; do
+    if ! grep -q '../pom.xml</relativePath>' "$pomfile"; then
+      dir=$(dirname "$pomfile")
+      echo "Packaging $dir"
+      cd "$dir" && mvn clean package && cd "$QUICKSTARTS" || exit 255
+    fi
+  done
 }
 
 function packageGradle() {
   echo "Packaging all Gradle quickstart projects (excluding sub-modules)"
   cd "$QUICKSTARTS" || exit 1
-  find . -type f -name "gradlew" -printf '%h\0' | \
-    xargs -0 -L 1 -P 1 -I{} sh -c "echo Packaging {} && cd {} && ./gradlew clean build && cd ${QUICKSTARTS} || exit 255"
+  find . -type f -name "gradlew" -print0 | while IFS= read -r -d '' gradlew; do
+    dir=$(dirname "$gradlew")
+    echo "Packaging $dir"
+    cd "$dir" && ./gradlew clean build && cd "$QUICKSTARTS" || exit 255
+  done
 }
 
 function package() {
