@@ -46,9 +46,11 @@ public class Serialization {
   private static ObjectMapper createJsonMapper() {
     ObjectMapper mapper = new ObjectMapper();
     // Configure to use Unix line endings (LF) instead of platform-specific line endings
+    // Use explicit "\n" instead of SYSTEM_LINEFEED_INSTANCE to ensure Unix LF on all platforms
+    DefaultIndenter indenter = new DefaultIndenter("  ", "\n");
     DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
-    prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
-    prettyPrinter.indentObjectsWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
+    prettyPrinter.indentArraysWith(indenter);
+    prettyPrinter.indentObjectsWith(indenter);
     mapper.setDefaultPrettyPrinter(prettyPrinter);
     return mapper;
   }
