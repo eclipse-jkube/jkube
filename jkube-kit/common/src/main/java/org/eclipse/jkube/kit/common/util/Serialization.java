@@ -14,6 +14,8 @@
 package org.eclipse.jkube.kit.common.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -41,6 +43,12 @@ public class Serialization {
     .configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, true));
   private static final KubernetesSerialization KUBERNETES_SERIALIZATION = new KubernetesSerialization(JSON_MAPPER, true);
   static {
+    // Configure JSON_MAPPER to use Unix line endings (LF) instead of platform-specific line endings
+    DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
+    prettyPrinter.indentArraysWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
+    prettyPrinter.indentObjectsWith(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE);
+    JSON_MAPPER.setDefaultPrettyPrinter(prettyPrinter);
+
     for (ObjectMapper mapper : new ObjectMapper[]{JSON_MAPPER, YAML_MAPPER}) {
       mapper.enable(SerializationFeature.INDENT_OUTPUT)
         .disable(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS)
