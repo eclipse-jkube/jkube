@@ -173,6 +173,31 @@ class SerializationTest {
   }
 
   @Test
+  void asJson_shouldUseUnixLineEndings() {
+    // Given
+    final ConfigMap source = new ConfigMapBuilder()
+      .withNewMetadata().withName("test").endMetadata()
+      .addToData("key", "value")
+      .build();
+    // When
+    final String result = Serialization.asJson(source);
+    // Then - should use Unix line endings (\n) not Windows (\r\n)
+    assertThat(result)
+      .doesNotContain("\r\n")
+      .contains("\n")
+      .isEqualTo("{\n" +
+        "  \"apiVersion\" : \"v1\",\n" +
+        "  \"kind\" : \"ConfigMap\",\n" +
+        "  \"metadata\" : {\n" +
+        "    \"name\" : \"test\"\n" +
+        "  },\n" +
+        "  \"data\" : {\n" +
+        "    \"key\" : \"value\"\n" +
+        "  }\n" +
+        "}");
+  }
+
+  @Test
   void saveJson_withConfigMap_savesFile(@TempDir Path targetDir) throws IOException {
     // Given
     final File targetFile = targetDir.resolve("cm.json").toFile();
