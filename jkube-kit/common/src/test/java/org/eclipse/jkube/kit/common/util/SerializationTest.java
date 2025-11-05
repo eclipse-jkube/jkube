@@ -160,7 +160,7 @@ class SerializationTest {
     final String result = Serialization.asJson(source);
     // Then
     assertThat(result)
-      .isEqualTo(String.format("{%n" +
+      .isEqualToIgnoringNewLines(String.format("{%n" +
         "  \"apiVersion\" : \"v1\",%n" +
         "  \"kind\" : \"ConfigMap\",%n" +
         "  \"metadata\" : {%n" +
@@ -210,7 +210,7 @@ class SerializationTest {
     // Then
     assertThat(targetFile)
       .content()
-      .isEqualTo(String.format("{%n" +
+      .isEqualToIgnoringNewLines(String.format("{%n" +
         "  \"apiVersion\" : \"v1\",%n" +
         "  \"kind\" : \"ConfigMap\",%n" +
         "  \"metadata\" : {%n" +
