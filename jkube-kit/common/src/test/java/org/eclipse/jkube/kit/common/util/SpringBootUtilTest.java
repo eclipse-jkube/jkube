@@ -321,7 +321,7 @@ class SpringBootUtilTest {
       // Given
       File nativeArtifactFile;
       if (OS.WINDOWS.isCurrentOs()) {
-        nativeArtifactFile = createMinimalWindowsPEFile(tempDir.resolve("sample.exe").toFile());
+        nativeArtifactFile = createMinimalWindowsPEFile(tempDir.resolve("sample").toFile());
       } else {
         nativeArtifactFile = Files.createFile(tempDir.resolve("sample")).toFile();
       }
@@ -335,7 +335,12 @@ class SpringBootUtilTest {
     @Test
     void whenNativeExecutableInStandardMavenBuildDirectoryAndImageNameOverridden_thenReturnNativeArtifact() throws IOException {
       // Given
-      File nativeArtifactFile = Files.createFile(tempDir.resolve("custom-native-name")).toFile();
+      File nativeArtifactFile;
+      if (OS.WINDOWS.isCurrentOs()) {
+        nativeArtifactFile = createMinimalWindowsPEFile(tempDir.resolve("custom-native-name").toFile());
+      } else {
+        nativeArtifactFile = Files.createFile(tempDir.resolve("custom-native-name")).toFile();
+      }
       assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
       // When
       File nativeArtifactFound = SpringBootUtil.findNativeArtifactFile(javaProject);
