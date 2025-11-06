@@ -20,6 +20,7 @@ import org.eclipse.jkube.kit.common.Plugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -318,7 +319,12 @@ class SpringBootUtilTest {
     @Test
     void whenNativeExecutableInStandardMavenBuildDirectory_thenReturnNativeArtifact() throws IOException {
       // Given
-      File nativeArtifactFile = Files.createFile(tempDir.resolve("sample")).toFile();
+      File nativeArtifactFile;
+      if (OS.WINDOWS.isCurrentOs()) {
+        nativeArtifactFile = createMinimalWindowsPEFile(tempDir.resolve("sample.exe").toFile());
+      } else {
+        nativeArtifactFile = Files.createFile(tempDir.resolve("sample")).toFile();
+      }
       assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
       // When
       File nativeArtifactFound = SpringBootUtil.findNativeArtifactFile(javaProject);
@@ -352,9 +358,16 @@ class SpringBootUtilTest {
     @Test
     void whenMultipleNativeExecutablesInStandardMavenBuildDirectory_thenThrowException() throws IOException {
       // Given
-      File nativeArtifactFile = Files.createFile(tempDir.resolve("sample")).toFile();
+      File nativeArtifactFile;
+      File nativeArtifactFile2;
+      if (OS.WINDOWS.isCurrentOs()) {
+        nativeArtifactFile = createMinimalWindowsPEFile(tempDir.resolve("app1.exe").toFile());
+        nativeArtifactFile2 = createMinimalWindowsPEFile(tempDir.resolve("app2.exe").toFile());
+      } else {
+        nativeArtifactFile = Files.createFile(tempDir.resolve("sample")).toFile();
+        nativeArtifactFile2 = Files.createFile(tempDir.resolve("sample2")).toFile();
+      }
       assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
-      File nativeArtifactFile2 = Files.createFile(tempDir.resolve("sample2")).toFile();
       assertThat(nativeArtifactFile2.setExecutable(true)).isTrue();
       // When + Then
       assertThatIllegalStateException()
@@ -412,5 +425,84 @@ class SpringBootUtilTest {
       applicationProp.getName().substring(applicationProp.getName().lastIndexOf(".") + 1));
     FileUtils.copyFile(applicationProp, applicationPropertiesInsideTarget);
     return ClassUtil.createClassLoader(Arrays.asList(classesInTarget.getAbsolutePath(), applicationProp.getAbsolutePath()));
+  }
+
+  /**
+   * Creates a minimal Windows PE executable file for testing purposes.
+   * This creates a valid PE file that can be recognized by PEHeaderUtil.
+   *
+   * @param targetFile the file to create
+   * @return the created PE file
+   * @throws IOException if file creation fails
+   */
+  static File createMinimalWindowsPEFile(File targetFile) throws IOException {
+    return createMinimalWindowsPEFile(targetFile, false);
+  }
+
+  /**
+   * Creates a minimal Windows PE file (executable or DLL) for testing purposes.
+   *
+   * @param targetFile the file to create
+   * @param isDll whether to create a DLL instead of an executable
+   * @return the created PE file
+   * @throws IOException if file creation fails
+   */
+  static File createMinimalWindowsPEFile(File targetFile, boolean isDll) throws IOException {
+    byte[] peData = createMinimalPEBytes(isDll);
+    Files.write(targetFile.toPath(), peData);
+    return targetFile;
+  }
+
+  /**
+   * Creates minimal valid PE file bytes for testing.
+   * Based on the Windows PE (Portable Executable) format specification.
+   *
+   * @param isDll whether the file should be marked as a DLL
+   * @return byte array representing a minimal PE file
+   */
+  private static byte[] createMinimalPEBytes(boolean isDll) {
+    java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(512).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+
+    // DOS Header
+    buffer.putShort((short) 0x5A4D); // MZ signature
+    buffer.position(0x3C);
+    buffer.putInt(0x80); // PE header offset at position 128
+
+    // Skip to PE header position (128)
+    buffer.position(0x80);
+
+    // PE Signature
+    buffer.putInt(0x00004550); // "PE\0\0"
+
+    // COFF Header
+    buffer.putShort((short) 0x8664); // Machine type: AMD64 (x64)
+    buffer.putShort((short) 3); // Number of sections
+    buffer.putInt(0); // TimeDateStamp
+    buffer.putInt(0); // PointerToSymbolTable
+    buffer.putInt(0); // NumberOfSymbols
+    buffer.putShort((short) 96); // SizeOfOptionalHeader
+
+    // Characteristics
+    int characteristics = 0x0002; // IMAGE_FILE_EXECUTABLE_IMAGE
+    if (isDll) {
+      characteristics |= 0x2000; // IMAGE_FILE_DLL
+    }
+    buffer.putShort((short) characteristics);
+
+    // Optional Header
+    buffer.putShort((short) 0x20B); // PE32+ magic (64-bit)
+    buffer.put((byte) 14); // MajorLinkerVersion
+    buffer.put((byte) 0);  // MinorLinkerVersion
+    buffer.putInt(0x1000); // SizeOfCode
+    buffer.putInt(0x1000); // SizeOfInitializedData
+    buffer.putInt(0); // SizeOfUninitializedData
+    buffer.putInt(0x1000); // AddressOfEntryPoint
+    buffer.putInt(0x1000); // BaseOfCode
+
+    // Fill rest of optional header to reach Subsystem field at offset 68
+    buffer.position(buffer.position() + 40);
+    buffer.putShort((short) 3); // Subsystem: Windows Console (CUI)
+
+    return buffer.array();
   }
 }
