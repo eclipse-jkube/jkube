@@ -14,6 +14,8 @@
 package org.eclipse.jkube.kit.common.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -34,12 +36,26 @@ import java.nio.file.Files;
 
 public class Serialization {
 
-  private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
+  private static final ObjectMapper JSON_MAPPER = createJsonMapper();
   private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory()
     .configure(YAMLGenerator.Feature.MINIMIZE_QUOTES, true)
     .configure(YAMLGenerator.Feature.USE_PLATFORM_LINE_BREAKS, true)
-    .configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, true));
+    .configure(YAMLGenerator.Feature.ALWAYS_QUOTE_NUMBERS_AS_STRINGS, true)
+    .configure(YAMLGenerator.Feature.LITERAL_BLOCK_STYLE, true));
   private static final KubernetesSerialization KUBERNETES_SERIALIZATION = new KubernetesSerialization(JSON_MAPPER, true);
+
+  private static ObjectMapper createJsonMapper() {
+    ObjectMapper mapper = new ObjectMapper();
+    // Configure to use Unix line endings (LF) instead of platform-specific line endings
+    // Use explicit "\n" instead of SYSTEM_LINEFEED_INSTANCE to ensure Unix LF on all platforms
+    DefaultIndenter indenter = new DefaultIndenter("  ", "\n");
+    DefaultPrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
+    prettyPrinter.indentArraysWith(indenter);
+    prettyPrinter.indentObjectsWith(indenter);
+    mapper.setDefaultPrettyPrinter(prettyPrinter);
+    return mapper;
+  }
+
   static {
     for (ObjectMapper mapper : new ObjectMapper[]{JSON_MAPPER, YAML_MAPPER}) {
       mapper.enable(SerializationFeature.INDENT_OUTPUT)
