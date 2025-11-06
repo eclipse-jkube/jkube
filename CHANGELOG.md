@@ -22,7 +22,7 @@ Usage:
 ```
 
 ### 1.19-SNAPSHOT
-* Fix #3591: Fix windows line endings for yaml literal blocks
+* Fix #3591: Fix windows line endings for yaml literal blocks, json serialization config updated
 
 ### 1.18.2 (2025-11-03)
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
