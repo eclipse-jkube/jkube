@@ -467,21 +467,21 @@ class HelmServiceUploadIT {
       helmService.uploadHelmChart(helmConfig);
       // Then
       assertThat(mockServer.getLastRequest().getBody().readUtf8())
-          .isEqualTo(String.format("{%n" +
-              "  \"schemaVersion\" : 2,%n" +
-              "  \"config\" : {%n" +
-              "    \"mediaType\" : \"application/vnd.cncf.helm.config.v1+json\",%n" +
-              "    \"digest\" : \"sha256:be0152670c8a31981ab17af598592ce91417c8be8700e708e4613739ec563031\",%n" +
-              "    \"size\" : 73%n" +
-              "  },%n" +
-              "  \"layers\" : [%n" +
-              "    {%n" +
-              "      \"mediaType\" : \"application/vnd.cncf.helm.chart.content.v1.tar+gzip\",%n" +
-              "      \"digest\" : \"sha256:c7051faa2fb28d147b34070a6bce25eaf1ee6bb4ca3b47af5ee6148d50079154\",%n" +
-              "      \"size\" : 24%n" +
-              "    }%n" +
-              "  ]%n" +
-              "}"));
+          .isEqualTo("{\n" +
+              "  \"schemaVersion\" : 2,\n" +
+              "  \"config\" : {\n" +
+              "    \"mediaType\" : \"application/vnd.cncf.helm.config.v1+json\",\n" +
+              "    \"digest\" : \"sha256:be0152670c8a31981ab17af598592ce91417c8be8700e708e4613739ec563031\",\n" +
+              "    \"size\" : 73\n" +
+              "  },\n" +
+              "  \"layers\" : [\n" +
+              "    {\n" +
+              "      \"mediaType\" : \"application/vnd.cncf.helm.chart.content.v1.tar+gzip\",\n" +
+              "      \"digest\" : \"sha256:c7051faa2fb28d147b34070a6bce25eaf1ee6bb4ca3b47af5ee6148d50079154\",\n" +
+              "      \"size\" : 24\n" +
+              "    }\n" +
+              "  ]\n" +
+              "}");
     }
 
   }
