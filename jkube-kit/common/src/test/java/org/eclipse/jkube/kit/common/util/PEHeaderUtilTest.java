@@ -308,60 +308,50 @@ class PEHeaderUtilTest {
 
   /**
    * Creates minimal valid PE file bytes for testing.
+   * Only includes the essential fields required for PEHeaderUtil validation.
    *
    * @param machineType the machine type for the PE file
    * @param isDll       whether the file should be marked as a DLL
    * @return byte array representing a minimal PE file
    */
-  private byte[] createMinimalPEBytes(MachineType machineType, boolean isDll) {
-    ByteBuffer buffer = ByteBuffer.allocate(512).order(ByteOrder.LITTLE_ENDIAN);
+  static byte[] createMinimalPEBytes(MachineType machineType, boolean isDll) {
+    ByteBuffer buffer = ByteBuffer.allocate(256).order(ByteOrder.LITTLE_ENDIAN);
 
-    // DOS Header
-    buffer.putShort((short) 0x5A4D); // MZ signature
+    // DOS Header (minimum required: MZ signature and PE offset)
+    buffer.putShort((short) 0x5A4D); // MZ signature at offset 0
     buffer.position(0x3C);
-    buffer.putInt(0x80); // PE header offset at position 128
+    buffer.putInt(0x80); // PE header offset at 0x3C pointing to position 128
 
     // Skip to PE header position (128)
     buffer.position(0x80);
 
     // PE Signature
-    buffer.putInt(0x00004550); // "PE\0\0"
+    buffer.putInt(0x00004550); // "PE\0\0" signature
 
-    // COFF Header
+    // COFF Header (20 bytes minimum)
     buffer.putShort((short) machineType.getCode()); // Machine type
-    buffer.putShort((short) 3); // Number of sections
+    buffer.putShort((short) 0); // Number of sections
     buffer.putInt(0); // TimeDateStamp
     buffer.putInt(0); // PointerToSymbolTable
     buffer.putInt(0); // NumberOfSymbols
-    buffer.putShort((short) 96); // SizeOfOptionalHeader
+    buffer.putShort((short) 2); // SizeOfOptionalHeader (minimal)
 
     // Characteristics
-    int characteristics = 0x0002; // Executable
+    int characteristics = 0x0002; // IMAGE_FILE_EXECUTABLE_IMAGE
     if (isDll) {
-      characteristics |= 0x2000; // DLL
+      characteristics |= 0x2000; // IMAGE_FILE_DLL
     }
     if (machineType == MachineType.I386) {
-      characteristics |= 0x0100; // 32-bit
+      characteristics |= 0x0100; // IMAGE_FILE_32BIT_MACHINE
     }
     buffer.putShort((short) characteristics);
 
-    // Optional Header
+    // Optional Header (minimal - just magic number)
     if (machineType == MachineType.AMD64 || machineType == MachineType.ARM64 || machineType == MachineType.IA64) {
-      buffer.putShort((short) 0x20B); // PE32+ magic
+      buffer.putShort((short) 0x20B); // PE32+ magic (64-bit)
     } else {
-      buffer.putShort((short) 0x10B); // PE32 magic
+      buffer.putShort((short) 0x10B); // PE32 magic (32-bit)
     }
-    buffer.put((byte) 14); // MajorLinkerVersion
-    buffer.put((byte) 0);  // MinorLinkerVersion
-    buffer.putInt(0x1000); // SizeOfCode
-    buffer.putInt(0x1000); // SizeOfInitializedData
-    buffer.putInt(0); // SizeOfUninitializedData
-    buffer.putInt(0x1000); // AddressOfEntryPoint
-    buffer.putInt(0x1000); // BaseOfCode
-
-    // Fill rest of optional header
-    buffer.position(buffer.position() + 40);
-    buffer.putShort((short) 3); // Subsystem: Windows Console
 
     return buffer.array();
   }

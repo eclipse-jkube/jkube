@@ -441,43 +441,8 @@ class SpringBootUtilTest {
    * @throws IOException if file creation fails
    */
   static File createMinimalWindowsPEFile(File targetFile) throws IOException {
-    byte[] peData = createMinimalPEBytes();
+    byte[] peData = PEHeaderUtilTest.createMinimalPEBytes(PEHeaderUtil.MachineType.AMD64, false);
     Files.write(targetFile.toPath(), peData);
     return targetFile;
-  }
-
-  /**
-   * Creates minimal valid PE file bytes for testing.
-   * Only includes the essential fields required for PEHeaderUtil validation.
-   *
-   * @return byte array representing a minimal PE executable file
-   */
-  private static byte[] createMinimalPEBytes() {
-    java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(256).order(java.nio.ByteOrder.LITTLE_ENDIAN);
-
-    // DOS Header (minimum required: MZ signature and PE offset)
-    buffer.putShort((short) 0x5A4D); // MZ signature at offset 0
-    buffer.position(0x3C);
-    buffer.putInt(0x80); // PE header offset at 0x3C pointing to position 128
-
-    // Skip to PE header position (128)
-    buffer.position(0x80);
-
-    // PE Signature
-    buffer.putInt(0x00004550); // "PE\0\0" signature
-
-    // COFF Header (20 bytes minimum)
-    buffer.putShort((short) 0x8664); // Machine type: AMD64
-    buffer.putShort((short) 0); // Number of sections
-    buffer.putInt(0); // TimeDateStamp
-    buffer.putInt(0); // PointerToSymbolTable
-    buffer.putInt(0); // NumberOfSymbols
-    buffer.putShort((short) 2); // SizeOfOptionalHeader (minimal)
-    buffer.putShort((short) 0x0002); // Characteristics: IMAGE_FILE_EXECUTABLE_IMAGE
-
-    // Optional Header (minimal - just magic number)
-    buffer.putShort((short) 0x20B); // PE32+ magic (64-bit)
-
-    return buffer.array();
   }
 }
