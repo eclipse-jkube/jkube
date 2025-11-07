@@ -19,9 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import org.eclipse.jkube.kit.common.Assembly;
 import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.AssemblyFile;
@@ -39,8 +36,7 @@ class AssemblyConfigurationUtils {
 
   private AssemblyConfigurationUtils() {}
 
-  @Nonnull
-  static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(@Nullable BuildConfiguration buildConfiguration) {
+  static AssemblyConfiguration getAssemblyConfigurationOrCreateDefault(BuildConfiguration buildConfiguration) {
     final AssemblyConfiguration ac = Optional.ofNullable(buildConfiguration)
             .map(BuildConfiguration::getAssembly)
             .orElse(AssemblyConfiguration.builder().build());
@@ -58,21 +54,18 @@ class AssemblyConfigurationUtils {
     return builder.build();
   }
 
-  @Nonnull
-  static List<AssemblyFileSet> getJKubeAssemblyFileSets(@Nullable Assembly assembly) {
+  static List<AssemblyFileSet> getJKubeAssemblyFileSets(Assembly assembly) {
     return Optional.ofNullable(assembly)
         .map(Assembly::getFileSets)
         .orElse(Collections.emptyList());
   }
 
-  @Nonnull
-  static List<AssemblyFile> getJKubeAssemblyFiles(@Nullable Assembly assembly) {
+  static List<AssemblyFile> getJKubeAssemblyFiles(Assembly assembly) {
     return Optional.ofNullable(assembly)
         .map(Assembly::getFiles)
         .orElse(Collections.emptyList());
   }
 
-  @Nonnull
   static DockerFileBuilder createDockerFileBuilder(BuildConfiguration buildConfig, AssemblyConfiguration assemblyConfig,
       Map<Assembly, List<AssemblyFileEntry>> layers) {
     DockerFileBuilder builder =

@@ -13,7 +13,7 @@
  */
 package org.eclipse.jkube.kit.enricher.specific;
 
-import com.google.common.base.Objects;
+import java.util.Objects;
 import io.fabric8.kubernetes.api.model.ContainerBuilder;
 import io.fabric8.kubernetes.api.model.ExecAction;
 import io.fabric8.kubernetes.api.model.Probe;
@@ -83,7 +83,7 @@ public class DockerHealthCheckEnricher extends AbstractHealthCheckEnricher {
         }
         for (ImageConfiguration image : getImages()) {
             String imageContainerName = KubernetesResourceUtil.extractContainerName(getContext().getGav(), image);
-                if (Objects.equal(containerName, imageContainerName)) {
+                if (Objects.equals(containerName, imageContainerName)) {
                     return image;
                 }
         }

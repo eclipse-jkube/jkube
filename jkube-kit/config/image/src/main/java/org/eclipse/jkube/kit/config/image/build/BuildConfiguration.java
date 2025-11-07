@@ -38,8 +38,6 @@ import org.eclipse.jkube.kit.common.AssemblyConfiguration;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
 
-import javax.annotation.Nonnull;
-
 import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 
 /**
@@ -434,7 +432,6 @@ public class BuildConfiguration implements Serializable {
     return dockerArchive;
   }
 
-  @Nonnull
   public File getContextDir() {
     if (contextDir != null) {
       return new File(contextDir);
@@ -586,7 +583,6 @@ public class BuildConfiguration implements Serializable {
     }
   }
 
-  @Nonnull
   public File calculateDockerFilePath() {
     if (dockerFile != null) {
       File dFile = new File(dockerFile);

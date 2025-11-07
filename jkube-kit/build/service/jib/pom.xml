@@ -23,7 +23,9 @@
     <version>1.19-SNAPSHOT</version>
     <relativePath>../../../parent/pom.xml</relativePath>
   </parent>
-
+  <properties>
+    <version.guava>33.4.0-jre</version.guava>
+  </properties>
   <artifactId>jkube-kit-build-service-jib</artifactId>
 
   <name>JKube Kit :: Build :: Service :: JIB</name>
@@ -32,6 +34,12 @@
     <dependency>
       <groupId>org.eclipse.jkube</groupId>
       <artifactId>jkube-kit-build-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${version.guava}</version>
     </dependency>
 
     <dependency>
