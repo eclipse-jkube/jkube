@@ -56,7 +56,6 @@
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
     <version.plexus-classworlds>2.9.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
-    <version.guava>33.4.0-jre</version.guava>
     <version.plexus-utils>3.5.0</version.plexus-utils>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
@@ -139,6 +138,7 @@
     <pack.macos.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-macos.tgz</pack.macos.artifact>
     <pack.macos-arm64.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-macos-arm64.tgz</pack.macos-arm64.artifact>
     <pack.windows.pack.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-windows.zip</pack.windows.pack.artifact>
+    <version.error_prone_annotations>2.36.0</version.error_prone_annotations>
   </properties>
 
   <dependencyManagement>
@@ -461,13 +461,7 @@
       <dependency>
         <groupId>com.google.errorprone</groupId>
         <artifactId>error_prone_annotations</artifactId>
-        <version>2.36.0</version>
-      </dependency>
-
-      <dependency>
-        <groupId>com.google.guava</groupId>
-        <artifactId>guava</artifactId>
-        <version>${version.guava}</version>
+        <version>${version.error_prone_annotations}</version>
       </dependency>
 
       <dependency>
@@ -486,6 +480,10 @@
             <exclusion>
               <groupId>com.fasterxml.jackson.core</groupId>
               <artifactId>jackson-core</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
             </exclusion>
             <exclusion>
               <groupId>org.apache.httpcomponents</groupId>
@@ -621,6 +619,10 @@
         <artifactId>maven-core</artifactId>
         <version>${version.maven-core}</version>
         <exclusions>
+          <exclusion>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
