@@ -30,7 +30,6 @@ import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import org.apache.commons.codec.binary.Base64;
@@ -326,11 +325,11 @@ class DockerAuthConfigFactoryTest {
                         .registerHandler("*", (request, response, context) -> {
                             System.out.println("REQUEST: " + request.getRequestLine());
                             if (containerCredentialsUri.matches(request.getRequestLine().getUri())) {
-                                response.setEntity(new StringEntity(gsonBuilder.create().toJson(ImmutableMap.of(
-                                        "AccessKeyId", accessKeyId,
-                                        "SecretAccessKey", secretAccessKey,
-                                        "Token", sessionToken
-                                ))));
+                                Map<String, String> credentials = new HashMap<>();
+                                credentials.put("AccessKeyId", accessKeyId);
+                                credentials.put("SecretAccessKey", secretAccessKey);
+                                credentials.put("Token", sessionToken);
+                                response.setEntity(new StringEntity(gsonBuilder.create().toJson(credentials)));
                             } else {
                                 response.setStatusCode(SC_NOT_FOUND);
                             }
