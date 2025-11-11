@@ -60,6 +60,7 @@ public class SpringBootGenerator extends JavaExecGenerator {
     public SpringBootGenerator(GeneratorContext context) {
         super(context, "spring-boot");
         nestedGenerator = SpringBootNestedGenerator.from(context, getGeneratorConfig(), detectFatJar());
+        log.debug("Nested Generator Type: %s", nestedGenerator);
         Properties springBootApplicationConfig = SpringBootUtil.getSpringBootApplicationProperties(
           SpringBootUtil.getSpringBootActiveProfile(getContext().getProject()),
           JKubeProjectUtil.getClassLoader(getContext().getProject()));

@@ -20,6 +20,7 @@ import org.eclipse.jkube.kit.common.Plugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -40,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class SpringBootUtilTest {
+public class SpringBootUtilTest {
 
   private JavaProject mavenProject;
 
@@ -318,7 +319,12 @@ class SpringBootUtilTest {
     @Test
     void whenNativeExecutableInStandardMavenBuildDirectory_thenReturnNativeArtifact() throws IOException {
       // Given
-      File nativeArtifactFile = Files.createFile(tempDir.resolve("sample")).toFile();
+      File nativeArtifactFile;
+      if (OS.WINDOWS.isCurrentOs()) {
+        nativeArtifactFile = createMinimalWindowsPEFile(tempDir.resolve("sample").toFile());
+      } else {
+        nativeArtifactFile = Files.createFile(tempDir.resolve("sample")).toFile();
+      }
       assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
       // When
       File nativeArtifactFound = SpringBootUtil.findNativeArtifactFile(javaProject);
@@ -329,7 +335,12 @@ class SpringBootUtilTest {
     @Test
     void whenNativeExecutableInStandardMavenBuildDirectoryAndImageNameOverridden_thenReturnNativeArtifact() throws IOException {
       // Given
-      File nativeArtifactFile = Files.createFile(tempDir.resolve("custom-native-name")).toFile();
+      File nativeArtifactFile;
+      if (OS.WINDOWS.isCurrentOs()) {
+        nativeArtifactFile = createMinimalWindowsPEFile(tempDir.resolve("custom-native-name").toFile());
+      } else {
+        nativeArtifactFile = Files.createFile(tempDir.resolve("custom-native-name")).toFile();
+      }
       assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
       // When
       File nativeArtifactFound = SpringBootUtil.findNativeArtifactFile(javaProject);
@@ -352,9 +363,16 @@ class SpringBootUtilTest {
     @Test
     void whenMultipleNativeExecutablesInStandardMavenBuildDirectory_thenThrowException() throws IOException {
       // Given
-      File nativeArtifactFile = Files.createFile(tempDir.resolve("sample")).toFile();
+      File nativeArtifactFile;
+      File nativeArtifactFile2;
+      if (OS.WINDOWS.isCurrentOs()) {
+        nativeArtifactFile = createMinimalWindowsPEFile(tempDir.resolve("app1.exe").toFile());
+        nativeArtifactFile2 = createMinimalWindowsPEFile(tempDir.resolve("app2.exe").toFile());
+      } else {
+        nativeArtifactFile = Files.createFile(tempDir.resolve("sample")).toFile();
+        nativeArtifactFile2 = Files.createFile(tempDir.resolve("sample2")).toFile();
+      }
       assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
-      File nativeArtifactFile2 = Files.createFile(tempDir.resolve("sample2")).toFile();
       assertThat(nativeArtifactFile2.setExecutable(true)).isTrue();
       // When + Then
       assertThatIllegalStateException()
@@ -412,5 +430,19 @@ class SpringBootUtilTest {
       applicationProp.getName().substring(applicationProp.getName().lastIndexOf(".") + 1));
     FileUtils.copyFile(applicationProp, applicationPropertiesInsideTarget);
     return ClassUtil.createClassLoader(Arrays.asList(classesInTarget.getAbsolutePath(), applicationProp.getAbsolutePath()));
+  }
+
+  /**
+   * Creates a minimal Windows PE executable file for testing purposes.
+   * This creates a valid PE file with MZ signature that can be recognized by PEHeaderUtil.
+   *
+   * @param targetFile the file to create
+   * @return the created PE file
+   * @throws IOException if file creation fails
+   */
+  public static File createMinimalWindowsPEFile(File targetFile) throws IOException {
+    byte[] peData = PEHeaderUtilTest.createMinimalPEBytes(PEHeaderUtil.MachineType.AMD64, false);
+    Files.write(targetFile.toPath(), peData);
+    return targetFile;
   }
 }

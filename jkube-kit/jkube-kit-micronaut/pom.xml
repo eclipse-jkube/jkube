@@ -63,6 +63,13 @@
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.jkube</groupId>
+            <artifactId>jkube-kit-common</artifactId>
+            <scope>test</scope>
+            <type>test-jar</type>
+        </dependency>
+
     </dependencies>
 
     <build>

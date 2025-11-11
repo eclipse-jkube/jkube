@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 
+import static org.eclipse.jkube.kit.common.util.EnvUtil.isWindows;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.JKUBE_INTERNAL_APP_CONFIG_FILE_LOCATION;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.getPropertiesFromResource;
 
@@ -149,7 +150,7 @@ public class SpringBootUtil {
     File[] nativeExecutableArtifacts = null;
     for (String location : new String[] {"", "native/nativeCompile/"}) {
       nativeExecutableArtifacts = new File(project.getBuildDirectory(), location)
-        .listFiles(f -> f.isFile() && f.canExecute());
+        .listFiles(f -> SpringBootUtil.isExecutableNativeBinary(f , project));
       if (nativeExecutableArtifacts != null && nativeExecutableArtifacts.length > 0) {
         break;
       }
@@ -168,6 +169,57 @@ public class SpringBootUtil {
       return filteredBinaries.iterator().next();
     }
     throw new IllegalStateException("More than one native executable file found in " + project.getBuildDirectory().getAbsolutePath());
+  }
+
+  /**
+   * Checks if a file is an executable native binary.
+   * <p>
+   * A file is considered an executable native binary if:
+   * <ul>
+   *   <li>It is a regular file and executable</li>
+   *   <li>Its name matches the project name (assumed to be the main artifact), OR</li>
+   *   <li>On Windows: it's a valid PE (Portable Executable) file</li>
+   *   <li>On Unix-like systems: it's executable (additional validation may be needed for archives)</li>
+   * </ul>
+   *
+   * @param file the file to check
+   * @param project the project context for name matching
+   * @return true if the file is an executable native binary, false otherwise
+   */
+  private static boolean isExecutableNativeBinary(File file, JavaProject project) {
+    // Basic file validation
+    if (!file.isFile() || !file.canExecute()) {
+      return false;
+    }
+
+    // If the filename matches the project name, consider it the native artifact
+    if (file.getName().equals(project.getArtifactId())) {
+      return true;
+    }
+
+    // Platform-specific validation
+    return isValidNativeBinaryForPlatform(file);
+  }
+
+  /**
+   * Validates if a file is a native binary for the current platform.
+   *
+   * @param file the file to validate
+   * @return true if the file is a valid native binary for the platform
+   */
+  private static boolean isValidNativeBinaryForPlatform(File file) {
+    try {
+      if (isWindows()) {
+        // On Windows, verify it's a valid PE file
+        return PEHeaderUtil.isPEFile(file);
+      }
+      // On Unix-like systems, executable files are considered native binaries
+      // Note: This may include shell scripts; additional validation could check for ELF headers
+      return true;
+    } catch (Exception e) {
+      // If validation fails due to I/O or parsing errors, assume not a valid binary
+      return false;
+    }
   }
 
   public static boolean hasSpringWebFluxDependency(JavaProject javaProject) {
