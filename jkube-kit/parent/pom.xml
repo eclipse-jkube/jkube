@@ -138,7 +138,6 @@
     <pack.macos.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-macos.tgz</pack.macos.artifact>
     <pack.macos-arm64.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-macos-arm64.tgz</pack.macos-arm64.artifact>
     <pack.windows.pack.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-windows.zip</pack.windows.pack.artifact>
-    <version.error_prone_annotations>2.36.0</version.error_prone_annotations>
   </properties>
 
   <dependencyManagement>

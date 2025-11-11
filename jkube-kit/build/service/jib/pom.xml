@@ -27,9 +27,6 @@
   <artifactId>jkube-kit-build-service-jib</artifactId>
 
   <name>JKube Kit :: Build :: Service :: JIB</name>
-  <properties>
-    <version.guava>33.4.0-jre</version.guava>
-  </properties>
 
   <dependencies>
     <dependency>
