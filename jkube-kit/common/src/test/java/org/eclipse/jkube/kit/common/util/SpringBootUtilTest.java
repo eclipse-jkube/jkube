@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.entry;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-class SpringBootUtilTest {
+public class SpringBootUtilTest {
 
   private JavaProject mavenProject;
 
@@ -440,7 +440,7 @@ class SpringBootUtilTest {
    * @return the created PE file
    * @throws IOException if file creation fails
    */
-  static File createMinimalWindowsPEFile(File targetFile) throws IOException {
+  public static File createMinimalWindowsPEFile(File targetFile) throws IOException {
     byte[] peData = PEHeaderUtilTest.createMinimalPEBytes(PEHeaderUtil.MachineType.AMD64, false);
     Files.write(targetFile.toPath(), peData);
     return targetFile;

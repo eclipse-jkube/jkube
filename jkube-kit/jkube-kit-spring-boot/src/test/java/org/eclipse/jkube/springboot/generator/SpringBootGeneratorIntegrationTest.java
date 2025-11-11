@@ -24,12 +24,14 @@ import org.eclipse.jkube.kit.common.Dependency;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Plugin;
+import org.eclipse.jkube.kit.common.util.SpringBootUtilTest;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
@@ -428,7 +430,13 @@ class SpringBootGeneratorIntegrationTest {
           .build()
         )
         .build();
-      File nativeArtifactFile = Files.createFile(targetDir.toPath().resolve("native-binary-artifact")).toFile();
+      File nativeArtifactFile;
+      if (OS.WINDOWS.isCurrentOs()) {
+        nativeArtifactFile = SpringBootUtilTest.createMinimalWindowsPEFile(targetDir.toPath().resolve("native-binary-artifact").toFile());
+      }
+      else {
+        nativeArtifactFile = Files.createFile(targetDir.toPath().resolve("native-binary-artifact")).toFile();
+      }
       assertThat(nativeArtifactFile.setExecutable(true)).isTrue();
     }
 
