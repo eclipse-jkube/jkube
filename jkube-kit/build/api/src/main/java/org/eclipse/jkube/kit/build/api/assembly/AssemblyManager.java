@@ -48,8 +48,6 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.DockerFileBuilder;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 
-import javax.annotation.Nonnull;
-
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.createDockerFileBuilder;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getAssemblyConfigurationOrCreateDefault;
 import static org.eclipse.jkube.kit.build.api.assembly.AssemblyConfigurationUtils.getJKubeAssemblyFileSets;
@@ -129,9 +127,8 @@ public class AssemblyManager {
      * @param configuration global JKubeConfiguration
      * @return the computed AssemblyConfiguration
      */
-    @Nonnull
     public static AssemblyConfiguration getAssemblyConfiguration(
-        @Nonnull BuildConfiguration buildConfiguration, @Nonnull JKubeConfiguration configuration) throws IOException {
+        BuildConfiguration buildConfiguration, JKubeConfiguration configuration) throws IOException {
 
         if (buildConfiguration.isDockerFileMode()) {
             return getAssemblyConfigurationForDockerfileMode(configuration, buildConfiguration, configuration);
@@ -410,7 +407,6 @@ public class AssemblyManager {
         });
     }
 
-    @Nonnull
     private static List<ArchiverCustomizer> getDefaultCustomizers(JKubeConfiguration configuration,
         AssemblyConfiguration assemblyConfiguration, ArchiverCustomizer finalCustomizer,
         Map<Assembly, List<AssemblyFileEntry>> layers) {
@@ -422,7 +418,6 @@ public class AssemblyManager {
         return archiverCustomizers;
     }
 
-    @Nonnull
     private static AssemblyConfiguration getAssemblyConfigurationForDockerfileMode(
         JKubeConfiguration configuration, BuildConfiguration buildConfiguration, JKubeConfiguration params) throws IOException {
 
@@ -441,8 +436,7 @@ public class AssemblyManager {
         return builder.build().getFlattenedClone(configuration);
     }
 
-    @Nonnull
-    private static ArchiverCustomizer fileModeCustomizer(@Nonnull List<AssemblyFileEntry> fileEntries) {
+    private static ArchiverCustomizer fileModeCustomizer(List<AssemblyFileEntry> fileEntries) {
         return a -> {
             fileEntries.stream().filter(afe -> StringUtils.isNotBlank(afe.getFileMode()))
                 .forEach(a::setFileMode);

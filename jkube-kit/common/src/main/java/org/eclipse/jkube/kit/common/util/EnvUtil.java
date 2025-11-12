@@ -16,8 +16,6 @@ package org.eclipse.jkube.kit.common.util;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.common.JKubeException;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -184,8 +182,7 @@ public class EnvUtil {
      * @param input A list of String
      * @return A list of Non-Empty (length ;&gt; 0) String
      */
-    @Nonnull
-    public static List<String> removeEmptyEntries(@Nullable List<String> input) {
+    public static List<String> removeEmptyEntries(List<String> input) {
         if (input == null) {
             return Collections.emptyList();
         }
@@ -198,7 +195,6 @@ public class EnvUtil {
      * @param input Iterable over strings.
      * @return An Iterable over string which breaks down each input element at comma boundaries
      */
-    @Nonnull
     public static List<String> splitAtCommasAndTrim(Iterable<String> input) {
         if (input == null) {
             return Collections.emptyList();

@@ -18,7 +18,6 @@ import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
@@ -32,7 +31,7 @@ public class BuildUtil {
    * @param buildConfig from which to extract the base from image
    * @return the from image provided in the BuildConfiguration, DATA default in case there are no assemblies or null
    */
-  public static String extractBaseFromConfiguration(@Nonnull BuildConfiguration buildConfig) {
+  public static String extractBaseFromConfiguration(BuildConfiguration buildConfig) {
     String fromImage;
     fromImage = buildConfig.getFrom();
     if (fromImage == null && buildConfig.getAssembly() == null) {
@@ -41,7 +40,7 @@ public class BuildUtil {
     return fromImage;
   }
 
-  public static String extractBaseFromDockerfile(@Nonnull JKubeConfiguration configuration, @Nonnull BuildConfiguration buildConfig) {
+  public static String extractBaseFromDockerfile(JKubeConfiguration configuration, BuildConfiguration buildConfig) {
     String fromImage;
     try {
       File fullDockerFilePath = buildConfig.getAbsoluteDockerFilePath(configuration.getSourceDirectory(),

@@ -14,7 +14,6 @@
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.net.UrlEscapers;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfigFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
@@ -39,6 +38,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
@@ -312,7 +313,7 @@ public class DockerAuthConfigFactory implements AuthConfigFactory {
 
             // get temporary credentials
             request = new HttpGet("http://169.254.169.254/latest/meta-data/iam/security-credentials/"
-                    + UrlEscapers.urlPathSegmentEscaper().escape(instanceRole));
+                    + URLEncoder.encode(instanceRole, StandardCharsets.UTF_8.name()));
             request.setConfig(conf);
             try (CloseableHttpResponse response = client.execute(request)) {
                 if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
