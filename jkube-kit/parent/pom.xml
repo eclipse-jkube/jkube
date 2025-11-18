@@ -35,7 +35,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <version.bouncycastle.bcpkix>1.82</version.bouncycastle.bcpkix>
-    <version.commons-codec>1.18.0</version.commons-codec>
+    <version.commons-codec>1.20.0</version.commons-codec>
     <version.commons-lang3>3.18.0</version.commons-lang3>
     <version.commons-text>1.14.0</version.commons-text>
     <version.gson>2.12.1</version.gson>
