@@ -48,7 +48,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <javaee.api.version>8.0</javaee.api.version>
-        <jersey.version>2.26</jersey.version>
+        <jersey.version>2.46</jersey.version>
         <junit.version>4.13.2</junit.version>
     </properties>
 
