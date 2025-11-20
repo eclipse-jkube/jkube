@@ -1,0 +1,4 @@
+metadata:
+  namespace: demo-namespace
+spec:
+  host: petclinic-demo.apps.example.com
