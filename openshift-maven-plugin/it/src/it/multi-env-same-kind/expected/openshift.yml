@@ -1,0 +1,30 @@
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Route
+    metadata:
+      annotations:
+        cert-manager.io/issuer-name: letsencrypt-prod
+        haproxy.router.openshift.io/timeout: 120s
+        cert-manager.io/issuer-kind: ClusterIssuer
+        jkube.eclipse.org/git-commit: d11f95e06daef1a749597de7fd059a508d714299
+        jkube.eclipse.org/git-url: github.com:ash-thakur-rh/jkube.git
+        app.openshift.io/vcs-ref: master
+        app.openshift.io/vcs-uri: github.com:ash-thakur-rh/jkube.git
+        jkube.eclipse.org/git-branch: master
+      labels:
+        app: multi-env-same-kind
+        provider: jkube
+        version: 4.0.0-SNAPSHOT
+        group: io.fabric8.mavne.sample.spring.boot
+        app.kubernetes.io/part-of: io.fabric8.mavne.sample.spring.boot
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/name: multi-env-same-kind
+        app.kubernetes.io/version: 4.0.0-SNAPSHOT
+      name: multi-env-same-kind
+    spec:
+      tls:
+        insecureEdgeTerminationPolicy: Redirect
+        termination: edge
