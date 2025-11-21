@@ -33,6 +33,18 @@ jobs:
     name: Check Dependency Licenses
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7
+        with:
+          disable-sudo: true
+          egress-policy: block
+          allowed-endpoints: >
+            api.adoptopenjdk.net:443
+            github.com:443
+            objects.githubusercontent.com:443
+            repo.eclipse.org:443
+            repo.maven.apache.org:443
+
       - name: Checkout
         uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
 
