@@ -144,7 +144,7 @@ public class YamlUtil {
    * @return true if the YAML is effectively empty
    */
   private static boolean isEffectivelyEmpty(String yaml) {
-    if (yaml == null || yaml.isBlank()) {
+    if (yaml == null || yaml.trim().isEmpty()) {
       return true;
     }
     // Remove comments and whitespace to check if there's any actual content
