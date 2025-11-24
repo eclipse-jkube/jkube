@@ -130,4 +130,250 @@ class YamlUtilTest {
   void listYamlsWithNullDirectory() {
     assertThat(YamlUtil.listYamls(null)).isEmpty();
   }
+
+  @Test
+  void mergeYaml_withNonOverlappingProperties() throws IOException {
+    // Given
+    String existingYaml = "metadata:\n" +
+        "  annotations:\n" +
+        "    key1: value1\n" +
+        "spec:\n" +
+        "  field1: value1\n";
+    String newYaml = "metadata:\n" +
+        "  namespace: demo\n" +
+        "spec:\n" +
+        "  field2: value2\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result)
+        .contains("key1: \"value1\"")
+        .contains("namespace: \"demo\"")
+        .contains("field1: \"value1\"")
+        .contains("field2: \"value2\"");
+  }
+
+  @Test
+  void mergeYaml_withOverlappingProperties() throws IOException {
+    // Given
+    String existingYaml = "spec:\n" +
+        "  tls:\n" +
+        "    termination: edge\n" +
+        "    insecureEdgeTerminationPolicy: Redirect\n";
+    String newYaml = "spec:\n" +
+        "  tls:\n" +
+        "    termination: dev-overridden\n" +
+        "    insecureEdgeTerminationPolicy: Allow\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then - new values should overwrite existing ones
+    assertThat(result)
+        .contains("termination: \"dev-overridden\"")
+        .contains("insecureEdgeTerminationPolicy: \"Allow\"")
+        .doesNotContain("edge")
+        .doesNotContain("Redirect");
+  }
+
+  @Test
+  void mergeYaml_withPartialOverlap() throws IOException {
+    // Given
+    String existingYaml = "metadata:\n" +
+        "  annotations:\n" +
+        "    cert-manager.io/issuer-kind: ClusterIssuer\n" +
+        "    cert-manager.io/issuer-name: letsencrypt-prod\n" +
+        "    haproxy.router.openshift.io/timeout: 120s\n" +
+        "spec:\n" +
+        "  tls:\n" +
+        "    termination: edge\n" +
+        "    insecureEdgeTerminationPolicy: Redirect\n";
+    String newYaml = "metadata:\n" +
+        "  namespace: demo-namespace\n" +
+        "spec:\n" +
+        "  host: demoapp.apps.example.com\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then - should merge without duplicates
+    assertThat(result)
+        .contains("cert-manager.io/issuer-kind: \"ClusterIssuer\"")
+        .contains("cert-manager.io/issuer-name: \"letsencrypt-prod\"")
+        .contains("haproxy.router.openshift.io/timeout: \"120s\"")
+        .contains("namespace: \"demo-namespace\"")
+        .contains("termination: \"edge\"")
+        .contains("insecureEdgeTerminationPolicy: \"Redirect\"")
+        .contains("host: \"demoapp.apps.example.com\"");
+    // Verify no duplicate keys by checking the structure
+    assertThat(getPropertiesFromYamlString(result))
+        .containsEntry("metadata.annotations.cert-manager.io/issuer-kind", "ClusterIssuer")
+        .containsEntry("metadata.annotations.cert-manager.io/issuer-name", "letsencrypt-prod")
+        .containsEntry("metadata.annotations.haproxy.router.openshift.io/timeout", "120s")
+        .containsEntry("metadata.namespace", "demo-namespace")
+        .containsEntry("spec.tls.termination", "edge")
+        .containsEntry("spec.tls.insecureEdgeTerminationPolicy", "Redirect")
+        .containsEntry("spec.host", "demoapp.apps.example.com");
+  }
+
+  @Test
+  void mergeYaml_withDuplicateListItems_shouldNotDuplicate() throws IOException {
+    // Given - simulating the spring-boot-with-fragment scenario
+    String existingYaml = "spec:\n" +
+        "  template:\n" +
+        "    spec:\n" +
+        "      containers:\n" +
+        "        - env:\n" +
+        "            - name: ABC\n" +
+        "              value: dummy\n";
+    String newYaml = "spec:\n" +
+        "  template:\n" +
+        "    spec:\n" +
+        "      containers:\n" +
+        "        - env:\n" +
+        "            - name: ABC\n" +
+        "              value: dummy\n";
+    // When - merge the same content multiple times (simulating multiple enricher calls)
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    result = YamlUtil.mergeYaml(result, newYaml);
+    result = YamlUtil.mergeYaml(result, newYaml);
+
+    // Then - should have only one container, not duplicates
+    assertThat(result)
+        .contains("name: \"ABC\"")
+        .contains("value: \"dummy\"");
+
+    // Verify there's only one container by checking the structure
+    Properties props = getPropertiesFromYamlString(result);
+    assertThat(props)
+        .containsEntry("spec.template.spec.containers[0].env[0].name", "ABC")
+        .containsEntry("spec.template.spec.containers[0].env[0].value", "dummy")
+        .doesNotContainKey("spec.template.spec.containers[1].env[0].name"); // No second container
+  }
+
+  @Test
+  void mergeYaml_withDifferentListItems_shouldMerge() throws IOException {
+    // Given
+    String existingYaml = "spec:\n" +
+        "  template:\n" +
+        "    spec:\n" +
+        "      containers:\n" +
+        "        - name: container1\n" +
+        "          image: image1\n";
+    String newYaml = "spec:\n" +
+        "  template:\n" +
+        "    spec:\n" +
+        "      containers:\n" +
+        "        - name: container2\n" +
+        "          image: image2\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+
+    // Then - should have both containers
+    assertThat(result)
+        .contains("container1")
+        .contains("image1")
+        .contains("container2")
+        .contains("image2");
+
+    // Verify both containers exist
+    Properties props = getPropertiesFromYamlString(result);
+    assertThat(props)
+        .containsEntry("spec.template.spec.containers[0].name", "container1")
+        .containsEntry("spec.template.spec.containers[0].image", "image1")
+        .containsEntry("spec.template.spec.containers[1].name", "container2")
+        .containsEntry("spec.template.spec.containers[1].image", "image2");
+  }
+
+  @Test
+  void mergeYaml_withMultipleSourcesSamePorts_shouldNotTriplicate() throws IOException {
+    // Given - simulating the expose-svc.yml scenario where same port is defined in multiple profiles
+    // This reproduces the bug where checking against existingList instead of merged causes duplicates
+    String baseYaml = "---\n";
+    String portFragment = "spec:\n" +
+        "  ports:\n" +
+        "    - name: https\n" +
+        "      port: 443\n" +
+        "      protocol: TCP\n";
+
+    // When - merge the same port definition 3 times (simulating 3 different profile sources)
+    // This is what happens when the same resource fragment exists in multiple environment directories
+    String result = YamlUtil.mergeYaml(baseYaml, portFragment);
+    result = YamlUtil.mergeYaml(result, portFragment);
+    result = YamlUtil.mergeYaml(result, portFragment);
+
+    // Then - should have only ONE port entry, not three duplicates
+    Properties props = getPropertiesFromYamlString(result);
+    assertThat(props)
+        .containsEntry("spec.ports[0].name", "https")
+        .containsEntry("spec.ports[0].port", "443")
+        .containsEntry("spec.ports[0].protocol", "TCP")
+        .doesNotContainKey("spec.ports[1].name")  // No second port
+        .doesNotContainKey("spec.ports[2].name"); // No third port
+
+    // Also verify in the YAML string itself
+    assertThat(result)
+        .contains("name: \"https\"")
+        .contains("port: 443")
+        .contains("protocol: \"TCP\"");
+  }
+
+  @Test
+  void mergeYaml_withEmptyExistingYaml_shouldReturnNewYaml() throws IOException {
+    // Given
+    String existingYaml = "---\n";
+    String newYaml = "metadata:\n" +
+        "  name: test\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result).isEqualTo(newYaml);
+  }
+
+  @Test
+  void mergeYaml_withCommentsOnlyExistingYaml_shouldReturnNewYaml() throws IOException {
+    // Given - simulating fragments-custom-mapping/first-fl.yaml which has only comments
+    String existingYaml = "#\n" +
+        "# Copyright (c) 2019 Red Hat, Inc.\n" +
+        "# This program and the accompanying materials are made\n" +
+        "# available under the terms of the Eclipse Public License 2.0\n" +
+        "#\n" +
+        "\n";
+    String newYaml = "apiVersion: v1\n" +
+        "kind: Service\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result).isEqualTo(newYaml);
+  }
+
+  @Test
+  void mergeYaml_withNullExistingYaml_shouldReturnNewYaml() throws IOException {
+    // Given
+    String newYaml = "metadata:\n" +
+        "  name: test\n";
+    // When
+    String result = YamlUtil.mergeYaml(null, newYaml);
+    // Then
+    assertThat(result).isEqualTo(newYaml);
+  }
+
+  @Test
+  void mergeYaml_withEmptyNewYaml_shouldReturnExistingYaml() throws IOException {
+    // Given
+    String existingYaml = "metadata:\n" +
+        "  name: test\n";
+    String newYaml = "---\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result).isEqualTo(existingYaml);
+  }
+
+  @Test
+  void mergeYaml_withBothEmpty_shouldReturnEmpty() throws IOException {
+    // Given
+    String existingYaml = "---\n";
+    String newYaml = "---\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result).isEqualTo(newYaml);
+  }
 }
