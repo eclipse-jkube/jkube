@@ -30,7 +30,6 @@
   <name>multi-env-same-kind-profile-overridden</name>
   <properties>
     <jkube.environment>common,dev</jkube.environment>
-    <java.version>11</java.version>
   </properties>
 
   <dependencies>
