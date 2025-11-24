@@ -247,11 +247,11 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
       }
 
       String resourceFragmentInterpolated = interpolate(resource, kubernetesExtension.javaProject.getProperties(),
-        kubernetesExtension.getFilter().getOrNull());
+          kubernetesExtension.getFilter().getOrNull());
 
       // If there was existing content, merge it with the new content
-      if (existingContent != null) {
-        resourceFragmentInterpolated = mergeContent(existingContent, resourceFragmentInterpolated, YamlUtil.isYaml(targetFile));
+      if (existingContent != null && YamlUtil.isYaml(targetFile)) {
+        resourceFragmentInterpolated = mergeContent(existingContent, resourceFragmentInterpolated);
       }
 
       try (BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile))) {
@@ -264,11 +264,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     return processedFiles.toArray(new File[0]);
   }
 
-  private String mergeContent(String existingContent, String newContent, boolean isYaml) throws IOException {
-    if (!isYaml) {
-      // For non-YAML files, just concatenate
-      return existingContent + newContent;
-    }
+  private String mergeContent(String existingContent, String newContent) throws IOException {
     // For YAML files, use YamlUtil for deep property-level merge
     return YamlUtil.mergeYaml(existingContent, newContent);
   }
