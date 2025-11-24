@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.lang3.StringUtils;
 
@@ -111,60 +112,18 @@ public class YamlUtil {
    * Merges two YAML strings by performing deep property-level merge.
    *
    * @param existingYaml the existing YAML content
-   * @param newYaml the new YAML content to merge
+   * @param newYaml      the new YAML content to merge
    * @return merged YAML as string
    * @throws IOException if YAML parsing fails
    */
   public static String mergeYaml(String existingYaml, String newYaml) throws IOException {
     try {
-      // Use plain YAML mapper to get raw Map/List structures, not Kubernetes-typed objects
       Object existing = YAML_MAPPER.readValue(existingYaml, Object.class);
-      Object newObj = YAML_MAPPER.readValue(newYaml, Object.class);
-      Object merged = deepMerge(existing, newObj);
-      return YAML_MAPPER.writeValueAsString(merged);
+      ObjectReader updater = YAML_MAPPER.readerForUpdating(existing);
+      // merge new yaml spring with the existing
+      return YAML_MAPPER.writeValueAsString(updater.readValue(newYaml));
     } catch (Exception e) {
       throw new IOException("Failed to parse and merge YAML content: " + e.getMessage(), e);
-    }
-  }
-
-  /**
-   * Deep merges two objects following these rules:
-   * - Maps: recursively merge at property level
-   * - Lists: concatenate
-   * - Primitives or type mismatch: new value overwrites existing
-   *
-   * @param existing the existing object
-   * @param newObj the new object to merge
-   * @return merged object
-   */
-  @SuppressWarnings("unchecked")
-  private static Object deepMerge(Object existing, Object newObj) {
-    if (existing instanceof Map && newObj instanceof Map) {
-      // Deep merge maps at property level
-      Map<String, Object> existingMap = new LinkedHashMap<>((Map<String, Object>) existing);
-      Map<String, Object> newMap = (Map<String, Object>) newObj;
-
-      for (Map.Entry<String, Object> entry : newMap.entrySet()) {
-        String key = entry.getKey();
-        Object newValue = entry.getValue();
-
-        if (existingMap.containsKey(key)) {
-          // Key exists in both - recursively merge
-          existingMap.put(key, deepMerge(existingMap.get(key), newValue));
-        } else {
-          // New key - add it
-          existingMap.put(key, newValue);
-        }
-      }
-      return existingMap;
-    } else if (existing instanceof List && newObj instanceof List) {
-      // Merge lists by concatenation
-      List<Object> merged = new ArrayList<>((List<Object>) existing);
-      merged.addAll((List<Object>) newObj);
-      return merged;
-    } else {
-      // For primitives or type mismatch, new value overwrites existing
-      return newObj;
     }
   }
 }
