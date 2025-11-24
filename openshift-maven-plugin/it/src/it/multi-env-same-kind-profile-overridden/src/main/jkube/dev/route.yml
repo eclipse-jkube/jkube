@@ -13,11 +13,9 @@
 #
 
 metadata:
-  annotations:
-    cert-manager.io/issuer-kind: ClusterIssuer
-    cert-manager.io/issuer-name: letsencrypt-common
-    haproxy.router.openshift.io/timeout: 120s
+  namespace: demo-namespace
 spec:
+  host: demoapp.apps.example.com
   tls:
-    termination: edge
-    insecureEdgeTerminationPolicy: Redirect
+    termination: dev-overridden
+    insecureEdgeTerminationPolicy: Allow
