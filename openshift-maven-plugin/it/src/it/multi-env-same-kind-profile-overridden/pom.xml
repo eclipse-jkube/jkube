@@ -24,10 +24,10 @@
   </parent>
 
   <groupId>org.eclipse.maven.sample.spring.boot</groupId>
-  <artifactId>multi-env-same-kind</artifactId>
+  <artifactId>multi-env-same-kind-profile-overridden</artifactId>
   <version>0.1-SNAPSHOT</version>
 
-  <name>multi-env-same-kind</name>
+  <name>multi-env-same-kind-profile-overridden</name>
   <properties>
     <jkube.environment>common,dev</jkube.environment>
     <java.version>11</java.version>
