@@ -1,0 +1,9 @@
+metadata:
+  annotations:
+    cert-manager.io/issuer-kind: ClusterIssuer
+    cert-manager.io/issuer-name: letsencrypt-prod
+    haproxy.router.openshift.io/timeout: 120s
+spec:
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
