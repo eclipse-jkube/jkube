@@ -44,18 +44,75 @@ endif::[]
 | `jkube.skipHealthCheck`
 
 | *workDir*
-| The JKube working directory. Defaults to `${project.build.directory}/jkube-temp`.
+| The JKube working directory where resource fragments are temporarily processed before being merged into final resources. Defaults to `${project.build.directory}/jkube-temp`.
+
+  NOTE: This directory is automatically cleaned at the start of each resource processing run to prevent stale files from previous builds from being incorrectly merged with current fragments.
 | `jkube.workDir`
 
 | *environment*
 | Environment name where resources are placed. For example, if you set this property to dev and resourceDir is the
   default one, plugin will look at `src/main/jkube/dev`.  Multiple environments can also be provided in form of comma separated strings (e.g., `common,dev`).
 
-  When multiple environments are specified, resource fragments in these directories are intelligently combined:
+  When multiple environments are specified, resource fragments are processed and merged as follows:
 
-  * Fragments with the same filename from different environment directories are *deeply merged* at the property level for YAML files
-  * This allows you to define base configurations in one directory (e.g., `common/`) and override or extend specific properties in environment-specific directories (e.g., `dev/`, `prod/`)
-  * Example: A `route.yml` in `common/` can define base TLS settings, while `route.yml` in `dev/` can add environment-specific annotations or host - the final resource will contain merged properties from both files
+  *Processing Steps:*
+
+  . Fragments from all specified environment directories are collected (in order)
+  . Working directory is cleaned to remove stale files
+  . Each fragment is interpolated with Maven/project properties
+  . Fragments with the same filename are merged using Jackson YAML updater
+
+  *Merge Behavior for YAML Files:*
+
+  * *Objects/Maps*: Properties are deeply merged at all levels - new properties are added, existing properties are updated recursively
+  * *Arrays/Lists*: Elements from the new fragment are appended to the existing list
+  * *Scalar Values*: New values replace existing values
+
+  *Example Use Case:*
+
+  Given `common/deployment.yml`:
+  ```yaml
+  spec:
+    replicas: 2
+    template:
+      spec:
+        containers:
+          - env:
+              - name: SPRING_PROFILES_ACTIVE
+                value: common
+  ```
+
+  And `dev/deployment.yml`:
+  ```yaml
+  metadata:
+    labels:
+      environment: development
+  spec:
+    replicas: 1
+    template:
+      spec:
+        containers:
+          - env:
+              - name: LOG_LEVEL
+                value: DEBUG
+  ```
+
+  The merged result will be:
+  ```yaml
+  metadata:
+    labels:
+      environment: development                    # from dev
+  spec:
+    replicas: 1                                   # from dev (overrides common)
+    template:
+      spec:
+        containers:
+          - env:
+              - name: SPRING_PROFILES_ACTIVE      # from common
+                value: common
+              - name: LOG_LEVEL                   # from dev (appended to list)
+                value: DEBUG
+  ```
 
   Defaults to `null`.
 | `jkube.environment`

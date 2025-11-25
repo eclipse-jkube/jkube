@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -218,7 +219,10 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
       return new File[0];
     }
     final File outDir = kubernetesExtension.getWorkDirectoryOrDefault();
-    if (!outDir.exists() && !outDir.mkdirs()) {
+    // Clean the working directory before processing to avoid merging with stale files
+    if (outDir.exists()) {
+      FileUtils.cleanDirectory(outDir);
+    } else if (!outDir.mkdirs()) {
       throw new IOException("Cannot create working dir " + outDir);
     }
     return getFiles(resourceFiles, outDir);
