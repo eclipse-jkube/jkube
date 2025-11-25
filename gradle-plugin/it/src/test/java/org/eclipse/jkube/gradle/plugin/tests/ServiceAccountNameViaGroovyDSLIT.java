@@ -47,6 +47,7 @@ class ServiceAccountNameViaGroovyDSLIT {
   void k8sResource_whenRun_shouldAddServiceAccountInDeployment(String expectedDir, String[] arguments) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
+    gradleArgs.add("clean");
     gradleArgs.add("k8sResource");
     gradleArgs.add("--stacktrace");
     final BuildResult result = gradleRunner.withITProject("serviceaccountname-via-groovy-dsl")
@@ -66,6 +67,7 @@ class ServiceAccountNameViaGroovyDSLIT {
   void ocResource_whenRun_shouldAddServiceAccountInDeploymentConfig(String expectedDir, String[] arguments) throws IOException, ParseException {
     // When
     List<String> gradleArgs = new ArrayList<>(Arrays.asList(arguments));
+    gradleArgs.add("clean");
     gradleArgs.add("ocResource");
     gradleArgs.add("--stacktrace");
     final BuildResult result = gradleRunner.withITProject("serviceaccountname-via-groovy-dsl")
