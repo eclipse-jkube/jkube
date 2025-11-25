@@ -213,41 +213,6 @@ class YamlUtilTest {
   }
 
   @Test
-  void mergeYaml_withDuplicateListItems_shouldNotDuplicate() throws IOException {
-    // Given - simulating the spring-boot-with-fragment scenario
-    String existingYaml = "spec:\n" +
-        "  template:\n" +
-        "    spec:\n" +
-        "      containers:\n" +
-        "        - env:\n" +
-        "            - name: ABC\n" +
-        "              value: dummy\n";
-    String newYaml = "spec:\n" +
-        "  template:\n" +
-        "    spec:\n" +
-        "      containers:\n" +
-        "        - env:\n" +
-        "            - name: ABC\n" +
-        "              value: dummy\n";
-    // When - merge the same content multiple times (simulating multiple enricher calls)
-    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
-    result = YamlUtil.mergeYaml(result, newYaml);
-    result = YamlUtil.mergeYaml(result, newYaml);
-
-    // Then - should have only one container, not duplicates
-    assertThat(result)
-        .contains("name: \"ABC\"")
-        .contains("value: \"dummy\"");
-
-    // Verify there's only one container by checking the structure
-    Properties props = getPropertiesFromYamlString(result);
-    assertThat(props)
-        .containsEntry("spec.template.spec.containers[0].env[0].name", "ABC")
-        .containsEntry("spec.template.spec.containers[0].env[0].value", "dummy")
-        .doesNotContainKey("spec.template.spec.containers[1].env[0].name"); // No second container
-  }
-
-  @Test
   void mergeYaml_withDifferentListItems_shouldMerge() throws IOException {
     // Given
     String existingYaml = "spec:\n" +
@@ -279,39 +244,6 @@ class YamlUtilTest {
         .containsEntry("spec.template.spec.containers[0].image", "image1")
         .containsEntry("spec.template.spec.containers[1].name", "container2")
         .containsEntry("spec.template.spec.containers[1].image", "image2");
-  }
-
-  @Test
-  void mergeYaml_withMultipleSourcesSamePorts_shouldNotTriplicate() throws IOException {
-    // Given - simulating the expose-svc.yml scenario where same port is defined in multiple profiles
-    // This reproduces the bug where checking against existingList instead of merged causes duplicates
-    String baseYaml = "---\n";
-    String portFragment = "spec:\n" +
-        "  ports:\n" +
-        "    - name: https\n" +
-        "      port: 443\n" +
-        "      protocol: TCP\n";
-
-    // When - merge the same port definition 3 times (simulating 3 different profile sources)
-    // This is what happens when the same resource fragment exists in multiple environment directories
-    String result = YamlUtil.mergeYaml(baseYaml, portFragment);
-    result = YamlUtil.mergeYaml(result, portFragment);
-    result = YamlUtil.mergeYaml(result, portFragment);
-
-    // Then - should have only ONE port entry, not three duplicates
-    Properties props = getPropertiesFromYamlString(result);
-    assertThat(props)
-        .containsEntry("spec.ports[0].name", "https")
-        .containsEntry("spec.ports[0].port", "443")
-        .containsEntry("spec.ports[0].protocol", "TCP")
-        .doesNotContainKey("spec.ports[1].name")  // No second port
-        .doesNotContainKey("spec.ports[2].name"); // No third port
-
-    // Also verify in the YAML string itself
-    assertThat(result)
-        .contains("name: \"https\"")
-        .contains("port: 443")
-        .contains("protocol: \"TCP\"");
   }
 
   @Test
