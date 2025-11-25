@@ -6,16 +6,16 @@ items:
     kind: Service
     metadata:
       annotations:
-        jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/multi-env-same-kind
+        jkube.eclipse.org/scm-url: "@ignore@"
         prometheus.io/scrape: "true"
         prometheus.io/path: /metrics
         prometheus.io/port: "9779"
-        jkube.eclipse.org/scm-tag: HEAD
-        jkube.eclipse.org/git-commit: 07c47f5c6b3e854d11e69b8d08491a8a8077ad74
-        jkube.eclipse.org/git-url: github.com:ash-thakur-rh/jkube.git
-        app.openshift.io/vcs-ref: fix-multi-env-name-resource
-        app.openshift.io/vcs-uri: github.com:ash-thakur-rh/jkube.git
-        jkube.eclipse.org/git-branch: fix-multi-env-name-resource
+        jkube.eclipse.org/scm-tag: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        app.openshift.io/vcs-ref: "@ignore@"
+        app.openshift.io/vcs-uri: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: multi-env-same-kind
         provider: jkube
@@ -43,13 +43,13 @@ items:
     kind: DeploymentConfig
     metadata:
       annotations:
-        jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/multi-env-same-kind
-        jkube.eclipse.org/scm-tag: HEAD
-        jkube.eclipse.org/git-commit: 07c47f5c6b3e854d11e69b8d08491a8a8077ad74
-        jkube.eclipse.org/git-url: github.com:ash-thakur-rh/jkube.git
-        app.openshift.io/vcs-ref: fix-multi-env-name-resource
-        app.openshift.io/vcs-uri: github.com:ash-thakur-rh/jkube.git
-        jkube.eclipse.org/git-branch: fix-multi-env-name-resource
+        jkube.eclipse.org/scm-url: "@ignore@"
+        jkube.eclipse.org/scm-tag: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        app.openshift.io/vcs-ref: "@ignore@"
+        app.openshift.io/vcs-uri: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: multi-env-same-kind
         provider: jkube
@@ -77,13 +77,13 @@ items:
       template:
         metadata:
           annotations:
-            jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/multi-env-same-kind
-            jkube.eclipse.org/scm-tag: HEAD
-            jkube.eclipse.org/git-commit: 07c47f5c6b3e854d11e69b8d08491a8a8077ad74
-            jkube.eclipse.org/git-url: github.com:ash-thakur-rh/jkube.git
-            app.openshift.io/vcs-ref: fix-multi-env-name-resource
-            app.openshift.io/vcs-uri: github.com:ash-thakur-rh/jkube.git
-            jkube.eclipse.org/git-branch: fix-multi-env-name-resource
+            jkube.eclipse.org/scm-url: "@ignore@"
+            jkube.eclipse.org/scm-tag: "@ignore@"
+            jkube.eclipse.org/git-commit: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            app.openshift.io/vcs-ref: "@ignore@"
+            app.openshift.io/vcs-uri: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
           labels:
             app: multi-env-same-kind
             provider: jkube
@@ -131,15 +131,15 @@ items:
     metadata:
       annotations:
         cert-manager.io/issuer-name: letsencrypt-common
-        jkube.eclipse.org/scm-url: https://github.com/spring-projects/spring-boot/multi-env-same-kind
+        jkube.eclipse.org/scm-url: "@ignore@"
         haproxy.router.openshift.io/timeout: 120s
         cert-manager.io/issuer-kind: ClusterIssuer
-        jkube.eclipse.org/scm-tag: HEAD
-        jkube.eclipse.org/git-commit: 07c47f5c6b3e854d11e69b8d08491a8a8077ad74
-        jkube.eclipse.org/git-url: github.com:ash-thakur-rh/jkube.git
-        app.openshift.io/vcs-ref: fix-multi-env-name-resource
-        app.openshift.io/vcs-uri: github.com:ash-thakur-rh/jkube.git
-        jkube.eclipse.org/git-branch: fix-multi-env-name-resource
+        jkube.eclipse.org/scm-tag: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        app.openshift.io/vcs-ref: "@ignore@"
+        app.openshift.io/vcs-uri: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: multi-env-same-kind
         provider: jkube

@@ -9,11 +9,11 @@ items:
         prometheus.io/scrape: "true"
         prometheus.io/path: /metrics
         prometheus.io/port: "9779"
-        jkube.eclipse.org/git-commit: b5d6747f7da8ea27dab60e402ad4f79158b8f6e6
-        jkube.eclipse.org/git-url: github.com:ash-thakur-rh/jkube.git
-        app.openshift.io/vcs-ref: fix-multi-env-name-resource
-        app.openshift.io/vcs-uri: github.com:ash-thakur-rh/jkube.git
-        jkube.eclipse.org/git-branch: fix-multi-env-name-resource
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        app.openshift.io/vcs-ref: "@ignore@"
+        app.openshift.io/vcs-uri: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: multi-env-same-kind-profile-overridden
         provider: jkube
@@ -41,11 +41,11 @@ items:
     kind: DeploymentConfig
     metadata:
       annotations:
-        jkube.eclipse.org/git-commit: b5d6747f7da8ea27dab60e402ad4f79158b8f6e6
-        jkube.eclipse.org/git-url: github.com:ash-thakur-rh/jkube.git
-        app.openshift.io/vcs-ref: fix-multi-env-name-resource
-        app.openshift.io/vcs-uri: github.com:ash-thakur-rh/jkube.git
-        jkube.eclipse.org/git-branch: fix-multi-env-name-resource
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        app.openshift.io/vcs-ref: "@ignore@"
+        app.openshift.io/vcs-uri: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: multi-env-same-kind-profile-overridden
         provider: jkube
@@ -73,11 +73,11 @@ items:
       template:
         metadata:
           annotations:
-            jkube.eclipse.org/git-commit: b5d6747f7da8ea27dab60e402ad4f79158b8f6e6
-            jkube.eclipse.org/git-url: github.com:ash-thakur-rh/jkube.git
-            app.openshift.io/vcs-ref: fix-multi-env-name-resource
-            app.openshift.io/vcs-uri: github.com:ash-thakur-rh/jkube.git
-            jkube.eclipse.org/git-branch: fix-multi-env-name-resource
+            jkube.eclipse.org/git-commit: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            app.openshift.io/vcs-ref: "@ignore@"
+            app.openshift.io/vcs-uri: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
           labels:
             app: multi-env-same-kind-profile-overridden
             provider: jkube
@@ -127,11 +127,11 @@ items:
         cert-manager.io/issuer-name: letsencrypt-common
         haproxy.router.openshift.io/timeout: 120s
         cert-manager.io/issuer-kind: ClusterIssuer
-        jkube.eclipse.org/git-commit: b5d6747f7da8ea27dab60e402ad4f79158b8f6e6
-        jkube.eclipse.org/git-url: github.com:ash-thakur-rh/jkube.git
-        app.openshift.io/vcs-ref: fix-multi-env-name-resource
-        app.openshift.io/vcs-uri: github.com:ash-thakur-rh/jkube.git
-        jkube.eclipse.org/git-branch: fix-multi-env-name-resource
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        app.openshift.io/vcs-ref: "@ignore@"
+        app.openshift.io/vcs-uri: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
       labels:
         app: multi-env-same-kind-profile-overridden
         provider: jkube
