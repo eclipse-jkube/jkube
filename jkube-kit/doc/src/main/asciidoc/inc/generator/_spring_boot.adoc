@@ -23,7 +23,17 @@ Beside the  <<generator-options-common, common generator options>> and the <<gen
 |===
 
 The generator adds Kubernetes liveness and readiness probes pointing to either the management or server port as read from the `application.properties`.
-If the `management.port` (for Spring Boot 1) or `management.server.port` (for Spring Boot 2) and `management.ssl.key-store` (for Spring Boot 1) or `management.server.ssl.key-store` (for Spring Boot 2) properties are set in `application.properties` otherwise or `server.ssl.key-store` property is set in `application.properties` then the probes are automatically set to use `https`.
+
+The probe scheme (`http` or `https`) is determined as follows:
+
+* For probes targeting the management port:
+** If `management.server.ssl.enabled` (Spring Boot 2+) or `management.ssl.enabled` (Spring Boot 1) is explicitly set, this value determines whether HTTPS is used
+** Otherwise, HTTPS is used if `management.server.ssl.key-store` (Spring Boot 2+) or `management.ssl.key-store` (Spring Boot 1) is configured
+* For probes targeting the server port:
+** If `server.ssl.enabled` is explicitly set, this value determines whether HTTPS is used
+** Otherwise, HTTPS is used if `server.ssl.key-store` is configured
+
+This allows you to disable SSL for health probes even when a keystore is configured by setting the appropriate `ssl.enabled` property to `false`.
 
 ifeval::["{plugin-type}" == "maven"]
 The generator works differently when called together with `{goal-prefix}:watch`.
