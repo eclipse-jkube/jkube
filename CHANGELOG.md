@@ -25,6 +25,7 @@ Usage:
 * Fix #3591: Fix windows line endings for yaml literal blocks, json serialization config updated
 * Fix #3781: Native Generator does not work in Windows system, always finds multiple native executable
 * Fix #2286: Remove Guava dependency where ever possible
+* Fix #3809: Actuator liveness and readiness probe not getting generated with Spring boot 4.x.x
 * Fix #3707: Setting readOnly flag in VolumeConfig has no effect
 
 ### 1.18.2 (2025-11-03)
