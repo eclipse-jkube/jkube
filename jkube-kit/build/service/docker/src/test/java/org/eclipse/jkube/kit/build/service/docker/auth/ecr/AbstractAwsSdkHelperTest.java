@@ -43,6 +43,11 @@ class AbstractAwsSdkHelperTest {
       clearEnvironmentVariable("TEST_AWS_SESSION_TOKEN");
       clearEnvironmentVariable("TEST_AWS_CONTAINER_CREDENTIALS_RELATIVE_URI");
       clearEnvironmentVariable("TEST_ECS_METADATA_ENDPOINT");
+      clearEnvironmentVariable("AWS_ACCESS_KEY_ID");
+      clearEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
+      clearEnvironmentVariable("AWS_SESSION_TOKEN");
+      clearEnvironmentVariable("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI");
+      clearEnvironmentVariable("ECS_METADATA_ENDPOINT");
     } catch (Exception ignored) {
       // Ignore failures on newer Java versions
     }

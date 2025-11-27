@@ -37,6 +37,9 @@ class AwsSdkHelperV1Test {
       clearEnvironmentVariable("TEST_AWS_ACCESS_KEY_ID");
       clearEnvironmentVariable("TEST_AWS_SECRET_ACCESS_KEY");
       clearEnvironmentVariable("TEST_AWS_SESSION_TOKEN");
+      clearEnvironmentVariable("AWS_ACCESS_KEY_ID");
+      clearEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
+      clearEnvironmentVariable("AWS_SESSION_TOKEN");
     } catch (Exception ignored) {
       // Ignore failures on newer Java versions
     }
