@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnricher.REQUIRED_CLASSES;
+import static org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnricher.REQUIRED_CLASSES_SPRING_BOOT_3;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -602,7 +602,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     @Test
     void testDefaultInitialDelayForLivenessAndReadiness() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
-        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES))
+        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_3))
           .thenReturn(true);
         when(context.getProjectClassLoaders().getCompileClassLoader())
           .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
@@ -622,7 +622,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         enricherConfig.put("timeoutSeconds", "120");
         context.getConfiguration().getProcessorConfig()
           .setConfig(Collections.singletonMap("jkube-healthcheck-spring-boot", enricherConfig));
-        when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES))
+        when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_3))
           .thenReturn(true);
         when(projectClassLoaders.getCompileClassLoader())
           .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
@@ -645,7 +645,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         enricherConfig.put("livenessProbePeriodSeconds", "50");
         context.getConfiguration().getProcessorConfig()
           .setConfig(Collections.singletonMap("jkube-healthcheck-spring-boot", enricherConfig));
-        when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES))
+        when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_3))
           .thenReturn(true);
         when(projectClassLoaders.getCompileClassLoader())
           .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
@@ -682,7 +682,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put("management.health.probes.enabled","true");
         writeProps();
 
-        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES))
+        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_3))
                 .thenReturn(true);
         when(context.getProjectClassLoaders().getCompileClassLoader())
                 .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
@@ -699,7 +699,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
 
     @Test
     void testLivenessAndReadinessProbesForDefaultPath_whenDefaultConfigUsed(){
-        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES))
+        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_3))
                 .thenReturn(true);
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
 
@@ -715,7 +715,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
         props.put("management.health.probes.enabled","false");
         writeProps();
 
-        when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES))
+        when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_3))
                 .thenReturn(true);
 
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
@@ -736,7 +736,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
               .artifactId("spring-boot-starter-webflux")
               .version(getSpringBootVersion())
               .build()));
-            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES))
+            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_3))
               .thenReturn(true);
         }
 

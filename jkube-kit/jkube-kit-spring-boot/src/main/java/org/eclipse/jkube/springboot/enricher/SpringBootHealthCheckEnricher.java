@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.eclipse.jkube.kit.common.Configs;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
+import org.eclipse.jkube.kit.common.util.ProjectClassLoaders;
 import org.eclipse.jkube.kit.common.util.SpringBootConfiguration;
 import org.eclipse.jkube.kit.common.util.SpringBootUtil;
 import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
@@ -38,9 +39,14 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     public static final String ENRICHER_NAME = "jkube-healthcheck-spring-boot";
 
-    protected static final String[] REQUIRED_CLASSES = {
-            "org.springframework.boot.actuate.health.HealthIndicator",
-            "org.springframework.web.context.support.GenericWebApplicationContext"
+    protected static final String[] REQUIRED_CLASSES_SPRING_BOOT_3 = {
+        "org.springframework.boot.actuate.health.HealthIndicator",
+        "org.springframework.web.context.support.GenericWebApplicationContext"
+    };
+
+    protected static final String[] REQUIRED_CLASSES_SPRING_BOOT_4 = {
+        "org.springframework.boot.health.contributor.HealthIndicator",
+        "org.springframework.web.context.support.GenericWebApplicationContext"
     };
 
     private static final String SCHEME_HTTPS = "HTTPS";
@@ -97,8 +103,10 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     protected Probe discoverSpringBootHealthCheck(Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh, String suffix) {
         try {
-            if (getContext().getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES)) {
-                return buildProbe(initialDelay, period, timeout, failureTh, successTh, suffix);
+            ProjectClassLoaders projectClassLoaders = getContext().getProjectClassLoaders();
+            if (projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_3) ||
+                projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4)) {
+                    return buildProbe(initialDelay, period, timeout, failureTh, successTh, suffix);
             }
         } catch (Exception ex) {
             log.error("Error while reading the spring-boot configuration", ex);
