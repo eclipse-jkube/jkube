@@ -22,14 +22,7 @@ import java.lang.reflect.Method;
  * AWS SDK v2 authentication helper.
  * Uses reflection to avoid hard dependency on AWS SDK v2.
  */
-public class AwsSdkHelperV2 implements AwsSdkAuthHelper {
-  private static final String ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
-  private static final String SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
-  private static final String SESSION_TOKEN = "AWS_SESSION_TOKEN";
-  private static final String CONTAINER_CREDENTIALS_RELATIVE_URI = "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI";
-  private static final String METADATA_ENDPOINT = "ECS_METADATA_ENDPOINT";
-  private static final String AWS_INSTANCE_LINK_LOCAL_ADDRESS = "http://169.254.170.2";
-
+public class AwsSdkHelperV2 extends AbstractAwsSdkHelper {
   // AWS SDK v2 class names
   private static final String DEFAULT_CREDENTIALS_PROVIDER = "software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider";
   private static final String AWS_SESSION_CREDENTIALS = "software.amazon.awssdk.auth.credentials.AwsSessionCredentials";
@@ -48,35 +41,6 @@ public class AwsSdkHelperV2 implements AwsSdkAuthHelper {
   @Override
   public String getSdkVersion() {
     return "v2";
-  }
-
-  @Override
-  public String getAwsAccessKeyIdEnvVar() {
-    return System.getenv(ACCESS_KEY_ID);
-  }
-
-  @Override
-  public String getAwsSecretAccessKeyEnvVar() {
-    return System.getenv(SECRET_ACCESS_KEY);
-  }
-
-  @Override
-  public String getAwsSessionTokenEnvVar() {
-    return System.getenv(SESSION_TOKEN);
-  }
-
-  @Override
-  public String getAwsContainerCredentialsRelativeUri() {
-    return System.getenv(CONTAINER_CREDENTIALS_RELATIVE_URI);
-  }
-
-  @Override
-  public String getEcsMetadataEndpoint() {
-    String endpoint = System.getenv(METADATA_ENDPOINT);
-    if (endpoint == null) {
-      return AWS_INSTANCE_LINK_LOCAL_ADDRESS;
-    }
-    return endpoint;
   }
 
   @Override
@@ -104,7 +68,7 @@ public class AwsSdkHelperV2 implements AwsSdkAuthHelper {
    * Uses reflection to call:
    * DefaultCredentialsProvider.create().resolveCredentials()
    */
-  private Object getCredentialsFromDefaultProvider() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  Object getCredentialsFromDefaultProvider() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Class<?> providerClass = Class.forName(DEFAULT_CREDENTIALS_PROVIDER);
 
     // Call DefaultCredentialsProvider.create()
@@ -120,7 +84,7 @@ public class AwsSdkHelperV2 implements AwsSdkAuthHelper {
    * Get session token from AWS SDK v2 credentials if they are session credentials.
    * Returns null if credentials don't have a session token.
    */
-  private String getSessionTokenFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  String getSessionTokenFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Class<?> sessionCredentialsClass = Class.forName(AWS_SESSION_CREDENTIALS);
     if (sessionCredentialsClass.isInstance(credentials)) {
       Method sessionTokenMethod = sessionCredentialsClass.getMethod("sessionToken");
@@ -133,7 +97,7 @@ public class AwsSdkHelperV2 implements AwsSdkAuthHelper {
    * Get access key ID from AWS SDK v2 credentials.
    * Calls credentials.accessKeyId()
    */
-  private String getAccessKeyIdFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  String getAccessKeyIdFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Class<?> credentialsClass = Class.forName(AWS_CREDENTIALS);
     Method accessKeyIdMethod = credentialsClass.getMethod("accessKeyId");
     return (String) accessKeyIdMethod.invoke(credentials);
@@ -143,7 +107,7 @@ public class AwsSdkHelperV2 implements AwsSdkAuthHelper {
    * Get secret access key from AWS SDK v2 credentials.
    * Calls credentials.secretAccessKey()
    */
-  private String getSecretAccessKeyFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  String getSecretAccessKeyFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Class<?> credentialsClass = Class.forName(AWS_CREDENTIALS);
     Method secretAccessKeyMethod = credentialsClass.getMethod("secretAccessKey");
     return (String) secretAccessKeyMethod.invoke(credentials);

@@ -21,13 +21,7 @@ import java.lang.reflect.InvocationTargetException;
  * AWS SDK v1 authentication helper.
  * Uses reflection to avoid hard dependency on AWS SDK v1.
  */
-public class AwsSdkHelperV1 implements AwsSdkAuthHelper {
-  private static final String ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
-  private static final String SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
-  private static final String SESSION_TOKEN = "AWS_SESSION_TOKEN";
-  private static final String CONTAINER_CREDENTIALS_RELATIVE_URI = "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI";
-  private static final String METADATA_ENDPOINT = "ECS_METADATA_ENDPOINT";
-  private static final String AWS_INSTANCE_LINK_LOCAL_ADDRESS = "http://169.254.170.2";
+public class AwsSdkHelperV1 extends AbstractAwsSdkHelper {
   private static final String DEFAULT_AWSCREDENTIALS_PROVIDER_CHAIN = "com.amazonaws.auth.DefaultAWSCredentialsProviderChain";
   private static final String AWS_SESSION_CREDENTIALS = "com.amazonaws.auth.AWSSessionCredentials";
   private static final String AWS_CREDENTIALS = "com.amazonaws.auth.AWSCredentials";
@@ -45,35 +39,6 @@ public class AwsSdkHelperV1 implements AwsSdkAuthHelper {
   @Override
   public String getSdkVersion() {
     return "v1";
-  }
-
-  @Override
-  public String getAwsAccessKeyIdEnvVar() {
-    return System.getenv(ACCESS_KEY_ID);
-  }
-
-  @Override
-  public String getAwsSecretAccessKeyEnvVar() {
-    return System.getenv(SECRET_ACCESS_KEY);
-  }
-
-  @Override
-  public String getAwsSessionTokenEnvVar() {
-    return System.getenv(SESSION_TOKEN);
-  }
-
-  @Override
-  public String getAwsContainerCredentialsRelativeUri() {
-    return System.getenv(CONTAINER_CREDENTIALS_RELATIVE_URI);
-  }
-
-  @Override
-  public String getEcsMetadataEndpoint() {
-    String endpoint = System.getenv(METADATA_ENDPOINT);
-    if (endpoint == null) {
-      return AWS_INSTANCE_LINK_LOCAL_ADDRESS;
-    }
-    return endpoint;
   }
 
   @Override
@@ -96,24 +61,24 @@ public class AwsSdkHelperV1 implements AwsSdkAuthHelper {
     }
   }
 
-  private Object getCredentialsFromDefaultAWSCredentialsProviderChain() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+  Object getCredentialsFromDefaultAWSCredentialsProviderChain() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
     Class<?> credentialsProviderChainClass = Class.forName(DEFAULT_AWSCREDENTIALS_PROVIDER_CHAIN);
     Object credentialsProviderChain = credentialsProviderChainClass.getDeclaredConstructor().newInstance();
     return credentialsProviderChainClass.getMethod("getCredentials").invoke(credentialsProviderChain);
   }
 
-  private String getSessionTokenFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  String getSessionTokenFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Class<?> sessionCredentialsClass = Class.forName(AWS_SESSION_CREDENTIALS);
     return sessionCredentialsClass.isInstance(credentials)
         ? (String) sessionCredentialsClass.getMethod("getSessionToken").invoke(credentials) : null;
   }
 
-  private String getAWSAccessKeyIdFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  String getAWSAccessKeyIdFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Class<?> credentialsClass = Class.forName(AWS_CREDENTIALS);
     return (String) credentialsClass.getMethod("getAWSAccessKeyId").invoke(credentials);
   }
 
-  private String getAwsSecretKeyFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+  String getAwsSecretKeyFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     Class<?> credentialsClass = Class.forName(AWS_CREDENTIALS);
     return (String) credentialsClass.getMethod("getAWSSecretKey").invoke(credentials);
   }
