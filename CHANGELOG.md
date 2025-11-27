@@ -25,6 +25,7 @@ Usage:
 * Fix #3591: Fix windows line endings for yaml literal blocks, json serialization config updated
 * Fix #3781: Native Generator does not work in Windows system, always finds multiple native executable
 * Fix #2286: Remove Guava dependency where ever possible
+* Fix #1458: Consideration of "ssl.enabled" properties to enable liveness/readiness probe for Spring Boot Actuator
 
 ### 1.18.2 (2025-11-03)
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
