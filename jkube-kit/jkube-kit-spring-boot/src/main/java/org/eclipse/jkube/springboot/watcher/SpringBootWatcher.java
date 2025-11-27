@@ -105,7 +105,7 @@ public class SpringBootWatcher extends BaseWatcher {
         int containerPort = springBootConfiguration.getServerPort();
         portForwardService.forwardPortAsync(kubernetes, selector, containerPort, localPort);
 
-        String scheme = StringUtils.isNotBlank(springBootConfiguration.getServerKeystore()) ?
+        String scheme = StringUtils.isNotBlank(springBootConfiguration.getServerKeystore()) && springBootConfiguration.isServerSslEnabled() ?
           "https://" : "http://";
         String contextPath = StringUtils.isNotBlank(springBootConfiguration.getServerContextPath()) ?
           springBootConfiguration.getServerContextPath() : "";
