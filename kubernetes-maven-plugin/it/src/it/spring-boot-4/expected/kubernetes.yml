@@ -1,0 +1,147 @@
+#
+# Copyright (c) 2019 Red Hat, Inc.
+# This program and the accompanying materials are made
+# available under the terms of the Eclipse Public License 2.0
+# which is available at:
+#
+#     https://www.eclipse.org/legal/epl-2.0/
+#
+# SPDX-License-Identifier: EPL-2.0
+#
+# Contributors:
+#   Red Hat, Inc. - initial API and implementation
+#
+
+---
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      annotations:
+        jkube.eclipse.org/scm-url: "@ignore@"
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /metrics
+        prometheus.io/port: "9779"
+        jkube.eclipse.org/scm-tag: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+      labels:
+        testProject: spring-boot-sample
+        app: jkube-maven-sample-spring-boot
+        provider: jkube
+        version: 0.1-SNAPSHOT
+        group: org.eclipse.jkube
+        app.kubernetes.io/part-of: org.eclipse.jkube
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/name: jkube-maven-sample-spring-boot
+        app.kubernetes.io/version: 0.1-SNAPSHOT
+      name: jkube-maven-sample-spring-boot
+    spec:
+      ports:
+        - name: http
+          port: 8080
+          protocol: TCP
+          targetPort: 8080
+      selector:
+        app: jkube-maven-sample-spring-boot
+        provider: jkube
+        group: org.eclipse.jkube
+        app.kubernetes.io/name: jkube-maven-sample-spring-boot
+        app.kubernetes.io/part-of: org.eclipse.jkube
+        app.kubernetes.io/managed-by: jkube
+      type: NodePort
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      annotations:
+        jkube.eclipse.org/scm-url: "@ignore@"
+        jkube.eclipse.org/scm-tag: "@ignore@"
+        jkube.eclipse.org/git-commit: "@ignore@"
+        jkube.eclipse.org/git-url: "@ignore@"
+        jkube.eclipse.org/git-branch: "@ignore@"
+      labels:
+        testProject: spring-boot-sample
+        app: jkube-maven-sample-spring-boot
+        provider: jkube
+        version: 0.1-SNAPSHOT
+        group: org.eclipse.jkube
+        app.kubernetes.io/part-of: org.eclipse.jkube
+        app.kubernetes.io/managed-by: jkube
+        app.kubernetes.io/name: jkube-maven-sample-spring-boot
+        app.kubernetes.io/version: 0.1-SNAPSHOT
+      name: jkube-maven-sample-spring-boot
+    spec:
+      replicas: 1
+      revisionHistoryLimit: 2
+      selector:
+        matchLabels:
+          app: jkube-maven-sample-spring-boot
+          provider: jkube
+          group: org.eclipse.jkube
+          app.kubernetes.io/name: jkube-maven-sample-spring-boot
+          app.kubernetes.io/part-of: org.eclipse.jkube
+          app.kubernetes.io/managed-by: jkube
+      template:
+        metadata:
+          annotations:
+            jkube.eclipse.org/scm-url: "@ignore@"
+            jkube.eclipse.org/scm-tag: "@ignore@"
+            jkube.eclipse.org/git-commit: "@ignore@"
+            jkube.eclipse.org/git-url: "@ignore@"
+            jkube.eclipse.org/git-branch: "@ignore@"
+          labels:
+            testProject: spring-boot-sample
+            app: jkube-maven-sample-spring-boot
+            provider: jkube
+            version: 0.1-SNAPSHOT
+            group: org.eclipse.jkube
+            app.kubernetes.io/part-of: org.eclipse.jkube
+            app.kubernetes.io/managed-by: jkube
+            app.kubernetes.io/name: jkube-maven-sample-spring-boot
+            app.kubernetes.io/version: 0.1-SNAPSHOT
+          name: jkube-maven-sample-spring-boot
+        spec:
+          containers:
+            - env:
+                - name: KUBERNETES_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.namespace
+                - name: HOSTNAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+              image: jkube/jkube-maven-sample-spring-boot:latest
+              imagePullPolicy: IfNotPresent
+              livenessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /actuator/health
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 180
+                successThreshold: 1
+              name: spring-boot
+              ports:
+                - containerPort: 8080
+                  name: http
+                  protocol: TCP
+                - containerPort: 9779
+                  name: prometheus
+                  protocol: TCP
+                - containerPort: 8778
+                  name: jolokia
+                  protocol: TCP
+              readinessProbe:
+                failureThreshold: 3
+                httpGet:
+                  path: /actuator/health
+                  port: 8080
+                  scheme: HTTP
+                initialDelaySeconds: 10
+                successThreshold: 1
+              securityContext:
+                privileged: false
