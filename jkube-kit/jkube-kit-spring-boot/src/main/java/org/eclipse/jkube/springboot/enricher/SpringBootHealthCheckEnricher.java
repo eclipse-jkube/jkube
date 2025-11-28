@@ -39,7 +39,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
 
     public static final String ENRICHER_NAME = "jkube-healthcheck-spring-boot";
 
-    protected static final String[] REQUIRED_CLASSES_SPRING_BOOT_3 = {
+    protected static final String[] REQUIRED_CLASSES_SPRING_BOOT = {
         "org.springframework.boot.actuate.health.HealthIndicator",
         "org.springframework.web.context.support.GenericWebApplicationContext"
     };
@@ -104,7 +104,7 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
     protected Probe discoverSpringBootHealthCheck(Integer initialDelay, Integer period, Integer timeout, Integer failureTh, Integer successTh, String suffix) {
         try {
             ProjectClassLoaders projectClassLoaders = getContext().getProjectClassLoaders();
-            if (projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_3) ||
+            if (projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT) ||
                 projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4)) {
                     return buildProbe(initialDelay, period, timeout, failureTh, successTh, suffix);
             }
