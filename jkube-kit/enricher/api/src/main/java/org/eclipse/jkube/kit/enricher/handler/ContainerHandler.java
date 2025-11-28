@@ -161,7 +161,7 @@ public class ContainerHandler {
                         ret.add(new VolumeMountBuilder()
                                     .withName(volumeConfig.getName())
                                     .withMountPath(mount)
-                                    .withReadOnly(false).build());
+                                    .withReadOnly(volumeConfig.getReadOnly() != null && volumeConfig.getReadOnly()).build());
                     }
                 }
             }
