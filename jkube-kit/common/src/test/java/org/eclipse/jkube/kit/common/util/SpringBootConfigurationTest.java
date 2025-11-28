@@ -54,6 +54,9 @@ class SpringBootConfigurationTest {
     properties.put("management.context-path", "management.context-path");
     properties.put("management.server.servlet.context-path", "management.server.servlet.context-path");
     properties.put("management.endpoints.web.base-path", "management.endpoints.web.base-path");
+    properties.put("server.ssl.enabled", "true");
+    properties.put("management.ssl.enabled", "true");
+    properties.put("management.server.ssl.enabled", "true");
     try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
       properties.store(fos, null);
     }
@@ -134,6 +137,99 @@ class SpringBootConfigurationTest {
     void getActuatorDefaultBasePath() {
       assertThat(springBootConfiguration.getActuatorDefaultBasePath()).isEqualTo("/actuator");
     }
+
+    @Test
+    @DisplayName("isServerSslEnabled returns true when server.ssl.enabled is true")
+    void isServerSslEnabled_whenExplicitlyTrue() {
+      assertThat(springBootConfiguration.isServerSslEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementSslEnabled returns true when management.server.ssl.enabled is true")
+    void isManagementSslEnabled_whenExplicitlyTrue() {
+      assertThat(springBootConfiguration.isManagementSslEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isServerSslEnabled defaults to true when keystore configured and ssl.enabled not set")
+    void isServerSslEnabled_defaultsToTrueWithKeystore(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("server.ssl.key-store", "keystore.jks");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("3.0")
+          .build())
+        .build());
+      assertThat(config.isServerSslEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isServerSslEnabled returns false when server.ssl.enabled is false")
+    void isServerSslEnabled_whenExplicitlyFalse(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("server.ssl.key-store", "keystore.jks");
+      properties.put("server.ssl.enabled", "false");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("3.0")
+          .build())
+        .build());
+      assertThat(config.isServerSslEnabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("isManagementSslEnabled returns false when management.server.ssl.enabled is false")
+    void isManagementSslEnabled_whenExplicitlyFalse(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.server.ssl.key-store", "keystore.jks");
+      properties.put("management.server.ssl.enabled", "false");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("3.0")
+          .build())
+        .build());
+      assertThat(config.isManagementSslEnabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("isServerSslEnabled defaults to false when no keystore and ssl.enabled not set")
+    void isServerSslEnabled_defaultsToFalseWithoutKeystore(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("3.0")
+          .build())
+        .build());
+      assertThat(config.isServerSslEnabled()).isFalse();
+    }
   }
 
   @Nested
@@ -206,6 +302,60 @@ class SpringBootConfigurationTest {
     @DisplayName("getActuatorDefaultBasePath defaults to '/actuator'")
     void getActuatorDefaultBasePath() {
       assertThat(springBootConfiguration.getActuatorDefaultBasePath()).isEqualTo("/actuator");
+    }
+
+    @Test
+    @DisplayName("isServerSslEnabled returns true when server.ssl.enabled is true")
+    void isServerSslEnabled_whenExplicitlyTrue() {
+      assertThat(springBootConfiguration.isServerSslEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementSslEnabled returns true when management.server.ssl.enabled is true")
+    void isManagementSslEnabled_whenExplicitlyTrue() {
+      assertThat(springBootConfiguration.isManagementSslEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isServerSslEnabled returns false when server.ssl.enabled is false")
+    void isServerSslEnabled_whenExplicitlyFalse(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("server.ssl.key-store", "keystore.jks");
+      properties.put("server.ssl.enabled", "false");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("2.0")
+          .build())
+        .build());
+      assertThat(config.isServerSslEnabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("isManagementSslEnabled returns false when management.server.ssl.enabled is false")
+    void isManagementSslEnabled_whenExplicitlyFalse(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.server.ssl.key-store", "keystore.jks");
+      properties.put("management.server.ssl.enabled", "false");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("2.0")
+          .build())
+        .build());
+      assertThat(config.isManagementSslEnabled()).isFalse();
     }
   }
 
@@ -350,6 +500,62 @@ class SpringBootConfigurationTest {
         .build());
       assertThat(springBootConfiguration.getActuatorDefaultBasePath()).
         isEmpty();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"1.0", "undefined"})
+    @DisplayName("isServerSslEnabled returns true when ssl.enabled is true (Spring Boot 1)")
+    void isServerSslEnabled_whenExplicitlyTrue(String version) {
+      springBootConfiguration = SpringBootConfiguration.from(project.toBuilder()
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version(version)
+          .build())
+        .build());
+      assertThat(springBootConfiguration.isServerSslEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementSslEnabled uses management.ssl.enabled property (Spring Boot 1)")
+    void isManagementSslEnabled_withManagementSslEnabled(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.ssl.key-store", "keystore.jks");
+      properties.put("management.ssl.enabled", "false");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("1.0")
+          .build())
+        .build());
+      assertThat(config.isManagementSslEnabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("isServerSslEnabled returns false when server.ssl.enabled is false (Spring Boot 1)")
+    void isServerSslEnabled_whenExplicitlyFalse(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("server.ssl.key-store", "keystore.jks");
+      properties.put("server.ssl.enabled", "false");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("1.0")
+          .build())
+        .build());
+      assertThat(config.isServerSslEnabled()).isFalse();
     }
   }
 }
