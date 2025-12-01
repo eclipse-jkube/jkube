@@ -42,7 +42,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnricher.REQUIRED_CLASSES_SPRING_BOOT;
-import static org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnricher.REQUIRED_CLASSES_SPRING_BOOT_4;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -55,7 +54,7 @@ import static org.mockito.Mockito.when;
  * @author nicola
  */
 public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
-    private Properties props;
+    protected Properties props;
     private ByteArrayOutputStream out;
 
     protected JKubeEnricherContext context;
@@ -728,130 +727,6 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Nested
-    @DisplayName("Spring Boot 4 Support")
-    class SpringBoot4Support {
-        @Test
-        @DisplayName("should detect Spring Boot 4 actuator classes and generate probes")
-        void whenSpringBoot4Classes_thenProbesGenerated() {
-            // Given
-            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT))
-              .thenReturn(false);
-            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4))
-              .thenReturn(true);
-            when(context.getProjectClassLoaders().getCompileClassLoader())
-              .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
-
-            SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
-
-            // When
-            Probe readinessProbe = enricher.getReadinessProbe();
-            Probe livenessProbe = enricher.getLivenessProbe();
-
-            // Then
-            assertHealthCheckDelays(readinessProbe, 10, null, null);
-            assertHealthCheckDelays(livenessProbe, 180, null, null);
-            assertHTTPGetPathAndPort(readinessProbe, getActuatorDefaultBasePath() + "/health", 8080);
-            assertHTTPGetPathAndPort(livenessProbe, getActuatorDefaultBasePath() + "/health", 8080);
-        }
-
-        @Test
-        @DisplayName("should generate probes with custom config for Spring Boot 4")
-        void whenSpringBoot4WithCustomConfig_thenCustomProbesGenerated() {
-            // Given
-            TreeMap<String, Object> enricherConfig = new TreeMap<>();
-            enricherConfig.put("readinessProbeInitialDelaySeconds", "25");
-            enricherConfig.put("livenessProbeInitialDelaySeconds", "400");
-            enricherConfig.put("timeoutSeconds", "90");
-            context.getConfiguration().getProcessorConfig()
-              .setConfig(Collections.singletonMap("jkube-healthcheck-spring-boot", enricherConfig));
-            when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT))
-              .thenReturn(false);
-            when(projectClassLoaders.isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4))
-              .thenReturn(true);
-            when(projectClassLoaders.getCompileClassLoader())
-              .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
-
-            SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
-
-            // When
-            Probe readinessProbe = enricher.getReadinessProbe();
-            Probe livenessProbe = enricher.getLivenessProbe();
-
-            // Then
-            assertHealthCheckDelays(readinessProbe, 25, null, 90);
-            assertHealthCheckDelays(livenessProbe, 400, null, 90);
-        }
-
-        @Test
-        @DisplayName("should generate probes with management.health.probes.enabled for Spring Boot 4")
-        void whenSpringBoot4WithManagementHealthProbesEnabled_thenProbesWithSuffixGenerated() {
-            // Given
-            props.put("management.health.probes.enabled", "true");
-            writeProps();
-            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT))
-              .thenReturn(false);
-            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4))
-              .thenReturn(true);
-            when(context.getProjectClassLoaders().getCompileClassLoader())
-              .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
-
-            SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
-
-            // When
-            Probe livenessProbe = enricher.getLivenessProbe();
-            Probe readinessProbe = enricher.getReadinessProbe();
-
-            // Then
-            assertHTTPGetPathAndPort(livenessProbe, getActuatorDefaultBasePath() + "/health/liveness", 8080);
-            assertHTTPGetPathAndPort(readinessProbe, getActuatorDefaultBasePath() + "/health/readiness", 8080);
-        }
-
-        @Test
-        @DisplayName("should work when both Spring Boot 3 and Spring Boot 4 classes are present")
-        void whenBothSpringBoot3And4Classes_thenProbesGenerated() {
-            // Given
-            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT))
-              .thenReturn(true);
-            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4))
-              .thenReturn(true);
-            when(context.getProjectClassLoaders().getCompileClassLoader())
-              .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
-
-            SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
-
-            // When
-            Probe readinessProbe = enricher.getReadinessProbe();
-            Probe livenessProbe = enricher.getLivenessProbe();
-
-            // Then
-            assertThat(readinessProbe).isNotNull();
-            assertThat(livenessProbe).isNotNull();
-        }
-
-        @Test
-        @DisplayName("should return null when neither Spring Boot 3 nor Spring Boot 4 classes are present")
-        void whenNoSpringBootClasses_thenNoProbesGenerated() {
-            // Given
-            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT))
-              .thenReturn(false);
-            when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4))
-              .thenReturn(false);
-            when(context.getProjectClassLoaders().getCompileClassLoader())
-              .thenReturn(new URLClassLoader(new URL[0], AbstractSpringBootHealthCheckEnricherTestSupport.class.getClassLoader()));
-
-            SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
-
-            // When
-            Probe readinessProbe = enricher.getReadinessProbe();
-            Probe livenessProbe = enricher.getLivenessProbe();
-
-            // Then
-            assertThat(readinessProbe).isNull();
-            assertThat(livenessProbe).isNull();
-        }
-    }
-
-    @Nested
     @DisplayName("Spring Web Flux Dependency present")
     class SpringWebFlux {
         @BeforeEach
@@ -945,7 +820,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
           .hasFieldOrPropertyWithValue("timeoutSeconds", timeoutSeconds);
     }
 
-    private void writeProps() {
+    protected void writeProps() {
         try (OutputStream fos = Files.newOutputStream(context.getProject().getOutputDirectory().toPath().resolve("application.properties"))) {
             props.store(fos, null);
         } catch (IOException ex) {
