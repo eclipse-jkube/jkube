@@ -42,6 +42,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnricher.REQUIRED_CLASSES_SPRING_BOOT;
+import static org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnricher.REQUIRED_CLASSES_SPRING_BOOT_4;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -797,6 +798,68 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
             assertHTTPGetPathAndPort(livenessProbe,getActuatorDefaultBasePath() + "/health",8080);
             assertHTTPGetPathAndPort(readinessProbe,getActuatorDefaultBasePath() + "/health",8080);
         }
+    }
+
+    @Test
+    @DisplayName("should detect Spring Boot 4 actuator classes and generate probes")
+    void whenSpringBoot4ClassesOnly_thenProbesGenerated() {
+        // Given
+        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT))
+          .thenReturn(false);
+        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4))
+          .thenReturn(true);
+
+        SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
+
+        // When
+        Probe readinessProbe = enricher.getReadinessProbe();
+        Probe livenessProbe = enricher.getLivenessProbe();
+
+        // Then
+        assertThat(readinessProbe).isNotNull();
+        assertThat(livenessProbe).isNotNull();
+        assertHTTPGetPathAndPort(readinessProbe, getActuatorDefaultBasePath() + "/health", 8080);
+        assertHTTPGetPathAndPort(livenessProbe, getActuatorDefaultBasePath() + "/health", 8080);
+    }
+
+    @Test
+    @DisplayName("should work when both Spring Boot 3 and Spring Boot 4 classes are present")
+    void whenBothSpringBoot3And4Classes_thenProbesGenerated() {
+        // Given
+        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT))
+          .thenReturn(true);
+        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4))
+          .thenReturn(true);
+
+        SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
+
+        // When
+        Probe readinessProbe = enricher.getReadinessProbe();
+        Probe livenessProbe = enricher.getLivenessProbe();
+
+        // Then
+        assertThat(readinessProbe).isNotNull();
+        assertThat(livenessProbe).isNotNull();
+    }
+
+    @Test
+    @DisplayName("should return null when neither Spring Boot 3 nor Spring Boot 4 classes are present")
+    void whenNoSpringBootClasses_thenNoProbesGenerated() {
+        // Given
+        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT))
+          .thenReturn(false);
+        when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT_4))
+          .thenReturn(false);
+
+        SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
+
+        // When
+        Probe readinessProbe = enricher.getReadinessProbe();
+        Probe livenessProbe = enricher.getLivenessProbe();
+
+        // Then
+        assertThat(readinessProbe).isNull();
+        assertThat(livenessProbe).isNull();
     }
 
     private void assertHTTPGetPathAndPort(Probe probe, String path, int port) {
