@@ -28,7 +28,7 @@ import static org.eclipse.jkube.springboot.enricher.SpringBootHealthCheckEnriche
 import static org.mockito.Mockito.when;
 
 
-class SpringBoot4HealthCheckEnricherTest extends AbstractSpringBootHealthCheckEnricherTestSupport {
+public class SpringBoot4HealthCheckEnricherTest extends AbstractSpringBootHealthCheckEnricherTestSupport {
 
   @Override
   protected String getSpringBootVersion() {
