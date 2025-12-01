@@ -13,15 +13,16 @@
  */
 package org.eclipse.jkube.springboot.enricher;
 
+
 public class SpringBoot4HealthCheckEnricherTest extends AbstractSpringBootHealthCheckEnricherTestSupport {
 
-  @Override
-  protected String getSpringBootVersion() {
-    return "4.0.0";
-  }
+    @Override
+    protected String getSpringBootVersion() {
+        return "4.0.0";
+    }
 
-  @Override
-  protected String getActuatorDefaultBasePath() {
-    return "/actuator";
-  }
+    @Override
+    protected String getActuatorDefaultBasePath() {
+        return "/actuator";
+    }
 }
