@@ -33,7 +33,6 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.ResourceFileProcessor;
-import org.eclipse.jkube.kit.common.util.YamlUtil;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
