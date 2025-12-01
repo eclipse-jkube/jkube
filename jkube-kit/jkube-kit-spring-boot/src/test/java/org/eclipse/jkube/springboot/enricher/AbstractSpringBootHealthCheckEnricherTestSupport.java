@@ -601,6 +601,73 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
     }
 
     @Test
+    void schemeWithServerKeystoreButSslDisabled() {
+        props.put("server.port", "8443");
+        props.put("server.ssl.key-store", "classpath:keystore.p12");
+        props.put("server.ssl.enabled", "false");
+        writeProps();
+
+        Probe probe = new SpringBootHealthCheckEnricher(context)
+          .buildProbe(10, null, null, 3, 1,null);
+        assertHTTPGetSchemeAndPort(probe, "HTTP", 8443);
+    }
+
+    @Test
+    void schemeWithManagementKeystoreButSslDisabled() {
+        props.put("server.port", "8080");
+        props.put("management.port", "8443");
+        props.put("management.server.port", "8443");
+        props.put("management.ssl.key-store", "classpath:keystore.p12");
+        props.put("management.server.ssl.key-store", "classpath:keystore.p12");
+        props.put("management.ssl.enabled", "false");
+        props.put("management.server.ssl.enabled", "false");
+        writeProps();
+
+        Probe probe = new SpringBootHealthCheckEnricher(context)
+          .buildProbe(10, null, null, 3, 1,null);
+        assertHTTPGetSchemeAndPort(probe, "HTTP", 8443);
+    }
+
+    @Test
+    void schemeWithServerKeystoreAndSslExplicitlyEnabled() {
+        props.put("server.port", "8443");
+        props.put("server.ssl.key-store", "classpath:keystore.p12");
+        props.put("server.ssl.enabled", "true");
+        writeProps();
+
+        Probe probe = new SpringBootHealthCheckEnricher(context)
+          .buildProbe(10, null, null, 3, 1,null);
+        assertHTTPGetSchemeAndPort(probe, "HTTPS", 8443);
+    }
+
+    @Test
+    void schemeWithManagementKeystoreAndSslExplicitlyEnabled() {
+        props.put("server.port", "8080");
+        props.put("management.port", "8443");
+        props.put("management.server.port", "8443");
+        props.put("management.ssl.key-store", "classpath:keystore.p12");
+        props.put("management.server.ssl.key-store", "classpath:keystore.p12");
+        props.put("management.ssl.enabled", "true");
+        props.put("management.server.ssl.enabled", "true");
+        writeProps();
+
+        Probe probe = new SpringBootHealthCheckEnricher(context)
+          .buildProbe(10, null, null, 3, 1,null);
+        assertHTTPGetSchemeAndPort(probe, "HTTPS", 8443);
+    }
+
+    @Test
+    void schemeWithNoKeystoreAndSslEnabled() {
+        props.put("server.port", "8443");
+        props.put("server.ssl.enabled", "true");
+        writeProps();
+
+        Probe probe = new SpringBootHealthCheckEnricher(context)
+          .buildProbe(10, null, null, 3, 1,null);
+        assertHTTPGetSchemeAndPort(probe, "HTTP", 8443);
+    }
+
+    @Test
     void testDefaultInitialDelayForLivenessAndReadiness() {
         SpringBootHealthCheckEnricher enricher = new SpringBootHealthCheckEnricher(context);
         when(context.getProjectClassLoaders().isClassInCompileClasspath(true, REQUIRED_CLASSES_SPRING_BOOT))

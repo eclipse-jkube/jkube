@@ -127,11 +127,11 @@ public class SpringBootHealthCheckEnricher extends AbstractHealthCheckEnricher {
         String scheme;
         String prefix;
         if (usingManagementPort) {
-            scheme = StringUtils.isNotBlank(springBootConfiguration.getManagementKeystore()) ? SCHEME_HTTPS : SCHEME_HTTP;
+            scheme = StringUtils.isNotBlank(springBootConfiguration.getManagementKeystore()) && springBootConfiguration.isManagementSslEnabled() ? SCHEME_HTTPS : SCHEME_HTTP;
             prefix = StringUtils.isNotBlank(springBootConfiguration.getManagementContextPath()) ?
               springBootConfiguration.getManagementContextPath() : "";
         } else {
-            scheme = StringUtils.isNotBlank(springBootConfiguration.getServerKeystore()) ? SCHEME_HTTPS : SCHEME_HTTP;
+            scheme = StringUtils.isNotBlank(springBootConfiguration.getServerKeystore()) && springBootConfiguration.isServerSslEnabled() ? SCHEME_HTTPS : SCHEME_HTTP;
             if (hasSpringWebFluxDependency(getContext().getProject()) && StringUtils.isNotBlank(springBootConfiguration.getWebFluxBasePath())) {
                 prefix = springBootConfiguration.getWebFluxBasePath();
             } else if (StringUtils.isNotBlank(springBootConfiguration.getServerContextPath())) {

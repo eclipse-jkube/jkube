@@ -27,6 +27,7 @@ Usage:
 * Fix #2286: Remove Guava dependency where ever possible
 * Fix #3809: Actuator liveness and readiness probe not getting generated with Spring boot 4.x.x
 * Fix #3707: Setting readOnly flag in VolumeConfig has no effect
+* Fix #1458: Consideration of "ssl.enabled" properties to enable liveness/readiness probe for Spring Boot Actuator
 
 ### 1.18.2 (2025-11-03)
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
