@@ -54,7 +54,7 @@ import static org.mockito.Mockito.when;
  * @author nicola
  */
 public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
-    protected Properties props;
+    private Properties props;
     private ByteArrayOutputStream out;
 
     protected JKubeEnricherContext context;
@@ -820,7 +820,7 @@ public abstract class AbstractSpringBootHealthCheckEnricherTestSupport {
           .hasFieldOrPropertyWithValue("timeoutSeconds", timeoutSeconds);
     }
 
-    protected void writeProps() {
+    private void writeProps() {
         try (OutputStream fos = Files.newOutputStream(context.getProject().getOutputDirectory().toPath().resolve("application.properties"))) {
             props.store(fos, null);
         } catch (IOException ex) {
