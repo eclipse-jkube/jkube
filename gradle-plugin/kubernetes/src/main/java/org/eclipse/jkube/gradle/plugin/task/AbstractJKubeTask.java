@@ -13,17 +13,11 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.apache.commons.io.FileUtils;
@@ -38,6 +32,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.ResourceFileProcessor;
 import org.eclipse.jkube.kit.common.util.YamlUtil;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -237,38 +232,9 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   private File[] getFiles(File[] resourceFiles, File outDir) throws IOException {
-    // Use LinkedHashSet to maintain order and track unique target files
-    Set<File> processedFiles = new LinkedHashSet<>();
-
-    for (File resource : resourceFiles) {
-      File targetFile = new File(outDir, resource.getName());
-
-      // Save existing content if file already exists (means we're merging)
-      String existingContent = null;
-      if (targetFile.exists()) {
-        existingContent = new String(Files.readAllBytes(targetFile.toPath()), StandardCharsets.UTF_8);
-      }
-
-      String resourceFragmentInterpolated = interpolate(resource, kubernetesExtension.javaProject.getProperties(),
-          kubernetesExtension.getFilter().getOrNull());
-
-      // If there was existing content, merge it with the new content
-      if (existingContent != null && YamlUtil.isYaml(targetFile)) {
-        resourceFragmentInterpolated = mergeContent(existingContent, resourceFragmentInterpolated);
-      }
-
-      try (BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile))) {
-        writer.write(resourceFragmentInterpolated);
-      }
-
-      // Add to set - duplicates will be automatically ignored
-      processedFiles.add(targetFile);
-    }
-    return processedFiles.toArray(new File[0]);
-  }
-
-  private String mergeContent(String existingContent, String newContent) throws IOException {
-    // For YAML files, use YamlUtil for deep property-level merge
-    return YamlUtil.mergeYaml(existingContent, newContent);
+    return ResourceFileProcessor.processFiles(resourceFiles, outDir, (resource, targetFile) ->
+      interpolate(resource, kubernetesExtension.javaProject.getProperties(),
+        kubernetesExtension.getFilter().getOrNull())
+    );
   }
 }

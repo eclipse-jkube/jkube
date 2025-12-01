@@ -27,6 +27,7 @@ import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.ResourceFileProcessor;
 import org.eclipse.jkube.kit.common.util.YamlUtil;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 
@@ -55,9 +56,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.eclipse.jkube.kit.common.ResourceFileType.yaml;
 import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUtil.updateResourceConfigNamespace;
@@ -290,42 +289,14 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     }
 
   private File[] getFiles(File[] resourceFiles, File outDir) throws IOException {
-    // Use LinkedHashSet to maintain order and track unique target files
-    Set<File> processedFiles = new LinkedHashSet<>();
-
-    for (File resource : resourceFiles) {
-      File targetFile = new File(outDir, resource.getName());
-
-      // Save existing content if file already exists (means we're merging)
-      String existingContent = null;
-      if (targetFile.exists()) {
-          existingContent = new String(Files.readAllBytes(targetFile.toPath()), StandardCharsets.UTF_8);
-      }
-
+    return ResourceFileProcessor.processFiles(resourceFiles, outDir, (resource, targetFile) -> {
       try {
-            mavenFileFilter.copyFile(resource, targetFile, true,
-              project, null, false, "utf8", session);
-
-            // If there was existing content, merge it with the new content
-            if (existingContent != null && YamlUtil.isYaml(targetFile)) {
-                String newContent = new String(Files.readAllBytes(targetFile.toPath()), StandardCharsets.UTF_8);
-                String mergedContent = mergeContent(existingContent, newContent);
-                Files.write(targetFile.toPath(), mergedContent.getBytes(StandardCharsets.UTF_8));
-            }
-
-            // Add to set - duplicates will be automatically ignored
-            processedFiles.add(targetFile);
-        } catch (MavenFilteringException exp) {
-            throw new IOException(
-              String.format("Cannot filter %s to %s", resource, targetFile), exp);
-        }
-    }
-    return processedFiles.toArray(new File[0]);
-  }
-
-  private String mergeContent(String existingContent, String newContent) throws IOException {
-    // For YAML files, use YamlUtil for deep property-level merge
-    return YamlUtil.mergeYaml(existingContent, newContent);
+        mavenFileFilter.copyFile(resource, targetFile, true, project, null, false, "utf8", session);
+        return new String(Files.readAllBytes(targetFile.toPath()), StandardCharsets.UTF_8);
+      } catch (MavenFilteringException exp) {
+        throw new IOException(String.format("Cannot filter %s to %s", resource, targetFile), exp);
+      }
+    });
   }
 }
 
