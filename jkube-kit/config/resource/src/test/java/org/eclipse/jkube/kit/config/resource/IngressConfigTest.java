@@ -38,6 +38,7 @@ class IngressConfigTest {
         IngressConfig.class);
     // Then
     assertThat(result)
+        .hasFieldOrPropertyWithValue("ingressClassName", "nginx")
         .satisfies(ic -> assertThat(ic).extracting(IngressConfig::getIngressRules)
             .asInstanceOf(InstanceOfAssertFactories.list(IngressRuleConfig.class))
             .containsExactly(

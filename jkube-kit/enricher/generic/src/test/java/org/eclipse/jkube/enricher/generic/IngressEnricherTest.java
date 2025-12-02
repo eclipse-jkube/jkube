@@ -173,6 +173,43 @@ class IngressEnricherTest {
     }
 
     @Test
+    void getIngressClassName_withNoConfig() {
+        assertThat(ingressEnricher.getIngressClassName(null)).isNull();
+    }
+
+    @Test
+    void getIngressClassName_fromResourceConfig() {
+        // Given
+        ResourceConfig resourceConfig = ResourceConfig.builder()
+            .ingress(IngressConfig.builder()
+                .ingressClassName("nginx")
+                .build())
+            .build();
+        // When
+        String result = ingressEnricher.getIngressClassName(resourceConfig);
+
+        // Then
+        assertThat(result).isEqualTo("nginx");
+    }
+
+    @Test
+    void getIngressClassName_fromProperty() {
+        // Given
+        final TreeMap<String, Object> config = new TreeMap<>();
+        config.put("ingressClassName", "traefik");
+        Configuration configuration = Configuration.builder()
+            .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-ingress", config)))
+            .build();
+        when(context.getConfiguration()).thenReturn(configuration);
+        IngressEnricher enricher = new IngressEnricher(context);
+        // When
+        String result = enricher.getIngressClassName(null);
+
+        // Then
+        assertThat(result).isEqualTo("traefik");
+    }
+
+    @Test
     void getIngressRuleXMLConfig_withNonNullResourceConfig() {
         // Given
         ResourceConfig resourceConfig = ResourceConfig.builder()
@@ -290,6 +327,67 @@ class IngressEnricherTest {
         // Then
         verify(logger)
             .info("[[B]]HINT:[[B]] No host configured for Ingress. You might want to use `jkube.domain` to add desired host suffix");
+    }
+
+    @Test
+    void createIngressWithIngressClassName_fromXMLConfig() {
+        // Given
+        ResourceConfig resourceConfig = ResourceConfig.builder()
+            .ingress(IngressConfig.builder()
+                .ingressClassName("nginx")
+                .ingressRule(IngressRuleConfig.builder()
+                    .host("foo.bar.com")
+                    .path(IngressRulePathConfig.builder()
+                        .pathType("ImplementationSpecific")
+                        .path("/")
+                        .serviceName("test-svc")
+                        .servicePort(8080)
+                        .build())
+                    .build())
+                .build())
+            .build();
+        when(context.getProperty(CREATE_EXTERNAL_URLS)).thenReturn("true");
+        when(context.getConfiguration().getResource()).thenReturn(resourceConfig);
+
+        Service providedService = initTestService().build();
+        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder().addToItems(providedService);
+
+        // When
+        ingressEnricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+        // Then
+        assertThat(kubernetesListBuilder)
+            .extracting(KubernetesListBuilder::buildItems).asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
+            .hasSize(2)
+            .element(1).asInstanceOf(InstanceOfAssertFactories.type(Ingress.class))
+            .hasFieldOrPropertyWithValue("spec.ingressClassName", "nginx");
+    }
+
+    @Test
+    void createIngressWithIngressClassName_fromProperty() {
+        // Given
+        final TreeMap<String, Object> config = new TreeMap<>();
+        config.put("host", "test.example.com");
+        config.put("ingressClassName", "traefik");
+        Configuration configuration = Configuration.builder()
+            .processorConfig(new ProcessorConfig(null, null, Collections.singletonMap("jkube-ingress", config)))
+            .build();
+        when(context.getConfiguration()).thenReturn(configuration);
+        when(context.getProperty("jkube.createExternalUrls")).thenReturn("true");
+
+        IngressEnricher enricher = new IngressEnricher(context);
+        KubernetesListBuilder kubernetesListBuilder = new KubernetesListBuilder();
+        kubernetesListBuilder.addToItems(initTestService().build());
+
+        // When
+        enricher.create(PlatformMode.kubernetes, kubernetesListBuilder);
+
+        // Then
+        assertThat(kubernetesListBuilder)
+            .extracting(KubernetesListBuilder::buildItems).asInstanceOf(InstanceOfAssertFactories.list(HasMetadata.class))
+            .hasSize(2)
+            .element(1).asInstanceOf(InstanceOfAssertFactories.type(Ingress.class))
+            .hasFieldOrPropertyWithValue("spec.ingressClassName", "traefik");
     }
 
     private ServiceBuilder initTestService() {

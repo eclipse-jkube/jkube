@@ -48,6 +48,7 @@ public class IngressEnricher extends BaseEnricher implements ServiceExposer {
     @AllArgsConstructor
     public enum Config implements Configs.Config {
         HOST("host", null),
+        INGRESS_CLASS_NAME("ingressClassName", null),
         TARGET_API_VERSION("targetApiVersion", "networking.k8s.io/v1");
 
         @Getter
@@ -92,7 +93,7 @@ public class IngressEnricher extends BaseEnricher implements ServiceExposer {
     private HasMetadata generateIngressWithConfiguredApiVersion(ServiceBuilder serviceBuilder) {
         ResourceConfig resourceConfig = getConfiguration().getResource();
         io.fabric8.kubernetes.api.model.networking.v1.Ingress ingress = NetworkingV1IngressGenerator.generate(
-          serviceBuilder, getRouteDomain(), getConfig(Config.HOST), getIngressRuleXMLConfig(resourceConfig), getIngressTlsXMLConfig(resourceConfig));
+          serviceBuilder, getRouteDomain(), getConfig(Config.HOST), getIngressClassName(resourceConfig), getIngressRuleXMLConfig(resourceConfig), getIngressTlsXMLConfig(resourceConfig));
         HasMetadata generatedIngress = ingress;
 
         String targetIngressApiVersion = getConfig(Config.TARGET_API_VERSION);
@@ -139,6 +140,19 @@ public class IngressEnricher extends BaseEnricher implements ServiceExposer {
         String routeDomainFromProperties = getValueFromConfig(JKUBE_DOMAIN, "");
         if (StringUtils.isNotEmpty(routeDomainFromProperties)) {
             return routeDomainFromProperties;
+        }
+        return null;
+    }
+
+    protected String getIngressClassName(ResourceConfig resourceConfig) {
+        // First check XML/config
+        if (resourceConfig != null && resourceConfig.getIngress() != null && StringUtils.isNotEmpty(resourceConfig.getIngress().getIngressClassName())) {
+            return resourceConfig.getIngress().getIngressClassName();
+        }
+        // Fall back to property configuration
+        String ingressClassNameFromProperty = getConfig(Config.INGRESS_CLASS_NAME);
+        if (StringUtils.isNotEmpty(ingressClassNameFromProperty)) {
+            return ingressClassNameFromProperty;
         }
         return null;
     }

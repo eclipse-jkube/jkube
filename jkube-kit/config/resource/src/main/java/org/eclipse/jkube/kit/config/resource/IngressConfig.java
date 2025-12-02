@@ -28,6 +28,7 @@ import java.util.List;
 @Getter
 @EqualsAndHashCode
 public class IngressConfig {
+  private String ingressClassName;
   @Singular
   private List<IngressRuleConfig> ingressRules;
   @Singular
