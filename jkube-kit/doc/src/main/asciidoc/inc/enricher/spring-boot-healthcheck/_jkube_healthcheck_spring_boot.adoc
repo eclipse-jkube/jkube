@@ -24,8 +24,18 @@ If the user has enabled the `management.health.probes.enabled` property this Enr
 management.health.probes.enabled=true
 ----
 
-The port number is read from the `management.port` option, and will use the default value of `8080`
-The scheme will use HTTPS if `server.ssl.key-store` option is in use, and fallback to use `HTTP` otherwise.
+The port number is read from the `management.port` (Spring Boot 1) or `management.server.port` (Spring Boot 2+) option, and will use the default value of `8080`.
+
+The probe scheme (`http` or `https`) is determined as follows:
+
+* For probes targeting the management port:
+** If `management.server.ssl.enabled` (Spring Boot 2+) or `management.ssl.enabled` (Spring Boot 1) is explicitly set, this value determines whether HTTPS is used
+** Otherwise, HTTPS is used if `management.server.ssl.key-store` (Spring Boot 2+) or `management.ssl.key-store` (Spring Boot 1) is configured
+* For probes targeting the server port:
+** If `server.ssl.enabled` is explicitly set, this value determines whether HTTPS is used
+** Otherwise, HTTPS is used if `server.ssl.key-store` is configured
+
+This allows you to disable SSL for health probes even when a keystore is configured by setting the appropriate `ssl.enabled` property to `false`.
 
 The enricher will use the following settings by default:
 

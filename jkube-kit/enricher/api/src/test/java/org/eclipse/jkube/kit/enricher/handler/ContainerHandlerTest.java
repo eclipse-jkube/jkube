@@ -31,12 +31,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -512,6 +516,25 @@ class ContainerHandlerTest {
             .getVolumeMounts();
         assertThat(volumeMounts).isEmpty();
       }
+
+      @ParameterizedTest(name = "{0}")
+      @MethodSource("org.eclipse.jkube.kit.enricher.handler.ContainerHandlerTest#readOnlyTestData")
+      @DisplayName("with readOnly flag")
+      void withReadOnlyFlag_shouldReturnCorrectReadOnlyValue(String description, Boolean readOnlyValue, boolean expectedReadOnly) {
+        ContainerHandler handler = createContainerHandler(project);
+        images.add(imageConfiguration);
+        VolumeConfig.VolumeConfigBuilder volumeBuilder = VolumeConfig.builder()
+            .name("test-volume")
+            .mount("/path/mount");
+
+        if (readOnlyValue != null) {
+          volumeBuilder.readOnly(readOnlyValue);
+        }
+        volumes.add(volumeBuilder.build());
+        ControllerResourceConfig config1 = ControllerResourceConfig.builder().volumes(volumes).build();
+        List<io.fabric8.kubernetes.api.model.VolumeMount> volumeMounts = handler.getContainers(config1, images).get(0).getVolumeMounts();
+        assertThat(volumeMounts).singleElement().hasFieldOrPropertyWithValue("name", "test-volume").hasFieldOrPropertyWithValue("mountPath", "/path/mount").hasFieldOrPropertyWithValue("readOnly", expectedReadOnly);
+      }
     }
 
     @Test
@@ -647,5 +670,13 @@ class ContainerHandlerTest {
 
     private ContainerHandler createNewContainerHandler(Properties properties, ProbeHandler probeHandler) {
       return new ContainerHandler(properties, new GroupArtifactVersion("g", "a", "v"), probeHandler);
+    }
+
+    static Stream<Arguments> readOnlyTestData() {
+      return Stream.of(
+          Arguments.of("readOnly is null, should be false", null, false),
+          Arguments.of("readOnly is false, should be false", false, false),
+          Arguments.of("readOnly is true, should be true", true, true)
+      );
     }
 }
