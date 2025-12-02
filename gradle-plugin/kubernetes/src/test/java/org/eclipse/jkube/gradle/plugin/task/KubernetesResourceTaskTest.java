@@ -100,6 +100,27 @@ class KubernetesResourceTaskTest {
         .doesNotExist();
   }
 
+  @Test
+  void runTask_withExistingWorkDir_shouldCleanWorkDirBeforeProcessing() throws IOException {
+    // Given
+    final File workDir = taskEnvironment.getRoot().toPath().resolve("build").resolve("jkube-temp").toFile();
+    FileUtils.forceMkdir(workDir);
+    final File staleFile = new File(workDir, "stale-file.yml");
+    FileUtils.write(staleFile, "stale: content", StandardCharsets.UTF_8);
+    assertThat(staleFile).exists();
+    withResourceFragment("configmap.yml", "key: value");
+    KubernetesResourceTask resourceTask = new KubernetesResourceTask(KubernetesExtension.class);
+
+    // When
+    resourceTask.runTask();
+
+    // Then
+    assertThat(staleFile).doesNotExist();
+    assertThat(taskEnvironment.getRoot().toPath()
+      .resolve(Paths.get("build", "classes", "java", "main", "META-INF", "jkube", "kubernetes.yml")))
+      .exists();
+  }
+
   private void withProperties(Map<String, ?> properties) {
     when(taskEnvironment.project.getProperties()).thenAnswer(i -> properties);
   }

@@ -123,4 +123,51 @@ class ResourceMojoTest {
     inOrder.verify(kitLogger).verbose("Generating resources");
     inOrder.verify(kitLogger).verbose("Validating resources");
   }
+
+  @Test
+  void execute_withExistingWorkDir_shouldCleanWorkDirBeforeProcessing() throws Exception {
+    // Given
+    File staleFile = new File(resourceMojo.workDir, "stale-file.yml");
+    resourceMojo.workDir.mkdirs();
+    staleFile.createNewFile();
+    assertThat(staleFile).exists();
+
+    // When
+    resourceMojo.execute();
+
+    // Then
+    assertThat(staleFile).doesNotExist();
+    final File generatedArtifact = new File(resourceMojo.targetDir, "kubernetes.yml");
+    assertThat(generatedArtifact)
+      .exists()
+      .content().isEqualTo(String.format("---%napiVersion: v1%nkind: List%n"));
+  }
+
+  @Test
+  void cleanWorkDirectory_withNonExistingWorkDir_shouldDoNothing() throws Exception {
+    // Given
+    assertThat(resourceMojo.workDir).doesNotExist();
+
+    // When
+    resourceMojo.cleanWorkDirectory();
+
+    // Then
+    assertThat(resourceMojo.workDir).doesNotExist();
+  }
+
+  @Test
+  void cleanWorkDirectory_withExistingWorkDir_shouldCleanDirectory() throws Exception {
+    // Given
+    File staleFile = new File(resourceMojo.workDir, "stale-file.yml");
+    resourceMojo.workDir.mkdirs();
+    staleFile.createNewFile();
+    assertThat(staleFile).exists();
+
+    // When
+    resourceMojo.cleanWorkDirectory();
+
+    // Then
+    assertThat(resourceMojo.workDir).exists();
+    assertThat(staleFile).doesNotExist();
+  }
 }

@@ -136,6 +136,12 @@ public class ResourceMojo extends AbstractJKubeMojo {
 
     @Override
     public void executeInternal() throws MojoExecutionException, MojoFailureException {
+        try {
+            cleanWorkDirectory();
+        } catch (IOException e) {
+            throw new MojoExecutionException("Failed to clean work directory", e);
+        }
+
         if (useDekorate(javaProject) && mergeWithDekorate) {
             log.info("Dekorate detected, merging JKube and Dekorate resources");
             System.setProperty("dekorate.input.dir", DEFAULT_RESOURCE_LOCATION);

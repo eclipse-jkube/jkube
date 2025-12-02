@@ -13,8 +13,10 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
+import java.io.File;
 import java.nio.file.Paths;
 
+import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 
@@ -51,5 +53,25 @@ class OpenShiftResourceTaskTest {
       .hasContent("---\n" +
         "apiVersion: v1\n" +
         "kind: List\n");
+  }
+
+  @Test
+  void runTask_withExistingWorkDir_shouldCleanWorkDirBeforeProcessing() throws Exception {
+    // Given
+    final File workDir = taskEnvironment.getRoot().toPath().resolve("build").resolve("jkube-temp").toFile();
+    FileUtils.forceMkdir(workDir);
+    final File staleFile = new java.io.File(workDir, "stale-file.yml");
+    FileUtils.write(staleFile, "stale: content", java.nio.charset.StandardCharsets.UTF_8);
+    assertThat(staleFile).exists();
+    OpenShiftResourceTask resourceTask = new OpenShiftResourceTask(OpenShiftExtension.class);
+
+    // When
+    resourceTask.runTask();
+
+    // Then
+    assertThat(staleFile).doesNotExist();
+    assertThat(taskEnvironment.getRoot().toPath()
+      .resolve(Paths.get("build", "classes", "java", "main", "META-INF", "jkube", "openshift.yml")))
+      .exists();
   }
 }

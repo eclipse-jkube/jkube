@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.shared.filtering.MavenFileFilter;
@@ -261,6 +262,12 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
             getKitLogger().error("Failure in decrypting password");
         }
         return password;
+    }
+
+    protected void cleanWorkDirectory() throws IOException {
+        if (workDir.exists()) {
+            FileUtils.cleanDirectory(workDir);
+        }
     }
 
     private File[] mavenFilterFiles(File[] resourceFiles, File outDir) throws IOException {

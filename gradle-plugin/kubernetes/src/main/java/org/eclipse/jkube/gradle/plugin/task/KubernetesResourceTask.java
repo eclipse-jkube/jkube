@@ -39,6 +39,12 @@ public class KubernetesResourceTask extends AbstractJKubeTask {
 
   @Override
   public void run() {
+    try {
+      cleanWorkDirectory();
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to clean work directory", e);
+    }
+
     if (useDekorate(kubernetesExtension.javaProject)
         && Boolean.TRUE.equals(kubernetesExtension.getMergeWithDekorateOrDefault())) {
       kitLogger.info("Dekorate detected, merging JKube and Dekorate resources");
