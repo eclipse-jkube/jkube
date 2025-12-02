@@ -19,6 +19,7 @@ import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import io.fabric8.kubernetes.api.model.ServiceSpecBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressSpec;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.kit.config.resource.IngressRuleConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathConfig;
 import org.eclipse.jkube.kit.config.resource.IngressRulePathResourceConfig;
@@ -137,7 +138,7 @@ class NetworkingV1IngressGeneratorTest {
             .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
             .extracting("spec").isNotNull()
             .hasFieldOrPropertyWithValue("ingressClassName", "traefik")
-            .extracting("rules").asList()
+            .extracting("rules").asInstanceOf(InstanceOfAssertFactories.LIST)
             .singleElement()
             .hasFieldOrPropertyWithValue("host", "foo.bar.com");
     }
