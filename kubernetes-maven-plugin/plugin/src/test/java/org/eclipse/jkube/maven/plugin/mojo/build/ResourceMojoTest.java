@@ -31,6 +31,7 @@ import java.io.File;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -169,5 +170,34 @@ class ResourceMojoTest {
     // Then
     assertThat(resourceMojo.workDir).exists();
     assertThat(staleFile).doesNotExist();
+  }
+
+  @Test
+  void execute_whenCleanWorkDirectoryFails_shouldThrowException() throws Exception {
+    // Given
+    resourceMojo.workDir.mkdirs();
+    final File subDir = new File(resourceMojo.workDir, "nested");
+    subDir.mkdirs();
+    final File nestedFile = new File(subDir, "file.txt");
+    nestedFile.createNewFile();
+    boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+    if (!isWindows) {
+      assertThat(resourceMojo.workDir.setWritable(false)).isTrue();
+    } else {
+      nestedFile.setReadOnly();
+      nestedFile.setWritable(false);
+    }
+
+    try {
+      // When & Then
+      assertThatThrownBy(resourceMojo::execute)
+        .isInstanceOf(MojoExecutionException.class)
+        .hasMessage("Failed to clean work directory")
+        .hasCauseInstanceOf(java.io.IOException.class);
+    } finally {
+      if (!isWindows) {
+        resourceMojo.workDir.setWritable(true);
+      }
+    }
   }
 }
