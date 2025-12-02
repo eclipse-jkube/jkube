@@ -44,26 +44,29 @@ import static org.eclipse.jkube.enricher.generic.DefaultServiceEnricher.getPortT
 public class NetworkingV1IngressGenerator {
     private NetworkingV1IngressGenerator() { }
 
-    public static Ingress generate(ServiceBuilder serviceBuilder, String routeDomainPostfix, String host, List<IngressRuleConfig> ingressRuleConfigs, List<IngressTlsConfig> ingressTlsConfigs) {
+    public static Ingress generate(ServiceBuilder serviceBuilder, String routeDomainPostfix, String host, String ingressClassName, List<IngressRuleConfig> ingressRuleConfigs, List<IngressTlsConfig> ingressTlsConfigs) {
         Integer servicePort = getPortToExpose(serviceBuilder);
         if (servicePort != null) {
             return new IngressBuilder()
                     .withNewMetadataLike(serviceBuilder.buildMetadata()).endMetadata()
-                    .withSpec(getIngressSpec(routeDomainPostfix, host, serviceBuilder.editOrNewMetadata().getName(), servicePort, ingressRuleConfigs, ingressTlsConfigs))
+                    .withSpec(getIngressSpec(routeDomainPostfix, host, ingressClassName, serviceBuilder.editOrNewMetadata().getName(), servicePort, ingressRuleConfigs, ingressTlsConfigs))
                     .build();
         }
         return null;
     }
 
-    private static IngressSpec getIngressSpec(String routeDomainPostfix, String host, String serviceName, Integer servicePort, List<IngressRuleConfig> ingressRuleConfig, List<IngressTlsConfig> ingressTlsConfigs) {
+    private static IngressSpec getIngressSpec(String routeDomainPostfix, String host, String ingressClassName, String serviceName, Integer servicePort, List<IngressRuleConfig> ingressRuleConfig, List<IngressTlsConfig> ingressTlsConfigs) {
         if (ingressRuleConfig == null || ingressRuleConfig.isEmpty()) {
-            return getOpinionatedIngressSpec(routeDomainPostfix, host, serviceName, servicePort);
+            return getOpinionatedIngressSpec(routeDomainPostfix, host, ingressClassName, serviceName, servicePort);
         }
-        return getXmlConfiguredIngressSpec(ingressRuleConfig, ingressTlsConfigs);
+        return getXmlConfiguredIngressSpec(ingressClassName, ingressRuleConfig, ingressTlsConfigs);
     }
 
-    private static IngressSpec getXmlConfiguredIngressSpec(List<IngressRuleConfig> ingressRuleConfigs, List<IngressTlsConfig> ingressTlsConfigs) {
+    private static IngressSpec getXmlConfiguredIngressSpec(String ingressClassName, List<IngressRuleConfig> ingressRuleConfigs, List<IngressTlsConfig> ingressTlsConfigs) {
         IngressSpecBuilder ingressSpecBuilder = new IngressSpecBuilder();
+        if (StringUtils.isNotBlank(ingressClassName)) {
+            ingressSpecBuilder.withIngressClassName(ingressClassName);
+        }
         for (IngressRuleConfig ingressRuleConfig: ingressRuleConfigs) {
             IngressRule ingressRule = getIngressRuleFromXmlConfig(ingressRuleConfig);
             ingressSpecBuilder.addToRules(ingressRule);
@@ -87,8 +90,11 @@ public class NetworkingV1IngressGenerator {
         return ingressTLSBuilder.build();
     }
 
-    private static IngressSpec getOpinionatedIngressSpec(String routeDomainPostfix, String host, String serviceName, Integer servicePort) {
+    private static IngressSpec getOpinionatedIngressSpec(String routeDomainPostfix, String host, String ingressClassName, String serviceName, Integer servicePort) {
         IngressSpecBuilder ingressSpecBuilder = new IngressSpecBuilder();
+        if (StringUtils.isNotBlank(ingressClassName)) {
+            ingressSpecBuilder.withIngressClassName(ingressClassName);
+        }
         if (StringUtils.isNotBlank(routeDomainPostfix) || StringUtils.isNotBlank(host)) {
             ingressSpecBuilder.addNewRule()
                     .withHost(resolveIngressHost(serviceName, routeDomainPostfix, host))

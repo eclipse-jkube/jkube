@@ -37,7 +37,7 @@ class NetworkingV1IngressGeneratorTest {
         ServiceBuilder testSvcBuilder = initTestService();
 
         // When
-        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, "org.eclipse.jkube", null, Collections.emptyList(), Collections.emptyList());
+        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, "org.eclipse.jkube", null, null, Collections.emptyList(), Collections.emptyList());
 
         // Then
         assertThat(ingress).isNotNull()
@@ -56,7 +56,7 @@ class NetworkingV1IngressGeneratorTest {
         ServiceBuilder testSvcBuilder = initTestService();
 
         // When
-        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, null, null, Collections.emptyList(), Collections.emptyList());
+        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, null, null, null, Collections.emptyList(), Collections.emptyList());
 
         // Then
         assertThat(ingress).isNotNull()
@@ -90,12 +90,54 @@ class NetworkingV1IngressGeneratorTest {
                 .build();
 
         // When
-        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, "org.eclipse.jkube", null, Collections.singletonList(ingressRuleConfig), Collections.singletonList(ingressTlsConfig));
+        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, "org.eclipse.jkube", null, null, Collections.singletonList(ingressRuleConfig), Collections.singletonList(ingressTlsConfig));
 
         // Then
         assertThat(ingress)
             .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
             .extracting("spec.rules").asList()
+            .singleElement()
+            .hasFieldOrPropertyWithValue("host", "foo.bar.com");
+    }
+
+    @Test
+    void generate_withIngressClassName() {
+        // Given
+        ServiceBuilder testSvcBuilder = initTestService();
+
+        // When
+        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, "org.eclipse.jkube", null, "nginx", Collections.emptyList(), Collections.emptyList());
+
+        // Then
+        assertThat(ingress).isNotNull()
+            .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
+            .extracting("spec").isNotNull()
+            .hasFieldOrPropertyWithValue("ingressClassName", "nginx");
+    }
+
+    @Test
+    void generate_withIngressClassNameAndXMLConfig() {
+        // Given
+        ServiceBuilder testSvcBuilder = initTestService();
+        IngressRuleConfig ingressRuleConfig = IngressRuleConfig.builder()
+                .host("foo.bar.com")
+                .path(IngressRulePathConfig.builder()
+                        .path("/foo")
+                        .pathType("Prefix")
+                        .serviceName("test-svc")
+                        .servicePort(8080)
+                        .build())
+                .build();
+
+        // When
+        Ingress ingress = NetworkingV1IngressGenerator.generate(testSvcBuilder, "org.eclipse.jkube", null, "traefik", Collections.singletonList(ingressRuleConfig), Collections.emptyList());
+
+        // Then
+        assertThat(ingress).isNotNull()
+            .hasFieldOrPropertyWithValue("metadata.name", "test-svc")
+            .extracting("spec").isNotNull()
+            .hasFieldOrPropertyWithValue("ingressClassName", "traefik")
+            .extracting("rules").asList()
             .singleElement()
             .hasFieldOrPropertyWithValue("host", "foo.bar.com");
     }
