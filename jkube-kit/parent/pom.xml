@@ -45,7 +45,7 @@
     <version.jansi>2.4.2</version.jansi>
     <version.javassist>3.30.2-GA</version.javassist>
     <!-- Don't upgrade Eclipse JGit to 6.x for Java 8 compatibility -->
-    <version.jgit>5.13.3.202401111512-r</version.jgit>
+    <version.jgit>5.13.5.202508271544-r</version.jgit>
     <version.jnr-unixsocket>0.38.24</version.jnr-unixsocket>
     <version.jsr305>3.0.2</version.jsr305>
     <version.maven-archiver>3.6.5</version.maven-archiver>
