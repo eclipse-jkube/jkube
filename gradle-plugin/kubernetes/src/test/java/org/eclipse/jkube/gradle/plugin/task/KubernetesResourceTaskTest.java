@@ -14,6 +14,7 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -159,19 +160,14 @@ class KubernetesResourceTaskTest {
     FileUtils.forceMkdir(subDir);
     final File nestedFile = new File(subDir, "file.txt");
     FileUtils.write(nestedFile, "content", StandardCharsets.UTF_8);
-    nestedFile.setReadOnly();
-    nestedFile.setWritable(false);
 
-    KubernetesResourceTask resourceTask = new KubernetesResourceTask(KubernetesExtension.class);
-
-    try {
+    try (FileOutputStream lock = new FileOutputStream(nestedFile)) {
+      KubernetesResourceTask resourceTask = new KubernetesResourceTask(KubernetesExtension.class);
       // When & Then
       assertThatThrownBy(resourceTask::runTask)
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("Failed to clean work directory")
         .hasCauseInstanceOf(IOException.class);
-    } finally {
-      nestedFile.setWritable(true);
     }
   }
 

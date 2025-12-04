@@ -30,6 +30,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InOrder;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -204,18 +205,12 @@ class ResourceMojoTest {
     final File subDir = new File(resourceMojo.workDir, "nested");
     subDir.mkdirs();
     final File nestedFile = new File(subDir, "file.txt");
-    nestedFile.createNewFile();
-    nestedFile.setReadOnly();
-    nestedFile.setWritable(false);
-
-    try {
+    try (FileOutputStream lock = new FileOutputStream(nestedFile)) {
       // When & Then
       assertThatThrownBy(resourceMojo::execute)
         .isInstanceOf(MojoExecutionException.class)
         .hasMessage("Failed to clean work directory")
         .hasCauseInstanceOf(java.io.IOException.class);
-    } finally {
-      nestedFile.setWritable(true);
     }
   }
 }
