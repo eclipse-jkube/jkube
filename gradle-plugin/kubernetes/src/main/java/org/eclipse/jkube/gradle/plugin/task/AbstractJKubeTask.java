@@ -212,6 +212,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   protected void cleanWorkDirectory() throws IOException {
     final File workDir = kubernetesExtension.getWorkDirectoryOrDefault();
     if (workDir.exists()) {
+      kitLogger.verbose("Cleaning work directory: %s", workDir);
       FileUtils.cleanDirectory(workDir);
     }
   }
