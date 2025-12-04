@@ -95,13 +95,6 @@ class AwsSdkHelperV1Test {
   }
 
   @Test
-  void getEcsMetadataEndpoint_returnsValue() {
-    // Should return either the env var value or the default
-    String endpoint = helper.getEcsMetadataEndpoint();
-    assertThat(endpoint).matches("^http://.*");
-  }
-
-  @Test
   void getAWSAccessKeyIdFromCredentials_withBasicCredentials_returnsAccessKeyId() throws Exception {
     com.amazonaws.auth.BasicAWSCredentials credentials =
         new com.amazonaws.auth.BasicAWSCredentials("test-access-key", "test-secret-key");

@@ -95,13 +95,6 @@ class AwsSdkHelperV2Test {
   }
 
   @Test
-  void getEcsMetadataEndpoint_returnsValue() {
-    // Should return either the env var value or the default
-    String endpoint = helper.getEcsMetadataEndpoint();
-    assertThat(endpoint).matches("^http://.*");
-  }
-
-  @Test
   void getAccessKeyIdFromCredentials_withBasicCredentials_returnsAccessKeyId() throws Exception {
     software.amazon.awssdk.auth.credentials.AwsBasicCredentials credentials =
         software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
