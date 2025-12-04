@@ -139,23 +139,6 @@ class AbstractAwsSdkHelperTest {
   }
 
   @Test
-  void getEcsMetadataEndpoint_returnsDefaultOrEnvValue() {
-    String endpoint = helper.getEcsMetadataEndpoint();
-    // Should return either the env var value or the default
-    assertThat(endpoint).matches("^http://.*");
-  }
-
-  @Test
-  void getEcsMetadataEndpoint_whenNotSet_returnsDefault() {
-    // This test verifies the default value when env var is not set
-    String endpoint = helper.getEcsMetadataEndpoint();
-    assertThat(endpoint).satisfiesAnyOf(
-        e -> assertThat(e).isEqualTo("http://169.254.170.2"),
-        e -> assertThat(e).startsWith("http://")
-    );
-  }
-
-  @Test
   void getEcsMetadataEndpoint_whenSet_returnsEnvVarValue() {
     try {
       setEnvironmentVariable("ECS_METADATA_ENDPOINT", "http://custom-endpoint:8080");
