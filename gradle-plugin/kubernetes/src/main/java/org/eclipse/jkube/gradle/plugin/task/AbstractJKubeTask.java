@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.generator.api.DefaultGeneratorManager;
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -206,6 +207,13 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
       }
     }
     return manifest;
+  }
+
+  protected void cleanWorkDirectory() throws IOException {
+    final File workDir = kubernetesExtension.getWorkDirectoryOrDefault();
+    if (workDir.exists()) {
+      FileUtils.cleanDirectory(workDir);
+    }
   }
 
   private File[] gradleFilterFiles(File[] resourceFiles) throws IOException {

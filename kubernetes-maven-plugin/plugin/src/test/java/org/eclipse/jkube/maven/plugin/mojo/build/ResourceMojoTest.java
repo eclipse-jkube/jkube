@@ -31,6 +31,7 @@ import java.io.File;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -122,5 +123,81 @@ class ResourceMojoTest {
     InOrder inOrder = inOrder(kitLogger);
     inOrder.verify(kitLogger).verbose("Generating resources");
     inOrder.verify(kitLogger).verbose("Validating resources");
+  }
+
+  @Test
+  void execute_withExistingWorkDir_shouldCleanWorkDirBeforeProcessing() throws Exception {
+    // Given
+    File staleFile = new File(resourceMojo.workDir, "stale-file.yml");
+    resourceMojo.workDir.mkdirs();
+    staleFile.createNewFile();
+    assertThat(staleFile).exists();
+
+    // When
+    resourceMojo.execute();
+
+    // Then
+    assertThat(staleFile).doesNotExist();
+    final File generatedArtifact = new File(resourceMojo.targetDir, "kubernetes.yml");
+    assertThat(generatedArtifact)
+      .exists()
+      .content().isEqualTo(String.format("---%napiVersion: v1%nkind: List%n"));
+  }
+
+  @Test
+  void cleanWorkDirectory_withNonExistingWorkDir_shouldDoNothing() throws Exception {
+    // Given
+    assertThat(resourceMojo.workDir).doesNotExist();
+
+    // When
+    resourceMojo.cleanWorkDirectory();
+
+    // Then
+    assertThat(resourceMojo.workDir).doesNotExist();
+  }
+
+  @Test
+  void cleanWorkDirectory_withExistingWorkDir_shouldCleanDirectory() throws Exception {
+    // Given
+    File staleFile = new File(resourceMojo.workDir, "stale-file.yml");
+    resourceMojo.workDir.mkdirs();
+    staleFile.createNewFile();
+    assertThat(staleFile).exists();
+
+    // When
+    resourceMojo.cleanWorkDirectory();
+
+    // Then
+    assertThat(resourceMojo.workDir).exists();
+    assertThat(staleFile).doesNotExist();
+  }
+
+  @Test
+  void execute_whenCleanWorkDirectoryFails_shouldThrowException() throws Exception {
+    // Given
+    resourceMojo.workDir.mkdirs();
+    final File subDir = new File(resourceMojo.workDir, "nested");
+    subDir.mkdirs();
+    final File nestedFile = new File(subDir, "file.txt");
+    nestedFile.createNewFile();
+    boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
+    if (!isWindows) {
+      assertThat(resourceMojo.workDir.setWritable(false)).isTrue();
+    } else {
+      nestedFile.setReadOnly();
+      nestedFile.setWritable(false);
+    }
+
+    try {
+      // When & Then
+      assertThatThrownBy(resourceMojo::execute)
+        .isInstanceOf(MojoExecutionException.class)
+        .hasMessage("Failed to clean work directory")
+        .hasCauseInstanceOf(java.io.IOException.class);
+    } finally {
+      if (!isWindows) {
+        resourceMojo.workDir.setWritable(true);
+      }
+    }
   }
 }
