@@ -197,6 +197,8 @@ class ResourceMojoTest {
     } finally {
       if (!isWindows) {
         resourceMojo.workDir.setWritable(true);
+      } else {
+        nestedFile.setWritable(true);
       }
     }
   }

@@ -150,6 +150,8 @@ class KubernetesResourceTaskTest {
     } finally {
       if (!isWindows) {
         workDir.setWritable(true);
+      } else {
+        nestedFile.setWritable(true);
       }
     }
   }

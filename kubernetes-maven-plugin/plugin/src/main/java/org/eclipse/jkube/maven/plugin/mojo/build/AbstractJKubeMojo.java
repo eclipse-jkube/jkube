@@ -266,6 +266,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     protected void cleanWorkDirectory() throws IOException {
         if (workDir.exists()) {
+            getKitLogger().verbose("Cleaning work directory: %s", workDir);
             FileUtils.cleanDirectory(workDir);
         }
     }
