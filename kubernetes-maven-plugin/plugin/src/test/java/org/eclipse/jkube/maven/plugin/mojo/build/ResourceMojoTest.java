@@ -24,6 +24,8 @@ import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InOrder;
 
@@ -173,20 +175,15 @@ class ResourceMojoTest {
   }
 
   @Test
-  void execute_whenCleanWorkDirectoryFails_shouldThrowException() throws Exception {
+  @EnabledOnOs({OS.LINUX, OS.MAC})
+  void execute_whenCleanWorkDirectoryFails_shouldThrowException_onUnix() throws Exception {
     // Given
     resourceMojo.workDir.mkdirs();
     final File subDir = new File(resourceMojo.workDir, "nested");
     subDir.mkdirs();
     final File nestedFile = new File(subDir, "file.txt");
     nestedFile.createNewFile();
-    boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
-    if (!isWindows) {
-      assertThat(resourceMojo.workDir.setWritable(false)).isTrue();
-    } else {
-      nestedFile.setReadOnly();
-      nestedFile.setWritable(false);
-    }
+    assertThat(resourceMojo.workDir.setWritable(false)).isTrue();
 
     try {
       // When & Then
@@ -195,11 +192,30 @@ class ResourceMojoTest {
         .hasMessage("Failed to clean work directory")
         .hasCauseInstanceOf(java.io.IOException.class);
     } finally {
-      if (!isWindows) {
-        resourceMojo.workDir.setWritable(true);
-      } else {
-        nestedFile.setWritable(true);
-      }
+      resourceMojo.workDir.setWritable(true);
+    }
+  }
+
+  @Test
+  @EnabledOnOs(OS.WINDOWS)
+  void execute_whenCleanWorkDirectoryFails_shouldThrowException_onWindows() throws Exception {
+    // Given
+    resourceMojo.workDir.mkdirs();
+    final File subDir = new File(resourceMojo.workDir, "nested");
+    subDir.mkdirs();
+    final File nestedFile = new File(subDir, "file.txt");
+    nestedFile.createNewFile();
+    nestedFile.setReadOnly();
+    nestedFile.setWritable(false);
+
+    try {
+      // When & Then
+      assertThatThrownBy(resourceMojo::execute)
+        .isInstanceOf(MojoExecutionException.class)
+        .hasMessage("Failed to clean work directory")
+        .hasCauseInstanceOf(java.io.IOException.class);
+    } finally {
+      nestedFile.setWritable(true);
     }
   }
 }
