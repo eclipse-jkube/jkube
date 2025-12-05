@@ -17,6 +17,12 @@ For more information, check out <<ingress-generation, Ingress Generation>> secti
 | Host is the fully qualified domain name of a network host.
 | `jkube.enricher.jkube-ingress.host`
 
+| *ingressClassName*
+| IngressClassName specifies the name of the IngressClass to use for this Ingress.
+  This is useful in Kubernetes clusters with multiple Ingress controllers (e.g., nginx, traefik, HAProxy).
+  If not specified, the cluster's default IngressClass will be used.
+| `jkube.enricher.jkube-ingress.ingressClassName`
+
 | *targetApiVersion*
 | Whether to generate `extensions/v1beta1` Ingress or `networking.k8s.io/v1` Ingress.
 

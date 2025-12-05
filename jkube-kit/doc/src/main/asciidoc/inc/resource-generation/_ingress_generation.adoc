@@ -47,6 +47,9 @@ Here are the supported options while providing `ingress` in {plugin-configuratio
 |===
 | Element | Description
 
+| `ingressClassName`
+| Name of the IngressClass to use for this Ingress. Useful for selecting a specific Ingress controller in clusters with multiple controllers (e.g., nginx, traefik, HAProxy).
+
 | <<ingress-rule-resource-configuration, `ingressRules`>>
 | IngressRule configuration
 
@@ -142,6 +145,7 @@ kind: Ingress
 metadata:
   name: tls-example-ingress
 spec:
+  ingressClassName: nginx
   tls:
   - hosts:
     - https-example.foo.com

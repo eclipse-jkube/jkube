@@ -4,8 +4,9 @@
 <configuration>
     <resources>
         <ingress>
+          <ingressClassName>nginx</ingressClassName> <!--1-->
           <ingressTlsConfigs>
-            <ingressTlsConfig> <!--1-->
+            <ingressTlsConfig> <!--2-->
                <hosts>
                  <host>foo.bar.com</host>
                </hosts>
@@ -14,13 +15,13 @@
           </ingressTlsConfigs>
           <ingressRules>
             <ingressRule>
-              <host>foo.bar.com</host> <!--2-->
+              <host>foo.bar.com</host> <!--3-->
               <paths>
                 <path>
-                  <pathType>Prefix</pathType> <!--3-->
-                  <path>/foo</path>  <!--4-->
-                  <serviceName>service1</serviceName> <!--5-->
-                  <servicePort>8080</servicePort> <!--6-->
+                  <pathType>Prefix</pathType> <!--4-->
+                  <path>/foo</path>  <!--5-->
+                  <serviceName>service1</serviceName> <!--6-->
+                  <servicePort>8080</servicePort> <!--7-->
                 </path>
               </paths>
             </ingressRule>
@@ -30,9 +31,10 @@
 </configuration>
 ----
 
-<1> https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress TLS] Configuration to specify Secret that contains TLS private key and certificate
-<2> Host names, can be precise matches or a wildcard. See https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards[Kubernetes Ingress Hostname] documentation for more details
-<3> https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types[Ingress Path Type], Can be one of `ImplementationSpecific`, `Exact` or `Prefix`
-<4> Ingress path corresponding to provided `service.name`
-<5> Service Name corresponding to path
-<6> Service Port corresponding to path
+<1> Name of the IngressClass to use (e.g., nginx, traefik, haproxy). This determines which Ingress controller handles the Ingress resource
+<2> https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress TLS] Configuration to specify Secret that contains TLS private key and certificate
+<3> Host names, can be precise matches or a wildcard. See https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards[Kubernetes Ingress Hostname] documentation for more details
+<4> https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types[Ingress Path Type], Can be one of `ImplementationSpecific`, `Exact` or `Prefix`
+<5> Ingress path corresponding to provided `service.name`
+<6> Service Name corresponding to path
+<7> Service Port corresponding to path

@@ -4,17 +4,18 @@
 {pluginExtension} {
   resources {
     ingress {
-      ingressTlsConfigs = [{ //<1>
+      ingressClassName = "nginx" //<1>
+      ingressTlsConfigs = [{ //<2>
         hosts = ["foo.bar.com"]
         secretName = "testsecret-tls"
       }]
       ingressRules = [{
-        host = "foo.bar.com" //<2>
+        host = "foo.bar.com" //<3>
         paths = [{
-          pathType = "Prefix" //<3>
-          path = "/foo" //<4>
-          serviceName = "service1" //<5>
-          servicePort = "8080" //<6>
+          pathType = "Prefix" //<4>
+          path = "/foo" //<5>
+          serviceName = "service1" //<6>
+          servicePort = "8080" //<7>
         }]
       }]
     }
@@ -22,9 +23,10 @@
 }
 ----
 
-<1> https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress TLS] Configuration to specify Secret that contains TLS private key and certificate
-<2> Host names, can be precise matches or a wildcard. See https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards[Kubernetes Ingress Hostname] documentation for more details
-<3> https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types[Ingress Path Type], Can be one of `ImplementationSpecific`, `Exact` or `Prefix`
-<4> Ingress path corresponding to provided `service.name`
-<5> Service Name corresponding to path
-<6> Service Port corresponding to path
+<1> Name of the IngressClass to use (e.g., nginx, traefik, haproxy). This determines which Ingress controller handles the Ingress resource
+<2> https://kubernetes.io/docs/concepts/services-networking/ingress/#tls[Ingress TLS] Configuration to specify Secret that contains TLS private key and certificate
+<3> Host names, can be precise matches or a wildcard. See https://kubernetes.io/docs/concepts/services-networking/ingress/#hostname-wildcards[Kubernetes Ingress Hostname] documentation for more details
+<4> https://kubernetes.io/docs/concepts/services-networking/ingress/#path-types[Ingress Path Type], Can be one of `ImplementationSpecific`, `Exact` or `Prefix`
+<5> Ingress path corresponding to provided `service.name`
+<6> Service Name corresponding to path
+<7> Service Port corresponding to path
