@@ -278,10 +278,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         if (resourceFiles == null) {
             return new File[0];
         }
-        // Clean the working directory before processing to avoid merging with stale files
-        if (outDir.exists()) {
-            FileUtils.cleanDirectory(outDir);
-        } else if (!outDir.mkdirs()) {
+        if (!outDir.exists() && !outDir.mkdirs()) {
             throw new IOException("Cannot create working dir " + outDir);
         }
         return getFiles(resourceFiles, outDir);
