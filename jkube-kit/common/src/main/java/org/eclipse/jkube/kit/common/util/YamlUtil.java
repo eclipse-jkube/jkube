@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.lang3.StringUtils;
 
@@ -104,6 +105,55 @@ public class YamlUtil {
       .filter(File::isFile)
       .filter(YamlUtil::isYaml)
       .collect(Collectors.toList());
+  }
+
+  /**
+   * Merges two YAML strings by performing deep property-level merge.
+   *
+   * @param existingYaml the existing YAML content
+   * @param newYaml      the new YAML content to merge
+   * @return merged YAML as string
+   * @throws IOException if YAML parsing fails
+   */
+  public static String mergeYaml(String existingYaml, String newYaml) throws IOException {
+    try {
+      // If existing YAML is effectively empty (null, blank, or only comments), return new YAML
+      if (isEffectivelyEmpty(existingYaml)) {
+        return newYaml;
+      }
+      // If new YAML is effectively empty, return existing YAML
+      if (isEffectivelyEmpty(newYaml)) {
+        return existingYaml;
+      }
+      Object existing = YAML_MAPPER.readValue(existingYaml, Object.class);
+      ObjectReader updater = YAML_MAPPER.readerForUpdating(existing);
+      // merge new yaml with the existing
+      return YAML_MAPPER.writeValueAsString(updater.readValue(newYaml));
+    } catch (Exception e) {
+      throw new IOException("Failed to parse and merge YAML content: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Checks if a YAML string is effectively empty (null, blank, or contains only comments).
+   *
+   * @param yaml the YAML string to check
+   * @return true if the YAML is effectively empty
+   */
+  private static boolean isEffectivelyEmpty(String yaml) {
+    if (yaml == null || yaml.trim().isEmpty()) {
+      return true;
+    }
+    // Remove comments and whitespace to check if there's any actual content
+    String[] lines = yaml.split("\n");
+    for (String line : lines) {
+      String trimmed = line.trim();
+      // Skip empty lines, comments, and YAML document separator
+      if (!trimmed.isEmpty() && !trimmed.startsWith("#") && !trimmed.equals("---")) {
+        return false;
+      }
+    }
+    return true;
   }
 }
 

@@ -13,9 +13,7 @@
  */
 package org.eclipse.jkube.gradle.plugin.task;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +32,7 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
+import org.eclipse.jkube.kit.common.util.ResourceFileProcessor;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -225,17 +224,13 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     if (!outDir.exists() && !outDir.mkdirs()) {
       throw new IOException("Cannot create working dir " + outDir);
     }
-    File[] ret = new File[resourceFiles.length];
-    int i = 0;
-    for (File resource : resourceFiles) {
-      File targetFile = new File(outDir, resource.getName());
-      String resourceFragmentInterpolated = interpolate(resource, kubernetesExtension.javaProject.getProperties(),
-        kubernetesExtension.getFilter().getOrNull());
-      try (BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile))) {
-        writer.write(resourceFragmentInterpolated);
-      }
-      ret[i++] = targetFile;
-    }
-    return ret;
+    return getFiles(resourceFiles, outDir);
+  }
+
+  private File[] getFiles(File[] resourceFiles, File outDir) throws IOException {
+    return ResourceFileProcessor.processFiles(resourceFiles, outDir, (resource, targetFile) ->
+      interpolate(resource, kubernetesExtension.javaProject.getProperties(),
+        kubernetesExtension.getFilter().getOrNull())
+    );
   }
 }
