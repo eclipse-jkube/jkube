@@ -49,10 +49,10 @@ class AwsSdkDockerAuthConfigFactoryTest {
     String accessKey = randomUUID().toString();
     String secretKey = randomUUID().toString();
     AuthConfig expectedAuthConfig = AuthConfig.builder()
-        .username(accessKey)
-        .password(secretKey)
-        .email("none")
-        .build();
+      .username(accessKey)
+      .password(secretKey)
+      .email("none")
+      .build();
 
     when(mockDelegate.getCredentialsFromDefaultCredentialsProvider()).thenReturn(expectedAuthConfig);
     when(mockDelegate.getSdkVersion()).thenReturn("v2");
@@ -72,11 +72,11 @@ class AwsSdkDockerAuthConfigFactoryTest {
     String secretKey = randomUUID().toString();
     String sessionToken = randomUUID().toString();
     AuthConfig expectedAuthConfig = AuthConfig.builder()
-        .username(accessKey)
-        .password(secretKey)
-        .email("none")
-        .auth(sessionToken)
-        .build();
+      .username(accessKey)
+      .password(secretKey)
+      .email("none")
+      .auth(sessionToken)
+      .build();
 
     when(mockDelegate.getCredentialsFromDefaultCredentialsProvider()).thenReturn(expectedAuthConfig);
     when(mockDelegate.getSdkVersion()).thenReturn("v2");
@@ -94,6 +94,43 @@ class AwsSdkDockerAuthConfigFactoryTest {
   void exceptionHandling_returnsNull() {
     when(mockDelegate.getCredentialsFromDefaultCredentialsProvider()).thenThrow(new RuntimeException("Test exception"));
     when(mockDelegate.getSdkVersion()).thenReturn("v2");
+
+    AuthConfig authConfig = objectUnderTest.createAuthConfig();
+
+    assertThat(authConfig).isNull();
+  }
+
+  @Test
+  void exceptionHandling_withCause_returnsNull() {
+    RuntimeException cause = new RuntimeException("Root cause");
+    RuntimeException exception = new RuntimeException("Test exception", cause);
+    when(mockDelegate.getCredentialsFromDefaultCredentialsProvider()).thenThrow(exception);
+    when(mockDelegate.getSdkVersion()).thenReturn("v2");
+
+    AuthConfig authConfig = objectUnderTest.createAuthConfig();
+
+    assertThat(authConfig).isNull();
+  }
+
+  @Test
+  void exceptionHandling_withNullMessage_returnsNull() {
+    when(mockDelegate.getCredentialsFromDefaultCredentialsProvider()).thenThrow(new RuntimeException((String) null));
+    when(mockDelegate.getSdkVersion()).thenReturn("v2");
+
+    AuthConfig authConfig = objectUnderTest.createAuthConfig();
+
+    assertThat(authConfig).isNull();
+  }
+
+  @Test
+  void exceptionHandling_withVeryLongMessage_returnsNull() {
+    StringBuilder sb = new StringBuilder("Failed calling AWS SDK: ");
+    for (int i = 0; i < 1000; i++) {
+      sb.append('x');
+    }
+    String longMessage = sb.toString();
+    when(mockDelegate.getCredentialsFromDefaultCredentialsProvider()).thenThrow(new RuntimeException(longMessage));
+    when(mockDelegate.getSdkVersion()).thenReturn("v1");
 
     AuthConfig authConfig = objectUnderTest.createAuthConfig();
 

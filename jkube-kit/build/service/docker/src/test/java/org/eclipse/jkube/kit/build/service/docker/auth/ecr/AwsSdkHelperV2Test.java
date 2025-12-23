@@ -18,7 +18,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.InvocationTargetException;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil.clearEnvironmentVariable;
 import static org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil.setEnvironmentVariable;
 
@@ -62,8 +65,8 @@ class AwsSdkHelperV2Test {
     String value = helper.getAwsAccessKeyIdEnvVar();
     // Value can be null or have a value depending on environment
     assertThat(value).satisfiesAnyOf(
-        v -> assertThat(v).isNull(),
-        v -> assertThat(v).isNotEmpty()
+      v -> assertThat(v).isNull(),
+      v -> assertThat(v).isNotEmpty()
     );
   }
 
@@ -71,8 +74,8 @@ class AwsSdkHelperV2Test {
   void getAwsSecretAccessKeyEnvVar_returnsEnvironmentVariable() {
     String value = helper.getAwsSecretAccessKeyEnvVar();
     assertThat(value).satisfiesAnyOf(
-        v -> assertThat(v).isNull(),
-        v -> assertThat(v).isNotEmpty()
+      v -> assertThat(v).isNull(),
+      v -> assertThat(v).isNotEmpty()
     );
   }
 
@@ -80,8 +83,8 @@ class AwsSdkHelperV2Test {
   void getAwsSessionTokenEnvVar_returnsEnvironmentVariable() {
     String value = helper.getAwsSessionTokenEnvVar();
     assertThat(value).satisfiesAnyOf(
-        v -> assertThat(v).isNull(),
-        v -> assertThat(v).isNotEmpty()
+      v -> assertThat(v).isNull(),
+      v -> assertThat(v).isNotEmpty()
     );
   }
 
@@ -89,15 +92,15 @@ class AwsSdkHelperV2Test {
   void getAwsContainerCredentialsRelativeUri_returnsEnvironmentVariable() {
     String value = helper.getAwsContainerCredentialsRelativeUri();
     assertThat(value).satisfiesAnyOf(
-        v -> assertThat(v).isNull(),
-        v -> assertThat(v).isNotEmpty()
+      v -> assertThat(v).isNull(),
+      v -> assertThat(v).isNotEmpty()
     );
   }
 
   @Test
   void getAccessKeyIdFromCredentials_withBasicCredentials_returnsAccessKeyId() throws Exception {
     software.amazon.awssdk.auth.credentials.AwsBasicCredentials credentials =
-        software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
+      software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
 
     String accessKeyId = helper.getAccessKeyIdFromCredentials(credentials);
 
@@ -107,7 +110,7 @@ class AwsSdkHelperV2Test {
   @Test
   void getSecretAccessKeyFromCredentials_withBasicCredentials_returnsSecretKey() throws Exception {
     software.amazon.awssdk.auth.credentials.AwsBasicCredentials credentials =
-        software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
+      software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
 
     String secretKey = helper.getSecretAccessKeyFromCredentials(credentials);
 
@@ -117,7 +120,7 @@ class AwsSdkHelperV2Test {
   @Test
   void getSessionTokenFromCredentials_withBasicCredentials_returnsNull() throws Exception {
     software.amazon.awssdk.auth.credentials.AwsBasicCredentials credentials =
-        software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
+      software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
 
     String sessionToken = helper.getSessionTokenFromCredentials(credentials);
 
@@ -127,7 +130,7 @@ class AwsSdkHelperV2Test {
   @Test
   void getSessionTokenFromCredentials_withSessionCredentials_returnsSessionToken() throws Exception {
     software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl credentials =
-        software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl.create("test-access-key", "test-secret-key", "test-session-token");
+      software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl.create("test-access-key", "test-secret-key", "test-session-token");
 
     String sessionToken = helper.getSessionTokenFromCredentials(credentials);
 
@@ -137,7 +140,7 @@ class AwsSdkHelperV2Test {
   @Test
   void getAccessKeyIdFromCredentials_withSessionCredentials_returnsAccessKeyId() throws Exception {
     software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl credentials =
-        software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl.create("test-access-key", "test-secret-key", "test-session-token");
+      software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl.create("test-access-key", "test-secret-key", "test-session-token");
 
     String accessKeyId = helper.getAccessKeyIdFromCredentials(credentials);
 
@@ -147,7 +150,7 @@ class AwsSdkHelperV2Test {
   @Test
   void getSecretAccessKeyFromCredentials_withSessionCredentials_returnsSecretKey() throws Exception {
     software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl credentials =
-        software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl.create("test-access-key", "test-secret-key", "test-session-token");
+      software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl.create("test-access-key", "test-secret-key", "test-session-token");
 
     String secretKey = helper.getSecretAccessKeyFromCredentials(credentials);
 
@@ -215,8 +218,59 @@ class AwsSdkHelperV2Test {
     AuthConfig authConfig = helper.getCredentialsFromDefaultCredentialsProvider();
     // Can be null or can have actual credentials depending on environment
     assertThat(authConfig).satisfiesAnyOf(
-        ac -> assertThat(ac).isNull(),
-        ac -> assertThat(ac.getEmail()).isEqualTo("none")
+      ac -> assertThat(ac).isNull(),
+      ac -> assertThat(ac.getEmail()).isEqualTo("none")
+    );
+  }
+
+  @Test
+  void getCredentialsFromDefaultProvider_withException_returnsNull() {
+    // Test that method handles exceptions gracefully
+    // Create a helper instance and verify exception handling
+    AwsSdkHelperV2 testHelper = new AwsSdkHelperV2() {
+      @Override
+      Object getCredentialsFromDefaultProvider() throws ClassNotFoundException {
+        throw new ClassNotFoundException("Test exception");
+      }
+    };
+
+    AuthConfig authConfig = testHelper.getCredentialsFromDefaultCredentialsProvider();
+
+    assertThat(authConfig).isNull();
+  }
+
+  @Test
+  void getAccessKeyIdFromCredentials_withInvalidCredentials_throwsException() {
+    Object invalidCredentials = new Object();
+
+    assertThatThrownBy(() -> helper.getAccessKeyIdFromCredentials(invalidCredentials))
+      .isInstanceOfAny(NoSuchMethodException.class, IllegalArgumentException.class, InvocationTargetException.class);
+  }
+
+  @Test
+  void getSecretAccessKeyFromCredentials_withInvalidCredentials_throwsException() {
+    Object invalidCredentials = new Object();
+
+    assertThatThrownBy(() -> helper.getSecretAccessKeyFromCredentials(invalidCredentials))
+      .isInstanceOfAny(NoSuchMethodException.class, IllegalArgumentException.class, InvocationTargetException.class);
+  }
+
+  @Test
+  void getSessionTokenFromCredentials_withInvalidCredentials_returnsNull() throws Exception {
+    Object invalidCredentials = new Object();
+
+    String sessionToken = helper.getSessionTokenFromCredentials(invalidCredentials);
+
+    assertThat(sessionToken).isNull();
+  }
+
+  @Test
+  void getEcsMetadataEndpoint_returnsDefaultValue() {
+    String endpoint = helper.getEcsMetadataEndpoint();
+
+    assertThat(endpoint).satisfiesAnyOf(
+      e -> assertThat(e).isEqualTo("http://169.254.170.2"),
+      e -> assertThat(e).isNotEmpty()
     );
   }
 }
