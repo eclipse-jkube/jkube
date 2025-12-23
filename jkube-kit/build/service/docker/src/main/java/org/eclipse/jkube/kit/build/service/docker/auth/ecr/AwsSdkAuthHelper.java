@@ -65,8 +65,11 @@ public interface AwsSdkAuthHelper {
 
   /**
    * Get ECS Metadata Endpoint.
+   * If the ECS_METADATA_ENDPOINT environment variable is not set,
+   * returns the default ECS metadata endpoint v2 (http://169.254.170.2).
    *
    * @return ECS metadata endpoint URL
+   * @see <a href="https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v2.html">ECS Task Metadata Endpoint v2</a>
    */
   String getEcsMetadataEndpoint();
 

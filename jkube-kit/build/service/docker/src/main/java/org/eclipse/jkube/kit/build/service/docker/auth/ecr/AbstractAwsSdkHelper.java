@@ -23,6 +23,7 @@ abstract class AbstractAwsSdkHelper implements AwsSdkAuthHelper {
   protected static final String SESSION_TOKEN = "AWS_SESSION_TOKEN";
   protected static final String CONTAINER_CREDENTIALS_RELATIVE_URI = "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI";
   protected static final String METADATA_ENDPOINT = "ECS_METADATA_ENDPOINT";
+  protected static final String AWS_INSTANCE_LINK_LOCAL_ADDRESS = "http://169.254.170.2";
 
   @Override
   public String getAwsAccessKeyIdEnvVar() {
@@ -46,6 +47,10 @@ abstract class AbstractAwsSdkHelper implements AwsSdkAuthHelper {
 
   @Override
   public String getEcsMetadataEndpoint() {
-    return System.getenv(METADATA_ENDPOINT);
+    String endpoint = System.getenv(METADATA_ENDPOINT);
+    if (endpoint == null) {
+      return AWS_INSTANCE_LINK_LOCAL_ADDRESS;
+    }
+    return endpoint;
   }
 }

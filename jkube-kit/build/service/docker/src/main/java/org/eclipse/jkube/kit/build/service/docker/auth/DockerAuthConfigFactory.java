@@ -533,7 +533,7 @@ public class DockerAuthConfigFactory implements AuthConfigFactory {
     }
 
     private static AuthConfig getAuthConfigViaAwsSdk(AwsSdkHelper awsSdkHelper, KitLogger log) {
-        boolean credProviderPresent = awsSdkHelper.isDefaultAWSCredentialsProviderChainPresentInClassPath();
+        boolean credProviderPresent = awsSdkHelper.isAwsSdkAvailable();
         if (!credProviderPresent) {
             log.info("It appears that you're using AWS ECR." +
                     " Consider integrating the AWS SDK in order to make use of common AWS authentication mechanisms," +

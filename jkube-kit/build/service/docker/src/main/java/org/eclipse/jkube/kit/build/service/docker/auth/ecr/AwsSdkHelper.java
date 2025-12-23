@@ -13,14 +13,12 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
-import java.lang.reflect.InvocationTargetException;
-
 /**
  * Factory for AWS SDK helpers that supports both AWS SDK v1 and v2.
  * Automatically detects which SDK version is available on the classpath.
  * Maintains backward compatibility with the original AwsSdkHelper API.
  */
-public class AwsSdkHelper {
+public class AwsSdkHelper implements AwsSdkAuthHelper {
   private final AwsSdkAuthHelper delegate;
 
   /**
@@ -63,130 +61,43 @@ public class AwsSdkHelper {
     return v1Helper;
   }
 
-  /**
-   * Get the detected AWS SDK version.
-   *
-   * @return "v1", "v2", or "none" if no SDK is available
-   */
+  @Override
+  public boolean isAwsSdkAvailable() {
+    return delegate.isAwsSdkAvailable();
+  }
+
+  @Override
   public String getSdkVersion() {
     return delegate.getSdkVersion();
   }
 
-  /**
-   * Check if AWS SDK credentials provider is present in the classpath.
-   * Works with both AWS SDK v1 and v2.
-   *
-   * @return true if AWS SDK is available
-   */
-  public boolean isDefaultAWSCredentialsProviderChainPresentInClassPath() {
-    return delegate.isAwsSdkAvailable();
-  }
-
+  @Override
   public String getAwsAccessKeyIdEnvVar() {
     return delegate.getAwsAccessKeyIdEnvVar();
   }
 
+  @Override
   public String getAwsSecretAccessKeyEnvVar() {
     return delegate.getAwsSecretAccessKeyEnvVar();
   }
 
+  @Override
   public String getAwsSessionTokenEnvVar() {
     return delegate.getAwsSessionTokenEnvVar();
   }
 
+  @Override
   public String getAwsContainerCredentialsRelativeUri() {
     return delegate.getAwsContainerCredentialsRelativeUri();
   }
 
+  @Override
   public String getEcsMetadataEndpoint() {
     return delegate.getEcsMetadataEndpoint();
   }
 
-  /**
-   * Get credentials from the default AWS credentials provider chain.
-   * This method is deprecated - use getAuthConfigFromDefaultCredentialsProvider() instead.
-   *
-   * @return credentials object (AWS SDK specific type)
-   * @throws ClassNotFoundException    if AWS SDK classes not found
-   * @throws NoSuchMethodException     if AWS SDK methods not found
-   * @throws InvocationTargetException if AWS SDK method invocation fails
-   * @throws InstantiationException    if AWS SDK object instantiation fails
-   * @throws IllegalAccessException    if AWS SDK method access fails
-   * @deprecated Use {@link #getAuthConfigFromDefaultCredentialsProvider()} instead
-   */
-  @Deprecated
-  public Object getCredentialsFromDefaultAWSCredentialsProviderChain() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-    // This method is kept for backward compatibility but we can't return the actual credentials object
-    // since we don't know which SDK version is being used. Callers should use the new method.
-    throw new UnsupportedOperationException(
-        "This method is deprecated. Use getAuthConfigFromDefaultCredentialsProvider() instead, " +
-            "which works with both AWS SDK v1 and v2.");
-  }
-
-  /**
-   * Get session token from credentials object.
-   * This method is deprecated - use getAuthConfigFromDefaultCredentialsProvider() instead.
-   *
-   * @param credentials credentials object
-   * @return session token or null
-   * @throws ClassNotFoundException    if AWS SDK classes not found
-   * @throws NoSuchMethodException     if AWS SDK methods not found
-   * @throws InvocationTargetException if AWS SDK method invocation fails
-   * @throws IllegalAccessException    if AWS SDK method access fails
-   * @deprecated Use {@link #getAuthConfigFromDefaultCredentialsProvider()} instead
-   */
-  @Deprecated
-  public String getSessionTokenFromCrendentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    throw new UnsupportedOperationException(
-        "This method is deprecated. Use getAuthConfigFromDefaultCredentialsProvider() instead, " +
-            "which works with both AWS SDK v1 and v2.");
-  }
-
-  /**
-   * Get AWS access key ID from credentials object.
-   * This method is deprecated - use getAuthConfigFromDefaultCredentialsProvider() instead.
-   *
-   * @param credentials credentials object
-   * @return access key ID
-   * @throws ClassNotFoundException    if AWS SDK classes not found
-   * @throws NoSuchMethodException     if AWS SDK methods not found
-   * @throws InvocationTargetException if AWS SDK method invocation fails
-   * @throws IllegalAccessException    if AWS SDK method access fails
-   * @deprecated Use {@link #getAuthConfigFromDefaultCredentialsProvider()} instead
-   */
-  @Deprecated
-  public String getAWSAccessKeyIdFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    throw new UnsupportedOperationException(
-        "This method is deprecated. Use getAuthConfigFromDefaultCredentialsProvider() instead, " +
-            "which works with both AWS SDK v1 and v2.");
-  }
-
-  /**
-   * Get AWS secret access key from credentials object.
-   * This method is deprecated - use getAuthConfigFromDefaultCredentialsProvider() instead.
-   *
-   * @param credentials credentials object
-   * @return secret access key
-   * @throws ClassNotFoundException    if AWS SDK classes not found
-   * @throws NoSuchMethodException     if AWS SDK methods not found
-   * @throws InvocationTargetException if AWS SDK method invocation fails
-   * @throws IllegalAccessException    if AWS SDK method access fails
-   * @deprecated Use {@link #getAuthConfigFromDefaultCredentialsProvider()} instead
-   */
-  @Deprecated
-  public String getAwsSecretKeyFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    throw new UnsupportedOperationException(
-        "This method is deprecated. Use getAuthConfigFromDefaultCredentialsProvider() instead, " +
-            "which works with both AWS SDK v1 and v2.");
-  }
-
-  /**
-   * Get AuthConfig from the default AWS credentials provider.
-   * Works with both AWS SDK v1 and v2.
-   *
-   * @return AuthConfig with credentials or null if not available
-   */
-  public org.eclipse.jkube.kit.build.api.auth.AuthConfig getAuthConfigFromDefaultCredentialsProvider() {
+  @Override
+  public org.eclipse.jkube.kit.build.api.auth.AuthConfig getCredentialsFromDefaultCredentialsProvider() {
     return delegate.getCredentialsFromDefaultCredentialsProvider();
   }
 }

@@ -43,7 +43,7 @@ public class AwsSdkAuthConfigFactory {
   public AuthConfig createAuthConfig() {
     try {
       log.debug("Attempting to get AWS credentials from SDK %s", awsSdkHelper.getSdkVersion());
-      AuthConfig authConfig = awsSdkHelper.getAuthConfigFromDefaultCredentialsProvider();
+      AuthConfig authConfig = awsSdkHelper.getCredentialsFromDefaultCredentialsProvider();
 
       if (authConfig == null) {
         log.debug("No AWS credentials found from SDK default credentials provider");

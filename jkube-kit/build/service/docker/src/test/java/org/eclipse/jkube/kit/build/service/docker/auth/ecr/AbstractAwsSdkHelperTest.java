@@ -150,6 +150,19 @@ class AbstractAwsSdkHelperTest {
     }
   }
 
+  @Test
+  void getEcsMetadataEndpoint_whenNotSet_returnsFallbackValue() {
+    try {
+      clearEnvironmentVariable("ECS_METADATA_ENDPOINT");
+      String endpoint = helper.getEcsMetadataEndpoint();
+      // Should return the default ECS metadata endpoint v2
+      assertThat(endpoint).isEqualTo("http://169.254.170.2");
+    } catch (RuntimeException e) {
+      // Skip test if environment modification not supported
+      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
+    }
+  }
+
   /**
    * Test implementation of AbstractAwsSdkHelper for testing purposes.
    */

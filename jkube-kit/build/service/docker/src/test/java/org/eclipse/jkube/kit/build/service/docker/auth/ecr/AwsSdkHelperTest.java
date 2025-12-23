@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,10 +32,10 @@ class AwsSdkHelperTest {
   }
 
   @Test
-  void isDefaultAWSCredentialsProviderChainPresentInClassPath_delegatesToHelper() {
+  void isAwsSdkAvailable_delegatesToHelper() {
     when(mockDelegate.isAwsSdkAvailable()).thenReturn(true);
 
-    assertThat(awsSdkHelper.isDefaultAWSCredentialsProviderChainPresentInClassPath()).isTrue();
+    assertThat(awsSdkHelper.isAwsSdkAvailable()).isTrue();
   }
 
   @Test
@@ -82,44 +81,16 @@ class AwsSdkHelperTest {
   }
 
   @Test
-  void getAuthConfigFromDefaultCredentialsProvider_delegatesToHelper() {
+  void getCredentialsFromDefaultCredentialsProvider_delegatesToHelper() {
     AuthConfig expectedConfig = AuthConfig.builder()
         .username("AKIAIOSFODNN7EXAMPLE")
         .password("wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY")
         .build();
     when(mockDelegate.getCredentialsFromDefaultCredentialsProvider()).thenReturn(expectedConfig);
 
-    AuthConfig result = awsSdkHelper.getAuthConfigFromDefaultCredentialsProvider();
+    AuthConfig result = awsSdkHelper.getCredentialsFromDefaultCredentialsProvider();
 
     assertThat(result).isEqualTo(expectedConfig);
-  }
-
-  @Test
-  void getCredentialsFromDefaultAWSCredentialsProviderChain_throwsUnsupportedOperationException() {
-    assertThatThrownBy(() -> awsSdkHelper.getCredentialsFromDefaultAWSCredentialsProviderChain())
-        .isInstanceOf(UnsupportedOperationException.class)
-        .hasMessageContaining("deprecated");
-  }
-
-  @Test
-  void getSessionTokenFromCrendentials_throwsUnsupportedOperationException() {
-    assertThatThrownBy(() -> awsSdkHelper.getSessionTokenFromCrendentials(new Object()))
-        .isInstanceOf(UnsupportedOperationException.class)
-        .hasMessageContaining("deprecated");
-  }
-
-  @Test
-  void getAWSAccessKeyIdFromCredentials_throwsUnsupportedOperationException() {
-    assertThatThrownBy(() -> awsSdkHelper.getAWSAccessKeyIdFromCredentials(new Object()))
-        .isInstanceOf(UnsupportedOperationException.class)
-        .hasMessageContaining("deprecated");
-  }
-
-  @Test
-  void getAwsSecretKeyFromCredentials_throwsUnsupportedOperationException() {
-    assertThatThrownBy(() -> awsSdkHelper.getAwsSecretKeyFromCredentials(new Object()))
-        .isInstanceOf(UnsupportedOperationException.class)
-        .hasMessageContaining("deprecated");
   }
 
   @Test
