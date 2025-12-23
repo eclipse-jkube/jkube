@@ -13,71 +13,91 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
-import java.lang.reflect.InvocationTargetException;
+/**
+ * Factory for AWS SDK helpers that supports both AWS SDK v1 and v2.
+ * Automatically detects which SDK version is available on the classpath.
+ * Maintains backward compatibility with the original AwsSdkHelper API.
+ */
+public class AwsSdkHelper implements AwsSdkAuthHelper {
+  private final AwsSdkAuthHelper delegate;
 
-public class AwsSdkHelper {
-    private static final String ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
-    private static final String SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
-    private static final String SESSION_TOKEN = "AWS_SESSION_TOKEN";
-    private static final String CONTAINER_CREDENTIALS_RELATIVE_URI = "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI";
-    private static final String METADATA_ENDPOINT = "ECS_METADATA_ENDPOINT";
-    private static final String AWS_INSTANCE_LINK_LOCAL_ADDRESS = "http://169.254.170.2";
-    private static final String DEFAULT_AWSCREDENTIALS_PROVIDER_CHAIN = "com.amazonaws.auth.DefaultAWSCredentialsProviderChain";
-    private static final String AWS_SESSION_CREDENTIALS = "com.amazonaws.auth.AWSSessionCredentials";
-    private static final String AWS_CREDENTIALS = "com.amazonaws.auth.AWSCredentials";
+  /**
+   * Creates an AwsSdkHelper that automatically detects the available AWS SDK version.
+   * Tries AWS SDK v2 first, then falls back to v1.
+   */
+  public AwsSdkHelper() {
+    this.delegate = createHelper();
+  }
 
-    public boolean isDefaultAWSCredentialsProviderChainPresentInClassPath() {
-        try {
-            Class.forName(DEFAULT_AWSCREDENTIALS_PROVIDER_CHAIN);
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+  /**
+   * Constructor for testing that allows injecting a specific helper implementation.
+   *
+   * @param delegate the helper implementation to use
+   */
+  public AwsSdkHelper(AwsSdkAuthHelper delegate) {
+    this.delegate = delegate;
+  }
+
+  /**
+   * Creates the appropriate AWS SDK helper based on what's available on the classpath.
+   * Prefers AWS SDK v2 over v1 when both are available.
+   *
+   * @return AWS SDK helper instance
+   */
+  private static AwsSdkAuthHelper createHelper() {
+    // Try v2 first (recommended)
+    AwsSdkHelperV2 v2Helper = new AwsSdkHelperV2();
+    if (v2Helper.isAwsSdkAvailable()) {
+      return v2Helper;
     }
 
-    public String getAwsAccessKeyIdEnvVar() {
-        return System.getenv(ACCESS_KEY_ID);
+    // Fall back to v1
+    AwsSdkHelperV1 v1Helper = new AwsSdkHelperV1();
+    if (v1Helper.isAwsSdkAvailable()) {
+      return v1Helper;
     }
 
-    public String getAwsSecretAccessKeyEnvVar() {
-        return System.getenv(SECRET_ACCESS_KEY);
-    }
+    // Return v1 helper even if not available (for null checks compatibility)
+    return v1Helper;
+  }
 
-    public String getAwsSessionTokenEnvVar() {
-        return System.getenv(SESSION_TOKEN);
-    }
+  @Override
+  public boolean isAwsSdkAvailable() {
+    return delegate.isAwsSdkAvailable();
+  }
 
-    public String getAwsContainerCredentialsRelativeUri() {
-        return System.getenv(CONTAINER_CREDENTIALS_RELATIVE_URI);
-    }
+  @Override
+  public String getSdkVersion() {
+    return delegate.getSdkVersion();
+  }
 
-    public String getEcsMetadataEndpoint() {
-        String endpoint = System.getenv(METADATA_ENDPOINT);
-        if (endpoint == null) {
-            return AWS_INSTANCE_LINK_LOCAL_ADDRESS;
-        }
-        return endpoint;
-    }
+  @Override
+  public String getAwsAccessKeyIdEnvVar() {
+    return delegate.getAwsAccessKeyIdEnvVar();
+  }
 
-    public Object getCredentialsFromDefaultAWSCredentialsProviderChain() throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Class<?> credentialsProviderChainClass = Class.forName(DEFAULT_AWSCREDENTIALS_PROVIDER_CHAIN);
-        Object credentialsProviderChain = credentialsProviderChainClass.getDeclaredConstructor().newInstance();
-        return credentialsProviderChainClass.getMethod("getCredentials").invoke(credentialsProviderChain);
-    }
+  @Override
+  public String getAwsSecretAccessKeyEnvVar() {
+    return delegate.getAwsSecretAccessKeyEnvVar();
+  }
 
-    public String getSessionTokenFromCrendentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Class<?> sessionCredentialsClass = Class.forName(AWS_SESSION_CREDENTIALS);
-        return sessionCredentialsClass.isInstance(credentials)
-                ? (String) sessionCredentialsClass.getMethod("getSessionToken").invoke(credentials) : null;
-    }
+  @Override
+  public String getAwsSessionTokenEnvVar() {
+    return delegate.getAwsSessionTokenEnvVar();
+  }
 
-    public String getAWSAccessKeyIdFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Class<?> credentialsClass = Class.forName(AWS_CREDENTIALS);
-        return (String) credentialsClass.getMethod("getAWSAccessKeyId").invoke(credentials);
-    }
+  @Override
+  public String getAwsContainerCredentialsRelativeUri() {
+    return delegate.getAwsContainerCredentialsRelativeUri();
+  }
 
-    public String getAwsSecretKeyFromCredentials(Object credentials) throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        Class<?> credentialsClass = Class.forName(AWS_CREDENTIALS);
-        return (String) credentialsClass.getMethod("getAWSSecretKey").invoke(credentials);
-    }
+  @Override
+  public String getEcsMetadataEndpoint() {
+    return delegate.getEcsMetadataEndpoint();
+  }
+
+  @Override
+  public org.eclipse.jkube.kit.build.api.auth.AuthConfig getCredentialsFromDefaultCredentialsProvider() {
+    return delegate.getCredentialsFromDefaultCredentialsProvider();
+  }
 }
