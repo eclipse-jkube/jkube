@@ -1,4 +1,5 @@
 {
+  "ingressClassName": "nginx",
   "ingressRules": [{
     "host": "example.com",
     "paths": [
