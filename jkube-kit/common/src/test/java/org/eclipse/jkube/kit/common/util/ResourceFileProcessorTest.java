@@ -41,7 +41,7 @@ class ResourceFileProcessorTest {
   @Test
   void processFiles_withNullInput_shouldReturnEmptyArray() throws IOException {
     // When
-    File[] result = ResourceFileProcessor.processFiles(null, outDir, (source, target) -> "processed");
+    File[] result = ResourceFileProcessor.processFiles(null, outDir, (source, target, existing, prev) -> "processed");
 
     // Then
     assertThat(result).isEmpty();
@@ -57,7 +57,7 @@ class ResourceFileProcessorTest {
     File[] result = ResourceFileProcessor.processFiles(
       new File[]{sourceFile},
       outDir,
-      (source, target) -> "processed content"
+      (source, target, existing, prev) -> "processed content"
     );
 
     // Then
@@ -78,7 +78,7 @@ class ResourceFileProcessorTest {
     File[] result = ResourceFileProcessor.processFiles(
       new File[]{file1, file2},
       outDir,
-      (source, target) -> "processed-" + source.getName()
+      (source, target, existing, prev) -> "processed-" + source.getName()
     );
 
     // Then
@@ -89,58 +89,77 @@ class ResourceFileProcessorTest {
 
   @Test
   void processFiles_withDuplicateFileNames_shouldMergeYamlFiles() throws IOException {
-    // Given
-    File file1 = tempDir.resolve("resource.yaml").toFile();
-    File file2 = tempDir.resolve("resource.yaml").toFile(); // Same name
+    // Given - Two source files with same target name (simulating fragments from different directories)
+    File sourceDir1 = tempDir.resolve("fragments1").toFile();
+    File sourceDir2 = tempDir.resolve("fragments2").toFile();
+    assertThat(sourceDir1.mkdirs()).isTrue();
+    assertThat(sourceDir2.mkdirs()).isTrue();
+
+    File file1 = new File(sourceDir1, "resource.yaml");
+    File file2 = new File(sourceDir2, "resource.yaml");
 
     String yaml1 = "apiVersion: v1\nkind: Service\nmetadata:\n  name: myservice";
     String yaml2 = "apiVersion: v1\nkind: Service\nmetadata:\n  labels:\n    app: myapp";
 
     Files.write(file1.toPath(), yaml1.getBytes(StandardCharsets.UTF_8));
+    Files.write(file2.toPath(), yaml2.getBytes(StandardCharsets.UTF_8));
 
-    // When - Process first file
-    ResourceFileProcessor.processFiles(
-      new File[]{file1},
+    // When - Process both files in a single call (as happens in real usage)
+    File[] result = ResourceFileProcessor.processFiles(
+      new File[]{file1, file2},
       outDir,
-      (source, target) -> yaml1
+      // Processor 1: Read the source file content
+      (source, target, existingContent, prev) ->
+        new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8),
+      // Processor 2: Merge with existing content if YAML
+      (source, target, existingContent, prev) -> {
+        if (existingContent != null && YamlUtil.isYaml(target)) {
+          return YamlUtil.mergeYaml(existingContent, prev);
+        }
+        return prev;
+      }
     );
 
-    // When - Process second file with same name (should merge)
-    File[] result2 = ResourceFileProcessor.processFiles(
-      new File[]{file2},
-      outDir,
-      (source, target) -> yaml2
-    );
+    // Then - Only one file in result (duplicates handled by LinkedHashSet)
+    assertThat(result).hasSize(1);
+    assertThat(result[0]).hasName("resource.yaml");
 
-    // Then
-    assertThat(result2).hasSize(1);
-    String mergedContent = new String(Files.readAllBytes(result2[0].toPath()), StandardCharsets.UTF_8);
+    String mergedContent = new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8);
     // The merged YAML should contain properties from both
     assertThat(mergedContent).contains("name:", "labels:");
   }
 
   @Test
-  void processFiles_withNonYamlFiles_shouldNotMerge() throws IOException {
-    // Given
-    File file1 = tempDir.resolve("resource.txt").toFile();
+  void processFiles_withDuplicateNonYamlFiles_shouldOverwriteNotMerge() throws IOException {
+    // Given - Two source files with same target name (non-YAML files)
+    File sourceDir1 = tempDir.resolve("fragments1").toFile();
+    File sourceDir2 = tempDir.resolve("fragments2").toFile();
+    assertThat(sourceDir1.mkdirs()).isTrue();
+    assertThat(sourceDir2.mkdirs()).isTrue();
+
+    File file1 = new File(sourceDir1, "resource.txt");
+    File file2 = new File(sourceDir2, "resource.txt");
+
     Files.write(file1.toPath(), "content1".getBytes(StandardCharsets.UTF_8));
+    Files.write(file2.toPath(), "content2".getBytes(StandardCharsets.UTF_8));
 
-    // When - Process first file
-    ResourceFileProcessor.processFiles(
-      new File[]{file1},
-      outDir,
-      (source, target) -> "content1"
-    );
-
-    // When - Process second file with same name (should overwrite, not merge)
+    // When - Process both non-YAML files in a single call
     File[] result = ResourceFileProcessor.processFiles(
-      new File[]{file1},
+      new File[]{file1, file2},
       outDir,
-      (source, target) -> "content2"
+      // Processor 1
+      (source, target, existingContent, prev) ->
+        new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8),
+      // Processor 2
+      (source, target, existingContent, prev) -> {
+        // Non-YAML files should NOT merge, just use latest content
+        return prev;
+      }
     );
 
-    // Then
+    // Then - Only one file in result, with latest content (no merging)
     assertThat(result).hasSize(1);
+    assertThat(result[0]).hasName("resource.txt");
     assertThat(new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8)).isEqualTo("content2");
   }
 
@@ -158,7 +177,7 @@ class ResourceFileProcessorTest {
     File[] result = ResourceFileProcessor.processFiles(
       new File[]{file1, file2, file3},
       outDir,
-      (source, target) -> new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8)
+      (source, target, existing, prev) -> new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8)
     );
 
     // Then

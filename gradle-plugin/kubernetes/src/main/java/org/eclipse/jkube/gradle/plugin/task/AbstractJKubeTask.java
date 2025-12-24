@@ -33,6 +33,7 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.ResourceFileProcessor;
+import org.eclipse.jkube.kit.common.util.YamlUtil;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -228,9 +229,22 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   private File[] getFiles(File[] resourceFiles, File outDir) throws IOException {
-    return ResourceFileProcessor.processFiles(resourceFiles, outDir, (resource, targetFile) ->
-      interpolate(resource, kubernetesExtension.javaProject.getProperties(),
-        kubernetesExtension.getFilter().getOrNull())
+    return ResourceFileProcessor.processFiles(
+      resourceFiles,
+      outDir,
+      // Processor 1: Read and interpolate the source file
+      (resource, targetFile, existingContent, previousOutput) ->
+        interpolate(resource, kubernetesExtension.javaProject.getProperties(),
+          kubernetesExtension.getFilter().getOrNull()),
+      // Processor 2: Merge with existing content if YAML
+      (resource, targetFile, existingContent, previousOutput) -> {
+        // existingContent = original content from target file (preserved throughout chain)
+        // previousOutput = interpolated content from Processor 1
+        if (existingContent != null && YamlUtil.isYaml(targetFile)) {
+          return YamlUtil.mergeYaml(existingContent, previousOutput);
+        }
+        return previousOutput;
+      }
     );
   }
 }

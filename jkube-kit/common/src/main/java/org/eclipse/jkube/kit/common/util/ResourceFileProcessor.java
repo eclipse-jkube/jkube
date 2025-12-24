@@ -30,17 +30,23 @@ public class ResourceFileProcessor {
   }
 
   /**
-   * Process resource files by applying a content processor and merging duplicate files.
+   * Process resource files by applying content processors and handling merging of duplicate files.
+   * When multiple processors are provided, they are chained together in order.
+   * Each processor receives both the original existing content and the output from the previous processor.
    *
-   * @param resourceFiles    the array of resource files to process
-   * @param outDir           the output directory for processed files
-   * @param contentProcessor function to process file content (e.g., filtering, interpolation)
+   * @param resourceFiles     the array of resource files to process
+   * @param outDir            the output directory for processed files
+   * @param contentProcessors functions to process file content (e.g., filtering, interpolation, merging)
    * @return array of processed files
    * @throws IOException if file processing fails
    */
-  public static File[] processFiles(File[] resourceFiles, File outDir, FileContentProcessor contentProcessor) throws IOException {
+  public static File[] processFiles(File[] resourceFiles, File outDir, FileContentProcessor... contentProcessors) throws IOException {
     if (resourceFiles == null) {
       return new File[0];
+    }
+
+    if (contentProcessors == null || contentProcessors.length == 0) {
+      throw new IllegalArgumentException("At least one content processor is required");
     }
 
     // Use LinkedHashSet to maintain order and track unique target files
@@ -49,21 +55,23 @@ public class ResourceFileProcessor {
     for (File resource : resourceFiles) {
       File targetFile = new File(outDir, resource.getName());
 
-      // Save existing content if file already exists (means we're merging)
+      // Read existing content if file already exists
       String existingContent = null;
       if (targetFile.exists()) {
         existingContent = new String(Files.readAllBytes(targetFile.toPath()), StandardCharsets.UTF_8);
       }
 
-      // Process the resource file content
-      String processedContent = contentProcessor.process(resource, targetFile);
-
-      // If there was existing content, merge it with the new content
-      if (existingContent != null && YamlUtil.isYaml(targetFile)) {
-        processedContent = mergeContent(existingContent, processedContent);
+      // Chain processors: each processor receives both the original existingContent
+      // and the output from the previous processor
+      String processedContent = existingContent;
+      for (FileContentProcessor processor : contentProcessors) {
+        processedContent = processor.process(resource, targetFile, existingContent, processedContent);
       }
 
       // Write the final content to the target file
+      if (processedContent == null) {
+        throw new IOException(String.format("Processor returned null content for file: %s", resource));
+      }
       Files.write(targetFile.toPath(), processedContent.getBytes(StandardCharsets.UTF_8));
 
       // Add to set - duplicates will be automatically ignored
@@ -73,31 +81,23 @@ public class ResourceFileProcessor {
   }
 
   /**
-   * Merge existing and new content for YAML files.
-   *
-   * @param existingContent the existing file content
-   * @param newContent      the new content to merge
-   * @return merged content
-   * @throws IOException if YAML merging fails
-   */
-  private static String mergeContent(String existingContent, String newContent) throws IOException {
-    // For YAML files, use YamlUtil for deep property-level merge
-    return YamlUtil.mergeYaml(existingContent, newContent);
-  }
-
-  /**
    * Functional interface for processing file content.
+   * Processors are responsible for reading, transforming, and optionally merging file content.
    */
   @FunctionalInterface
   public interface FileContentProcessor {
     /**
      * Process the content of a resource file.
      *
-     * @param sourceFile the source file to process
-     * @param targetFile the target file where content will be written
+     * @param sourceFile        the source file to process
+     * @param targetFile        the target file where content will be written
+     * @param existingContent   the original content from targetFile if it already exists, null otherwise.
+     *                          This value remains constant across all processors in a chain.
+     * @param previousOutput    the output from the previous processor in the chain.
+     *                          For the first processor, this equals existingContent.
      * @return processed content as string
      * @throws IOException if processing fails
      */
-    String process(File sourceFile, File targetFile) throws IOException;
+    String process(File sourceFile, File targetFile, String existingContent, String previousOutput) throws IOException;
   }
 }
