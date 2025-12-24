@@ -20,6 +20,8 @@ import java.nio.file.Files;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.apache.commons.io.FilenameUtils;
+
 /**
  * Utility class for processing resource files with merging support for YAML files.
  */
@@ -53,7 +55,8 @@ public class ResourceFileProcessor {
     Set<File> processedFiles = new LinkedHashSet<>();
 
     for (File resource : resourceFiles) {
-      File targetFile = new File(outDir, resource.getName());
+      String sanitizedName = FilenameUtils.getName(resource.getPath());
+      File targetFile = new File(outDir, sanitizedName);
 
       // Read existing content if file already exists
       String existingContent = null;

@@ -28,6 +28,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlString;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.splitYamlResource;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -307,5 +308,138 @@ class YamlUtilTest {
     String result = YamlUtil.mergeYaml(existingYaml, newYaml);
     // Then
     assertThat(result).isEqualTo(newYaml);
+  }
+
+  @Test
+  void mergeYaml_withInvalidYaml_shouldThrowIOException() {
+    // Given
+    String existingYaml = "valid:\n  yaml: true\n";
+    String invalidYaml = "invalid: yaml: content: [[[";
+
+    // When & Then
+    assertThatThrownBy(() -> YamlUtil.mergeYaml(existingYaml, invalidYaml))
+      .isInstanceOf(IOException.class)
+      .hasMessageContaining("Failed to parse and merge YAML content");
+  }
+
+  @Test
+  void mergeYaml_withEmptyString_shouldReturnOther() throws IOException {
+    // Given
+    String emptyYaml = "";
+    String validYaml = "metadata:\n  name: test\n";
+
+    // When
+    String result1 = YamlUtil.mergeYaml(emptyYaml, validYaml);
+    String result2 = YamlUtil.mergeYaml(validYaml, emptyYaml);
+
+    // Then
+    assertThat(result1).isEqualTo(validYaml);
+    assertThat(result2).isEqualTo(validYaml);
+  }
+
+  @Test
+  void mergeYaml_withWhitespaceOnly_shouldReturnOther() throws IOException {
+    // Given
+    String whitespaceYaml = "   \n  \n";
+    String validYaml = "metadata:\n  name: test\n";
+
+    // When
+    String result1 = YamlUtil.mergeYaml(whitespaceYaml, validYaml);
+    String result2 = YamlUtil.mergeYaml(validYaml, whitespaceYaml);
+
+    // Then
+    assertThat(result1).isEqualTo(validYaml);
+    assertThat(result2).isEqualTo(validYaml);
+  }
+
+  @Test
+  void mergeYaml_withNullValue_shouldReturnOther() throws IOException {
+    // Given
+    String nullYaml = "null";
+    String validYaml = "metadata:\n  name: test\n";
+
+    // When
+    String result1 = YamlUtil.mergeYaml(nullYaml, validYaml);
+    String result2 = YamlUtil.mergeYaml(validYaml, nullYaml);
+
+    // Then
+    assertThat(result1).isEqualTo(validYaml);
+    assertThat(result2).isEqualTo(validYaml);
+  }
+
+  @Test
+  void mergeYaml_withEmptyObject_shouldReturnOther() throws IOException {
+    // Given
+    String emptyObjectYaml = "{}";
+    String validYaml = "metadata:\n  name: test\n";
+
+    // When
+    String result1 = YamlUtil.mergeYaml(emptyObjectYaml, validYaml);
+
+    // Then - result should contain the valid yaml properties
+    assertThat(getPropertiesFromYamlString(result1))
+      .containsEntry("metadata.name", "test");
+  }
+
+  @Test
+  void mergeYaml_withEmptyArray_shouldReturnOther() throws IOException {
+    // Given
+    String emptyArrayYaml = "[]";
+    String validYaml = "- item1\n- item2\n";
+
+    // When
+    String result1 = YamlUtil.mergeYaml(emptyArrayYaml, validYaml);
+
+    // Then
+    assertThat(result1).contains("item1", "item2");
+  }
+
+  @Test
+  void getPropertiesFromYamlResourceWithActiveProfile(@TempDir Path tempDir) throws IOException {
+    // Given
+    final URL resource = YamlUtilTest.class.getResource("/util/yaml-list.yml");
+
+    // When - get properties from resource with a specific profile pattern
+    final Properties result = YamlUtil.getPropertiesFromYamlResource("YAML --- 2", resource);
+
+    // Then - should get the matching YAML document
+    assertThat(result).isNotNull();
+    assertThat(result.getProperty("name")).isEqualTo("YAML --- 2");
+  }
+
+  @Test
+  void getPropertiesFromYamlResourceWithNoMatchingProfile() throws IOException {
+    // Given
+    final URL resource = YamlUtilTest.class.getResource("/util/yaml-list.yml");
+
+    // When - get properties with a pattern that doesn't match any document
+    final Properties result = YamlUtil.getPropertiesFromYamlResource("non-existent", resource);
+
+    // Then - should return the first document as fallback
+    assertThat(result).isNotNull();
+    // First document in yaml-list.yml has name "YAML 1"
+    assertThat(result.getProperty("name")).isEqualTo("YAML 1");
+  }
+
+  @Test
+  void getPropertiesFromYamlResourceWithNullResource() {
+    // When
+    final Properties result = YamlUtil.getPropertiesFromYamlResource(null, null);
+
+    // Then
+    assertThat(result).isNotNull().isEmpty();
+  }
+
+  @Test
+  void getPropertiesFromYamlResourceWithNullPattern() throws IOException {
+    // Given
+    final URL resource = YamlUtilTest.class.getResource("/util/yaml-list.yml");
+
+    // When - get properties with null pattern
+    final Properties result = YamlUtil.getPropertiesFromYamlResource(null, resource);
+
+    // Then - should return the first document
+    assertThat(result).isNotNull();
+    assertThat(result.getProperty("name")).isEqualTo("YAML 1");
   }
 }

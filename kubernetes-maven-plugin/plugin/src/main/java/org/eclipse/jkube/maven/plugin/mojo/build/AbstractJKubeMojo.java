@@ -292,8 +292,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
           // Processor 1: Apply Maven filtering to the source file
           (resource, targetFile, existingContent, previousOutput) -> {
               try {
-                  // Create a temporary file for Maven filtering
-                  File tempFile = File.createTempFile("jkube-resource-", ".tmp");
+                  // Create a temporary file for Maven filtering in workDir
+                  File tempFile = File.createTempFile("jkube-resource-", ".tmp", outDir);
                   try {
                       mavenFileFilter.copyFile(resource, tempFile, true, project, null, false, "utf8", session);
                       return new String(Files.readAllBytes(tempFile.toPath()), StandardCharsets.UTF_8);

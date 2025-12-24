@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class ResourceFileProcessorTest {
 
@@ -185,5 +186,106 @@ class ResourceFileProcessorTest {
     assertThat(result[0]).hasName("a.txt");
     assertThat(result[1]).hasName("b.txt");
     assertThat(result[2]).hasName("c.txt");
+  }
+
+  @Test
+  void processFiles_withNullContentProcessors_shouldThrowException() {
+    // Given
+    File sourceFile = tempDir.resolve("test.txt").toFile();
+
+    // When & Then
+    assertThatThrownBy(() ->
+      ResourceFileProcessor.processFiles(new File[]{sourceFile}, outDir, (ResourceFileProcessor.FileContentProcessor[]) null)
+    )
+      .isInstanceOf(IllegalArgumentException.class)
+      .hasMessage("At least one content processor is required");
+  }
+
+  @Test
+  void processFiles_withEmptyContentProcessors_shouldThrowException() {
+    // Given
+    File sourceFile = tempDir.resolve("test.txt").toFile();
+
+    // When & Then
+    assertThatThrownBy(() ->
+      ResourceFileProcessor.processFiles(new File[]{sourceFile}, outDir)
+    )
+      .isInstanceOf(IllegalArgumentException.class)
+      .hasMessage("At least one content processor is required");
+  }
+
+  @Test
+  void processFiles_whenProcessorReturnsNull_shouldThrowException() throws IOException {
+    // Given
+    File sourceFile = tempDir.resolve("test.txt").toFile();
+    Files.write(sourceFile.toPath(), "content".getBytes(StandardCharsets.UTF_8));
+
+    // When & Then
+    assertThatThrownBy(() ->
+      ResourceFileProcessor.processFiles(
+        new File[]{sourceFile},
+        outDir,
+        (source, target, existing, prev) -> null
+      )
+    )
+      .isInstanceOf(IOException.class)
+      .hasMessageContaining("Processor returned null content for file:");
+  }
+
+  @Test
+  void processFiles_withMultipleProcessors_shouldChainCorrectly() throws IOException {
+    // Given
+    File sourceFile = tempDir.resolve("test.txt").toFile();
+    Files.write(sourceFile.toPath(), "original".getBytes(StandardCharsets.UTF_8));
+
+    // When - Chain 3 processors
+    File[] result = ResourceFileProcessor.processFiles(
+      new File[]{sourceFile},
+      outDir,
+      // Processor 1: Read source file
+      (source, target, existing, prev) -> new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8),
+      // Processor 2: Transform content
+      (source, target, existing, prev) -> prev + "-transformed",
+      // Processor 3: Add suffix
+      (source, target, existing, prev) -> prev + "-final"
+    );
+
+    // Then
+    assertThat(result).hasSize(1);
+    String content = new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8);
+    assertThat(content).isEqualTo("original-transformed-final");
+  }
+
+  @Test
+  void processFiles_withExistingContent_shouldPassToProcessors() throws IOException {
+    // Given - First create a file in output directory
+    File targetFile = new File(outDir, "existing.txt");
+    Files.write(targetFile.toPath(), "existing content".getBytes(StandardCharsets.UTF_8));
+
+    File sourceFile = tempDir.resolve("existing.txt").toFile();
+    Files.write(sourceFile.toPath(), "new content".getBytes(StandardCharsets.UTF_8));
+
+    // When
+    File[] result = ResourceFileProcessor.processFiles(
+      new File[]{sourceFile},
+      outDir,
+      (source, target, existingContent, prev) -> {
+        // Verify existingContent is passed correctly
+        assertThat(existingContent).isEqualTo("existing content");
+        return new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8);
+      },
+      (source, target, existingContent, prev) -> {
+        // Second processor should also receive original existingContent
+        assertThat(existingContent).isEqualTo("existing content");
+        // But prev should be from first processor
+        assertThat(prev).isEqualTo("new content");
+        return prev + " appended";
+      }
+    );
+
+    // Then
+    assertThat(result).hasSize(1);
+    String content = new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8);
+    assertThat(content).isEqualTo("new content appended");
   }
 }
