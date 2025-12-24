@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.lang3.StringUtils;
 
@@ -104,6 +105,93 @@ public class YamlUtil {
       .filter(File::isFile)
       .filter(YamlUtil::isYaml)
       .collect(Collectors.toList());
+  }
+
+  /**
+   * Merges two YAML strings by performing deep property-level merge.
+   *
+   * @param existingYaml the existing YAML content
+   * @param newYaml      the new YAML content to merge
+   * @return merged YAML as string
+   * @throws IOException if YAML parsing fails
+   */
+  public static String mergeYaml(String existingYaml, String newYaml) throws IOException {
+    try {
+      // If existing YAML is effectively empty (null, blank, or only comments), return new YAML
+      if (isEffectivelyEmpty(existingYaml)) {
+        return newYaml;
+      }
+      // If new YAML is effectively empty, return existing YAML
+      if (isEffectivelyEmpty(newYaml)) {
+        return existingYaml;
+      }
+      Object existing = YAML_MAPPER.readValue(existingYaml, Object.class);
+      ObjectReader updater = YAML_MAPPER.readerForUpdating(existing);
+      // merge new yaml with the existing
+      return YAML_MAPPER.writeValueAsString(updater.readValue(newYaml));
+    } catch (Exception e) {
+      throw new IOException("Failed to parse and merge YAML content: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * Checks if a YAML string is effectively empty (null, blank, or contains only comments/whitespace).
+   * Uses deserialization to determine if the YAML contains any actual data.
+   *
+   * @param yaml the YAML string to check
+   * @return true if the YAML is effectively empty
+   */
+  private static boolean isEffectivelyEmpty(String yaml) {
+    if (yaml == null || yaml.trim().isEmpty()) {
+      return true;
+    }
+    try {
+      Object deserialized = YAML_MAPPER.readValue(yaml, Object.class);
+      return isDeserializedObjectEmpty(deserialized);
+    } catch (IOException e) {
+      // If parsing fails due to no content (e.g., only comments), consider it empty
+      // Otherwise, consider it non-empty to be safe
+      return e.getMessage() != null && e.getMessage().contains("No content to map");
+    }
+  }
+
+  /**
+   * Checks if a deserialized YAML object is empty by serializing it back
+   * and checking if the result is effectively empty.
+   *
+   * @param obj the deserialized object
+   * @return true if the object is null or serializes to an empty representation
+   */
+  private static boolean isDeserializedObjectEmpty(Object obj) {
+    if (obj == null) {
+      return true;
+    }
+    try {
+      // Serialize back to YAML and check if result is empty
+      String serialized = YAML_MAPPER.writeValueAsString(obj).trim();
+
+      // Check for empty representations
+      return serialized.isEmpty()
+        || serialized.equals("---")
+        || serialized.equals("null")
+        || serialized.equals("{}")
+        || serialized.equals("[]")
+        || serialized.equals("\"\"")
+        || serialized.equals("''");
+    } catch (Exception e) {
+      // If serialization fails, fall back to type-based check
+      if (obj instanceof Map) {
+        return ((Map<?, ?>) obj).isEmpty();
+      }
+      if (obj instanceof List) {
+        return ((List<?>) obj).isEmpty();
+      }
+      if (obj instanceof String) {
+        return ((String) obj).trim().isEmpty();
+      }
+      // For other types, consider non-empty
+      return false;
+    }
   }
 }
 

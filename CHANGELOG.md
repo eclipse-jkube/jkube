@@ -30,6 +30,7 @@ Usage:
 * Fix #3707: Setting readOnly flag in VolumeConfig has no effect
 * Fix #1458: Consideration of "ssl.enabled" properties to enable liveness/readiness probe for Spring Boot Actuator
 * Fix #3775: Missing IngressClassName in NetworkingV1IngressGenerator
+* Fix #2758: Inconsistency when merging fragments with same file name with different profiles
 
 ### 1.18.2 (2025-11-03)
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
