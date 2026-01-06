@@ -25,9 +25,14 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.stream.Stream;
+
 import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlString;
 import static org.eclipse.jkube.kit.common.util.YamlUtil.splitYamlResource;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -115,7 +120,7 @@ class YamlUtilTest {
   void listYamls(@TempDir Path directory) throws IOException {
     // Given
     final Path file1 = Files.createFile(directory.resolve("file1.yaml"));
-    final Path file2 = Files.createFile(directory.resolve("file2.json"));
+    Files.createFile(directory.resolve("file2.json"));
     final Path file3 = Files.createFile(directory.resolve("file3.YML"));
     // When
     final List<File> result = YamlUtil.listYamls(directory.toFile());
@@ -129,5 +134,240 @@ class YamlUtilTest {
   @Test
   void listYamlsWithNullDirectory() {
     assertThat(YamlUtil.listYamls(null)).isEmpty();
+  }
+
+  @Test
+  void mergeYaml_withNonOverlappingProperties() throws IOException {
+    // Given
+    String existingYaml = "metadata:\n" +
+        "  annotations:\n" +
+        "    key1: value1\n" +
+        "spec:\n" +
+        "  field1: value1\n";
+    String newYaml = "metadata:\n" +
+        "  namespace: demo\n" +
+        "spec:\n" +
+        "  field2: value2\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result)
+        .contains("key1: \"value1\"")
+        .contains("namespace: \"demo\"")
+        .contains("field1: \"value1\"")
+        .contains("field2: \"value2\"");
+  }
+
+  @Test
+  void mergeYaml_withOverlappingProperties() throws IOException {
+    // Given
+    String existingYaml = "spec:\n" +
+        "  tls:\n" +
+        "    termination: edge\n" +
+        "    insecureEdgeTerminationPolicy: Redirect\n";
+    String newYaml = "spec:\n" +
+        "  tls:\n" +
+        "    termination: dev-overridden\n" +
+        "    insecureEdgeTerminationPolicy: Allow\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then - new values should overwrite existing ones
+    assertThat(result)
+        .contains("termination: \"dev-overridden\"")
+        .contains("insecureEdgeTerminationPolicy: \"Allow\"")
+        .doesNotContain("edge")
+        .doesNotContain("Redirect");
+  }
+
+  @Test
+  void mergeYaml_withPartialOverlap() throws IOException {
+    // Given
+    String existingYaml = "metadata:\n" +
+        "  annotations:\n" +
+        "    cert-manager.io/issuer-kind: ClusterIssuer\n" +
+        "    cert-manager.io/issuer-name: letsencrypt-prod\n" +
+        "    haproxy.router.openshift.io/timeout: 120s\n" +
+        "spec:\n" +
+        "  tls:\n" +
+        "    termination: edge\n" +
+        "    insecureEdgeTerminationPolicy: Redirect\n";
+    String newYaml = "metadata:\n" +
+        "  namespace: demo-namespace\n" +
+        "spec:\n" +
+        "  host: demoapp.apps.example.com\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then - should merge without duplicates
+    assertThat(result)
+        .contains("cert-manager.io/issuer-kind: \"ClusterIssuer\"")
+        .contains("cert-manager.io/issuer-name: \"letsencrypt-prod\"")
+        .contains("haproxy.router.openshift.io/timeout: \"120s\"")
+        .contains("namespace: \"demo-namespace\"")
+        .contains("termination: \"edge\"")
+        .contains("insecureEdgeTerminationPolicy: \"Redirect\"")
+        .contains("host: \"demoapp.apps.example.com\"");
+    // Verify no duplicate keys by checking the structure
+    assertThat(getPropertiesFromYamlString(result))
+        .containsEntry("metadata.annotations.cert-manager.io/issuer-kind", "ClusterIssuer")
+        .containsEntry("metadata.annotations.cert-manager.io/issuer-name", "letsencrypt-prod")
+        .containsEntry("metadata.annotations.haproxy.router.openshift.io/timeout", "120s")
+        .containsEntry("metadata.namespace", "demo-namespace")
+        .containsEntry("spec.tls.termination", "edge")
+        .containsEntry("spec.tls.insecureEdgeTerminationPolicy", "Redirect")
+        .containsEntry("spec.host", "demoapp.apps.example.com");
+  }
+
+  @Test
+  void mergeYaml_withDifferentListItems_shouldMerge() throws IOException {
+    // Given
+    String existingYaml = "spec:\n" +
+        "  template:\n" +
+        "    spec:\n" +
+        "      containers:\n" +
+        "        - name: container1\n" +
+        "          image: image1\n";
+    String newYaml = "spec:\n" +
+        "  template:\n" +
+        "    spec:\n" +
+        "      containers:\n" +
+        "        - name: container2\n" +
+        "          image: image2\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+
+    // Then - should have both containers
+    assertThat(result)
+        .contains("container1")
+        .contains("image1")
+        .contains("container2")
+        .contains("image2");
+
+    // Verify both containers exist
+    Properties props = getPropertiesFromYamlString(result);
+    assertThat(props)
+        .containsEntry("spec.template.spec.containers[0].name", "container1")
+        .containsEntry("spec.template.spec.containers[0].image", "image1")
+        .containsEntry("spec.template.spec.containers[1].name", "container2")
+        .containsEntry("spec.template.spec.containers[1].image", "image2");
+  }
+
+  @Test
+  void mergeYaml_withEmptyExistingYaml_shouldReturnNewYaml() throws IOException {
+    // Given
+    String existingYaml = "---\n";
+    String newYaml = "metadata:\n" +
+        "  name: test\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result).isEqualTo(newYaml);
+  }
+
+  @Test
+  void mergeYaml_withCommentsOnlyExistingYaml_shouldReturnNewYaml() throws IOException {
+    // Given - simulating fragments-custom-mapping/first-fl.yaml which has only comments
+    String existingYaml = "#\n" +
+        "# Copyright (c) 2019 Red Hat, Inc.\n" +
+        "# This program and the accompanying materials are made\n" +
+        "# available under the terms of the Eclipse Public License 2.0\n" +
+        "#\n" +
+        "\n";
+    String newYaml = "apiVersion: v1\n" +
+        "kind: Service\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result).isEqualTo(newYaml);
+  }
+
+  @Test
+  void mergeYaml_withNullExistingYaml_shouldReturnNewYaml() throws IOException {
+    // Given
+    String newYaml = "metadata:\n" +
+        "  name: test\n";
+    // When
+    String result = YamlUtil.mergeYaml(null, newYaml);
+    // Then
+    assertThat(result).isEqualTo(newYaml);
+  }
+
+  @Test
+  void mergeYaml_withEmptyNewYaml_shouldReturnExistingYaml() throws IOException {
+    // Given
+    String existingYaml = "metadata:\n" +
+        "  name: test\n";
+    String newYaml = "---\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result).isEqualTo(existingYaml);
+  }
+
+  @Test
+  void mergeYaml_withBothEmpty_shouldReturnEmpty() throws IOException {
+    // Given
+    String existingYaml = "---\n";
+    String newYaml = "---\n";
+    // When
+    String result = YamlUtil.mergeYaml(existingYaml, newYaml);
+    // Then
+    assertThat(result).isEqualTo(newYaml);
+  }
+
+  @Test
+  void mergeYaml_withInvalidYaml_shouldThrowIOException() {
+    // Given
+    String existingYaml = "valid:\n  yaml: true\n";
+    String invalidYaml = "invalid: yaml: content: [[[";
+
+    // When & Then
+    assertThatThrownBy(() -> YamlUtil.mergeYaml(existingYaml, invalidYaml))
+      .isInstanceOf(IOException.class)
+      .hasMessageContaining("Failed to parse and merge YAML content");
+  }
+
+  @ParameterizedTest(name = "{index}: mergeYaml with {0}")
+  @ValueSource(strings = {"", "   \n  \n", "{}"})
+  void mergeYaml_withEmptyOrInsignificantContent_shouldReturnValidYaml(String emptyYaml) throws IOException {
+    // Given
+    String validYaml = "metadata:\n  name: test\n";
+
+    // When
+    String result1 = YamlUtil.mergeYaml(emptyYaml, validYaml);
+    String result2 = YamlUtil.mergeYaml(validYaml, emptyYaml);
+
+    // Then - both directions should preserve the valid YAML content
+    assertThat(getPropertiesFromYamlString(result1))
+      .containsEntry("metadata.name", "test");
+    assertThat(getPropertiesFromYamlString(result2))
+      .containsEntry("metadata.name", "test");
+  }
+
+  @ParameterizedTest(name = "{index}: pattern={0}, hasResource={1}, expectedName={2}")
+  @MethodSource("getPropertiesFromYamlResourceTestCases")
+  void getPropertiesFromYamlResource_withVariousInputs(String pattern, boolean hasResource, String expectedName, boolean shouldBeEmpty) {
+    // Given
+    final URL resource = hasResource ? YamlUtilTest.class.getResource("/util/yaml-list.yml") : null;
+
+    // When
+    final Properties result = YamlUtil.getPropertiesFromYamlResource(pattern, resource);
+
+    // Then
+    assertThat(result).isNotNull();
+    if (shouldBeEmpty) {
+      assertThat(result).isEmpty();
+    } else {
+      assertThat(result.getProperty("name")).isEqualTo(expectedName);
+    }
+  }
+
+  private static Stream<Arguments> getPropertiesFromYamlResourceTestCases() {
+    return Stream.of(
+      // pattern, hasResource, expectedName, shouldBeEmpty
+      Arguments.of("YAML --- 2", true, "YAML --- 2", false),  // Matching profile pattern
+      Arguments.of("non-existent", true, "YAML 1", false),    // Non-matching pattern, fallback to first
+      Arguments.of(null, false, null, true),                  // Null resource, should be empty
+      Arguments.of(null, true, "YAML 1", false)               // Null pattern, should return first document
+    );
   }
 }
