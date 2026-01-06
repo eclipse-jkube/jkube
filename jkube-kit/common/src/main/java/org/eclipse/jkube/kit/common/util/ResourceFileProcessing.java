@@ -38,7 +38,7 @@ import org.apache.commons.io.FilenameUtils;
  * ProcessingResult result = ResourceFileProcessing.builder()
  *   .withFiles(resourceFiles)
  *   .withOutputDirectory(outDir)
- *   .addProcessor(ctx -> transformContent(ctx))
+ *   .addProcessor(ctx -&gt; transformContent(ctx))
  *   .addProcessor(ResourceFileProcessors.mergeYamlIfExists())
  *   .process();
  * </pre>
