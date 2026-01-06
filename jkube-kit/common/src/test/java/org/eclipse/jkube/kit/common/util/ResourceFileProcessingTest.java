@@ -26,7 +26,7 @@ import java.nio.file.Path;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class ResourceFileProcessorTest {
+class ResourceFileProcessingTest {
 
   @TempDir
   Path tempDir;
@@ -42,10 +42,14 @@ class ResourceFileProcessorTest {
   @Test
   void processFiles_withNullInput_shouldReturnEmptyArray() throws IOException {
     // When
-    File[] result = ResourceFileProcessor.processFiles(null, outDir, (source, target, existing, prev) -> "processed");
+    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+      .withFiles((File[]) null)
+      .withOutputDirectory(outDir)
+      .addProcessor(ctx -> "processed")
+      .process();
 
     // Then
-    assertThat(result).isEmpty();
+    assertThat(result.getProcessedFiles()).isEmpty();
   }
 
   @Test
@@ -55,16 +59,16 @@ class ResourceFileProcessorTest {
     Files.write(sourceFile.toPath(), "original content".getBytes(StandardCharsets.UTF_8));
 
     // When
-    File[] result = ResourceFileProcessor.processFiles(
-      new File[]{sourceFile},
-      outDir,
-      (source, target, existing, prev) -> "processed content"
-    );
+    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+      .withFiles(sourceFile)
+      .withOutputDirectory(outDir)
+      .addProcessor(ctx -> "processed content")
+      .process();
 
     // Then
-    assertThat(result).hasSize(1);
-    assertThat(result[0]).hasName("test.txt");
-    assertThat(new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8)).isEqualTo("processed content");
+    assertThat(result.getProcessedFiles()).hasSize(1);
+    assertThat(result.getProcessedFiles().get(0)).hasName("test.txt");
+    assertThat(new String(Files.readAllBytes(result.getProcessedFiles().get(0).toPath()), StandardCharsets.UTF_8)).isEqualTo("processed content");
   }
 
   @Test
@@ -76,16 +80,16 @@ class ResourceFileProcessorTest {
     Files.write(file2.toPath(), "content2".getBytes(StandardCharsets.UTF_8));
 
     // When
-    File[] result = ResourceFileProcessor.processFiles(
-      new File[]{file1, file2},
-      outDir,
-      (source, target, existing, prev) -> "processed-" + source.getName()
-    );
+    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+      .withFiles(file1, file2)
+      .withOutputDirectory(outDir)
+      .addProcessor(ctx -> "processed-" + ctx.getSourceFile().getName())
+      .process();
 
     // Then
-    assertThat(result).hasSize(2);
-    assertThat(new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8)).isEqualTo("processed-file1.txt");
-    assertThat(new String(Files.readAllBytes(result[1].toPath()), StandardCharsets.UTF_8)).isEqualTo("processed-file2.txt");
+    assertThat(result.getProcessedFiles()).hasSize(2);
+    assertThat(new String(Files.readAllBytes(result.getProcessedFiles().get(0).toPath()), StandardCharsets.UTF_8)).isEqualTo("processed-file1.txt");
+    assertThat(new String(Files.readAllBytes(result.getProcessedFiles().get(1).toPath()), StandardCharsets.UTF_8)).isEqualTo("processed-file2.txt");
   }
 
   @Test
@@ -106,26 +110,25 @@ class ResourceFileProcessorTest {
     Files.write(file2.toPath(), yaml2.getBytes(StandardCharsets.UTF_8));
 
     // When - Process both files in a single call (as happens in real usage)
-    File[] result = ResourceFileProcessor.processFiles(
-      new File[]{file1, file2},
-      outDir,
+    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+      .withFiles(file1, file2)
+      .withOutputDirectory(outDir)
       // Processor 1: Read the source file content
-      (source, target, existingContent, prev) ->
-        new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8),
+      .addProcessor(ctx -> new String(Files.readAllBytes(ctx.getSourceFile().toPath()), StandardCharsets.UTF_8))
       // Processor 2: Merge with existing content if YAML
-      (source, target, existingContent, prev) -> {
-        if (existingContent != null && YamlUtil.isYaml(target)) {
-          return YamlUtil.mergeYaml(existingContent, prev);
+      .addProcessor(ctx -> {
+        if (ctx.getExistingContent() != null && YamlUtil.isYaml(ctx.getTargetFile())) {
+          return YamlUtil.mergeYaml(ctx.getExistingContent(), ctx.getPreviousOutput());
         }
-        return prev;
-      }
-    );
+        return ctx.getPreviousOutput();
+      })
+      .process();
 
     // Then - Only one file in result (duplicates handled by LinkedHashSet)
-    assertThat(result).hasSize(1);
-    assertThat(result[0]).hasName("resource.yaml");
+    assertThat(result.getProcessedFiles()).hasSize(1);
+    assertThat(result.getProcessedFiles().get(0)).hasName("resource.yaml");
 
-    String mergedContent = new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8);
+    String mergedContent = new String(Files.readAllBytes(result.getProcessedFiles().get(0).toPath()), StandardCharsets.UTF_8);
     // The merged YAML should contain properties from both
     assertThat(mergedContent).contains("name:", "labels:");
   }
@@ -145,23 +148,19 @@ class ResourceFileProcessorTest {
     Files.write(file2.toPath(), "content2".getBytes(StandardCharsets.UTF_8));
 
     // When - Process both non-YAML files in a single call
-    File[] result = ResourceFileProcessor.processFiles(
-      new File[]{file1, file2},
-      outDir,
+    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+      .withFiles(file1, file2)
+      .withOutputDirectory(outDir)
       // Processor 1
-      (source, target, existingContent, prev) ->
-        new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8),
+      .addProcessor(ctx -> new String(Files.readAllBytes(ctx.getSourceFile().toPath()), StandardCharsets.UTF_8))
       // Processor 2
-      (source, target, existingContent, prev) -> {
-        // Non-YAML files should NOT merge, just use latest content
-        return prev;
-      }
-    );
+      .addProcessor(ctx -> ctx.getPreviousOutput())
+      .process();
 
     // Then - Only one file in result, with latest content (no merging)
-    assertThat(result).hasSize(1);
-    assertThat(result[0]).hasName("resource.txt");
-    assertThat(new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8)).isEqualTo("content2");
+    assertThat(result.getProcessedFiles()).hasSize(1);
+    assertThat(result.getProcessedFiles().get(0)).hasName("resource.txt");
+    assertThat(new String(Files.readAllBytes(result.getProcessedFiles().get(0).toPath()), StandardCharsets.UTF_8)).isEqualTo("content2");
   }
 
   @Test
@@ -175,17 +174,17 @@ class ResourceFileProcessorTest {
     Files.write(file3.toPath(), "c".getBytes(StandardCharsets.UTF_8));
 
     // When
-    File[] result = ResourceFileProcessor.processFiles(
-      new File[]{file1, file2, file3},
-      outDir,
-      (source, target, existing, prev) -> new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8)
-    );
+    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+      .withFiles(file1, file2, file3)
+      .withOutputDirectory(outDir)
+      .addProcessor(ctx -> new String(Files.readAllBytes(ctx.getSourceFile().toPath()), StandardCharsets.UTF_8))
+      .process();
 
     // Then
-    assertThat(result).hasSize(3);
-    assertThat(result[0]).hasName("a.txt");
-    assertThat(result[1]).hasName("b.txt");
-    assertThat(result[2]).hasName("c.txt");
+    assertThat(result.getProcessedFiles()).hasSize(3);
+    assertThat(result.getProcessedFiles().get(0)).hasName("a.txt");
+    assertThat(result.getProcessedFiles().get(1)).hasName("b.txt");
+    assertThat(result.getProcessedFiles().get(2)).hasName("c.txt");
   }
 
   @Test
@@ -195,23 +194,13 @@ class ResourceFileProcessorTest {
 
     // When & Then
     assertThatThrownBy(() ->
-      ResourceFileProcessor.processFiles(new File[]{sourceFile}, outDir, (ResourceFileProcessor.FileContentProcessor[]) null)
+      ResourceFileProcessing.builder()
+        .withFiles(sourceFile)
+        .withOutputDirectory(outDir)
+        .process()
     )
-      .isInstanceOf(IllegalArgumentException.class)
-      .hasMessage("At least one content processor is required");
-  }
-
-  @Test
-  void processFiles_withEmptyContentProcessors_shouldThrowException() {
-    // Given
-    File sourceFile = tempDir.resolve("test.txt").toFile();
-
-    // When & Then
-    assertThatThrownBy(() ->
-      ResourceFileProcessor.processFiles(new File[]{sourceFile}, outDir)
-    )
-      .isInstanceOf(IllegalArgumentException.class)
-      .hasMessage("At least one content processor is required");
+      .isInstanceOf(IllegalStateException.class)
+      .hasMessage("At least one processor must be added before processing");
   }
 
   @Test
@@ -222,11 +211,11 @@ class ResourceFileProcessorTest {
 
     // When & Then
     assertThatThrownBy(() ->
-      ResourceFileProcessor.processFiles(
-        new File[]{sourceFile},
-        outDir,
-        (source, target, existing, prev) -> null
-      )
+      ResourceFileProcessing.builder()
+        .withFiles(sourceFile)
+        .withOutputDirectory(outDir)
+        .addProcessor(ctx -> null)
+        .process()
     )
       .isInstanceOf(IOException.class)
       .hasMessageContaining("Processor returned null content for file:");
@@ -239,20 +228,20 @@ class ResourceFileProcessorTest {
     Files.write(sourceFile.toPath(), "original".getBytes(StandardCharsets.UTF_8));
 
     // When - Chain 3 processors
-    File[] result = ResourceFileProcessor.processFiles(
-      new File[]{sourceFile},
-      outDir,
+    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+      .withFiles(sourceFile)
+      .withOutputDirectory(outDir)
       // Processor 1: Read source file
-      (source, target, existing, prev) -> new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8),
+      .addProcessor(ctx -> new String(Files.readAllBytes(ctx.getSourceFile().toPath()), StandardCharsets.UTF_8))
       // Processor 2: Transform content
-      (source, target, existing, prev) -> prev + "-transformed",
+      .addProcessor(ctx -> ctx.getPreviousOutput() + "-transformed")
       // Processor 3: Add suffix
-      (source, target, existing, prev) -> prev + "-final"
-    );
+      .addProcessor(ctx -> ctx.getPreviousOutput() + "-final")
+      .process();
 
     // Then
-    assertThat(result).hasSize(1);
-    String content = new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8);
+    assertThat(result.getProcessedFiles()).hasSize(1);
+    String content = new String(Files.readAllBytes(result.getProcessedFiles().get(0).toPath()), StandardCharsets.UTF_8);
     assertThat(content).isEqualTo("original-transformed-final");
   }
 
@@ -266,26 +255,26 @@ class ResourceFileProcessorTest {
     Files.write(sourceFile.toPath(), "new content".getBytes(StandardCharsets.UTF_8));
 
     // When
-    File[] result = ResourceFileProcessor.processFiles(
-      new File[]{sourceFile},
-      outDir,
-      (source, target, existingContent, prev) -> {
+    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+      .withFiles(sourceFile)
+      .withOutputDirectory(outDir)
+      .addProcessor(ctx -> {
         // Verify existingContent is passed correctly
-        assertThat(existingContent).isEqualTo("existing content");
-        return new String(Files.readAllBytes(source.toPath()), StandardCharsets.UTF_8);
-      },
-      (source, target, existingContent, prev) -> {
+        assertThat(ctx.getExistingContent()).isEqualTo("existing content");
+        return new String(Files.readAllBytes(ctx.getSourceFile().toPath()), StandardCharsets.UTF_8);
+      })
+      .addProcessor(ctx -> {
         // Second processor should also receive original existingContent
-        assertThat(existingContent).isEqualTo("existing content");
+        assertThat(ctx.getExistingContent()).isEqualTo("existing content");
         // But prev should be from first processor
-        assertThat(prev).isEqualTo("new content");
-        return prev + " appended";
-      }
-    );
+        assertThat(ctx.getPreviousOutput()).isEqualTo("new content");
+        return ctx.getPreviousOutput() + " appended";
+      })
+      .process();
 
     // Then
-    assertThat(result).hasSize(1);
-    String content = new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8);
+    assertThat(result.getProcessedFiles()).hasSize(1);
+    String content = new String(Files.readAllBytes(result.getProcessedFiles().get(0).toPath()), StandardCharsets.UTF_8);
     assertThat(content).isEqualTo("new content appended");
   }
 }

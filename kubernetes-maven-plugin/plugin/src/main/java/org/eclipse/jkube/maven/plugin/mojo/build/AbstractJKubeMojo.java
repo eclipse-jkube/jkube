@@ -27,7 +27,8 @@ import org.eclipse.jkube.kit.common.util.EnvUtil;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.common.util.ResourceFileProcessor;
+import org.eclipse.jkube.kit.common.util.ResourceFileProcessing;
+import org.eclipse.jkube.kit.common.util.ResourceFileProcessors;
 import org.eclipse.jkube.kit.common.util.YamlUtil;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 
@@ -282,34 +283,31 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         if (!outDir.exists() && !outDir.mkdirs()) {
             throw new IOException("Cannot create working dir " + outDir);
         }
-        return ResourceFileProcessor.processFiles(
-          resourceFiles,
-          outDir,
+
+        ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+          .withFiles(resourceFiles)
+          .withOutputDirectory(outDir)
+          .withOptions(ResourceFileProcessing.ProcessingOptions.defaults())
           // Processor 1: Apply Maven filtering to the source file
-          (resource, targetFile, existingContent, previousOutput) -> {
+          .addProcessor(context -> {
               try {
                   // Create a temporary file for Maven filtering in workDir
                   File tempFile = File.createTempFile("jkube-resource-", ".tmp", outDir);
                   try {
-                      mavenFileFilter.copyFile(resource, tempFile, true, project, null, false, "utf8", session);
+                      mavenFileFilter.copyFile(context.getSourceFile(), tempFile, true, project, null, false, "utf8", session);
                       return new String(Files.readAllBytes(tempFile.toPath()), StandardCharsets.UTF_8);
                   } finally {
                       Files.deleteIfExists(tempFile.toPath());
                   }
               } catch (MavenFilteringException exp) {
-                  throw new IOException(String.format("Cannot filter %s to %s", resource, targetFile), exp);
+                  throw new IOException(String.format("Cannot filter %s to %s", context.getSourceFile(), context.getTargetFile()), exp);
               }
-          },
+          })
           // Processor 2: Merge with existing content if YAML
-          (resource, targetFile, existingContent, previousOutput) -> {
-              // existingContent = original content from target file (preserved throughout chain)
-              // previousOutput = filtered content from Processor 1
-              if (existingContent != null && YamlUtil.isYaml(targetFile)) {
-                  return YamlUtil.mergeYaml(existingContent, previousOutput);
-              }
-              return previousOutput;
-          }
-        );
+          .addProcessor(ResourceFileProcessors.mergeYamlIfExists())
+          .process();
+
+        return result.getProcessedFiles().toArray(new File[0]);
     }
 }
 

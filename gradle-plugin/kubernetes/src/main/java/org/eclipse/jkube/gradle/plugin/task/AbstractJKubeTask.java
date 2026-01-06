@@ -32,8 +32,8 @@ import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.util.LazyBuilder;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
-import org.eclipse.jkube.kit.common.util.ResourceFileProcessor;
-import org.eclipse.jkube.kit.common.util.YamlUtil;
+import org.eclipse.jkube.kit.common.util.ResourceFileProcessing;
+import org.eclipse.jkube.kit.common.util.ResourceFileProcessors;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -225,22 +225,19 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     if (!outDir.exists() && !outDir.mkdirs()) {
       throw new IOException("Cannot create working dir " + outDir);
     }
-    return ResourceFileProcessor.processFiles(
-      resourceFiles,
-      outDir,
+
+    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+      .withFiles(resourceFiles)
+      .withOutputDirectory(outDir)
+      .withOptions(ResourceFileProcessing.ProcessingOptions.defaults())
       // Processor 1: Read and interpolate the source file
-      (resource, targetFile, existingContent, previousOutput) ->
-        interpolate(resource, kubernetesExtension.javaProject.getProperties(),
-          kubernetesExtension.getFilter().getOrNull()),
+      .addProcessor(context ->
+        interpolate(context.getSourceFile(), kubernetesExtension.javaProject.getProperties(),
+          kubernetesExtension.getFilter().getOrNull()))
       // Processor 2: Merge with existing content if YAML
-      (resource, targetFile, existingContent, previousOutput) -> {
-        // existingContent = original content from target file (preserved throughout chain)
-        // previousOutput = interpolated content from Processor 1
-        if (existingContent != null && YamlUtil.isYaml(targetFile)) {
-          return YamlUtil.mergeYaml(existingContent, previousOutput);
-        }
-        return previousOutput;
-      }
-    );
+      .addProcessor(ResourceFileProcessors.mergeYamlIfExists())
+      .process();
+
+    return result.getProcessedFiles().toArray(new File[0]);
   }
 }
