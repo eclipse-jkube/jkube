@@ -225,10 +225,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
     if (!outDir.exists() && !outDir.mkdirs()) {
       throw new IOException("Cannot create working dir " + outDir);
     }
-    return getFiles(resourceFiles, outDir);
-  }
-
-  private File[] getFiles(File[] resourceFiles, File outDir) throws IOException {
     return ResourceFileProcessor.processFiles(
       resourceFiles,
       outDir,

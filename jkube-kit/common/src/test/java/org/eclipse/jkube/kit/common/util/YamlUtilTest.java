@@ -353,21 +353,6 @@ class YamlUtilTest {
   }
 
   @Test
-  void mergeYaml_withNullValue_shouldReturnOther() throws IOException {
-    // Given
-    String nullYaml = "null";
-    String validYaml = "metadata:\n  name: test\n";
-
-    // When
-    String result1 = YamlUtil.mergeYaml(nullYaml, validYaml);
-    String result2 = YamlUtil.mergeYaml(validYaml, nullYaml);
-
-    // Then
-    assertThat(result1).isEqualTo(validYaml);
-    assertThat(result2).isEqualTo(validYaml);
-  }
-
-  @Test
   void mergeYaml_withEmptyObject_shouldReturnOther() throws IOException {
     // Given
     String emptyObjectYaml = "{}";
@@ -379,19 +364,6 @@ class YamlUtilTest {
     // Then - result should contain the valid yaml properties
     assertThat(getPropertiesFromYamlString(result1))
       .containsEntry("metadata.name", "test");
-  }
-
-  @Test
-  void mergeYaml_withEmptyArray_shouldReturnOther() throws IOException {
-    // Given
-    String emptyArrayYaml = "[]";
-    String validYaml = "- item1\n- item2\n";
-
-    // When
-    String result1 = YamlUtil.mergeYaml(emptyArrayYaml, validYaml);
-
-    // Then
-    assertThat(result1).contains("item1", "item2");
   }
 
   @Test

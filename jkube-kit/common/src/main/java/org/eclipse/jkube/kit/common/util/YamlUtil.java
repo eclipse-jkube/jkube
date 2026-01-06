@@ -146,51 +146,12 @@ public class YamlUtil {
       return true;
     }
     try {
-      Object deserialized = YAML_MAPPER.readValue(yaml, Object.class);
-      return isDeserializedObjectEmpty(deserialized);
+      Map<String, Object> deserialized = YAML_MAPPER.readValue(yaml, Map.class);
+      return deserialized == null || deserialized.isEmpty();
     } catch (IOException e) {
       // If parsing fails due to no content (e.g., only comments), consider it empty
       // Otherwise, consider it non-empty to be safe
       return e.getMessage() != null && e.getMessage().contains("No content to map");
-    }
-  }
-
-  /**
-   * Checks if a deserialized YAML object is empty by serializing it back
-   * and checking if the result is effectively empty.
-   *
-   * @param obj the deserialized object
-   * @return true if the object is null or serializes to an empty representation
-   */
-  private static boolean isDeserializedObjectEmpty(Object obj) {
-    if (obj == null) {
-      return true;
-    }
-    try {
-      // Serialize back to YAML and check if result is empty
-      String serialized = YAML_MAPPER.writeValueAsString(obj).trim();
-
-      // Check for empty representations
-      return serialized.isEmpty()
-        || serialized.equals("---")
-        || serialized.equals("null")
-        || serialized.equals("{}")
-        || serialized.equals("[]")
-        || serialized.equals("\"\"")
-        || serialized.equals("''");
-    } catch (Exception e) {
-      // If serialization fails, fall back to type-based check
-      if (obj instanceof Map) {
-        return ((Map<?, ?>) obj).isEmpty();
-      }
-      if (obj instanceof List) {
-        return ((List<?>) obj).isEmpty();
-      }
-      if (obj instanceof String) {
-        return ((String) obj).trim().isEmpty();
-      }
-      // For other types, consider non-empty
-      return false;
     }
   }
 }
