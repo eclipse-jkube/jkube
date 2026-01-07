@@ -11,13 +11,16 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker;
+package org.eclipse.jkube.kit.common;
+
+import java.util.Map;
 
 /**
  * Default implementation of {@link Environment} that delegates to {@code System.getenv()}.
+ *
+ * <p>Uses the initialization-on-demand holder pattern for lazy, thread-safe singleton initialization.
  */
 public class SystemEnvironment implements Environment {
-  private static final SystemEnvironment INSTANCE = new SystemEnvironment();
 
   /**
    * Returns the singleton instance of SystemEnvironment.
@@ -25,7 +28,7 @@ public class SystemEnvironment implements Environment {
    * @return the singleton instance
    */
   public static SystemEnvironment getInstance() {
-    return INSTANCE;
+    return SystemEnvironmentHolder.INSTANCE;
   }
 
   /**
@@ -39,4 +42,25 @@ public class SystemEnvironment implements Environment {
   public String getEnv(String name) {
     return System.getenv(name);
   }
+
+  @Override
+  public Map<String, String> getEnvMap() {
+    return System.getenv();
+  }
+
+  /**
+   * Initialization-on-demand holder idiom.
+   * The JVM defers initialization of the holder class until it is actually used,
+   * and because the class initialization is thread-safe, this provides a lazy,
+   * thread-safe singleton without requiring synchronization.
+   *
+   * @see <a href="https://en.wikipedia.org/wiki/Initialization-on-demand_holder_idiom">Initialization-on-demand holder idiom</a>
+   */
+  private static final class SystemEnvironmentHolder {
+    static final SystemEnvironment INSTANCE = new SystemEnvironment();
+
+    private SystemEnvironmentHolder() {
+    }
+  }
 }
+

@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil;
+import org.eclipse.jkube.kit.common.TestEnvironment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,11 +26,11 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 class AbstractAwsSdkHelperTest {
   private TestAwsSdkHelper helper;
-  private EnvironmentVariablesTestUtil testEnv;
+  private TestEnvironment testEnv;
 
   @BeforeEach
   void setUp() {
-    testEnv = new EnvironmentVariablesTestUtil();
+    testEnv = new TestEnvironment();
     helper = new TestAwsSdkHelper(testEnv);
   }
 
@@ -103,7 +103,7 @@ class AbstractAwsSdkHelperTest {
    * Test implementation of AbstractAwsSdkHelper for testing purposes.
    */
   private static class TestAwsSdkHelper extends AbstractAwsSdkHelper {
-    TestAwsSdkHelper(EnvironmentVariablesTestUtil environment) {
+    TestAwsSdkHelper(TestEnvironment environment) {
       super(environment);
     }
 

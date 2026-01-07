@@ -21,6 +21,7 @@ import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthHandler;
 import org.eclipse.jkube.kit.common.KitLogger;
+import org.eclipse.jkube.kit.common.SystemEnvironment;
 
 import static org.eclipse.jkube.kit.build.api.helper.KubernetesConfigAuthUtil.readKubeConfigAuth;
 
@@ -76,10 +77,10 @@ public class OpenShiftRegistryAuthHandler implements RegistryAuthHandler {
             return openShiftRegistryAuth;
         }
         // No login found
-        String kubeConfigEnv = System.getenv("KUBECONFIG");
+        String kubeConfigEnv = SystemEnvironment.getInstance().getEnv("KUBECONFIG");
         throw new IllegalArgumentException(
             String.format("OpenShift auth check enabled, but not active user and/or token found in %s. " +
                           "Please use 'oc login' for connecting to OpenShift.", kubeConfigEnv != null ? kubeConfigEnv : "~/.kube/config"));
     }
-
 }
+

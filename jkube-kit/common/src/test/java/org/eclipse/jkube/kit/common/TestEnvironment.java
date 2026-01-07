@@ -11,10 +11,9 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker.auth;
+package org.eclipse.jkube.kit.common;
 
-import org.eclipse.jkube.kit.build.service.docker.Environment;
-
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,22 +22,22 @@ import java.util.Map;
  *
  * <p>Usage example:</p>
  * <pre>
- * EnvironmentVariablesTestUtil env = new EnvironmentVariablesTestUtil();
+ * TestEnvironment env = new TestEnvironment();
  * env.put("AWS_ACCESS_KEY_ID", "test-key");
  * env.put("AWS_SECRET_ACCESS_KEY", "test-secret");
  *
  * // Pass env to classes under test via their package-private constructors
- * AbstractAwsSdkHelper helper = new AwsSdkHelperV2(env);
+ * SomeClass instance = new SomeClass(env);
  * </pre>
  */
-public class EnvironmentVariablesTestUtil implements Environment {
+public class TestEnvironment implements Environment {
 
   private final Map<String, String> variables;
 
   /**
    * Creates a new test environment with an empty set of variables.
    */
-  public EnvironmentVariablesTestUtil() {
+  public TestEnvironment() {
     this.variables = new HashMap<>();
   }
 
@@ -47,13 +46,18 @@ public class EnvironmentVariablesTestUtil implements Environment {
    *
    * @param variables initial environment variables
    */
-  public EnvironmentVariablesTestUtil(Map<String, String> variables) {
+  public TestEnvironment(Map<String, String> variables) {
     this.variables = new HashMap<>(variables);
   }
 
   @Override
   public String getEnv(String name) {
     return variables.get(name);
+  }
+
+  @Override
+  public Map<String, String> getEnvMap() {
+    return Collections.unmodifiableMap(variables);
   }
 
   /**
@@ -63,7 +67,7 @@ public class EnvironmentVariablesTestUtil implements Environment {
    * @param value the environment variable value
    * @return this instance for method chaining
    */
-  public EnvironmentVariablesTestUtil put(String key, String value) {
+  public TestEnvironment put(String key, String value) {
     variables.put(key, value);
     return this;
   }
@@ -74,7 +78,7 @@ public class EnvironmentVariablesTestUtil implements Environment {
    * @param key the environment variable name to remove
    * @return this instance for method chaining
    */
-  public EnvironmentVariablesTestUtil remove(String key) {
+  public TestEnvironment remove(String key) {
     variables.remove(key);
     return this;
   }
@@ -85,7 +89,7 @@ public class EnvironmentVariablesTestUtil implements Environment {
    * @param variables map of variable names to values
    * @return this instance for method chaining
    */
-  public EnvironmentVariablesTestUtil putAll(Map<String, String> variables) {
+  public TestEnvironment putAll(Map<String, String> variables) {
     this.variables.putAll(variables);
     return this;
   }
@@ -95,7 +99,7 @@ public class EnvironmentVariablesTestUtil implements Environment {
    *
    * @return this instance for method chaining
    */
-  public EnvironmentVariablesTestUtil clear() {
+  public TestEnvironment clear() {
     variables.clear();
     return this;
   }
@@ -109,3 +113,4 @@ public class EnvironmentVariablesTestUtil implements Environment {
     return new HashMap<>(variables);
   }
 }
+

@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
-import org.eclipse.jkube.kit.build.service.docker.Environment;
-import org.eclipse.jkube.kit.build.service.docker.SystemEnvironment;
+import org.eclipse.jkube.kit.common.Environment;
+import org.eclipse.jkube.kit.common.SystemEnvironment;
 import org.eclipse.jkube.kit.build.service.docker.helper.LocalSocketUtil;
 import org.eclipse.jkube.kit.build.service.docker.helper.SuffixFileFilter;
 import org.eclipse.jkube.kit.common.util.EnvUtil;

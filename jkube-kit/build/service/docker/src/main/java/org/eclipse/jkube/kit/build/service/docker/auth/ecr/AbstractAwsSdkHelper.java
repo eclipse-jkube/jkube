@@ -13,8 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
-import org.eclipse.jkube.kit.build.service.docker.Environment;
-import org.eclipse.jkube.kit.build.service.docker.SystemEnvironment;
+import org.eclipse.jkube.kit.common.Environment;
+import org.eclipse.jkube.kit.common.SystemEnvironment;
 
 /**
  * Abstract base class for AWS SDK helpers.
