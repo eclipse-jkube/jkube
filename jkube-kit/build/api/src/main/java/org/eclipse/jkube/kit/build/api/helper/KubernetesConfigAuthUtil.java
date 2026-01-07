@@ -16,6 +16,7 @@ package org.eclipse.jkube.kit.build.api.helper;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.common.SystemEnvironment;
 import org.eclipse.jkube.kit.common.util.Serialization;
 
 import java.io.File;
@@ -97,7 +98,7 @@ public class KubernetesConfigAuthUtil {
   }
 
   private static Map<String, Object> readKubeConfig()  {
-    String kubeConfig = System.getenv(KUBECONFIG_ENV);
+    String kubeConfig = SystemEnvironment.getInstance().getEnv(KUBECONFIG_ENV);
     final File applicableFile = kubeConfig == null ?
         getUserHome().toPath().resolve(KUBECONFIG_FILE).toFile() : new File(kubeConfig);
     if (applicableFile.exists()) {

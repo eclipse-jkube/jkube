@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil;
+import org.eclipse.jkube.kit.common.TestEnvironment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,11 +25,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class AwsSdkHelperV1Test {
   private AwsSdkHelperV1 helper;
-  private EnvironmentVariablesTestUtil testEnv;
+  private TestEnvironment testEnv;
 
   @BeforeEach
   void setUp() {
-    testEnv = new EnvironmentVariablesTestUtil();
+    testEnv = new TestEnvironment();
     helper = new AwsSdkHelperV1(testEnv);
   }
 

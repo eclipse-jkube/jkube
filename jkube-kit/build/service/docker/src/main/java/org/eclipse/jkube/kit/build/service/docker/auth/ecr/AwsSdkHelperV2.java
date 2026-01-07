@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.Environment;
+import org.eclipse.jkube.kit.common.Environment;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

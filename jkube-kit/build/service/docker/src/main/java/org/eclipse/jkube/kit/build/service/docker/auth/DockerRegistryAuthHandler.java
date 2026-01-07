@@ -26,8 +26,8 @@ import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthHandler;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.eclipse.jkube.kit.build.service.docker.Environment;
-import org.eclipse.jkube.kit.build.service.docker.SystemEnvironment;
+import org.eclipse.jkube.kit.common.Environment;
+import org.eclipse.jkube.kit.common.SystemEnvironment;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 /**

@@ -11,7 +11,9 @@
  * Contributors:
  *   Red Hat, Inc. - initial API and implementation
  */
-package org.eclipse.jkube.kit.build.service.docker;
+package org.eclipse.jkube.kit.common;
+
+import java.util.Map;
 
 /**
  * Abstraction for accessing environment variables.
@@ -27,4 +29,12 @@ public interface Environment {
    * @return the string value of the variable, or {@code null} if the variable is not defined
    */
   String getEnv(String name);
+
+  /**
+   * Returns an unmodifiable string map view of the current system environment.
+   *
+   * @return the environment as a map of variable names to values
+   */
+  Map<String, String> getEnvMap();
 }
+
