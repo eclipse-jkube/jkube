@@ -14,13 +14,11 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.junit.jupiter.api.AfterEach;
+import org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil.clearEnvironmentVariable;
-import static org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil.setEnvironmentVariable;
 
 /**
  * Tests for AbstractAwsSdkHelper.
@@ -28,145 +26,87 @@ import static org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariabl
  */
 class AbstractAwsSdkHelperTest {
   private TestAwsSdkHelper helper;
+  private EnvironmentVariablesTestUtil testEnv;
 
   @BeforeEach
   void setUp() {
-    helper = new TestAwsSdkHelper();
-  }
-
-  @AfterEach
-  void tearDown() {
-    // Clean up test environment variables
-    try {
-      clearEnvironmentVariable("TEST_AWS_ACCESS_KEY_ID");
-      clearEnvironmentVariable("TEST_AWS_SECRET_ACCESS_KEY");
-      clearEnvironmentVariable("TEST_AWS_SESSION_TOKEN");
-      clearEnvironmentVariable("TEST_AWS_CONTAINER_CREDENTIALS_RELATIVE_URI");
-      clearEnvironmentVariable("TEST_ECS_METADATA_ENDPOINT");
-      clearEnvironmentVariable("AWS_ACCESS_KEY_ID");
-      clearEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
-      clearEnvironmentVariable("AWS_SESSION_TOKEN");
-      clearEnvironmentVariable("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI");
-      clearEnvironmentVariable("ECS_METADATA_ENDPOINT");
-    } catch (Exception ignored) {
-      // Ignore failures on newer Java versions
-    }
+    testEnv = new EnvironmentVariablesTestUtil();
+    helper = new TestAwsSdkHelper(testEnv);
   }
 
   @Test
-  void getAwsAccessKeyIdEnvVar_returnsEnvironmentVariable() {
+  void getAwsAccessKeyIdEnvVar_whenNotSet_returnsNull() {
     String value = helper.getAwsAccessKeyIdEnvVar();
-    // Value can be null or have a value depending on environment
-    assertThat(value).satisfiesAnyOf(
-        v -> assertThat(v).isNull(),
-        v -> assertThat(v).isNotEmpty()
-    );
+    assertThat(value).isNull();
   }
 
   @Test
   void getAwsAccessKeyIdEnvVar_whenSet_returnsValue() {
-    try {
-      setEnvironmentVariable("AWS_ACCESS_KEY_ID", "test-key-123");
-      String value = helper.getAwsAccessKeyIdEnvVar();
-      assertThat(value).isEqualTo("test-key-123");
-    } catch (RuntimeException e) {
-      // Skip test if environment modification not supported
-      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
-    }
+    testEnv.put("AWS_ACCESS_KEY_ID", "test-key-123");
+    String value = helper.getAwsAccessKeyIdEnvVar();
+    assertThat(value).isEqualTo("test-key-123");
   }
 
   @Test
-  void getAwsSecretAccessKeyEnvVar_returnsEnvironmentVariable() {
+  void getAwsSecretAccessKeyEnvVar_whenNotSet_returnsNull() {
     String value = helper.getAwsSecretAccessKeyEnvVar();
-    assertThat(value).satisfiesAnyOf(
-        v -> assertThat(v).isNull(),
-        v -> assertThat(v).isNotEmpty()
-    );
+    assertThat(value).isNull();
   }
 
   @Test
   void getAwsSecretAccessKeyEnvVar_whenSet_returnsValue() {
-    try {
-      setEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "test-secret-456");
-      String value = helper.getAwsSecretAccessKeyEnvVar();
-      assertThat(value).isEqualTo("test-secret-456");
-    } catch (RuntimeException e) {
-      // Skip test if environment modification not supported
-      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
-    }
+    testEnv.put("AWS_SECRET_ACCESS_KEY", "test-secret-456");
+    String value = helper.getAwsSecretAccessKeyEnvVar();
+    assertThat(value).isEqualTo("test-secret-456");
   }
 
   @Test
-  void getAwsSessionTokenEnvVar_returnsEnvironmentVariable() {
+  void getAwsSessionTokenEnvVar_whenNotSet_returnsNull() {
     String value = helper.getAwsSessionTokenEnvVar();
-    assertThat(value).satisfiesAnyOf(
-        v -> assertThat(v).isNull(),
-        v -> assertThat(v).isNotEmpty()
-    );
+    assertThat(value).isNull();
   }
 
   @Test
   void getAwsSessionTokenEnvVar_whenSet_returnsValue() {
-    try {
-      setEnvironmentVariable("AWS_SESSION_TOKEN", "test-token-789");
-      String value = helper.getAwsSessionTokenEnvVar();
-      assertThat(value).isEqualTo("test-token-789");
-    } catch (RuntimeException e) {
-      // Skip test if environment modification not supported
-      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
-    }
+    testEnv.put("AWS_SESSION_TOKEN", "test-token-789");
+    String value = helper.getAwsSessionTokenEnvVar();
+    assertThat(value).isEqualTo("test-token-789");
   }
 
   @Test
-  void getAwsContainerCredentialsRelativeUri_returnsEnvironmentVariable() {
+  void getAwsContainerCredentialsRelativeUri_whenNotSet_returnsNull() {
     String value = helper.getAwsContainerCredentialsRelativeUri();
-    assertThat(value).satisfiesAnyOf(
-        v -> assertThat(v).isNull(),
-        v -> assertThat(v).isNotEmpty()
-    );
+    assertThat(value).isNull();
   }
 
   @Test
   void getAwsContainerCredentialsRelativeUri_whenSet_returnsValue() {
-    try {
-      setEnvironmentVariable("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", "/v2/credentials/test-uuid");
-      String value = helper.getAwsContainerCredentialsRelativeUri();
-      assertThat(value).isEqualTo("/v2/credentials/test-uuid");
-    } catch (RuntimeException e) {
-      // Skip test if environment modification not supported
-      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
-    }
+    testEnv.put("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", "/v2/credentials/test-uuid");
+    String value = helper.getAwsContainerCredentialsRelativeUri();
+    assertThat(value).isEqualTo("/v2/credentials/test-uuid");
   }
 
   @Test
   void getEcsMetadataEndpoint_whenSet_returnsEnvVarValue() {
-    try {
-      setEnvironmentVariable("ECS_METADATA_ENDPOINT", "http://custom-endpoint:8080");
-      String endpoint = helper.getEcsMetadataEndpoint();
-      assertThat(endpoint).isEqualTo("http://custom-endpoint:8080");
-    } catch (RuntimeException e) {
-      // Skip test if environment modification not supported
-      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
-    }
+    testEnv.put("ECS_METADATA_ENDPOINT", "http://custom-endpoint:8080");
+    String endpoint = helper.getEcsMetadataEndpoint();
+    assertThat(endpoint).isEqualTo("http://custom-endpoint:8080");
   }
 
   @Test
   void getEcsMetadataEndpoint_whenNotSet_returnsFallbackValue() {
-    try {
-      clearEnvironmentVariable("ECS_METADATA_ENDPOINT");
-      String endpoint = helper.getEcsMetadataEndpoint();
-      // Should return the default ECS metadata endpoint v2
-      assertThat(endpoint).isEqualTo("http://169.254.170.2");
-    } catch (RuntimeException e) {
-      // Skip test if environment modification not supported
-      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
-    }
+    String endpoint = helper.getEcsMetadataEndpoint();
+    assertThat(endpoint).isEqualTo("http://169.254.170.2");
   }
 
   /**
    * Test implementation of AbstractAwsSdkHelper for testing purposes.
    */
   private static class TestAwsSdkHelper extends AbstractAwsSdkHelper {
+    TestAwsSdkHelper(EnvironmentVariablesTestUtil environment) {
+      super(environment);
+    }
+
     @Override
     public boolean isAwsSdkAvailable() {
       return false;

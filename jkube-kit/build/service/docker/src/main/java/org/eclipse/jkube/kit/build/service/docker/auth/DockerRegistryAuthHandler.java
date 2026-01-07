@@ -26,6 +26,8 @@ import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthConfig;
 import org.eclipse.jkube.kit.build.api.auth.RegistryAuthHandler;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.service.docker.Environment;
+import org.eclipse.jkube.kit.build.service.docker.SystemEnvironment;
 import org.eclipse.jkube.kit.common.KitLogger;
 
 /**
@@ -38,11 +40,16 @@ public class DockerRegistryAuthHandler implements RegistryAuthHandler {
 
     private final KitLogger log;
     private final Gson gson;
+    private final Environment environment;
 
     public DockerRegistryAuthHandler(KitLogger log) {
+        this(log, SystemEnvironment.getInstance());
+    }
+
+    DockerRegistryAuthHandler(KitLogger log, Environment environment) {
         this.log = log;
         this.gson = new Gson();
-
+        this.environment = environment;
     }
 
     @Override
@@ -82,7 +89,7 @@ public class DockerRegistryAuthHandler implements RegistryAuthHandler {
     }
 
     private Optional<JsonObject> readDockerConfig() {
-        String dockerConfig = System.getenv("DOCKER_CONFIG");
+        String dockerConfig = environment.getEnv("DOCKER_CONFIG");
 
         Optional<Reader> reader = dockerConfig == null
             ? getFileReaderFromDir(new File(getHomeDir(), ".docker/config.json"))
@@ -130,7 +137,7 @@ public class DockerRegistryAuthHandler implements RegistryAuthHandler {
     }
 
     private File getHomeDir() {
-        String homeDir = Optional.ofNullable(System.getProperty("user.home")).orElse(System.getenv("HOME"));
+        String homeDir = Optional.ofNullable(System.getProperty("user.home")).orElse(environment.getEnv("HOME"));
         return new File(homeDir);
     }
 

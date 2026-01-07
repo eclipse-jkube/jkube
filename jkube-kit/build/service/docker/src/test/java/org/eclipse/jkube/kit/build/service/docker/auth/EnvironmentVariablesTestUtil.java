@@ -13,94 +13,99 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.auth;
 
-import java.lang.reflect.Field;
-import java.util.Collections;
+import org.eclipse.jkube.kit.build.service.docker.Environment;
+
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Utility class for modifying environment variables in tests.
- * Uses reflection to modify the environment map.
+ * Test implementation of Environment for use in unit tests.
+ *
+ * <p>Usage example:</p>
+ * <pre>
+ * EnvironmentVariablesTestUtil env = new EnvironmentVariablesTestUtil();
+ * env.put("AWS_ACCESS_KEY_ID", "test-key");
+ * env.put("AWS_SECRET_ACCESS_KEY", "test-secret");
+ *
+ * // Pass env to classes under test via their package-private constructors
+ * AbstractAwsSdkHelper helper = new AwsSdkHelperV2(env);
+ * </pre>
  */
-public class EnvironmentVariablesTestUtil {
+public class EnvironmentVariablesTestUtil implements Environment {
+
+  private final Map<String, String> variables;
 
   /**
-   * Sets an environment variable for testing purposes.
-   * This uses reflection to modify the environment map.
-   *
-   * @param key   the environment variable name
-   * @param value the environment variable value
+   * Creates a new test environment with an empty set of variables.
    */
-  @SuppressWarnings("unchecked")
-  public static void setEnvironmentVariable(String key, String value) {
-    try {
-      Map<String, String> env = System.getenv();
-      Class<?> cl = env.getClass();
-      Field field = cl.getDeclaredField("m");
-      field.setAccessible(true);
-      Map<String, String> writableEnv = (Map<String, String>) field.get(env);
-      writableEnv.put(key, value);
-    } catch (Exception e) {
-      try {
-        // Fallback approach for different JVM implementations
-        Class<?>[] classes = Collections.class.getDeclaredClasses();
-        Map<String, String> env = System.getenv();
-        for (Class<?> cl : classes) {
-          if (cl.isInstance(env)) {
-            Field field = cl.getDeclaredField("m");
-            field.setAccessible(true);
-            Object obj = field.get(env);
-            Map<String, String> map = (Map<String, String>) obj;
-            map.put(key, value);
-            break;
-          }
-        }
-      } catch (Exception e2) {
-        throw new RuntimeException("Failed to set environment variable", e2);
-      }
-    }
+  public EnvironmentVariablesTestUtil() {
+    this.variables = new HashMap<>();
   }
 
   /**
-   * Clears an environment variable for testing purposes.
+   * Creates a new test environment with the given variables.
    *
-   * @param key the environment variable name to clear
+   * @param variables initial environment variables
    */
-  @SuppressWarnings("unchecked")
-  public static void clearEnvironmentVariable(String key) {
-    try {
-      Map<String, String> env = System.getenv();
-      Class<?> cl = env.getClass();
-      Field field = cl.getDeclaredField("m");
-      field.setAccessible(true);
-      Map<String, String> writableEnv = (Map<String, String>) field.get(env);
-      writableEnv.remove(key);
-    } catch (Exception e) {
-      try {
-        // Fallback approach
-        Class<?>[] classes = Collections.class.getDeclaredClasses();
-        Map<String, String> env = System.getenv();
-        for (Class<?> cl : classes) {
-          if (cl.isInstance(env)) {
-            Field field = cl.getDeclaredField("m");
-            field.setAccessible(true);
-            Object obj = field.get(env);
-            Map<String, String> map = (Map<String, String>) obj;
-            map.remove(key);
-            break;
-          }
-        }
-      } catch (Exception e2) {
-        throw new RuntimeException("Failed to clear environment variable", e2);
-      }
-    }
+  public EnvironmentVariablesTestUtil(Map<String, String> variables) {
+    this.variables = new HashMap<>(variables);
+  }
+
+  @Override
+  public String getEnv(String name) {
+    return variables.get(name);
+  }
+
+  /**
+   * Sets an environment variable for testing purposes.
+   *
+   * @param key   the environment variable name
+   * @param value the environment variable value
+   * @return this instance for method chaining
+   */
+  public EnvironmentVariablesTestUtil put(String key, String value) {
+    variables.put(key, value);
+    return this;
+  }
+
+  /**
+   * Removes an environment variable.
+   *
+   * @param key the environment variable name to remove
+   * @return this instance for method chaining
+   */
+  public EnvironmentVariablesTestUtil remove(String key) {
+    variables.remove(key);
+    return this;
   }
 
   /**
    * Sets multiple environment variables at once.
    *
    * @param variables map of variable names to values
+   * @return this instance for method chaining
    */
-  public static void setEnvironmentVariables(Map<String, String> variables) {
-    variables.forEach(EnvironmentVariablesTestUtil::setEnvironmentVariable);
+  public EnvironmentVariablesTestUtil putAll(Map<String, String> variables) {
+    this.variables.putAll(variables);
+    return this;
+  }
+
+  /**
+   * Clears all environment variables.
+   *
+   * @return this instance for method chaining
+   */
+  public EnvironmentVariablesTestUtil clear() {
+    variables.clear();
+    return this;
+  }
+
+  /**
+   * Gets all environment variables as a map.
+   *
+   * @return a copy of the environment variables map
+   */
+  public Map<String, String> getAll() {
+    return new HashMap<>(variables);
   }
 }

@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.kit.build.service.docker.access;
 
+import org.eclipse.jkube.kit.build.service.docker.Environment;
+import org.eclipse.jkube.kit.build.service.docker.SystemEnvironment;
 import org.eclipse.jkube.kit.build.service.docker.helper.LocalSocketUtil;
 import org.eclipse.jkube.kit.build.service.docker.helper.SuffixFileFilter;
 import org.eclipse.jkube.kit.common.util.EnvUtil;
@@ -30,8 +32,14 @@ import java.util.List;
 public class DockerConnectionDetector {
 
     final List<DockerHostProvider> dockerHostProviders;
+    private final Environment environment;
 
     public DockerConnectionDetector(List<DockerHostProvider> externalProviders) {
+        this(externalProviders, SystemEnvironment.getInstance());
+    }
+
+    DockerConnectionDetector(List<DockerHostProvider> externalProviders, Environment environment) {
+        this.environment = environment;
         dockerHostProviders = new ArrayList<>();
         dockerHostProviders.addAll(getDefaultEnvProviders());
         if (externalProviders != null) {
@@ -92,7 +100,7 @@ public class DockerConnectionDetector {
      */
     public ConnectionParameter detectConnectionParameter(String dockerHost, String certPath) throws IOException {
         if (dockerHost != null) {
-            return new ConnectionParameter(dockerHost, certPath);
+            return new ConnectionParameter(dockerHost, certPath, environment);
         }
         for (DockerHostProvider provider : dockerHostProviders) {
             ConnectionParameter value = provider.getConnectionParameter(certPath);
@@ -111,8 +119,8 @@ public class DockerConnectionDetector {
     class EnvDockerHostProvider implements DockerHostProvider {
         @Override
         public ConnectionParameter getConnectionParameter(String certPath) throws IOException {
-            String connect = System.getenv("DOCKER_HOST");
-            return connect != null ? new ConnectionParameter(connect, certPath) : null;
+            String connect = environment.getEnv("DOCKER_HOST");
+            return connect != null ? new ConnectionParameter(connect, certPath, environment) : null;
         }
 
         @Override
@@ -128,7 +136,7 @@ public class DockerConnectionDetector {
             String filePath = "/var/run/docker.sock";
             File unixSocket = new File(filePath);
             if (unixSocket.exists() && unixSocket.canRead() && unixSocket.canWrite() && LocalSocketUtil.canConnectUnixSocket(unixSocket)) {
-                return new ConnectionParameter("unix://"+filePath, certPath);
+                return new ConnectionParameter("unix://"+filePath, certPath, environment);
             } else {
                 return null;
             }
@@ -146,7 +154,7 @@ public class DockerConnectionDetector {
         public ConnectionParameter getConnectionParameter(String certPath) throws IOException {
             File windowsPipe = new File("//./pipe/docker_engine");
             if (windowsPipe.exists()) {
-                return new ConnectionParameter("npipe:////./pipe/docker_engine", certPath);
+                return new ConnectionParameter("npipe:////./pipe/docker_engine", certPath, environment);
             } else {
                 return null;
             }
@@ -161,9 +169,15 @@ public class DockerConnectionDetector {
     public static class ConnectionParameter {
         private final String url;
         private String certPath;
+        private final Environment environment;
 
         public ConnectionParameter(String url, String certPath) throws IOException {
+            this(url, certPath, SystemEnvironment.getInstance());
+        }
+
+        ConnectionParameter(String url, String certPath, Environment environment) throws IOException {
             this.url = url != null ? EnvUtil.convertTcpToHttpUrl(url) : null;
+            this.environment = environment;
             initCertPath(certPath);
         }
 
@@ -185,7 +199,7 @@ public class DockerConnectionDetector {
          * @param certPath the configured certification path which is used directly if set
          */
         private void initCertPath(String certPath) throws IOException {
-            this.certPath = certPath != null ? certPath : System.getenv("DOCKER_CERT_PATH");
+            this.certPath = certPath != null ? certPath : environment.getEnv("DOCKER_CERT_PATH");
             // Try default locations as last resort
             if (this.certPath == null) {
                 File dockerHome = new File(System.getProperty("user.home") + "/.docker");

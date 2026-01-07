@@ -27,6 +27,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.service.docker.Environment;
+import org.eclipse.jkube.kit.build.service.docker.SystemEnvironment;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -53,6 +55,7 @@ public class EcrExtendedAuth {
     private final boolean isAwsRegistry;
     private final String accountId;
     private final String region;
+    private final Environment environment;
 
     /**
      * Is given the registry an ecr registry?
@@ -71,7 +74,12 @@ public class EcrExtendedAuth {
      * @param registry The registry, we may or may not be an ecr registry.
      */
     public EcrExtendedAuth(KitLogger logger, String registry) {
+        this(logger, registry, SystemEnvironment.getInstance());
+    }
+
+    EcrExtendedAuth(KitLogger logger, String registry, Environment environment) {
         this.logger = logger;
+        this.environment = environment;
         Matcher matcher = AWS_REGISTRY.matcher(registry);
         Matcher matcherLocalStack = LOCALSTACK_REGISTRY.matcher(registry);
         isAwsRegistry = matcher.matches() || matcherLocalStack.matches();
@@ -153,7 +161,7 @@ public class EcrExtendedAuth {
      * @return endpoint URL from AWS_ENDPOINT_URL environment variable, or null for standard AWS ECR
      */
     protected String getEndpointUrl() {
-        return System.getenv("AWS_ENDPOINT_URL");
+        return environment.getEnv("AWS_ENDPOINT_URL");
     }
 
     HttpPost createSignedRequest(AuthConfig localCredentials, Date time) {
