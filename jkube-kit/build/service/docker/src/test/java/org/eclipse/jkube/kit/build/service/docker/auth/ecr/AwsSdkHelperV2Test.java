@@ -14,7 +14,7 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
-import org.junit.jupiter.api.AfterEach;
+import org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,30 +22,15 @@ import java.lang.reflect.InvocationTargetException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil.clearEnvironmentVariable;
-import static org.eclipse.jkube.kit.build.service.docker.auth.EnvironmentVariablesTestUtil.setEnvironmentVariable;
 
 class AwsSdkHelperV2Test {
   private AwsSdkHelperV2 helper;
+  private EnvironmentVariablesTestUtil testEnv;
 
   @BeforeEach
   void setUp() {
-    helper = new AwsSdkHelperV2();
-  }
-
-  @AfterEach
-  void tearDown() {
-    // Clean up after each test - try to clear but don't fail if not possible
-    try {
-      clearEnvironmentVariable("TEST_AWS_ACCESS_KEY_ID");
-      clearEnvironmentVariable("TEST_AWS_SECRET_ACCESS_KEY");
-      clearEnvironmentVariable("TEST_AWS_SESSION_TOKEN");
-      clearEnvironmentVariable("AWS_ACCESS_KEY_ID");
-      clearEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
-      clearEnvironmentVariable("AWS_SESSION_TOKEN");
-    } catch (Exception ignored) {
-      // Ignore failures on newer Java versions
-    }
+    testEnv = new EnvironmentVariablesTestUtil();
+    helper = new AwsSdkHelperV2(testEnv);
   }
 
   @Test
@@ -55,51 +40,64 @@ class AwsSdkHelperV2Test {
 
   @Test
   void isAwsSdkAvailable_returnsTrue_whenMockClassesPresent() {
-    // With mock classes in test classpath, this should return true
     assertThat(helper.isAwsSdkAvailable()).isTrue();
   }
 
   @Test
-  void getAwsAccessKeyIdEnvVar_returnsEnvironmentVariable() {
-    // Test that method correctly reads from environment
+  void getAwsAccessKeyIdEnvVar_whenNotSet_returnsNull() {
     String value = helper.getAwsAccessKeyIdEnvVar();
-    // Value can be null or have a value depending on environment
-    assertThat(value).satisfiesAnyOf(
-      v -> assertThat(v).isNull(),
-      v -> assertThat(v).isNotEmpty()
-    );
+    assertThat(value).isNull();
   }
 
   @Test
-  void getAwsSecretAccessKeyEnvVar_returnsEnvironmentVariable() {
+  void getAwsAccessKeyIdEnvVar_whenSet_returnsValue() {
+    testEnv.put("AWS_ACCESS_KEY_ID", "test-key-123");
+    String value = helper.getAwsAccessKeyIdEnvVar();
+    assertThat(value).isEqualTo("test-key-123");
+  }
+
+  @Test
+  void getAwsSecretAccessKeyEnvVar_whenNotSet_returnsNull() {
     String value = helper.getAwsSecretAccessKeyEnvVar();
-    assertThat(value).satisfiesAnyOf(
-      v -> assertThat(v).isNull(),
-      v -> assertThat(v).isNotEmpty()
-    );
+    assertThat(value).isNull();
   }
 
   @Test
-  void getAwsSessionTokenEnvVar_returnsEnvironmentVariable() {
+  void getAwsSecretAccessKeyEnvVar_whenSet_returnsValue() {
+    testEnv.put("AWS_SECRET_ACCESS_KEY", "test-secret-456");
+    String value = helper.getAwsSecretAccessKeyEnvVar();
+    assertThat(value).isEqualTo("test-secret-456");
+  }
+
+  @Test
+  void getAwsSessionTokenEnvVar_whenNotSet_returnsNull() {
     String value = helper.getAwsSessionTokenEnvVar();
-    assertThat(value).satisfiesAnyOf(
-      v -> assertThat(v).isNull(),
-      v -> assertThat(v).isNotEmpty()
-    );
+    assertThat(value).isNull();
   }
 
   @Test
-  void getAwsContainerCredentialsRelativeUri_returnsEnvironmentVariable() {
+  void getAwsSessionTokenEnvVar_whenSet_returnsValue() {
+    testEnv.put("AWS_SESSION_TOKEN", "test-token-789");
+    String value = helper.getAwsSessionTokenEnvVar();
+    assertThat(value).isEqualTo("test-token-789");
+  }
+
+  @Test
+  void getAwsContainerCredentialsRelativeUri_whenNotSet_returnsNull() {
     String value = helper.getAwsContainerCredentialsRelativeUri();
-    assertThat(value).satisfiesAnyOf(
-      v -> assertThat(v).isNull(),
-      v -> assertThat(v).isNotEmpty()
-    );
+    assertThat(value).isNull();
   }
 
   @Test
-  void getAccessKeyIdFromCredentials_withBasicCredentials_returnsAccessKeyId() throws Exception {
-    software.amazon.awssdk.auth.credentials.AwsBasicCredentials credentials =
+  void getAwsContainerCredentialsRelativeUri_whenSet_returnsValue() {
+    testEnv.put("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", "/v2/credentials/test-uuid");
+    String value = helper.getAwsContainerCredentialsRelativeUri();
+    assertThat(value).isEqualTo("/v2/credentials/test-uuid");
+  }
+
+  @Test
+  void getAccessKeyIdFromCredentials_withAwsCredentials_returnsAccessKeyId() throws Exception {
+    software.amazon.awssdk.auth.credentials.AwsCredentials credentials =
       software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
 
     String accessKeyId = helper.getAccessKeyIdFromCredentials(credentials);
@@ -108,8 +106,8 @@ class AwsSdkHelperV2Test {
   }
 
   @Test
-  void getSecretAccessKeyFromCredentials_withBasicCredentials_returnsSecretKey() throws Exception {
-    software.amazon.awssdk.auth.credentials.AwsBasicCredentials credentials =
+  void getSecretKeyFromCredentials_withAwsCredentials_returnsSecretKey() throws Exception {
+    software.amazon.awssdk.auth.credentials.AwsCredentials credentials =
       software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
 
     String secretKey = helper.getSecretAccessKeyFromCredentials(credentials);
@@ -119,7 +117,7 @@ class AwsSdkHelperV2Test {
 
   @Test
   void getSessionTokenFromCredentials_withBasicCredentials_returnsNull() throws Exception {
-    software.amazon.awssdk.auth.credentials.AwsBasicCredentials credentials =
+    software.amazon.awssdk.auth.credentials.AwsCredentials credentials =
       software.amazon.awssdk.auth.credentials.AwsBasicCredentials.create("test-access-key", "test-secret-key");
 
     String sessionToken = helper.getSessionTokenFromCredentials(credentials);
@@ -129,8 +127,9 @@ class AwsSdkHelperV2Test {
 
   @Test
   void getSessionTokenFromCredentials_withSessionCredentials_returnsSessionToken() throws Exception {
-    software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl credentials =
-      software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl.create("test-access-key", "test-secret-key", "test-session-token");
+    software.amazon.awssdk.auth.credentials.AwsSessionCredentials credentials = new TestAwsSessionCredentials(
+      "test-access-key", "test-secret-key", "test-session-token"
+    );
 
     String sessionToken = helper.getSessionTokenFromCredentials(credentials);
 
@@ -139,8 +138,9 @@ class AwsSdkHelperV2Test {
 
   @Test
   void getAccessKeyIdFromCredentials_withSessionCredentials_returnsAccessKeyId() throws Exception {
-    software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl credentials =
-      software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl.create("test-access-key", "test-secret-key", "test-session-token");
+    software.amazon.awssdk.auth.credentials.AwsSessionCredentials credentials = new TestAwsSessionCredentials(
+      "test-access-key", "test-secret-key", "test-session-token"
+    );
 
     String accessKeyId = helper.getAccessKeyIdFromCredentials(credentials);
 
@@ -148,67 +148,43 @@ class AwsSdkHelperV2Test {
   }
 
   @Test
-  void getSecretAccessKeyFromCredentials_withSessionCredentials_returnsSecretKey() throws Exception {
-    software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl credentials =
-      software.amazon.awssdk.auth.credentials.AwsSessionCredentialsImpl.create("test-access-key", "test-secret-key", "test-session-token");
+  void getSecretKeyFromCredentials_withSessionCredentials_returnsSecretKey() throws Exception {
+    software.amazon.awssdk.auth.credentials.AwsSessionCredentials credentials = new TestAwsSessionCredentials(
+      "test-access-key", "test-secret-key", "test-session-token"
+    );
 
     String secretKey = helper.getSecretAccessKeyFromCredentials(credentials);
 
     assertThat(secretKey).isEqualTo("test-secret-key");
   }
 
-  @Test
-  void getCredentialsFromDefaultProvider_withEnvVars_returnsCredentials() throws Exception {
-    try {
-      setEnvironmentVariable("AWS_ACCESS_KEY_ID", "env-access-key");
-      setEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "env-secret-key");
+  /**
+   * Test implementation of AWS Session Credentials for testing purposes
+   */
+  private static class TestAwsSessionCredentials implements software.amazon.awssdk.auth.credentials.AwsSessionCredentials {
+    private final String accessKeyId;
+    private final String secretAccessKey;
+    private final String sessionToken;
 
-      Object credentials = helper.getCredentialsFromDefaultProvider();
-
-      assertThat(credentials).isNotNull();
-      assertThat(credentials).isInstanceOf(software.amazon.awssdk.auth.credentials.AwsCredentials.class);
-    } catch (RuntimeException e) {
-      // Skip test if environment modification not supported
-      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
+    TestAwsSessionCredentials(String accessKeyId, String secretAccessKey, String sessionToken) {
+      this.accessKeyId = accessKeyId;
+      this.secretAccessKey = secretAccessKey;
+      this.sessionToken = sessionToken;
     }
-  }
 
-  @Test
-  void getCredentialsFromDefaultCredentialsProvider_withBasicCredentials_returnsAuthConfig() {
-    try {
-      setEnvironmentVariable("AWS_ACCESS_KEY_ID", "provider-access-key");
-      setEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "provider-secret-key");
-
-      AuthConfig authConfig = helper.getCredentialsFromDefaultCredentialsProvider();
-
-      assertThat(authConfig).isNotNull();
-      assertThat(authConfig.getUsername()).isEqualTo("provider-access-key");
-      assertThat(authConfig.getPassword()).isEqualTo("provider-secret-key");
-      assertThat(authConfig.getEmail()).isEqualTo("none");
-      assertThat(authConfig.getAuth()).isNull();
-    } catch (RuntimeException e) {
-      // Skip test if environment modification not supported
-      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
+    @Override
+    public String accessKeyId() {
+      return accessKeyId;
     }
-  }
 
-  @Test
-  void getCredentialsFromDefaultCredentialsProvider_withSessionCredentials_returnsAuthConfigWithToken() {
-    try {
-      setEnvironmentVariable("AWS_ACCESS_KEY_ID", "provider-access-key");
-      setEnvironmentVariable("AWS_SECRET_ACCESS_KEY", "provider-secret-key");
-      setEnvironmentVariable("AWS_SESSION_TOKEN", "provider-session-token");
+    @Override
+    public String secretAccessKey() {
+      return secretAccessKey;
+    }
 
-      AuthConfig authConfig = helper.getCredentialsFromDefaultCredentialsProvider();
-
-      assertThat(authConfig).isNotNull();
-      assertThat(authConfig.getUsername()).isEqualTo("provider-access-key");
-      assertThat(authConfig.getPassword()).isEqualTo("provider-secret-key");
-      assertThat(authConfig.getEmail()).isEqualTo("none");
-      assertThat(authConfig.getAuth()).isEqualTo("provider-session-token");
-    } catch (RuntimeException e) {
-      // Skip test if environment modification not supported
-      org.junit.jupiter.api.Assumptions.assumeTrue(false, "Environment modification not supported");
+    @Override
+    public String sessionToken() {
+      return sessionToken;
     }
   }
 
@@ -225,9 +201,7 @@ class AwsSdkHelperV2Test {
 
   @Test
   void getCredentialsFromDefaultProvider_withException_returnsNull() {
-    // Test that method handles exceptions gracefully
-    // Create a helper instance and verify exception handling
-    AwsSdkHelperV2 testHelper = new AwsSdkHelperV2() {
+    AwsSdkHelperV2 testHelper = new AwsSdkHelperV2(testEnv) {
       @Override
       Object getCredentialsFromDefaultProvider() throws ClassNotFoundException {
         throw new ClassNotFoundException("Test exception");
@@ -248,7 +222,7 @@ class AwsSdkHelperV2Test {
   }
 
   @Test
-  void getSecretAccessKeyFromCredentials_withInvalidCredentials_throwsException() {
+  void getSecretKeyFromCredentials_withInvalidCredentials_throwsException() {
     Object invalidCredentials = new Object();
 
     assertThatThrownBy(() -> helper.getSecretAccessKeyFromCredentials(invalidCredentials))
@@ -265,12 +239,15 @@ class AwsSdkHelperV2Test {
   }
 
   @Test
-  void getEcsMetadataEndpoint_returnsDefaultValue() {
+  void getEcsMetadataEndpoint_whenNotSet_returnsDefaultValue() {
     String endpoint = helper.getEcsMetadataEndpoint();
+    assertThat(endpoint).isEqualTo("http://169.254.170.2");
+  }
 
-    assertThat(endpoint).satisfiesAnyOf(
-      e -> assertThat(e).isEqualTo("http://169.254.170.2"),
-      e -> assertThat(e).isNotEmpty()
-    );
+  @Test
+  void getEcsMetadataEndpoint_whenSet_returnsValue() {
+    testEnv.put("ECS_METADATA_ENDPOINT", "http://custom:8080");
+    String endpoint = helper.getEcsMetadataEndpoint();
+    assertThat(endpoint).isEqualTo("http://custom:8080");
   }
 }

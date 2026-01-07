@@ -19,6 +19,8 @@ import java.security.KeyStore;
 
 import javax.net.ssl.SSLContext;
 
+import org.eclipse.jkube.kit.build.service.docker.Environment;
+import org.eclipse.jkube.kit.build.service.docker.SystemEnvironment;
 import org.eclipse.jkube.kit.build.service.docker.access.KeyStoreUtil;
 import org.eclipse.jkube.kit.build.service.docker.access.hc.util.ClientBuilder;
 import org.apache.http.config.Registry;
@@ -41,15 +43,21 @@ public class HttpClientBuilder implements ClientBuilder {
 
     private final String certPath;
     private final int maxConnections;
+    private final Environment environment;
 
     public HttpClientBuilder(String certPath, int maxConnections) {
+        this(certPath, maxConnections, SystemEnvironment.getInstance());
+    }
+
+    HttpClientBuilder(String certPath, int maxConnections, Environment environment) {
         this.certPath = certPath;
         this.maxConnections = maxConnections;
+        this.environment = environment;
     }
 
     public CloseableHttpClient buildPooledClient() throws IOException {
         org.apache.http.impl.client.HttpClientBuilder builder = HttpClients.custom();
-        HttpClientConnectionManager manager = getPooledConnectionFactory(certPath, maxConnections);
+        HttpClientConnectionManager manager = getPooledConnectionFactory(certPath, maxConnections, environment);
         builder.setConnectionManager(manager);
         // TODO: For push-redirects working for 301, the redirect strategy should be relaxed (see #351)
         // However not sure whether we should do it right now and whether this is correct, since normally
@@ -64,25 +72,25 @@ public class HttpClientBuilder implements ClientBuilder {
     }
 
     public CloseableHttpClient buildBasicClient() throws IOException {
-        return HttpClients.custom().setConnectionManager(getBasicConnectionFactory(certPath)).build();
+        return HttpClients.custom().setConnectionManager(getBasicConnectionFactory(certPath, environment)).build();
     }
 
-    private static HttpClientConnectionManager getPooledConnectionFactory(String certPath, int maxConnections) throws IOException {
+    private static HttpClientConnectionManager getPooledConnectionFactory(String certPath, int maxConnections, Environment environment) throws IOException {
         PoolingHttpClientConnectionManager ret = certPath != null ?
-                new PoolingHttpClientConnectionManager(getSslFactoryRegistry(certPath)) :
+                new PoolingHttpClientConnectionManager(getSslFactoryRegistry(certPath, environment)) :
                 new PoolingHttpClientConnectionManager();
         ret.setDefaultMaxPerRoute(maxConnections);
         ret.setMaxTotal(maxConnections);
         return ret;
     }
 
-    private static HttpClientConnectionManager getBasicConnectionFactory(String certPath) throws IOException {
+    private static HttpClientConnectionManager getBasicConnectionFactory(String certPath, Environment environment) throws IOException {
         return certPath != null ?
-            new BasicHttpClientConnectionManager(getSslFactoryRegistry(certPath)) :
+            new BasicHttpClientConnectionManager(getSslFactoryRegistry(certPath, environment)) :
             new BasicHttpClientConnectionManager();
     }
 
-    private static Registry<ConnectionSocketFactory> getSslFactoryRegistry(String certPath) throws IOException {
+    private static Registry<ConnectionSocketFactory> getSslFactoryRegistry(String certPath, Environment environment) throws IOException {
         try
         {
             KeyStore keyStore = KeyStoreUtil.createDockerKeyStore(certPath);
@@ -93,7 +101,7 @@ public class HttpClientBuilder implements ClientBuilder {
                                .loadKeyMaterial(keyStore, "docker".toCharArray())
                                .loadTrustMaterial(keyStore, null)
                                .build();
-            String tlsVerify = System.getenv("DOCKER_TLS_VERIFY");
+            String tlsVerify = environment.getEnv("DOCKER_TLS_VERIFY");
             SSLConnectionSocketFactory sslsf =
                     tlsVerify != null && !tlsVerify.equals("0") && !tlsVerify.equals("false") ?
                             new SSLConnectionSocketFactory(sslContext) :

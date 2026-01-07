@@ -16,6 +16,8 @@ package org.eclipse.jkube.kit.build.service.docker.auth;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.api.auth.AuthConfigFactory;
+import org.eclipse.jkube.kit.build.service.docker.Environment;
+import org.eclipse.jkube.kit.build.service.docker.SystemEnvironment;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkAuthConfigFactory;
 import org.eclipse.jkube.kit.build.service.docker.auth.ecr.AwsSdkHelper;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
@@ -353,13 +355,17 @@ public class DockerAuthConfigFactory implements AuthConfigFactory {
     }
 
     protected static AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap) {
+        return getAuthConfigFromOpenShiftConfig(lookupMode, authConfigMap, SystemEnvironment.getInstance());
+    }
+
+    protected static AuthConfig getAuthConfigFromOpenShiftConfig(LookupMode lookupMode, Map authConfigMap, Environment environment) {
         final String useOpenAuthModeKey = lookupMode.asSysProperty(AUTH_USE_OPENSHIFT_AUTH);
         final String useOpenAuthMode = System.getProperty(useOpenAuthModeKey);
         // Check for system property
         if (StringUtils.isNotBlank(useOpenAuthMode)) {
             boolean useOpenShift = Boolean.parseBoolean(useOpenAuthMode);
             if (useOpenShift) {
-                return validateMandatoryOpenShiftLogin(readKubeConfigAuth(), useOpenAuthModeKey);
+                return validateMandatoryOpenShiftLogin(readKubeConfigAuth(), useOpenAuthModeKey, environment);
             } else {
                 return null;
             }
@@ -369,7 +375,7 @@ public class DockerAuthConfigFactory implements AuthConfigFactory {
         Map<String, String> mapToCheck = getAuthConfigMapToCheck(lookupMode,authConfigMap);
         if (mapToCheck != null && mapToCheck.containsKey(AUTH_USE_OPENSHIFT_AUTH) &&
             Boolean.parseBoolean(mapToCheck.get(AUTH_USE_OPENSHIFT_AUTH))) {
-                return validateMandatoryOpenShiftLogin(readKubeConfigAuth(), useOpenAuthModeKey);
+                return validateMandatoryOpenShiftLogin(readKubeConfigAuth(), useOpenAuthModeKey, environment);
         } else {
             return null;
         }
@@ -579,12 +585,12 @@ public class DockerAuthConfigFactory implements AuthConfigFactory {
         return null;
     }
 
-    private static AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp) {
+    private static AuthConfig validateMandatoryOpenShiftLogin(AuthConfig openShiftAuthConfig, String useOpenAuthModeProp, Environment environment) {
         if (openShiftAuthConfig != null) {
             return openShiftAuthConfig;
         }
         // No login found
-        String kubeConfigEnv = System.getenv("KUBECONFIG");
+        String kubeConfigEnv = environment.getEnv("KUBECONFIG");
         throw new IllegalStateException(
             String.format("System property %s set, but not active user and/or token found in %s. " +
                           "Please use 'oc login' for connecting to OpenShift.",

@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.build.service.docker.auth.ecr;
 
 import org.eclipse.jkube.kit.build.api.auth.AuthConfig;
+import org.eclipse.jkube.kit.build.service.docker.Environment;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -27,6 +28,14 @@ public class AwsSdkHelperV2 extends AbstractAwsSdkHelper {
   private static final String DEFAULT_CREDENTIALS_PROVIDER = "software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider";
   private static final String AWS_SESSION_CREDENTIALS = "software.amazon.awssdk.auth.credentials.AwsSessionCredentials";
   private static final String AWS_CREDENTIALS = "software.amazon.awssdk.auth.credentials.AwsCredentials";
+
+  public AwsSdkHelperV2() {
+    super();
+  }
+
+  AwsSdkHelperV2(Environment environment) {
+    super(environment);
+  }
 
   @Override
   public boolean isAwsSdkAvailable() {
