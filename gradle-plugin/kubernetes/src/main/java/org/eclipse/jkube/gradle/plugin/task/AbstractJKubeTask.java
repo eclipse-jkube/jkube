@@ -69,17 +69,28 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   @TaskAction
   public final void runTask() {
-    init();
+    initLogger();
     if (shouldSkip()) {
         kitLogger.info("`%s` task is skipped.", this.getName());
         return;
     }
+    init();
     run();
   }
 
-  protected void init() {
+  /**
+   * Initializes the logger. This is called before the skip check to ensure
+   * we can log the skip message if needed.
+   */
+  protected void initLogger() {
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
-    kitLogger = createLogger(null);
+    if (kitLogger == null) {
+      kitLogger = createLogger(null);
+    }
+  }
+
+  protected void init() {
+    initLogger();
     clusterConfiguration = initClusterConfiguration();
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);

@@ -107,4 +107,52 @@ class SkipGoalsTest {
         verify(log).info("`%s` goal is skipped.", "k8s:apply");
     }
 
+    @Spy
+    @InjectMocks
+    HelmMojo helmMojo;
+
+    private void setupHelmGoal() throws Exception {
+      doNothing().when(helmMojo).init();
+      doNothing().when(helmMojo).executeInternal();
+      when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:helm");
+    }
+
+    @Test
+    void should_execute_helm_goal_if_skip_false() throws Exception {
+        setupHelmGoal();
+        // given
+        helmMojo.skip = false;
+        // when
+        helmMojo.execute();
+        // then
+        verify(helmMojo).executeInternal();
+    }
+
+    @Test
+    void should_log_informative_message_when_helm_goal_is_skipped() throws Exception {
+        setupHelmGoal();
+        // given
+        helmMojo.skip = true;
+        // when
+        helmMojo.execute();
+        // then
+        verify(helmMojo, never()).executeInternal();
+        verify(log).info("`%s` goal is skipped.", "k8s:helm");
+    }
+
+    @Test
+    void should_skip_helm_goal_without_calling_init() throws Exception {
+        // This test verifies that init() is NOT called when skip=true
+        // which is the fix for issue #3820
+        when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:helm");
+        // given
+        helmMojo.skip = true;
+        // when
+        helmMojo.execute();
+        // then - init() should NOT be called when skipping
+        verify(helmMojo, never()).init();
+        verify(helmMojo, never()).executeInternal();
+        verify(log).info("`%s` goal is skipped.", "k8s:helm");
+    }
+
 }
