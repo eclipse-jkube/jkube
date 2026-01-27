@@ -89,6 +89,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   protected void init() {
+    initLogger();
     kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
     clusterConfiguration = initClusterConfiguration();
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
