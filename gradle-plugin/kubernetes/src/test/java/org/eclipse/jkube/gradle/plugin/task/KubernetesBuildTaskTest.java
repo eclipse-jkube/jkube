@@ -118,7 +118,7 @@ class KubernetesBuildTaskTest {
   }
 
   @Test
-  void runTask_withSkipBuild_shouldDoNothing() throws JKubeServiceException {
+  void runTask_withSkipBuild_shouldDoNothing() {
     // Given
     extension = new TestKubernetesExtension() {
       @Override
@@ -132,9 +132,9 @@ class KubernetesBuildTaskTest {
     // When
     buildTask.runTask();
 
-    // Then
+    // Then - verify no build service was constructed and init() was not called
     assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
-    verify(buildTask.jKubeServiceHub.getBuildService(), times(0)).build(any());
+    assertThat(buildTask.jKubeServiceHub).isNull();
   }
 
 }

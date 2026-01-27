@@ -174,7 +174,6 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     }
 
     protected void init() throws MojoFailureException {
-        initLogger();
         clusterConfiguration = initClusterConfiguration();
         try {
           javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);

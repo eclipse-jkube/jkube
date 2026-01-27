@@ -90,7 +90,6 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   protected void init() {
-    initLogger();
     clusterConfiguration = initClusterConfiguration();
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);
