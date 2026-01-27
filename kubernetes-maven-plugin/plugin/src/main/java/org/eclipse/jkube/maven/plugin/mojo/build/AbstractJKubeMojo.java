@@ -154,7 +154,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        initLogger();
+        log = createLogger(null);
         if (shouldSkip()) {
             log.info("`%s` goal is skipped.", mojoExecution.getMojoDescriptor().getFullGoalName());
             return;
@@ -163,18 +163,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
         executeInternal();
     }
 
-    /**
-     * Initializes the logger. This is called before the skip check to ensure
-     * we can log the skip message if needed.
-     */
-    protected void initLogger() {
-        if (log == null) {
-            log = createLogger(null);
-        }
-    }
-
     protected void init() throws MojoFailureException {
-        initLogger();
         clusterConfiguration = initClusterConfiguration();
         try {
           javaProject = MavenUtil.convertMavenProjectToJKubeProject(project, session);

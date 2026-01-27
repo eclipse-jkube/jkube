@@ -18,6 +18,7 @@ import java.util.HashMap;
 
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -60,6 +61,7 @@ class HelmPushMojoTest {
   void setUp() throws Exception {
     helmPushMojo = new HelmPushMojo();
     helmPushMojo.helm = new HelmConfig();
+    helmPushMojo.log = new KitLogger.SilentLogger();
     helmPushMojo.project = new MavenProject();
     helmPushMojo.settings = new Settings();
     helmPushMojo.securityDispatcher = mock(SecDispatcher.class);
