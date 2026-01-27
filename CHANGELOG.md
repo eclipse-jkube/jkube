@@ -31,6 +31,7 @@ Usage:
 * Fix #1458: Consideration of "ssl.enabled" properties to enable liveness/readiness probe for Spring Boot Actuator
 * Fix #3775: Missing IngressClassName in NetworkingV1IngressGenerator
 * Fix #3819: Env variable wrapper for easy interaction with system env variables
+* Fix #3820: Skip flag does not work for helm tasks
 
 ### 1.18.2 (2025-11-03)
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
