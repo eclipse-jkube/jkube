@@ -14,6 +14,7 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,10 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.mockito.MockitoAnnotations.openMocks;
 
 class SkipGoalsTest {
@@ -35,6 +33,9 @@ class SkipGoalsTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private MojoExecution mojoExecution;
+
+    @Mock
+    private Settings settings;
 
     @Spy
     @InjectMocks
@@ -82,6 +83,8 @@ class SkipGoalsTest {
       doNothing().when(applyMojo).init();
       doNothing().when(applyMojo).executeInternal();
       when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:apply");
+      when(settings.getInteractiveMode()).thenReturn(true);
+      doReturn(log).when(applyMojo).createLogger(any());
     }
 
     @Test
@@ -114,6 +117,7 @@ class SkipGoalsTest {
     private void setupHelmGoal() throws Exception {
       doNothing().when(helmMojo).init();
       doNothing().when(helmMojo).executeInternal();
+      doReturn(log).when(helmMojo).createLogger(any());
       when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:helm");
     }
 
@@ -144,6 +148,7 @@ class SkipGoalsTest {
     void should_skip_helm_goal_without_calling_init() throws Exception {
         // This test verifies that init() is NOT called when skip=true
         // which is the fix for issue #3820
+        doReturn(log).when(helmMojo).createLogger(any());
         when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:helm");
         // given
         helmMojo.skip = true;
