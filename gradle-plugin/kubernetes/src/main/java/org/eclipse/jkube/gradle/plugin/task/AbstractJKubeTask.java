@@ -83,13 +83,13 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
    * we can log the skip message if needed.
    */
   protected void initLogger() {
-    kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
     if (kitLogger == null) {
       kitLogger = createLogger(null);
     }
   }
 
   protected void init() {
+    kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
     clusterConfiguration = initClusterConfiguration();
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);
