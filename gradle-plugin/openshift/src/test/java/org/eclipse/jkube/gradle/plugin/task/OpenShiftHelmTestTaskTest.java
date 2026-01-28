@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -90,6 +91,7 @@ class OpenShiftHelmTestTaskTest {
     // Given
     OpenShiftHelmTestTask openShiftHelmTestTask = new OpenShiftHelmTestTask(OpenShiftExtension.class);
     openShiftHelmTestTask.kitLogger = new KitLogger.SilentLogger();
+    openShiftHelmTestTask.kubernetesExtension.javaProject = GradleUtil.convertGradleProject(openShiftHelmTestTask.getProject());
     openShiftHelmTestTask.init();
     openShiftHelmTestTask.jKubeServiceHub.getHelmService().install(extension.helm);
     // When

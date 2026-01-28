@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -85,6 +86,7 @@ class KubernetesHelmUninstallTaskTest {
     // Given
     KubernetesHelmUninstallTask kubernetesHelmUninstallTask = new KubernetesHelmUninstallTask(KubernetesExtension.class);
     kubernetesHelmUninstallTask.kitLogger = new KitLogger.SilentLogger();
+    kubernetesHelmUninstallTask.kubernetesExtension.javaProject = GradleUtil.convertGradleProject(kubernetesHelmUninstallTask.getProject());
     kubernetesHelmUninstallTask.init();
     kubernetesHelmUninstallTask.jKubeServiceHub.getHelmService().install(extension.helm);
 

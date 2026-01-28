@@ -21,6 +21,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -90,6 +91,7 @@ class KubernetesHelmTestTaskTest {
     // Given
     KubernetesHelmTestTask kubernetesHelmTestTask = new KubernetesHelmTestTask(KubernetesExtension.class);
     kubernetesHelmTestTask.kitLogger = new KitLogger.SilentLogger();
+    kubernetesHelmTestTask.kubernetesExtension.javaProject = GradleUtil.convertGradleProject(kubernetesHelmTestTask.getProject());
     kubernetesHelmTestTask.init();
     kubernetesHelmTestTask.jKubeServiceHub.getHelmService().install(extension.helm);
     // When
