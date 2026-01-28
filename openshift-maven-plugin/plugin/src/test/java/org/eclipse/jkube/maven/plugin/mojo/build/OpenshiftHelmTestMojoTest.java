@@ -24,6 +24,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.AsyncUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -85,6 +86,7 @@ class OpenshiftHelmTestMojoTest {
       .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     openShiftHelmTestMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
     openShiftHelmTestMojo.project.setFile(projectDir.resolve("target").toFile());
+    openShiftHelmTestMojo.log = new KitLogger.SilentLogger();
   }
 
   @AfterEach
