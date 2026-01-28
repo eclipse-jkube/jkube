@@ -69,6 +69,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
 
   @TaskAction
   public final void runTask() {
+    kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
     kitLogger = createLogger(null);
     if (shouldSkip()) {
         kitLogger.info("`%s` task is skipped.", this.getName());
@@ -79,7 +80,9 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
   }
 
   protected void init() {
-    kubernetesExtension.javaProject = GradleUtil.convertGradleProject(getProject());
+    if (kubernetesExtension.javaProject == null) {
+      kubernetesExtension.javaProject =GradleUtil.convertGradleProject(getProject());
+    }
     clusterConfiguration = initClusterConfiguration();
     jKubeServiceHub = initJKubeServiceHubBuilder().build();
     kubernetesExtension.resources = updateResourceConfigNamespace(kubernetesExtension.getNamespaceOrNull(), kubernetesExtension.resources);
