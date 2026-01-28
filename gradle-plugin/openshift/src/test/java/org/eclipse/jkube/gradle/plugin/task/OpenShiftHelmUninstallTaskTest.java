@@ -22,6 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.junit.jupiter.api.AfterEach;
@@ -83,6 +84,7 @@ class OpenShiftHelmUninstallTaskTest {
   void runTask_withHelmReleasePresentInKubernetesCluster_shouldSucceed() {
     // Given
     OpenShiftHelmUninstallTask openShiftHelmUninstallTask = new OpenShiftHelmUninstallTask(OpenShiftExtension.class);
+    openShiftHelmUninstallTask.kitLogger = new KitLogger.SilentLogger();
     openShiftHelmUninstallTask.init();
     openShiftHelmUninstallTask.jKubeServiceHub.getHelmService().install(extension.helm);
     // When

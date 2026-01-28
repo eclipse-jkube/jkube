@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.AsyncUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -88,6 +89,7 @@ class OpenShiftHelmTestTaskTest {
   void runTask_withHelmReleasePresentInKubernetesCluster_shouldSucceed() {
     // Given
     OpenShiftHelmTestTask openShiftHelmTestTask = new OpenShiftHelmTestTask(OpenShiftExtension.class);
+    openShiftHelmTestTask.kitLogger = new KitLogger.SilentLogger();
     openShiftHelmTestTask.init();
     openShiftHelmTestTask.jKubeServiceHub.getHelmService().install(extension.helm);
     // When
@@ -107,10 +109,10 @@ class OpenShiftHelmTestTaskTest {
     // Then
     assertThat(openShiftHelmTest).succeedsWithin(5, TimeUnit.SECONDS);
     verify(taskEnvironment.logger, times(1)).lifecycle("oc: Testing Helm Chart empty-project 0.1.0");
-    verify(taskEnvironment.logger, times(2)).lifecycle("oc: NAME: empty-project");
-    verify(taskEnvironment.logger, times(2)).lifecycle("oc: STATUS: deployed");
-    verify(taskEnvironment.logger, times(2)).lifecycle("oc: REVISION: 1");
-    verify(taskEnvironment.logger, times(2)).lifecycle("oc: Phase: Succeeded");
+    verify(taskEnvironment.logger, times(1)).lifecycle("oc: NAME: empty-project");
+    verify(taskEnvironment.logger, times(1)).lifecycle("oc: STATUS: deployed");
+    verify(taskEnvironment.logger, times(1)).lifecycle("oc: REVISION: 1");
+    verify(taskEnvironment.logger, times(1)).lifecycle("oc: Phase: Succeeded");
   }
 
   @Test

@@ -23,6 +23,7 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.AsyncUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -88,6 +89,7 @@ class KubernetesHelmTestTaskTest {
   void runTask_withHelmReleasePresentInKubernetesCluster_shouldSucceed() {
     // Given
     KubernetesHelmTestTask kubernetesHelmTestTask = new KubernetesHelmTestTask(KubernetesExtension.class);
+    kubernetesHelmTestTask.kitLogger = new KitLogger.SilentLogger();
     kubernetesHelmTestTask.init();
     kubernetesHelmTestTask.jKubeServiceHub.getHelmService().install(extension.helm);
     // When
@@ -106,10 +108,10 @@ class KubernetesHelmTestTaskTest {
     // Then
     assertThat(helmTestTask).succeedsWithin(5, TimeUnit.SECONDS);
     verify(taskEnvironment.logger, times(1)).lifecycle("k8s: Testing Helm Chart empty-project 0.1.0");
-    verify(taskEnvironment.logger, times(2)).lifecycle("k8s: NAME: empty-project");
-    verify(taskEnvironment.logger, times(2)).lifecycle("k8s: STATUS: deployed");
-    verify(taskEnvironment.logger, times(2)).lifecycle("k8s: REVISION: 1");
-    verify(taskEnvironment.logger, times(2)).lifecycle("k8s: Phase: Succeeded");
+    verify(taskEnvironment.logger, times(1)).lifecycle("k8s: NAME: empty-project");
+    verify(taskEnvironment.logger, times(1)).lifecycle("k8s: STATUS: deployed");
+    verify(taskEnvironment.logger, times(1)).lifecycle("k8s: REVISION: 1");
+    verify(taskEnvironment.logger, times(1)).lifecycle("k8s: Phase: Succeeded");
   }
 
   @Test
