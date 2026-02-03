@@ -85,6 +85,7 @@ class LogMojoTest {
   @AfterEach
   void tearDown() {
     jKubeServiceHubMockedConstruction.close();
+    podLogServiceMockedConstruction.close();
     mavenProject = null;
     logMojo = null;
   }
