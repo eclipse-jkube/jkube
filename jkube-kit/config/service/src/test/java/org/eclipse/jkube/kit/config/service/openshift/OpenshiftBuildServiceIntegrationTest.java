@@ -19,12 +19,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
+import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
-import io.fabric8.openshift.api.model.ImageStreamTagBuilder;
+import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.client.OpenShiftClient;
+import okhttp3.mockwebserver.RecordedRequest;
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.kit.build.api.assembly.AssemblyManager;
 import org.eclipse.jkube.kit.build.api.assembly.BuildDirs;
@@ -50,22 +51,9 @@ import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 
 import com.google.common.collect.ImmutableMap;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
-import io.fabric8.kubernetes.api.model.Quantity;
-import io.fabric8.kubernetes.api.model.WatchEvent;
-import io.fabric8.openshift.api.model.Build;
-import io.fabric8.openshift.api.model.BuildBuilder;
-import io.fabric8.openshift.api.model.BuildConfig;
-import io.fabric8.openshift.api.model.BuildConfigBuilder;
-import io.fabric8.openshift.api.model.BuildStrategyBuilder;
-import io.fabric8.openshift.api.model.ImageStream;
-import io.fabric8.openshift.api.model.ImageStreamBuilder;
-import io.fabric8.openshift.api.model.ImageStreamStatusBuilder;
-import io.fabric8.openshift.api.model.NamedTagEventListBuilder;
-import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
@@ -161,26 +149,45 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("S2I build with new resources should create BuildConfig and ImageStream")
   void successfulBuild() throws Exception {
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
-    // we should find a better way to assert that a certain call has been made
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
-    assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i-suffix2\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
-    assertThat(containsRequest("imagestreams")).isTrue();
+    // Verify BuildConfig structure
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-s2i-suffix2")
+        .extracting(BuildConfig::getSpec)
+        .hasFieldOrPropertyWithValue("output.to.kind", "ImageStreamTag")
+        .hasFieldOrPropertyWithValue("output.to.name", "myapp:latest")
+        .hasFieldOrPropertyWithValue("source.type", "Binary")
+        .hasFieldOrPropertyWithValue("strategy.type", "Source")
+        .hasFieldOrPropertyWithValue("strategy.sourceStrategy.forcePull", false)
+        .hasFieldOrPropertyWithValue("strategy.sourceStrategy.from.kind", "DockerImage")
+        .hasFieldOrPropertyWithValue("strategy.sourceStrategy.from.name", "myapp");
   }
 
   @Test
+  @DisplayName("build should call PluginService.addExtraFiles()")
   void build_shouldCallPluginServiceAddFiles() throws JKubeServiceException {
     // Given
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
-    prepareMockServer(config, true, false, false, false);
+    withBuildServiceConfig(defaultConfig.build());
+    MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
     // When
     new OpenshiftBuildService(jKubeServiceHub).build(image);
     // Then
@@ -188,10 +195,16 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with assembly should succeed")
   void build_withAssembly_shouldSucceed() throws Exception {
     // Given
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
     image.setBuild(image.getBuild().toBuilder()
         .from(projectName)
         .assembly(AssemblyConfiguration.builder()
@@ -205,6 +218,7 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with Dockerfile mode and already-flattened assembly should throw exception")
   void build_withDockerfileModeAndFlattenedAssembly_shouldThrowException() {
     //Given
     image.setBuild(BuildConfiguration.builder()
@@ -223,6 +237,7 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with Dockerfile mode and assembly should succeed")
   void build_withDockerfileModeAndAssembly_shouldSucceed() throws Exception {
     //Given
     final File dockerFile = new File(baseDirectory, "Dockerfile");
@@ -235,8 +250,14 @@ class OpenshiftBuildServiceIntegrationTest {
             .build())
         .build());
     image.getBuildConfiguration().initAndValidate();
-    final WebServerEventCollector collector = prepareMockServer(withBuildServiceConfig(defaultConfig.build()),
-        true, false, false, false);
+    withBuildServiceConfig(defaultConfig.build());
+    // Default S2I suffix is "-s2i" since no suffix is specified in BuildConfiguration
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
     // When
     new OpenshiftBuildService(jKubeServiceHub).build(image);
     // Then
@@ -244,49 +265,73 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("S2I build without custom suffix should use default -s2i suffix")
   void successfulBuildNoS2iSuffix() throws Exception {
     image = image.toBuilder()
         .build(image.getBuild().toBuilder().openshiftS2iBuildNameSuffix(null).build())
         .build();
-    BuildServiceConfig buildServiceConfig = withBuildServiceConfig(defaultConfig.build());
-    final WebServerEventCollector collector = prepareMockServer(
-        buildServiceConfig, true, false, false, false);
+    withBuildServiceConfig(defaultConfig.build());
+    // Default S2I suffix is "-s2i" when openshiftS2iBuildNameSuffix is null
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
-    // we should find a better way to assert that a certain call has been made
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
-    assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-s2i\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"sourceStrategy\":{\"forcePull\":false,\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"}},\"type\":\"Source\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
+    // Verify default -s2i suffix is used
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-s2i")
+        .extracting(BuildConfig::getSpec)
+        .hasFieldOrPropertyWithValue("strategy.type", "Source")
+        .hasFieldOrPropertyWithValue("strategy.sourceStrategy.from.kind", "DockerImage");
   }
 
   @Test
+  @DisplayName("Docker build strategy should create DockerStrategy BuildConfig")
   void dockerBuild() throws Exception {
     image = image.toBuilder()
         .build(image.getBuild().toBuilder()
             .openshiftS2iBuildNameSuffix("-docker")
             .build())
         .build();
-    final BuildServiceConfig dockerConfig = withBuildServiceConfig(BuildServiceConfig.builder()
+    withBuildServiceConfig(BuildServiceConfig.builder()
         .buildDirectory(baseDir)
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(resourceConfig).build());
-    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-docker")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
-    assertThat(collector.getBodies().get(1))
-            .isEqualTo("{\"apiVersion\":\"build.openshift.io/v1\",\"kind\":\"BuildConfig\",\"metadata\":{\"name\":\"myapp-docker\"},\"spec\":{\"output\":{\"to\":{\"kind\":\"ImageStreamTag\",\"name\":\"myapp:latest\"}},\"source\":{\"type\":\"Binary\"},\"strategy\":{\"dockerStrategy\":{\"from\":{\"kind\":\"DockerImage\",\"name\":\"myapp\"},\"noCache\":false},\"type\":\"Docker\"}}}");
     collector.assertEventsNotRecorded("patch-build-config");
+    // Verify Docker strategy BuildConfig
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-docker")
+        .extracting(BuildConfig::getSpec)
+        .hasFieldOrPropertyWithValue("output.to.kind", "ImageStreamTag")
+        .hasFieldOrPropertyWithValue("output.to.name", "myapp:latest")
+        .hasFieldOrPropertyWithValue("strategy.type", "Docker")
+        .hasFieldOrPropertyWithValue("strategy.dockerStrategy.noCache", false)
+        .hasFieldOrPropertyWithValue("strategy.dockerStrategy.from.kind", "DockerImage")
+        .hasFieldOrPropertyWithValue("strategy.dockerStrategy.from.name", "myapp");
   }
 
   @Test
+  @DisplayName("Docker build with multi-component image name should flatten name correctly")
   void dockerBuildWithMultiComponentImageName() throws Exception {
-    final BuildServiceConfig dockerConfig = withBuildServiceConfig(BuildServiceConfig.builder()
+    withBuildServiceConfig(BuildServiceConfig.builder()
         .buildDirectory(baseDir)
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(resourceConfig).build());
@@ -294,8 +339,12 @@ class OpenshiftBuildServiceIntegrationTest {
         .name("docker.io/registry/component1/component2/name:tag")
         .build(image.getBuild().toBuilder().openshiftS2iBuildNameSuffix("-docker").build())
         .build();
-    final WebServerEventCollector collector = prepareMockServer("component1-component2-name",
-        dockerConfig, true, false, false, false);
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName("component1-component2-name")
+        .buildConfigSuffix("-docker")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -307,8 +356,9 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("Docker build without custom suffix should have no suffix in BuildConfig name")
   void dockerBuildNoS2iSuffix() throws Exception {
-    final BuildServiceConfig dockerConfig = withBuildServiceConfig(BuildServiceConfig.builder()
+    withBuildServiceConfig(BuildServiceConfig.builder()
         .buildDirectory(baseDir)
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(resourceConfig)
@@ -316,7 +366,13 @@ class OpenshiftBuildServiceIntegrationTest {
     image = image.toBuilder()
         .build(image.getBuild().toBuilder().openshiftS2iBuildNameSuffix(null).build())
         .build();
-    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
+    // Docker strategy with null suffix = no suffix (empty string)
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -328,8 +384,9 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("Docker build with fromExt should use ImageStreamTag as base with namespace")
   void dockerBuildFromExt() throws Exception {
-    final BuildServiceConfig dockerConfig = withBuildServiceConfig(BuildServiceConfig.builder()
+    withBuildServiceConfig(BuildServiceConfig.builder()
         .buildDirectory(baseDir)
         .jKubeBuildStrategy(JKubeBuildStrategy.docker)
         .resourceConfig(resourceConfig)
@@ -345,7 +402,12 @@ class OpenshiftBuildServiceIntegrationTest {
             .openshiftS2iBuildNameSuffix("-docker")
             .build()
         ).build();
-    final WebServerEventCollector collector = prepareMockServer(dockerConfig, true, false, false, false);
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-docker")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     OpenshiftBuildService service = new OpenshiftBuildService(jKubeServiceHub);
 
@@ -359,14 +421,20 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("S2I build with pull secret should configure secret in BuildConfig")
   void successfulBuildSecret() throws Exception {
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
+    withBuildServiceConfig(defaultConfig.build());
     image = image.toBuilder()
         .build(image.getBuild().toBuilder()
             .openshiftPullSecret("pullsecret-fabric8")
             .build())
         .build();
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -377,6 +445,7 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build without mock server setup should fail with descriptive error")
   void failedBuild() {
     withBuildServiceConfig(defaultConfig.build());
     final OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
@@ -386,9 +455,15 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("second build with existing BuildConfig should patch instead of create")
   void successfulSecondBuild() throws Exception {
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, true, true, false);
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(true)
+        .imageStreamExists(true)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -397,6 +472,84 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with recreateMode=buildConfig should delete and recreate BuildConfig")
+  void build_withRecreateModeBuildConfig_shouldDeleteAndRecreateBuildConfig() throws Exception {
+    // Given
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftBuildRecreateMode(BuildRecreateMode.buildConfig)
+            .build())
+        .build();
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(true)
+        .imageStreamExists(true)
+        .recreateMode(BuildRecreateMode.buildConfig)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then
+    collector.assertEventsRecordedInOrder("build-config-check", "build-config-delete", "new-build-config", "pushed");
+    collector.assertEventsNotRecorded("imagestream-delete");
+  }
+
+  @Test
+  @DisplayName("build with recreateMode=imageStream should delete and recreate ImageStream")
+  void build_withRecreateModeImageStream_shouldDeleteAndRecreateImageStream() throws Exception {
+    // Given
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftBuildRecreateMode(BuildRecreateMode.imageStream)
+            .build())
+        .build();
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(true)
+        .imageStreamExists(true)
+        .recreateMode(BuildRecreateMode.imageStream)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then
+    collector.assertEventsRecordedInOrder("imagestream-delete", "imagestream-create", "pushed");
+    collector.assertEventsNotRecorded("build-config-delete");
+  }
+
+  @Test
+  @DisplayName("build with recreateMode=all should delete and recreate both BuildConfig and ImageStream")
+  void build_withRecreateModeAll_shouldDeleteAndRecreateBoth() throws Exception {
+    // Given
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftBuildRecreateMode(BuildRecreateMode.all)
+            .build())
+        .build();
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(true)
+        .imageStreamExists(true)
+        .recreateMode(BuildRecreateMode.all)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then - BuildConfig operations happen first, then ImageStream delete, then create, then build
+    collector.assertEventsRecorded("build-config-delete", "imagestream-delete", "new-build-config", "imagestream-create", "pushed");
+  }
+
+  @Test
+  @DisplayName("build with resource limits should include limits in BuildConfig")
   void successfulBuildWithResourceConfig() throws Exception {
     final Map<String, String> limitsMap = new HashMap<>();
     limitsMap.put("cpu", "100m");
@@ -404,9 +557,13 @@ class OpenshiftBuildServiceIntegrationTest {
     resourceConfig = resourceConfig.toBuilder()
       .openshiftBuildConfig(ContainerResourcesConfig.builder().limits(limitsMap).build())
       .build();
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig
-        .resourceConfig(resourceConfig).build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
+    withBuildServiceConfig(defaultConfig.resourceConfig(resourceConfig).build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -428,15 +585,22 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with DockerImage output kind should not create ImageStream")
   void successfulDockerImageOutputBuild() throws Exception {
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
+    withBuildServiceConfig(defaultConfig.build());
     image = image.toBuilder()
         .build(image.getBuild()
             .toBuilder()
             .openshiftBuildOutputKind("DockerImage")
             .build())
         .build();
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildOutputKind("DockerImage")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -450,8 +614,9 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with DockerImage output and push secret should configure push secret")
   void successfulDockerImageOutputBuildSecret() throws Exception {
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
+    withBuildServiceConfig(defaultConfig.build());
     image = image.toBuilder()
         .build(image.getBuild().toBuilder()
             .openshiftPullSecret("pullsecret-fabric8")
@@ -459,7 +624,13 @@ class OpenshiftBuildServiceIntegrationTest {
             .openshiftBuildOutputKind("DockerImage")
             .build())
         .build();
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, false);
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildOutputKind("DockerImage")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
 
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
@@ -473,10 +644,17 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with additional tags should create ImageStreamTags for each tag")
   void build_withAdditionalTags_shouldCreateNewImageStreamTags() throws Exception {
     // Given
-    final BuildServiceConfig config = withBuildServiceConfig(defaultConfig.build());
-    final WebServerEventCollector collector = prepareMockServer(config, true, false, false, true);
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .additionalTagsCreated(true)
+        .configure();
     image.setBuild(image.getBuild().toBuilder()
             .tag("t1")
         .build());
@@ -484,150 +662,6 @@ class OpenshiftBuildServiceIntegrationTest {
     new OpenshiftBuildService(jKubeServiceHub).build(image);
     // Then
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed", "imagestreamtag-get", "imagestreamtag-create");
-  }
-
-  private WebServerEventCollector prepareMockServer(
-      BuildServiceConfig config, boolean success, boolean buildConfigExists, boolean imageStreamExists, boolean additionalImageStreamTagCreated) {
-    return prepareMockServer(projectName, config, success, buildConfigExists, imageStreamExists, additionalImageStreamTagCreated);
-  }
-
-  private WebServerEventCollector prepareMockServer(
-      String resourceName, BuildServiceConfig config, boolean success, boolean buildConfigExists, boolean imageStreamExists, boolean additionalImageStreamTagCreated) {
-    WebServerEventCollector collector = new WebServerEventCollector();
-
-    final long buildDelay = 50L;
-    final String s2iBuildNameSuffix = Optional
-        .ofNullable(image.getBuild().getOpenshiftS2iBuildNameSuffix())
-        .orElseGet(() -> config.getJKubeBuildStrategy() == JKubeBuildStrategy.s2i ?
-            "-s2i" : "");
-
-    final String buildOutputKind = Optional.ofNullable(image.getBuild().getOpenshiftBuildOutputKind()).orElse("ImageStreamTag");
-
-    BuildConfig bc = new BuildConfigBuilder()
-        .withNewMetadata()
-        .withName(resourceName + s2iBuildNameSuffix)
-        .endMetadata()
-        .withNewSpec()
-        .withNewOutput()
-        .withNewTo()
-        .withKind(buildOutputKind)
-        .endTo()
-        .endOutput()
-        .endSpec()
-        .build();
-
-    BuildConfig bcSecret = null;
-    if (image.getBuild().getOpenshiftPullSecret() != null) {
-      bcSecret = new BuildConfigBuilder()
-          .withNewMetadata()
-          .withName(resourceName + s2iBuildNameSuffix + "pullSecret")
-          .endMetadata()
-          .withNewSpec()
-          .withStrategy(new BuildStrategyBuilder().withType("Docker")
-              .withNewDockerStrategy()
-              .withNewPullSecret(image.getBuild().getOpenshiftPullSecret())
-              .endDockerStrategy().build())
-          .withNewOutput()
-          .withNewPushSecret().withName(image.getBuild().getOpenshiftPushSecret()).endPushSecret()
-          .withNewTo().withKind(buildOutputKind).endTo()
-          .endOutput()
-          .endSpec()
-          .build();
-    }
-
-    ImageStream imageStream = new ImageStreamBuilder()
-        .withNewMetadata()
-        .withName(resourceName)
-        .endMetadata()
-        .withStatus(new ImageStreamStatusBuilder()
-            .addNewTagLike(new NamedTagEventListBuilder()
-                .addNewItem()
-                .withImage("abcdef0123456789")
-                .endItem()
-                .build())
-            .endTag()
-            .build())
-        .build();
-
-    KubernetesList builds = new KubernetesListBuilder().withItems(
-            new BuildBuilder()
-                .withNewMetadata()
-                .withName(resourceName)
-                .endMetadata()
-                .build())
-        .withNewMetadata().withResourceVersion("1").endMetadata()
-        .build();
-
-    String buildStatus = success ? "Complete" : "Fail";
-    Build build = new BuildBuilder()
-        .withNewMetadata().withResourceVersion("2").endMetadata()
-        .withNewStatus().withPhase(buildStatus).endStatus()
-        .build();
-
-    if (!buildConfigExists) {
-      mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("build-config-check").andReturn
-          (404, "")).once();
-      mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("build-config-check").andReturn
-          (404, "")).once();
-      mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs").andReply(collector.record("new-build-config").andReturn(201, bc)).once();
-      if (bcSecret != null) {
-        mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs").andReply(collector.record("new-build-config").andReturn(201, bcSecret)).once();
-      }
-    } else {
-      mockServer.expect().patch().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("patch-build-config").andReturn
-          (200, bc)).once();
-      if (bcSecret != null) {
-        mockServer.expect().patch().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("patch-build-config").andReturn
-            (200, bcSecret)).once();
-      }
-    }
-    mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix).andReply(collector.record("build-config-check").andReturn(200,
-        bc)).always();
-    if (bcSecret != null) {
-      mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix + "pullSecret").andReply(collector.record("build-config-check").andReturn(200,
-          bcSecret)).always();
-    }
-
-
-    if (!imageStreamExists) {
-      mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams/" + resourceName).andReturn(404, "").once();
-    }
-    mockServer.expect().get().withPath("/api/v1/namespaces/ns1/pods?labelSelector=openshift.io%2Fbuild.name").andReply(collector.record("build-config-check").andReturn(200, bc)).always();
-    mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams/" + resourceName).andReturn(200, imageStream).always();
-
-    mockServer.expect().post().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreams").andReturn(201, imageStream).once();
-
-    mockServer.expect().post().withPath("/apis/build.openshift.io/v1/namespaces/ns1/buildconfigs/" + resourceName + s2iBuildNameSuffix + "/instantiatebinary?name="+ resourceName + s2iBuildNameSuffix +"&namespace=ns1")
-        .andReply(
-            collector.record("pushed")
-                .andReturn(201, imageStream))
-        .once();
-
-    mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds").andReply(collector.record("check-build").andReturn(200, builds)).always();
-    mockServer.expect().get().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds?labelSelector=openshift.io/build-config.name%3D" + resourceName + s2iBuildNameSuffix).andReturn(200, builds)
-        .always();
-
-    mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds/" + resourceName).andReturn(200, build).always();
-    mockServer.expect().withPath("/apis/build.openshift.io/v1/namespaces/ns1/builds?allowWatchBookmarks=true&fieldSelector=metadata.name%3D" + resourceName + "&watch=true")
-        .andUpgradeToWebSocket().open()
-        .waitFor(buildDelay)
-        .andEmit(new WatchEvent(build, "MODIFIED"))
-        .done().always();
-
-    if (additionalImageStreamTagCreated) {
-      mockServer.expect().get().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreamtags/" + resourceName + ":latest")
-          .andReply(collector.record("imagestreamtag-get").andReturn(200, new ImageStreamTagBuilder().withNewMetadata().withName(resourceName + ":latest").endMetadata()
-              .withNewImage()
-              .withDockerImageReference("foo-registry.openshift.svc:5000/test/myapp@sha256:1234")
-              .endImage()
-              .build()))
-          .once();
-      mockServer.expect().post().withPath("/apis/image.openshift.io/v1/namespaces/ns1/imagestreamtags")
-          .andReply(collector.record("imagestreamtag-create").andReturn(200, new ImageStreamTagBuilder().withNewMetadata().withName(resourceName + ":t1").endMetadata().build()))
-          .once();
-    }
-
-    return collector;
   }
 
   private BuildServiceConfig withBuildServiceConfig(BuildServiceConfig buildServiceConfig) {
