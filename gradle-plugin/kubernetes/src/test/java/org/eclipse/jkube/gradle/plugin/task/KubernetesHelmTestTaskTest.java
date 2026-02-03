@@ -45,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -142,11 +143,12 @@ class KubernetesHelmTestTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesHelmTestTask task = new KubernetesHelmTestTask(KubernetesExtension.class);
+    when(task.getName()).thenReturn("k8sHelmTest");
 
     // When
     task.runTask();
 
     // Then
-    verify(taskEnvironment.logger, never()).lifecycle(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sHelmTest` task is skipped."));
   }
 }

@@ -27,9 +27,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -89,12 +89,13 @@ class OpenShiftHelmTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     final OpenShiftHelmTask task = new OpenShiftHelmTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocHelm");
 
     // When
     task.runTask();
 
     // Then
-    assertThat(helmServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocHelm` task is skipped."));
   }
 
 }

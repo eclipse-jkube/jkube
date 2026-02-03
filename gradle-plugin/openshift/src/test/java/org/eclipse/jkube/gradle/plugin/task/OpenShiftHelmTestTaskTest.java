@@ -44,8 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -143,11 +142,12 @@ class OpenShiftHelmTestTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     final OpenShiftHelmTestTask task = new OpenShiftHelmTestTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocHelmTest");
 
     // When
     task.runTask();
 
     // Then
-    verify(taskEnvironment.logger, never()).lifecycle(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocHelmTest` task is skipped."));
   }
 }

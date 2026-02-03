@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -90,11 +90,12 @@ class OpenShiftResourceTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     final OpenShiftResourceTask task = new OpenShiftResourceTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocResource");
 
     // When
     task.runTask();
 
     // Then
-    verify(taskEnvironment.logger, never()).lifecycle(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocResource` task is skipped."));
   }
 }

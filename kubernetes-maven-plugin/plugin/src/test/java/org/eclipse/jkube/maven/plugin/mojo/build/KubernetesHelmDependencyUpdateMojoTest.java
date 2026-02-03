@@ -15,8 +15,6 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import com.marcnuri.helm.Helm;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -121,6 +119,6 @@ class KubernetesHelmDependencyUpdateMojoTest {
     // When
     skipHelmDependencyUpdateMojo.execute();
     // Then
-    assertThat(outputStream.toString()).isEmpty();
+    assertThat(outputStream.toString()).contains("[INFO] `k8s:helm-dependency-update` goal is skipped");
   }
 }

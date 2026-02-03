@@ -24,9 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.startsWith;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,11 +84,12 @@ class KubernetesHelmLintTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesHelmLintTask task = new KubernetesHelmLintTask(KubernetesExtension.class);
+    when(task.getName()).thenReturn("k8sHelmLint");
 
     // When
     task.runTask();
 
     // Then
-    verify(taskEnvironment.logger, never()).lifecycle(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sHelmLint` task is skipped."));
   }
 }

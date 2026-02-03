@@ -30,12 +30,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.never;
-import static org.mockito.ArgumentMatchers.anyString;
 
 class KubernetesHelmDependencyUpdateTaskTest {
   @RegisterExtension
@@ -102,11 +101,12 @@ class KubernetesHelmDependencyUpdateTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesHelmDependencyUpdateTask task = new KubernetesHelmDependencyUpdateTask(KubernetesExtension.class);
+    when(task.getName()).thenReturn("k8sHelmDependencyUpdate");
 
     // When
     task.runTask();
 
     // Then
-    verify(taskEnvironment.logger, never()).lifecycle(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sHelmDependencyUpdate` task is skipped."));
   }
 }

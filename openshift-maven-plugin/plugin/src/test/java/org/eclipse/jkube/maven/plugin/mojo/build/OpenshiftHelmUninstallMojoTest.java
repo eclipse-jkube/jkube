@@ -144,6 +144,6 @@ class OpenshiftHelmUninstallMojoTest {
     // When
     skipOpenShiftHelmUninstallMojo.execute();
     // Then
-    assertThat(outputStream.toString()).isEmpty();
+    assertThat(outputStream.toString()).contains("[INFO] `oc:helm-uninstall` goal is skipped");
   }
 }

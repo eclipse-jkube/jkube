@@ -34,6 +34,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
@@ -108,11 +109,12 @@ class OpenShiftWatchTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     final OpenShiftWatchTask task = new OpenShiftWatchTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocWatch");
 
     // When
     task.runTask();
 
     // Then
-    verify(taskEnvironment.logger, never()).lifecycle(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocWatch` task is skipped."));
   }
 }

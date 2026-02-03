@@ -14,8 +14,6 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import com.marcnuri.helm.Helm;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.JKubeException;
@@ -108,6 +106,6 @@ class HelmLintMojoTest {
     // When
     skipHelmLintMojo.execute();
     // Then
-    assertThat(outputStream.toString()).isEmpty();
+    assertThat(outputStream.toString()).contains("[INFO] `k8s:helm-lint` goal is skipped");
   }
 }

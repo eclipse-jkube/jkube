@@ -22,8 +22,6 @@ import java.util.Properties;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
-import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -42,7 +40,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
@@ -121,16 +118,6 @@ class WatchMojoTest {
     watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("configured-namespace"), any(), any()), times(1));
   }
 
-  @Test
-  void execute_whenSkipTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException {
-    // Given
-    watchMojo.setSkip(true);
-    // When
-    watchMojo.execute();
-    // Then
-    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), any(), any(), any()), never());
-  }
-
   private static class TestWatchMojo extends WatchMojo {
 
     void setResources(ResourceConfig resources) {
@@ -139,10 +126,6 @@ class WatchMojoTest {
 
     void setNamespace(String namespace) {
       this.namespace = namespace;
-    }
-
-    void setSkip(boolean skip) {
-      this.skip = skip;
     }
   }
 }

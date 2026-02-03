@@ -164,6 +164,6 @@ class OpenshiftHelmTestMojoTest {
     // When
     skipOpenShiftHelmTestMojo.execute();
     // Then
-    assertThat(outputStream.toString()).isEmpty();
+    assertThat(outputStream.toString()).contains("[INFO] `oc:helm-test` goal is skipped");
   }
 }

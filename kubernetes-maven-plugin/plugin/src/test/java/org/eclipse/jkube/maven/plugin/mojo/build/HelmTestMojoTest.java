@@ -22,10 +22,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.maven.plugin.MojoExecution;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.descriptor.MojoDescriptor;
-import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -164,6 +161,6 @@ class HelmTestMojoTest {
     // When
     skipHelmTestMojo.execute();
     // Then
-    assertThat(outputStream.toString()).isEmpty();
+    assertThat(outputStream.toString()).contains("[INFO] `k8s:helm-test` goal is skipped");
   }
 }

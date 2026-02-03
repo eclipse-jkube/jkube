@@ -21,9 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.matches;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -65,11 +64,12 @@ class KubernetesConfigViewTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesConfigViewTask kubernetesConfigViewTask = new KubernetesConfigViewTask(KubernetesExtension.class);
+    when(kubernetesConfigViewTask.getName()).thenReturn("k8sConfigView");
 
     // When
     kubernetesConfigViewTask.runTask();
 
     // Then
-    verify(taskEnvironment.logger, never()).lifecycle(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sConfigView` task is skipped."));
   }
 }

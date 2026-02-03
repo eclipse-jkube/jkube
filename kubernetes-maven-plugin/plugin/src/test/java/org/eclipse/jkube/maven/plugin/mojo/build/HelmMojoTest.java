@@ -26,7 +26,6 @@ import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.TemplateBuilder;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProjectHelper;
