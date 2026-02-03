@@ -2,28 +2,56 @@
 
 pipeline {
   agent any
+
   tools {
     maven 'apache-maven-latest'
-    // https://wiki.eclipse.org/Jenkins#JDK
     jdk 'temurin-jdk8-latest'
   }
+
   options {
     disableConcurrentBuilds(abortPrevious: true)
+    timestamps()
   }
+
+  environment {
+    MAVEN_OPTS = "-Dmaven.repo.local=$WORKSPACE/.m2"
+  }
+
   stages {
-    stage('Build & Test (Java 8)') {
+
+    stage('Verify Java Version') {
       steps {
-        sh 'echo "Building Project with Java 8"'
         sh '''
-          if [[ `javac -version 2>&1` == *"1.8.0"* ]]; then
-            echo "Java 8 Present."
-          else
-            echo "Java 8 Not Present."
-            exit 1
-          fi
+          echo "Checking Java Version..."
+          javac -version
         '''
-        sh './mvnw -V -B -e  install'
+      }
+    }
+
+    stage('Build & Test') {
+      steps {
+        sh '''
+          echo "Building Project..."
+          ./mvnw clean test install -B -V
+        '''
+      }
+      post {
+        always {
+          junit 'target/surefire-reports/*.xml'
+        }
+      }
+    }
+
+    stage('Archive Artifacts') {
+      steps {
+        archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
       }
     }
   }
-}
+
+  post {
+    success {
+      echo "Build Successful ✅"
+    }
+    failure {
+      echo "Build Fai
