@@ -14,10 +14,16 @@
 package org.eclipse.jkube.gradle.plugin.task;
 
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
+import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class OpenShiftRemoteDevTaskTest {
   @SuppressWarnings("unused")
@@ -34,5 +40,24 @@ class OpenShiftRemoteDevTaskTest {
 
     // Then
     assertThat(logPrefix).isEqualTo("oc: ");
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestOpenShiftExtension extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftRemoteDevTask task = new OpenShiftRemoteDevTask(OpenShiftExtension.class);
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, never()).lifecycle(anyString());
   }
 }

@@ -13,6 +13,8 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService;
@@ -29,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -85,5 +88,22 @@ class RemoteDevMojoTest {
     assertThat(remoteDevelopmentService.constructed())
       .singleElement()
       .satisfies(service -> verify(service, times(1)).stop());
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    final MavenProject mavenProject = mock(MavenProject.class);
+    when(mavenProject.getProperties()).thenReturn(new Properties());
+    RemoteDevMojo skipRemoteDevMojo = new RemoteDevMojo() {{
+      project = mavenProject;
+      settings = mock(Settings.class, RETURNS_DEEP_STUBS);
+      interpolateTemplateParameters = false;
+      skip = true;
+    }};
+    // When
+    skipRemoteDevMojo.execute();
+    // Then
+    assertThat(remoteDevelopmentService.constructed()).isEmpty();
   }
 }

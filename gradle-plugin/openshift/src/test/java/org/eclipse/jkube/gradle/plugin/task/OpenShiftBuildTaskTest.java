@@ -22,13 +22,14 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -76,6 +77,25 @@ class OpenShiftBuildTaskTest {
     assertThat(buildTask.jKubeServiceHub.getBuildService()).isNotNull()
         .isInstanceOf(OpenshiftBuildService.class);
     verify(buildTask.jKubeServiceHub.getBuildService(), times(1)).build(any());
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestOpenShiftExtension extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftBuildTask task = new OpenShiftBuildTask(OpenShiftExtension.class);
+
+    // When
+    task.runTask();
+
+    // Then
+    assertThat(openshiftBuildServiceMockedConstruction.constructed()).isEmpty();
   }
 
 }

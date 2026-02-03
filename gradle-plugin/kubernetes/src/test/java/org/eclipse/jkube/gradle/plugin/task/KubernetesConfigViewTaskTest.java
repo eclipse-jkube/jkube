@@ -16,11 +16,14 @@ package org.eclipse.jkube.gradle.plugin.task;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.matches;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,5 +52,24 @@ class KubernetesConfigViewTaskTest {
     // Then
     verify(taskEnvironment.logger, times(1))
       .lifecycle(matches(String.format("k8s: %n---\noffline: true\nbuildStrategy: \"s2i\"")));
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesConfigViewTask kubernetesConfigViewTask = new KubernetesConfigViewTask(KubernetesExtension.class);
+
+    // When
+    kubernetesConfigViewTask.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, never()).lifecycle(anyString());
   }
 }

@@ -21,6 +21,8 @@ import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 
@@ -41,6 +43,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -99,5 +102,22 @@ class LogMojoTest {
             eq(false),
             isNull(),
             eq(true)));
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    LogMojo skipLogMojo = new LogMojo() {{
+      project = mavenProject;
+      settings = mock(Settings.class);
+      interpolateTemplateParameters = false;
+      kubernetesManifest = kubernetesManifestFile;
+      skip = true;
+    }};
+    // When
+    skipLogMojo.execute();
+    // Then
+    assertThat(jKubeServiceHubMockedConstruction.constructed()).isEmpty();
+    assertThat(podLogServiceMockedConstruction.constructed()).isEmpty();
   }
 }

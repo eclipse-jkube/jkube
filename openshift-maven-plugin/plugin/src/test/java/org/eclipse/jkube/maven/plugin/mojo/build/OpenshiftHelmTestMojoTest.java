@@ -21,7 +21,11 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -132,5 +136,34 @@ class OpenshiftHelmTestMojoTest {
     assertThatIllegalStateException()
       .isThrownBy(() -> openShiftHelmTestMojo.execute())
       .withMessageContaining(" not found");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    OpenshiftHelmTestMojo skipOpenShiftHelmTestMojo = new OpenshiftHelmTestMojo() {{
+      helm = HelmConfig.builder()
+        .outputDir(projectDir.resolve("target").resolve("jkube").resolve("helm").toString())
+        .disableOpenAPIValidation(true)
+        .build();
+      interpolateTemplateParameters = true;
+      access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
+      settings = new Settings();
+      project = new MavenProject();
+      project.setVersion("0.1.0");
+      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
+      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
+      project.setFile(projectDir.resolve("target").toFile());
+      log = new KitLogger.SilentLogger();
+      skip = true;
+      mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+      mojoExecution.getMojoDescriptor().setGoal("helm-test");
+      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
+    }};
+    // When
+    skipOpenShiftHelmTestMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).isEmpty();
   }
 }

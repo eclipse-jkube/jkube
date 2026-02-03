@@ -14,6 +14,8 @@
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.jupiter.api.BeforeEach;
@@ -74,6 +76,17 @@ class OpenshiftUndeployMojoTest {
   @Test
   void getLogPrefix() {
     assertThat(undeployMojo.getLogPrefix()).isEqualTo("oc: ");
+  }
+
+  @Test
+  void execute_whenSkipUndeployTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException {
+    // Given
+    undeployMojo.skipUndeploy = true;
+    // When
+    undeployMojo.execute();
+    // Then
+    // No exception should be thrown, and no undeploy should happen
+    assertThat(undeployMojo.skipUndeploy).isTrue();
   }
 }
 

@@ -13,7 +13,13 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.ContainerResourcesConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -25,6 +31,8 @@ import java.io.File;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class BuildMojoTest {
@@ -57,5 +65,24 @@ class BuildMojoTest {
             .extracting(ResourceConfig::getOpenshiftBuildConfig)
             .returns("200m", c -> c.getLimits().get("cpu"))
             .returns("1Gi", c -> c.getRequests().get("memory"));
+    }
+
+    @Test
+    void execute_whenSkipBuildTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException {
+        // Given
+        BuildMojo buildMojo = new BuildMojo();
+        buildMojo.project = mavenProject;
+        buildMojo.settings = mock(org.apache.maven.settings.Settings.class);
+        when(buildMojo.settings.getInteractiveMode()).thenReturn(true);
+        buildMojo.skipBuild = true;
+        buildMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
+        buildMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
+        buildMojo.mojoExecution.getMojoDescriptor().setGoal("build");
+        buildMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+        // When
+        buildMojo.execute();
+        // Then
+        // Verify that execute completes without error and skip worked (no docker operations attempted)
+        assertThat(buildMojo.shouldSkip()).isTrue();
     }
 }

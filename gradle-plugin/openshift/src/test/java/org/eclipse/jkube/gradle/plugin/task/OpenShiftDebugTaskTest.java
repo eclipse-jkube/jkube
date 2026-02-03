@@ -19,6 +19,7 @@ import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.service.DebugContext;
 import org.eclipse.jkube.kit.config.service.DebugService;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,6 +92,25 @@ class OpenShiftDebugTaskTest {
         .hasFieldOrPropertyWithValue("localDebugPort", "5005")
         .hasFieldOrPropertyWithValue("debugSuspend", false)
         .satisfies(d -> assertThat(d.getPodWaitLog()).isInstanceOf(GradleLogger.class));
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftDebugTask task = new OpenShiftDebugTask(OpenShiftExtension.class);
+
+    // When
+    task.runTask();
+
+    // Then
+    assertThat(debugServiceMockedConstruction.constructed()).isEmpty();
   }
 
 }

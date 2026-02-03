@@ -15,6 +15,8 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import com.marcnuri.helm.Helm;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -95,5 +97,30 @@ class OpenshiftHelmDependencyUpdateMojoTest {
       .contains("Running Helm Dependency Upgrade empty-project 0.1.0")
       .contains("Saving 1 charts")
       .contains("Deleting outdated charts");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    Path helmChartOutputDir = projectDir.resolve("target").resolve("jkube").resolve("helm");
+    OpenshiftHelmDependencyUpdateMojo skipOpenshiftHelmDependencyUpdateMojo = new OpenshiftHelmDependencyUpdateMojo() {{
+      helm = HelmConfig.builder().chartExtension("tgz").outputDir(helmChartOutputDir.toString()).build();
+      interpolateTemplateParameters = true;
+      settings = new Settings();
+      project = new MavenProject();
+      project.setVersion("0.1.0");
+      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
+      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
+      project.setFile(projectDir.resolve("target").toFile());
+      skip = true;
+      mojoExecution = new org.apache.maven.plugin.MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+      mojoExecution.getMojoDescriptor().setGoal("helm-dependency-update");
+      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
+    }};
+    // When
+    skipOpenshiftHelmDependencyUpdateMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).isEmpty();
   }
 }

@@ -20,8 +20,11 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -113,5 +116,34 @@ class HelmUninstallMojoTest {
     assertThatIllegalStateException()
       .isThrownBy(() -> helmUninstallMojo.execute())
       .withMessageContaining(" not found");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    HelmUninstallMojo skipHelmUninstallMojo = new HelmUninstallMojo() {{
+      helm = HelmConfig.builder().chartExtension("tgz")
+        .outputDir(projectDir.resolve("target").resolve("jkube").resolve("helm").toString())
+        .disableOpenAPIValidation(true)
+        .build();
+      access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
+      interpolateTemplateParameters = true;
+      settings = new Settings();
+      project = new MavenProject();
+      project.setVersion("0.1.0");
+      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
+      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
+      project.setFile(projectDir.resolve("target").toFile());
+      log = new KitLogger.SilentLogger();
+      skip = true;
+      mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+      mojoExecution.getMojoDescriptor().setGoal("helm-uninstall");
+      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    }};
+    // When
+    skipHelmUninstallMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).isEmpty();
   }
 }

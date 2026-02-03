@@ -24,6 +24,7 @@ import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.watcher.api.WatcherManager;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,5 +102,25 @@ class KubernetesWatchTaskTest {
     AssertionsForClassTypes.assertThat(watchTask.jKubeServiceHub.getBuildService()).isNotNull()
         .isInstanceOf(DockerBuildService.class);
     watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq(kubernetesClient.getNamespace()), any(), any()), times(1));
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesWatchTask kubernetesWatchTask = new KubernetesWatchTask(KubernetesExtension.class);
+
+    // When
+    kubernetesWatchTask.runTask();
+
+    // Then - verify no build service was constructed and init() was not called
+    assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
+    assertThat(kubernetesWatchTask.jKubeServiceHub).isNull();
   }
 }

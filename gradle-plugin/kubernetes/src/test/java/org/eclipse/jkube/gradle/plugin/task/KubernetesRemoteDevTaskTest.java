@@ -17,6 +17,7 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,5 +83,24 @@ class KubernetesRemoteDevTaskTest {
     assertThat(remoteDevelopmentService.constructed())
       .singleElement()
       .satisfies(service -> verify(service, times(1)).stop());
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestKubernetesExtension extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesRemoteDevTask kubernetesRemoteDevTask = new KubernetesRemoteDevTask(KubernetesExtension.class);
+
+    // When
+    kubernetesRemoteDevTask.runTask();
+
+    // Then
+    assertThat(remoteDevelopmentService.constructed()).isEmpty();
   }
 }

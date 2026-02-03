@@ -24,15 +24,20 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.TemplateBuilder;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.Scm;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +49,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 class HelmMojoTest {
 
@@ -150,6 +157,36 @@ class HelmMojoTest {
     helmMojo.execute();
     // Then
     assertThat(helmMojo.helm.getIcon()).isEqualTo("https://my-icon");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    KitLogger kitLogger = spy(new KitLogger.SilentLogger());
+    HelmMojo skipHelmMojo = new HelmMojo() {{
+      offline = true;
+      project = new MavenProject();
+      projectHelper = mock(MavenProjectHelper.class);
+      settings = new Settings();
+      interpolateTemplateParameters = true;
+      project.setFile(projectDir.resolve("target").toFile());
+      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
+      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
+      skip = true;
+      mojoExecution = new MojoExecution(new MojoDescriptor());
+      mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
+      mojoExecution.getMojoDescriptor().setGoal("helm");
+      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    }
+      @Override
+      protected KitLogger createLogger(String prefix) {
+        return kitLogger;
+      }
+    };
+    // When
+    skipHelmMojo.execute();
+    // Then
+    verify(kitLogger).info("`%s` goal is skipped.", "k8s:helm");
   }
 
 }

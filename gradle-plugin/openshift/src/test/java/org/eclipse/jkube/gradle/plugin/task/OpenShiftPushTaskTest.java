@@ -22,6 +22,7 @@ import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService;
 
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,6 +82,25 @@ class OpenShiftPushTaskTest {
     final OpenShiftPushTask openShiftPushTask = new OpenShiftPushTask(OpenShiftExtension.class);
     // When
     openShiftPushTask.runTask();
+    // Then
+    assertThat(openshiftBuildServiceMockedConstruction.constructed()).isEmpty();
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftPushTask task = new OpenShiftPushTask(OpenShiftExtension.class);
+
+    // When
+    task.runTask();
+
     // Then
     assertThat(openshiftBuildServiceMockedConstruction.constructed()).isEmpty();
   }

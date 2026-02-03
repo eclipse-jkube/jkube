@@ -22,6 +22,10 @@ import java.util.Properties;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
@@ -36,6 +40,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @EnableKubernetesMockClient(crud = true)
@@ -128,6 +134,36 @@ class ApplyMojoTest {
     assertThat(applyMojo.applyService)
         .hasFieldOrPropertyWithValue("namespace", null)
         .hasFieldOrPropertyWithValue("fallbackNamespace", "kubernetes-client-config-namespace");
+  }
+
+  @Test
+  void execute_whenSkipApplyTrue_shouldDoNothing() throws Exception {
+    // Given
+    KitLogger kitLogger = spy(new KitLogger.SilentLogger());
+    ApplyMojo skipApplyMojo = new ApplyMojo() {
+      @Override
+      protected KitLogger createLogger(String prefix) {
+        return kitLogger;
+      }
+    };
+    skipApplyMojo.access = ClusterConfiguration.from(
+      new ConfigBuilder(defaultKubernetesClient.getConfiguration())
+        .withNamespace("kubernetes-client-config-namespace")
+        .build()
+    ).build();
+    skipApplyMojo.project = mavenProject;
+    skipApplyMojo.settings = mock(Settings.class);
+    skipApplyMojo.kubernetesManifest = kubernetesManifestFile;
+    skipApplyMojo.interpolateTemplateParameters = true;
+    skipApplyMojo.skipApply = true;
+    skipApplyMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
+    skipApplyMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
+    skipApplyMojo.mojoExecution.getMojoDescriptor().setGoal("apply");
+    skipApplyMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    // When
+    skipApplyMojo.execute();
+    // Then
+    verify(kitLogger).info("`%s` goal is skipped.", "k8s:apply");
   }
 
 }

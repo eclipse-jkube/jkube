@@ -13,14 +13,63 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedConstruction;
+
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 class OpenShiftRemoteDevMojoTest {
+
+  private OpenShiftRemoteDevMojo openShiftRemoteDevMojo;
+  private MockedConstruction<RemoteDevelopmentService> remoteDevelopmentService;
+
+  @BeforeEach
+  void setUp() {
+    final MavenProject mavenProject = mock(MavenProject.class);
+    when(mavenProject.getProperties()).thenReturn(new Properties());
+    openShiftRemoteDevMojo = new OpenShiftRemoteDevMojo() {{
+      project = mavenProject;
+      settings = mock(Settings.class, RETURNS_DEEP_STUBS);
+      interpolateTemplateParameters = false;
+    }};
+    remoteDevelopmentService = mockConstruction(RemoteDevelopmentService.class);
+  }
+
+  @AfterEach
+  void tearDown() {
+    remoteDevelopmentService.close();
+  }
+
   @Test
   void getLogPrefix_shouldReturnOpenShiftPrefix() {
-    OpenShiftRemoteDevMojo openShiftRemoteDevMojo = new OpenShiftRemoteDevMojo();
     assertThat(openShiftRemoteDevMojo.getLogPrefix()).isEqualTo("oc: ");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    final MavenProject mavenProject = mock(MavenProject.class);
+    when(mavenProject.getProperties()).thenReturn(new Properties());
+    OpenShiftRemoteDevMojo skipOpenShiftRemoteDevMojo = new OpenShiftRemoteDevMojo() {{
+      project = mavenProject;
+      settings = mock(Settings.class, RETURNS_DEEP_STUBS);
+      interpolateTemplateParameters = false;
+      skip = true;
+    }};
+    // When
+    skipOpenShiftRemoteDevMojo.execute();
+    // Then
+    assertThat(remoteDevelopmentService.constructed()).isEmpty();
   }
 }

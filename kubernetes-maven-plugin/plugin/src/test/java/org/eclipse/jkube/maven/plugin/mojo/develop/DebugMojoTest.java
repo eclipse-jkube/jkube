@@ -19,6 +19,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.eclipse.jkube.kit.common.util.AnsiLogger;
 import org.eclipse.jkube.kit.config.service.DebugContext;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
@@ -39,6 +41,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -93,5 +96,21 @@ class DebugMojoTest {
         .hasFieldOrPropertyWithValue("fileName", "kubernetes.yml")
         .hasFieldOrPropertyWithValue("debugSuspend", false)
         .satisfies(d -> assertThat(d.getPodWaitLog()).isInstanceOf(AnsiLogger.class));
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    DebugMojo skipDebugMojo = new DebugMojo() {{
+      project = mavenProject;
+      settings = mock(Settings.class);
+      kubernetesManifest = kubernetesManifestFile;
+      interpolateTemplateParameters = false;
+      skip = true;
+    }};
+    // When
+    skipDebugMojo.execute();
+    // Then
+    assertThat(jKubeServiceHubMockedConstruction.constructed()).isEmpty();
   }
 }
