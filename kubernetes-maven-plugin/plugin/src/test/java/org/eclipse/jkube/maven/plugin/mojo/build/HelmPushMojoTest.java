@@ -47,6 +47,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -56,12 +57,19 @@ class HelmPushMojoTest {
   @TempDir
   private Path projectDir;
   private HelmPushMojo helmPushMojo;
+  private KitLogger logger;
 
   @BeforeEach
   void setUp() throws Exception {
-    helmPushMojo = new HelmPushMojo();
+    logger = spy(new KitLogger.SilentLogger());
+    helmPushMojo = new HelmPushMojo() {
+      @Override
+      protected KitLogger createLogger(String prefix) {
+        return logger;
+      }
+    };
+    helmPushMojo.log = logger;
     helmPushMojo.helm = new HelmConfig();
-    helmPushMojo.log = new KitLogger.SilentLogger();
     helmPushMojo.project = new MavenProject();
     helmPushMojo.settings = new Settings();
     helmPushMojo.securityDispatcher = mock(SecDispatcher.class);
@@ -211,6 +219,7 @@ class HelmPushMojoTest {
       helmPushMojo.execute();
       // Then
       assertThat(helmServiceMockedConstruction.constructed()).isEmpty();
+      verify(logger, times(1)).info("`%s` goal is skipped.", "k8s:helm-push");
     }
   }
 

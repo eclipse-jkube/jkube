@@ -19,6 +19,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.ContainerResourcesConfig;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
@@ -70,19 +71,27 @@ class BuildMojoTest {
     @Test
     void execute_whenSkipBuildTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException {
         // Given
-        BuildMojo buildMojo = new BuildMojo();
+        KitLogger kitLogger = spy(new KitLogger.SilentLogger());
+        Settings mockSettings = mock(Settings.class);
+        MojoExecution mockExecution = new MojoExecution(new MojoDescriptor());
+        mockExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
+        mockExecution.getMojoDescriptor().setGoal("build");
+        mockExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+
+        BuildMojo buildMojo = new BuildMojo() {
+            @Override
+            protected void init() {
+                log = kitLogger;
+            }
+        };
         buildMojo.project = mavenProject;
-        buildMojo.settings = mock(org.apache.maven.settings.Settings.class);
-        when(buildMojo.settings.getInteractiveMode()).thenReturn(true);
+        buildMojo.settings = mockSettings;
         buildMojo.skipBuild = true;
-        buildMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
-        buildMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
-        buildMojo.mojoExecution.getMojoDescriptor().setGoal("build");
-        buildMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+        buildMojo.mojoExecution = mockExecution;
+
         // When
         buildMojo.execute();
         // Then
-        // Verify that execute completes without error and skip worked (no docker operations attempted)
-        assertThat(buildMojo.shouldSkip()).isTrue();
+        verify(kitLogger).info("`%s` goal is skipped.", "k8s:build");
     }
 }
