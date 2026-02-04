@@ -1094,6 +1094,75 @@ class OpenshiftBuildServiceIntegrationTest {
             .hasFieldOrPropertyWithValue("value", "prop-build-arg-value"));
   }
 
+  @Test
+  @DisplayName("Docker build with docker.nocache system property should override BuildConfiguration.nocache")
+  void dockerBuild_withNoCacheSystemProperty_shouldSetNoCacheTrue() throws Exception {
+    // Given - set docker.nocache system property
+    System.setProperty("docker.nocache", "true");
+    try {
+      image = image.toBuilder()
+          .build(BuildConfiguration.builder()
+              .from(projectName)
+              .nocache(Boolean.FALSE) // config says false, but system property should override
+              .openshiftS2iBuildNameSuffix("-docker")
+              .openshiftBuildRecreateMode(BuildRecreateMode.none)
+              .build())
+          .build();
+      withBuildServiceConfig(defaultConfig.jKubeBuildStrategy(JKubeBuildStrategy.docker).build());
+      final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+          .resourceName(projectName)
+          .buildConfigSuffix("-docker")
+          .buildConfigExists(false)
+          .imageStreamExists(false)
+          .configure();
+
+      // When
+      new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+      // Then - noCache should be true due to system property override
+      collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "imagestream-create", "pushed");
+      assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+          .hasFieldOrPropertyWithValue("metadata.name", "myapp-docker")
+          .extracting(BuildConfig::getSpec)
+          .hasFieldOrPropertyWithValue("strategy.type", "Docker")
+          .hasFieldOrPropertyWithValue("strategy.dockerStrategy.noCache", true);
+    } finally {
+      System.clearProperty("docker.nocache");
+    }
+  }
+
+  @Test
+  @DisplayName("Docker build with BuildConfiguration.nocache=true should set noCache in DockerStrategy")
+  void dockerBuild_withNoCacheConfigTrue_shouldSetNoCacheTrue() throws Exception {
+    // Given
+    image = image.toBuilder()
+        .build(BuildConfiguration.builder()
+            .from(projectName)
+            .nocache(Boolean.TRUE)
+            .openshiftS2iBuildNameSuffix("-docker")
+            .openshiftBuildRecreateMode(BuildRecreateMode.none)
+            .build())
+        .build();
+    withBuildServiceConfig(defaultConfig.jKubeBuildStrategy(JKubeBuildStrategy.docker).build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-docker")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "imagestream-create", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-docker")
+        .extracting(BuildConfig::getSpec)
+        .hasFieldOrPropertyWithValue("strategy.type", "Docker")
+        .hasFieldOrPropertyWithValue("strategy.dockerStrategy.noCache", true);
+  }
+
   private BuildServiceConfig withBuildServiceConfig(BuildServiceConfig buildServiceConfig) {
     when(jKubeServiceHub.getBuildServiceConfig()).thenReturn(buildServiceConfig);
     return buildServiceConfig;
