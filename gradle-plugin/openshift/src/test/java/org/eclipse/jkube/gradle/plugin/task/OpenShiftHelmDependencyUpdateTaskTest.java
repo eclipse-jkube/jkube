@@ -31,8 +31,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -101,11 +101,12 @@ class OpenShiftHelmDependencyUpdateTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     final OpenShiftHelmDependencyUpdateTask task = new OpenShiftHelmDependencyUpdateTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocHelmDependencyUpdate");
 
     // When
     task.runTask();
 
     // Then
-    verify(taskEnvironment.logger, never()).lifecycle(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle( contains("oc: `ocHelmDependencyUpdate` task is skipped."));
   }
 }
