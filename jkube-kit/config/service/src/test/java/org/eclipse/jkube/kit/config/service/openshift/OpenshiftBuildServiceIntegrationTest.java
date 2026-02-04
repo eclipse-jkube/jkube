@@ -1120,6 +1120,30 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with cancelled status should throw exception with cancellation details")
+  void build_withCancelledBuildStatus_shouldThrowExceptionWithDetails() {
+    // Given
+    withBuildServiceConfig(defaultConfig.build());
+    MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .buildCancelled(true) // Configure build to be cancelled
+        .configure();
+
+    // When/Then
+    final OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
+    assertThatExceptionOfType(JKubeServiceException.class)
+        .isThrownBy(() -> openshiftBuildService.build(image))
+        .withMessageContaining("Unable to build the image using the OpenShift build service")
+        .havingCause()
+        .isInstanceOf(IOException.class)
+        .withMessageContaining("failed")
+        .withMessageContaining("CancelledBuild");
+  }
+
+  @Test
   @DisplayName("Docker build with docker.nocache system property should override BuildConfiguration.nocache")
   void dockerBuild_withNoCacheSystemProperty_shouldSetNoCacheTrue() throws Exception {
     // Given - set docker.nocache system property
