@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.config.service.openshift;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1092,6 +1093,30 @@ class OpenshiftBuildServiceIntegrationTest {
             .first()
             .hasFieldOrPropertyWithValue("name", "PROP_BUILD_ARG")
             .hasFieldOrPropertyWithValue("value", "prop-build-arg-value"));
+  }
+
+  @Test
+  @DisplayName("build with failed status should throw exception with failure details")
+  void build_withFailedBuildStatus_shouldThrowExceptionWithDetails() {
+    // Given
+    withBuildServiceConfig(defaultConfig.build());
+    MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .buildSucceeds(false) // Configure build to fail
+        .configure();
+
+    // When/Then
+    final OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
+    assertThatExceptionOfType(JKubeServiceException.class)
+        .isThrownBy(() -> openshiftBuildService.build(image))
+        .withMessageContaining("Unable to build the image using the OpenShift build service")
+        .havingCause()
+        .isInstanceOf(IOException.class)
+        .withMessageContaining("failed")
+        .withMessageContaining("ExitCodeError");
   }
 
   @Test

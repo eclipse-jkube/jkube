@@ -289,9 +289,17 @@ public class MockServerSetup {
   }
 
   private Build createBuild() {
-    return new BuildBuilder()
-        .withNewMetadata().withResourceVersion("2").endMetadata()
-        .withNewStatus().withPhase(buildSucceeds ? "Complete" : "Fail").endStatus()
-        .build();
+    BuildBuilder builder = new BuildBuilder()
+        .withNewMetadata().withResourceVersion("2").endMetadata();
+    if (buildSucceeds) {
+      builder.withNewStatus().withPhase("Complete").endStatus();
+    } else {
+      builder.withNewStatus()
+          .withPhase("Failed")
+          .withReason("ExitCodeError")
+          .withMessage("Build failed with exit code 1")
+          .endStatus();
+    }
+    return builder.build();
   }
 }
