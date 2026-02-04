@@ -118,7 +118,7 @@ class OpenshiftUndeployMojoTest {
       {
         project = mockProject;
         settings = OpenshiftUndeployMojoTest.this.settings;
-        skipUndeploy = true;
+        skip = true;
         mojoExecution = mockExecution;
       }
     };
