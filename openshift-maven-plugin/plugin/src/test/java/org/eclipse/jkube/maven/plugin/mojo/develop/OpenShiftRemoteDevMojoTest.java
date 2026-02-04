@@ -13,6 +13,7 @@
  */
 package org.eclipse.jkube.maven.plugin.mojo.develop;
 
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService;
@@ -21,6 +22,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedConstruction;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,9 +36,14 @@ class OpenShiftRemoteDevMojoTest {
 
   private OpenShiftRemoteDevMojo openShiftRemoteDevMojo;
   private MockedConstruction<RemoteDevelopmentService> remoteDevelopmentService;
+  private PrintStream originalPrintStream;
+  private ByteArrayOutputStream outputStream;
 
   @BeforeEach
   void setUp() {
+    originalPrintStream = System.out;
+    outputStream = new ByteArrayOutputStream();
+    System.setOut(new PrintStream(outputStream));
     final MavenProject mavenProject = mock(MavenProject.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
     openShiftRemoteDevMojo = new OpenShiftRemoteDevMojo() {{
@@ -49,6 +57,7 @@ class OpenShiftRemoteDevMojoTest {
   @AfterEach
   void tearDown() {
     remoteDevelopmentService.close();
+    System.setOut(originalPrintStream);
   }
 
   @Test
@@ -66,10 +75,15 @@ class OpenShiftRemoteDevMojoTest {
       settings = mock(Settings.class, RETURNS_DEEP_STUBS);
       interpolateTemplateParameters = false;
       skip = true;
+      mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+      mojoExecution.getMojoDescriptor().setGoal("remote-dev");
+      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
     }};
     // When
     skipOpenShiftRemoteDevMojo.execute();
     // Then
     assertThat(remoteDevelopmentService.constructed()).isEmpty();
+    assertThat(outputStream.toString()).contains("[INFO] `oc:remote-dev` goal is skipped");
   }
 }
