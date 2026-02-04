@@ -167,7 +167,7 @@ public class MockServerSetup {
           .andReturn(404, "")
           .once();
       mockServer.expect().post().withPath(isBasePath)
-          .andReturn(201, imageStream)
+          .andReply(collector.record("imagestream-create").andReturn(201, imageStream))
           .once();
     } else {
       // ImageStream exists but no recreate - just return existing

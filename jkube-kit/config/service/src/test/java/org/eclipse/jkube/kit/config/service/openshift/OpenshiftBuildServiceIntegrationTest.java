@@ -25,6 +25,7 @@ import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.api.model.BuildConfig;
+import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.client.OpenShiftClient;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.apache.commons.io.FileUtils;
@@ -858,6 +859,62 @@ class OpenshiftBuildServiceIntegrationTest {
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
         .hasFieldOrPropertyWithValue("metadata.name", "myapp-s2i-suffix-configured-in-image");
+  }
+
+  @Test
+  @DisplayName("S2I build with openshiftS2iImageStreamLookupPolicyLocal=true should set lookupPolicy.local=true")
+  void s2iBuild_withLookupPolicyLocalTrue_shouldCreateImageStreamWithLookupPolicyLocalTrue() throws Exception {
+    // Given - explicitly set to true (Maven/Gradle plugins default to true)
+    withBuildServiceConfig(defaultConfig.build());
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftS2iImageStreamLookupPolicyLocal(true)
+            .build())
+        .build();
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then - ImageStream should have lookupPolicy.local=true
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "imagestream-create", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(2), ImageStream.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp")
+        .extracting(ImageStream::getSpec)
+        .hasFieldOrPropertyWithValue("lookupPolicy.local", true);
+  }
+
+  @Test
+  @DisplayName("S2I build with openshiftS2iImageStreamLookupPolicyLocal=false should set lookupPolicy.local=false")
+  void s2iBuild_withLookupPolicyLocalFalse_shouldCreateImageStreamWithLookupPolicyLocalFalse() throws Exception {
+    // Given - explicitly set to false
+    withBuildServiceConfig(defaultConfig.build());
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftS2iImageStreamLookupPolicyLocal(false)
+            .build())
+        .build();
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then - ImageStream should have lookupPolicy.local=false
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "imagestream-create", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(2), ImageStream.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp")
+        .extracting(ImageStream::getSpec)
+        .hasFieldOrPropertyWithValue("lookupPolicy.local", false);
   }
 
   @Test
