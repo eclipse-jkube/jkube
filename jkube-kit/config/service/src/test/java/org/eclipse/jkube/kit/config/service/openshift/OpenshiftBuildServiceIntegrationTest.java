@@ -19,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import io.fabric8.kubernetes.api.model.Quantity;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -56,6 +57,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,6 +65,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -708,8 +711,8 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
-  @DisplayName("S2I build with environment variables should succeed")
-  void s2iBuild_withEnvVars_shouldSucceed() throws Exception {
+  @DisplayName("S2I build with environment variables should include .s2i/environment in archive")
+  void s2iBuild_withEnvVars_shouldIncludeS2iEnvironmentInArchive() throws Exception {
     // Given
     image = image.toBuilder()
         .build(image.getBuild().toBuilder()
@@ -727,9 +730,20 @@ class OpenshiftBuildServiceIntegrationTest {
     // When
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
-    // Then
+    // Then - build completes and .s2i/environment file is included in archive
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     assertThat(containsRequest("imagestreams")).isTrue();
+    // Verify .s2i/environment file was added to the archive with env vars
+    ArgumentCaptor<File> fileCaptor = ArgumentCaptor.forClass(File.class);
+    ArgumentCaptor<String> pathCaptor = ArgumentCaptor.forClass(String.class);
+    verify(jKubeBuildTarArchiver.constructed().get(0), atLeastOnce())
+        .includeFile(fileCaptor.capture(), pathCaptor.capture());
+    int s2iEnvIndex = pathCaptor.getAllValues().indexOf(".s2i/environment");
+    assertThat(s2iEnvIndex).as(".s2i/environment should be included in archive").isGreaterThanOrEqualTo(0);
+    assertThat(fileCaptor.getAllValues().get(s2iEnvIndex))
+        .content()
+        .contains("MY_VAR=my-value")
+        .contains("ANOTHER_VAR=another-value");
   }
 
   @Test
@@ -790,6 +804,87 @@ class OpenshiftBuildServiceIntegrationTest {
 
     // Then - build should complete successfully (layers are flattened internally for S2I)
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
+  }
+
+  @Test
+  @DisplayName("Docker build with build args in image configuration should include args in BuildConfig")
+  void dockerBuild_withBuildArgsInImageConfig_shouldIncludeArgsInBuildConfig() throws Exception {
+    // Given
+    image = ImageConfiguration.builder()
+        .name(projectName)
+        .build(BuildConfiguration.builder()
+            .from(projectName)
+            .openshiftS2iBuildNameSuffix("-docker")
+            .openshiftBuildRecreateMode(BuildRecreateMode.none)
+            .args(ImmutableMap.of("BUILD_ARG_KEY", "build-arg-value"))
+            .build())
+        .build();
+    withBuildServiceConfig(defaultConfig.jKubeBuildStrategy(JKubeBuildStrategy.docker).build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-docker")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-docker")
+        .satisfies(bc -> assertThat(bc.getSpec().getStrategy().getDockerStrategy().getBuildArgs())
+            .hasSize(1)
+            .first()
+            .hasFieldOrPropertyWithValue("name", "BUILD_ARG_KEY")
+            .hasFieldOrPropertyWithValue("value", "build-arg-value"));
+  }
+
+  @Test
+  @DisplayName("Docker build with build args in project properties should include args in BuildConfig")
+  void dockerBuild_withBuildArgsInProjectProperties_shouldIncludeArgsInBuildConfig() throws Exception {
+    // Given
+    Properties properties = new Properties();
+    properties.put("docker.buildArg.PROP_BUILD_ARG", "prop-build-arg-value");
+    when(jKubeServiceHub.getConfiguration()).thenReturn(JKubeConfiguration.builder()
+        .outputDirectory(target.getName())
+        .project(JavaProject.builder()
+            .baseDirectory(baseDirectory)
+            .buildDirectory(target)
+            .properties(properties)
+            .build())
+        .pullRegistryConfig(RegistryConfig.builder().build())
+        .clusterConfiguration(ClusterConfiguration.from(client.getConfiguration()).build())
+        .build());
+    image = ImageConfiguration.builder()
+        .name(projectName)
+        .build(BuildConfiguration.builder()
+            .from(projectName)
+            .openshiftS2iBuildNameSuffix("-docker")
+            .openshiftBuildRecreateMode(BuildRecreateMode.none)
+            .build())
+        .build();
+    withBuildServiceConfig(defaultConfig.jKubeBuildStrategy(JKubeBuildStrategy.docker).build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-docker")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-docker")
+        .satisfies(bc -> assertThat(bc.getSpec().getStrategy().getDockerStrategy().getBuildArgs())
+            .hasSize(1)
+            .first()
+            .hasFieldOrPropertyWithValue("name", "PROP_BUILD_ARG")
+            .hasFieldOrPropertyWithValue("value", "prop-build-arg-value"));
   }
 
   private BuildServiceConfig withBuildServiceConfig(BuildServiceConfig buildServiceConfig) {
