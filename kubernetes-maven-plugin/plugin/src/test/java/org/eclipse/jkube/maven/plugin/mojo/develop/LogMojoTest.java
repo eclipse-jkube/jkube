@@ -116,8 +116,6 @@ class LogMojoTest {
     mockExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
     mockExecution.getMojoDescriptor().setGoal("log");
     mockExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
-
-    // Given
     LogMojo skipLogMojo = new LogMojo() {
       @Override
       protected KitLogger createLogger(String prefix) {
