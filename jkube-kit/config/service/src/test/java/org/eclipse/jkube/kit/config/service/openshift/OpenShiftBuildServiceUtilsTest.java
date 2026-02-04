@@ -15,14 +15,12 @@ package org.eclipse.jkube.kit.config.service.openshift;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
 
-import io.fabric8.openshift.api.model.ImageStreamTag;
-import io.fabric8.openshift.api.model.ImageStreamTagBuilder;
-import org.assertj.core.api.InstanceOfAssertFactories;
+import io.fabric8.openshift.api.model.BuildConfig;
+import io.fabric8.openshift.api.model.BuildConfigBuilder;
+import io.fabric8.openshift.api.model.BuildConfigSpec;
+import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
 import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -35,17 +33,8 @@ import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
-
-import io.fabric8.openshift.api.model.BuildConfig;
-import io.fabric8.openshift.api.model.BuildConfigBuilder;
-import io.fabric8.openshift.api.model.BuildConfigSpec;
-import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
-import io.fabric8.openshift.api.model.BuildOutput;
-import io.fabric8.openshift.api.model.BuildStrategy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentCaptor;
@@ -54,13 +43,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.computeS2IBuildName;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createAdditionalTagsIfPresent;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildArchive;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildOutput;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.createBuildStrategy;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.getAdditionalTagsToCreate;
 import static org.eclipse.jkube.kit.config.service.openshift.OpenShiftBuildServiceUtils.getBuildConfigSpec;
-import static org.eclipse.jkube.kit.config.service.openshift.OpenshiftBuildService.DOCKER_IMAGE;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
@@ -168,155 +153,6 @@ class OpenShiftBuildServiceUtilsTest {
   }
 
   @Test
-  void createBuildStrategy_withS2iBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
-    // Given
-    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.s2i);
-    // When
-    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null, log);
-    // Then
-    assertThat(result)
-        .hasFieldOrPropertyWithValue("type", "Source")
-        .extracting(BuildStrategy::getSourceStrategy)
-        .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
-        .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base");
-  }
-
-  @Test
-  void createBuildStrategy_withS2iBuildStrategyAndPullSecret_shouldReturnValidBuildStrategy() {
-    // Given
-    when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy()).thenReturn(JKubeBuildStrategy.s2i);
-    // When
-    final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull", log);
-    // Then
-    assertThat(result)
-        .hasFieldOrPropertyWithValue("type", "Source")
-        .extracting(BuildStrategy::getSourceStrategy)
-        .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
-        .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base")
-        .hasFieldOrPropertyWithValue("pullSecret.name", "my-secret-for-pull");
-  }
-
-  @Nested
-  @DisplayName("docker BuildStrategy")
-  class DockerBuildStrategy {
-    @BeforeEach
-    void setUp() {
-      when(jKubeServiceHub.getBuildServiceConfig().getJKubeBuildStrategy())
-          .thenReturn(JKubeBuildStrategy.docker);
-    }
-
-    @Test
-    @DisplayName("no pull secret specified")
-    void withDockerBuildStrategyAndNoPullSecret_shouldReturnValidBuildStrategy() {
-      // When
-      final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, null, log);
-      // Then
-      assertThat(result)
-          .hasFieldOrPropertyWithValue("type", "Docker")
-          .extracting(BuildStrategy::getDockerStrategy)
-          .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
-          .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base");
-    }
-
-    @Test
-    @DisplayName("pull secret specified, should reflect in Build Strategy")
-    void withPullSecret_shouldReturnValidBuildStrategy() {
-      // When
-      final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull", log);
-      // Then
-      assertThat(result)
-          .hasFieldOrPropertyWithValue("type", "Docker")
-          .extracting(BuildStrategy::getDockerStrategy)
-          .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
-          .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base")
-          .hasFieldOrPropertyWithValue("noCache", false)
-          .hasFieldOrPropertyWithValue("pullSecret.name", "my-secret-for-pull");
-    }
-
-    @Nested
-    @DisplayName("with build args")
-    class WithDockerBuildArgs {
-      @Test
-      @DisplayName("when docker build args in ImageConfig, then add them to BuildStrategy")
-      void withDockerBuildArgsInImageConfiguration_shouldReturnValidBuildStrategyWithBuildArgs() {
-        // Given
-        imageConfiguration = imageConfiguration.toBuilder()
-            .build(imageConfiguration.getBuild().toBuilder()
-                .args(Collections.singletonMap("BUILD_ARGS_KEY", "build-args-value"))
-                .build())
-            .build();
-        // When
-        final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull", log);
-        // Then
-        assertBuildArgPresentInBuildStrategy(result);
-      }
-
-      @Test
-      @DisplayName("when docker build args in project properties, then add them to BuildStrategy")
-      void withDockerBuildArgsInProjectProperties_shouldReturnValidBuildStrategyWithBuildArgs() {
-        // Given
-        Properties properties = new Properties();
-        properties.put("docker.buildArg.BUILD_ARGS_KEY", "build-args-value");
-        when(jKubeServiceHub.getConfiguration()).thenReturn(JKubeConfiguration.builder()
-            .project(JavaProject.builder()
-                .properties(properties)
-                .build())
-            .build());
-        // When
-        final BuildStrategy result = createBuildStrategy(jKubeServiceHub, imageConfiguration, "my-secret-for-pull", log);
-        // Then
-        assertBuildArgPresentInBuildStrategy(result);
-      }
-
-      void assertBuildArgPresentInBuildStrategy(BuildStrategy result) {
-        assertThat(result)
-            .hasFieldOrPropertyWithValue("type", "Docker")
-            .extracting(BuildStrategy::getDockerStrategy)
-            .hasFieldOrPropertyWithValue("from.kind", "DockerImage")
-            .hasFieldOrPropertyWithValue("from.name", "ubi8/s2i-base")
-            .extracting("buildArgs")
-            .asInstanceOf(InstanceOfAssertFactories.LIST)
-            .singleElement()
-            .satisfies(
-                envVar -> assertThat(envVar)
-                      .hasFieldOrPropertyWithValue("name", "BUILD_ARGS_KEY")
-                      .hasFieldOrPropertyWithValue("value", "build-args-value")
-                );
-      }
-    }
-  }
-
-  @Test
-  void createBuildOutput_withDefaults_shouldReturnImageStreamTag() {
-    // When
-    final BuildOutput result = createBuildOutput(imageConfiguration, new ImageName("my-app-image"));
-    // Then
-    assertThat(result)
-        .extracting(BuildOutput::getTo)
-        .hasFieldOrPropertyWithValue("kind", "ImageStreamTag")
-        .hasFieldOrPropertyWithValue("name", "my-app-image:latest");
-  }
-
-  @Test
-  void createBuildOutput_withOutputKindDockerAndPushSecret_shouldReturnDocker() {
-    // Given
-    imageConfiguration = imageConfiguration.toBuilder()
-        .build(imageConfiguration.getBuild().toBuilder()
-            .openshiftBuildOutputKind("DockerImage")
-            .openshiftPushSecret("my-push-secret")
-            .build())
-        .build();
-    // When
-    final BuildOutput result = createBuildOutput(imageConfiguration, new ImageName("my-app-image"));
-    // Then
-    assertThat(result)
-        .hasFieldOrPropertyWithValue("pushSecret.name", "my-push-secret")
-        .extracting(BuildOutput::getTo)
-        .hasFieldOrPropertyWithValue("kind", "DockerImage")
-        .hasFieldOrPropertyWithValue("name", "my-app-image:latest");
-  }
-
-  @Test
   void checkTarPackage() throws Exception {
     final JKubeBuildTarArchiver tarArchiver = mock(JKubeBuildTarArchiver.class);
     createBuildArchive(jKubeServiceHub, imageConfiguration);
@@ -361,81 +197,4 @@ class OpenShiftBuildServiceUtilsTest {
         .hasFieldOrPropertyWithValue("runPolicy", "Serial");
   }
 
-  @Test
-  void createAdditionalTagsIfPresent_withNoAdditionalTag_shouldReturnEmptyList() {
-    // Given + When
-    List<ImageStreamTag> imageStreamTagList = createAdditionalTagsIfPresent(imageConfiguration, "ns1", null);
-
-    // Then
-    assertThat(imageStreamTagList).isEmpty();
-  }
-
-  @Test
-  void createAdditionalTagsIfPresent_withAdditionalTags_shouldReturnNonEmptyImageStreamTagList() {
-    // Given
-    ImageConfiguration imageConfigurationWithAdditionalTags = createNewImageConfigurationWithAdditionalTags();
-
-    // When
-    List<ImageStreamTag> imageStreamTagList = createAdditionalTagsIfPresent(imageConfigurationWithAdditionalTags, "ns1", new ImageStreamTagBuilder()
-        .withNewMetadata().withName("test:t1").endMetadata()
-        .withNewImage().withDockerImageReference("foo-registry.openshift.svc:5000/test/test@sha256:1234").endImage()
-        .build());
-
-    // Then
-    assertThat(imageStreamTagList)
-        .hasSize(2)
-        .containsExactlyInAnyOrder(
-            new ImageStreamTagBuilder()
-                .withNewMetadata()
-                .withName("test:t2")
-                .withNamespace("ns1")
-                .endMetadata()
-                .withNewTag()
-                .withNewFrom()
-                .withKind(DOCKER_IMAGE)
-                .withName("foo-registry.openshift.svc:5000/test/test@sha256:1234")
-                .endFrom()
-                .endTag()
-                .withGeneration(0L)
-                .build(),
-            new ImageStreamTagBuilder()
-                .withNewMetadata()
-                .withName("test:t3")
-                .withNamespace("ns1")
-                .endMetadata()
-                .withNewTag()
-                .withNewFrom()
-                .withKind(DOCKER_IMAGE)
-                .withName("foo-registry.openshift.svc:5000/test/test@sha256:1234")
-                .endFrom()
-                .endTag()
-                .withGeneration(0L)
-                .build()
-        );
-  }
-
-  @Test
-  void getAdditionalTagsToCreate_withNoAdditionalTag_shouldReturnEmptyList() {
-    // Given + When
-    List<String> additionalTags = getAdditionalTagsToCreate(imageConfiguration);
-
-    // Then
-    assertThat(additionalTags).isEmpty();
-  }
-
-  @Test
-  void getAdditionalTagsToCreate_withAdditionalTags_shouldReturnExtraTagsList() {
-    // Given + When
-    List<String> additionalTags = getAdditionalTagsToCreate(createNewImageConfigurationWithAdditionalTags());
-
-    // Then
-    assertThat(additionalTags).containsExactlyInAnyOrder("t2", "t3");
-  }
-
-  private ImageConfiguration createNewImageConfigurationWithAdditionalTags() {
-    return ImageConfiguration.builder()
-        .name("test:t1")
-        .build(BuildConfiguration.builder().tags(Arrays.asList("t2", "t3")).build())
-        .build();
-  }
 }
