@@ -38,8 +38,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -142,11 +142,12 @@ class OpenShiftHelmInstallTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     final OpenShiftHelmInstallTask task = new OpenShiftHelmInstallTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocHelmInstall");
 
     // When
     task.runTask();
 
     // Then
-    verify(taskEnvironment.logger, never()).lifecycle(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocHelmInstall` task is skipped."));
   }
 }

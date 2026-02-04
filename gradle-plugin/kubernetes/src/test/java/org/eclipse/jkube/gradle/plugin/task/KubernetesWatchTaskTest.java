@@ -35,11 +35,13 @@ import org.mockito.MockedStatic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @EnableKubernetesMockClient(crud = true)
@@ -115,6 +117,7 @@ class KubernetesWatchTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesWatchTask kubernetesWatchTask = new KubernetesWatchTask(KubernetesExtension.class);
+    when(kubernetesWatchTask.getName()).thenReturn("k8sWatch");
 
     // When
     kubernetesWatchTask.runTask();
@@ -122,5 +125,6 @@ class KubernetesWatchTaskTest {
     // Then - verify no build service was constructed and init() was not called
     assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
     assertThat(kubernetesWatchTask.jKubeServiceHub).isNull();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sWatch` task is skipped."));
   }
 }

@@ -31,7 +31,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -96,11 +98,13 @@ class KubernetesLogTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesLogTask kubernetesLogTask = new KubernetesLogTask(KubernetesExtension.class);
+    when(kubernetesLogTask.getName()).thenReturn("k8sLog");
 
     // When
     kubernetesLogTask.runTask();
 
     // Then
     verify(taskEnvironment.logger, never()).warn(anyString());
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sLog` task is skipped."));
   }
 }

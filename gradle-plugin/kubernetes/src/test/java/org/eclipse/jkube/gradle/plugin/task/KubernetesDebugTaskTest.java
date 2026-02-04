@@ -31,6 +31,7 @@ import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -98,12 +99,14 @@ class KubernetesDebugTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesDebugTask kubernetesDebugTask = new KubernetesDebugTask(KubernetesExtension.class);
+    when(kubernetesDebugTask.getName()).thenReturn("k8sDebug");
 
     // When
     kubernetesDebugTask.runTask();
 
     // Then
     assertThat(debugServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sDebug` task is skipped."));
   }
 
 }

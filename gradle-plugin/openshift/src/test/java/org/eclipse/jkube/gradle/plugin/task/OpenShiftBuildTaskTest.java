@@ -31,6 +31,7 @@ import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -90,12 +91,14 @@ class OpenShiftBuildTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     final OpenShiftBuildTask task = new OpenShiftBuildTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocBuild");
 
     // When
     task.runTask();
 
     // Then
     assertThat(openshiftBuildServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocBuild` task is skipped."));
   }
 
 }

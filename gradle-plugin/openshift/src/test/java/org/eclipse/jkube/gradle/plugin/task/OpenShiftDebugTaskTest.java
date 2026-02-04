@@ -34,6 +34,7 @@ import java.util.Collections;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -105,12 +106,14 @@ class OpenShiftDebugTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     final OpenShiftDebugTask task = new OpenShiftDebugTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocDebug");
 
     // When
     task.runTask();
 
     // Then
     assertThat(debugServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocDebug` task is skipped."));
   }
 
 }

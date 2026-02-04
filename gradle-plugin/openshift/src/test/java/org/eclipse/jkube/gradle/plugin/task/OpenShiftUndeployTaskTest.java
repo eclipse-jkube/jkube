@@ -38,6 +38,7 @@ import org.mockito.MockedConstruction;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -116,11 +117,13 @@ class OpenShiftUndeployTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
     final OpenShiftUndeployTask openShiftUndeployTask = new OpenShiftUndeployTask(OpenShiftExtension.class);
+    when(openShiftUndeployTask.getName()).thenReturn("ocUndeploy");
 
     // When
     openShiftUndeployTask.runTask();
 
     // Then
     assertThat(openshiftUndeployServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocUndeploy` task is skipped."));
   }
 }

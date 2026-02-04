@@ -31,6 +31,7 @@ import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -91,12 +92,14 @@ class KubernetesHelmTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesHelmTask kubernetesHelmTask = new KubernetesHelmTask(KubernetesExtension.class);
+    when(kubernetesHelmTask.getName()).thenReturn("k8sHelm");
 
     // When
     kubernetesHelmTask.runTask();
 
     // Then
     assertThat(helmServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sHelm` task is skipped."));
   }
 
 }

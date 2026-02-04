@@ -27,6 +27,7 @@ import org.mockito.MockedConstruction;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -96,11 +97,13 @@ class KubernetesRemoteDevTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesRemoteDevTask kubernetesRemoteDevTask = new KubernetesRemoteDevTask(KubernetesExtension.class);
+    when(kubernetesRemoteDevTask.getName()).thenReturn("k8sRemoteDev");
 
     // When
     kubernetesRemoteDevTask.runTask();
 
     // Then
     assertThat(remoteDevelopmentService.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sRemoteDev` task is skipped."));
   }
 }
