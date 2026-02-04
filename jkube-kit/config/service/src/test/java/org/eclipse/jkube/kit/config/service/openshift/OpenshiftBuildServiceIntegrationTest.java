@@ -449,6 +449,57 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("S2I build with openshiftForcePull=true should set forcePull in SourceStrategy")
+  void s2iBuild_withForcePullTrue_shouldSetForcePullInSourceStrategy() throws Exception {
+    // Given
+    withBuildServiceConfig(defaultConfig.build());
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftForcePull(true)
+            .build())
+        .build();
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .extracting(BuildConfig::getSpec)
+        .hasFieldOrPropertyWithValue("strategy.type", "Source")
+        .hasFieldOrPropertyWithValue("strategy.sourceStrategy.forcePull", true);
+  }
+
+  @Test
+  @DisplayName("S2I build with openshiftForcePull=false (default) should set forcePull to false")
+  void s2iBuild_withForcePullFalse_shouldSetForcePullFalseInSourceStrategy() throws Exception {
+    // Given - openshiftForcePull is false by default
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .extracting(BuildConfig::getSpec)
+        .hasFieldOrPropertyWithValue("strategy.type", "Source")
+        .hasFieldOrPropertyWithValue("strategy.sourceStrategy.forcePull", false);
+  }
+
+  @Test
   @DisplayName("build without mock server setup should fail with descriptive error")
   void failedBuild() {
     withBuildServiceConfig(defaultConfig.build());
@@ -752,6 +803,61 @@ class OpenshiftBuildServiceIntegrationTest {
 
     // Then - no API calls should be made when build is skipped
     assertThat(mockServer.getRequestCount()).isZero();
+  }
+
+  @Test
+  @DisplayName("build should use resourceConfig.namespace when specified")
+  void build_withResourceConfigNamespace_shouldUseResourceConfigNamespace() throws Exception {
+    // Given - resourceConfig has namespace "ns1" (set in @BeforeEach)
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .namespace("ns1")
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then - API calls should be made to ns1 namespace (verified by MockServerSetup expectations)
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-s2i-suffix-configured-in-image");
+  }
+
+  @Test
+  @DisplayName("build should use clusterConfiguration.namespace when resourceConfig.namespace is null")
+  void build_withoutResourceConfigNamespace_shouldUseClusterConfigurationNamespace() throws Exception {
+    // Given - resourceConfig has no namespace, clusterConfiguration has "cluster-ns"
+    final ResourceConfig noNamespaceResourceConfig = ResourceConfig.builder().build();
+    withBuildServiceConfig(defaultConfig.resourceConfig(noNamespaceResourceConfig).build());
+    // Override the jKubeConfiguration to use a specific cluster namespace
+    when(jKubeServiceHub.getConfiguration()).thenReturn(JKubeConfiguration.builder()
+        .outputDirectory(target.getName())
+        .project(JavaProject.builder()
+            .baseDirectory(baseDirectory)
+            .buildDirectory(target)
+            .build())
+        .pullRegistryConfig(RegistryConfig.builder().build())
+        .clusterConfiguration(ClusterConfiguration.builder().namespace("cluster-ns").build())
+        .build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .namespace("cluster-ns")
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then - API calls should be made to cluster-ns namespace
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-s2i-suffix-configured-in-image");
   }
 
   @Test
