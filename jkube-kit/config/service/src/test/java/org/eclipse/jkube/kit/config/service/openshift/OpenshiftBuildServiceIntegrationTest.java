@@ -164,6 +164,7 @@ class OpenshiftBuildServiceIntegrationTest {
     assertThat(mockServer.getRequestCount()).isGreaterThan(8);
     collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
     collector.assertEventsNotRecorded("patch-build-config");
+    assertThat(containsRequest("imagestreams")).isTrue();
     // Verify BuildConfig structure
     assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
         .hasFieldOrPropertyWithValue("metadata.name", "myapp-s2i-suffix2")
@@ -519,7 +520,7 @@ class OpenshiftBuildServiceIntegrationTest {
     new OpenshiftBuildService(jKubeServiceHub).build(image);
 
     // Then
-    collector.assertEventsRecordedInOrder("imagestream-delete", "imagestream-create", "pushed");
+    collector.assertEventsRecordedInOrder("imagestream-check", "imagestream-delete", "imagestream-create", "pushed");
     collector.assertEventsNotRecorded("build-config-delete");
   }
 
@@ -546,6 +547,32 @@ class OpenshiftBuildServiceIntegrationTest {
 
     // Then - BuildConfig operations happen first, then ImageStream delete, then create, then build
     collector.assertEventsRecorded("build-config-delete", "imagestream-delete", "new-build-config", "imagestream-create", "pushed");
+  }
+
+  @Test
+  @DisplayName("build with recreateMode=none should patch existing resources without deletion")
+  void build_withRecreateModeNone_shouldPatchExistingResourcesWithoutDeletion() throws Exception {
+    // Given
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftBuildRecreateMode(BuildRecreateMode.none)
+            .build())
+        .build();
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix(image.getBuild().getOpenshiftS2iBuildNameSuffix())
+        .buildConfigExists(true)
+        .imageStreamExists(true)
+        .recreateMode(BuildRecreateMode.none)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then - should patch without any deletes
+    collector.assertEventsRecordedInOrder("build-config-check", "patch-build-config", "pushed");
+    collector.assertEventsNotRecorded("build-config-delete", "imagestream-delete", "new-build-config", "imagestream-create");
   }
 
   @Test

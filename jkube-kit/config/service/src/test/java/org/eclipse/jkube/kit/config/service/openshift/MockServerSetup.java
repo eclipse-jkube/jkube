@@ -150,7 +150,7 @@ public class MockServerSetup {
     if (recreateImageStream && imageStreamExists) {
       // Recreate mode: check (200) -> delete -> check (404) -> create
       mockServer.expect().get().withPath(isPath + resourceName)
-          .andReturn(200, imageStream)
+          .andReply(collector.record("imagestream-check").andReturn(200, imageStream))
           .once();
       mockServer.expect().delete().withPath(isPath + resourceName)
           .andReply(collector.record("imagestream-delete").andReturn(200, imageStream))
@@ -172,7 +172,7 @@ public class MockServerSetup {
     } else {
       // ImageStream exists but no recreate - just return existing
       mockServer.expect().get().withPath(isPath + resourceName)
-          .andReturn(200, imageStream)
+          .andReply(collector.record("imagestream-check").andReturn(200, imageStream))
           .once();
     }
 
