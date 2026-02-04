@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.19-SNAPSHOT
+* Fix #3833: BuildConfig resource fragment loading should use local file instead of fetching from server
 * Fix #3591: Fix windows line endings for yaml literal blocks, json serialization config updated
 * Fix #3781: Native Generator does not work in Windows system, always finds multiple native executable
 * Fix #2286: Remove Guava dependency where ever possible
