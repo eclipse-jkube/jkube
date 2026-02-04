@@ -140,28 +140,14 @@ class OpenshiftHelmInstallMojoTest {
   @Test
   void execute_whenSkipTrue_shouldDoNothing() throws Exception {
     // Given
-    OpenshiftHelmInstallMojo skipOpenShiftHelmInstallMojo = new OpenshiftHelmInstallMojo() {{
-      helm = HelmConfig.builder().chartExtension("tgz")
-        .outputDir(projectDir.resolve("target").resolve("jkube").resolve("helm").toString())
-        .disableOpenAPIValidation(true)
-        .build();
-      interpolateTemplateParameters = true;
-      access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
-      settings = new Settings();
-      project = new MavenProject();
-      project.setVersion("0.1.0");
-      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
-      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
-      project.setFile(projectDir.resolve("target").toFile());
-      skip = true;
-      mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
-      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
-      mojoExecution.getMojoDescriptor().setGoal("helm-install");
-      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
-    }};
+    openShiftHelmInstallMojo.skip = true;
+    openShiftHelmInstallMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    openShiftHelmInstallMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    openShiftHelmInstallMojo.mojoExecution.getMojoDescriptor().setGoal("helm-install");
+    openShiftHelmInstallMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
     // When
-    skipOpenShiftHelmInstallMojo.execute();
+    openShiftHelmInstallMojo.execute();
     // Then
-    assertThat(outputStream.toString()).contains("[INFO] `oc:helm-install` goal is skipped");
+    assertThat(outputStream.toString()).contains("`oc:helm-install` goal is skipped.");
   }
 }

@@ -57,10 +57,18 @@ class HelmMojoTest {
   private Path projectDir;
   private Path kubernetesResources;
   private HelmMojo helmMojo;
+  private KitLogger logger;
 
   @BeforeEach
   void setUp() throws IOException {
-    helmMojo = new HelmMojo();
+    logger = spy(new KitLogger.SilentLogger());
+    helmMojo = new HelmMojo() {
+      @Override
+      protected KitLogger createLogger(String prefix) {
+        return logger;
+      }
+    };
+    helmMojo.log = logger;
     helmMojo.offline = true;
     helmMojo.project = new MavenProject();
     helmMojo.projectHelper = mock(MavenProjectHelper.class);
@@ -161,31 +169,15 @@ class HelmMojoTest {
   @Test
   void execute_whenSkipTrue_shouldDoNothing() throws Exception {
     // Given
-    KitLogger kitLogger = spy(new KitLogger.SilentLogger());
-    HelmMojo skipHelmMojo = new HelmMojo() {{
-      offline = true;
-      project = new MavenProject();
-      projectHelper = mock(MavenProjectHelper.class);
-      settings = new Settings();
-      interpolateTemplateParameters = true;
-      project.setFile(projectDir.resolve("target").toFile());
-      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
-      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
-      skip = true;
-      mojoExecution = new MojoExecution(new MojoDescriptor());
-      mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
-      mojoExecution.getMojoDescriptor().setGoal("helm");
-      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
-    }
-      @Override
-      protected KitLogger createLogger(String prefix) {
-        return kitLogger;
-      }
-    };
+    helmMojo.skip = true;
+    helmMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
+    helmMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
+    helmMojo.mojoExecution.getMojoDescriptor().setGoal("helm");
+    helmMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
     // When
-    skipHelmMojo.execute();
+    helmMojo.execute();
     // Then
-    verify(kitLogger).info("`%s` goal is skipped.", "k8s:helm");
+    verify(logger).info("`%s` goal is skipped.", "k8s:helm");
   }
 
 }

@@ -119,29 +119,14 @@ class HelmUninstallMojoTest {
   @Test
   void execute_whenSkipTrue_shouldDoNothing() throws Exception {
     // Given
-    HelmUninstallMojo skipHelmUninstallMojo = new HelmUninstallMojo() {{
-      helm = HelmConfig.builder().chartExtension("tgz")
-        .outputDir(projectDir.resolve("target").resolve("jkube").resolve("helm").toString())
-        .disableOpenAPIValidation(true)
-        .build();
-      access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
-      interpolateTemplateParameters = true;
-      settings = new Settings();
-      project = new MavenProject();
-      project.setVersion("0.1.0");
-      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
-      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
-      project.setFile(projectDir.resolve("target").toFile());
-      log = new KitLogger.SilentLogger();
-      skip = true;
-      mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
-      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
-      mojoExecution.getMojoDescriptor().setGoal("helm-uninstall");
-      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
-    }};
+    helmUninstallMojo.skip = true;
+    helmUninstallMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    helmUninstallMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    helmUninstallMojo.mojoExecution.getMojoDescriptor().setGoal("helm-uninstall");
+    helmUninstallMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
     // When
-    skipHelmUninstallMojo.execute();
+    helmUninstallMojo.execute();
     // Then
-    assertThat(outputStream.toString()).contains("[INFO] `k8s:helm-uninstall` goal is skipped");
+    assertThat(outputStream.toString()).contains("`k8s:helm-uninstall` goal is skipped.");
   }
 }

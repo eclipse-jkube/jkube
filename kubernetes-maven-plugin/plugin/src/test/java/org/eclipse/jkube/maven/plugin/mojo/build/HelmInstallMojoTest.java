@@ -140,28 +140,14 @@ class HelmInstallMojoTest {
   @Test
   void execute_whenSkipTrue_shouldDoNothing() throws Exception {
     // Given
-    HelmInstallMojo skipHelmInstallMojo = new HelmInstallMojo() {{
-      helm = HelmConfig.builder().chartExtension("tgz")
-        .outputDir(projectDir.resolve("target").resolve("jkube").resolve("helm").toString())
-        .disableOpenAPIValidation(true)
-        .build();
-      access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
-      interpolateTemplateParameters = true;
-      settings = new Settings();
-      project = new MavenProject();
-      project.setVersion("0.1.0");
-      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
-      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
-      project.setFile(projectDir.resolve("target").toFile());
-      skip = true;
-      mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
-      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
-      mojoExecution.getMojoDescriptor().setGoal("helm-install");
-      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
-    }};
+    helmInstallMojo.skip = true;
+    helmInstallMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    helmInstallMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    helmInstallMojo.mojoExecution.getMojoDescriptor().setGoal("helm-install");
+    helmInstallMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
     // When
-    skipHelmInstallMojo.execute();
+    helmInstallMojo.execute();
     // Then
-    assertThat(outputStream.toString()).contains("[INFO] `k8s:helm-install` goal is skipped");
+    assertThat(outputStream.toString()).contains("`k8s:helm-install` goal is skipped.");
   }
 }

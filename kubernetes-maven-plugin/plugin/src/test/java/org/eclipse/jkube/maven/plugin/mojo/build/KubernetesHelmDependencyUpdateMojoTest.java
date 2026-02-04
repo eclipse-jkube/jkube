@@ -100,25 +100,14 @@ class KubernetesHelmDependencyUpdateMojoTest {
   @Test
   void execute_whenSkipTrue_shouldDoNothing() throws Exception {
     // Given
-    Path helmChartOutputDir = projectDir.resolve("target").resolve("jkube").resolve("helm");
-    HelmDependencyUpdateMojo skipHelmDependencyUpdateMojo = new HelmDependencyUpdateMojo() {{
-      helm = HelmConfig.builder().chartExtension("tgz").outputDir(helmChartOutputDir.toString()).build();
-      interpolateTemplateParameters = true;
-      settings = new Settings();
-      project = new MavenProject();
-      project.setVersion("0.1.0");
-      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
-      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
-      project.setFile(projectDir.resolve("target").toFile());
-      skip = true;
-      mojoExecution = new org.apache.maven.plugin.MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
-      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
-      mojoExecution.getMojoDescriptor().setGoal("helm-dependency-update");
-      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
-    }};
+    helmDependencyUpdateMojo.skip = true;
+    helmDependencyUpdateMojo.mojoExecution = new org.apache.maven.plugin.MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    helmDependencyUpdateMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    helmDependencyUpdateMojo.mojoExecution.getMojoDescriptor().setGoal("helm-dependency-update");
+    helmDependencyUpdateMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
     // When
-    skipHelmDependencyUpdateMojo.execute();
+    helmDependencyUpdateMojo.execute();
     // Then
-    assertThat(outputStream.toString()).contains("[INFO] `k8s:helm-dependency-update` goal is skipped");
+    assertThat(outputStream.toString()).contains("`k8s:helm-dependency-update` goal is skipped.");
   }
 }

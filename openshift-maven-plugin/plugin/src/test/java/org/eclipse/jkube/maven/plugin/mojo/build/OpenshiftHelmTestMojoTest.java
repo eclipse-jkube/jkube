@@ -138,29 +138,14 @@ class OpenshiftHelmTestMojoTest {
   @Test
   void execute_whenSkipTrue_shouldDoNothing() throws Exception {
     // Given
-    OpenshiftHelmTestMojo skipOpenShiftHelmTestMojo = new OpenshiftHelmTestMojo() {{
-      helm = HelmConfig.builder()
-        .outputDir(projectDir.resolve("target").resolve("jkube").resolve("helm").toString())
-        .disableOpenAPIValidation(true)
-        .build();
-      interpolateTemplateParameters = true;
-      access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
-      settings = new Settings();
-      project = new MavenProject();
-      project.setVersion("0.1.0");
-      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
-      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
-      project.setFile(projectDir.resolve("target").toFile());
-      log = new KitLogger.SilentLogger();
-      skip = true;
-      mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
-      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
-      mojoExecution.getMojoDescriptor().setGoal("helm-test");
-      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
-    }};
+    openShiftHelmTestMojo.skip = true;
+    openShiftHelmTestMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    openShiftHelmTestMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    openShiftHelmTestMojo.mojoExecution.getMojoDescriptor().setGoal("helm-test");
+    openShiftHelmTestMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
     // When
-    skipOpenShiftHelmTestMojo.execute();
+    openShiftHelmTestMojo.execute();
     // Then
-    assertThat(outputStream.toString()).contains("[INFO] `oc:helm-test` goal is skipped");
+    assertThat(outputStream.toString()).contains("`oc:helm-test` goal is skipped.");
   }
 }

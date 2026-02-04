@@ -119,29 +119,14 @@ class OpenshiftHelmUninstallMojoTest {
   @Test
   void execute_whenSkipTrue_shouldDoNothing() throws Exception {
     // Given
-    OpenshiftHelmUninstallMojo skipOpenShiftHelmUninstallMojo = new OpenshiftHelmUninstallMojo() {{
-      helm = HelmConfig.builder().chartExtension("tgz")
-        .outputDir(projectDir.resolve("target").resolve("jkube").resolve("helm").toString())
-        .disableOpenAPIValidation(true)
-        .build();
-      interpolateTemplateParameters = true;
-      access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
-      settings = new Settings();
-      project = new MavenProject();
-      project.setVersion("0.1.0");
-      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
-      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
-      project.setFile(projectDir.resolve("target").toFile());
-      log = new KitLogger.SilentLogger();
-      skip = true;
-      mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
-      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
-      mojoExecution.getMojoDescriptor().setGoal("helm-uninstall");
-      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
-    }};
+    openShiftHelmUninstallMojo.skip = true;
+    openShiftHelmUninstallMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    openShiftHelmUninstallMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    openShiftHelmUninstallMojo.mojoExecution.getMojoDescriptor().setGoal("helm-uninstall");
+    openShiftHelmUninstallMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
     // When
-    skipOpenShiftHelmUninstallMojo.execute();
+    openShiftHelmUninstallMojo.execute();
     // Then
-    assertThat(outputStream.toString()).contains("[INFO] `oc:helm-uninstall` goal is skipped");
+    assertThat(outputStream.toString()).contains("`oc:helm-uninstall` goal is skipped.");
   }
 }

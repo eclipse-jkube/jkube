@@ -138,29 +138,16 @@ class HelmTestMojoTest {
   @Test
   void execute_whenSkipTrue_shouldDoNothing() throws Exception {
     // Given
-    HelmTestMojo skipHelmTestMojo = new HelmTestMojo() {{
-      helm = HelmConfig.builder()
-        .outputDir(projectDir.resolve("target").resolve("jkube").resolve("helm").toString())
-        .disableOpenAPIValidation(true)
-        .build();
-      log = new KitLogger.SilentLogger();
-      access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
-      interpolateTemplateParameters = true;
-      settings = new Settings();
-      project = new MavenProject();
-      project.setVersion("0.1.0");
-      project.getBuild().setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
-      project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
-      project.setFile(projectDir.resolve("target").toFile());
-      skip = true;
-      mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
-      mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
-      mojoExecution.getMojoDescriptor().setGoal("helm-test");
-      mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
-    }};
+    helmTestMojo.skip = true;
+    helmTestMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    helmTestMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    helmTestMojo.mojoExecution.getMojoDescriptor().setGoal("helm-test");
+    helmTestMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+
     // When
-    skipHelmTestMojo.execute();
+    helmTestMojo.execute();
+
     // Then
-    assertThat(outputStream.toString()).contains("[INFO] `k8s:helm-test` goal is skipped");
+    assertThat(outputStream.toString()).contains("`k8s:helm-test` goal is skipped.");
   }
 }
