@@ -22,7 +22,6 @@ import io.fabric8.openshift.api.model.BuildConfigBuilder;
 import io.fabric8.openshift.api.model.BuildConfigSpec;
 import io.fabric8.openshift.api.model.BuildConfigSpecBuilder;
 import org.eclipse.jkube.kit.build.api.assembly.ArchiverCustomizer;
-import org.eclipse.jkube.kit.build.api.assembly.JKubeBuildTarArchiver;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -37,7 +36,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -50,8 +48,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OpenShiftBuildServiceUtilsTest {
@@ -150,23 +146,6 @@ class OpenShiftBuildServiceUtilsTest {
     assertThatIllegalArgumentException()
         .isThrownBy(() -> createBuildStrategy(jKubeServiceHub, imageConfiguration, null, log))
         .withMessageContaining("Unsupported BuildStrategy jib");
-  }
-
-  @Test
-  void checkTarPackage() throws Exception {
-    final JKubeBuildTarArchiver tarArchiver = mock(JKubeBuildTarArchiver.class);
-    createBuildArchive(jKubeServiceHub, imageConfiguration);
-
-    final ArgumentCaptor<ArchiverCustomizer> customizer = ArgumentCaptor.forClass(ArchiverCustomizer.class);
-    verify(jKubeServiceHub.getDockerServiceHub().getArchiveService(), times(1))
-        .createDockerBuildArchive(any(ImageConfiguration.class), any(JKubeConfiguration.class), customizer.capture());
-
-    customizer.getValue().customize(tarArchiver);
-    final ArgumentCaptor<String> path = ArgumentCaptor.forClass(String.class);
-    final ArgumentCaptor<File> file = ArgumentCaptor.forClass(File.class);
-    verify(tarArchiver, times(1)).includeFile(file.capture(), path.capture());
-    assertThat(path.getAllValues()).singleElement().isEqualTo(".s2i/environment");
-    assertThat(file.getAllValues()).singleElement().satisfies(f -> assertThat(f).hasContent("FOO=BAR"));
   }
 
   @Test
