@@ -615,6 +615,50 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with buildconfig.yml fragment should merge fragment spec into BuildConfig")
+  void build_withBuildConfigFragment_shouldMergeFragmentSpec() throws Exception {
+    // Given - create a buildconfig.yml fragment with custom triggers
+    final File resourceDir = Files.createDirectories(baseDirectory.toPath().resolve("src/main/jkube")).toFile();
+    final String fragmentContent = "apiVersion: build.openshift.io/v1\n" +
+        "kind: BuildConfig\n" +
+        "metadata:\n" +
+        "  name: fragment-buildconfig\n" +
+        "spec:\n" +
+        "  triggers:\n" +
+        "    - type: ConfigChange\n" +
+        "    - type: ImageChange\n" +
+        "  runPolicy: SerialLatestOnly\n";
+    Files.write(resourceDir.toPath().resolve("buildconfig.yml"), fragmentContent.getBytes(StandardCharsets.UTF_8));
+    withBuildServiceConfig(defaultConfig.resourceDir(resourceDir).build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then - verify fragment was merged
+    collector.assertEventsRecordedInOrder("build-config-check", "new-build-config", "pushed");
+    assertThat(Serialization.unmarshal(collector.getBodies().get(1), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-s2i-suffix-configured-in-image")
+        .extracting(BuildConfig::getSpec)
+        .satisfies(spec -> {
+          // Fragment-specified fields
+          assertThat(spec.getRunPolicy()).isEqualTo("SerialLatestOnly");
+          assertThat(spec.getTriggers()).hasSize(2);
+          assertThat(spec.getTriggers()).extracting("type")
+              .containsExactlyInAnyOrder("ConfigChange", "ImageChange");
+          // Generated fields (not overwritten by fragment)
+          assertThat(spec.getOutput().getTo().getKind()).isEqualTo("ImageStreamTag");
+          assertThat(spec.getOutput().getTo().getName()).isEqualTo("myapp:latest");
+          assertThat(spec.getStrategy().getType()).isEqualTo("Source");
+        });
+  }
+
+  @Test
   @DisplayName("build with DockerImage output kind should not create ImageStream")
   void successfulDockerImageOutputBuild() throws Exception {
     withBuildServiceConfig(defaultConfig.build());
