@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import io.fabric8.kubernetes.api.model.Quantity;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.api.model.BuildConfig;
@@ -1141,6 +1142,28 @@ class OpenshiftBuildServiceIntegrationTest {
         .isInstanceOf(IOException.class)
         .withMessageContaining("failed")
         .withMessageContaining("CancelledBuild");
+  }
+
+  @Test
+  @DisplayName("build with cluster error should throw exception")
+  void build_withClusterError_shouldThrowException() {
+    // Given
+    withBuildServiceConfig(defaultConfig.build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(false)
+        .imageStreamExists(false)
+        .clusterError(true) // Configure cluster to return 503 error on build instantiation
+        .configure();
+
+    // When/Then
+    final OpenshiftBuildService openshiftBuildService = new OpenshiftBuildService(jKubeServiceHub);
+    assertThatExceptionOfType(JKubeServiceException.class)
+        .isThrownBy(() -> openshiftBuildService.build(image))
+        .withMessageContaining("Unable to build the image using the OpenShift build service");
+    // Verify that the cluster-error event was recorded (503 was returned)
+    collector.assertEventsRecorded("cluster-error");
   }
 
   @Test

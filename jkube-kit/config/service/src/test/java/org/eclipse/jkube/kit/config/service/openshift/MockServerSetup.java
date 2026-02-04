@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.config.service.openshift;
 
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
+import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.WatchEvent;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.api.model.Build;
@@ -63,6 +64,7 @@ public class MockServerSetup {
   private boolean imageStreamExists = false;
   private boolean buildSucceeds = true;
   private boolean buildCancelled = false;
+  private boolean clusterError = false;
   private boolean additionalTagsCreated = false;
   private long buildDelay = 50L;
   private BuildRecreateMode recreateMode = BuildRecreateMode.none;
@@ -191,12 +193,25 @@ public class MockServerSetup {
         .andReply(collector.record("build-config-check").andReturn(200, builds))
         .always();
 
-    // Build instantiation - returns imageStream like the original test
-    mockServer.expect().post()
-        .withPath("/apis/build.openshift.io/v1/namespaces/" + namespace + "/buildconfigs/" +
-            buildConfigName + "/instantiatebinary?name=" + buildConfigName + "&namespace=" + namespace)
-        .andReply(collector.record("pushed").andReturn(201, imageStream))
-        .once();
+    // Build instantiation - returns imageStream like the original test, or error if clusterError is set
+    if (clusterError) {
+      mockServer.expect().post()
+          .withPath("/apis/build.openshift.io/v1/namespaces/" + namespace + "/buildconfigs/" +
+              buildConfigName + "/instantiatebinary?name=" + buildConfigName + "&namespace=" + namespace)
+          .andReply(collector.record("cluster-error").andReturn(503, new StatusBuilder()
+              .withCode(503)
+              .withStatus("Failure")
+              .withReason("ServiceUnavailable")
+              .withMessage("etcd cluster is unavailable or misconfigured")
+              .build()))
+          .once();
+    } else {
+      mockServer.expect().post()
+          .withPath("/apis/build.openshift.io/v1/namespaces/" + namespace + "/buildconfigs/" +
+              buildConfigName + "/instantiatebinary?name=" + buildConfigName + "&namespace=" + namespace)
+          .andReply(collector.record("pushed").andReturn(201, imageStream))
+          .once();
+    }
 
     // Build status endpoints
     mockServer.expect().get()
