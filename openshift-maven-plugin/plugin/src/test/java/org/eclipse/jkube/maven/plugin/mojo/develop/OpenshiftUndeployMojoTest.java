@@ -21,6 +21,7 @@ import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.junit.jupiter.api.AfterEach;
@@ -34,10 +35,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.openMocks;
 
@@ -98,24 +102,31 @@ class OpenshiftUndeployMojoTest {
   @Test
   void execute_whenSkipUndeployTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException {
     // Given
+    KitLogger kitLogger = spy(new KitLogger.SilentLogger());
     MavenProject mockProject = mock(MavenProject.class);
-    when(mockProject.getProperties()).thenReturn(new java.util.Properties());
+    when(mockProject.getProperties()).thenReturn(new Properties());
     MojoExecution mockExecution = new MojoExecution(new MojoDescriptor());
     mockExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
     mockExecution.getMojoDescriptor().setGoal("undeploy");
     mockExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
 
-    OpenshiftUndeployMojo skipUndeployMojo = new OpenshiftUndeployMojo() {{
-      project = mockProject;
-      settings = OpenshiftUndeployMojoTest.this.settings;
-      skipUndeploy = true;
-      mojoExecution = mockExecution;
-    }};
+    OpenshiftUndeployMojo skipUndeployMojo = new OpenshiftUndeployMojo() {
+      @Override
+      protected KitLogger createLogger(String prefix) {
+        return kitLogger;
+      }
+      {
+        project = mockProject;
+        settings = OpenshiftUndeployMojoTest.this.settings;
+        skipUndeploy = true;
+        mojoExecution = mockExecution;
+      }
+    };
+
     // When
     skipUndeployMojo.execute();
     // Then
-    // No exception should be thrown, and no undeploy should happen
-    assertThat(skipUndeployMojo.skipUndeploy).isTrue();
+    verify(kitLogger).info("`%s` goal is skipped.", "oc:undeploy");
   }
 }
 
