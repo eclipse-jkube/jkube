@@ -62,6 +62,7 @@ public class MockServerSetup {
   private boolean buildConfigExists = false;
   private boolean imageStreamExists = false;
   private boolean buildSucceeds = true;
+  private boolean buildCancelled = false;
   private boolean additionalTagsCreated = false;
   private long buildDelay = 50L;
   private BuildRecreateMode recreateMode = BuildRecreateMode.none;
@@ -291,7 +292,13 @@ public class MockServerSetup {
   private Build createBuild() {
     BuildBuilder builder = new BuildBuilder()
         .withNewMetadata().withResourceVersion("2").endMetadata();
-    if (buildSucceeds) {
+    if (buildCancelled) {
+      builder.withNewStatus()
+          .withPhase("Cancelled")
+          .withReason("CancelledBuild")
+          .withMessage("The build was cancelled by the user")
+          .endStatus();
+    } else if (buildSucceeds) {
       builder.withNewStatus().withPhase("Complete").endStatus();
     } else {
       builder.withNewStatus()
