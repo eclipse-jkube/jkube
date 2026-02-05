@@ -18,6 +18,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,5 +88,25 @@ class KubernetesHelmDependencyUpdateTaskTest {
     verify(taskEnvironment.logger).lifecycle("k8s: Running Helm Dependency Upgrade empty-project 0.1.0");
     verify(taskEnvironment.logger).lifecycle("k8s: Saving 1 charts");
     verify(taskEnvironment.logger).lifecycle("k8s: Deleting outdated charts");
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestKubernetesExtension extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesHelmDependencyUpdateTask task = new KubernetesHelmDependencyUpdateTask(KubernetesExtension.class);
+    when(task.getName()).thenReturn("k8sHelmDependencyUpdate");
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sHelmDependencyUpdate` task is skipped."));
   }
 }

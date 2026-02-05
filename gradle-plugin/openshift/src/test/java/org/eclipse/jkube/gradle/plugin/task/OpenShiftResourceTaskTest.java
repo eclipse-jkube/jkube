@@ -20,11 +20,15 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OpenShiftResourceTaskTest {
@@ -73,5 +77,25 @@ class OpenShiftResourceTaskTest {
     assertThat(taskEnvironment.getRoot().toPath()
       .resolve(Paths.get("build", "classes", "java", "main", "META-INF", "jkube", "openshift.yml")))
       .exists();
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestOpenShiftExtension extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftResourceTask task = new OpenShiftResourceTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocResource");
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocResource` task is skipped."));
   }
 }

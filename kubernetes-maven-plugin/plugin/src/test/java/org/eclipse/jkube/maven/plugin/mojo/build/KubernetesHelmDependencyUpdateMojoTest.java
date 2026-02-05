@@ -96,4 +96,18 @@ class KubernetesHelmDependencyUpdateMojoTest {
         .contains("Saving 1 charts")
         .contains("Deleting outdated charts");
   }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    helmDependencyUpdateMojo.skip = true;
+    helmDependencyUpdateMojo.mojoExecution = new org.apache.maven.plugin.MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    helmDependencyUpdateMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    helmDependencyUpdateMojo.mojoExecution.getMojoDescriptor().setGoal("helm-dependency-update");
+    helmDependencyUpdateMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    // When
+    helmDependencyUpdateMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).contains("`k8s:helm-dependency-update` goal is skipped.");
+  }
 }

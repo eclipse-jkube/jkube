@@ -17,13 +17,16 @@ import com.marcnuri.helm.Helm;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,5 +71,25 @@ class KubernetesHelmLintTaskTest {
     verify(taskEnvironment.logger).lifecycle(startsWith("k8s: Using packaged file:"));
     verify(taskEnvironment.logger).lifecycle("k8s: [INFO] Chart.yaml: icon is recommended");
     verify(taskEnvironment.logger).lifecycle("k8s: Linting successful");
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestKubernetesExtension extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesHelmLintTask task = new KubernetesHelmLintTask(KubernetesExtension.class);
+    when(task.getName()).thenReturn("k8sHelmLint");
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sHelmLint` task is skipped."));
   }
 }

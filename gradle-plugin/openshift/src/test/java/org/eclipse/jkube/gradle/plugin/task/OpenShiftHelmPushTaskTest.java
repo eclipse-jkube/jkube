@@ -17,6 +17,7 @@ import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ import java.nio.file.NoSuchFileException;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -75,5 +77,25 @@ class OpenShiftHelmPushTaskTest {
 
     // Then
     verify((helmServiceMockedConstruction.constructed().iterator().next()), times(1)).uploadHelmChart(any());
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestOpenShiftExtension extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftHelmPushTask task = new OpenShiftHelmPushTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocHelmPush");
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocHelmPush` task is skipped."));
   }
 }

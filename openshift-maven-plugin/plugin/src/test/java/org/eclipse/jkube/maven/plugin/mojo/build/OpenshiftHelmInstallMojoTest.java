@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
@@ -134,5 +135,19 @@ class OpenshiftHelmInstallMojoTest {
     assertThatIllegalStateException()
       .isThrownBy(() -> openShiftHelmInstallMojo.execute())
       .withMessageContaining("the-dependency not found");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    openShiftHelmInstallMojo.skip = true;
+    openShiftHelmInstallMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    openShiftHelmInstallMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    openShiftHelmInstallMojo.mojoExecution.getMojoDescriptor().setGoal("helm-install");
+    openShiftHelmInstallMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
+    // When
+    openShiftHelmInstallMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).contains("`oc:helm-install` goal is skipped.");
   }
 }

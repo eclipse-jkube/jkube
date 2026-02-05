@@ -14,6 +14,7 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,6 +38,9 @@ class SkipGoalsTest {
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     private MojoExecution mojoExecution;
+
+    @Mock
+    private Settings settings;
 
     @Spy
     @InjectMocks
@@ -82,6 +88,8 @@ class SkipGoalsTest {
       doNothing().when(applyMojo).init();
       doNothing().when(applyMojo).executeInternal();
       when(mojoExecution.getMojoDescriptor().getFullGoalName()).thenReturn("k8s:apply");
+      when(settings.getInteractiveMode()).thenReturn(true);
+      doReturn(log).when(applyMojo).createLogger(any());
     }
 
     @Test
@@ -106,5 +114,4 @@ class SkipGoalsTest {
         verify(applyMojo, never()).executeInternal();
         verify(log).info("`%s` goal is skipped.", "k8s:apply");
     }
-
 }

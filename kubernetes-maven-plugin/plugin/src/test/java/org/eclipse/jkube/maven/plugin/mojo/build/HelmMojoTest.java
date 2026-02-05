@@ -24,15 +24,19 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.openshift.api.model.TemplateBuilder;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.Maintainer;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 
 import org.apache.maven.model.Developer;
 import org.apache.maven.model.Scm;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +48,8 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 class HelmMojoTest {
 
@@ -51,10 +57,18 @@ class HelmMojoTest {
   private Path projectDir;
   private Path kubernetesResources;
   private HelmMojo helmMojo;
+  private KitLogger logger;
 
   @BeforeEach
   void setUp() throws IOException {
-    helmMojo = new HelmMojo();
+    logger = spy(new KitLogger.SilentLogger());
+    helmMojo = new HelmMojo() {
+      @Override
+      protected KitLogger createLogger(String prefix) {
+        return logger;
+      }
+    };
+    helmMojo.log = logger;
     helmMojo.offline = true;
     helmMojo.project = new MavenProject();
     helmMojo.projectHelper = mock(MavenProjectHelper.class);
@@ -150,6 +164,20 @@ class HelmMojoTest {
     helmMojo.execute();
     // Then
     assertThat(helmMojo.helm.getIcon()).isEqualTo("https://my-icon");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    helmMojo.skip = true;
+    helmMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
+    helmMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
+    helmMojo.mojoExecution.getMojoDescriptor().setGoal("helm");
+    helmMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    // When
+    helmMojo.execute();
+    // Then
+    verify(logger).info("`%s` goal is skipped.", "k8s:helm");
   }
 
 }

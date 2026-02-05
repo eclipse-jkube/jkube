@@ -19,6 +19,7 @@ import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.service.DebugContext;
 import org.eclipse.jkube.kit.config.service.DebugService;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ import java.util.Collections;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -91,6 +93,27 @@ class OpenShiftDebugTaskTest {
         .hasFieldOrPropertyWithValue("localDebugPort", "5005")
         .hasFieldOrPropertyWithValue("debugSuspend", false)
         .satisfies(d -> assertThat(d.getPodWaitLog()).isInstanceOf(GradleLogger.class));
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftDebugTask task = new OpenShiftDebugTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocDebug");
+
+    // When
+    task.runTask();
+
+    // Then
+    assertThat(debugServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocDebug` task is skipped."));
   }
 
 }

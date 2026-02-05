@@ -21,11 +21,14 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.AsyncUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -88,6 +92,8 @@ class OpenShiftHelmTestTaskTest {
   void runTask_withHelmReleasePresentInKubernetesCluster_shouldSucceed() {
     // Given
     OpenShiftHelmTestTask openShiftHelmTestTask = new OpenShiftHelmTestTask(OpenShiftExtension.class);
+    openShiftHelmTestTask.kitLogger = new KitLogger.SilentLogger();
+    openShiftHelmTestTask.kubernetesExtension.javaProject = GradleUtil.convertGradleProject(openShiftHelmTestTask.getProject());
     openShiftHelmTestTask.init();
     openShiftHelmTestTask.jKubeServiceHub.getHelmService().install(extension.helm);
     // When
@@ -107,10 +113,10 @@ class OpenShiftHelmTestTaskTest {
     // Then
     assertThat(openShiftHelmTest).succeedsWithin(5, TimeUnit.SECONDS);
     verify(taskEnvironment.logger, times(1)).lifecycle("oc: Testing Helm Chart empty-project 0.1.0");
-    verify(taskEnvironment.logger, times(2)).lifecycle("oc: NAME: empty-project");
-    verify(taskEnvironment.logger, times(2)).lifecycle("oc: STATUS: deployed");
-    verify(taskEnvironment.logger, times(2)).lifecycle("oc: REVISION: 1");
-    verify(taskEnvironment.logger, times(2)).lifecycle("oc: Phase: Succeeded");
+    verify(taskEnvironment.logger, times(1)).lifecycle("oc: NAME: empty-project");
+    verify(taskEnvironment.logger, times(1)).lifecycle("oc: STATUS: deployed");
+    verify(taskEnvironment.logger, times(1)).lifecycle("oc: REVISION: 1");
+    verify(taskEnvironment.logger, times(1)).lifecycle("oc: Phase: Succeeded");
   }
 
   @Test
@@ -123,5 +129,25 @@ class OpenShiftHelmTestTaskTest {
     assertThatIllegalStateException()
       .isThrownBy(openShiftHelmTestTask::runTask)
       .withMessageContaining(" not found");
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftHelmTestTask task = new OpenShiftHelmTestTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocHelmTest");
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocHelmTest` task is skipped."));
   }
 }

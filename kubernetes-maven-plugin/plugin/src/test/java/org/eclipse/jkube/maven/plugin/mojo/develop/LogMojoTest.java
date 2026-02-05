@@ -21,6 +21,10 @@ import java.util.Properties;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.config.service.PodLogService;
 
@@ -41,6 +45,7 @@ import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -80,6 +85,7 @@ class LogMojoTest {
   @AfterEach
   void tearDown() {
     jKubeServiceHubMockedConstruction.close();
+    podLogServiceMockedConstruction.close();
     mavenProject = null;
     logMojo = null;
   }
@@ -99,5 +105,35 @@ class LogMojoTest {
             eq(false),
             isNull(),
             eq(true)));
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    KitLogger kitLogger = spy(new KitLogger.SilentLogger());
+    Settings mockSettings = mock(Settings.class);
+    MojoExecution mockExecution = new MojoExecution(new MojoDescriptor());
+    mockExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
+    mockExecution.getMojoDescriptor().setGoal("log");
+    mockExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    LogMojo skipLogMojo = new LogMojo() {
+      @Override
+      protected KitLogger createLogger(String prefix) {
+        return kitLogger;
+      }
+      {
+      project = mavenProject;
+      settings = mockSettings;
+      interpolateTemplateParameters = false;
+      kubernetesManifest = kubernetesManifestFile;
+      skip = true;
+      mojoExecution = mockExecution;
+    }};
+    // When
+    skipLogMojo.execute();
+    // Then
+    verify(kitLogger).info("`%s` goal is skipped.", "k8s:log");
+    assertThat(jKubeServiceHubMockedConstruction.constructed()).isEmpty();
+    assertThat(podLogServiceMockedConstruction.constructed()).isEmpty();
   }
 }

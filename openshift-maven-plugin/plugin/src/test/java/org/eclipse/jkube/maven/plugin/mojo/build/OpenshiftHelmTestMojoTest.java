@@ -21,9 +21,11 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.AsyncUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -85,6 +87,7 @@ class OpenshiftHelmTestMojoTest {
       .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     openShiftHelmTestMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
     openShiftHelmTestMojo.project.setFile(projectDir.resolve("target").toFile());
+    openShiftHelmTestMojo.log = new KitLogger.SilentLogger();
   }
 
   @AfterEach
@@ -130,5 +133,19 @@ class OpenshiftHelmTestMojoTest {
     assertThatIllegalStateException()
       .isThrownBy(() -> openShiftHelmTestMojo.execute())
       .withMessageContaining(" not found");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    openShiftHelmTestMojo.skip = true;
+    openShiftHelmTestMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    openShiftHelmTestMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    openShiftHelmTestMojo.mojoExecution.getMojoDescriptor().setGoal("helm-test");
+    openShiftHelmTestMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
+    // When
+    openShiftHelmTestMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).contains("`oc:helm-test` goal is skipped.");
   }
 }

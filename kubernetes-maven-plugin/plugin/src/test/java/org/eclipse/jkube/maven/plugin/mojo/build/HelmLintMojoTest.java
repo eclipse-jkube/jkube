@@ -84,4 +84,18 @@ class HelmLintMojoTest {
       .contains("[[W]][INFO] Chart.yaml: icon is recommended")
       .contains("Linting successful");
   }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    helmLintMojo.skip = true;
+    helmLintMojo.mojoExecution = new org.apache.maven.plugin.MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    helmLintMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    helmLintMojo.mojoExecution.getMojoDescriptor().setGoal("helm-lint");
+    helmLintMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    // When
+    helmLintMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).contains("`k8s:helm-lint` goal is skipped.");
+  }
 }

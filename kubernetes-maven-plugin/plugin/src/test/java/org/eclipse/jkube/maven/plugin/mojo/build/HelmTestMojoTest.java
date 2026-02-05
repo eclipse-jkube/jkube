@@ -21,9 +21,11 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.AsyncUtil;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -76,6 +78,7 @@ class HelmTestMojoTest {
       .outputDir(helmChartOutputDir.toString())
       .disableOpenAPIValidation(true)
       .build();
+    helmTestMojo.log = new KitLogger.SilentLogger();
     helmTestMojo.access = ClusterConfiguration.from(kubernetesClient.getConfiguration()).build();
     helmTestMojo.interpolateTemplateParameters = true;
     helmTestMojo.settings = new Settings();
@@ -130,5 +133,21 @@ class HelmTestMojoTest {
     assertThatIllegalStateException()
       .isThrownBy(() -> helmTestMojo.execute())
       .withMessageContaining(" not found");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    helmTestMojo.skip = true;
+    helmTestMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    helmTestMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    helmTestMojo.mojoExecution.getMojoDescriptor().setGoal("helm-test");
+    helmTestMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+
+    // When
+    helmTestMojo.execute();
+
+    // Then
+    assertThat(outputStream.toString()).contains("`k8s:helm-test` goal is skipped.");
   }
 }

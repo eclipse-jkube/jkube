@@ -20,10 +20,12 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.junit.jupiter.api.AfterEach;
@@ -82,6 +84,7 @@ class OpenshiftHelmUninstallMojoTest {
       .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     openShiftHelmUninstallMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
     openShiftHelmUninstallMojo.project.setFile(projectDir.resolve("target").toFile());
+    openShiftHelmUninstallMojo.log = new KitLogger.SilentLogger();
   }
 
   @AfterEach
@@ -111,5 +114,19 @@ class OpenshiftHelmUninstallMojoTest {
     assertThatIllegalStateException()
       .isThrownBy(() -> openShiftHelmUninstallMojo.execute())
       .withMessageContaining(" not found");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    openShiftHelmUninstallMojo.skip = true;
+    openShiftHelmUninstallMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    openShiftHelmUninstallMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    openShiftHelmUninstallMojo.mojoExecution.getMojoDescriptor().setGoal("helm-uninstall");
+    openShiftHelmUninstallMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
+    // When
+    openShiftHelmUninstallMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).contains("`oc:helm-uninstall` goal is skipped.");
   }
 }

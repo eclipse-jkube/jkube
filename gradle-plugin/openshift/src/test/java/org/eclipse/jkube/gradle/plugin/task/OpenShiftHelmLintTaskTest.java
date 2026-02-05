@@ -17,13 +17,16 @@ import com.marcnuri.helm.Helm;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.startsWith;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,5 +71,25 @@ class OpenShiftHelmLintTaskTest {
     verify(taskEnvironment.logger).lifecycle(startsWith("oc: Using packaged file:"));
     verify(taskEnvironment.logger).lifecycle("oc: [INFO] Chart.yaml: icon is recommended");
     verify(taskEnvironment.logger).lifecycle("oc: Linting successful");
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestOpenShiftExtension extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftHelmLintTask task = new OpenShiftHelmLintTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocHelmLint");
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, times(1)).lifecycle( contains("oc: `ocHelmLint` task is skipped."));
   }
 }

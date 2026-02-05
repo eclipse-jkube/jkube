@@ -18,6 +18,7 @@ import org.apache.commons.io.FileUtils;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,8 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -85,5 +88,25 @@ class OpenShiftHelmDependencyUpdateTaskTest {
     verify(taskEnvironment.logger).lifecycle("oc: Running Helm Dependency Upgrade empty-project 0.1.0");
     verify(taskEnvironment.logger).lifecycle("oc: Saving 1 charts");
     verify(taskEnvironment.logger).lifecycle("oc: Deleting outdated charts");
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestOpenShiftExtension extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftHelmDependencyUpdateTask task = new OpenShiftHelmDependencyUpdateTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocHelmDependencyUpdate");
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, times(1)).lifecycle( contains("oc: `ocHelmDependencyUpdate` task is skipped."));
   }
 }
