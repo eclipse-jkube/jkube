@@ -19,13 +19,24 @@ public class SemanticVersionUtil {
   private SemanticVersionUtil() { }
 
   public static boolean isVersionAtLeast(int majorVersion, int minorVersion, String version) {
+    return isVersionAtLeast(majorVersion, minorVersion, 0, version);
+  }
+
+  public static boolean isVersionAtLeast(int majorVersion, int minorVersion, int patchVersion, String version) {
     if (StringUtils.isNotBlank(version) && version.contains(".")) {
       final String[] versionParts = version.split("\\.");
       final int parsedMajorVersion = parseInt(versionParts[0]);
       if (parsedMajorVersion > majorVersion) {
         return true;
       } else if (parsedMajorVersion == majorVersion) {
-        return parseInt(versionParts[1]) >= minorVersion;
+        final int parsedMinorVersion = parseInt(versionParts[1]);
+        if (parsedMinorVersion > minorVersion) {
+          return true;
+        } else if (parsedMinorVersion == minorVersion) {
+          // If no patch version in the string, treat as .0
+          final int parsedPatchVersion = versionParts.length > 2 ? parseInt(versionParts[2]) : 0;
+          return parsedPatchVersion >= patchVersion;
+        }
       }
     }
     return false;

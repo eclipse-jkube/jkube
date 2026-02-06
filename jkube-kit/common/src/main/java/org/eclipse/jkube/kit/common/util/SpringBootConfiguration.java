@@ -44,16 +44,8 @@ public class SpringBootConfiguration {
     final Properties properties = SpringBootUtil.getSpringBootApplicationProperties(
       SpringBootUtil.getSpringBootActiveProfile(project),
       JKubeProjectUtil.getClassLoader(project));
-      final int majorVersion = SpringBootUtil.getSpringBootVersion(project)
-      .map(semVer -> {
-        try {
-          return Integer.parseInt(semVer.substring(0, semVer.indexOf('.')));
-        } catch (Exception e) {
-          return null;
-        }
-      })
-      // Defaults to Spring 1
-      .orElse(1);
+    final String springBootVersion = SpringBootUtil.getSpringBootVersion(project).orElse("1.0.0");
+    final int majorVersion = parseMajorVersion(springBootVersion);
     final SpringBootConfiguration.SpringBootConfigurationBuilder configBuilder = SpringBootConfiguration.builder();
     // Spring Boot 1 and common properties
     final String serverKeystore = properties.getProperty("server.ssl.key-store");
@@ -96,12 +88,22 @@ public class SpringBootConfiguration {
         .servletPath(properties.getProperty("spring.mvc.servlet.path"))
         .managementContextPath(properties.getProperty("management.server.base-path"));
     }
-    // keep backward compatibility with spring-boot < 2.3.x
-    // prioritize the new property in case both are set
-    // if (majorVersion < 3 && minorVersion < 4 && properties.getProperty("management.endpoint.health.probes.enabled") == null) {
-    if (SemanticVersionUtil.isVersionAtLeast(2, 3, Integer.toString(majorVersion)) && properties.getProperty("management.endpoint.health.probes.enabled") == null) {
-        configBuilder.managementHealthProbesEnabled(Boolean.parseBoolean(properties.getProperty("management.health.probes.enabled")));
+    // Spring Boot 2.3.0 and 2.3.1 used property: management.health.probes.enabled
+    // Spring Boot 2.3.2+ renamed it to: management.endpoint.health.probes.enabled
+    // For backward compatibility, if the new property is not set and version is < 2.3.2, use the old property
+    if (properties.getProperty("management.endpoint.health.probes.enabled") == null
+        && !SemanticVersionUtil.isVersionAtLeast(2, 3, 2, springBootVersion)) {
+      configBuilder.managementHealthProbesEnabled(Boolean.parseBoolean(properties.getProperty("management.health.probes.enabled")));
     }
     return configBuilder.build();
+  }
+
+  private static int parseMajorVersion(String semVer) {
+    try {
+      return Integer.parseInt(semVer.substring(0, semVer.indexOf('.')));
+    } catch (Exception e) {
+      // Defaults to Spring Boot 1
+      return 1;
+    }
   }
 }
