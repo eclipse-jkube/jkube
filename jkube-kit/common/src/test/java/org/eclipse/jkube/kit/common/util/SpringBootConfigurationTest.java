@@ -233,9 +233,31 @@ class SpringBootConfigurationTest {
       assertThat(config.isServerSslEnabled()).isFalse();
     }
 
-    @DisplayName("getManagementHealthProbesEnabled defaults to 'true'")
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled returns true when new property is set")
     void getManagementHealthProbesEnabled() {
-        assertThat(springBootConfiguration.isManagementHealthProbesEnabled()).isTrue();
+      assertThat(springBootConfiguration.isManagementHealthProbesEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled returns false when only old property is set (Spring Boot >= 2.3.2)")
+    void getManagementHealthProbesEnabled_withOnlyOldProperty(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.health.probes.enabled", "true");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("3.0.0")
+          .build())
+        .build());
+      // Old property should NOT work for Spring Boot >= 2.3.2
+      assertThat(config.isManagementHealthProbesEnabled()).isFalse();
     }
   }
 
@@ -254,9 +276,157 @@ class SpringBootConfigurationTest {
     }
 
     @Test
-    @DisplayName("getManagementHealthProbesEnabled defaults to 'true'")
+    @DisplayName("isManagementHealthProbesEnabled returns true when new property is set")
     void getManagementHealthProbesEnabled() {
       assertThat(springBootConfiguration.isManagementHealthProbesEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled returns true when only old property is set (Spring Boot 2.0 < 2.3.2)")
+    void getManagementHealthProbesEnabled_withOnlyOldProperty(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.health.probes.enabled", "true");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("2.0.0")
+          .build())
+        .build());
+      // Old property should work for Spring Boot < 2.3.2
+      assertThat(config.isManagementHealthProbesEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled returns true when only old property is set (Spring Boot 2.2.x < 2.3.2)")
+    void getManagementHealthProbesEnabled_withOnlyOldPropertySpringBoot22(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.health.probes.enabled", "true");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("2.2.13")
+          .build())
+        .build());
+      // Old property should work for Spring Boot 2.2.x (< 2.3.2)
+      assertThat(config.isManagementHealthProbesEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled returns true when only old property is set (Spring Boot 2.3.0 < 2.3.2)")
+    void getManagementHealthProbesEnabled_withOnlyOldPropertySpringBoot230(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.health.probes.enabled", "true");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("2.3.0")
+          .build())
+        .build());
+      // Old property should work for Spring Boot 2.3.0 and 2.3.1 (< 2.3.2)
+      assertThat(config.isManagementHealthProbesEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled returns true when only old property is set (Spring Boot 2.3.1 < 2.3.2)")
+    void getManagementHealthProbesEnabled_withOnlyOldPropertySpringBoot231(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.health.probes.enabled", "true");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("2.3.1")
+          .build())
+        .build());
+      // Old property should work for Spring Boot 2.3.0 and 2.3.1 (< 2.3.2)
+      assertThat(config.isManagementHealthProbesEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled returns false when only old property is set (Spring Boot 2.3.2 >= 2.3.2)")
+    void getManagementHealthProbesEnabled_withOnlyOldPropertySpringBoot232(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.health.probes.enabled", "true");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("2.3.2")
+          .build())
+        .build());
+      // Old property should NOT work for Spring Boot >= 2.3.2
+      assertThat(config.isManagementHealthProbesEnabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled returns false when only old property is set (Spring Boot 2.3.3 >= 2.3.2)")
+    void getManagementHealthProbesEnabled_withOnlyOldPropertySpringBoot233(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.health.probes.enabled", "true");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("2.3.3")
+          .build())
+        .build());
+      // Old property should NOT work for Spring Boot >= 2.3.2
+      assertThat(config.isManagementHealthProbesEnabled()).isFalse();
+    }
+
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled new property takes precedence over old property")
+    void getManagementHealthProbesEnabled_newPropertyTakesPrecedence(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.health.probes.enabled", "true");
+      properties.put("management.endpoint.health.probes.enabled", "false");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("2.0.0")
+          .build())
+        .build());
+      // New property should take precedence
+      assertThat(config.isManagementHealthProbesEnabled()).isFalse();
     }
 
     @Test
@@ -527,6 +697,27 @@ class SpringBootConfigurationTest {
           .build())
         .build());
       assertThat(springBootConfiguration.isServerSslEnabled()).isTrue();
+    }
+
+    @Test
+    @DisplayName("isManagementHealthProbesEnabled returns true when old property is set (Spring Boot 1)")
+    void getManagementHealthProbesEnabled_withOldProperty(@TempDir Path target) throws IOException {
+      final Properties properties = new Properties();
+      properties.put("management.health.probes.enabled", "true");
+      try (OutputStream fos = Files.newOutputStream(target.resolve("application.properties"))) {
+        properties.store(fos, null);
+      }
+      SpringBootConfiguration config = SpringBootConfiguration.from(JavaProject.builder()
+        .properties(properties)
+        .outputDirectory(target.toFile())
+        .dependency(Dependency.builder()
+          .groupId("org.springframework.boot")
+          .artifactId("spring-boot")
+          .version("1.5.0")
+          .build())
+        .build());
+      // Old property should work for Spring Boot 1.x (< 2.3.2)
+      assertThat(config.isManagementHealthProbesEnabled()).isTrue();
     }
 
     @Test
