@@ -23,17 +23,18 @@ Usage:
 
 ### 1.19-SNAPSHOT
 * Fix #3833: BuildConfig resource fragment loading should use local file instead of fetching from server
+* Fix #3820: Skip flag does not work for helm tasks
+* Fix #3823: Update native binary S2I base image from UBI 8 to UBI 9
+* Fix #3819: Env variable wrapper for easy interaction with system env variables
+* Fix #3812: Clean jkube-temp working directory before running resource task/goal
+* Fix #3809: Actuator liveness and readiness probe not getting generated with Spring boot 4.x.x
+* Fix #3775: Missing IngressClassName in NetworkingV1IngressGenerator
+* Fix #3732: ECR registry Auth with AWS SDK java v2
+* Fix #3707: Setting readOnly flag in VolumeConfig has no effect
 * Fix #3591: Fix windows line endings for yaml literal blocks, json serialization config updated
 * Fix #3781: Native Generator does not work in Windows system, always finds multiple native executable
 * Fix #2286: Remove Guava dependency where ever possible
-* Fix #3732: ECR registry Auth with AWS SDK java v2
-* Fix #3809: Actuator liveness and readiness probe not getting generated with Spring boot 4.x.x
-* Fix #3707: Setting readOnly flag in VolumeConfig has no effect
 * Fix #1458: Consideration of "ssl.enabled" properties to enable liveness/readiness probe for Spring Boot Actuator
-* Fix #3775: Missing IngressClassName in NetworkingV1IngressGenerator
-* Fix #3819: Env variable wrapper for easy interaction with system env variables
-* Fix #3823: Update native binary S2I base image from UBI 8 to UBI 9
-* Fix #3820: Skip flag does not work for helm tasks
 * Fix #3690: jkube-healthcheck-spring-boot enricher: rename property management.health.probes.enabled
 
 ### 1.18.2 (2025-11-03)
