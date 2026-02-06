@@ -14,14 +14,17 @@ endif::[]
 
 If you're using Spring Boot WebFlux, this enricher would automatically read `spring.webflux.base-path` property to infer base path for health check endpoints.
 
-The enricher will try to discover the settings from the `application.properties` / `application.yaml` Spring Boot configuration file.
+The enricher will try to discover the settings from the `application.properties` / `application.yaml` Spring Boot configuration file. The configuration properties are:
 
-`/actuator/health` is the default endpoint for the liveness and readiness probes.
+* `management.endpoints.web.base-path`: The prefix for the health endpoint. The default is `/actuator`
+* `management.endpoint.health.probes.enabled`: Enable the container liveness and readiness probe endpoints.
 
-If the user has enabled the `management.health.probes.enabled` property this Enricher uses the `/actuator/health/liveness` as liveness and `/actuator/health/readiness` as readiness probe endpoints instead.
+`/actuator/health` is the default endpoint for the liveness and readiness probes, you can change it by setting the property `management.endpoints.web.base-path`.
+
+If the user has enabled the `management.endpoint.health.probes.enabled` property this Enricher uses the `/actuator/health/liveness` as liveness and `/actuator/health/readiness` as readiness probe endpoints instead.
 [source,properties]
 ----
-management.health.probes.enabled=true
+management.endpoint.health.probes.enabled=true
 ----
 
 The port number is read from the `management.port` (Spring Boot 1) or `management.server.port` (Spring Boot 2+) option, and will use the default value of `8080`.
@@ -46,6 +49,7 @@ The enricher will use the following settings by default:
 * `timeoutSeconds` : _<kubernetes-default>_
 * `failureThreshold`: `3`
 * `successThreshold`: `1`
+* `actuatorDefaultBasePath`: `/actuator`
 
 These values can be configured by the enricher in the `{plugin}` configuration as shown below:
 
