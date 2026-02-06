@@ -713,6 +713,57 @@ class OpenshiftBuildServiceIntegrationTest {
   }
 
   @Test
+  @DisplayName("build with recreateMode=buildConfig and fragment should load fragment locally after delete")
+  void build_withRecreateModeBuildConfigAndFragment_shouldLoadFragmentLocallyAfterDelete() throws Exception {
+    // Given - create a buildconfig.yml fragment
+    final File resourceDir = Files.createDirectories(baseDirectory.toPath().resolve("src/main/jkube")).toFile();
+    final String fragmentContent = "apiVersion: build.openshift.io/v1\n" +
+        "kind: BuildConfig\n" +
+        "spec:\n" +
+        "  runPolicy: SerialLatestOnly\n" +
+        "  resources:\n" +
+        "    requests:\n" +
+        "      cpu: \"500m\"\n" +
+        "      memory: \"512Mi\"\n";
+    Files.write(resourceDir.toPath().resolve("buildconfig.yml"), fragmentContent.getBytes(StandardCharsets.UTF_8));
+
+    image = image.toBuilder()
+        .build(image.getBuild().toBuilder()
+            .openshiftBuildRecreateMode(BuildRecreateMode.buildConfig)
+            .build())
+        .build();
+    withBuildServiceConfig(defaultConfig.resourceDir(resourceDir).build());
+    final WebServerEventCollector collector = MockServerSetup.forServer(mockServer)
+        .resourceName(projectName)
+        .buildConfigSuffix("-s2i-suffix-configured-in-image")
+        .buildConfigExists(true)  // Existing BuildConfig that will be deleted
+        .imageStreamExists(true)
+        .recreateMode(BuildRecreateMode.buildConfig)
+        .configure();
+
+    // When
+    new OpenshiftBuildService(jKubeServiceHub).build(image);
+
+    // Then - fragment should be merged after delete (no API call to fetch deleted resource)
+    collector.assertEventsRecordedInOrder("build-config-check", "build-config-delete", "new-build-config", "pushed");
+    collector.assertEventsNotRecorded("patch-build-config");
+    // Body indices: 0=build-config-check, 1=build-config-delete, 2=imagestream-check, 3=new-build-config
+    assertThat(Serialization.unmarshal(collector.getBodies().get(3), BuildConfig.class))
+        .hasFieldOrPropertyWithValue("metadata.name", "myapp-s2i-suffix-configured-in-image")
+        .extracting(BuildConfig::getSpec)
+        .satisfies(spec -> {
+          // Fragment-specified fields should be present
+          assertThat(spec.getRunPolicy()).isEqualTo("SerialLatestOnly");
+          assertThat(spec.getResources().getRequests())
+              .containsEntry("cpu", Quantity.parse("500m"))
+              .containsEntry("memory", Quantity.parse("512Mi"));
+          // Generated fields should also be present
+          assertThat(spec.getOutput().getTo().getKind()).isEqualTo("ImageStreamTag");
+          assertThat(spec.getStrategy().getType()).isEqualTo("Source");
+        });
+  }
+
+  @Test
   @DisplayName("build with DockerImage output kind should not create ImageStream")
   void successfulDockerImageOutputBuild() throws Exception {
     withBuildServiceConfig(defaultConfig.build());
