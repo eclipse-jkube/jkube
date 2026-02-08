@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.19-SNAPSHOT
+* Fix #3840: Bump helm-java to 0.0.19
 * Fix #3833: BuildConfig resource fragment loading should use local file instead of fetching from server
 * Fix #3820: Skip flag does not work for helm tasks
 * Fix #3823: Update native binary S2I base image from UBI 8 to UBI 9
