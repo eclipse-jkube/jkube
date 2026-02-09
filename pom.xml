@@ -21,7 +21,7 @@
 
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube</artifactId>
-  <version>1.19.0</version>
+  <version>1.20-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>Eclipse JKube</description>
   <name>Eclipse JKube</name>
@@ -123,7 +123,7 @@
     <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.sonar-maven-plugin>5.3.0.6276</version.sonar-maven-plugin>
     <version.sshd>2.16.0</version.sshd>
-    <project.build.outputTimestamp>2026-02-09T09:49:15Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2026-02-09T09:53:42Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
 
