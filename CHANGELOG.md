@@ -22,7 +22,8 @@ Usage:
 ```
 
 ### 1.20-SNAPSHOT
-* Fix: Improve docs for jkube-volume-permission enricher
+* Fix #3834: Improve docs for jkube-volume-permission enricher
+* Fix #3848: fix kube-api-test binary download failures due to deprecated kubebuilder-tools storage
 
 ### 1.19.0 (2026-02-09)
 * Fix #3840: Bump helm-java to 0.0.19

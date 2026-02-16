@@ -801,7 +801,7 @@
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>kube-api-test</artifactId>
-        <version>${version.kubernetes-client}</version>
+        <version>${version.kube-api-test}</version>
         <scope>test</scope>
       </dependency>
       <!-- == doc ====================================== -->
