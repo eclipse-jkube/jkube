@@ -26,4 +26,9 @@ pipeline {
       }
     }
   }
+  post {
+    always {
+      junit testResults: '**/target/surefire-reports/*.xml,**/target/failsafe-reports/*.xml', allowEmptyResults: true
+    }
+  }
 }
