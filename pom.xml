@@ -91,7 +91,7 @@
     <version.central-publishing-maven-plugin>0.9.0</version.central-publishing-maven-plugin>
     <version.citrus>3.4.0</version.citrus>
     <version.commons-compress>1.28.0</version.commons-compress> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
-    <version.commons-io>2.19.0</version.commons-io> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
+    <version.commons-io>2.21.0</version.commons-io> <!-- Must be kept in sync with the one used by the Kubernetes Client at all times -->
     <version.gradle>7.6.4</version.gradle>
     <version.gradle-api-maven-plugin>0.0.7</version.gradle-api-maven-plugin>
     <version.groovy>3.0.23</version.groovy>
