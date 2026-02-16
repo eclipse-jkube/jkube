@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.20-SNAPSHOT
+* Fix: Improve docs for jkube-volume-permission enricher
 
 ### 1.19.0 (2026-02-09)
 * Fix #3840: Bump helm-java to 0.0.19
