@@ -50,7 +50,19 @@ We will be using Eclipse JKube for building a docker image and deploying to Kube
    ```
 
 6. Call the `/hello` endpoint
+
+   Use `minikube service` to retrieve the accessible URL for the service:
    ```shell
-   $ curl `minikube ip`:32353/hello
+   $ minikube service helloworld --url
+   http://192.168.39.191:32353
+   ```
+
+   > **Note for macOS (Docker driver):** When using Minikube with the Docker driver on macOS (including Apple Silicon),
+   > `minikube service` opens an SSH tunnel and provides a `127.0.0.1` URL instead of the Minikube VM IP.
+   > Keep the terminal open while using the tunnel.
+
+   Then call the endpoint:
+   ```shell
+   $ curl $(minikube service helloworld --url)/hello
    Hello World
    ```
