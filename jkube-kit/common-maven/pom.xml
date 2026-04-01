@@ -65,6 +65,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-xml</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.sonatype.plexus</groupId>
       <artifactId>plexus-build-api</artifactId>
     </dependency>
