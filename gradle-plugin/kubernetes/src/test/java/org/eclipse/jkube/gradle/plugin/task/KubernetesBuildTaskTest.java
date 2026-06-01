@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -118,7 +119,7 @@ class KubernetesBuildTaskTest {
   }
 
   @Test
-  void runTask_withSkipBuild_shouldDoNothing() throws JKubeServiceException {
+  void runTask_withSkipBuild_shouldDoNothing() {
     // Given
     extension = new TestKubernetesExtension() {
       @Override
@@ -128,13 +129,15 @@ class KubernetesBuildTaskTest {
     };
     when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
     final KubernetesBuildTask buildTask = new KubernetesBuildTask(KubernetesExtension.class);
+    when(buildTask.getName()).thenReturn("k8sBuild");
 
     // When
     buildTask.runTask();
 
-    // Then
+    // Then - verify no build service was constructed and init() was not called
     assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
-    verify(buildTask.jKubeServiceHub.getBuildService(), times(0)).build(any());
+    assertThat(buildTask.jKubeServiceHub).isNull();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sBuild` task is skipped."));
   }
 
 }

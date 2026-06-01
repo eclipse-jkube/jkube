@@ -25,35 +25,88 @@ import java.util.Set;
 import lombok.Getter;
 import org.apache.commons.io.FilenameUtils;
 
+/**
+ * Processes resource files through a pipeline of {@link FileContentProcessor}s.
+ *
+ * <p> Files with the same name (from different source directories) are written to the same target,
+ * allowing processors to merge content when duplicates are encountered.
+ *
+ * <p> Example usage:
+ * <pre>
+ * File[] result = ResourceFileProcessing.builder()
+ *   .withFiles(resourceFiles)
+ *   .withOutputDirectory(outDir)
+ *   .addProcessor(ctx -&gt; transformContent(ctx))
+ *   .addProcessor(ResourceFileProcessors.mergeYamlIfExists())
+ *   .process();
+ * </pre>
+ */
 public class ResourceFileProcessing {
 
   private ResourceFileProcessing() {
   }
 
+  /**
+   * Create a new builder for configuring file processing.
+   *
+   * @return a new {@link Builder} instance
+   */
   public static Builder builder() {
     return new Builder();
   }
 
+  /**
+   * Fluent builder for configuring and executing file processing.
+   */
   public static class Builder {
     private File[] files;
     private File outputDirectory;
     private final List<FileContentProcessor> processors = new ArrayList<>();
 
+    /**
+     * Set the source files to process.
+     *
+     * @param files the resource files to process
+     * @return this builder
+     */
     public Builder withFiles(File... files) {
       this.files = files;
       return this;
     }
 
+    /**
+     * Set the output directory where processed files are written.
+     *
+     * @param outputDirectory the target directory
+     * @return this builder
+     */
     public Builder withOutputDirectory(File outputDirectory) {
       this.outputDirectory = outputDirectory;
       return this;
     }
 
+    /**
+     * Add a processor to the chain. Processors are executed in the order they are added.
+     *
+     * @param processor the content processor to add
+     * @return this builder
+     */
     public Builder addProcessor(FileContentProcessor processor) {
       this.processors.add(processor);
       return this;
     }
 
+    /**
+     * Process all configured files through the processor chain.
+     *
+     * <p> For each source file, a target file is created in the output directory using the source file's name.
+     * If a target file already exists (e.g., from a previously processed file with the same name),
+     * its content is passed to processors via {@link ProcessingContext#getExistingContent()}.
+     *
+     * @return array of unique processed files (deduplicated by target path)
+     * @throws IOException if any processor fails or returns null
+     * @throws IllegalStateException if output directory or processors are not configured
+     */
     public File[] process() throws IOException {
       if (outputDirectory == null) {
         throw new IllegalStateException("Output directory must be set before processing");
@@ -93,6 +146,12 @@ public class ResourceFileProcessing {
     }
   }
 
+  /**
+   * Context passed to each {@link FileContentProcessor} during processing.
+   *
+   * <p> Contains the source file being processed, the target file being written to,
+   * any pre-existing content in the target file, and the output from the previous processor in the chain.
+   */
   @Getter
   public static class ProcessingContext {
     private final File sourceFile;
@@ -100,6 +159,12 @@ public class ResourceFileProcessing {
     private final String existingContent;
     private final String previousOutput;
 
+    /**
+     * @param sourceFile      the original source file being processed
+     * @param targetFile      the output file in the working directory
+     * @param existingContent content already present in targetFile (null if file didn't exist)
+     * @param previousOutput  output from the previous processor in the chain (null for the first processor)
+     */
     public ProcessingContext(File sourceFile, File targetFile, String existingContent, String previousOutput) {
       this.sourceFile = sourceFile;
       this.targetFile = targetFile;
@@ -108,8 +173,19 @@ public class ResourceFileProcessing {
     }
   }
 
+  /**
+   * Processes the content of a resource file. Implementations receive a {@link ProcessingContext}
+   * and return the transformed content as a string.
+   */
   @FunctionalInterface
   public interface FileContentProcessor {
+    /**
+     * Process the file content.
+     *
+     * @param context the processing context
+     * @return processed content (must not be null)
+     * @throws IOException if processing fails
+     */
     String process(ProcessingContext context) throws IOException;
   }
 }

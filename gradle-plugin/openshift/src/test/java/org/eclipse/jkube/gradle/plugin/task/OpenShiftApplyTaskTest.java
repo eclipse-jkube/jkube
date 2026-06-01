@@ -25,6 +25,7 @@ import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.service.ApplyService;
 
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -131,5 +133,26 @@ class OpenShiftApplyTaskTest {
     assertThat(applyServiceMockedConstruction.constructed()).hasSize(1);
     verify(applyServiceMockedConstruction.constructed().iterator().next(), times(1))
       .applyEntities(any(), eq(Collections.emptyList()));
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftApplyTask task = new OpenShiftApplyTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocApply");
+
+    // When
+    task.runTask();
+
+    // Then
+    assertThat(applyServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocApply` task is skipped."));
   }
 }

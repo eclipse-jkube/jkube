@@ -22,6 +22,10 @@ import java.util.Properties;
 import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 
@@ -36,6 +40,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @EnableKubernetesMockClient(crud = true)
@@ -44,7 +50,7 @@ class ApplyMojoTest {
   private File kubernetesManifestFile;
   private MavenProject mavenProject;
   private KubernetesClient defaultKubernetesClient;
-
+  private KitLogger logger;
   private ApplyMojo applyMojo;
 
   @BeforeEach
@@ -52,8 +58,14 @@ class ApplyMojoTest {
     kubernetesManifestFile = Files.createFile(temporaryFolder.resolve("kubernetes.yml")).toFile();
     mavenProject = mock(MavenProject.class);
     when(mavenProject.getProperties()).thenReturn(new Properties());
+    logger = spy(new KitLogger.SilentLogger());
     // @formatter:off
-    applyMojo = new ApplyMojo() {{
+    applyMojo = new ApplyMojo() {
+        @Override
+        protected KitLogger createLogger(String prefix) {
+            return logger;
+        }
+        {
         access = ClusterConfiguration.from(
           new ConfigBuilder(defaultKubernetesClient.getConfiguration())
             .withNamespace("kubernetes-client-config-namespace")
@@ -64,6 +76,7 @@ class ApplyMojoTest {
         kubernetesManifest = kubernetesManifestFile;
         interpolateTemplateParameters = true;
     }};
+    applyMojo.log = logger;
     // @formatter:on
   }
 
@@ -128,6 +141,20 @@ class ApplyMojoTest {
     assertThat(applyMojo.applyService)
         .hasFieldOrPropertyWithValue("namespace", null)
         .hasFieldOrPropertyWithValue("fallbackNamespace", "kubernetes-client-config-namespace");
+  }
+
+  @Test
+  void execute_whenSkipApplyTrue_shouldDoNothing() throws Exception {
+    // Given
+    applyMojo.skipApply = true;
+    applyMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
+    applyMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
+    applyMojo.mojoExecution.getMojoDescriptor().setGoal("apply");
+    applyMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    // When
+    applyMojo.execute();
+    // Then
+    verify(logger).info("`%s` goal is skipped.", "k8s:apply");
   }
 
 }

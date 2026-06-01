@@ -20,10 +20,12 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
 import org.junit.jupiter.api.AfterEach;
@@ -82,6 +84,7 @@ class HelmUninstallMojoTest {
       .setOutputDirectory(projectDir.resolve("target").resolve("classes").toFile().getAbsolutePath());
     helmUninstallMojo.project.getBuild().setDirectory(projectDir.resolve("target").toFile().getAbsolutePath());
     helmUninstallMojo.project.setFile(projectDir.resolve("target").toFile());
+    helmUninstallMojo.log = new KitLogger.SilentLogger();
   }
 
   @AfterEach
@@ -111,5 +114,19 @@ class HelmUninstallMojoTest {
     assertThatIllegalStateException()
       .isThrownBy(() -> helmUninstallMojo.execute())
       .withMessageContaining(" not found");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    helmUninstallMojo.skip = true;
+    helmUninstallMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    helmUninstallMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    helmUninstallMojo.mojoExecution.getMojoDescriptor().setGoal("helm-uninstall");
+    helmUninstallMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    // When
+    helmUninstallMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).contains("`k8s:helm-uninstall` goal is skipped.");
   }
 }

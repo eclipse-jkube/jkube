@@ -33,8 +33,6 @@ import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
@@ -92,7 +90,7 @@ class KubernetesPushTaskTest {
 
 
   @Test
-  void runTask_withSkipPush_shouldDoNothing() throws JKubeServiceException {
+  void runTask_withSkipPush_shouldDoNothing() {
     // Given
     extension = new TestKubernetesExtension() {
       @Override
@@ -109,7 +107,7 @@ class KubernetesPushTaskTest {
 
     // Then
     assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
-    verify(pushTask.jKubeServiceHub.getBuildService(), times(0)).push(any(), anyInt(), anyBoolean());
+    assertThat(pushTask.jKubeServiceHub).isNull();
     verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sPush` task is skipped."));
 
   }

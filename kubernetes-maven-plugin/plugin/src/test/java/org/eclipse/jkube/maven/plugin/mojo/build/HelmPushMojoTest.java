@@ -18,6 +18,7 @@ import java.util.HashMap;
 
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
@@ -46,6 +47,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -55,10 +57,18 @@ class HelmPushMojoTest {
   @TempDir
   private Path projectDir;
   private HelmPushMojo helmPushMojo;
+  private KitLogger logger;
 
   @BeforeEach
   void setUp() throws Exception {
-    helmPushMojo = new HelmPushMojo();
+    logger = spy(new KitLogger.SilentLogger());
+    helmPushMojo = new HelmPushMojo() {
+      @Override
+      protected KitLogger createLogger(String prefix) {
+        return logger;
+      }
+    };
+    helmPushMojo.log = logger;
     helmPushMojo.helm = new HelmConfig();
     helmPushMojo.project = new MavenProject();
     helmPushMojo.settings = new Settings();
@@ -209,6 +219,7 @@ class HelmPushMojoTest {
       helmPushMojo.execute();
       // Then
       assertThat(helmServiceMockedConstruction.constructed()).isEmpty();
+      verify(logger, times(1)).info("`%s` goal is skipped.", "k8s:helm-push");
     }
   }
 

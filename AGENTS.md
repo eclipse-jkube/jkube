@@ -4,6 +4,36 @@ Always reference these instructions first and fallback to search or bash command
 
 This file provides guidance to AI coding agents (GitHub Copilot, Claude Code, etc.) when working with code in this repository.
 
+## Working Effectively
+
+### Bootstrap and Setup
+
+```bash
+# Clone the repository
+git clone https://github.com/eclipse-jkube/jkube.git
+cd jkube
+
+# Verify Java version (requires Java 11+ for full build)
+java -version
+
+# Initial build (5-10 minutes on typical hardware)
+./mvnw clean install -DskipTests
+
+# Full build with tests (10-20 minutes)
+./mvnw clean install
+```
+
+### Build Timing Information
+
+| Command | Approximate Duration |
+|---------|---------------------|
+| `./mvnw clean compile` | 1-2 minutes |
+| `./mvnw clean install -DskipTests` | 5-10 minutes |
+| `./mvnw clean install` | 10-20 minutes |
+| `./mvnw clean install -Pjacoco` | 15-25 minutes |
+
+**IMPORTANT**: Do not cancel long-running test commands. The test suite is comprehensive and tests may take several minutes to complete.
+
 ## Project Overview
 
 Eclipse JKube is a collection of Maven and Gradle plugins that provide tools for building container images and deploying Java applications to Kubernetes and OpenShift. The project consists of:
@@ -163,12 +193,118 @@ The Maven and Gradle plugins are thin wrappers around JKube Kit:
 - Uses Lombok for reducing boilerplate - source requires delombok before Javadoc generation and releasing
 - License headers required on all source files (EPL-2.0)
 - Use `./mvnw com.mycila:license-maven-plugin:format` to add/update license headers
+- Package structure follows Maven conventions: `org.eclipse.jkube.<module>.<subpackage>`
+
+### Maven Profiles
+
+| Profile | Purpose | Activation |
+|---------|---------|------------|
+| `javadoc` | Delombok and generate Javadoc | Manual `-Pjavadoc` |
+| `release` | GPG signing, source/javadoc JARs, central publishing | Manual `-Prelease` |
+| `jacoco` | JaCoCo test coverage reporting | Manual `-Pjacoco` |
+| `sonar` | SonarCloud integration | Manual `-Psonar` |
+| `java-11` | Java 11+ specific modules (integration tests) | Auto-activation on JDK 11+ |
 
 ### Testing
 
-- Unit tests run with `./mvnw test`
-- Integration tests require Java 11+ and are in modules with `java-11` profile
-- Test coverage measured with JaCoCo when using `-Pjacoco` profile
+- Unit tests: `./mvnw test`
+- Integration tests: Require Java 11+ (auto-activated via `java-11` profile)
+- Specific test: `./mvnw test -Dtest=TestClassName`
+- Specific module: `./mvnw test -pl jkube-kit/common`
+- Test coverage: `./mvnw clean install -Pjacoco`
+
+## Testing Guidelines
+
+### Testing Philosophy
+
+1. **Black-box Testing**: Tests should verify behavior and observable outcomes, not implementation details. Test the public API.
+
+2. **Minimize Mocks**: Use real implementations when possible. Mocks are acceptable for external dependencies (Docker, Kubernetes API) but prefer real objects for internal classes.
+
+3. **Nested Test Structure**: Use JUnit 5 `@Nested` classes with `@DisplayName` annotations to organize related test scenarios hierarchically.
+
+4. **Scenario-Based Setup**: Define common scenarios in outer `@BeforeEach`, with specific conditions in nested class setups.
+
+5. **Clear Assertions**: Use AssertJ for fluent, readable assertions. One logical assertion per test when possible.
+
+### Test Patterns Used in This Project
+
+**Nested Tests with DisplayName** (preferred pattern):
+```java
+class ContainerHandlerTest {
+    private ContainerHandler handler;
+    private JavaProject project;
+
+    @BeforeEach
+    void setUp() {
+        project = JavaProject.builder().properties(new Properties()).build();
+        handler = new ContainerHandler(project.getProperties(), new GroupArtifactVersion("g", "a", "v"), probeHandler);
+    }
+
+    @Nested
+    @DisplayName("get containers")
+    class GetContainer {
+        @Test
+        @DisplayName("with alias, should return container with alias name")
+        void withAlias() {
+            // Arrange
+            ImageConfiguration image = ImageConfiguration.builder()
+                .name("test/image:1.0").alias("test-app").build();
+
+            // Act
+            List<Container> containers = handler.getContainers(config, List.of(image));
+
+            // Assert
+            assertThat(containers).first()
+                .hasFieldOrPropertyWithValue("name", "test-app");
+        }
+
+        @Test
+        @DisplayName("with groupId and artifactId, should return configured container")
+        void withGroupArtifactVersion() {
+            // ...
+        }
+    }
+}
+```
+
+**Parameterized Tests** (for testing multiple inputs):
+```java
+@ParameterizedTest(name = "duration ''{0}'' should be ''{1}'' seconds")
+@MethodSource("durationTestCases")
+void parseDuration(String input, int expectedSeconds) {
+    assertThat(DurationUtil.parse(input)).isEqualTo(expectedSeconds);
+}
+
+static Stream<Arguments> durationTestCases() {
+    return Stream.of(
+        Arguments.of("10s", 10),
+        Arguments.of("5m", 300),
+        Arguments.of("1h", 3600)
+    );
+}
+```
+
+**Conditional Tests** (for platform-specific behavior):
+```java
+@Test
+@EnabledOnOs(OS.WINDOWS)
+void windowsPathHandling() {
+    // Windows-specific test
+}
+
+@Test
+@EnabledOnOs(OS.LINUX)
+void linuxPathHandling() {
+    // Linux-specific test
+}
+```
+
+### Test File Locations
+
+- Unit tests: `**/src/test/java/`
+- Integration tests: `**/it/src/test/java/` (requires Java 11+)
+- E2E tests: Separate repository at https://github.com/eclipse-jkube/jkube-integration-tests
 
 ### Documentation
 
@@ -218,6 +354,73 @@ Example projects are available in:
 - `quickstarts/kit/` - Custom generator/enricher examples
 
 These are useful for testing changes and understanding plugin usage patterns.
+
+## Common Tasks
+
+### Running a Specific Module's Tests
+```bash
+# Test a specific module
+./mvnw test -pl jkube-kit/common
+
+# Test with dependencies
+./mvnw test -pl jkube-kit/enricher/api -am
+```
+
+### Adding License Headers
+```bash
+# Format license headers on all files
+./mvnw com.mycila:license-maven-plugin:format
+```
+
+### Building Documentation
+```bash
+# Generate plugin documentation
+./mvnw clean install -pl kubernetes-maven-plugin/doc -am
+```
+
+### Testing Quickstarts
+```bash
+# Build a specific quickstart
+cd quickstarts/maven/spring-boot
+mvn clean package k8s:build k8s:resource
+```
+
+### Debugging a Failed Test
+```bash
+# Run with full stack traces
+./mvnw test -Dtest=FailingTestClass -X
+
+# Run single test method
+./mvnw test -Dtest=TestClass#testMethod
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Build fails with "Unsupported class file major version"**
+- Ensure you're using Java 11+ for building
+- The project targets Java 8 but requires Java 11+ to build
+
+**Integration tests not running**
+- Integration tests require Java 11+ and are skipped on Java 8
+- The `java-11` profile auto-activates on JDK 11+
+
+**Gradle plugin tests fail on Windows**
+- Known issue (#3406): `gradle-plugin/it` tests are excluded on Windows CI
+- Use WSL2 or Linux for Gradle plugin integration testing
+
+**License header check fails**
+- Run `./mvnw com.mycila:license-maven-plugin:format` to auto-fix
+
+**OutOfMemoryError during build**
+- Increase Maven memory: `export MAVEN_OPTS="-Xmx2g"`
+
+### Windows-Specific Notes
+
+- YAML literal blocks handle Windows line endings (CRLF)
+- Some path-related tests have platform-specific variants (`@EnabledOnOs`)
+- Use `./mvnw.cmd` instead of `./mvnw` on Windows
 
 ## Release Process
 

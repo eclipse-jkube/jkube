@@ -96,4 +96,18 @@ class OpenshiftHelmDependencyUpdateMojoTest {
       .contains("Saving 1 charts")
       .contains("Deleting outdated charts");
   }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    openshiftHelmDependencyUpdateMojo.skip = true;
+    openshiftHelmDependencyUpdateMojo.mojoExecution = new org.apache.maven.plugin.MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    openshiftHelmDependencyUpdateMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    openshiftHelmDependencyUpdateMojo.mojoExecution.getMojoDescriptor().setGoal("helm-dependency-update");
+    openshiftHelmDependencyUpdateMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("oc");
+    // When
+    openshiftHelmDependencyUpdateMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).contains("`oc:helm-dependency-update` goal is skipped.");
+  }
 }

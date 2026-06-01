@@ -2,7 +2,57 @@
 [[jkube-volume-permission]]
 ==== jkube-volume-permission
 
-Enricher which fixes the permission of persistent volume mount with the help of an init container.
+Enricher which automatically adds an init container to fix permissions on persistent volume mounts.
+
+When your application uses PersistentVolumeClaims, this enricher detects them and adds an init container that runs `chmod` to ensure the mounted volumes have the correct permissions before your application starts.
+
+**Behavior:**
+
+* Automatically triggered when PersistentVolumeClaims are detected in your Pod specification
+* Creates an init container named `jkube-volume-permission` that runs before your application containers
+* Mounts all PersistentVolumeClaims and applies the specified permissions (default: `777`)
+
+ifeval::["{plugin-type}" == "maven"]
+===== Disabling the enricher
+
+If you don't need automatic permission fixing, you can exclude this enricher in your `pom.xml`:
+
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <configuration>
+    <enricher>
+      <excludes>
+        <exclude>jkube-volume-permission</exclude>
+      </excludes>
+    </enricher>
+  </configuration>
+</plugin>
+----
+
+NOTE: Enricher excludes cannot be configured via Maven properties. You must use the XML configuration above.
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+===== Disabling the enricher
+
+If you don't need automatic permission fixing, you can exclude this enricher in your `build.gradle`:
+
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{task-prefix} {
+  enricher {
+    excludes = ["jkube-volume-permission"]
+  }
+}
+----
+
+NOTE: Enricher excludes cannot be configured via `gradle.properties`. You must use the DSL configuration above in your `build.gradle` file.
+endif::[]
+
+===== Configuration
 
 .Supported properties
 [cols="1,6,1"]
@@ -10,31 +60,173 @@ Enricher which fixes the permission of persistent volume mount with the help of 
 | Option | Description | Property
 
 | *imageName*
-| Image name for PersistentVolume init container
+| Image name for the init container.
+
+  Useful when the default `quay.io/quay/busybox` is not accessible (e.g., corporate registries with restricted access).
 
   Defaults to `quay.io/quay/busybox`.
 
 | `jkube.enricher.jkube-volume-permission.imageName`
 
 | *permission*
-| PersistentVolume init container access mode
+| Unix permission mode to apply to mounted volumes (e.g., `755`, `777`).
 
-Defaults to `777`.
+  Defaults to `777`.
 | `jkube.enricher.jkube-volume-permission.permission`
 
 | *cpuLimit*
-| Set PersistentVolume *initContainer*'s `.resources` CPU limit
+| CPU limit for the init container (e.g., `100m`, `0.5`).
 | `jkube.enricher.jkube-volume-permission.cpuLimit`
 
 | *memoryLimit*
-| Set PersistentVolume *initContainer*'s `.resources` memory limit
+| Memory limit for the init container (e.g., `64Mi`, `128Mi`).
 | `jkube.enricher.jkube-volume-permission.memoryLimit`
 
 | *cpuRequest*
-| Set PersistentVolume *initContainer*'s `.resources` CPU request
+| CPU request for the init container (e.g., `50m`, `0.1`).
 | `jkube.enricher.jkube-volume-permission.cpuRequest`
 
 | *memoryRequest*
-| Set PersistentVolume *initContainer*'s `.resources` memory request
+| Memory request for the init container (e.g., `32Mi`, `64Mi`).
 | `jkube.enricher.jkube-volume-permission.memoryRequest`
 |===
+
+ifeval::["{plugin-type}" == "maven"]
+===== Examples
+
+====== Using a custom image
+
+If your environment blocks access to `quay.io/quay/busybox` (e.g., corporate firewall restrictions), specify an alternative image.
+
+**Option 1: Plugin configuration (pom.xml)**
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <groupId>org.eclipse.jkube</groupId>
+  <artifactId>{plugin}</artifactId>
+  <configuration>
+    <enricher>
+      <config>
+        <jkube-volume-permission>
+          <imageName>your-registry.com/busybox:latest</imageName>
+          <permission>755</permission>
+        </jkube-volume-permission>
+      </config>
+    </enricher>
+  </configuration>
+</plugin>
+----
+
+**Option 2: Maven properties (pom.xml)**
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<properties>
+  <jkube.enricher.jkube-volume-permission.imageName>your-registry.com/busybox:latest</jkube.enricher.jkube-volume-permission.imageName>
+  <jkube.enricher.jkube-volume-permission.permission>755</jkube.enricher.jkube-volume-permission.permission>
+</properties>
+----
+
+**Option 3: Command line**
+[source,bash,indent=0,subs="verbatim,quotes,attributes"]
+----
+mvn {goal-prefix}:resource \
+  -Djkube.enricher.jkube-volume-permission.imageName=your-registry.com/busybox:latest \
+  -Djkube.enricher.jkube-volume-permission.permission=755
+----
+
+====== Setting resource limits
+
+Control the resource consumption of the init container:
+
+**Using plugin configuration:**
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<enricher>
+  <config>
+    <jkube-volume-permission>
+      <cpuLimit>100m</cpuLimit>
+      <memoryLimit>64Mi</memoryLimit>
+      <cpuRequest>50m</cpuRequest>
+      <memoryRequest>32Mi</memoryRequest>
+    </jkube-volume-permission>
+  </config>
+</enricher>
+----
+
+**Using Maven properties:**
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<properties>
+  <jkube.enricher.jkube-volume-permission.cpuLimit>100m</jkube.enricher.jkube-volume-permission.cpuLimit>
+  <jkube.enricher.jkube-volume-permission.memoryLimit>64Mi</jkube.enricher.jkube-volume-permission.memoryLimit>
+</properties>
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+===== Examples
+
+====== Using a custom image
+
+If your environment blocks access to `quay.io/quay/busybox` (e.g., corporate firewall restrictions), specify an alternative image.
+
+**Option 1: Gradle DSL (build.gradle)**
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{task-prefix} {
+  enricher {
+    config {
+      "jkube-volume-permission" {
+        imageName = "your-registry.com/busybox:latest"
+        permission = "755"
+      }
+    }
+  }
+}
+----
+
+**Option 2: Gradle properties (gradle.properties)**
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
+----
+jkube.enricher.jkube-volume-permission.imageName=your-registry.com/busybox:latest
+jkube.enricher.jkube-volume-permission.permission=755
+----
+
+**Option 3: Command line**
+[source,bash,indent=0,subs="verbatim,quotes,attributes"]
+----
+gradle {task-prefix}Resource \
+  -Pjkube.enricher.jkube-volume-permission.imageName=your-registry.com/busybox:latest \
+  -Pjkube.enricher.jkube-volume-permission.permission=755
+----
+
+====== Setting resource limits
+
+Control the resource consumption of the init container:
+
+**Using Gradle DSL:**
+[source,groovy,indent=0,subs="verbatim,quotes,attributes"]
+----
+{task-prefix} {
+  enricher {
+    config {
+      "jkube-volume-permission" {
+        cpuLimit = "100m"
+        memoryLimit = "64Mi"
+        cpuRequest = "50m"
+        memoryRequest = "32Mi"
+      }
+    }
+  }
+}
+----
+
+**Using gradle.properties:**
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
+----
+jkube.enricher.jkube-volume-permission.cpuLimit=100m
+jkube.enricher.jkube-volume-permission.memoryLimit=64Mi
+jkube.enricher.jkube-volume-permission.cpuRequest=50m
+jkube.enricher.jkube-volume-permission.memoryRequest=32Mi
+----
+endif::[]

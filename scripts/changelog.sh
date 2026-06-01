@@ -65,7 +65,7 @@ function addLinks() {
   currentLink="$START_LINK"
   if [ -n "$2" ]; then currentLink="$2" ; fi
   while read -r line; do
-    issueNumber=$(echo "$line" | sed -En 's/.*?#([0-9]+).*/\1/p')
+    issueNumber=$(echo "$line" | sed -En 's/.*#([0-9]+).*/\1/p')
     if [ -z "$issueNumber" ]; then
       lines+="$line\n";
     else

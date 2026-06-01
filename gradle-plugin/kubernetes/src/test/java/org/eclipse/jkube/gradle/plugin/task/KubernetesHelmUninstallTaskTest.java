@@ -20,10 +20,13 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +39,8 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,6 +88,8 @@ class KubernetesHelmUninstallTaskTest {
   void runTask_withHelmReleasePresentInKubernetesCluster_shouldSucceed() {
     // Given
     KubernetesHelmUninstallTask kubernetesHelmUninstallTask = new KubernetesHelmUninstallTask(KubernetesExtension.class);
+    kubernetesHelmUninstallTask.kitLogger = new KitLogger.SilentLogger();
+    kubernetesHelmUninstallTask.kubernetesExtension.javaProject = GradleUtil.convertGradleProject(kubernetesHelmUninstallTask.getProject());
     kubernetesHelmUninstallTask.init();
     kubernetesHelmUninstallTask.jKubeServiceHub.getHelmService().install(extension.helm);
 
@@ -102,5 +109,25 @@ class KubernetesHelmUninstallTaskTest {
     assertThatIllegalStateException()
       .isThrownBy(kubernetesHelmUninstallTask::runTask)
       .withMessageContaining(" not found");
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesHelmUninstallTask task = new KubernetesHelmUninstallTask(KubernetesExtension.class);
+    when(task.getName()).thenReturn("k8sHelmUninstall");
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sHelmUninstall` task is skipped."));
   }
 }

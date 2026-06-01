@@ -13,11 +13,24 @@
  */
 package org.eclipse.jkube.kit.common.util;
 
+/**
+ * Pre-built {@link ResourceFileProcessing.FileContentProcessor} implementations
+ * for common file processing operations.
+ */
 public class ResourceFileProcessors {
 
   private ResourceFileProcessors() {
   }
 
+  /**
+   * Processor that deep-merges YAML content when the target file already exists.
+   *
+   * <p> If the target file has existing content and is a YAML file, the previous processor's output
+   * is merged into the existing content using {@link YamlUtil#mergeYaml(String, String)}.
+   * For non-YAML files or when no existing content is present, the previous output is returned unchanged.
+   *
+   * @return a processor that merges YAML files with same-name duplicates
+   */
   public static ResourceFileProcessing.FileContentProcessor mergeYamlIfExists() {
     return ctx -> {
       if (ctx.getExistingContent() != null && YamlUtil.isYaml(ctx.getTargetFile())) {

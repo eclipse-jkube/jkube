@@ -108,6 +108,15 @@ public class YamlUtil {
       .collect(Collectors.toList());
   }
 
+  /**
+   * Deep-merges two YAML strings. Maps are merged recursively, lists are concatenated,
+   * and scalar values from {@code newYaml} override those in {@code existingYaml}.
+   *
+   * @param existingYaml the base YAML content
+   * @param newYaml      the YAML content to merge on top
+   * @return the merged YAML string
+   * @throws IOException if YAML parsing or merging fails
+   */
   public static String mergeYaml(String existingYaml, String newYaml) throws IOException {
     try {
       if (isEffectivelyEmpty(existingYaml)) {

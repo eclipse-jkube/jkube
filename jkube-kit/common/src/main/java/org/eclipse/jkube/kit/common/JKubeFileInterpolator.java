@@ -110,7 +110,7 @@ public class JKubeFileInterpolator {
         }
 
         // Environment variables
-        Map<String, String> environmentVariables = System.getenv();
+        Map<String, String> environmentVariables = SystemEnvironment.getInstance().getEnvMap();
         for (Map.Entry<String, String> e : environmentVariables.entrySet()) {
             String value = checkPropertyWithDelimiters(line, e.getKey(), environmentVariables, delimiters);
             if (!StringUtils.isEmpty(value)) {

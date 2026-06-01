@@ -271,7 +271,7 @@ public class OpenshiftBuildService extends AbstractImageBuildService {
         // Check for BuildConfig resource fragment
         File buildConfigResourceFragment = KubernetesHelper.getResourceFragmentFromSource(buildServiceConfig.getResourceDir(), buildServiceConfig.getResourceConfig() != null ? buildServiceConfig.getResourceConfig().getRemotes() : null, "buildconfig.yml", log);
         if (buildConfigResourceFragment != null) {
-            BuildConfig buildConfigFragment = client.buildConfigs().load(buildConfigResourceFragment).get();
+            BuildConfig buildConfigFragment = client.buildConfigs().load(buildConfigResourceFragment).item();
             specBuilder = new BuildConfigSpecBuilder(buildConfigFragment.getSpec());
         } else {
             specBuilder = new BuildConfigSpecBuilder();

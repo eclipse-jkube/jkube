@@ -127,4 +127,24 @@ class OpenShiftResourceMojoTest {
     assertThat(resourceMojo.resolvedImages).singleElement()
       .hasFieldOrPropertyWithValue("name", "namespace-configured-via-plugin/test-project");
   }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException {
+    // Given
+    resourceMojo.skip = true;
+    // When
+    resourceMojo.execute();
+    // Then
+    verify(kitLogger).info("`%s` goal is skipped.", "oc:resource");
+  }
+
+  @Test
+  void execute_whenSkipResourceTrue_shouldDoNothing() throws MojoExecutionException, MojoFailureException {
+    // Given
+    resourceMojo.skipResource = true;
+    // When
+    resourceMojo.execute();
+    // Then
+    verify(kitLogger).info("`%s` goal is skipped.", "oc:resource");
+  }
 }

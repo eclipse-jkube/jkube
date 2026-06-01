@@ -20,7 +20,7 @@
   <parent>
     <groupId>org.eclipse.jkube</groupId>
     <artifactId>jkube</artifactId>
-    <version>1.19-SNAPSHOT</version>
+    <version>1.20-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -56,7 +56,8 @@
     <version.openshift-client>${version.kubernetes-client}</version.openshift-client>
     <version.plexus-classworlds>2.9.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
-    <version.plexus-utils>3.5.0</version.plexus-utils>
+    <version.plexus-utils>4.0.3</version.plexus-utils>
+    <version.plexus-xml>3.0.2</version.plexus-xml>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
     <version.ow2.asm>9.8</version.ow2.asm>
@@ -113,9 +114,9 @@
     <image.micronaut-native.upstream.istag>registry.access.redhat.com/ubi9/ubi-minimal:${version.image.ubi-minimal}</image.micronaut-native.upstream.istag>
 
     <!-- Quarkus -->
-    <image.quarkus-native.upstream.s2i>quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0</image.quarkus-native.upstream.s2i>
+    <image.quarkus-native.upstream.s2i>quay.io/quarkus/ubi9-quarkus-native-binary-s2i:2.0</image.quarkus-native.upstream.s2i>
     <image.quarkus-native.upstream.docker>registry.access.redhat.com/ubi9/ubi-minimal:${version.image.ubi-minimal}</image.quarkus-native.upstream.docker>
-    <image.quarkus-native.upstream.istag>quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0</image.quarkus-native.upstream.istag>
+    <image.quarkus-native.upstream.istag>quay.io/quarkus/ubi9-quarkus-native-binary-s2i:2.0</image.quarkus-native.upstream.istag>
 
     <!-- karaf -->
     <image.karaf.upstream.docker>quay.io/jkube/jkube-karaf:${version.image.karaf.upstream.docker}</image.karaf.upstream.docker>
@@ -704,6 +705,12 @@
       </dependency>
 
       <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-xml</artifactId>
+        <version>${version.plexus-xml}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.sonatype.plexus</groupId>
         <artifactId>plexus-build-api</artifactId>
         <version>${version.plexus-build-api}</version>
@@ -754,6 +761,13 @@
 
       <dependency>
         <groupId>org.mockito</groupId>
+        <artifactId>mockito-inline</artifactId>
+        <version>${version.mockito}</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${version.mockito}</version>
         <scope>test</scope>
@@ -794,7 +808,7 @@
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>kube-api-test</artifactId>
-        <version>${version.kubernetes-client}</version>
+        <version>${version.kube-api-test}</version>
         <scope>test</scope>
       </dependency>
       <!-- == doc ====================================== -->

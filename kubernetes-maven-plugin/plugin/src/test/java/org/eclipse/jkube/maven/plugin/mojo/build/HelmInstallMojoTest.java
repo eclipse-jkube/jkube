@@ -20,6 +20,7 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
@@ -134,5 +135,19 @@ class HelmInstallMojoTest {
     assertThatIllegalStateException()
       .isThrownBy(() -> helmInstallMojo.execute())
       .withMessageContaining("the-dependency not found");
+  }
+
+  @Test
+  void execute_whenSkipTrue_shouldDoNothing() throws Exception {
+    // Given
+    helmInstallMojo.skip = true;
+    helmInstallMojo.mojoExecution = new MojoExecution(new org.apache.maven.plugin.descriptor.MojoDescriptor());
+    helmInstallMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new org.apache.maven.plugin.descriptor.PluginDescriptor());
+    helmInstallMojo.mojoExecution.getMojoDescriptor().setGoal("helm-install");
+    helmInstallMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
+    // When
+    helmInstallMojo.execute();
+    // Then
+    assertThat(outputStream.toString()).contains("`k8s:helm-install` goal is skipped.");
   }
 }

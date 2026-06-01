@@ -220,3 +220,99 @@ For a more complete, robust and reliable authentication experience, you can add 
 This extra dependency allows the usage of all link:https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/credentials.html[options] that the AWS default credential provider chain provides.
 
 If the AWS SDK is found in the classpath, it takes precedence over the custom AWS credentials lookup mechanisms listed above.
+
+== Google Artifact Registry Authentication
+
+link:https://cloud.google.com/artifact-registry/docs[Google Artifact Registry] is Google Cloud's container image registry service that requires authentication to push and pull container images.
+The <<jkube:push>> and <<jkube:build>> goals support several authentication methods for Google Artifact Registry.
+
+For Artifact Registry repositories with URI like `us-central1-docker.pkg.dev/my-project/my-repo/my-image`, set `jkube.docker.registry` to `us-central1-docker.pkg.dev` and `my-project/my-repo/my-image` is the `<name>` of the image.
+
+=== Authentication Methods
+
+==== 1. Access Token Authentication (Recommended)
+
+This method uses short-lived OAuth tokens (valid for 60 minutes) and provides the best balance between security and compatibility.
+
+* Username: `oauth2accesstoken`
+* Password: Output from `gcloud auth print-access-token`
+
+.Example using system properties
+[source,sh,subs="+attributes"]
+----
+mvn {goal-prefix}:push \
+  -Djkube.docker.username=oauth2accesstoken \
+  -Djkube.docker.password="$(gcloud auth print-access-token)"
+----
+
+.Example using authConfig in pom.xml
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<plugin>
+  <configuration>
+    <authConfig>
+      <username>oauth2accesstoken</username>
+      <password>${gcloud.access.token}</password>
+    </authConfig>
+  </configuration>
+</plugin>
+----
+
+Then run:
+[source,sh,subs="+attributes"]
+----
+mvn {goal-prefix}:push -Dgcloud.access.token="$(gcloud auth print-access-token)"
+----
+
+==== 2. Service Account Key Authentication
+
+This method uses a service account JSON key file for authentication.
+
+* Username: `_json_key`
+* Password: Contents of the service account JSON key file
+
+.Example using system properties
+[source,sh,subs="+attributes"]
+----
+mvn {goal-prefix}:push \
+  -Djkube.docker.username=_json_key \
+  -Djkube.docker.password="$(cat /path/to/key.json)"
+----
+
+.Example using settings.xml
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<servers>
+  <server>
+    <id>us-central1-docker.pkg.dev</id>
+    <username>_json_key</username>
+    <password>{
+  "type": "service_account",
+  "project_id": "my-project",
+  ...
+}</password>
+  </server>
+</servers>
+----
+
+==== 3. Docker Credential Helper (docker-credential-gcr)
+
+The standalone link:https://cloud.google.com/artifact-registry/docs/docker/authentication#standalone-helper[docker-credential-gcr helper] can be used for authentication and provides better performance than the gcloud CLI method.
+
+After installing and configuring `docker-credential-gcr`, JKube will automatically use it when credentials are available through Docker's credential store.
+
+.Installation
+[source,sh]
+----
+gcloud components install docker-credential-gcr
+docker-credential-gcr configure-docker
+----
+
+This configures `~/.docker/config.json` to use the credential helper, and JKube will automatically pick up the credentials.
+
+[NOTE]
+====
+The access token method (option 1) is recommended for CI/CD pipelines and temporary access, as it provides short-lived credentials that are automatically rotated.
+The service account key method (option 2) is useful for long-running services or when you need programmatic access without user interaction.
+The credential helper method (option 3) provides the best developer experience for local development.
+====

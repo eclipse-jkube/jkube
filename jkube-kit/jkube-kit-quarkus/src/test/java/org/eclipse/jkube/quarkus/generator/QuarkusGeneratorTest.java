@@ -200,7 +200,7 @@ class QuarkusGeneratorTest {
       // Then
       assertThat(result).singleElement()
         .extracting("buildConfiguration.from")
-        .isEqualTo("quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0");
+        .isEqualTo("quay.io/quarkus/ubi9-quarkus-native-binary-s2i:2.0");
     }
 
     @Test

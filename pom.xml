@@ -21,7 +21,7 @@
 
   <groupId>org.eclipse.jkube</groupId>
   <artifactId>jkube</artifactId>
-  <version>1.19-SNAPSHOT</version>
+  <version>1.20-SNAPSHOT</version>
   <packaging>pom</packaging>
   <description>Eclipse JKube</description>
   <name>Eclipse JKube</name>
@@ -95,13 +95,14 @@
     <version.gradle>7.6.4</version.gradle>
     <version.gradle-api-maven-plugin>0.0.7</version.gradle-api-maven-plugin>
     <version.groovy>3.0.23</version.groovy>
-    <version.helm-java>0.0.16</version.helm-java>
+    <version.helm-java>0.0.19</version.helm-java>
     <version.guava>33.4.0-jre</version.guava>
     <version.error_prone_annotations>2.36.0</version.error_prone_annotations>
     <version.jackson>2.20.1</version.jackson>
     <version.jacoco>0.8.14</version.jacoco>
     <version.json-smart>2.6.0</version.json-smart> <!-- Transitive dependency  required by citrus -->
     <version.junit5>5.11.4</version.junit5>
+    <version.kube-api-test>7.5.2</version.kube-api-test>
     <version.kubernetes-client>6.14.0</version.kubernetes-client>
     <version.license-maven-plugin>5.0.0</version.license-maven-plugin>
     <version.lombok>1.18.42</version.lombok>
@@ -123,7 +124,7 @@
     <version.slf4j-api>1.7.36</version.slf4j-api>
     <version.sonar-maven-plugin>5.3.0.6276</version.sonar-maven-plugin>
     <version.sshd>2.16.0</version.sshd>
-    <project.build.outputTimestamp>2025-11-03T09:25:37Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>2026-02-09T09:53:42Z</project.build.outputTimestamp>
     <asciidoctor.outputHtmlDirectory>${project.build.directory}/generated-docs</asciidoctor.outputHtmlDirectory>
   </properties>
 

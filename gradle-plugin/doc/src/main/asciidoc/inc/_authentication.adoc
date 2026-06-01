@@ -83,3 +83,93 @@ properties, then the properties `jkube.docker.pull.username` /
 `jkube.docker.push.password` are used for pull and push operations,
 respectively (when given). Either way, the standard lookup algorithm
 as described in the previous section is used as fallback.
+
+== Google Artifact Registry Authentication
+
+link:https://cloud.google.com/artifact-registry/docs[Google Artifact Registry] is Google Cloud's container image registry service that requires authentication to push and pull container images.
+The `{task-prefix}Push` and `{task-prefix}Build` tasks support several authentication methods for Google Artifact Registry.
+
+For Artifact Registry repositories with URI like `us-central1-docker.pkg.dev/my-project/my-repo/my-image`, set `jkube.docker.registry` to `us-central1-docker.pkg.dev` and `my-project/my-repo/my-image` is the `name` of the image.
+
+=== Authentication Methods
+
+==== 1. Access Token Authentication (Recommended)
+
+This method uses short-lived OAuth tokens (valid for 60 minutes) and provides the best balance between security and compatibility.
+
+* Username: `oauth2accesstoken`
+* Password: Output from `gcloud auth print-access-token`
+
+.Example using system properties
+[source,sh,subs="+attributes"]
+----
+gradle {task-prefix}Push \
+  -Djkube.docker.username=oauth2accesstoken \
+  -Djkube.docker.password="$(gcloud auth print-access-token)"
+----
+
+.Example using authConfig in build.gradle
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+    authConfig {
+        username = "oauth2accesstoken"
+        password = System.getenv("GCLOUD_ACCESS_TOKEN")
+    }
+}
+----
+
+Then run:
+[source,sh,subs="+attributes"]
+----
+export GCLOUD_ACCESS_TOKEN="$(gcloud auth print-access-token)"
+gradle {task-prefix}Push
+----
+
+==== 2. Service Account Key Authentication
+
+This method uses a service account JSON key file for authentication.
+
+* Username: `_json_key`
+* Password: Contents of the service account JSON key file
+
+.Example using system properties
+[source,sh,subs="+attributes"]
+----
+gradle {task-prefix}Push \
+  -Djkube.docker.username=_json_key \
+  -Djkube.docker.password="$(cat /path/to/key.json)"
+----
+
+.Example using authConfig in build.gradle
+[source,groovy,subs="attributes+"]
+----
+{pluginExtension} {
+    authConfig {
+        username = "_json_key"
+        password = new File("/path/to/key.json").text
+    }
+}
+----
+
+==== 3. Docker Credential Helper (docker-credential-gcr)
+
+The standalone link:https://cloud.google.com/artifact-registry/docs/docker/authentication#standalone-helper[docker-credential-gcr helper] can be used for authentication and provides better performance than the gcloud CLI method.
+
+After installing and configuring `docker-credential-gcr`, JKube will automatically use it when credentials are available through Docker's credential store.
+
+.Installation
+[source,sh]
+----
+gcloud components install docker-credential-gcr
+docker-credential-gcr configure-docker
+----
+
+This configures `~/.docker/config.json` to use the credential helper, and JKube will automatically pick up the credentials.
+
+[NOTE]
+====
+The access token method (option 1) is recommended for CI/CD pipelines and temporary access, as it provides short-lived credentials that are automatically rotated.
+The service account key method (option 2) is useful for long-running services or when you need programmatic access without user interaction.
+The credential helper method (option 3) provides the best developer experience for local development.
+====

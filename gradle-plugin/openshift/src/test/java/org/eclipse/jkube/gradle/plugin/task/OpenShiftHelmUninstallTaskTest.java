@@ -20,10 +20,13 @@ import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import org.apache.commons.io.FileUtils;
+import org.eclipse.jkube.gradle.plugin.GradleUtil;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
+import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.resource.helm.HelmConfig;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +39,8 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -83,6 +88,8 @@ class OpenShiftHelmUninstallTaskTest {
   void runTask_withHelmReleasePresentInKubernetesCluster_shouldSucceed() {
     // Given
     OpenShiftHelmUninstallTask openShiftHelmUninstallTask = new OpenShiftHelmUninstallTask(OpenShiftExtension.class);
+    openShiftHelmUninstallTask.kubernetesExtension.javaProject = GradleUtil.convertGradleProject(openShiftHelmUninstallTask.getProject());
+    openShiftHelmUninstallTask.kitLogger = new KitLogger.SilentLogger();
     openShiftHelmUninstallTask.init();
     openShiftHelmUninstallTask.jKubeServiceHub.getHelmService().install(extension.helm);
     // When
@@ -101,5 +108,25 @@ class OpenShiftHelmUninstallTaskTest {
     assertThatIllegalStateException()
       .isThrownBy(openShiftHelmUninstallTask::runTask)
       .withMessageContaining(" not found");
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestOpenShiftExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(OpenShiftExtension.class)).thenReturn(extension);
+    final OpenShiftHelmUninstallTask task = new OpenShiftHelmUninstallTask(OpenShiftExtension.class);
+    when(task.getName()).thenReturn("ocHelmUninstall");
+
+    // When
+    task.runTask();
+
+    // Then
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocHelmUninstall` task is skipped."));
   }
 }

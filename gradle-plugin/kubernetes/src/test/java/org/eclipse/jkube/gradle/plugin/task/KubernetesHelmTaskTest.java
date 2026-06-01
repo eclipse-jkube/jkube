@@ -20,6 +20,7 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.resource.helm.HelmService;
 
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,8 +28,10 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
 
 import static org.apache.commons.io.FilenameUtils.separatorsToSystem;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -76,6 +79,27 @@ class KubernetesHelmTaskTest {
 
     // Then
     verify((helmServiceMockedConstruction.constructed().iterator().next()), times(1)).generateHelmCharts(any());
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestKubernetesExtension extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesHelmTask kubernetesHelmTask = new KubernetesHelmTask(KubernetesExtension.class);
+    when(kubernetesHelmTask.getName()).thenReturn("k8sHelm");
+
+    // When
+    kubernetesHelmTask.runTask();
+
+    // Then
+    assertThat(helmServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sHelm` task is skipped."));
   }
 
 }

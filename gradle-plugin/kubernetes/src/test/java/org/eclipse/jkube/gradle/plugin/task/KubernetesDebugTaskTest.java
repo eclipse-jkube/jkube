@@ -21,6 +21,7 @@ import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.config.service.DebugContext;
 import org.eclipse.jkube.kit.config.service.DebugService;
 
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import org.mockito.MockedConstruction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.times;
@@ -84,6 +86,27 @@ class KubernetesDebugTaskTest {
         .hasFieldOrPropertyWithValue("localDebugPort", "5005")
         .hasFieldOrPropertyWithValue("debugSuspend", false)
         .satisfies(d -> assertThat(d.getPodWaitLog()).isInstanceOf(GradleLogger.class));
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesDebugTask kubernetesDebugTask = new KubernetesDebugTask(KubernetesExtension.class);
+    when(kubernetesDebugTask.getName()).thenReturn("k8sDebug");
+
+    // When
+    kubernetesDebugTask.runTask();
+
+    // Then
+    assertThat(debugServiceMockedConstruction.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sDebug` task is skipped."));
   }
 
 }

@@ -17,6 +17,7 @@ import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.remotedev.RemoteDevelopmentService;
+import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import org.mockito.MockedConstruction;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -82,5 +84,26 @@ class KubernetesRemoteDevTaskTest {
     assertThat(remoteDevelopmentService.constructed())
       .singleElement()
       .satisfies(service -> verify(service, times(1)).stop());
+  }
+
+  @Test
+  void runTask_withSkip_shouldDoNothing() {
+    // Given
+    TestKubernetesExtension extension = new TestKubernetesExtension() {
+      @Override
+      public Property<Boolean> getSkip() {
+        return super.getSkip().value(true);
+      }
+    };
+    when(taskEnvironment.project.getExtensions().getByType(KubernetesExtension.class)).thenReturn(extension);
+    final KubernetesRemoteDevTask kubernetesRemoteDevTask = new KubernetesRemoteDevTask(KubernetesExtension.class);
+    when(kubernetesRemoteDevTask.getName()).thenReturn("k8sRemoteDev");
+
+    // When
+    kubernetesRemoteDevTask.runTask();
+
+    // Then
+    assertThat(remoteDevelopmentService.constructed()).isEmpty();
+    verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sRemoteDev` task is skipped."));
   }
 }

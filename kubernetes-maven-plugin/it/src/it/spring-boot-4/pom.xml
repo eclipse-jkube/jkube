@@ -59,7 +59,7 @@
       <plugin>
         <groupId>org.eclipse.jkube</groupId>
         <artifactId>kubernetes-maven-plugin</artifactId>
-        <version>1.19-SNAPSHOT</version>
+        <version>@jkube.version@</version>
 
         <configuration>
 
