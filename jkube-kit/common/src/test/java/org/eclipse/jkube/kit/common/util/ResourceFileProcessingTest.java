@@ -25,8 +25,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import java.util.Properties;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.jkube.kit.common.util.YamlUtil.getPropertiesFromYamlString;
 
 class ResourceFileProcessingTest {
 
@@ -123,7 +126,10 @@ class ResourceFileProcessingTest {
       assertThat(result[0]).hasName("resource.yaml");
 
       String mergedContent = new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8);
-      assertThat(mergedContent).contains("name:", "labels:");
+      Properties props = getPropertiesFromYamlString(mergedContent);
+      assertThat(props)
+        .containsEntry("metadata.name", "myservice")
+        .containsEntry("metadata.labels.app", "myapp");
     }
 
     @Test

@@ -26,7 +26,7 @@ class MultiProfileIT {
   private final ITGradleRunnerExtension gradleRunner = new ITGradleRunnerExtension();
 
   @Test
-  void ocResource_whenRunMutliFragments_generatesManifests() throws IOException, ParseException {
+  void ocResource_whenRunMultiFragments_generatesManifests() throws IOException, ParseException {
     // When
     gradleRunner.withITProject("multi-env-same-kind")
         .withArguments("build", "ocResource")
@@ -37,7 +37,7 @@ class MultiProfileIT {
   }
 
   @Test
-  void ocResource_whenRunMutliFragmentsProfileOverridden_generatesManifests() throws IOException, ParseException {
+  void ocResource_whenRunMultiFragmentsProfileOverridden_generatesManifests() throws IOException, ParseException {
     // When
     gradleRunner.withITProject("multi-env-same-kind-profile-overridden")
         .withArguments("build", "ocResource")
