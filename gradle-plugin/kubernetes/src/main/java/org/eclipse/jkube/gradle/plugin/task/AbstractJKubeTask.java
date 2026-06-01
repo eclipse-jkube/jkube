@@ -226,18 +226,13 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
       throw new IOException("Cannot create working dir " + outDir);
     }
 
-    ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+    return ResourceFileProcessing.builder()
       .withFiles(resourceFiles)
       .withOutputDirectory(outDir)
-      .withOptions(ResourceFileProcessing.ProcessingOptions.defaults())
-      // Processor 1: Read and interpolate the source file
       .addProcessor(context ->
         interpolate(context.getSourceFile(), kubernetesExtension.javaProject.getProperties(),
           kubernetesExtension.getFilter().getOrNull()))
-      // Processor 2: Merge with existing content if YAML
       .addProcessor(ResourceFileProcessors.mergeYamlIfExists())
       .process();
-
-    return result.getProcessedFiles().toArray(new File[0]);
   }
 }

@@ -29,7 +29,6 @@ import org.eclipse.jkube.kit.common.util.MavenUtil;
 import org.eclipse.jkube.kit.common.util.ResourceUtil;
 import org.eclipse.jkube.kit.common.util.ResourceFileProcessing;
 import org.eclipse.jkube.kit.common.util.ResourceFileProcessors;
-import org.eclipse.jkube.kit.common.util.YamlUtil;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 
 import org.apache.maven.execution.MavenSession;
@@ -284,14 +283,11 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
             throw new IOException("Cannot create working dir " + outDir);
         }
 
-        ResourceFileProcessing.ProcessingResult result = ResourceFileProcessing.builder()
+        return ResourceFileProcessing.builder()
           .withFiles(resourceFiles)
           .withOutputDirectory(outDir)
-          .withOptions(ResourceFileProcessing.ProcessingOptions.defaults())
-          // Processor 1: Apply Maven filtering to the source file
           .addProcessor(context -> {
               try {
-                  // Create a temporary file for Maven filtering in workDir
                   File tempFile = File.createTempFile("jkube-resource-", ".tmp", outDir);
                   try {
                       mavenFileFilter.copyFile(context.getSourceFile(), tempFile, true, project, null, false, "utf8", session);
@@ -303,11 +299,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
                   throw new IOException(String.format("Cannot filter %s to %s", context.getSourceFile(), context.getTargetFile()), exp);
               }
           })
-          // Processor 2: Merge with existing content if YAML
           .addProcessor(ResourceFileProcessors.mergeYamlIfExists())
           .process();
-
-        return result.getProcessedFiles().toArray(new File[0]);
     }
 }
 
