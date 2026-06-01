@@ -24,6 +24,7 @@ Usage:
 ### 1.20-SNAPSHOT
 * Fix #3834: Improve docs for jkube-volume-permission enricher
 * Fix #3848: fix kube-api-test binary download failures due to deprecated kubebuilder-tools storage
+* Fix #2758: Inconsistency when merging fragments with same file name with different profiles
 
 ### 1.19.0 (2026-02-09)
 * Fix #3840: Bump helm-java to 0.0.19
@@ -41,7 +42,6 @@ Usage:
 * Fix #2286: Remove Guava dependency where ever possible
 * Fix #1458: Consideration of "ssl.enabled" properties to enable liveness/readiness probe for Spring Boot Actuator
 * Fix #3690: jkube-healthcheck-spring-boot enricher: rename property management.health.probes.enabled
-* Fix #2758: Inconsistency when merging fragments with same file name with different profiles
 
 ### 1.18.2 (2025-11-03)
 * Fix #3750: Remove unneeded XMLUtil.createNewDocument method
