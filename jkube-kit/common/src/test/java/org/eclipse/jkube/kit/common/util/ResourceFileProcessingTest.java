@@ -233,31 +233,33 @@ class ResourceFileProcessingTest {
     }
 
     @Test
-    @DisplayName("with existing content, should pass to processors")
-    void withExistingContent_shouldPassToProcessors() throws IOException {
-      File targetFile = new File(outDir, "existing.txt");
-      Files.write(targetFile.toPath(), "existing content".getBytes(StandardCharsets.UTF_8));
+    @DisplayName("with same-named files, should pass accumulated content as existingContent")
+    void withSameNamedFiles_shouldPassAccumulatedContent() throws IOException {
+      File dir1 = tempDir.resolve("env1").toFile();
+      File dir2 = tempDir.resolve("env2").toFile();
+      assertThat(dir1.mkdirs()).isTrue();
+      assertThat(dir2.mkdirs()).isTrue();
 
-      File sourceFile = tempDir.resolve("existing.txt").toFile();
-      Files.write(sourceFile.toPath(), "new content".getBytes(StandardCharsets.UTF_8));
+      File file1 = new File(dir1, "resource.txt");
+      File file2 = new File(dir2, "resource.txt");
+      Files.write(file1.toPath(), "first content".getBytes(StandardCharsets.UTF_8));
+      Files.write(file2.toPath(), "second content".getBytes(StandardCharsets.UTF_8));
 
       File[] result = ResourceFileProcessing.builder()
-        .withFiles(sourceFile)
+        .withFiles(file1, file2)
         .withOutputDirectory(outDir)
+        .addProcessor(ctx -> new String(Files.readAllBytes(ctx.getSourceFile().toPath()), StandardCharsets.UTF_8))
         .addProcessor(ctx -> {
-          assertThat(ctx.getExistingContent()).isEqualTo("existing content");
-          return new String(Files.readAllBytes(ctx.getSourceFile().toPath()), StandardCharsets.UTF_8);
-        })
-        .addProcessor(ctx -> {
-          assertThat(ctx.getExistingContent()).isEqualTo("existing content");
-          assertThat(ctx.getPreviousOutput()).isEqualTo("new content");
-          return ctx.getPreviousOutput() + " appended";
+          if (ctx.getExistingContent() != null) {
+            return ctx.getExistingContent() + " + " + ctx.getPreviousOutput();
+          }
+          return ctx.getPreviousOutput();
         })
         .process();
 
       assertThat(result).hasSize(1);
       String content = new String(Files.readAllBytes(result[0].toPath()), StandardCharsets.UTF_8);
-      assertThat(content).isEqualTo("new content appended");
+      assertThat(content).isEqualTo("first content + second content");
     }
   }
 }

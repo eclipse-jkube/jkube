@@ -18,9 +18,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import lombok.Getter;
 import org.apache.commons.io.FilenameUtils;
@@ -30,6 +30,9 @@ import org.apache.commons.io.FilenameUtils;
  *
  * <p> Files with the same name (from different source directories) are written to the same target,
  * allowing processors to merge content when duplicates are encountered.
+ *
+ * <p> Merge state is kept in memory within a single {@code process()} call, so merges are scoped
+ * to one pass and cannot leak across separate invocations.
  *
  * <p> Example usage:
  * <pre>
@@ -99,11 +102,14 @@ public class ResourceFileProcessing {
     /**
      * Process all configured files through the processor chain.
      *
-     * <p> For each source file, a target file is created in the output directory using the source file's name.
-     * If a target file already exists (e.g., from a previously processed file with the same name),
-     * its content is passed to processors via {@link ProcessingContext#getExistingContent()}.
+     * <p> For each source file, a target file is resolved in the output directory using the source file's name.
+     * If a previous file with the same name was already processed in this call, the accumulated content
+     * is passed to processors via {@link ProcessingContext#getExistingContent()}.
      *
-     * @return array of unique processed files (deduplicated by target path)
+     * <p> All content is accumulated in memory and written to disk only after all files are processed,
+     * ensuring merges are scoped to a single {@code process()} invocation.
+     *
+     * @return array of unique processed files (deduplicated by target filename, insertion order preserved)
      * @throws IOException if any processor fails or returns null
      * @throws IllegalStateException if output directory or processors are not configured
      */
@@ -118,15 +124,12 @@ public class ResourceFileProcessing {
         return new File[0];
       }
 
-      final Set<File> processedFiles = new LinkedHashSet<>();
+      final Map<String, String> contentByFilename = new LinkedHashMap<>();
 
       for (File resource : files) {
-        final File targetFile = new File(outputDirectory, FilenameUtils.getName(resource.getPath()));
-
-        String existingContent = null;
-        if (targetFile.exists()) {
-          existingContent = new String(Files.readAllBytes(targetFile.toPath()), StandardCharsets.UTF_8);
-        }
+        final String targetName = FilenameUtils.getName(resource.getPath());
+        final File targetFile = new File(outputDirectory, targetName);
+        final String existingContent = contentByFilename.get(targetName);
 
         String processedContent = existingContent;
         for (FileContentProcessor processor : processors) {
@@ -137,12 +140,17 @@ public class ResourceFileProcessing {
         if (processedContent == null) {
           throw new IOException(String.format("Processor returned null content for file: %s", resource));
         }
-        Files.write(targetFile.toPath(), processedContent.getBytes(StandardCharsets.UTF_8));
-
-        processedFiles.add(targetFile);
+        contentByFilename.put(targetName, processedContent);
       }
 
-      return processedFiles.toArray(new File[0]);
+      final List<File> result = new ArrayList<>();
+      for (Map.Entry<String, String> entry : contentByFilename.entrySet()) {
+        final File targetFile = new File(outputDirectory, entry.getKey());
+        Files.write(targetFile.toPath(), entry.getValue().getBytes(StandardCharsets.UTF_8));
+        result.add(targetFile);
+      }
+
+      return result.toArray(new File[0]);
     }
   }
 
@@ -162,7 +170,7 @@ public class ResourceFileProcessing {
     /**
      * @param sourceFile      the original source file being processed
      * @param targetFile      the output file in the working directory
-     * @param existingContent content already present in targetFile (null if file didn't exist)
+     * @param existingContent content already accumulated for this target filename (null if first occurrence)
      * @param previousOutput  output from the previous processor in the chain (null for the first processor)
      */
     public ProcessingContext(File sourceFile, File targetFile, String existingContent, String previousOutput) {

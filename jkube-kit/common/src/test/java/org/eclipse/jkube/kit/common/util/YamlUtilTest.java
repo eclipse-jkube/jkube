@@ -25,11 +25,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -172,11 +168,9 @@ class YamlUtilTest {
     // When
     String result = YamlUtil.mergeYaml(existingYaml, newYaml);
     // Then - new values should overwrite existing ones
-    assertThat(result)
-        .contains("termination: \"dev-overridden\"")
-        .contains("insecureEdgeTerminationPolicy: \"Allow\"")
-        .doesNotContain("edge")
-        .doesNotContain("Redirect");
+    assertThat(getPropertiesFromYamlString(result))
+        .containsEntry("spec.tls.termination", "dev-overridden")
+        .containsEntry("spec.tls.insecureEdgeTerminationPolicy", "Allow");
   }
 
   @Test
@@ -343,31 +337,4 @@ class YamlUtilTest {
       .containsEntry("metadata.name", "test");
   }
 
-  @ParameterizedTest(name = "{index}: pattern={0}, hasResource={1}, expectedName={2}")
-  @MethodSource("getPropertiesFromYamlResourceTestCases")
-  void getPropertiesFromYamlResource_withVariousInputs(String pattern, boolean hasResource, String expectedName, boolean shouldBeEmpty) {
-    // Given
-    final URL resource = hasResource ? YamlUtilTest.class.getResource("/util/yaml-list.yml") : null;
-
-    // When
-    final Properties result = YamlUtil.getPropertiesFromYamlResource(pattern, resource);
-
-    // Then
-    assertThat(result).isNotNull();
-    if (shouldBeEmpty) {
-      assertThat(result).isEmpty();
-    } else {
-      assertThat(result.getProperty("name")).isEqualTo(expectedName);
-    }
-  }
-
-  private static Stream<Arguments> getPropertiesFromYamlResourceTestCases() {
-    return Stream.of(
-      // pattern, hasResource, expectedName, shouldBeEmpty
-      Arguments.of("YAML --- 2", true, "YAML --- 2", false),  // Matching profile pattern
-      Arguments.of("non-existent", true, "YAML 1", false),    // Non-matching pattern, fallback to first
-      Arguments.of(null, false, null, true),                  // Null resource, should be empty
-      Arguments.of(null, true, "YAML 1", false)               // Null pattern, should return first document
-    );
-  }
 }

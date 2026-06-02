@@ -23,20 +23,25 @@ public class ResourceFileProcessors {
   }
 
   /**
-   * Processor that deep-merges YAML content when the target file already exists.
+   * Processor that deep-merges structured content when a same-named target already has accumulated content.
    *
-   * <p> If the target file has existing content and is a YAML file, the previous processor's output
+   * <p> Supports both YAML ({@code .yaml}, {@code .yml}) and JSON ({@code .json}) fragments.
+   * If the target file has existing content and is a supported format, the previous processor's output
    * is merged into the existing content using {@link YamlUtil#mergeYaml(String, String)}.
-   * For non-YAML files or when no existing content is present, the previous output is returned unchanged.
+   * For unsupported file types or when no existing content is present, the previous output is returned unchanged.
    *
-   * @return a processor that merges YAML files with same-name duplicates
+   * @return a processor that merges same-name YAML/JSON fragments
    */
   public static ResourceFileProcessing.FileContentProcessor mergeYamlIfExists() {
     return ctx -> {
-      if (ctx.getExistingContent() != null && YamlUtil.isYaml(ctx.getTargetFile())) {
+      if (ctx.getExistingContent() != null && isStructuredResource(ctx.getTargetFile())) {
         return YamlUtil.mergeYaml(ctx.getExistingContent(), ctx.getPreviousOutput());
       }
       return ctx.getPreviousOutput();
     };
+  }
+
+  private static boolean isStructuredResource(java.io.File file) {
+    return YamlUtil.isYaml(file) || file.getName().toLowerCase().endsWith(".json");
   }
 }
