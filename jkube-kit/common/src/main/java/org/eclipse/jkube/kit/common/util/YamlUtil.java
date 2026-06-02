@@ -27,6 +27,8 @@ import java.util.stream.Stream;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.apache.commons.lang3.StringUtils;
 
@@ -104,6 +106,46 @@ public class YamlUtil {
       .filter(File::isFile)
       .filter(YamlUtil::isYaml)
       .collect(Collectors.toList());
+  }
+
+  /**
+   * Deep-merges two YAML strings. Maps are merged recursively, lists are concatenated,
+   * and scalar values from {@code newYaml} override those in {@code existingYaml}.
+   *
+   * @param existingYaml the base YAML content
+   * @param newYaml      the YAML content to merge on top
+   * @return the merged YAML string
+   * @throws IOException if YAML parsing or merging fails
+   */
+  public static String mergeYaml(String existingYaml, String newYaml) throws IOException {
+    try {
+      if (isEffectivelyEmpty(existingYaml)) {
+        return newYaml;
+      }
+      if (isEffectivelyEmpty(newYaml)) {
+        return existingYaml;
+      }
+      Object existing = YAML_MAPPER.readValue(existingYaml, Object.class);
+      ObjectReader updater = YAML_MAPPER.readerForUpdating(existing);
+      return YAML_MAPPER.writeValueAsString(updater.readValue(newYaml));
+    } catch (Exception e) {
+      throw new IOException("Failed to parse and merge YAML content: " + e.getMessage(), e);
+    }
+  }
+
+  private static boolean isEffectivelyEmpty(String yaml) {
+    if (yaml == null || yaml.trim().isEmpty()) {
+      return true;
+    }
+    try {
+      Object deserialized = YAML_MAPPER.readValue(yaml, Object.class);
+      return deserialized == null || (deserialized instanceof Map && ((Map<?, ?>) deserialized).isEmpty());
+    } catch (MismatchedInputException e) {
+      // Comments-only or document-separator-only YAML produces "No content to map"
+      return true;
+    } catch (IOException e) {
+      return false;
+    }
   }
 }
 
