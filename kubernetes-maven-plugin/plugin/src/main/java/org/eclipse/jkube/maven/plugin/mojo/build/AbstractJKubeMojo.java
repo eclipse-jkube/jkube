@@ -48,8 +48,11 @@ import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.JKubeServiceHub;
 import org.eclipse.jkube.kit.resource.service.DefaultResourceService;
 import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
+import org.apache.maven.settings.Server;
+import org.apache.maven.settings.building.SettingsProblem;
+import org.apache.maven.settings.crypto.DefaultSettingsDecryptionRequest;
+import org.apache.maven.settings.crypto.SettingsDecrypter;
+import org.apache.maven.settings.crypto.SettingsDecryptionResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -144,8 +147,8 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter
     protected ClusterConfiguration access;
 
-    @Component(role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class, hint = "default")
-    protected SecDispatcher securityDispatcher;
+    @Component
+    protected SettingsDecrypter settingsDecrypter;
 
     protected KitLogger log;
 
@@ -260,12 +263,15 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     }
 
     String decrypt(String password) {
-        try {
-            return securityDispatcher.decrypt(password);
-        } catch (SecDispatcherException e) {
-            getKitLogger().error("Failure in decrypting password");
+        final Server stub = new Server();
+        stub.setPassword(password);
+        final SettingsDecryptionResult result =
+            settingsDecrypter.decrypt(new DefaultSettingsDecryptionRequest(stub));
+        for (SettingsProblem problem : result.getProblems()) {
+            getKitLogger().error("Failed to decrypt password: %s", problem);
         }
-        return password;
+        final Server decrypted = result.getServer();
+        return decrypted != null ? decrypted.getPassword() : password;
     }
 
     protected void cleanWorkDirectory() throws IOException {

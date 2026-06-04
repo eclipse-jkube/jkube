@@ -18,26 +18,29 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.sonatype.plexus.components.sec.dispatcher.DefaultSecDispatcher;
 
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmPushConfig;
 
 @Mojo(name = "helm-push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class HelmPushMojo extends AbstractHelmMojo {
 
+  private static final String DEFAULT_SECURITY = "~/.m2/settings-security.xml";
+
   @Override
   public void init() throws MojoFailureException {
     super.init();
 
     initHelmPushConfig(helm, javaProject);
+    if (helm.getSecurity() != null && !DEFAULT_SECURITY.equals(helm.getSecurity())) {
+      getKitLogger().warn("The <security> helm configuration and jkube.helm.security property are deprecated" +
+          " and will be removed in a future version." +
+          " Use Maven's -Dsettings.security=<file> property instead.");
+    }
   }
 
   @Override
   public void executeInternal() throws MojoExecutionException {
     try {
-      if (securityDispatcher instanceof DefaultSecDispatcher) {
-        ((DefaultSecDispatcher) securityDispatcher).setConfigurationFile(getHelm().getSecurity());
-      }
       jkubeServiceHub.getHelmService().uploadHelmChart(getHelm());
     } catch (Exception exp) {
       getKitLogger().error("Error performing Helm push", exp);

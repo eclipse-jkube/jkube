@@ -66,9 +66,12 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
+import org.apache.maven.settings.Server;
+import org.apache.maven.settings.building.SettingsProblem;
+import org.apache.maven.settings.crypto.DefaultSettingsDecryptionRequest;
+import org.apache.maven.settings.crypto.SettingsDecrypter;
+import org.apache.maven.settings.crypto.SettingsDecryptionResult;
 import org.fusesource.jansi.Ansi;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
@@ -313,8 +316,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     // Mode which is resolved, also when 'auto' is set
     protected RuntimeMode runtimeMode;
 
-    @Component(role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class, hint = "default")
-    protected SecDispatcher securityDispatcher;
+    @Component
+    protected SettingsDecrypter settingsDecrypter;
 
     /**
      * Watching mode for rebuilding images
@@ -438,12 +441,15 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     }
 
     String decrypt(String password) {
-        try {
-            return securityDispatcher.decrypt(password);
-        } catch (SecDispatcherException e) {
-            getKitLogger().error("Failure in decrypting password");
+        final Server stub = new Server();
+        stub.setPassword(password);
+        final SettingsDecryptionResult result =
+            settingsDecrypter.decrypt(new DefaultSettingsDecryptionRequest(stub));
+        for (SettingsProblem problem : result.getProblems()) {
+            getKitLogger().error("Failed to decrypt password: %s", problem);
         }
-        return password;
+        final Server decrypted = result.getServer();
+        return decrypted != null ? decrypted.getPassword() : password;
     }
 
 

@@ -14,10 +14,14 @@
 package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
+import org.apache.maven.settings.Server;
+import org.apache.maven.settings.crypto.SettingsDecrypter;
+import org.apache.maven.settings.crypto.SettingsDecryptionResult;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.common.RegistryServerConfiguration;
 import org.eclipse.jkube.kit.resource.helm.BadUploadException;
@@ -29,21 +33,17 @@ import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.settings.Server;
 import org.apache.maven.settings.Settings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedConstruction;
-import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import org.mockito.AdditionalAnswers;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
@@ -72,7 +72,7 @@ class HelmPushMojoTest {
     helmPushMojo.helm = new HelmConfig();
     helmPushMojo.project = new MavenProject();
     helmPushMojo.settings = new Settings();
-    helmPushMojo.securityDispatcher = mock(SecDispatcher.class);
+    helmPushMojo.settingsDecrypter = mock(SettingsDecrypter.class);
     helmPushMojo.mojoExecution = new MojoExecution(new MojoDescriptor());
     helmPushMojo.interpolateTemplateParameters = true;
     helmPushMojo.project.getBuild()
@@ -82,8 +82,15 @@ class HelmPushMojoTest {
     helmPushMojo.mojoExecution.getMojoDescriptor().setPluginDescriptor(new PluginDescriptor());
     helmPushMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
     helmPushMojo.mojoExecution.getMojoDescriptor().setGoal("helm-push");
-    when(helmPushMojo.securityDispatcher.decrypt(anyString()))
-      .thenReturn(String.valueOf(AdditionalAnswers.returnsFirstArg()));
+    SettingsDecryptionResult decryptionResult = mock(SettingsDecryptionResult.class);
+    Server passthroughServer = new Server();
+    when(decryptionResult.getServer()).thenAnswer(invocation -> {
+      Server s = new Server();
+      s.setPassword("passthrough");
+      return s;
+    });
+    when(decryptionResult.getProblems()).thenReturn(Collections.emptyList());
+    when(helmPushMojo.settingsDecrypter.decrypt(any())).thenReturn(decryptionResult);
   }
 
   @AfterEach
@@ -220,6 +227,22 @@ class HelmPushMojoTest {
       // Then
       assertThat(helmServiceMockedConstruction.constructed()).isEmpty();
       verify(logger, times(1)).info("`%s` goal is skipped.", "k8s:helm-push");
+    }
+  }
+
+  @Test
+  void init_withCustomSecurityConfig_shouldLogDeprecationWarning() throws Exception {
+    try (MockedConstruction<HelmService> helmServiceMockedConstruction = mockConstruction(HelmService.class)) {
+      // Given
+      helmPushMojo.project.getProperties().put("jkube.helm.security", "~/custom/settings-security.xml");
+      helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+      helmPushMojo.project.setVersion("1337-SNAPSHOT");
+      // When
+      helmPushMojo.execute();
+      // Then
+      verify(logger).warn("The <security> helm configuration and jkube.helm.security property are deprecated" +
+          " and will be removed in a future version." +
+          " Use Maven's -Dsettings.security=<file> property instead.");
     }
   }
 
