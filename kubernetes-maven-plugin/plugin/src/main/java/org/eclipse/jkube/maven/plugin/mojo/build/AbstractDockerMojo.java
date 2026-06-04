@@ -15,7 +15,6 @@ package org.eclipse.jkube.maven.plugin.mojo.build;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -66,15 +65,10 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.settings.Settings;
 import org.apache.maven.shared.utils.logging.MessageUtils;
-import org.codehaus.plexus.PlexusConstants;
-import org.codehaus.plexus.PlexusContainer;
-import org.codehaus.plexus.component.repository.exception.ComponentLookupException;
-import org.codehaus.plexus.context.Context;
-import org.codehaus.plexus.context.ContextException;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
 import org.eclipse.jkube.maven.plugin.mojo.KitLoggerProvider;
 import org.fusesource.jansi.Ansi;
 import org.sonatype.plexus.components.sec.dispatcher.SecDispatcher;
+import org.sonatype.plexus.components.sec.dispatcher.SecDispatcherException;
 
 import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
@@ -83,7 +77,7 @@ import static org.eclipse.jkube.kit.config.service.kubernetes.KubernetesClientUt
 import static org.eclipse.jkube.maven.plugin.mojo.build.AbstractJKubeMojo.DEFAULT_LOG_PREFIX;
 
 public abstract class AbstractDockerMojo extends AbstractMojo
-    implements Contextualizable, KitLoggerProvider {
+    implements KitLoggerProvider {
 
     public static final String CONTEXT_KEY_LOG_DISPATCHER = "CONTEXT_KEY_DOCKER_LOG_DISPATCHER";
 
@@ -319,7 +313,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     // Mode which is resolved, also when 'auto' is set
     protected RuntimeMode runtimeMode;
 
-    protected PlexusContainer plexusContainer;
+    @Component(role = org.sonatype.plexus.components.sec.dispatcher.SecDispatcher.class, hint = "default")
+    protected SecDispatcher securityDispatcher;
 
     /**
      * Watching mode for rebuilding images
@@ -346,11 +341,6 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     protected boolean offline;
 
     protected JavaProject javaProject;
-
-    @Override
-    public void contextualize(Context context) throws ContextException {
-        plexusContainer = ((PlexusContainer) context.get(PlexusConstants.PLEXUS_KEY));
-    }
 
     @Override
     public KitLogger getKitLogger() {
@@ -443,22 +433,17 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 .authConfig(authConfig != null ? authConfig.toMap() : null)
                 .skipExtendedAuth(skipExtendedAuth)
                 .registry(specificRegistry != null ? specificRegistry : registry)
-                .passwordDecryptionMethod(password -> {
-                    try {
-                        // Done by reflection since I have classloader issues otherwise
-                        if (plexusContainer != null) {
-                            Object secDispatcher = plexusContainer.lookup(SecDispatcher.ROLE, "maven");
-                            Method method = secDispatcher.getClass().getMethod("decrypt", String.class);
-                            return (String) method.invoke(secDispatcher, password);
-                        } else {
-                            return password;
-                        }
-                    } catch (ComponentLookupException e) {
-                        throw new RuntimeException("Error looking security dispatcher",e);
-                    } catch (ReflectiveOperationException e) {
-                        throw new RuntimeException("Cannot decrypt password: " + e.getCause(),e);
-                    }
-                }).build();
+                .passwordDecryptionMethod(this::decrypt)
+                .build();
+    }
+
+    String decrypt(String password) {
+        try {
+            return securityDispatcher.decrypt(password);
+        } catch (SecDispatcherException e) {
+            getKitLogger().error("Failure in decrypting password");
+        }
+        return password;
     }
 
 

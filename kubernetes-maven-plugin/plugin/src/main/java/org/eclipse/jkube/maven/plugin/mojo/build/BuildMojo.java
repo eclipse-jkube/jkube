@@ -17,16 +17,13 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.personality.plexus.lifecycle.phase.Contextualizable;
-
-
 /**
  * Builds the docker images configured for this project via a Docker or S2I binary build.
  *
  * @author roland
  */
 @Mojo(name = "build", defaultPhase = LifecyclePhase.PRE_INTEGRATION_TEST, requiresDependencyResolution = ResolutionScope.COMPILE)
-public class BuildMojo extends AbstractDockerMojo implements Contextualizable {
+public class BuildMojo extends AbstractDockerMojo {
 
     @Override
     protected boolean shouldSkip() {
