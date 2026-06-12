@@ -316,6 +316,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     // Mode which is resolved, also when 'auto' is set
     protected RuntimeMode runtimeMode;
 
+    @SuppressWarnings("deprecation")
     @Component
     protected SettingsDecrypter settingsDecrypter;
 

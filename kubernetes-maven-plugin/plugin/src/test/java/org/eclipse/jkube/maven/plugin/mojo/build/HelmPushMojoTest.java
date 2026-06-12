@@ -60,7 +60,7 @@ class HelmPushMojoTest {
   private KitLogger logger;
 
   @BeforeEach
-  void setUp() throws Exception {
+  void setUp() {
     logger = spy(new KitLogger.SilentLogger());
     helmPushMojo = new HelmPushMojo() {
       @Override
@@ -83,7 +83,6 @@ class HelmPushMojoTest {
     helmPushMojo.mojoExecution.getMojoDescriptor().getPluginDescriptor().setGoalPrefix("k8s");
     helmPushMojo.mojoExecution.getMojoDescriptor().setGoal("helm-push");
     SettingsDecryptionResult decryptionResult = mock(SettingsDecryptionResult.class);
-    Server passthroughServer = new Server();
     when(decryptionResult.getServer()).thenAnswer(invocation -> {
       Server s = new Server();
       s.setPassword("passthrough");
@@ -241,6 +240,21 @@ class HelmPushMojoTest {
       helmPushMojo.execute();
       // Then
       verify(logger).warn("The <security> helm configuration and jkube.helm.security property are deprecated" +
+          " and will be removed in a future version." +
+          " Use Maven's -Dsettings.security=<file> property instead.");
+    }
+  }
+
+  @Test
+  void init_withDefaultSecurityConfig_shouldNotLogDeprecationWarning() throws Exception {
+    try (MockedConstruction<HelmService> helmServiceMockedConstruction = mockConstruction(HelmService.class)) {
+      // Given
+      helmPushMojo.helm.setSnapshotRepository(completeValidRepository());
+      helmPushMojo.project.setVersion("1337-SNAPSHOT");
+      // When
+      helmPushMojo.execute();
+      // Then
+      verify(logger, times(0)).warn("The <security> helm configuration and jkube.helm.security property are deprecated" +
           " and will be removed in a future version." +
           " Use Maven's -Dsettings.security=<file> property instead.");
     }
