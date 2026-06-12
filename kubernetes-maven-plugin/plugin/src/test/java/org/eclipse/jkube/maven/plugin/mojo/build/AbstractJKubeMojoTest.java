@@ -103,6 +103,7 @@ class AbstractJKubeMojoTest {
   private static class TestMojo extends AbstractJKubeMojo {
     @Override
     public void executeInternal() {
+      // Not needed for unit testing decrypt()
     }
   }
 }
