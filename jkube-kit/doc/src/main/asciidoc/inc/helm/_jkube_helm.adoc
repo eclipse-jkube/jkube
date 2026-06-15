@@ -175,7 +175,7 @@ Defaults to empty string.
 ifeval::["{plugin-type}" == "maven"]
 | *security* _(deprecated)_
 | *Deprecated*: use Maven's `-Dsettings.security=<file>` property instead. This setting will be removed in a future version.
-| `jkube.helm.security`
+|
 endif::[]
 
 | *<<helm-dependencies, dependencies>>*
