@@ -317,9 +317,12 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     // Mode which is resolved, also when 'auto' is set
     protected RuntimeMode runtimeMode;
 
-    @SuppressWarnings("java:S6813") // Maven Mojos don't support constructor injection
-    @Inject
     protected SettingsDecrypter settingsDecrypter;
+
+    @Inject
+    void setSettingsDecrypter(SettingsDecrypter settingsDecrypter) {
+        this.settingsDecrypter = settingsDecrypter;
+    }
 
     /**
      * Watching mode for rebuilding images
