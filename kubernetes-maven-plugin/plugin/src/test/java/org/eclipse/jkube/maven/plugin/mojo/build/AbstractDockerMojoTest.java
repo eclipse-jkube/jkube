@@ -69,7 +69,6 @@ class AbstractDockerMojoTest {
     Server original = new Server();
     original.setPassword("encrypted");
     SettingsProblem problem = mock(SettingsProblem.class);
-    when(problem.toString()).thenReturn("Failed to decrypt password: test error");
     SettingsDecryptionResult result = mock(SettingsDecryptionResult.class);
     when(result.getServer()).thenReturn(original);
     when(result.getProblems()).thenReturn(Collections.singletonList(problem));

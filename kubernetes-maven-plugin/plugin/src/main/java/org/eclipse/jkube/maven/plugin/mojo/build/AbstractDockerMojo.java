@@ -72,6 +72,7 @@ import org.apache.maven.settings.crypto.DefaultSettingsDecryptionRequest;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.settings.crypto.SettingsDecryptionResult;
 import org.fusesource.jansi.Ansi;
+import javax.inject.Inject;
 
 import static org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory.DockerAccessContext.DEFAULT_MAX_CONNECTIONS;
 import static org.eclipse.jkube.kit.common.util.BuildReferenceDateUtil.getBuildTimestamp;
@@ -316,8 +317,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     // Mode which is resolved, also when 'auto' is set
     protected RuntimeMode runtimeMode;
 
-    @SuppressWarnings("deprecation")
-    @Component
+    @Inject
     protected SettingsDecrypter settingsDecrypter;
 
     /**

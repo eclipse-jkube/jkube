@@ -53,6 +53,7 @@ import org.apache.maven.settings.building.SettingsProblem;
 import org.apache.maven.settings.crypto.DefaultSettingsDecryptionRequest;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.settings.crypto.SettingsDecryptionResult;
+import javax.inject.Inject;
 
 import java.io.File;
 import java.io.IOException;
@@ -147,8 +148,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter
     protected ClusterConfiguration access;
 
-    @SuppressWarnings("deprecation")
-    @Component
+    @Inject
     protected SettingsDecrypter settingsDecrypter;
 
     protected KitLogger log;

@@ -19,12 +19,11 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 
+import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.DEFAULT_SECURITY;
 import static org.eclipse.jkube.kit.resource.helm.HelmServiceUtil.initHelmPushConfig;
 
 @Mojo(name = "helm-push", defaultPhase = LifecyclePhase.INSTALL, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class HelmPushMojo extends AbstractHelmMojo {
-
-  private static final String DEFAULT_SECURITY = "~/.m2/settings-security.xml";
 
   @Override
   public void init() throws MojoFailureException {

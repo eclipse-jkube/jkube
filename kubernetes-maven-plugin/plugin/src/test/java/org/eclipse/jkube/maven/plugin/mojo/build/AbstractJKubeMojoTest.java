@@ -17,6 +17,7 @@ import java.util.Collections;
 
 import org.apache.maven.settings.Server;
 import org.apache.maven.settings.building.SettingsProblem;
+import org.apache.maven.settings.crypto.DefaultSettingsDecryptionRequest;
 import org.apache.maven.settings.crypto.SettingsDecrypter;
 import org.apache.maven.settings.crypto.SettingsDecryptionResult;
 import org.eclipse.jkube.kit.common.KitLogger;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -51,7 +53,7 @@ class AbstractJKubeMojoTest {
   class Decrypt {
 
     @Test
-    @DisplayName("with successful decryption, should return decrypted password")
+    @DisplayName("with successful decryption, should return decrypted password and pass input to request")
     void withSuccessfulDecryption() {
       // Given
       Server decrypted = new Server();
@@ -64,6 +66,12 @@ class AbstractJKubeMojoTest {
       String password = mojo.decrypt("encrypted");
       // Then
       assertThat(password).isEqualTo("decrypted");
+      ArgumentCaptor<DefaultSettingsDecryptionRequest> captor =
+          ArgumentCaptor.forClass(DefaultSettingsDecryptionRequest.class);
+      verify(settingsDecrypter).decrypt(captor.capture());
+      assertThat(captor.getValue().getServers())
+          .singleElement()
+          .hasFieldOrPropertyWithValue("password", "encrypted");
     }
 
     @Test
@@ -73,7 +81,6 @@ class AbstractJKubeMojoTest {
       Server original = new Server();
       original.setPassword("encrypted");
       SettingsProblem problem = mock(SettingsProblem.class);
-      when(problem.toString()).thenReturn("Failed to decrypt password: test error");
       SettingsDecryptionResult result = mock(SettingsDecryptionResult.class);
       when(result.getServer()).thenReturn(original);
       when(result.getProblems()).thenReturn(Collections.singletonList(problem));

@@ -75,7 +75,7 @@ public class HelmServiceUtil {
   protected static final String STABLE_REPOSITORY = "stableRepository";
   protected static final String SNAPSHOT_REPOSITORY = "snapshotRepository";
   protected static final String PROPERTY_SECURITY =  "jkube.helm.security";
-  protected static final String DEFAULT_SECURITY = "~/.m2/settings-security.xml";
+  public static final String DEFAULT_SECURITY = "~/.m2/settings-security.xml";
 
   protected static final String PROPERTY_HELM_LINT_STRICT = "jkube.helm.lint.strict";
   protected static final String PROPERTY_HELM_LINT_QUIET = "jkube.helm.lint.quiet";
