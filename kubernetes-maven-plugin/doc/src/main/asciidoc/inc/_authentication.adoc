@@ -154,7 +154,7 @@ Regardless of which mode you choose you can encrypt password as described
 in the
 http://maven.apache.org/guides/mini/guide-encryption.html[Maven documentation]. Assuming
 that you have setup a _master password_ in
-`~/.m2/security-settings.xml` you can create easily encrypt
+`~/.m2/settings-security.xml` you can create easily encrypt
 passwords:
 
 .Example
