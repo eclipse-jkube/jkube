@@ -148,6 +148,7 @@ public abstract class AbstractJKubeMojo extends AbstractMojo implements KitLogge
     @Parameter
     protected ClusterConfiguration access;
 
+    @SuppressWarnings("java:S6813") // Maven Mojos don't support constructor injection
     @Inject
     protected SettingsDecrypter settingsDecrypter;
 
