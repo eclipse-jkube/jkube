@@ -114,6 +114,35 @@ class RegistryServiceTest {
   }
 
   @Test
+  void pullImageWithPolicy_globalIfNotPresentAndBuildConfigAlways_shouldPull() throws Exception {
+    // Given
+    when(queryService.hasImage("quay.io/organization/image:version")).thenReturn(true);
+    final BuildConfiguration bc = BuildConfiguration.builder()
+        .imagePullPolicy("Always").build();
+    // When
+    registryService.pullImageWithPolicy("quay.io/organization/image:version",
+        ImagePullManager.createImagePullManager("IfNotPresent", "", new Properties()),
+        RegistryConfig.builder().settings(Collections.emptyList()).build(), bc);
+    // Then
+    verify(dockerAccess, times(1)).pullImage(eq("quay.io/organization/image:version"), any(),
+        eq("quay.io"), any());
+  }
+
+  @Test
+  void pullImageWithPolicy_globalAlwaysAndBuildConfigNever_shouldNotPull() throws Exception {
+    // Given
+    when(queryService.hasImage("quay.io/organization/image:version")).thenReturn(true);
+    final BuildConfiguration bc = BuildConfiguration.builder()
+        .imagePullPolicy("Never").build();
+    // When
+    registryService.pullImageWithPolicy("quay.io/organization/image:version",
+        ImagePullManager.createImagePullManager("Always", "", new Properties()),
+        RegistryConfig.builder().settings(Collections.emptyList()).build(), bc);
+    // Then
+    verify(dockerAccess, times(0)).pullImage(any(), any(), any(), any());
+  }
+
+  @Test
   void pushImage_whenValidImageConfigurationProvidedWithSkipTag_shouldNotPushAdditionalTags() throws IOException {
     // When
     registryService.pushImage(imageConfiguration, 1, mockedRegistryConfig, true);

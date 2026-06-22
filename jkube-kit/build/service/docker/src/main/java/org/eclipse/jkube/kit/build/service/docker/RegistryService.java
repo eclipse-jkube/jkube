@@ -97,8 +97,14 @@ public class RegistryService {
             return;
         }
 
+        // Resolve effective pull policy: per-image overrides global
+        ImagePullPolicy effectivePolicy = pullManager.getImagePullPolicy();
+        if (buildConfiguration != null && buildConfiguration.getImagePullPolicy() != null) {
+            effectivePolicy = ImagePullPolicy.fromString(buildConfiguration.getImagePullPolicy());
+        }
+
         // Check if a pull is required
-        if (!imageRequiresPull(queryService.hasImage(image), pullManager.getImagePullPolicy(), image)) {
+        if (!imageRequiresPull(queryService.hasImage(image), effectivePolicy, image)) {
             return;
         }
 
