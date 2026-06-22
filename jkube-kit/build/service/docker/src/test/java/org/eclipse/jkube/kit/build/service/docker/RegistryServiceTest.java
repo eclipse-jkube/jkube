@@ -34,6 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,7 +79,7 @@ class RegistryServiceTest {
     registryService.pullImageWithPolicy("image", ImagePullManager.createImagePullManager(
         "Never", "", new Properties()), null, null);
     // Then
-    verify(dockerAccess, times(0)).pullImage(any(), any(), any(), any());
+    verify(dockerAccess, never()).pullImage(any(), any(), any(), any());
   }
 
   @Test
@@ -139,7 +140,7 @@ class RegistryServiceTest {
         ImagePullManager.createImagePullManager("Always", "", new Properties()),
         RegistryConfig.builder().settings(Collections.emptyList()).build(), bc);
     // Then
-    verify(dockerAccess, times(0)).pullImage(any(), any(), any(), any());
+    verify(dockerAccess, never()).pullImage(any(), any(), any(), any());
   }
 
   @Test
