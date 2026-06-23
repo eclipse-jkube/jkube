@@ -113,8 +113,10 @@ endif::[]
 | `jkube.container-image.healthcheck.xxx`
 
 | *imagePullPolicy*
-| Specific pull policy for the base image. This overwrites any global pull policy.
+| Specific pull policy for the base image. This overrides any global pull policy.
 See the global configuration option <<image-pull-policy, imagePullPolicy>> for the possible values and the default.
+Honored by the `docker` and `buildpacks` build strategies; it has no effect with the `jib` build strategy.
+For the OpenShift S2I build strategy, use `forcePull` instead.
 | `jkube.container-image.imagePullPolicy`
 
 | <<misc-env, *labels*>>
