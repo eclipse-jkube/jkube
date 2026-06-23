@@ -29,11 +29,13 @@ import java.util.Collections;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 import static org.assertj.core.api.Assertions.assertThatIOException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,7 +80,7 @@ class RegistryServiceTest {
     registryService.pullImageWithPolicy("image", ImagePullManager.createImagePullManager(
         "Never", "", new Properties()), null, null);
     // Then
-    verify(dockerAccess, times(0)).pullImage(any(), any(), any(), any());
+    verify(dockerAccess, never()).pullImage(any(), any(), any(), any());
   }
 
   @Test
@@ -111,6 +113,74 @@ class RegistryServiceTest {
         eq("quay.io"), createImageOptionsCaptor.capture());
     assertThat(createImageOptionsCaptor.getValue().getOptions()).containsExactlyInAnyOrderEntriesOf(
         new CreateImageOptions().fromImage("quay.io/organization/image").tag("version").platform("linux/amd64").getOptions());
+  }
+
+  @Test
+  void pullImageWithPolicy_globalIfNotPresentAndBuildConfigAlways_shouldPull() throws Exception {
+    // Given
+    when(queryService.hasImage("quay.io/organization/image:version")).thenReturn(true);
+    final BuildConfiguration bc = BuildConfiguration.builder()
+        .imagePullPolicy("Always").build();
+    // When
+    registryService.pullImageWithPolicy("quay.io/organization/image:version",
+        ImagePullManager.createImagePullManager("IfNotPresent", "", new Properties()),
+        RegistryConfig.builder().settings(Collections.emptyList()).build(), bc);
+    // Then
+    verify(dockerAccess, times(1)).pullImage(eq("quay.io/organization/image:version"), any(),
+        eq("quay.io"), any());
+  }
+
+  @Test
+  void pullImageWithPolicy_globalAlwaysAndBuildConfigNever_shouldNotPull() throws Exception {
+    // Given
+    when(queryService.hasImage("quay.io/organization/image:version")).thenReturn(true);
+    final BuildConfiguration bc = BuildConfiguration.builder()
+        .imagePullPolicy("Never").build();
+    // When
+    registryService.pullImageWithPolicy("quay.io/organization/image:version",
+        ImagePullManager.createImagePullManager("Always", "", new Properties()),
+        RegistryConfig.builder().settings(Collections.emptyList()).build(), bc);
+    // Then
+    verify(dockerAccess, never()).pullImage(any(), any(), any(), any());
+  }
+
+  @Test
+  void pullImageWithPolicy_buildConfigNeverAndNoImage_shouldThrowException() {
+    // Given
+    final BuildConfiguration bc = BuildConfiguration.builder()
+        .imagePullPolicy("Never").build();
+    // When + Then
+    assertThatIOException()
+        .isThrownBy(() -> registryService.pullImageWithPolicy("quay.io/organization/image:version",
+            ImagePullManager.createImagePullManager("Always", "", new Properties()),
+            RegistryConfig.builder().settings(Collections.emptyList()).build(), bc))
+        .withMessageStartingWith("No image 'quay.io/organization/image:version' found and pull policy 'Never' is set");
+  }
+
+  @Test
+  void pullImageWithPolicy_buildConfigInvalidPolicy_shouldThrowException() {
+    // Given
+    final BuildConfiguration bc = BuildConfiguration.builder()
+        .imagePullPolicy("Allways").build();
+    // When + Then
+    assertThatIllegalArgumentException()
+        .isThrownBy(() -> registryService.pullImageWithPolicy("quay.io/organization/image:version",
+            ImagePullManager.createImagePullManager("IfNotPresent", "", new Properties()),
+            RegistryConfig.builder().settings(Collections.emptyList()).build(), bc))
+        .withMessageContaining("No policy Allways known");
+  }
+
+  @Test
+  void pullImageWithPolicy_buildConfigNoPolicySet_shouldFallBackToGlobal() throws Exception {
+    // Given
+    when(queryService.hasImage("quay.io/organization/image:version")).thenReturn(true);
+    final BuildConfiguration bc = BuildConfiguration.builder().build();
+    // When
+    registryService.pullImageWithPolicy("quay.io/organization/image:version",
+        ImagePullManager.createImagePullManager("IfNotPresent", "", new Properties()),
+        RegistryConfig.builder().settings(Collections.emptyList()).build(), bc);
+    // Then (image exists + IfNotPresent = no pull)
+    verify(dockerAccess, never()).pullImage(any(), any(), any(), any());
   }
 
   @Test
