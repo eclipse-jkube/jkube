@@ -32,6 +32,7 @@ import org.eclipse.jkube.kit.common.TestOciServer;
 import org.eclipse.jkube.kit.common.assertj.ArchiveAssertions;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -113,6 +114,24 @@ class JibServiceTest {
     @Test
     void build() throws Exception {
       try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        final List<File> containerImageTarFiles = jibService.build();
+        assertThat(containerImageTarFiles)
+          .singleElement()
+          .returns("jib-image.linux-amd64.tar", File::getName)
+          .satisfies(jibContainerImageTar -> ArchiveAssertions.assertThat(jibContainerImageTar)
+            .fileTree()
+            .contains("manifest.json", "config.json"));
+      }
+    }
+
+    @Test
+    void buildWithImagePullPolicyNever() throws Exception {
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .from("quay.io/jkube/jkube-java:0.0.26")
+          .build())
+        .build();
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration, ImagePullPolicy.Never)) {
         final List<File> containerImageTarFiles = jibService.build();
         assertThat(containerImageTarFiles)
           .singleElement()

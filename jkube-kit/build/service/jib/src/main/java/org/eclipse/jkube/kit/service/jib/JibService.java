@@ -35,6 +35,7 @@ import org.eclipse.jkube.kit.common.RegistryConfig;
 import org.eclipse.jkube.kit.common.archive.ArchiveCompression;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
+import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,13 +65,20 @@ public class JibService implements AutoCloseable {
   private final AuthConfigFactory authConfigFactory;
   private final JKubeConfiguration configuration;
   private final ImageConfiguration imageConfiguration;
+  private final ImagePullPolicy imagePullPolicy;
   private final ExecutorService executorService;
 
   public JibService(JibLogger jibLogger, AuthConfigFactory authConfigFactory, JKubeConfiguration configuration, ImageConfiguration imageConfiguration) {
+    this(jibLogger, authConfigFactory, configuration, imageConfiguration, null);
+  }
+
+  public JibService(JibLogger jibLogger, AuthConfigFactory authConfigFactory, JKubeConfiguration configuration,
+      ImageConfiguration imageConfiguration, ImagePullPolicy imagePullPolicy) {
     this.jibLogger = jibLogger;
     this.authConfigFactory = authConfigFactory;
     this.configuration = configuration;
     this.imageConfiguration = prependPushRegistry(imageConfiguration, configuration);
+    this.imagePullPolicy = imagePullPolicy;
     executorService = Executors.newCachedThreadPool();
   }
 
@@ -130,7 +138,7 @@ public class JibService implements AutoCloseable {
     final BuildDirs buildDirs = new BuildDirs(imageConfiguration.getName(), configuration);
     final String pullRegistry = getApplicablePullRegistryFrom(imageConfiguration.getBuildConfiguration().getFrom(), configuration.getPullRegistryConfig());
     final Credential pullRegistryCredential = getPullRegistryCredentials();
-    final JibContainerBuilder from = containerFromImageConfiguration(imageConfiguration, pullRegistry, pullRegistryCredential);
+    final JibContainerBuilder from = containerFromImageConfiguration(imageConfiguration, pullRegistry, pullRegistryCredential, imagePullPolicy);
     try {
       // Prepare Assembly files
       final AssemblyManager assemblyManager = AssemblyManager.getInstance();

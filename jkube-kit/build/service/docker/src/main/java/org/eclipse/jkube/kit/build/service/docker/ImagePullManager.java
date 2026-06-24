@@ -39,7 +39,7 @@ public class ImagePullManager {
         this.imagePullPolicy = createPullPolicy(imagePullPolicy, autoPull);
     }
 
-    ImagePullPolicy getImagePullPolicy() {
+    public ImagePullPolicy getImagePullPolicy() {
         return imagePullPolicy;
     }
 

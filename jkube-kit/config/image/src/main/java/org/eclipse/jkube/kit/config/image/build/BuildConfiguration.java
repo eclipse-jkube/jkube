@@ -92,9 +92,9 @@ public class BuildConfiguration implements Serializable {
   /**
    * Specific pull policy for the base image. This overrides any global image pull policy.
    * <p>
-   * Honored by the {@code docker} and {@code buildpacks} build strategies. It has no effect with the
-   * {@code jib} build strategy (JIB resolves the base image itself); for the OpenShift S2I build
-   * strategy use {@link #openshiftForcePull} instead.
+   * Honored by the {@code docker}, {@code buildpacks}, and {@code jib} build strategies.
+   * When set to {@code Never} with the {@code jib} build strategy, the base image is not pulled from
+   * the remote registry. For the OpenShift S2I build strategy use {@link #openshiftForcePull} instead.
    */
   private String imagePullPolicy;
 

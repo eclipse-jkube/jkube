@@ -33,6 +33,7 @@ import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -113,6 +114,116 @@ class JibServiceUtilTest {
         .hasFieldOrPropertyWithValue("user", "root")
         .hasFieldOrPropertyWithValue("workingDirectory", AbsoluteUnixPath.get("/home/foo"))
         .hasFieldOrPropertyWithValue("volumes", new HashSet<>(Collections.singletonList(AbsoluteUnixPath.get("/mnt/volume1"))))
+        .hasFieldOrPropertyWithValue("format", ImageFormat.Docker);
+    }
+
+    @Test
+    @DisplayName("with imagePullPolicy Never, should use scratch base image")
+    void withImagePullPolicyNever_shouldUseScratchBase() {
+      // Given
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .from("quay.io/test/test-image:test-tag")
+          .build())
+        .build();
+      // When
+      final JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(
+        imageConfiguration, null, null, ImagePullPolicy.Never);
+      // Then
+      assertThat(jibContainerBuilder.toContainerBuildPlan())
+        .hasFieldOrPropertyWithValue("baseImage", "scratch")
+        .hasFieldOrPropertyWithValue("format", ImageFormat.Docker);
+    }
+
+    @Test
+    @DisplayName("with imagePullPolicy Always, should pull from registry")
+    void withImagePullPolicyAlways_shouldPullFromRegistry() {
+      // Given
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .from("quay.io/test/test-image:test-tag")
+          .build())
+        .build();
+      // When
+      final JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(
+        imageConfiguration, null, null, ImagePullPolicy.Always);
+      // Then
+      assertThat(jibContainerBuilder.toContainerBuildPlan())
+        .hasFieldOrPropertyWithValue("baseImage", "quay.io/test/test-image:test-tag")
+        .hasFieldOrPropertyWithValue("format", ImageFormat.Docker);
+    }
+
+    @Test
+    @DisplayName("with imagePullPolicy IfNotPresent, should pull from registry")
+    void withImagePullPolicyIfNotPresent_shouldPullFromRegistry() {
+      // Given
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .from("quay.io/test/test-image:test-tag")
+          .build())
+        .build();
+      // When
+      final JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(
+        imageConfiguration, null, null, ImagePullPolicy.IfNotPresent);
+      // Then
+      assertThat(jibContainerBuilder.toContainerBuildPlan())
+        .hasFieldOrPropertyWithValue("baseImage", "quay.io/test/test-image:test-tag")
+        .hasFieldOrPropertyWithValue("format", ImageFormat.Docker);
+    }
+
+    @Test
+    @DisplayName("with null imagePullPolicy, should pull from registry")
+    void withNullImagePullPolicy_shouldPullFromRegistry() {
+      // Given
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .from("quay.io/test/test-image:test-tag")
+          .build())
+        .build();
+      // When
+      final JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(
+        imageConfiguration, null, null, null);
+      // Then
+      assertThat(jibContainerBuilder.toContainerBuildPlan())
+        .hasFieldOrPropertyWithValue("baseImage", "quay.io/test/test-image:test-tag")
+        .hasFieldOrPropertyWithValue("format", ImageFormat.Docker);
+    }
+
+    @Test
+    @DisplayName("with per-image imagePullPolicy Never overriding global Always, should use scratch base")
+    void withPerImagePullPolicyNeverOverridingGlobalAlways_shouldUseScratchBase() {
+      // Given
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .from("quay.io/test/test-image:test-tag")
+          .imagePullPolicy("Never")
+          .build())
+        .build();
+      // When
+      final JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(
+        imageConfiguration, null, null, ImagePullPolicy.Always);
+      // Then
+      assertThat(jibContainerBuilder.toContainerBuildPlan())
+        .hasFieldOrPropertyWithValue("baseImage", "scratch")
+        .hasFieldOrPropertyWithValue("format", ImageFormat.Docker);
+    }
+
+    @Test
+    @DisplayName("with per-image imagePullPolicy Always overriding global Never, should pull from registry")
+    void withPerImagePullPolicyAlwaysOverridingGlobalNever_shouldPullFromRegistry() {
+      // Given
+      imageConfiguration = imageConfiguration.toBuilder()
+        .build(imageConfiguration.getBuild().toBuilder()
+          .from("quay.io/test/test-image:test-tag")
+          .imagePullPolicy("Always")
+          .build())
+        .build();
+      // When
+      final JibContainerBuilder jibContainerBuilder = containerFromImageConfiguration(
+        imageConfiguration, null, null, ImagePullPolicy.Never);
+      // Then
+      assertThat(jibContainerBuilder.toContainerBuildPlan())
+        .hasFieldOrPropertyWithValue("baseImage", "quay.io/test/test-image:test-tag")
         .hasFieldOrPropertyWithValue("format", ImageFormat.Docker);
     }
 

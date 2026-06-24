@@ -29,6 +29,8 @@ import org.eclipse.jkube.kit.common.assertj.FileAssertions;
 import org.eclipse.jkube.kit.common.util.Serialization;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
+import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
 import org.eclipse.jkube.kit.config.service.JKubeServiceException;
@@ -248,6 +250,28 @@ class JibImageBuildServiceBuildTest {
       .fileTree()
       .hasSize(2)
       .contains("config.json", "manifest.json");
+  }
+
+  @Test
+  void build_withImagePullPolicyNever_shouldBuildWithoutPullingBaseImage() throws JKubeServiceException {
+    // Given
+    final JKubeServiceHub neverPullHub = hub.toBuilder()
+      .buildServiceConfig(BuildServiceConfig.builder()
+        .imagePullManager(ImagePullManager.createImagePullManager("Never", null, new Properties()))
+        .build())
+      .build();
+    final JibImageBuildService neverPullBuildService = new JibImageBuildService(neverPullHub);
+    final ImageConfiguration ic = ImageConfiguration.builder()
+      .name("test/foo:latest")
+      .build(BuildConfiguration.builder()
+        .from("quay.io/jkube/jkube-java:0.0.26")
+        .build())
+      .build();
+    // When
+    neverPullBuildService.build(ic);
+    // Then
+    assertThat(out.toString())
+      .contains("jib-image.linux-amd64.tar successfully built");
   }
 
   @Nested

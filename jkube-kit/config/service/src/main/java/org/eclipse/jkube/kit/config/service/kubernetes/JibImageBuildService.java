@@ -17,6 +17,7 @@ import org.eclipse.jkube.kit.build.service.docker.auth.DockerAuthConfigFactory;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
+import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.service.AbstractImageBuildService;
 import org.eclipse.jkube.kit.config.service.BuildServiceConfig;
@@ -68,7 +69,10 @@ public class JibImageBuildService extends AbstractImageBuildService {
             throw new JKubeServiceException("Dockerfile mode is not supported with JIB build strategy");
         }
         kitLogger.info("[[B]]JIB[[B]] image build started");
-        try (JibService jibService = new JibService(jibLogger, authConfigFactory, configuration, imageConfiguration)) {
+        final ImagePullPolicy pullPolicy = buildServiceConfig.getImagePullManager() != null
+            ? buildServiceConfig.getImagePullManager().getImagePullPolicy()
+            : null;
+        try (JibService jibService = new JibService(jibLogger, authConfigFactory, configuration, imageConfiguration, pullPolicy)) {
             for (final File dockerTarArchive : jibService.build()) {
                 kitLogger.info(" %s successfully built", dockerTarArchive.getAbsolutePath());
             }

@@ -31,7 +31,7 @@ class ImageFromPropertiesIT {
   void k8sBuild_generatesConfiguredImage() throws IOException {
     // When
     final BuildResult result = gradleRunner.withITProject("image-from-properties")
-      .withArguments("clean", "build", "k8sBuild", "--stacktrace")
+      .withArguments("clean", "build", "k8sBuild", "-Pjkube.docker.imagePullPolicy=Never", "--stacktrace")
       .build();
     // Then
     final File dockerFile = gradleRunner.resolveFile("build", "docker", "repository", "image-from-properties", "latest", "build", "Dockerfile");

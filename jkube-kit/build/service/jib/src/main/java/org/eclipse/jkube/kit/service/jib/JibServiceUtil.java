@@ -35,6 +35,7 @@ import org.eclipse.jkube.kit.config.image.ImageConfiguration;
 import org.eclipse.jkube.kit.config.image.ImageName;
 import org.eclipse.jkube.kit.common.Arguments;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
+import org.eclipse.jkube.kit.config.image.build.ImagePullPolicy;
 
 import com.google.cloud.tools.jib.api.Credential;
 import com.google.cloud.tools.jib.api.InvalidImageReferenceException;
@@ -62,9 +63,19 @@ public class JibServiceUtil {
   public static JibContainerBuilder containerFromImageConfiguration(
     ImageConfiguration imageConfiguration, String pullRegistry, Credential pullRegistryCredential
   ) {
+    return containerFromImageConfiguration(imageConfiguration, pullRegistry, pullRegistryCredential, null);
+  }
+
+  public static JibContainerBuilder containerFromImageConfiguration(
+    ImageConfiguration imageConfiguration, String pullRegistry, Credential pullRegistryCredential,
+    ImagePullPolicy globalImagePullPolicy
+  ) {
     final String baseImage = getBaseImage(imageConfiguration, pullRegistry);
+    final ImagePullPolicy effectivePolicy = resolveEffectiveImagePullPolicy(imageConfiguration, globalImagePullPolicy);
     final JibContainerBuilder containerBuilder;
     if (baseImage.equals(ImageReference.scratch() + ":latest")) {
+      containerBuilder = Jib.fromScratch();
+    } else if (effectivePolicy == ImagePullPolicy.Never) {
       containerBuilder = Jib.fromScratch();
     } else {
       containerBuilder = Jib.from(toRegistryImage(baseImage, pullRegistryCredential));
@@ -179,5 +190,18 @@ public class JibServiceUtil {
       fileEntriesLayers.add(fel.build());
     }
     return fileEntriesLayers;
+  }
+
+  private static ImagePullPolicy resolveEffectiveImagePullPolicy(
+    ImageConfiguration imageConfiguration, ImagePullPolicy globalImagePullPolicy
+  ) {
+    final String perImagePolicy = Optional.ofNullable(imageConfiguration)
+      .map(ImageConfiguration::getBuildConfiguration)
+      .map(BuildConfiguration::getImagePullPolicy)
+      .orElse(null);
+    if (perImagePolicy != null) {
+      return ImagePullPolicy.fromString(perImagePolicy);
+    }
+    return globalImagePullPolicy;
   }
 }

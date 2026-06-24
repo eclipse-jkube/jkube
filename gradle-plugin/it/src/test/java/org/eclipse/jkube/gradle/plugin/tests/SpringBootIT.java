@@ -34,7 +34,7 @@ class SpringBootIT {
   void k8sBuild_whenRunWithJibBuildStrategy_generatesLayeredImage() throws IOException {
     // When
     final BuildResult result = gradleRunner.withITProject("spring-boot")
-      .withArguments("clean", "build", "k8sBuild", "-Pjkube.build.strategy=jib", "--stacktrace")
+      .withArguments("clean", "build", "k8sBuild", "-Pjkube.build.strategy=jib", "-Pjkube.docker.imagePullPolicy=Never", "--stacktrace")
       .build();
     // Then
     final File dockerFile = gradleRunner.resolveFile("build", "docker", "gradle", "spring-boot", "latest", "build", "Dockerfile");
