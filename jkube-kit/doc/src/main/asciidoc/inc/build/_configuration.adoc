@@ -115,7 +115,7 @@ endif::[]
 | *imagePullPolicy*
 | Specific pull policy for the base image. This overrides any global pull policy.
 See the global configuration option <<image-pull-policy, imagePullPolicy>> for the possible values and the default.
-Honored by the `docker` and `buildpacks` build strategies; it has no effect with the `jib` build strategy.
+Honored by the `docker`, `buildpacks`, and `jib` build strategies. When set to `Never` with the `jib` build strategy, the base image is not pulled from the remote registry.
 For the OpenShift S2I build strategy, use `forcePull` instead.
 | `jkube.container-image.imagePullPolicy`
 
