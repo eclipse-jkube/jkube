@@ -42,17 +42,7 @@ This property can take the following values (case insensitive):
 
 By default, a progress meter is printed out on the console, which is omitted when using {plugin-type} in batch mode (option `-B`). A very simplified progress meter is provided when using no color output (i.e. with `-Djkube.useColor=false`).
 
-NOTE: Not all build strategies honor this property. The per-image `imagePullPolicy` (see <<config-image-build, Build configuration>>) can override this global setting for strategies that support it. Build strategy compatibility:
-
-* `docker` — global and per-image honored (per-image overrides global). Default build strategy.
-* `jib` — not honored. JIB manages base image pulls through its own internal mechanisms.
-* `buildpacks` — global and per-image honored (per-image overrides global).
-ifeval::["{goal-prefix}" == "oc"]
-* `s2i` — not applicable. Use `forcePull` instead (OpenShift-specific).
-endif::[]
-ifeval::["{task-prefix}" == "oc"]
-* `s2i` — not applicable. Use `forcePull` instead (OpenShift-specific).
-endif::[]
+NOTE: Not all build strategies honor this property. See <<image-pull-policy-compatibility>> for details. The per-image `imagePullPolicy` (see <<config-image-build, Build configuration>>) can override this global setting for strategies that support it.
 
 | `jkube.docker.imagePullPolicy`
 
