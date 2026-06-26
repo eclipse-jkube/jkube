@@ -58,6 +58,7 @@ ifeval::["{task-prefix}" == "oc"]
 ! `s2i` ! N/A ! Use `forcePull` instead ! OpenShift-specific build strategy
 endif::[]
 !===
+
 | `jkube.docker.imagePullPolicy`
 
 | *certPath*
