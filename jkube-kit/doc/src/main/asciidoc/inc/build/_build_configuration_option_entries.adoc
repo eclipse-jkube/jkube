@@ -20,7 +20,7 @@ This option is only relevant for the `{task-prefix}Build` task.
 <<authentication, Authentication>> for how to do security.
 |
 
-| *autoPull*
+| *autoPull* (_deprecated_)
 a| Decide how to pull missing base images or images to start:
 
 * `on` : Automatic download any missing images (default)
@@ -28,6 +28,7 @@ a| Decide how to pull missing base images or images to start:
 * `always` : Pull images always even when they already exist locally
 * `once` : For multi-module builds images are only checked once and pulled for the whole build.
 
+Use <<image-pull-policy, imagePullPolicy>> instead.
 | `jkube.docker.autoPull`
 
 
@@ -40,6 +41,42 @@ This property can take the following values (case insensitive):
 * `Always` : Pull images always even when they already exist locally.
 
 By default, a progress meter is printed out on the console, which is omitted when using {plugin-type} in batch mode (option `-B`). A very simplified progress meter is provided when using no color output (i.e. with `-Djkube.useColor=false`).
+
+NOTE: Not all build strategies honor this property. The per-image `imagePullPolicy` (see <<config-image-build, Build configuration>>) can override this global setting for strategies that support it.
+
+.Build strategy compatibility
+[cols="1,1,1,2"]
+!===
+! Strategy ! Global `imagePullPolicy` ! Per-image `imagePullPolicy` ! Notes
+
+! `docker`
+! Honored
+! Honored (overrides global)
+! Default build strategy
+
+! `jib`
+! Not honored
+! Not honored
+! JIB manages base image pulls through its own internal mechanisms
+
+! `buildpacks`
+! Not honored
+! Honored
+!
+
+ifeval::["{goal-prefix}" == "oc"]
+! `s2i`
+! N/A
+! Use `forcePull` instead
+! OpenShift-specific build strategy
+endif::[]
+ifeval::["{task-prefix}" == "oc"]
+! `s2i`
+! N/A
+! Use `forcePull` instead
+! OpenShift-specific build strategy
+endif::[]
+!===
 | `jkube.docker.imagePullPolicy`
 
 | *certPath*
