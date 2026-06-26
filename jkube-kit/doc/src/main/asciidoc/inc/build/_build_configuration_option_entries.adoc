@@ -42,22 +42,17 @@ This property can take the following values (case insensitive):
 
 By default, a progress meter is printed out on the console, which is omitted when using {plugin-type} in batch mode (option `-B`). A very simplified progress meter is provided when using no color output (i.e. with `-Djkube.useColor=false`).
 
-NOTE: Not all build strategies honor this property. The per-image `imagePullPolicy` (see <<config-image-build, Build configuration>>) can override this global setting for strategies that support it.
+NOTE: Not all build strategies honor this property. The per-image `imagePullPolicy` (see <<config-image-build, Build configuration>>) can override this global setting for strategies that support it. Build strategy compatibility:
 
-.Build strategy compatibility
-[cols="1,1,1,2"]
-!===
-! Strategy ! Global `imagePullPolicy` ! Per-image `imagePullPolicy` ! Notes
-! `docker` ! Honored ! Honored (overrides global) ! Default build strategy
-! `jib` ! Not honored ! Not honored ! JIB manages base image pulls through its own internal mechanisms
-! `buildpacks` ! Honored ! Honored (overrides global) !{nbsp}
+* `docker` — global and per-image honored (per-image overrides global). Default build strategy.
+* `jib` — not honored. JIB manages base image pulls through its own internal mechanisms.
+* `buildpacks` — global and per-image honored (per-image overrides global).
 ifeval::["{goal-prefix}" == "oc"]
-! `s2i` ! N/A ! Use `forcePull` instead ! OpenShift-specific build strategy
+* `s2i` — not applicable. Use `forcePull` instead (OpenShift-specific).
 endif::[]
 ifeval::["{task-prefix}" == "oc"]
-! `s2i` ! N/A ! Use `forcePull` instead ! OpenShift-specific build strategy
+* `s2i` — not applicable. Use `forcePull` instead (OpenShift-specific).
 endif::[]
-!===
 
 | `jkube.docker.imagePullPolicy`
 
