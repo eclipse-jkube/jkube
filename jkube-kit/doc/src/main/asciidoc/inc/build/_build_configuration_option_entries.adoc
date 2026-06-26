@@ -48,33 +48,14 @@ NOTE: Not all build strategies honor this property. The per-image `imagePullPoli
 [cols="1,1,1,2"]
 !===
 ! Strategy ! Global `imagePullPolicy` ! Per-image `imagePullPolicy` ! Notes
-
-! `docker`
-! Honored
-! Honored (overrides global)
-! Default build strategy
-
-! `jib`
-! Not honored
-! Not honored
-! JIB manages base image pulls through its own internal mechanisms
-
-! `buildpacks`
-! Not honored
-! Honored
-!
-
+! `docker` ! Honored ! Honored (overrides global) ! Default build strategy
+! `jib` ! Not honored ! Not honored ! JIB manages base image pulls through its own internal mechanisms
+! `buildpacks` ! Honored ! Honored (overrides global) !{nbsp}
 ifeval::["{goal-prefix}" == "oc"]
-! `s2i`
-! N/A
-! Use `forcePull` instead
-! OpenShift-specific build strategy
+! `s2i` ! N/A ! Use `forcePull` instead ! OpenShift-specific build strategy
 endif::[]
 ifeval::["{task-prefix}" == "oc"]
-! `s2i`
-! N/A
-! Use `forcePull` instead
-! OpenShift-specific build strategy
+! `s2i` ! N/A ! Use `forcePull` instead ! OpenShift-specific build strategy
 endif::[]
 !===
 | `jkube.docker.imagePullPolicy`
