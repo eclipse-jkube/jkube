@@ -32,15 +32,22 @@ public class ImagePullManager {
     // image pull policy
     private final ImagePullPolicy imagePullPolicy;
 
+    private final boolean explicitlyConfigured;
+
     private final CacheStore cacheStore;
 
     public ImagePullManager(CacheStore cacheStore, String imagePullPolicy, String autoPull) {
         this.cacheStore = cacheStore;
         this.imagePullPolicy = createPullPolicy(imagePullPolicy, autoPull);
+        this.explicitlyConfigured = imagePullPolicy != null || autoPull != null;
     }
 
-    ImagePullPolicy getImagePullPolicy() {
+    public ImagePullPolicy getImagePullPolicy() {
         return imagePullPolicy;
+    }
+
+    public boolean isExplicitlyConfigured() {
+        return explicitlyConfigured;
     }
 
     public ImagePullPolicy createPullPolicy(String imagePullPolicy, String autoPull) {

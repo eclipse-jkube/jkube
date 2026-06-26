@@ -14,6 +14,7 @@
 package org.eclipse.jkube.kit.config.service.kubernetes;
 
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccessException;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
@@ -132,11 +133,12 @@ class BuildPackBuildServiceTest {
   class BuildImage {
     private TestHttpBuildPacksArtifactsServer server;
     private BuildPackBuildService buildPackBuildService;
+    private Properties packProperties;
 
     @BeforeEach
     void setUp() {
       server = new TestHttpBuildPacksArtifactsServer();
-      Properties packProperties = new Properties();
+      packProperties = new Properties();
       packProperties.put("version", TEST_PACK_VERSION);
       packProperties.put("windows.binary-extension", "bat");
       buildPackBuildService = new BuildPackBuildService(jKubeServiceHub, packProperties);
@@ -225,6 +227,72 @@ class BuildPackBuildServiceTest {
 
         // Then
         verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:tiny --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true --clear-cache --path " + temporaryFolder.getAbsolutePath());
+      }
+    }
+
+    @Nested
+    @DisplayName("global imagePullPolicy")
+    class GlobalImagePullPolicy {
+
+      @ParameterizedTest(name = "global imagePullPolicy=''{0}'', autoPull=''{1}'' => pack --pull-policy ''{2}''")
+      @CsvSource(nullValues = "N/A", value = {
+          "Always,    N/A,    always",
+          "N/A,       always, always",
+          "IfNotPresent, N/A, if-not-present",
+          "N/A,       N/A,    N/A"
+      })
+      void globalPolicyResolution(String globalImagePullPolicy, String globalAutoPull, String expectedPackPullPolicy) {
+        // Given
+        ImagePullManager pullManager = ImagePullManager.createImagePullManager(globalImagePullPolicy, globalAutoPull, new Properties());
+        jKubeServiceHub = jKubeServiceHub.toBuilder()
+            .buildServiceConfig(buildServiceConfig.toBuilder()
+                .imagePullManager(pullManager)
+                .build())
+            .build();
+        buildPackBuildService = new BuildPackBuildService(jKubeServiceHub, packProperties);
+
+        // When
+        buildPackBuildService.buildSingleImage(imageConfiguration);
+
+        // Then
+        String expectedPullPolicyFragment = expectedPackPullPolicy != null ? " --pull-policy " + expectedPackPullPolicy : "";
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now" + expectedPullPolicyFragment + " --path " + temporaryFolder.getAbsolutePath());
+      }
+
+      @Test
+      @DisplayName("when global imagePullPolicy=Always and per-image imagePullPolicy=Never, per-image wins")
+      void globalAlways_perImageNever_perImageWins() {
+        // Given
+        ImagePullManager pullManager = ImagePullManager.createImagePullManager("Always", null, new Properties());
+        jKubeServiceHub = jKubeServiceHub.toBuilder()
+            .buildServiceConfig(buildServiceConfig.toBuilder()
+                .imagePullManager(pullManager)
+                .build())
+            .build();
+        buildPackBuildService = new BuildPackBuildService(jKubeServiceHub, packProperties);
+        imageConfiguration = imageConfiguration.toBuilder()
+            .build(imageConfiguration.getBuild().toBuilder()
+                .imagePullPolicy("Never")
+                .build())
+            .build();
+
+        // When
+        buildPackBuildService.buildSingleImage(imageConfiguration);
+
+        // Then
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now --pull-policy never --path " + temporaryFolder.getAbsolutePath());
+      }
+
+      @Test
+      @DisplayName("when neither global nor per-image imagePullPolicy set, pack build omits --pull-policy")
+      void neitherSet_omitsPullPolicy() {
+        // Given: no ImagePullManager on buildServiceConfig, no per-image policy
+
+        // When
+        buildPackBuildService.buildSingleImage(imageConfiguration);
+
+        // Then
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now --path " + temporaryFolder.getAbsolutePath());
       }
     }
   }

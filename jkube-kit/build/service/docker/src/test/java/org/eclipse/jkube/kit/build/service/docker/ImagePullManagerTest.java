@@ -25,24 +25,26 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 class ImagePullManagerTest {
 
-  @ParameterizedTest(name = "With ''{0}'' imagePullPolicy and ''{1}'' autoPull mode imagePullPolicy should be ''{2}''")
+  @ParameterizedTest(name = "With ''{0}'' imagePullPolicy and ''{1}'' autoPull mode imagePullPolicy should be ''{2}'', explicitlyConfigured=''{3}''")
   @MethodSource("createImagePullManagerTestData")
-  void createImagePullManager(String imagePullPolicy, String autoPull, ImagePullPolicy expectedImagePullPolicy) {
+  void createImagePullManager(String imagePullPolicy, String autoPull, ImagePullPolicy expectedImagePullPolicy, boolean expectedExplicitlyConfigured) {
     // Given & When
     ImagePullManager imagePullManager = ImagePullManager.createImagePullManager(imagePullPolicy, autoPull, new Properties());
     // Then
     assertThat(imagePullManager)
         .hasFieldOrPropertyWithValue("imagePullPolicy", expectedImagePullPolicy)
         .extracting("cacheStore").isNotNull();
+    assertThat(imagePullManager.getImagePullPolicy()).isEqualTo(expectedImagePullPolicy);
+    assertThat(imagePullManager.isExplicitlyConfigured()).isEqualTo(expectedExplicitlyConfigured);
   }
 
   public static Stream<Arguments> createImagePullManagerTestData() {
     return Stream.of(
-            Arguments.of("Always", null, ImagePullPolicy.Always),
-            Arguments.of(null, "always", ImagePullPolicy.Always),
-            Arguments.of(null, "off", ImagePullPolicy.Never),
-            Arguments.of(null, "always", ImagePullPolicy.Always),
-            Arguments.of(null, null, ImagePullPolicy.IfNotPresent)
+            Arguments.of("Always", null, ImagePullPolicy.Always, true),
+            Arguments.of(null, "always", ImagePullPolicy.Always, true),
+            Arguments.of(null, "off", ImagePullPolicy.Never, true),
+            Arguments.of(null, "always", ImagePullPolicy.Always, true),
+            Arguments.of(null, null, ImagePullPolicy.IfNotPresent, false)
     );
   }
 }
