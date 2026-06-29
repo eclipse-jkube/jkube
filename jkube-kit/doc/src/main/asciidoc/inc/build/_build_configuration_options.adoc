@@ -23,37 +23,4 @@ include::_build_configuration_option_entries.adoc[]
 
 |===
 
-[[image-pull-policy-compatibility]]
-.imagePullPolicy build strategy compatibility
-[cols="1,1,1,2"]
-|===
-| Strategy | Global `imagePullPolicy` | Per-image `imagePullPolicy` | Notes
-
-| `docker`
-| Honored
-| Honored (overrides global)
-| Default build strategy
-
-| `jib`
-| Not honored
-| Not honored
-| JIB manages base image pulls through its own internal mechanisms
-
-| `buildpacks`
-| Honored
-| Honored (overrides global)
-|
-
-ifeval::["{goal-prefix}" == "oc"]
-| `s2i`
-| N/A
-| Use `forcePull` instead
-| OpenShift-specific build strategy
-endif::[]
-ifeval::["{task-prefix}" == "oc"]
-| `s2i`
-| N/A
-| Use `forcePull` instead
-| OpenShift-specific build strategy
-endif::[]
-|===
+include::_image_pull_policy_compatibility.adoc[]
