@@ -336,6 +336,8 @@ when watchMode is copy. Note that this container must be running.
 | `jkube.workDir`
 |====
 
+include::{kitdoc-path}/inc/build/_image_pull_policy_compatibility.adoc[]
+
 include::{kitdoc-path}/inc/apply/_cluster_access_configuration.adoc[]
 
 == Image Configuration

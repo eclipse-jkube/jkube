@@ -22,3 +22,5 @@ Global configuration parameters specify overall behavior common for all images t
 include::_build_configuration_option_entries.adoc[]
 
 |===
+
+include::_image_pull_policy_compatibility.adoc[]
