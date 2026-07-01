@@ -35,7 +35,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
     <version.bouncycastle.bcpkix>1.82</version.bouncycastle.bcpkix>
-    <version.commons-codec>1.20.0</version.commons-codec>
+    <version.commons-codec>1.22.0</version.commons-codec>
     <version.commons-lang3>3.20.0</version.commons-lang3>
     <version.commons-text>1.14.0</version.commons-text>
     <version.gson>2.14.0</version.gson>
@@ -130,9 +130,9 @@
     <image.wildfly.upstream.s2i>quay.io/wildfly/wildfly-centos7:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.s2i>
     <image.wildfly.upstream.istag>wildfly:${version.image.wildfly.upstream.s2i}</image.wildfly.upstream.istag>
 
-    <jib-core.version>0.27.3</jib-core.version>
+    <jib-core.version>0.28.1</jib-core.version>
 
-    <pack.version>0.34.2</pack.version>
+    <pack.version>0.40.7</pack.version>
     <pack.windows.binary-extension>exe</pack.windows.binary-extension>
     <pack.linux.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-linux.tgz</pack.linux.artifact>
     <pack.linux-arm64.artifact>https://github.com/buildpacks/pack/releases/download/v${pack.version}/pack-v${pack.version}-linux-arm64.tgz</pack.linux-arm64.artifact>

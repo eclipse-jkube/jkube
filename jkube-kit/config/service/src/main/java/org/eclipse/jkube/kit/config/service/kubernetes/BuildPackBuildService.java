@@ -22,6 +22,7 @@ import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
+import org.eclipse.jkube.kit.build.service.docker.ImagePullManager;
 import org.eclipse.jkube.kit.common.JKubeConfiguration;
 import org.eclipse.jkube.kit.common.KitLogger;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
@@ -40,7 +41,7 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.getUserHome;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.readProperties;
 
 public class BuildPackBuildService extends AbstractImageBuildService {
-  private static final String DEFAULT_BUILDER_IMAGE = "paketobuildpacks/builder:base";
+  private static final String DEFAULT_BUILDER_IMAGE = "paketobuildpacks/builder-jammy-base";
   private static final String PACK_CONFIG_DIR = ".pack";
   private static final String PACK_CONFIG_FILE = "config.toml";
 
@@ -82,13 +83,11 @@ public class BuildPackBuildService extends AbstractImageBuildService {
         .builderImage(builderImage)
         .path(jKubeConfiguration.getBasedir().getAbsolutePath())
         .creationTime("now");
+    final String effectivePullPolicy = resolveEffectivePullPolicy(imageConfiguration);
+    if (effectivePullPolicy != null) {
+      buildPackBuildOptionsBuilder.imagePullPolicy(effectivePullPolicy);
+    }
     if (imageConfiguration.getBuild() != null) {
-      if (StringUtils.isNotBlank(imageConfiguration.getBuild().getImagePullPolicy())) {
-        String packBuildPullPolicy = imageConfiguration.getBuild().getImagePullPolicy().equalsIgnoreCase("IfNotPresent") ?
-            "if-not-present" :
-            imageConfiguration.getBuild().getImagePullPolicy().toLowerCase(Locale.ROOT);
-        buildPackBuildOptionsBuilder.imagePullPolicy(packBuildPullPolicy);
-      }
       buildPackBuildOptionsBuilder.env(imageConfiguration.getBuild().getEnv())
           .tags(imageConfiguration.getBuild().getTags())
           .clearCache(Optional.ofNullable(imageConfiguration.getBuild().getNocache()).orElse(false))
@@ -116,6 +115,22 @@ public class BuildPackBuildService extends AbstractImageBuildService {
   @Override
   public void postProcess() {
     // NOOP
+  }
+
+  private String resolveEffectivePullPolicy(ImageConfiguration imageConfiguration) {
+    if (imageConfiguration.getBuild() != null
+        && StringUtils.isNotBlank(imageConfiguration.getBuild().getImagePullPolicy())) {
+      return toPackPullPolicy(imageConfiguration.getBuild().getImagePullPolicy());
+    }
+    final ImagePullManager pullManager = buildServiceConfig.getImagePullManager();
+    if (pullManager != null && pullManager.isExplicitlyConfigured()) {
+      return toPackPullPolicy(pullManager.getImagePullPolicy().toString());
+    }
+    return null;
+  }
+
+  private static String toPackPullPolicy(String policy) {
+    return policy.equalsIgnoreCase("IfNotPresent") ? "if-not-present" : policy.toLowerCase(Locale.ROOT);
   }
 
   private String getApplicableBuildPackBuilderImage(BuildConfiguration buildConfiguration) {

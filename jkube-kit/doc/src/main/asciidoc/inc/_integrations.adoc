@@ -89,7 +89,7 @@ endif::[]
 `pack build` process. If the download for the https://buildpacks.io/docs/tools/pack/[Pack CLI] binary fails, {plugin} looks for any locally installed https://buildpacks.io/docs/tools/pack/[Pack CLI] version.
 
 === Buildpack Builder Image
-- If no builder image is configured, then {plugin} uses `paketobuildpacks/builder:base` as the default builder image.
+- If no builder image is configured, then {plugin} uses `paketobuildpacks/builder-jammy-base` as the default builder image.
 - If builder image is provided in local https://buildpacks.io/docs/tools/pack/cli/pack_config/[Pack Config], {plugin} uses the https://buildpacks.io/docs/concepts/components/builder/[builder image] specified in the file.
   For example,if the user has this image set in the `$HOME/.pack/config.toml` file, {plugin} will use `testuser/buildpacks-quarkus-builder:latest` as Buildpacks builder image.:
 [source,toml,indent=2,subs="verbatim,quotes,attributes"]

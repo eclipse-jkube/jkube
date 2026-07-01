@@ -56,7 +56,7 @@ or already added by a generator which has been run previously.
 
 | *buildpacksBuilderImage*
 |  Configure https://buildpacks.io/docs/for-platform-operators/concepts/builder/[BuildPack builder] OCI image for BuildPack Build. This field is applicable only in `buildpacks` build strategy.
-Defaults to `paketobuildpacks/builder:base`
+Defaults to `paketobuildpacks/builder-jammy-base`
 | `jkube.generator.buildpacksBuilderImage`
 |===
 

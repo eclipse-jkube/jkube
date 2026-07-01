@@ -24,6 +24,7 @@ Usage:
 ### 1.20-SNAPSHOT
 * Fix #3902: Bump pack CLI from 0.34.2 to 0.40.7 and update default builder image to `paketobuildpacks/builder-jammy-base`
 * Fix #3904: Bump jib-core from 0.27.3 to 0.28.1
+* Fix #3900: BuildPackBuildService honors global `imagePullPolicy` when no per-image policy is set
 * Fix #3875: Per-image `imagePullPolicy` in build configuration now overrides global pull policy
 * Fix #3859: kubernetes-maven-plugin compatibility with Maven 3.9.13+ SecDispatcher changes (decrypt registry/Helm passwords via Maven's SettingsDecrypter; deprecate `<helm><security>`/`jkube.helm.security` in favor of `-Dsettings.security`)
 * Fix #3834: Improve docs for jkube-volume-permission enricher

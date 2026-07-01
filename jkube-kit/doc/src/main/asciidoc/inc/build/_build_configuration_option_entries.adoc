@@ -28,6 +28,7 @@ a| Decide how to pull missing base images or images to start:
 * `always` : Pull images always even when they already exist locally
 * `once` : For multi-module builds images are only checked once and pulled for the whole build.
 
+If <<image-pull-policy, imagePullPolicy>> is also set, it takes precedence over `autoPull`.
 | `jkube.docker.autoPull`
 
 
@@ -40,6 +41,9 @@ This property can take the following values (case insensitive):
 * `Always` : Pull images always even when they already exist locally.
 
 By default, a progress meter is printed out on the console, which is omitted when using {plugin-type} in batch mode (option `-B`). A very simplified progress meter is provided when using no color output (i.e. with `-Djkube.useColor=false`).
+
+NOTE: Not all build strategies honor this property. See <<image-pull-policy-compatibility>> for details. The per-image `imagePullPolicy` (see <<config-image-build, Build configuration>>) can override this global setting for strategies that support it.
+
 | `jkube.docker.imagePullPolicy`
 
 | *certPath*
