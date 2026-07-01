@@ -41,7 +41,7 @@ import static org.eclipse.jkube.kit.common.util.EnvUtil.getUserHome;
 import static org.eclipse.jkube.kit.common.util.PropertiesUtil.readProperties;
 
 public class BuildPackBuildService extends AbstractImageBuildService {
-  private static final String DEFAULT_BUILDER_IMAGE = "paketobuildpacks/builder:base";
+  private static final String DEFAULT_BUILDER_IMAGE = "paketobuildpacks/builder-jammy-base";
   private static final String PACK_CONFIG_DIR = ".pack";
   private static final String PACK_CONFIG_FILE = "config.toml";
 

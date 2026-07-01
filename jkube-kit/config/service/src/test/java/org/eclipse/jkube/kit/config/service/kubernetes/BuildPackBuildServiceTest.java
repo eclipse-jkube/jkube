@@ -190,7 +190,7 @@ class BuildPackBuildServiceTest {
         buildPackBuildService.buildSingleImage(imageConfiguration);
 
         // Then
-        verify(kitLogger).info("[[s]]%s","build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now --path " + temporaryFolder.getAbsolutePath());
+        verify(kitLogger).info("[[s]]%s","build foo/bar:latest --builder paketobuildpacks/builder-jammy-base --creation-time now --path " + temporaryFolder.getAbsolutePath());
       }
     }
 
@@ -204,7 +204,7 @@ class BuildPackBuildServiceTest {
         buildPackBuildService.buildSingleImage(imageConfiguration);
 
         // Then
-        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now --path " + temporaryFolder.getAbsolutePath());
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder-jammy-base --creation-time now --path " + temporaryFolder.getAbsolutePath());
       }
 
       @Test
@@ -256,7 +256,7 @@ class BuildPackBuildServiceTest {
 
         // Then
         String expectedPullPolicyFragment = expectedPackPullPolicy != null ? " --pull-policy " + expectedPackPullPolicy : "";
-        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now" + expectedPullPolicyFragment + " --path " + temporaryFolder.getAbsolutePath());
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder-jammy-base --creation-time now" + expectedPullPolicyFragment + " --path " + temporaryFolder.getAbsolutePath());
       }
 
       @Test
@@ -280,7 +280,7 @@ class BuildPackBuildServiceTest {
         buildPackBuildService.buildSingleImage(imageConfiguration);
 
         // Then
-        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now --pull-policy never --path " + temporaryFolder.getAbsolutePath());
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder-jammy-base --creation-time now --pull-policy never --path " + temporaryFolder.getAbsolutePath());
       }
 
       @Test
@@ -292,7 +292,7 @@ class BuildPackBuildServiceTest {
         buildPackBuildService.buildSingleImage(imageConfiguration);
 
         // Then
-        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder:base --creation-time now --path " + temporaryFolder.getAbsolutePath());
+        verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder paketobuildpacks/builder-jammy-base --creation-time now --path " + temporaryFolder.getAbsolutePath());
       }
     }
   }
