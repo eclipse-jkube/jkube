@@ -23,6 +23,7 @@ Usage:
 
 ### 1.20-SNAPSHOT
 * Fix #3873: Update JettyAppSeverHandler to select `jkube-jetty12` as the default Jetty image and add `jetty9` opt-in for legacy projects
+* Fix #3918: Update documentation for jkube-images 0.0.28 changes
 * Fix #3902: Bump pack CLI from 0.34.2 to 0.40.7 and update default builder image to `paketobuildpacks/builder-jammy-base`
 * Fix #3904: Bump jib-core from 0.27.3 to 0.28.1
 * Fix #3900: BuildPackBuildService honors global `imagePullPolicy` when no per-image policy is set
