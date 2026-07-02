@@ -18,7 +18,7 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 /**
  * Legacy Jetty 9 handler, opt-in only via {@code jkube.generator.webapp.server=jetty9}.
  */
-public class Jetty9AppSeverHandler extends AbstractAppServerHandler {
+public class Jetty9AppSeverHandler extends JettyAppSeverHandler {
 
   public Jetty9AppSeverHandler(GeneratorContext context) {
     super("jetty9", context);
@@ -32,20 +32,5 @@ public class Jetty9AppSeverHandler extends AbstractAppServerHandler {
   @Override
   public String getFrom() {
     return imageLookup.getImageName("jetty9.upstream.docker");
-  }
-
-  @Override
-  public String getDeploymentDir() {
-    return "/deployments";
-  }
-
-  @Override
-  public String getCommand() {
-    return "/usr/local/s2i/run";
-  }
-
-  @Override
-  public boolean supportsS2iBuild() {
-    return true;
   }
 }
