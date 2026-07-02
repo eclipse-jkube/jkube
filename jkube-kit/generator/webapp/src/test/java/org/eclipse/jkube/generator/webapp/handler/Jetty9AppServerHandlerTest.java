@@ -35,7 +35,7 @@ class Jetty9AppServerHandlerTest {
   private GeneratorContext generatorContext;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     generatorContext = mock(GeneratorContext.class, RETURNS_DEEP_STUBS);
   }
 
