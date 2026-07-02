@@ -115,6 +115,24 @@ class AppServerAutoDetectionTest {
     }
 
     @Test
+    void detect_withJettyServer_shouldReturnJettyHandler() {
+        GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder().build()).build();
+
+        AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("jetty");
+        assertThat(appServerHandler)
+            .hasFieldOrPropertyWithValue("name", "jetty");
+    }
+
+    @Test
+    void detect_withJetty9Server_shouldReturnJetty9Handler() {
+        GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder().build()).build();
+
+        AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("jetty9");
+        assertThat(appServerHandler)
+            .hasFieldOrPropertyWithValue("name", "jetty9");
+    }
+
+    @Test
     void detect_withNotApplicableDescriptor_shouldReturnDefaultServer() throws IOException {
       final Path descriptor = folder.resolve("webapp").resolve("META-INF").resolve("not-valid-descriptor.xml");
       final Path xxxInf = descriptor.getParent();
