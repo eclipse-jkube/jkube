@@ -52,7 +52,7 @@ kubernetes {
             name = "jkube/${project.name}:${project.version}"
             alias = "foo-app"
             build {
-                from = "quay.io/jkube/jkube-java:0.0.13"
+                from = "quay.io/jkube/jkube-java:0.0.28"
                 assembly {
                     targetDir = "/deployments"
                     layers = [{
@@ -76,7 +76,7 @@ openshift {
             name = "jkube/${project.name}:${project.version}"
             alias = "foo-app"
             build {
-                from = "quay.io/jkube/jkube-java:0.0.13"
+                from = "quay.io/jkube/jkube-java:0.0.28"
                 assembly {
                     targetDir = "/deployments"
                     layers = [{

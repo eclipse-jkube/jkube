@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.20-SNAPSHOT
+* Fix #3917: Update quickstart image references to jkube-images 0.0.28
 * Fix #3902: Bump pack CLI from 0.34.2 to 0.40.7 and update default builder image to `paketobuildpacks/builder-jammy-base`
 * Fix #3904: Bump jib-core from 0.27.3 to 0.28.1
 * Fix #3900: BuildPackBuildService honors global `imagePullPolicy` when no per-image policy is set
