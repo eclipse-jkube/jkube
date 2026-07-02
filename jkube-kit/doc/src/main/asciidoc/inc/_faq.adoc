@@ -20,7 +20,7 @@ spec:
 
 The above will generate an environment variable `$FOO` of value `bar`
 
-For a full list of the environments used in java base images, https://github.com/eclipse-jkube/jkube-images#available-imagesk[see this list]
+For a full list of the environments used in java base images, https://github.com/eclipse-jkube/jkube-images#available-images[see this list]
 
 === How do I define a system property?
 
