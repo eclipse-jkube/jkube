@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -46,7 +47,10 @@ public class JavaExecGenerator extends BaseGenerator {
 
   protected enum JDK {
     DEFAULT("java"),
-    JDK_11("java11");
+    JDK_11("java11"),
+    JDK_17("java17"),
+    JDK_21("java21"),
+    JDK_25("java25");
 
     final String imagePrefix;
 
@@ -76,13 +80,39 @@ public class JavaExecGenerator extends BaseGenerator {
     }
 
     protected JavaExecGenerator(GeneratorContext context, String name) {
-        this(context, name, JDK.DEFAULT);
+        this(context, name, detectJdk(context.getProject()));
     }
     protected JavaExecGenerator(GeneratorContext context, String name, JDK jdk) {
         super(context, name, new FromSelector.Default(context, jdk.imagePrefix));
         fatJarDetector = new FatJarDetector(getProject().getBuildPackageDirectory());
         mainClassDetector = new MainClassDetector(getConfig(Config.MAIN_CLASS),
                 getProject().getOutputDirectory(), context.getLogger());
+    }
+
+    static JDK detectJdk(JavaProject project) {
+        final Properties properties = project.getProperties();
+        String version = properties.getProperty("maven.compiler.release");
+        if (version == null) {
+            version = properties.getProperty("maven.compiler.target");
+        }
+        if (version == null) {
+            version = properties.getProperty("maven.compiler.source");
+        }
+        if (version == null) {
+            return JDK.DEFAULT;
+        }
+        switch (version) {
+            case "11":
+                return JDK.JDK_11;
+            case "17":
+                return JDK.JDK_17;
+            case "21":
+                return JDK.JDK_21;
+            case "25":
+                return JDK.JDK_25;
+            default:
+                return JDK.DEFAULT;
+        }
     }
 
     @AllArgsConstructor
