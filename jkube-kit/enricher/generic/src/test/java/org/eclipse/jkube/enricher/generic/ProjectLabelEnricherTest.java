@@ -26,6 +26,9 @@ import org.eclipse.jkube.kit.enricher.api.JKubeEnricherContext;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.KubernetesListBuilder;
 import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.apps.DaemonSet;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetBuilder;
+import io.fabric8.kubernetes.api.model.apps.DaemonSetSpec;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentBuilder;
 import io.fabric8.kubernetes.api.model.apps.DeploymentSpec;
@@ -182,7 +185,8 @@ class ProjectLabelEnricherTest {
   }
 
   @Test
-  void create_withNoConfiguredVersion_shouldAddDefaultVersionInSelector() {
+  @DisplayName("StatefulSet selector.matchLabels must not include version (immutable field, fails on version bump)")
+  void create_shouldNotAddVersionToStatefulSetSelector() {
     // Given
     KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new StatefulSetBuilder().build());
 
@@ -196,26 +200,32 @@ class ProjectLabelEnricherTest {
         .extracting(StatefulSetSpec::getSelector)
         .extracting(LabelSelector::getMatchLabels)
         .asInstanceOf(InstanceOfAssertFactories.MAP)
-        .containsEntry("version", "version");
+        .containsEntry("group", "groupId")
+        .containsEntry("app", "artifactId")
+        .containsEntry("provider", "jkube")
+        .doesNotContainKey("version");
   }
 
   @Test
-  void create_withConfiguredVersion_shouldAddConfiguredVersionInSelector() {
+  @DisplayName("DaemonSet selector.matchLabels must not include version (immutable field, fails on version bump)")
+  void create_shouldNotAddVersionToDaemonSetSelector() {
     // Given
-    properties.setProperty("jkube.enricher.jkube-project-label.version", "0.0.1");
-    KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new StatefulSetBuilder().build());
+    KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new DaemonSetBuilder().build());
 
     // When
     projectLabelEnricher.create(PlatformMode.kubernetes, builder);
 
     // Then
-    StatefulSet statefulSet = (StatefulSet) builder.buildFirstItem();
-    assertThat(statefulSet)
-        .extracting(StatefulSet::getSpec)
-        .extracting(StatefulSetSpec::getSelector)
+    DaemonSet daemonSet = (DaemonSet) builder.buildFirstItem();
+    assertThat(daemonSet)
+        .extracting(DaemonSet::getSpec)
+        .extracting(DaemonSetSpec::getSelector)
         .extracting(LabelSelector::getMatchLabels)
         .asInstanceOf(InstanceOfAssertFactories.MAP)
-        .containsEntry("version", "0.0.1");
+        .containsEntry("group", "groupId")
+        .containsEntry("app", "artifactId")
+        .containsEntry("provider", "jkube")
+        .doesNotContainKey("version");
   }
 
   @Test
