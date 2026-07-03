@@ -106,3 +106,8 @@ ifdef::doc-openshift[]
 * `jkube.generator.webapp.supportsS2iBuild` to `true`
 endif::[]
 
+==== JakartaEE and retrocompatibility with JavaEE in Jetty
+From Jetty 12, only JakartaEE compliant projects (Jakarta EE 10 / Servlet 6.x) are supported. The default Jetty base image is now `jkube-jetty12`. Legacy JavaEE projects using `javax.*` packages will not work with this image.
+
+To keep using Jetty 9, set the property `jkube.generator.webapp.server` to `jetty9`. This selects the legacy `quay.io/jkube/jkube-jetty9` base image which supports Servlet 3.x/4.x and `javax.*` packages.
+
