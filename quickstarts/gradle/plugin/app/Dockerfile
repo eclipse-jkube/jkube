@@ -12,7 +12,7 @@
 #   Red Hat, Inc. - initial API and implementation
 #
 
-FROM quay.io/jkube/jkube-java:0.0.15
+FROM quay.io/jkube/jkube-java:0.0.28
 
 ENV JAVA_APP_DIR=/deployments
 
