@@ -29,7 +29,11 @@ public class JettyAppSeverHandler extends AbstractAppServerHandler {
   private static final String JETTY_MAVEN_PLUGIN_ARTIFACT_ID = "jetty-maven-plugin";
 
   public JettyAppSeverHandler(GeneratorContext context) {
-    super("jetty", context);
+    this("jetty", context);
+  }
+
+  protected JettyAppSeverHandler(String name, GeneratorContext context) {
+    super(name, context);
   }
 
   @Override

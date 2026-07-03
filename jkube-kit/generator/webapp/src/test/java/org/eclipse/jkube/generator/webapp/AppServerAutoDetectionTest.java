@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.webapp.handler.Jetty9AppSeverHandler;
+import org.eclipse.jkube.generator.webapp.handler.JettyAppSeverHandler;
 import org.eclipse.jkube.generator.webapp.handler.TomcatAppSeverHandler;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -112,6 +114,28 @@ class AppServerAutoDetectionTest {
 
         AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("wildfly");
         assertThat(appServerHandler.getName()).isEqualTo("wildfly");
+    }
+
+    @Test
+    void detect_withJettyServer_shouldReturnJettyHandler() {
+        GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder().build()).build();
+
+        AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("jetty");
+        assertThat(appServerHandler)
+            .isInstanceOf(JettyAppSeverHandler.class)
+            .hasFieldOrPropertyWithValue("name", "jetty")
+            .satisfies(h -> assertThat(h.getFrom()).startsWith("quay.io/jkube/jkube-jetty12:"));
+    }
+
+    @Test
+    void detect_withJetty9Server_shouldReturnJetty9Handler() {
+        GeneratorContext generatorContext = GeneratorContext.builder().project(JavaProject.builder().build()).build();
+
+        AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("jetty9");
+        assertThat(appServerHandler)
+            .isInstanceOf(Jetty9AppSeverHandler.class)
+            .hasFieldOrPropertyWithValue("name", "jetty9")
+            .satisfies(h -> assertThat(h.getFrom()).startsWith("quay.io/jkube/jkube-jetty9:"));
     }
 
     @Test

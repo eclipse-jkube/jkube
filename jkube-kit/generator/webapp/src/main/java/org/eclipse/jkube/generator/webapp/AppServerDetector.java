@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.webapp.handler.Jetty9AppSeverHandler;
 import org.eclipse.jkube.generator.webapp.handler.JettyAppSeverHandler;
 import org.eclipse.jkube.generator.webapp.handler.TomcatAppSeverHandler;
 import org.eclipse.jkube.generator.webapp.handler.WildFlyAppSeverHandler;
@@ -36,6 +37,7 @@ class AppServerDetector {
         defaultHandler = new TomcatAppSeverHandler(generatorContext);
         serverHandlers = Arrays.asList(
             new JettyAppSeverHandler(generatorContext),
+            new Jetty9AppSeverHandler(generatorContext),
             new WildFlyAppSeverHandler(generatorContext),
             defaultHandler
         );

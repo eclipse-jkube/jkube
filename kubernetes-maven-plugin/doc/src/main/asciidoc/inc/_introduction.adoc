@@ -147,7 +147,7 @@ https://github.com/eclipse-jkube/jkube/tree/master/quickstarts/maven/zero-config
 
 This setup make some opinionated decisions for you:
 
-* As base image https://quay.io/repository/jkube/jkube-java-binary-s2i[jkube/jkube-java-binary-s2i]
+* As base image https://quay.io/repository/jkube/jkube-java[jkube/jkube-java]
   is chosen which enables https://www.jolokia.org[Jolokia] and https://github.com/prometheus/jmx_exporter[jmx_exporter].
   It also comes with a sophisticated https://github.com/jboss-openshift/cct_module/tree/master/jboss/container/java/run/bash[startup script].
 * It will create a Kubernetes http://kubernetes.io/docs/user-guide/deployments/[Deployment] and a
