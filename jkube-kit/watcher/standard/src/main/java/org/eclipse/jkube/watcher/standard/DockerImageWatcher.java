@@ -29,8 +29,6 @@ import org.eclipse.jkube.kit.build.service.docker.watch.WatchException;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.common.util.OpenshiftHelper;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
-import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.watcher.api.BaseWatcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
@@ -103,9 +101,7 @@ public class DockerImageWatcher extends BaseWatcher {
 
         WatchContext watchContext = getContext().getWatchContext();
 
-        // Inject scanInterval for all Jetty 12 containers if any image uses copy mode;
-        // in mixed per-image mode setups, this may inject even if the Jetty 12 image itself is not in copy mode.
-        if (isCopyMode(configs, watchContext) && resources != null) {
+        if (resources != null) {
             enableJettyScanInterval(resources);
         }
 
@@ -239,22 +235,6 @@ public class DockerImageWatcher extends BaseWatcher {
             }
         }
         return answer;
-    }
-
-    private boolean isCopyMode(List<ImageConfiguration> configs, WatchContext watchContext) {
-        WatchMode globalMode = watchContext.getWatchMode();
-        if (globalMode != null && globalMode.isCopy()) {
-            return true;
-        }
-        if (configs != null) {
-            for (ImageConfiguration config : configs) {
-                WatchImageConfiguration watchConfig = config.getWatchConfiguration();
-                if (watchConfig != null && watchConfig.getMode() != null && watchConfig.getMode().isCopy()) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private void enableJettyScanInterval(Collection<HasMetadata> resources) {

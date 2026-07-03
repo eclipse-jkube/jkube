@@ -24,8 +24,6 @@ import org.eclipse.jkube.kit.build.service.docker.watch.ExecTask;
 import org.eclipse.jkube.kit.build.service.docker.watch.WatchContext;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
-import org.eclipse.jkube.kit.config.image.WatchImageConfiguration;
-import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.config.resource.PlatformMode;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
@@ -174,11 +172,9 @@ class DockerImageWatcherTest {
     }
 
     @Test
-    @DisplayName("in copy mode with Jetty 12 image, should inject JAVA_TOOL_OPTIONS")
-    void copyModeWithJetty12_shouldInjectScanInterval() {
+    @DisplayName("with Jetty 12 image, should inject JAVA_TOOL_OPTIONS")
+    void withJetty12_shouldInjectScanInterval() {
       // Given
-      when(watcherContext.getWatchContext()).thenReturn(
-          WatchContext.builder().watchMode(WatchMode.copy).build());
       resources = deploymentWithImage("quay.io/jkube/jkube-jetty12:0.0.28");
       // When
       dockerImageWatcher.watch(Collections.emptyList(), "test-ns", resources, PlatformMode.kubernetes);
@@ -191,27 +187,10 @@ class DockerImageWatcherTest {
     }
 
     @Test
-    @DisplayName("in copy mode with non-Jetty image, should not inject env var")
-    void copyModeWithNonJettyImage_shouldNotInjectEnvVar() {
+    @DisplayName("with non-Jetty image, should not inject env var")
+    void withNonJettyImage_shouldNotInjectEnvVar() {
       // Given
-      when(watcherContext.getWatchContext()).thenReturn(
-          WatchContext.builder().watchMode(WatchMode.copy).build());
       resources = deploymentWithImage("quay.io/jkube/jkube-tomcat10:0.0.28");
-      // When
-      dockerImageWatcher.watch(Collections.emptyList(), "test-ns", resources, PlatformMode.kubernetes);
-      // Then
-      container = getFirstContainer(resources);
-      assertThat(container.getEnv()).isNullOrEmpty();
-      verify(nonDeleting, never()).update();
-    }
-
-    @Test
-    @DisplayName("in build mode with Jetty 12 image, should not inject env var")
-    void buildModeWithJetty12_shouldNotInjectEnvVar() {
-      // Given
-      when(watcherContext.getWatchContext()).thenReturn(
-          WatchContext.builder().watchMode(WatchMode.build).build());
-      resources = deploymentWithImage("quay.io/jkube/jkube-jetty12:0.0.28");
       // When
       dockerImageWatcher.watch(Collections.emptyList(), "test-ns", resources, PlatformMode.kubernetes);
       // Then
@@ -224,8 +203,6 @@ class DockerImageWatcherTest {
     @DisplayName("when user already set scanInterval, should preserve user value")
     void userAlreadySetScanInterval_shouldPreserveUserValue() {
       // Given
-      when(watcherContext.getWatchContext()).thenReturn(
-          WatchContext.builder().watchMode(WatchMode.copy).build());
       resources = Collections.singletonList(new DeploymentBuilder()
           .withNewMetadata().withName("test-deployment").endMetadata()
           .withNewSpec().withNewTemplate().withNewSpec()
@@ -248,8 +225,6 @@ class DockerImageWatcherTest {
     @DisplayName("when JAVA_TOOL_OPTIONS has other flags, should append scanInterval")
     void existingToolOptions_shouldAppendScanInterval() {
       // Given
-      when(watcherContext.getWatchContext()).thenReturn(
-          WatchContext.builder().watchMode(WatchMode.copy).build());
       resources = Collections.singletonList(new DeploymentBuilder()
           .withNewMetadata().withName("test-deployment").endMetadata()
           .withNewSpec().withNewTemplate().withNewSpec()
@@ -268,30 +243,9 @@ class DockerImageWatcherTest {
     }
 
     @Test
-    @DisplayName("with per-image copy mode and Jetty 12 image, should inject env var")
-    void perImageCopyMode_shouldInjectScanInterval() {
-      // Given
-      when(watcherContext.getWatchContext()).thenReturn(new WatchContext());
-      ImageConfiguration imageConfig = ImageConfiguration.builder()
-          .name("quay.io/jkube/jkube-jetty12:0.0.28")
-          .watch(WatchImageConfiguration.builder().mode(WatchMode.copy).build())
-          .build();
-      resources = deploymentWithImage("quay.io/jkube/jkube-jetty12:0.0.28");
-      // When
-      dockerImageWatcher.watch(Collections.singletonList(imageConfig), "test-ns", resources, PlatformMode.kubernetes);
-      // Then
-      container = getFirstContainer(resources);
-      assertThat(container.getEnv())
-          .extracting("name", "value")
-          .contains(tuple("JAVA_TOOL_OPTIONS", "-Djetty.deploy.scanInterval=1"));
-    }
-
-    @Test
-    @DisplayName("with Jetty 9 image in copy mode, should not inject env var")
+    @DisplayName("with Jetty 9 image, should not inject env var")
     void jetty9Image_shouldNotInjectEnvVar() {
       // Given
-      when(watcherContext.getWatchContext()).thenReturn(
-          WatchContext.builder().watchMode(WatchMode.copy).build());
       resources = deploymentWithImage("quay.io/jkube/jkube-jetty9:0.0.28");
       // When
       dockerImageWatcher.watch(Collections.emptyList(), "test-ns", resources, PlatformMode.kubernetes);
@@ -304,8 +258,6 @@ class DockerImageWatcherTest {
     @DisplayName("with mixed containers, should only inject into Jetty 12 container")
     void mixedContainers_shouldOnlyInjectIntoJetty12() {
       // Given
-      when(watcherContext.getWatchContext()).thenReturn(
-          WatchContext.builder().watchMode(WatchMode.copy).build());
       resources = Collections.singletonList(new DeploymentBuilder()
           .withNewMetadata().withName("test-deployment").endMetadata()
           .withNewSpec().withNewTemplate().withNewSpec()
