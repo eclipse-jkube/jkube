@@ -103,6 +103,8 @@ public class DockerImageWatcher extends BaseWatcher {
 
         WatchContext watchContext = getContext().getWatchContext();
 
+        // Inject scanInterval for all Jetty 12 containers if any image uses copy mode;
+        // in mixed per-image mode setups, this may inject even if the Jetty 12 image itself is not in copy mode.
         if (isCopyMode(configs, watchContext) && resources != null) {
             enableJettyScanInterval(resources);
         }
@@ -282,7 +284,10 @@ public class DockerImageWatcher extends BaseWatcher {
                 DeploymentConfigSpec spec = dc.getSpec();
                 if (spec != null && injectJettyScanInterval(entity, spec.getTemplate())) {
                     OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(client);
-                    if (openshiftClient != null) {
+                    if (openshiftClient == null) {
+                        log.warn("Ignoring DeploymentConfig %s as not connected to an OpenShift cluster",
+                            KubernetesHelper.getName(entity));
+                    } else {
                         openshiftClient.deploymentConfigs().inNamespace(ns).resource(dc).unlock().update();
                     }
                 }

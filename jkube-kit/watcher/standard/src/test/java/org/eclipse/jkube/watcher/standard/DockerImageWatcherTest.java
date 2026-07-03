@@ -241,6 +241,7 @@ class DockerImageWatcherTest {
       assertThat(container.getEnv())
           .extracting("name", "value")
           .contains(tuple("JAVA_TOOL_OPTIONS", "-Djetty.deploy.scanInterval=5"));
+      verify(nonDeleting, never()).update();
     }
 
     @Test
