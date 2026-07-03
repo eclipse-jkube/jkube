@@ -13,24 +13,18 @@
  */
 package org.eclipse.jkube.generator.webapp.handler;
 
-import java.io.File;
 import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 class Jetty9AppServerHandlerTest {
-
-  @TempDir
-  File temporaryFolder;
 
   private GeneratorContext generatorContext;
 
@@ -41,8 +35,6 @@ class Jetty9AppServerHandlerTest {
 
   @Test
   void isApplicable_shouldReturnFalse() {
-    // Given
-    when(generatorContext.getProject().getBuildDirectory()).thenReturn(temporaryFolder);
     // When
     final boolean result = new Jetty9AppSeverHandler(generatorContext).isApplicable();
     // Then

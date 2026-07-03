@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.webapp.handler.Jetty9AppSeverHandler;
+import org.eclipse.jkube.generator.webapp.handler.JettyAppSeverHandler;
 import org.eclipse.jkube.generator.webapp.handler.TomcatAppSeverHandler;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
@@ -120,7 +122,9 @@ class AppServerAutoDetectionTest {
 
         AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("jetty");
         assertThat(appServerHandler)
-            .hasFieldOrPropertyWithValue("name", "jetty");
+            .isInstanceOf(JettyAppSeverHandler.class)
+            .hasFieldOrPropertyWithValue("name", "jetty")
+            .satisfies(h -> assertThat(h.getFrom()).startsWith("quay.io/jkube/jkube-jetty12:"));
     }
 
     @Test
@@ -129,7 +133,9 @@ class AppServerAutoDetectionTest {
 
         AppServerHandler appServerHandler = new AppServerDetector(generatorContext).detect("jetty9");
         assertThat(appServerHandler)
-            .hasFieldOrPropertyWithValue("name", "jetty9");
+            .isInstanceOf(Jetty9AppSeverHandler.class)
+            .hasFieldOrPropertyWithValue("name", "jetty9")
+            .satisfies(h -> assertThat(h.getFrom()).startsWith("quay.io/jkube/jkube-jetty9:"));
     }
 
     @Test
