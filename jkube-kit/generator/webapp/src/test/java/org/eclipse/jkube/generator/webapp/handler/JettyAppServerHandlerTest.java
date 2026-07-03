@@ -115,4 +115,13 @@ class JettyAppServerHandlerTest {
         .returns(null, JettyAppSeverHandler::getUser)
         .returns(true, JettyAppSeverHandler::supportsS2iBuild);
   }
+
+  @Test
+  void getEnv_shouldReturnScanIntervalForHotDeploy() {
+    // When
+    final JettyAppSeverHandler handler = new JettyAppSeverHandler(generatorContext);
+    // Then
+    assertThat(handler.getEnv())
+        .containsEntry("JAVA_TOOL_OPTIONS", "-Djetty.deploy.scanInterval=1");
+  }
 }

@@ -16,7 +16,6 @@ package org.eclipse.jkube.watcher.standard;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -34,7 +33,6 @@ import org.eclipse.jkube.watcher.api.BaseWatcher;
 import org.eclipse.jkube.watcher.api.WatcherContext;
 
 import io.fabric8.kubernetes.api.model.Container;
-import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.PodSpec;
 import io.fabric8.kubernetes.api.model.PodTemplateSpec;
@@ -80,10 +78,6 @@ import io.fabric8.openshift.client.OpenShiftClient;
 public class DockerImageWatcher extends BaseWatcher {
 
     private static final Duration WAIT_TIMEOUT = Duration.ofSeconds(60);
-    static final String JAVA_TOOL_OPTIONS = "JAVA_TOOL_OPTIONS";
-    private static final String JETTY_SCAN_INTERVAL_PROPERTY = "-Djetty.deploy.scanInterval";
-    private static final String JETTY_SCAN_INTERVAL_VALUE = "-Djetty.deploy.scanInterval=1";
-    private static final String JETTY12_IMAGE_MARKER = "jkube-jetty12";
 
     public DockerImageWatcher(WatcherContext watcherContext) {
         super(watcherContext, "docker-image");
@@ -100,10 +94,6 @@ public class DockerImageWatcher extends BaseWatcher {
     public void watch(List<ImageConfiguration> configs, String namespace, final Collection<HasMetadata> resources, PlatformMode mode) {
 
         WatchContext watchContext = getContext().getWatchContext();
-
-        if (resources != null) {
-            enableJettyScanInterval(resources);
-        }
 
         watchContext = watchContext.toBuilder()
                 .imageCustomizer(this::customizeImageName)
@@ -235,81 +225,5 @@ public class DockerImageWatcher extends BaseWatcher {
             }
         }
         return answer;
-    }
-
-    private void enableJettyScanInterval(Collection<HasMetadata> resources) {
-        final KubernetesClient client = getContext().getJKubeServiceHub().getClient();
-        final String ns = getContext().getNamespace();
-        for (HasMetadata entity : resources) {
-            if (entity instanceof Deployment) {
-                Deployment deployment = (Deployment) entity;
-                DeploymentSpec spec = deployment.getSpec();
-                if (spec != null && injectJettyScanInterval(entity, spec.getTemplate())) {
-                    client.apps().deployments().inNamespace(ns).resource(deployment).unlock().update();
-                }
-            } else if (entity instanceof ReplicaSet) {
-                ReplicaSet replicaSet = (ReplicaSet) entity;
-                ReplicaSetSpec spec = replicaSet.getSpec();
-                if (spec != null && injectJettyScanInterval(entity, spec.getTemplate())) {
-                    client.apps().replicaSets().inNamespace(ns).resource(replicaSet).unlock().update();
-                }
-            } else if (entity instanceof ReplicationController) {
-                ReplicationController rc = (ReplicationController) entity;
-                ReplicationControllerSpec spec = rc.getSpec();
-                if (spec != null && injectJettyScanInterval(entity, spec.getTemplate())) {
-                    client.replicationControllers().inNamespace(ns).resource(rc).unlock().update();
-                }
-            } else if (entity instanceof DeploymentConfig) {
-                DeploymentConfig dc = (DeploymentConfig) entity;
-                DeploymentConfigSpec spec = dc.getSpec();
-                if (spec != null && injectJettyScanInterval(entity, spec.getTemplate())) {
-                    OpenShiftClient openshiftClient = OpenshiftHelper.asOpenShiftClient(client);
-                    if (openshiftClient == null) {
-                        log.warn("Ignoring DeploymentConfig %s as not connected to an OpenShift cluster",
-                            KubernetesHelper.getName(entity));
-                    } else {
-                        openshiftClient.deploymentConfigs().inNamespace(ns).resource(dc).unlock().update();
-                    }
-                }
-            }
-        }
-    }
-
-    private boolean injectJettyScanInterval(HasMetadata entity, PodTemplateSpec template) {
-        if (template == null || template.getSpec() == null) {
-            return false;
-        }
-        boolean modified = false;
-        List<Container> containers = template.getSpec().getContainers();
-        if (containers != null) {
-            for (Container container : containers) {
-                String image = container.getImage();
-                if (image != null && image.contains(JETTY12_IMAGE_MARKER)) {
-                    if (injectScanIntervalEnvVar(container)) {
-                        log.info("Enabling Jetty 12 hot-deploy scanner for %s %s",
-                            KubernetesHelper.getKind(entity), KubernetesHelper.getName(entity));
-                        modified = true;
-                    }
-                }
-            }
-        }
-        return modified;
-    }
-
-    private boolean injectScanIntervalEnvVar(Container container) {
-        List<EnvVar> env = container.getEnv();
-        if (env == null) {
-            env = new ArrayList<>();
-        }
-        String currentValue = KubernetesHelper.getEnvVar(env, JAVA_TOOL_OPTIONS, "");
-        if (currentValue.contains(JETTY_SCAN_INTERVAL_PROPERTY)) {
-            return false;
-        }
-        String newValue = currentValue.isEmpty()
-            ? JETTY_SCAN_INTERVAL_VALUE
-            : currentValue + " " + JETTY_SCAN_INTERVAL_VALUE;
-        KubernetesHelper.setEnvVar(env, JAVA_TOOL_OPTIONS, newValue);
-        container.setEnv(env);
-        return true;
     }
 }
