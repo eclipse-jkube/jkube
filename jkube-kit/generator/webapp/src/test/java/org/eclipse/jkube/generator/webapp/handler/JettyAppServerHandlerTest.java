@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.common.Plugin;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -117,11 +118,23 @@ class JettyAppServerHandlerTest {
   }
 
   @Test
-  void getEnv_shouldReturnScanIntervalForHotDeploy() {
+  void getEnv_inWatchMode_shouldReturnScanIntervalForHotDeploy() {
+    // Given
+    when(generatorContext.getGeneratorMode()).thenReturn(GeneratorMode.WATCH);
     // When
     final JettyAppSeverHandler handler = new JettyAppSeverHandler(generatorContext);
     // Then
     assertThat(handler.getEnv())
         .containsEntry("JAVA_TOOL_OPTIONS", "-Djetty.deploy.scanInterval=1");
+  }
+
+  @Test
+  void getEnv_inBuildMode_shouldNotReturnScanInterval() {
+    // Given
+    when(generatorContext.getGeneratorMode()).thenReturn(GeneratorMode.BUILD);
+    // When
+    final JettyAppSeverHandler handler = new JettyAppSeverHandler(generatorContext);
+    // Then
+    assertThat(handler.getEnv()).isEmpty();
   }
 }
