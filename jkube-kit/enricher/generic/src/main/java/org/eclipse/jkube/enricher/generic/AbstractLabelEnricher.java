@@ -104,7 +104,7 @@ public abstract class AbstractLabelEnricher extends BaseEnricher {
             .map(DaemonSetSpec::getSelector)
             .map(LabelSelector::getMatchLabels)
             .orElse(new HashMap<>()),
-          true, getResourceConfigLabels().getAll());
+          false, getResourceConfigLabels().getAll());
         builder.editOrNewSpec().editOrNewSelector().withMatchLabels(selectors).endSelector().endSpec();
       }
     });
@@ -146,7 +146,7 @@ public abstract class AbstractLabelEnricher extends BaseEnricher {
             .map(StatefulSetSpec::getSelector)
             .map(LabelSelector::getMatchLabels)
             .orElse(new HashMap<>()),
-          true,
+          false,
           getResourceConfigLabels().getPod(), getResourceConfigLabels().getAll());
         builder.editOrNewSpec().editOrNewSelector().withMatchLabels(selectors).endSelector().endSpec();
       }
