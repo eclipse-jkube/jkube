@@ -26,7 +26,6 @@ import java.util.Properties;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.common.KitLogger;
 import  org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.JavaProject;
@@ -292,7 +291,6 @@ class WebAppGeneratorTest {
     void inWatchCopyMode_scanIntervalReachesBuildConfiguration() {
       // Given
       generatorContext = generatorContext.toBuilder()
-          .generatorMode(GeneratorMode.WATCH)
           .watchMode(WatchMode.copy)
           .build();
       generatorContext.getProject().setPlugins(Collections.singletonList(Plugin.builder()
@@ -317,7 +315,6 @@ class WebAppGeneratorTest {
       final Properties projectProperties = new Properties();
       projectProperties.put("jkube.generator.webapp.env", "JAVA_TOOL_OPTIONS=-Xmx512m");
       generatorContext = generatorContext.toBuilder()
-          .generatorMode(GeneratorMode.WATCH)
           .watchMode(WatchMode.copy)
           .build();
       generatorContext.getProject().setProperties(projectProperties);

@@ -20,7 +20,6 @@ import java.nio.file.Path;
 import java.util.Collections;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.WatchMode;
 
@@ -119,9 +118,8 @@ class JettyAppServerHandlerTest {
   }
 
   @Test
-  void getEnv_inWatchCopyMode_shouldReturnScanIntervalForHotDeploy() {
+  void getEnv_withWatchModeCopy_shouldReturnScanIntervalForHotDeploy() {
     // Given
-    when(generatorContext.getGeneratorMode()).thenReturn(GeneratorMode.WATCH);
     when(generatorContext.getWatchMode()).thenReturn(WatchMode.copy);
     // When
     final JettyAppSeverHandler handler = new JettyAppSeverHandler(generatorContext);
@@ -131,9 +129,8 @@ class JettyAppServerHandlerTest {
   }
 
   @Test
-  void getEnv_inWatchBuildMode_shouldNotReturnScanInterval() {
+  void getEnv_withWatchModeBuild_shouldNotReturnScanInterval() {
     // Given
-    when(generatorContext.getGeneratorMode()).thenReturn(GeneratorMode.WATCH);
     when(generatorContext.getWatchMode()).thenReturn(WatchMode.build);
     // When
     final JettyAppSeverHandler handler = new JettyAppSeverHandler(generatorContext);
@@ -142,9 +139,7 @@ class JettyAppServerHandlerTest {
   }
 
   @Test
-  void getEnv_inBuildMode_shouldNotReturnScanInterval() {
-    // Given
-    when(generatorContext.getGeneratorMode()).thenReturn(GeneratorMode.BUILD);
+  void getEnv_withNoWatchMode_shouldNotReturnScanInterval() {
     // When
     final JettyAppSeverHandler handler = new JettyAppSeverHandler(generatorContext);
     // Then

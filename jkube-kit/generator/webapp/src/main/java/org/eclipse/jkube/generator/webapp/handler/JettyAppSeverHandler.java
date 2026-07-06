@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
-import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.common.util.JKubeProjectUtil;
 
 /**
@@ -77,8 +76,7 @@ public class JettyAppSeverHandler extends AbstractAppServerHandler {
 
   @Override
   public Map<String, String> getEnv() {
-    if (generatorContext.getGeneratorMode() == GeneratorMode.WATCH
-        && generatorContext.getWatchMode() != null
+    if (generatorContext.getWatchMode() != null
         && generatorContext.getWatchMode().isCopy()) {
       return Collections.singletonMap("JAVA_TOOL_OPTIONS", "-Djetty.deploy.scanInterval=1");
     }

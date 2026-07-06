@@ -140,8 +140,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
             .useProjectClasspath(useProjectClasspath)
             .buildTimestamp(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
                 DOCKER_BUILD_TIMESTAMP))
-            .generatorMode(GeneratorMode.WATCH)
-            .watchMode(watchMode);
+            .generatorMode(GeneratorMode.WATCH);
     }
 
     protected KitLogger createLogger(String prefix) {

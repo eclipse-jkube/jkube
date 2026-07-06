@@ -54,8 +54,7 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
   @Override
   protected GeneratorContext.GeneratorContextBuilder initGeneratorContextBuilder() {
     return super.initGeneratorContextBuilder()
-        .generatorMode(GeneratorMode.WATCH)
-        .watchMode(kubernetesExtension.getWatchModeOrDefault());
+        .generatorMode(GeneratorMode.WATCH);
   }
 
   @Override
