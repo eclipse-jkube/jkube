@@ -229,6 +229,35 @@ class ProjectLabelEnricherTest {
   }
 
   @Test
+  @DisplayName("StatefulSet: version stays on the (mutable) template labels but not on the (immutable) selector")
+  void createAndEnrich_statefulSet_keepsVersionOnTemplateButNotOnSelector() {
+    // Given
+    KubernetesListBuilder builder = new KubernetesListBuilder().withItems(new StatefulSetBuilder()
+        .withNewMetadata().endMetadata()
+        .withNewSpec()
+        .withNewTemplate().withNewMetadata().endMetadata().endTemplate()
+        .endSpec()
+        .build());
+
+    // When
+    projectLabelEnricher.create(PlatformMode.kubernetes, builder);
+    projectLabelEnricher.enrich(PlatformMode.kubernetes, builder);
+
+    // Then
+    StatefulSet statefulSet = (StatefulSet) builder.buildFirstItem();
+    assertThat(statefulSet)
+        .extracting(StatefulSet::getSpec)
+        .extracting(StatefulSetSpec::getSelector)
+        .extracting(LabelSelector::getMatchLabels)
+        .asInstanceOf(InstanceOfAssertFactories.MAP)
+        .containsEntry("app", "artifactId")
+        .doesNotContainKey("version");
+    assertThat(statefulSet.getSpec().getTemplate().getMetadata().getLabels())
+        .containsEntry("app", "artifactId")
+        .containsEntry("version", "version");
+  }
+
+  @Test
   @DisplayName("when labels configured via resource config's labels > all, then use configured labels")
   void create_whenProjectLabelConfiguredViaResourceConfigLabelAll_thenUseLabelsViaResourceConfig() {
     // Given
