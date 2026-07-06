@@ -44,6 +44,11 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 class WebAppGeneratorTest {
 
@@ -265,6 +270,65 @@ class WebAppGeneratorTest {
       Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
       // then
       assertThat(extractedVariables).isEmpty();
+    }
+  }
+
+  @Nested
+  @DisplayName("Jetty 9 deprecation")
+  class Jetty9Deprecation {
+
+    @BeforeEach
+    void setUpJetty9Project() throws IOException {
+      final Path buildDirectory = Files.createDirectory(temporaryFolder.resolve("build-jetty9"));
+      Files.createFile(buildDirectory.resolve("artifact.war"));
+      generatorContext = GeneratorContext.builder()
+        .logger(spy(new KitLogger.SilentLogger()))
+        .project(JavaProject.builder().build())
+        .build();
+      generatorContext.getProject().setBuildDirectory(buildDirectory.toFile());
+      generatorContext.getProject().setBuildFinalName("artifact");
+      generatorContext.getProject().setPackaging("war");
+      generatorContext.getProject().setVersion("1.0.0");
+    }
+
+    @Test
+    @DisplayName("with server=jetty9, should log deprecation warning")
+    void withServerJetty9_shouldLogDeprecationWarning() {
+      // Given
+      final Properties projectProperties = new Properties();
+      projectProperties.put("jkube.generator.webapp.server", "jetty9");
+      generatorContext.getProject().setProperties(projectProperties);
+      // When
+      new WebAppGenerator(generatorContext).customize(new ArrayList<>(), false);
+      // Then
+      verify(generatorContext.getLogger()).warn(argThat(msg ->
+          msg.contains("deprecated") && msg.contains("javax.*") && msg.contains("jakarta.*")));
+    }
+
+    @Test
+    @DisplayName("with server=jetty9 and prePackagePhase, should still log deprecation warning")
+    void withServerJetty9AndPrePackagePhase_shouldLogDeprecationWarning() {
+      // Given
+      final Properties projectProperties = new Properties();
+      projectProperties.put("jkube.generator.webapp.server", "jetty9");
+      generatorContext.getProject().setProperties(projectProperties);
+      // When
+      new WebAppGenerator(generatorContext).customize(new ArrayList<>(), true);
+      // Then
+      verify(generatorContext.getLogger()).warn(contains("deprecated"));
+    }
+
+    @Test
+    @DisplayName("with server=jetty, should not log deprecation warning")
+    void withServerJetty_shouldNotLogDeprecationWarning() {
+      // Given
+      final Properties projectProperties = new Properties();
+      projectProperties.put("jkube.generator.webapp.server", "jetty");
+      generatorContext.getProject().setProperties(projectProperties);
+      // When
+      new WebAppGenerator(generatorContext).customize(new ArrayList<>(), false);
+      // Then
+      verify(generatorContext.getLogger(), never()).warn(contains("deprecated"));
     }
   }
 

@@ -17,7 +17,11 @@ import org.eclipse.jkube.generator.api.GeneratorContext;
 
 /**
  * Legacy Jetty 9 handler, opt-in only via {@code jkube.generator.webapp.server=jetty9}.
+ *
+ * @deprecated Use {@link JettyAppSeverHandler} (Jetty 12) instead. Migrate from {@code javax.*} to
+ *   {@code jakarta.*} packages and remove the {@code jkube.generator.webapp.server=jetty9} property.
  */
+@Deprecated
 public class Jetty9AppSeverHandler extends JettyAppSeverHandler {
 
   public Jetty9AppSeverHandler(GeneratorContext context) {
