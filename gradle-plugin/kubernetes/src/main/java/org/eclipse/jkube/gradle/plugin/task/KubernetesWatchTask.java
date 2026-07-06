@@ -16,6 +16,8 @@ package org.eclipse.jkube.gradle.plugin.task;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.kit.build.core.GavLabel;
 import org.eclipse.jkube.kit.build.service.docker.DockerServiceHub;
@@ -47,6 +49,13 @@ public class KubernetesWatchTask extends AbstractJKubeTask {
     return super.initJKubeServiceHubBuilder()
         .dockerServiceHub(DockerServiceHub.newInstance(kitLogger, TaskUtil.initDockerAccess(kubernetesExtension, kitLogger)))
         .buildServiceConfig(TaskUtil.buildServiceConfigBuilder(kubernetesExtension).build());
+  }
+
+  @Override
+  protected GeneratorContext.GeneratorContextBuilder initGeneratorContextBuilder() {
+    return super.initGeneratorContextBuilder()
+        .generatorMode(GeneratorMode.WATCH)
+        .watchMode(kubernetesExtension.getWatchModeOrDefault());
   }
 
   @Override

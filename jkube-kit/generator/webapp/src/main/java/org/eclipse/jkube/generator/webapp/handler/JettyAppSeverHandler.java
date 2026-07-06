@@ -77,7 +77,9 @@ public class JettyAppSeverHandler extends AbstractAppServerHandler {
 
   @Override
   public Map<String, String> getEnv() {
-    if (generatorContext.getGeneratorMode() == GeneratorMode.WATCH) {
+    if (generatorContext.getGeneratorMode() == GeneratorMode.WATCH
+        && generatorContext.getWatchMode() != null
+        && generatorContext.getWatchMode().isCopy()) {
       return Collections.singletonMap("JAVA_TOOL_OPTIONS", "-Djetty.deploy.scanInterval=1");
     }
     return Collections.emptyMap();
