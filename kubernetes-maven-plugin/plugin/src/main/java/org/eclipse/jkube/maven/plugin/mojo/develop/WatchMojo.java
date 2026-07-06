@@ -129,17 +129,7 @@ public class WatchMojo extends AbstractDockerMojo implements ManifestProvider {
 
     @Override
     protected GeneratorContext.GeneratorContextBuilder generatorContextBuilder() {
-        return GeneratorContext.builder()
-            .config(ProfileUtil.blendProfileWithConfiguration(ProfileUtil.GENERATOR_CONFIG, profile, ResourceUtil.getFinalResourceDirs(resourceDir, environment), generator))
-            .project(javaProject)
-            .logger(log)
-            .runtimeMode(getConfiguredRuntimeMode())
-            .useProjectClasspath(useProjectClasspath)
-            .prePackagePhase(false)
-            .sourceDirectory(sourceDirectory)
-            .useProjectClasspath(useProjectClasspath)
-            .buildTimestamp(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
-                DOCKER_BUILD_TIMESTAMP))
+        return super.generatorContextBuilder()
             .generatorMode(GeneratorMode.WATCH);
     }
 
