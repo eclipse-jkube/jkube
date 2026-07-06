@@ -179,7 +179,8 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
         .openshiftNamespace(StringUtils.isNotBlank(kubernetesExtension.getNamespaceOrNull()) ? kubernetesExtension.getNamespaceOrNull() : clusterConfiguration.getNamespace())
         .buildTimestamp(getBuildTimestamp(null, null, kubernetesExtension.javaProject.getBuildDirectory().getAbsolutePath(),
             DOCKER_BUILD_TIMESTAMP))
-        .filter(kubernetesExtension.getFilterOrNull());
+        .filter(kubernetesExtension.getFilterOrNull())
+        .watchMode(kubernetesExtension.getWatchModeOrDefault());
   }
 
   protected ClusterConfiguration initClusterConfiguration() {

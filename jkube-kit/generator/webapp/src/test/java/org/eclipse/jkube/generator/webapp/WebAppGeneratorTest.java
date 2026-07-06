@@ -31,6 +31,7 @@ import  org.eclipse.jkube.kit.common.AssemblyFile;
 import org.eclipse.jkube.kit.common.JavaProject;
 import org.eclipse.jkube.kit.common.Plugin;
 import org.eclipse.jkube.kit.config.image.ImageConfiguration;
+import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.config.image.build.BuildConfiguration;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
@@ -264,6 +265,72 @@ class WebAppGeneratorTest {
       Map<String, String> extractedVariables = WebAppGenerator.extractEnvVariables(envConfig);
       // then
       assertThat(extractedVariables).isEmpty();
+    }
+  }
+
+  @Nested
+  @DisplayName("Jetty watch-copy scanInterval")
+  class JettyWatchCopyScanInterval {
+
+    @BeforeEach
+    void setUpJettyProject() throws IOException {
+      final Path buildDirectory = Files.createDirectory(temporaryFolder.resolve("build"));
+      Files.createFile(buildDirectory.resolve("artifact.war"));
+      generatorContext.getProject().setBuildDirectory(buildDirectory.toFile());
+      generatorContext.getProject().setBuildFinalName("artifact");
+      generatorContext.getProject().setPackaging("war");
+      generatorContext.getProject().setVersion("1.0.0");
+      generatorContext.getProject().setPlugins(Collections.singletonList(Plugin.builder()
+          .groupId("org.eclipse.jetty")
+          .artifactId("jetty-maven-plugin")
+          .build()));
+    }
+
+    @Test
+    @DisplayName("in watch-copy mode, scanInterval env reaches BuildConfiguration")
+    void inWatchCopyMode_scanIntervalReachesBuildConfiguration() {
+      // Given
+      generatorContext = generatorContext.toBuilder()
+          .watchMode(WatchMode.copy)
+          .build();
+      generatorContext.getProject().setPlugins(Collections.singletonList(Plugin.builder()
+          .groupId("org.eclipse.jetty")
+          .artifactId("jetty-maven-plugin")
+          .build()));
+      // When
+      final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
+          .customize(new ArrayList<>(), false);
+      // Then
+      assertThat(result).singleElement()
+          .extracting(ImageConfiguration::getBuildConfiguration)
+          .extracting(BuildConfiguration::getEnv)
+          .asInstanceOf(InstanceOfAssertFactories.MAP)
+          .containsEntry("JAVA_TOOL_OPTIONS", "-Djetty.deploy.scanInterval=1");
+    }
+
+    @Test
+    @DisplayName("user env override wins over handler scanInterval")
+    void userEnvOverride_winsOverHandlerScanInterval() {
+      // Given
+      final Properties projectProperties = new Properties();
+      projectProperties.put("jkube.generator.webapp.env", "JAVA_TOOL_OPTIONS=-Xmx512m");
+      generatorContext = generatorContext.toBuilder()
+          .watchMode(WatchMode.copy)
+          .build();
+      generatorContext.getProject().setProperties(projectProperties);
+      generatorContext.getProject().setPlugins(Collections.singletonList(Plugin.builder()
+          .groupId("org.eclipse.jetty")
+          .artifactId("jetty-maven-plugin")
+          .build()));
+      // When
+      final List<ImageConfiguration> result = new WebAppGenerator(generatorContext)
+          .customize(new ArrayList<>(), false);
+      // Then
+      assertThat(result).singleElement()
+          .extracting(ImageConfiguration::getBuildConfiguration)
+          .extracting(BuildConfiguration::getEnv)
+          .asInstanceOf(InstanceOfAssertFactories.MAP)
+          .containsEntry("JAVA_TOOL_OPTIONS", "-Xmx512m");
     }
   }
 }

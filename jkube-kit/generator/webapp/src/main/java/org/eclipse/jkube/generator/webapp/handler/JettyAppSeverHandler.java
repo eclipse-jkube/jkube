@@ -14,6 +14,8 @@
 package org.eclipse.jkube.generator.webapp.handler;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.eclipse.jkube.generator.api.GeneratorContext;
@@ -70,6 +72,15 @@ public class JettyAppSeverHandler extends AbstractAppServerHandler {
   @Override
   public String getCommand() {
     return "/usr/local/s2i/run";
+  }
+
+  @Override
+  public Map<String, String> getEnv() {
+    if (generatorContext.getWatchMode() != null
+        && generatorContext.getWatchMode().isCopy()) {
+      return Collections.singletonMap("JAVA_TOOL_OPTIONS", "-Djetty.deploy.scanInterval=1");
+    }
+    return Collections.emptyMap();
   }
 
   @Override

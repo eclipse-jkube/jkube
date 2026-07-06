@@ -589,7 +589,8 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 .useProjectClasspath(useProjectClasspath)
                 .buildTimestamp(getBuildTimestamp(getPluginContext(), CONTEXT_KEY_BUILD_TIMESTAMP, project.getBuild().getDirectory(),
                    DOCKER_BUILD_TIMESTAMP))
-                .filter(filter);
+                .filter(filter)
+                .watchMode(watchMode);
     }
 
     /**
