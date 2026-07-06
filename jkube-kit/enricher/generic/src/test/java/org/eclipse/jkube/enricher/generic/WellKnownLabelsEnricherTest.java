@@ -398,6 +398,14 @@ class WellKnownLabelsEnricherTest {
           .extracting(field)
           .asInstanceOf(InstanceOfAssertFactories.MAP)
           .containsEntry("app.kubernetes.io/version", "0.0.1");
+    } else {
+      // Selectors must never carry the version label: spec.selector is immutable on
+      // StatefulSet/DaemonSet, so a version bump would make the manifest rejected by the
+      // Kubernetes API (see #3925, #3926). The version belongs on template/metadata labels only.
+      assertThat(hasMetadata)
+          .extracting(field)
+          .asInstanceOf(InstanceOfAssertFactories.MAP)
+          .doesNotContainKey("app.kubernetes.io/version");
     }
   }
 
