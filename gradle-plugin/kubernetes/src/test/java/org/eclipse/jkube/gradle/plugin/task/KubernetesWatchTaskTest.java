@@ -16,12 +16,16 @@ package org.eclipse.jkube.gradle.plugin.task;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.assertj.core.api.AssertionsForClassTypes;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.image.WatchMode;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 import org.gradle.api.provider.Property;
@@ -126,5 +130,83 @@ class KubernetesWatchTaskTest {
     assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
     assertThat(kubernetesWatchTask.jKubeServiceHub).isNull();
     verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sWatch` task is skipped."));
+  }
+
+  @Test
+  void generatorContextBuilder_shouldHaveWatchGeneratorMode() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("generatorMode", GeneratorMode.WATCH);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldHavePrePackagePhaseFalse() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("prePackagePhase", false);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldPropagateDefaultWatchMode() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("watchMode", WatchMode.both);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldPropagateConfiguredWatchMode() throws Exception {
+    // Given
+    extension.watchMode = WatchMode.copy;
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("watchMode", WatchMode.copy);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldHaveKubernetesRuntimeMode() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.KUBERNETES);
+  }
+
+  private static class TestKubernetesWatchTask extends KubernetesWatchTask {
+
+    GeneratorContext capturedGeneratorContext;
+
+    TestKubernetesWatchTask(Class<? extends KubernetesExtension> extensionClass) {
+      super(extensionClass);
+    }
+
+    @Override
+    protected GeneratorContext.GeneratorContextBuilder initGeneratorContextBuilder() {
+      GeneratorContext.GeneratorContextBuilder builder = super.initGeneratorContextBuilder();
+      capturedGeneratorContext = builder.build();
+      return builder;
+    }
   }
 }

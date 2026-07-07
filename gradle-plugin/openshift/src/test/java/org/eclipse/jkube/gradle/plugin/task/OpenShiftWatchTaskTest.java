@@ -18,10 +18,15 @@ import io.fabric8.kubernetes.api.model.APIGroupListBuilder;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
 import io.fabric8.openshift.client.OpenShiftClient;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.gradle.plugin.OpenShiftExtension;
 import org.eclipse.jkube.gradle.plugin.TestOpenShiftExtension;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.image.WatchMode;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
@@ -31,6 +36,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedStatic;
 
 import static java.net.HttpURLConnection.HTTP_OK;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -116,5 +122,95 @@ class OpenShiftWatchTaskTest {
 
     // Then
     verify(taskEnvironment.logger, times(1)).lifecycle(contains("oc: `ocWatch` task is skipped."));
+  }
+
+  @Test
+  void generatorContextBuilder_shouldHaveWatchGeneratorMode() throws Exception {
+    // Given
+    taskEnvironment.withOpenShiftManifest();
+    final TestOpenShiftWatchTask watchTask = new TestOpenShiftWatchTask(OpenShiftExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("generatorMode", GeneratorMode.WATCH);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldHavePrePackagePhaseFalse() throws Exception {
+    // Given
+    taskEnvironment.withOpenShiftManifest();
+    final TestOpenShiftWatchTask watchTask = new TestOpenShiftWatchTask(OpenShiftExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("prePackagePhase", false);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldPropagateDefaultWatchMode() throws Exception {
+    // Given
+    taskEnvironment.withOpenShiftManifest();
+    final TestOpenShiftWatchTask watchTask = new TestOpenShiftWatchTask(OpenShiftExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("watchMode", WatchMode.both);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldPropagateConfiguredWatchMode() throws Exception {
+    // Given
+    extension.watchMode = WatchMode.copy;
+    taskEnvironment.withOpenShiftManifest();
+    final TestOpenShiftWatchTask watchTask = new TestOpenShiftWatchTask(OpenShiftExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("watchMode", WatchMode.copy);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldHaveOpenshiftRuntimeMode() throws Exception {
+    // Given
+    taskEnvironment.withOpenShiftManifest();
+    final TestOpenShiftWatchTask watchTask = new TestOpenShiftWatchTask(OpenShiftExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.OPENSHIFT);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldHaveS2iBuildStrategy() throws Exception {
+    // Given
+    taskEnvironment.withOpenShiftManifest();
+    final TestOpenShiftWatchTask watchTask = new TestOpenShiftWatchTask(OpenShiftExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("strategy", JKubeBuildStrategy.s2i);
+  }
+
+  private static class TestOpenShiftWatchTask extends OpenShiftWatchTask {
+
+    GeneratorContext capturedGeneratorContext;
+
+    TestOpenShiftWatchTask(Class<? extends OpenShiftExtension> extensionClass) {
+      super(extensionClass);
+    }
+
+    @Override
+    protected GeneratorContext.GeneratorContextBuilder initGeneratorContextBuilder() {
+      GeneratorContext.GeneratorContextBuilder builder = super.initGeneratorContextBuilder();
+      capturedGeneratorContext = builder.build();
+      return builder;
+    }
   }
 }
