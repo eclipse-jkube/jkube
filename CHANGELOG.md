@@ -23,7 +23,10 @@ Usage:
 
 ### 1.20-SNAPSHOT
 * Fix #3916: Add explicit base-image JDK selection via `jkube.java.version` property for Java generators
+* Fix #3925: StatefulSet selector.matchLabels no longer includes version label (immutable field, prevented redeploy after version bump)
+* Fix #3926: DaemonSet selector.matchLabels no longer includes version label (immutable field, prevented redeploy after version bump)
 * Fix #3917: Update quickstart image references to jkube-images 0.0.28
+* Fix #3874: Deprecate `jkube-jetty9` base image in favor of `jkube-jetty12`; log a warning when `jkube.generator.webapp.server=jetty9` is explicitly selected
 * Fix #3873: Update JettyAppSeverHandler to select `jkube-jetty12` as the default Jetty image and add `jetty9` opt-in for legacy projects (potentially breaking for legacy JavaEE webapps using `javax.*`; set `jkube.generator.webapp.server=jetty9` to keep Jetty 9)
 * Fix #3918: Update documentation for jkube-images 0.0.28 changes
 * Fix #3902: Bump pack CLI from 0.34.2 to 0.40.7 and update default builder image to `paketobuildpacks/builder-jammy-base`

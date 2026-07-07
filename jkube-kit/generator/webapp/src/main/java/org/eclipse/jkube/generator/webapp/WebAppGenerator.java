@@ -96,6 +96,11 @@ public class WebAppGenerator extends BaseGenerator {
   @Override
   public List<ImageConfiguration> customize(List<ImageConfiguration> configs, boolean prePackagePhase) {
     final AppServerHandler handler = getAppServerHandler(getContext());
+    if ("jetty9".equals(handler.getName())) {
+      log.warn("The jkube-jetty9 base image is deprecated and will be removed in a future release. " +
+          "Migrate your project from javax.* to jakarta.* packages and set `jkube.generator.webapp.server=jetty` " +
+          "or remove the server property to use the default Jetty 12 image.");
+    }
     if (getContext().getRuntimeMode() == RuntimeMode.OPENSHIFT &&
         getContext().getStrategy() == JKubeBuildStrategy.s2i &&
         !prePackagePhase &&

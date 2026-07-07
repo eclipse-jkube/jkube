@@ -20,7 +20,6 @@ items:
         matchLabels:
           app: controller
           provider: jkube
-          version: "@ignore@"
           group: org.eclipse.jkube.integration.tests.gradle
       template:
         metadata:
