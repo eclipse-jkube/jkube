@@ -189,18 +189,24 @@ class WatchMojoTest {
 
   @Test
   void generatorContextBuilder_shouldPropagateSourceDirectory() throws Exception {
+    // Given
+    watchMojo.setSourceDirectory("src/main/docker");
     // When
     watchMojo.execute();
-    // Then — sourceDirectory is null because no @Parameter injection in test
-    assertThat(watchMojo.capturedGeneratorContext.getSourceDirectory()).isNull();
+    // Then
+    assertThat(watchMojo.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/docker");
   }
 
   @Test
   void generatorContextBuilder_shouldPropagateFilter() throws Exception {
+    // Given
+    watchMojo.setFilter("my-image");
     // When
     watchMojo.execute();
-    // Then — filter is null because no @Parameter injection in test
-    assertThat(watchMojo.capturedGeneratorContext.getFilter()).isNull();
+    // Then
+    assertThat(watchMojo.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("filter", "my-image");
   }
 
   private static class TestWatchMojo extends WatchMojo {
@@ -224,6 +230,14 @@ class WatchMojoTest {
 
     void setWatchMode(WatchMode watchMode) {
       this.watchMode = watchMode;
+    }
+
+    void setSourceDirectory(String sourceDirectory) {
+      this.sourceDirectory = sourceDirectory;
+    }
+
+    void setFilter(String filter) {
+      this.filter = filter;
     }
   }
 }

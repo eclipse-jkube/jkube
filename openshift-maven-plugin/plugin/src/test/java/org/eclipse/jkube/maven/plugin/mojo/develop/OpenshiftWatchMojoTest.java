@@ -172,18 +172,24 @@ class OpenshiftWatchMojoTest {
 
   @Test
   void generatorContextBuilder_shouldPropagateSourceDirectory() throws Exception {
+    // Given
+    watchMojo.setSourceDirectory("src/main/docker");
     // When
     watchMojo.execute();
     // Then
-    assertThat(watchMojo.capturedGeneratorContext.getSourceDirectory()).isNull();
+    assertThat(watchMojo.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/docker");
   }
 
   @Test
   void generatorContextBuilder_shouldPropagateFilter() throws Exception {
+    // Given
+    watchMojo.setFilter("my-image");
     // When
     watchMojo.execute();
     // Then
-    assertThat(watchMojo.capturedGeneratorContext.getFilter()).isNull();
+    assertThat(watchMojo.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("filter", "my-image");
   }
 
   private static class TestOpenshiftWatchMojo extends OpenshiftWatchMojo {
@@ -199,6 +205,14 @@ class OpenshiftWatchMojoTest {
 
     void setWatchMode(WatchMode watchMode) {
       this.watchMode = watchMode;
+    }
+
+    void setSourceDirectory(String sourceDirectory) {
+      this.sourceDirectory = sourceDirectory;
+    }
+
+    void setFilter(String filter) {
+      this.filter = filter;
     }
   }
 }

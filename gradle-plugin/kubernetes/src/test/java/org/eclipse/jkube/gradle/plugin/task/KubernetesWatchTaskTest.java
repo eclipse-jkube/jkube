@@ -194,6 +194,63 @@ class KubernetesWatchTaskTest {
         .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.KUBERNETES);
   }
 
+  @Test
+  void generatorContextBuilder_shouldPropagateProject() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext.getProject()).isNotNull();
+  }
+
+  @Test
+  void generatorContextBuilder_shouldPropagateBuildTimestamp() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext.getBuildTimestamp()).isNotNull();
+  }
+
+  @Test
+  void generatorContextBuilder_shouldPropagateUseProjectClasspath() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("useProjectClasspath", false);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldPropagateSourceDirectory() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/docker");
+  }
+
+  @Test
+  void generatorContextBuilder_shouldPropagateFilter() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext.getFilter()).isNull();
+  }
+
   private static class TestKubernetesWatchTask extends KubernetesWatchTask {
 
     GeneratorContext capturedGeneratorContext;
