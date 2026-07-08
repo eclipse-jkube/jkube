@@ -139,6 +139,7 @@ class WatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("prePackagePhase", false);
   }
 
@@ -148,6 +149,7 @@ class WatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.KUBERNETES);
   }
 
@@ -159,6 +161,7 @@ class WatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("watchMode", WatchMode.copy);
   }
 
@@ -167,7 +170,10 @@ class WatchMojoTest {
     // When
     watchMojo.execute();
     // Then
-    assertThat(watchMojo.capturedGeneratorContext.getProject()).isNotNull();
+    assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getProject)
+        .isNotNull();
   }
 
   @Test
@@ -175,7 +181,10 @@ class WatchMojoTest {
     // When
     watchMojo.execute();
     // Then
-    assertThat(watchMojo.capturedGeneratorContext.getBuildTimestamp()).isNotNull();
+    assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getBuildTimestamp)
+        .isNotNull();
   }
 
   @Test
@@ -184,6 +193,7 @@ class WatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("useProjectClasspath", false);
   }
 
@@ -195,6 +205,7 @@ class WatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/docker");
   }
 
@@ -206,6 +217,7 @@ class WatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("filter", "my-image");
   }
 

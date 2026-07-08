@@ -146,6 +146,7 @@ class OpenShiftWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("prePackagePhase", false);
   }
 
@@ -158,6 +159,7 @@ class OpenShiftWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("watchMode", WatchMode.both);
   }
 
@@ -171,6 +173,7 @@ class OpenShiftWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("watchMode", WatchMode.copy);
   }
 
@@ -183,6 +186,7 @@ class OpenShiftWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.OPENSHIFT);
   }
 
@@ -195,6 +199,7 @@ class OpenShiftWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("strategy", JKubeBuildStrategy.s2i);
   }
 
@@ -206,7 +211,10 @@ class OpenShiftWatchTaskTest {
     // When
     watchTask.runTask();
     // Then
-    assertThat(watchTask.capturedGeneratorContext.getProject()).isNotNull();
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getProject)
+        .isNotNull();
   }
 
   @Test
@@ -217,7 +225,10 @@ class OpenShiftWatchTaskTest {
     // When
     watchTask.runTask();
     // Then
-    assertThat(watchTask.capturedGeneratorContext.getBuildTimestamp()).isNotNull();
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getBuildTimestamp)
+        .isNotNull();
   }
 
   @Test
@@ -229,6 +240,7 @@ class OpenShiftWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("useProjectClasspath", false);
   }
 
@@ -241,6 +253,7 @@ class OpenShiftWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/docker");
   }
 
@@ -252,7 +265,10 @@ class OpenShiftWatchTaskTest {
     // When
     watchTask.runTask();
     // Then
-    assertThat(watchTask.capturedGeneratorContext.getFilter()).isNull();
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getFilter)
+        .isNull();
   }
 
   private static class TestOpenShiftWatchTask extends OpenShiftWatchTask {

@@ -25,6 +25,7 @@ import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
 import org.eclipse.jkube.kit.config.image.WatchMode;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.watcher.api.WatcherManager;
@@ -154,6 +155,7 @@ class KubernetesWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("prePackagePhase", false);
   }
 
@@ -166,6 +168,7 @@ class KubernetesWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("watchMode", WatchMode.both);
   }
 
@@ -179,6 +182,7 @@ class KubernetesWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("watchMode", WatchMode.copy);
   }
 
@@ -191,7 +195,21 @@ class KubernetesWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.KUBERNETES);
+  }
+
+  @Test
+  void generatorContextBuilder_shouldHaveDockerBuildStrategy() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("strategy", JKubeBuildStrategy.docker);
   }
 
   @Test
@@ -202,7 +220,10 @@ class KubernetesWatchTaskTest {
     // When
     watchTask.runTask();
     // Then
-    assertThat(watchTask.capturedGeneratorContext.getProject()).isNotNull();
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getProject)
+        .isNotNull();
   }
 
   @Test
@@ -213,7 +234,10 @@ class KubernetesWatchTaskTest {
     // When
     watchTask.runTask();
     // Then
-    assertThat(watchTask.capturedGeneratorContext.getBuildTimestamp()).isNotNull();
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getBuildTimestamp)
+        .isNotNull();
   }
 
   @Test
@@ -225,6 +249,7 @@ class KubernetesWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("useProjectClasspath", false);
   }
 
@@ -237,6 +262,7 @@ class KubernetesWatchTaskTest {
     watchTask.runTask();
     // Then
     assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/docker");
   }
 
@@ -248,7 +274,10 @@ class KubernetesWatchTaskTest {
     // When
     watchTask.runTask();
     // Then
-    assertThat(watchTask.capturedGeneratorContext.getFilter()).isNull();
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getFilter)
+        .isNull();
   }
 
   private static class TestKubernetesWatchTask extends KubernetesWatchTask {

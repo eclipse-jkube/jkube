@@ -113,6 +113,7 @@ class OpenshiftWatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("prePackagePhase", false);
   }
 
@@ -122,6 +123,7 @@ class OpenshiftWatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.OPENSHIFT);
   }
 
@@ -131,6 +133,7 @@ class OpenshiftWatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("strategy", JKubeBuildStrategy.s2i);
   }
 
@@ -142,6 +145,7 @@ class OpenshiftWatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("watchMode", WatchMode.copy);
   }
 
@@ -150,7 +154,10 @@ class OpenshiftWatchMojoTest {
     // When
     watchMojo.execute();
     // Then
-    assertThat(watchMojo.capturedGeneratorContext.getProject()).isNotNull();
+    assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getProject)
+        .isNotNull();
   }
 
   @Test
@@ -158,7 +165,10 @@ class OpenshiftWatchMojoTest {
     // When
     watchMojo.execute();
     // Then
-    assertThat(watchMojo.capturedGeneratorContext.getBuildTimestamp()).isNotNull();
+    assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getBuildTimestamp)
+        .isNotNull();
   }
 
   @Test
@@ -167,6 +177,7 @@ class OpenshiftWatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("useProjectClasspath", false);
   }
 
@@ -178,6 +189,7 @@ class OpenshiftWatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/docker");
   }
 
@@ -189,6 +201,7 @@ class OpenshiftWatchMojoTest {
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
         .hasFieldOrPropertyWithValue("filter", "my-image");
   }
 
