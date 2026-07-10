@@ -57,7 +57,7 @@
     <version.plexus-classworlds>2.9.0</version.plexus-classworlds>
     <version.plexus-build-api>0.0.7</version.plexus-build-api>
     <version.plexus-utils>4.0.3</version.plexus-utils>
-    <version.plexus-xml>3.0.2</version.plexus-xml>
+    <version.plexus-xml>4.1.1</version.plexus-xml>
     <version.shrinkwrap>1.2.6</version.shrinkwrap>
     <version.validation-api>2.0.1.Final</version.validation-api>
     <version.ow2.asm>9.10.1</version.ow2.asm>
