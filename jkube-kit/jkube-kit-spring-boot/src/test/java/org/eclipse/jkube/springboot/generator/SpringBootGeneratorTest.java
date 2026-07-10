@@ -243,6 +243,25 @@ class SpringBootGeneratorTest {
     assertThat(javaOptions).contains("-Dspring.output.ansi.enabled=detect");
   }
 
+  @Test
+  @DisplayName("with jkube.java.version set, should use version-specific base image")
+  void customize_withJavaVersionProperty_shouldUseVersionSpecificImage() {
+    // Given
+    Properties properties = new Properties();
+    properties.put("jkube.java.version", "21");
+    context = context.toBuilder()
+      .project(context.getProject().toBuilder().properties(properties).build())
+      .build();
+    // When
+    final List<ImageConfiguration> result = new SpringBootGenerator(context).customize(new ArrayList<>(), true);
+    // Then
+    assertThat(result).singleElement()
+      .extracting(ImageConfiguration::getBuildConfiguration)
+      .extracting(BuildConfiguration::getFrom)
+      .asString()
+      .contains("jkube-java-21");
+  }
+
   private void withPlugin(Plugin plugin) {
     context = context.toBuilder()
       .project(context.getProject().toBuilder().plugin(plugin).build())

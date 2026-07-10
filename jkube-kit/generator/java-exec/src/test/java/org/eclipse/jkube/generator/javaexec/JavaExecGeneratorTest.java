@@ -286,8 +286,19 @@ class JavaExecGeneratorTest {
       assertThatThrownBy(() -> JavaExecGenerator.resolveJdk(javaProject))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Unsupported jkube.java.version")
-        .hasMessageContaining(version)
+        .hasMessageContaining(version.trim())
         .hasMessageContaining("11, 17, 21, 25");
+    }
+
+    @ParameterizedTest(name = "with whitespace-padded jkube.java.version=''{0}'' should resolve correctly")
+    @ValueSource(strings = {" 21", "21 ", " 21 "})
+    void withWhitespacePaddedVersion_shouldResolve(String version) {
+      // Given
+      Properties props = new Properties();
+      props.setProperty("jkube.java.version", version);
+      JavaProject javaProject = JavaProject.builder().properties(props).build();
+      // When & Then
+      assertThat(JavaExecGenerator.resolveJdk(javaProject)).isEqualTo(JavaExecGenerator.JDK.JDK_21);
     }
   }
 
@@ -330,15 +341,33 @@ class JavaExecGeneratorTest {
     }
 
     @Test
-    @DisplayName("with invalid jkube.java.version, should fail fast")
+    @DisplayName("with invalid jkube.java.version, should fail at customize time")
     void withInvalidVersion_shouldThrow() {
       // Given
       properties.put("jkube.generator.java-exec.mainClass", "org.example.Foo");
       properties.put("jkube.java.version", "8");
+      final JavaExecGenerator generator = new JavaExecGenerator(generatorContext);
       // When & Then
-      assertThatThrownBy(() -> new JavaExecGenerator(generatorContext))
+      assertThatThrownBy(() -> generator.customize(new ArrayList<>(), false))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Unsupported jkube.java.version");
+    }
+
+    @ParameterizedTest(name = "with whitespace-padded jkube.java.version=''{0}'', should use matching image")
+    @ValueSource(strings = {" 21", "21 ", " 21 "})
+    void withWhitespacePaddedVersion_shouldResolveCorrectly(String version) {
+      // Given
+      properties.put("jkube.generator.java-exec.mainClass", "org.example.Foo");
+      properties.put("jkube.java.version", version);
+      // When
+      final List<ImageConfiguration> result = new JavaExecGenerator(generatorContext)
+        .customize(new ArrayList<>(), false);
+      // Then
+      assertThat(result).singleElement()
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .extracting(BuildConfiguration::getFrom)
+        .asString()
+        .contains("jkube-java-21");
     }
   }
 
@@ -381,6 +410,42 @@ class JavaExecGeneratorTest {
         .isEqualTo("my-custom-image:latest");
       verify(generatorContext.getLogger(), never()).warn(contains("jkube.java.version"),
           anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("with from and blank jkube.java.version, from wins without spurious warning")
+    void withFromAndBlankJavaVersion_noWarning() {
+      // Given
+      properties.put("jkube.generator.java-exec.mainClass", "org.example.Foo");
+      properties.put("jkube.generator.from", "my-custom-image:latest");
+      properties.put("jkube.java.version", "");
+      // When
+      final List<ImageConfiguration> result = new JavaExecGenerator(generatorContext)
+        .customize(new ArrayList<>(), false);
+      // Then
+      assertThat(result).singleElement()
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .extracting(BuildConfiguration::getFrom)
+        .isEqualTo("my-custom-image:latest");
+      verify(generatorContext.getLogger(), never()).warn(contains("jkube.java.version"),
+          anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("with from and invalid jkube.java.version, from takes precedence without error")
+    void withFromAndInvalidJavaVersion_fromWinsNoError() {
+      // Given
+      properties.put("jkube.generator.java-exec.mainClass", "org.example.Foo");
+      properties.put("jkube.generator.from", "my-custom-image:latest");
+      properties.put("jkube.java.version", "8");
+      // When
+      final List<ImageConfiguration> result = new JavaExecGenerator(generatorContext)
+        .customize(new ArrayList<>(), false);
+      // Then
+      assertThat(result).singleElement()
+        .extracting(ImageConfiguration::getBuildConfiguration)
+        .extracting(BuildConfiguration::getFrom)
+        .isEqualTo("my-custom-image:latest");
     }
   }
 }

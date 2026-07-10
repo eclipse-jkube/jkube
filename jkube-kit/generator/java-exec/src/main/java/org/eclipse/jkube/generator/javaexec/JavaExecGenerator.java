@@ -93,19 +93,21 @@ public class JavaExecGenerator extends BaseGenerator {
 
     private final FatJarDetector fatJarDetector;
     private final MainClassDetector mainClassDetector;
+    private final boolean jdkPinned;
 
     public JavaExecGenerator(GeneratorContext context) {
         this(context, "java-exec");
     }
 
     protected JavaExecGenerator(GeneratorContext context, String name) {
-        this(context, name, resolveJdk(context.getProject()));
+        this(context, name, JDK.DEFAULT);
     }
     protected JavaExecGenerator(GeneratorContext context, String name, JDK jdk) {
         super(context, name, new FromSelector.Default(context, jdk.imagePrefix));
         fatJarDetector = new FatJarDetector(getProject().getBuildPackageDirectory());
         mainClassDetector = new MainClassDetector(getConfig(Config.MAIN_CLASS),
                 getProject().getOutputDirectory(), context.getLogger());
+        jdkPinned = jdk != JDK.DEFAULT;
     }
 
     static JDK resolveJdk(JavaProject project) {
@@ -114,19 +116,23 @@ public class JavaExecGenerator extends BaseGenerator {
         if (version == null || version.trim().isEmpty()) {
             return JDK.DEFAULT;
         }
-        return JDK.fromVersion(version);
+        return JDK.fromVersion(version.trim());
     }
 
     @Override
     protected void addFrom(BuildConfiguration.BuildConfigurationBuilder builder) {
         final String explicitFrom = super.getFromAsConfigured();
-        if (explicitFrom != null) {
-            final String javaVersion = Configs.getFromSystemPropertyWithPropertiesAsFallback(
-                getProject().getProperties(), PROPERTY_JKUBE_JAVA_VERSION);
-            if (javaVersion != null) {
-                log.warn("Both 'from' (%s) and 'jkube.java.version' (%s) are set. " +
-                    "'from' takes precedence; 'jkube.java.version' will be ignored.",
-                    explicitFrom, javaVersion);
+        final String javaVersion = Configs.getFromSystemPropertyWithPropertiesAsFallback(
+            getProject().getProperties(), PROPERTY_JKUBE_JAVA_VERSION);
+        if (explicitFrom != null && StringUtils.isNotBlank(javaVersion)) {
+            log.warn("Both 'from' (%s) and 'jkube.java.version' (%s) are set. " +
+                "'from' takes precedence; 'jkube.java.version' will be ignored.",
+                explicitFrom, javaVersion);
+        }
+        if (explicitFrom == null && !jdkPinned) {
+            final JDK jdk = resolveJdk(getProject());
+            if (jdk != JDK.DEFAULT) {
+                fromSelector = new FromSelector.Default(getContext(), jdk.imagePrefix);
             }
         }
         super.addFrom(builder);
