@@ -21,14 +21,34 @@ It will use the following base image by default, but as explained <<generator-op
 |===
 | | Docker Build | S2I Build | ImageStream
 
-| *Community*
+| *Default (latest)*
 | `quay.io/jkube/jkube-java`
 | `quay.io/jkube/jkube-java`
 | `jkube-java`
 
+| *Java 25*
+| `quay.io/jkube/jkube-java-25`
+| `quay.io/jkube/jkube-java-25`
+| `jkube-java-25`
+
+| *Java 21*
+| `quay.io/jkube/jkube-java-21`
+| `quay.io/jkube/jkube-java-21`
+| `jkube-java-21`
+
+| *Java 17*
+| `quay.io/jkube/jkube-java-17`
+| `quay.io/jkube/jkube-java-17`
+| `jkube-java-17`
+
+| *Java 11*
+| `quay.io/jkube/jkube-java-11`
+| `quay.io/jkube/jkube-java-11`
+| `jkube-java-11`
+
 |===
 
-These images always refer to the latest tag.
+By default, the latest image is used. To select a specific Java version, see <<generator-java-exec-java-version>> below.
 
 When a `fromMode` of `istag` is used to specify an `ImageStreamTag` and when no `from` is given, then as default the
 `ImageStreamTag` `jkube-java` in the namespace `openshift` is chosen.
@@ -86,6 +106,48 @@ If no such class is found or if more than one is
 |===
 
 The exposed ports are typically later on use by <<enrichers, Enrichers>> to create default Kubernetes or OpenShift services.
+
+[[generator-java-exec-java-version]]
+==== Selecting a specific Java version
+
+By default, JKube uses the `jkube-java` base image which always tracks the latest supported Java version.
+To pin a specific Java version for your base image, set the `jkube.java.version` property to one of the supported values: `11`, `17`, `21`, `25`.
+
+ifeval::["{plugin-type}" == "maven"]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<properties>
+  <jkube.java.version>21</jkube.java.version>
+</properties>
+----
+
+Or via the command line:
+
+----
+mvn package k8s:build -Djkube.java.version=21
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+In `gradle.properties`:
+
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
+----
+jkube.java.version=21
+----
+
+Or via the command line:
+
+----
+gradle k8sBuild -Pjkube.java.version=21
+----
+endif::[]
+
+This property works across all Java-based generators (java-exec, Spring Boot, Quarkus, Micronaut, Helidon, Vert.x, WildFly JAR, Open Liberty).
+
+.Precedence
+If both `from` and `jkube.java.version` are configured, `from` takes precedence and a warning is emitted.
+Setting an unsupported value will cause the build to fail with a message listing the supported versions.
 
 You can add additional files to the target image within `baseDir` by placing files into `src/main/jkube-includes`.
 These will be added with mode `0644`, while everything in `src/main/jkube-includes/bin` will be added with `0755`.

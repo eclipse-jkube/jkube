@@ -22,6 +22,32 @@ The above will generate an environment variable `$FOO` of value `bar`
 
 For a full list of the environments used in java base images, https://github.com/eclipse-jkube/jkube-images#available-images[see this list]
 
+=== How do I select a specific Java version for my base image?
+
+By default, JKube uses the `jkube-java` base image which tracks the latest Java version.
+To pin a specific Java version, set the `jkube.java.version` property.
+Supported values: `11`, `17`, `21`, `25`.
+
+ifeval::["{plugin-type}" == "maven"]
+[source,xml,indent=0,subs="verbatim,quotes,attributes"]
+----
+<properties>
+  <jkube.java.version>21</jkube.java.version>
+</properties>
+----
+endif::[]
+
+ifeval::["{plugin-type}" == "gradle"]
+[source,properties,indent=0,subs="verbatim,quotes,attributes"]
+----
+jkube.java.version=21
+----
+endif::[]
+
+This property works identically for Maven and Gradle, and across all Java-based generators.
+If both `from` and `jkube.java.version` are set, `from` takes precedence.
+See <<generator-java-exec-java-version>> for more details.
+
 === How do I define a system property?
 
 The simplest way is to add system properties to the `JAVA_OPTIONS` environment variable.
