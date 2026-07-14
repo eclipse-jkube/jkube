@@ -32,6 +32,7 @@ import org.eclipse.jkube.watcher.api.WatcherManager;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
@@ -134,6 +135,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have WATCH generator mode")
   void generatorContextBuilder_shouldHaveWatchGeneratorMode() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
@@ -147,6 +149,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have prePackagePhase false")
   void generatorContextBuilder_shouldHavePrePackagePhaseFalse() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
@@ -160,6 +163,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate default watch mode")
   void generatorContextBuilder_shouldPropagateDefaultWatchMode() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
@@ -173,6 +177,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate configured watch mode")
   void generatorContextBuilder_shouldPropagateConfiguredWatchMode() throws Exception {
     // Given
     extension.watchMode = WatchMode.copy;
@@ -187,6 +192,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have Kubernetes runtime mode")
   void generatorContextBuilder_shouldHaveKubernetesRuntimeMode() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
@@ -200,6 +206,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have docker build strategy")
   void generatorContextBuilder_shouldHaveDockerBuildStrategy() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
@@ -213,6 +220,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate project")
   void generatorContextBuilder_shouldPropagateProject() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
@@ -223,10 +231,11 @@ class KubernetesWatchTaskTest {
     assertThat(watchTask.capturedGeneratorContext)
         .isNotNull()
         .extracting(GeneratorContext::getProject)
-        .isNotNull();
+        .isSameAs(extension.javaProject);
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate build timestamp")
   void generatorContextBuilder_shouldPropagateBuildTimestamp() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
@@ -241,6 +250,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate useProjectClasspath")
   void generatorContextBuilder_shouldPropagateUseProjectClasspath() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
@@ -254,6 +264,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate source directory")
   void generatorContextBuilder_shouldPropagateSourceDirectory() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
@@ -267,6 +278,7 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have null filter when not configured")
   void generatorContextBuilder_shouldPropagateFilter() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();

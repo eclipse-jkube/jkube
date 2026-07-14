@@ -34,6 +34,7 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.settings.Settings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.MockedStatic;
@@ -98,6 +99,7 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have WATCH generator mode")
   void generatorContextBuilder_shouldHaveWatchGeneratorMode() throws Exception {
     // When
     watchMojo.execute();
@@ -108,6 +110,7 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have prePackagePhase false")
   void generatorContextBuilder_shouldHavePrePackagePhaseFalse() throws Exception {
     // When
     watchMojo.execute();
@@ -118,6 +121,7 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have OpenShift runtime mode")
   void generatorContextBuilder_shouldHaveOpenshiftRuntimeMode() throws Exception {
     // When
     watchMojo.execute();
@@ -128,6 +132,7 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have s2i build strategy")
   void generatorContextBuilder_shouldHaveS2iBuildStrategy() throws Exception {
     // When
     watchMojo.execute();
@@ -138,6 +143,20 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate default watch mode")
+  void generatorContextBuilder_shouldPropagateDefaultWatchMode() throws Exception {
+    // Given
+    watchMojo.setWatchMode(WatchMode.both);
+    // When
+    watchMojo.execute();
+    // Then
+    assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("watchMode", WatchMode.both);
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should propagate configured watch mode")
   void generatorContextBuilder_shouldPropagateWatchMode() throws Exception {
     // Given
     watchMojo.setWatchMode(WatchMode.copy);
@@ -150,6 +169,7 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate project")
   void generatorContextBuilder_shouldPropagateProject() throws Exception {
     // When
     watchMojo.execute();
@@ -161,6 +181,7 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate build timestamp")
   void generatorContextBuilder_shouldPropagateBuildTimestamp() throws Exception {
     // When
     watchMojo.execute();
@@ -172,6 +193,7 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate useProjectClasspath")
   void generatorContextBuilder_shouldPropagateUseProjectClasspath() throws Exception {
     // When
     watchMojo.execute();
@@ -182,6 +204,7 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate source directory")
   void generatorContextBuilder_shouldPropagateSourceDirectory() throws Exception {
     // Given
     watchMojo.setSourceDirectory("src/main/docker");
@@ -194,6 +217,7 @@ class OpenshiftWatchMojoTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate configured filter")
   void generatorContextBuilder_shouldPropagateFilter() throws Exception {
     // Given
     watchMojo.setFilter("my-image");
@@ -203,6 +227,18 @@ class OpenshiftWatchMojoTest {
     assertThat(watchMojo.capturedGeneratorContext)
         .isNotNull()
         .hasFieldOrPropertyWithValue("filter", "my-image");
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should have null filter when not configured")
+  void generatorContextBuilder_shouldHaveNullFilterWhenNotConfigured() throws Exception {
+    // When
+    watchMojo.execute();
+    // Then
+    assertThat(watchMojo.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getFilter)
+        .isNull();
   }
 
   private static class TestOpenshiftWatchMojo extends OpenshiftWatchMojo {

@@ -31,6 +31,7 @@ import org.eclipse.jkube.watcher.api.WatcherManager;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedStatic;
@@ -39,11 +40,9 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -125,6 +124,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have WATCH generator mode")
   void generatorContextBuilder_shouldHaveWatchGeneratorMode() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
@@ -138,6 +138,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have prePackagePhase false")
   void generatorContextBuilder_shouldHavePrePackagePhaseFalse() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
@@ -151,6 +152,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate default watch mode")
   void generatorContextBuilder_shouldPropagateDefaultWatchMode() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
@@ -164,6 +166,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate configured watch mode")
   void generatorContextBuilder_shouldPropagateConfiguredWatchMode() throws Exception {
     // Given
     extension.watchMode = WatchMode.copy;
@@ -178,6 +181,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have OpenShift runtime mode")
   void generatorContextBuilder_shouldHaveOpenshiftRuntimeMode() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
@@ -191,6 +195,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have s2i build strategy")
   void generatorContextBuilder_shouldHaveS2iBuildStrategy() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
@@ -204,6 +209,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate project")
   void generatorContextBuilder_shouldPropagateProject() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
@@ -214,10 +220,11 @@ class OpenShiftWatchTaskTest {
     assertThat(watchTask.capturedGeneratorContext)
         .isNotNull()
         .extracting(GeneratorContext::getProject)
-        .isNotNull();
+        .isSameAs(extension.javaProject);
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate build timestamp")
   void generatorContextBuilder_shouldPropagateBuildTimestamp() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
@@ -232,6 +239,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate useProjectClasspath")
   void generatorContextBuilder_shouldPropagateUseProjectClasspath() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
@@ -245,6 +253,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should propagate source directory")
   void generatorContextBuilder_shouldPropagateSourceDirectory() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
@@ -258,6 +267,7 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
+  @DisplayName("generatorContextBuilder should have null filter when not configured")
   void generatorContextBuilder_shouldPropagateFilter() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
