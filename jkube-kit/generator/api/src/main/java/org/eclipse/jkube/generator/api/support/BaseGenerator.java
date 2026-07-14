@@ -61,7 +61,7 @@ public abstract class BaseGenerator implements Generator {
     private final String name;
     private final GeneratorConfig config;
     protected final PrefixedLogger log;
-    private final FromSelector fromSelector;
+    protected FromSelector fromSelector;
 
     @AllArgsConstructor
     enum Config implements Configs.Config {

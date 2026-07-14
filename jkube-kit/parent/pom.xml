@@ -43,10 +43,10 @@
     <version.httpclient>4.5.14</version.httpclient>
     <version.ianaservicehelper>0.0.1</version.ianaservicehelper>
     <version.jansi>2.4.3</version.jansi>
-    <version.javassist>3.30.2-GA</version.javassist>
+    <version.javassist>3.32.0-GA</version.javassist>
     <!-- Don't upgrade Eclipse JGit to 6.x for Java 8 compatibility -->
     <version.jgit>5.13.5.202508271544-r</version.jgit>
-    <version.jnr-unixsocket>0.38.24</version.jnr-unixsocket>
+    <version.jnr-unixsocket>0.39.2</version.jnr-unixsocket>
     <version.jsr305>3.0.2</version.jsr305>
     <version.maven-archiver>3.6.5</version.maven-archiver>
     <version.maven-core>3.8.1</version.maven-core>
@@ -97,6 +97,21 @@
     <image.java11.upstream.s2i>quay.io/jkube/jkube-java-11:${version.image.java.upstream.s2i}</image.java11.upstream.s2i>
     <image.java11.upstream.docker>quay.io/jkube/jkube-java-11:${version.image.java.upstream.docker}</image.java11.upstream.docker>
     <image.java11.upstream.istag>jkube-java-11:${version.image.java.upstream.s2i}</image.java11.upstream.istag>
+
+    <!-- java 17 -->
+    <image.java17.upstream.s2i>quay.io/jkube/jkube-java-17:${version.image.java.upstream.s2i}</image.java17.upstream.s2i>
+    <image.java17.upstream.docker>quay.io/jkube/jkube-java-17:${version.image.java.upstream.docker}</image.java17.upstream.docker>
+    <image.java17.upstream.istag>jkube-java-17:${version.image.java.upstream.s2i}</image.java17.upstream.istag>
+
+    <!-- java 21 -->
+    <image.java21.upstream.s2i>quay.io/jkube/jkube-java-21:${version.image.java.upstream.s2i}</image.java21.upstream.s2i>
+    <image.java21.upstream.docker>quay.io/jkube/jkube-java-21:${version.image.java.upstream.docker}</image.java21.upstream.docker>
+    <image.java21.upstream.istag>jkube-java-21:${version.image.java.upstream.s2i}</image.java21.upstream.istag>
+
+    <!-- java 25 -->
+    <image.java25.upstream.s2i>quay.io/jkube/jkube-java-25:${version.image.java.upstream.s2i}</image.java25.upstream.s2i>
+    <image.java25.upstream.docker>quay.io/jkube/jkube-java-25:${version.image.java.upstream.docker}</image.java25.upstream.docker>
+    <image.java25.upstream.istag>jkube-java-25:${version.image.java.upstream.s2i}</image.java25.upstream.istag>
 
     <!-- Helidon -->
     <image.helidon-native.upstream.s2i>registry.access.redhat.com/ubi9/ubi-minimal:${version.image.ubi-minimal}</image.helidon-native.upstream.s2i>

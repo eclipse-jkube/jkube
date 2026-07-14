@@ -15,9 +15,11 @@ package org.eclipse.jkube.generator.javaexec;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -45,15 +47,36 @@ import static org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath;
 public class JavaExecGenerator extends BaseGenerator {
 
   protected enum JDK {
-    DEFAULT("java"),
-    JDK_11("java11");
+    DEFAULT("java", null),
+    JDK_11("java11", "11"),
+    JDK_17("java17", "17"),
+    JDK_21("java21", "21"),
+    JDK_25("java25", "25");
 
     final String imagePrefix;
+    final String version;
 
-    JDK(String imagePrefix) {
+    JDK(String imagePrefix, String version) {
       this.imagePrefix = imagePrefix;
+      this.version = version;
+    }
+
+    static JDK fromVersion(String version) {
+      return Arrays.stream(values())
+        .filter(jdk -> jdk.version != null && jdk.version.equals(version))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException(String.format(
+          "Unsupported jkube.java.version '%s'. Supported versions are: %s",
+          version,
+          Arrays.stream(values())
+            .filter(jdk -> jdk.version != null)
+            .map(jdk -> jdk.version)
+            .collect(Collectors.joining(", "))
+        )));
     }
   }
+
+    static final String PROPERTY_JKUBE_JAVA_VERSION = "jkube.java.version";
 
     private static final String WEB_PORT_DEFAULT = "8080";
     public static final String JOLOKIA_PORT_DEFAULT = "8778";
@@ -70,6 +93,7 @@ public class JavaExecGenerator extends BaseGenerator {
 
     private final FatJarDetector fatJarDetector;
     private final MainClassDetector mainClassDetector;
+    private final boolean jdkPinned;
 
     public JavaExecGenerator(GeneratorContext context) {
         this(context, "java-exec");
@@ -83,6 +107,35 @@ public class JavaExecGenerator extends BaseGenerator {
         fatJarDetector = new FatJarDetector(getProject().getBuildPackageDirectory());
         mainClassDetector = new MainClassDetector(getConfig(Config.MAIN_CLASS),
                 getProject().getOutputDirectory(), context.getLogger());
+        jdkPinned = jdk != JDK.DEFAULT;
+    }
+
+    static JDK resolveJdk(JavaProject project) {
+        final String version = Configs.getFromSystemPropertyWithPropertiesAsFallback(
+            project.getProperties(), PROPERTY_JKUBE_JAVA_VERSION);
+        if (version == null || version.trim().isEmpty()) {
+            return JDK.DEFAULT;
+        }
+        return JDK.fromVersion(version.trim());
+    }
+
+    @Override
+    protected void addFrom(BuildConfiguration.BuildConfigurationBuilder builder) {
+        final String explicitFrom = super.getFromAsConfigured();
+        final String javaVersion = Configs.getFromSystemPropertyWithPropertiesAsFallback(
+            getProject().getProperties(), PROPERTY_JKUBE_JAVA_VERSION);
+        if (explicitFrom != null && StringUtils.isNotBlank(javaVersion)) {
+            log.warn("Both 'from' (%s) and 'jkube.java.version' (%s) are set. " +
+                "'from' takes precedence; 'jkube.java.version' will be ignored.",
+                explicitFrom, javaVersion);
+        }
+        if (explicitFrom == null && !jdkPinned) {
+            final JDK jdk = resolveJdk(getProject());
+            if (jdk != JDK.DEFAULT) {
+                fromSelector = new FromSelector.Default(getContext(), jdk.imagePrefix);
+            }
+        }
+        super.addFrom(builder);
     }
 
     @AllArgsConstructor
