@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.20-SNAPSHOT
+* Fix #3947: Spring Boot DevTools watcher resolves `application.properties` from `project.resourcesOutputDirectory` for Gradle compatibility
 * Fix #3916: Add explicit base-image JDK selection via `jkube.java.version` property for Java generators
 * Fix #3925: StatefulSet selector.matchLabels no longer includes version label (immutable field, prevented redeploy after version bump)
 * Fix #3926: DaemonSet selector.matchLabels no longer includes version label (immutable field, prevented redeploy after version bump)
