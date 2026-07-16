@@ -74,6 +74,16 @@ public class JavaProject implements Serializable {
    */
   private File outputDirectory;
   /**
+   * Directory where processed resources are located.
+   * For Maven this is the same as {@link #outputDirectory} (e.g. target/classes).
+   * For Gradle this is a separate directory (e.g. build/resources/main).
+   * Defaults to {@link #outputDirectory} when not explicitly set.
+   *
+   * @param resourcesOutputDirectory New resources output directory for the project.
+   * @return The resources output directory for the project.
+   */
+  private File resourcesOutputDirectory;
+  /**
    * Project's base directory
    *
    * @param baseDirectory New base directory for the project.
@@ -257,7 +267,8 @@ public class JavaProject implements Serializable {
   @Builder(toBuilder = true)
   public JavaProject(
       String name, String groupId, String artifactId, String version,
-      File outputDirectory, File baseDirectory, File buildDirectory, File buildPackageDirectory,
+      File outputDirectory, File resourcesOutputDirectory,
+      File baseDirectory, File buildDirectory, File buildPackageDirectory,
       Properties properties, @Singular List<String> compileClassPathElements, @Singular List<Dependency> dependencies,
       List<Dependency> dependenciesWithTransitive, @Singular List<Plugin> plugins, @Singular List<String> gradlePlugins,
       String site, String description, String organizationName, String documentationUrl, LocalDate buildDate,
@@ -270,6 +281,7 @@ public class JavaProject implements Serializable {
     this.artifactId = artifactId;
     this.version = version;
     this.outputDirectory = outputDirectory;
+    this.resourcesOutputDirectory = Optional.ofNullable(resourcesOutputDirectory).orElse(outputDirectory);
     this.baseDirectory = baseDirectory;
     this.buildDirectory = buildDirectory;
     this.properties = Optional.ofNullable(properties).orElse(new Properties());

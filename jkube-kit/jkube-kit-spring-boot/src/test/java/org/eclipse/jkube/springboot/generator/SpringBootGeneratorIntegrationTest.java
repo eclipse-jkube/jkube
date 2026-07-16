@@ -61,11 +61,12 @@ class SpringBootGeneratorIntegrationTest {
   void setUp(@TempDir Path temporaryFolder) throws IOException {
     properties = new Properties();
     targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
+    final File classesDir = Files.createDirectory(targetDir.toPath().resolve("classes")).toFile();
     final JavaProject javaProject = JavaProject.builder()
         .baseDirectory(temporaryFolder.toFile())
         .buildDirectory(targetDir.getAbsoluteFile())
         .buildPackageDirectory(targetDir.getAbsoluteFile())
-        .outputDirectory(targetDir)
+        .outputDirectory(classesDir)
         .properties(properties)
         .version("1.0.0")
         .dependency(Dependency.builder()
@@ -292,9 +293,8 @@ class SpringBootGeneratorIntegrationTest {
     @DisplayName("with generator mode WATCH, then add Spring Boot Devtools environment variable to image")
     void withGeneratorModeWatch_shouldAddSpringBootDevtoolsSecretEnvVar() throws IOException {
       // Given
-      final Path applicationProperties = Files.createFile(
-        Files.createDirectory(targetDir.toPath().resolve("classes"))
-          .resolve("application.properties"));
+      Files.write(targetDir.toPath().resolve("classes").resolve("application.properties"),
+        "spring.devtools.remote.secret=some-secret".getBytes());
       context = context.toBuilder()
         .generatorMode(GeneratorMode.WATCH)
         .project(context.getProject().toBuilder()

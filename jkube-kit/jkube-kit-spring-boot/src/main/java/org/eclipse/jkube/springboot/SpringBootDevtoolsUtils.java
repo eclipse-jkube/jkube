@@ -61,12 +61,11 @@ public class SpringBootDevtoolsUtils {
 
     // We always add to application.properties, even when an application.yml exists, since both
     // files are evaluated by Spring Boot.
-    appendSecretTokenToFile(project, "target/classes/application.properties", newToken);
-    appendSecretTokenToFile(project, "src/main/resources/application.properties", newToken);
+    appendSecretTokenToFile(new File(project.getResourcesOutputDirectory(), "application.properties"), newToken);
+    appendSecretTokenToFile(new File(project.getBaseDirectory(), "src/main/resources/application.properties"), newToken);
   }
 
-  private static void appendSecretTokenToFile(JavaProject project, String path, String token) {
-    File file = new File(project.getBaseDirectory(), path);
+  private static void appendSecretTokenToFile(File file, String token) {
     try {
       FileUtil.createDirectory(file.getParentFile());
     } catch (IOException ioException) {
@@ -92,7 +91,7 @@ public class SpringBootDevtoolsUtils {
     File target = getFatJarFile(fatJarDetectResult);
     try {
       File devToolsFile = getSpringBootDevToolsJar(project);
-      File applicationPropertiesFile = new File(project.getBaseDirectory(), "target/classes/application.properties");
+      File applicationPropertiesFile = new File(project.getResourcesOutputDirectory(), "application.properties");
       copyFilesToFatJar(Collections.singletonList(devToolsFile), Collections.singletonList(applicationPropertiesFile), target);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to add devtools files to fat jar " + target + ". " + e, e);
