@@ -37,7 +37,7 @@
     <version.bouncycastle.bcpkix>1.82</version.bouncycastle.bcpkix>
     <version.commons-codec>1.22.0</version.commons-codec>
     <version.commons-lang3>3.20.0</version.commons-lang3>
-    <version.commons-text>1.14.0</version.commons-text>
+    <version.commons-text>1.15.0</version.commons-text>
     <version.gson>2.14.0</version.gson>
     <version.httpcore>4.4.16</version.httpcore>
     <version.httpclient>4.5.14</version.httpclient>
@@ -48,7 +48,7 @@
     <version.jgit>5.13.5.202508271544-r</version.jgit>
     <version.jnr-unixsocket>0.39.2</version.jnr-unixsocket>
     <version.jsr305>3.0.2</version.jsr305>
-    <version.maven-archiver>3.6.5</version.maven-archiver>
+    <version.maven-archiver>3.6.6</version.maven-archiver>
     <version.maven-core>3.8.1</version.maven-core>
     <version.maven-filtering>3.4.0</version.maven-filtering>
     <version.maven-plugin-annotations>3.15.1</version.maven-plugin-annotations>

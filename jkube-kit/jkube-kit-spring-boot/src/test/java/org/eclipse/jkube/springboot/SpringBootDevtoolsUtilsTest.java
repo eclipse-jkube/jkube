@@ -162,6 +162,7 @@ class SpringBootDevtoolsUtilsTest {
     assertThat(devtoolsJar.createNewFile()).isTrue();
     assertThat(outputApplicationProperties.createNewFile()).isTrue();
     JavaProject javaProject = createSpringBootJavaProject().toBuilder()
+        .outputDirectory(outputClassesDir)
         .dependency(Dependency.builder()
             .groupId("org.springframework.boot")
             .artifactId("spring-boot-devtools")
@@ -184,10 +185,85 @@ class SpringBootDevtoolsUtilsTest {
     }
   }
 
+  @Test
+  void ensureSpringDevToolSecretToken_whenGradleProject_thenAppendTokenToResourcesOutputDirectory() throws IOException {
+    // Given
+    JavaProject javaProject = createGradleSpringBootJavaProject();
+
+    // When
+    boolean result = SpringBootDevtoolsUtils.ensureSpringDevToolSecretToken(javaProject);
+
+    // Then
+    assertThat(result).isFalse();
+    Path srcApplicationProperties = temporaryFolder.toPath()
+        .resolve("src").resolve("main").resolve("resources").resolve("application.properties");
+    Path resourcesApplicationProperties = temporaryFolder.toPath()
+        .resolve("build").resolve("resources").resolve("main").resolve("application.properties");
+    assertThat(new String(Files.readAllBytes(srcApplicationProperties)))
+        .contains("# Remote secret added by jkube-kit-plugin")
+        .contains("spring.devtools.remote.secret=");
+    assertThat(new String(Files.readAllBytes(resourcesApplicationProperties)))
+        .contains("# Remote secret added by jkube-kit-plugin")
+        .contains("spring.devtools.remote.secret=");
+  }
+
+  @Test
+  void addDevToolsFilesToFatJar_whenGradleProject_thenFatJarUpdated() throws IOException {
+    // Given
+    File resourcesDir = temporaryFolder.toPath()
+        .resolve("build").resolve("resources").resolve("main").toFile();
+    assertThat(resourcesDir.mkdirs()).isTrue();
+    File resourcesApplicationProperties = new File(resourcesDir, "application.properties");
+    assertThat(resourcesApplicationProperties.createNewFile()).isTrue();
+    File buildDir = new File(temporaryFolder, "build");
+    File fatJar = new File(buildDir, "libs/fat.jar");
+    assertThat(fatJar.getParentFile().mkdirs()).isTrue();
+    assertThat(fatJar.createNewFile()).isTrue();
+    createDummyJar(fatJar);
+    File devtoolsJar = new File(temporaryFolder, "spring-boot-devtools-2.7.2.jar");
+    assertThat(devtoolsJar.createNewFile()).isTrue();
+    JavaProject javaProject = createGradleSpringBootJavaProject().toBuilder()
+        .dependency(Dependency.builder()
+            .groupId("org.springframework.boot")
+            .artifactId("spring-boot-devtools")
+            .version("2.7.2")
+            .type("jar")
+            .file(devtoolsJar)
+            .build())
+        .build();
+    FatJarDetector.Result fatJarDetectorResult = mock(FatJarDetector.Result.class);
+    when(fatJarDetectorResult.getArchiveFile()).thenReturn(fatJar);
+
+    // When
+    SpringBootDevtoolsUtils.addDevToolsFilesToFatJar(javaProject, fatJarDetectorResult);
+
+    // Then
+    assertThat(fatJar).isNotEmpty();
+    try (JarFile jarFile = new JarFile(fatJar)) {
+      assertThat(jarFile.getJarEntry("BOOT-INF/lib/spring-boot-devtools-2.7.2.jar")).isNotNull();
+      assertThat(jarFile.getJarEntry("BOOT-INF/classes/application.properties")).isNotNull();
+    }
+  }
+
   private JavaProject createSpringBootJavaProject() {
     return JavaProject.builder()
         .baseDirectory(temporaryFolder)
-        .outputDirectory(temporaryFolder.toPath().resolve("target").toFile())
+        .outputDirectory(temporaryFolder.toPath().resolve("target").resolve("classes").toFile())
+        .dependency(Dependency.builder()
+            .groupId("org.springframework.boot")
+            .artifactId("spring-boot-web")
+            .version("2.7.2")
+            .build())
+        .build();
+  }
+
+  private JavaProject createGradleSpringBootJavaProject() {
+    return JavaProject.builder()
+        .baseDirectory(temporaryFolder)
+        .outputDirectory(temporaryFolder.toPath().resolve("build").resolve("classes")
+            .resolve("java").resolve("main").toFile())
+        .resourcesOutputDirectory(temporaryFolder.toPath().resolve("build").resolve("resources")
+            .resolve("main").toFile())
         .dependency(Dependency.builder()
             .groupId("org.springframework.boot")
             .artifactId("spring-boot-web")

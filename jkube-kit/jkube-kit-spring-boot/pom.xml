@@ -95,4 +95,24 @@
         </resources>
     </build>
 
+    <profiles>
+        <profile>
+            <id>jacoco</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <!-- Split tests across 2 JVM forks to avoid a JVM crash caused by
+                                 cumulative classloader pressure from JaCoCo + byte-buddy instrumentation
+                                 in container environments (JDK-8254969). -->
+                            <forkCount>2</forkCount>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>

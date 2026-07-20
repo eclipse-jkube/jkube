@@ -57,6 +57,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 public class GradleUtil {
 
   private static final Path DEFAULT_CLASSES_DIR = Paths.get("classes", "java", "main");
+  private static final Path DEFAULT_RESOURCES_DIR = Paths.get("resources", "main");
 
   private GradleUtil() {}
 
@@ -83,6 +84,7 @@ public class GradleUtil {
 //        .organizationName(gradleProject.)
 //
         .outputDirectory(findClassesOutputDirectory(gradleProject))
+        .resourcesOutputDirectory(findResourcesOutputDirectory(gradleProject))
 //        .buildFinalName(gradleProject.)
         .buildDirectory(gradleProject.getBuildDir())
 //        .issueManagementSystem(gradleProject.)
@@ -187,6 +189,18 @@ public class GradleUtil {
       // No matching SourceSet was found
     }
     return gradleProject.getBuildDir().toPath().resolve(DEFAULT_CLASSES_DIR).toFile();
+  }
+
+  private static File findResourcesOutputDirectory(Project gradleProject) {
+    try {
+      final SourceSetContainer sourceSetContainer = extractSourceSets(gradleProject);
+      if (sourceSetContainer != null) {
+        return sourceSetContainer.getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput().getResourcesDir();
+      }
+    } catch (IllegalStateException | UnknownDomainObjectException ex) {
+      // No matching SourceSet was found
+    }
+    return gradleProject.getBuildDir().toPath().resolve(DEFAULT_RESOURCES_DIR).toFile();
   }
 
   private static File findArtifact(Project gradleProject) {

@@ -274,6 +274,39 @@ class GradleUtilTest {
   }
 
   @Test
+  void findResourcesOutputDirectory_withNotFoundSourceSet_shouldReturnDefault() {
+    // Given
+    when(javaPlugin.getSourceSets().getByName("main")).thenThrow(new UnknownDomainObjectException("Not found"));
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result.getResourcesOutputDirectory())
+        .isEqualTo(folder.resolve("build").resolve("resources").resolve("main").toFile());
+  }
+
+  @Test
+  void findResourcesOutputDirectory_withValidSourceSet_shouldReturnFromSourceSet() {
+    // Given
+    when(javaPlugin.getSourceSets().getByName("main").getOutput().getResourcesDir())
+        .thenReturn(new File("resources"));
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result.getResourcesOutputDirectory()).isEqualTo(new File("resources"));
+  }
+
+  @Test
+  void findResourcesOutputDirectory_withNoSourceSets_shouldReturnDefault() {
+    // Given
+    when(javaPlugin.getSourceSets()).thenReturn(null);
+    // When
+    final JavaProject result = convertGradleProject(project);
+    // Then
+    assertThat(result.getResourcesOutputDirectory())
+        .isEqualTo(folder.resolve("build").resolve("resources").resolve("main").toFile());
+  }
+
+  @Test
   void findArtifact_withExistentFile_shouldReturnValidArtifact() throws IOException {
     // Given
     final Configuration c = mock(Configuration.class, RETURNS_DEEP_STUBS);
