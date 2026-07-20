@@ -27,7 +27,6 @@ import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.config.image.WatchMode;
 import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
-import org.eclipse.jkube.kit.config.resource.ResourceConfig;
 import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 
@@ -50,20 +49,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 
 @EnableKubernetesMockClient(crud = true)
-class WatchMojoTest {
+class OpenshiftWatchMojoTest {
 
   private KubernetesClient kubernetesClient;
-  private File kubernetesManifestFile;
-  private MavenProject mavenProject;
   private MockedStatic<WatcherManager> watcherManagerMockedStatic;
-  private TestWatchMojo watchMojo;
+  private TestOpenshiftWatchMojo watchMojo;
 
   @BeforeEach
   void setUp(@TempDir Path temporaryFolder) throws Exception {
     final Path srcDir = Files.createDirectory(temporaryFolder.resolve("src"));
     final File targetDir = Files.createDirectory(temporaryFolder.resolve("target")).toFile();
-    kubernetesManifestFile =  Files.createTempFile(srcDir, "kubernetes", ".yml").toFile();
-    mavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
+    File kubernetesManifestFile = Files.createTempFile(srcDir, "kubernetes", ".yml").toFile();
+    MavenProject mavenProject = mock(MavenProject.class, RETURNS_DEEP_STUBS);
     when(mavenProject.getProperties()).thenReturn(new Properties());
     when(mavenProject.getCompileClasspathElements()).thenReturn(Collections.emptyList());
     when(mavenProject.getDependencies()).thenReturn(Collections.emptyList());
@@ -73,12 +70,11 @@ class WatchMojoTest {
     when(mavenProject.getBuild().getOutputDirectory()).thenReturn(targetDir.getAbsolutePath());
     watcherManagerMockedStatic = mockStatic(WatcherManager.class);
     // @formatter:off
-    watchMojo = new TestWatchMojo() {{
+    watchMojo = new TestOpenshiftWatchMojo() {{
       project = mavenProject;
       settings = mock(Settings.class);
       kubernetesManifest = kubernetesManifestFile;
       resourceDir = temporaryFolder.resolve("src").resolve("main").resolve("jkube").toFile().getAbsoluteFile();
-      buildStrategy = JKubeBuildStrategy.jib;
       access = ClusterConfiguration.from(
         new ConfigBuilder(kubernetesClient.getConfiguration())
           .withNamespace("kubernetes-client-config-namespace")
@@ -94,34 +90,12 @@ class WatchMojoTest {
   }
 
   @Test
-  void executeInternal_whenNoNamespaceConfigured_shouldDelegateToWatcherManagerWithClusterConfigurationNamespace() throws Exception {
+  void executeInternal_shouldDelegateToWatcherManager() throws Exception {
     // When
     watchMojo.execute();
     // Then
-    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("kubernetes-client-config-namespace"), any(), any()), times(1));
-  }
-
-  @Test
-  void executeInternal_whenNamespaceConfiguredInResourceConfig_shouldDelegateToWatcherManagerWithResourceConfigNamespace() throws Exception {
-    // Given
-    ResourceConfig resources = ResourceConfig.builder()
-      .namespace("namespace-from-resource_config")
-      .build();
-    watchMojo.setResources(resources);
-    // When
-    watchMojo.execute();
-    // Then
-    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("namespace-from-resource_config"), any(), any()), times(1));
-  }
-
-  @Test
-  void executeInternal_whenNamespaceConfigured_shouldDelegateToWatcherManagerWithConfiguredNamespace() throws Exception {
-    // Given
-    watchMojo.setNamespace("configured-namespace");
-    // When
-    watchMojo.execute();
-    // Then
-    watcherManagerMockedStatic.verify(() -> WatcherManager.watch(any(), eq("configured-namespace"), any(), any()), times(1));
+    watcherManagerMockedStatic.verify(
+        () -> WatcherManager.watch(any(), eq("kubernetes-client-config-namespace"), any(), any()), times(1));
   }
 
   @Test
@@ -149,25 +123,25 @@ class WatchMojoTest {
   }
 
   @Test
-  @DisplayName("generatorContextBuilder should have Kubernetes runtime mode")
-  void generatorContextBuilder_shouldHaveKubernetesRuntimeMode() throws Exception {
+  @DisplayName("generatorContextBuilder should have OpenShift runtime mode")
+  void generatorContextBuilder_shouldHaveOpenshiftRuntimeMode() throws Exception {
     // When
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
         .isNotNull()
-        .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.KUBERNETES);
+        .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.OPENSHIFT);
   }
 
   @Test
-  @DisplayName("generatorContextBuilder should not set strategy")
-  void generatorContextBuilder_shouldNotSetStrategy() throws Exception {
+  @DisplayName("generatorContextBuilder should have s2i build strategy")
+  void generatorContextBuilder_shouldHaveS2iBuildStrategy() throws Exception {
     // When
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
         .isNotNull()
-        .hasFieldOrPropertyWithValue("strategy", null);
+        .hasFieldOrPropertyWithValue("strategy", JKubeBuildStrategy.s2i);
   }
 
   @Test
@@ -258,7 +232,7 @@ class WatchMojoTest {
         .isNull();
   }
 
-  private static class TestWatchMojo extends WatchMojo {
+  private static class TestOpenshiftWatchMojo extends OpenshiftWatchMojo {
 
     GeneratorContext capturedGeneratorContext;
 
@@ -267,14 +241,6 @@ class WatchMojoTest {
       GeneratorContext.GeneratorContextBuilder builder = super.generatorContextBuilder();
       capturedGeneratorContext = builder.build();
       return builder;
-    }
-
-    void setResources(ResourceConfig resources) {
-      this.resources = resources;
-    }
-
-    void setNamespace(String namespace) {
-      this.namespace = namespace;
     }
 
     void setWatchMode(WatchMode watchMode) {

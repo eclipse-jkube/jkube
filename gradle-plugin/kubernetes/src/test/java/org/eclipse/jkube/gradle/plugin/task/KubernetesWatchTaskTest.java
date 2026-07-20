@@ -16,17 +16,23 @@ package org.eclipse.jkube.gradle.plugin.task;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import org.assertj.core.api.AssertionsForClassTypes;
+import org.eclipse.jkube.generator.api.GeneratorContext;
+import org.eclipse.jkube.generator.api.GeneratorMode;
 import org.eclipse.jkube.gradle.plugin.KubernetesExtension;
 import org.eclipse.jkube.gradle.plugin.TestKubernetesExtension;
 import org.eclipse.jkube.kit.build.service.docker.DockerAccessFactory;
 import org.eclipse.jkube.kit.build.service.docker.access.DockerAccess;
 import org.eclipse.jkube.kit.common.access.ClusterConfiguration;
 import org.eclipse.jkube.kit.common.util.KubernetesHelper;
+import org.eclipse.jkube.kit.config.image.WatchMode;
+import org.eclipse.jkube.kit.config.image.build.JKubeBuildStrategy;
+import org.eclipse.jkube.kit.config.resource.RuntimeMode;
 import org.eclipse.jkube.kit.config.service.kubernetes.DockerBuildService;
 import org.eclipse.jkube.watcher.api.WatcherManager;
 import org.gradle.api.provider.Property;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.MockedConstruction;
@@ -126,5 +132,197 @@ class KubernetesWatchTaskTest {
     assertThat(dockerBuildServiceMockedConstruction.constructed()).isEmpty();
     assertThat(kubernetesWatchTask.jKubeServiceHub).isNull();
     verify(taskEnvironment.logger, times(1)).lifecycle(contains("k8s: `k8sWatch` task is skipped."));
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should have WATCH generator mode")
+  void generatorContextBuilder_shouldHaveWatchGeneratorMode() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("generatorMode", GeneratorMode.WATCH);
+  }
+
+  // Documents the contract only: prePackagePhase is a primitive boolean whose builder default
+  // is already false, so this assertion cannot fail if .prePackagePhase(false) is dropped.
+  @Test
+  @DisplayName("generatorContextBuilder should have prePackagePhase false")
+  void generatorContextBuilder_shouldHavePrePackagePhaseFalse() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("prePackagePhase", false);
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should propagate default watch mode")
+  void generatorContextBuilder_shouldPropagateDefaultWatchMode() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("watchMode", WatchMode.both);
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should propagate configured watch mode")
+  void generatorContextBuilder_shouldPropagateConfiguredWatchMode() throws Exception {
+    // Given
+    extension.watchMode = WatchMode.copy;
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("watchMode", WatchMode.copy);
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should have Kubernetes runtime mode")
+  void generatorContextBuilder_shouldHaveKubernetesRuntimeMode() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("runtimeMode", RuntimeMode.KUBERNETES);
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should have docker build strategy")
+  void generatorContextBuilder_shouldHaveDockerBuildStrategy() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("strategy", JKubeBuildStrategy.docker);
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should propagate project")
+  void generatorContextBuilder_shouldPropagateProject() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getProject)
+        .isSameAs(extension.javaProject);
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should propagate build timestamp")
+  void generatorContextBuilder_shouldPropagateBuildTimestamp() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getBuildTimestamp)
+        .isNotNull();
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should propagate useProjectClasspath")
+  void generatorContextBuilder_shouldPropagateUseProjectClasspath() throws Exception {
+    // Given
+    extension.isUseProjectClassPath = true;
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("useProjectClasspath", true);
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should propagate source directory")
+  void generatorContextBuilder_shouldPropagateSourceDirectory() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("sourceDirectory", "src/main/docker");
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should propagate configured filter")
+  void generatorContextBuilder_shouldPropagateFilter() throws Exception {
+    // Given
+    extension.filter = "my-image";
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("filter", "my-image");
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should have null filter when not configured")
+  void generatorContextBuilder_shouldHaveNullFilterWhenNotConfigured() throws Exception {
+    // Given
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .extracting(GeneratorContext::getFilter)
+        .isNull();
+  }
+
+  private static class TestKubernetesWatchTask extends KubernetesWatchTask {
+
+    GeneratorContext capturedGeneratorContext;
+
+    TestKubernetesWatchTask(Class<? extends KubernetesExtension> extensionClass) {
+      super(extensionClass);
+    }
+
+    @Override
+    protected GeneratorContext.GeneratorContextBuilder initGeneratorContextBuilder() {
+      GeneratorContext.GeneratorContextBuilder builder = super.initGeneratorContextBuilder();
+      capturedGeneratorContext = builder.build();
+      return builder;
+    }
   }
 }

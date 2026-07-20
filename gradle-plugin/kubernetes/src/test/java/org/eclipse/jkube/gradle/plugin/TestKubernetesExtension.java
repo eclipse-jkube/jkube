@@ -34,6 +34,8 @@ public class TestKubernetesExtension extends KubernetesExtension {
   public Boolean isForcePull;
   public Boolean isFailOnNoKubernetesJson;
   public Boolean isSkipPush;
+  public Boolean isUseProjectClassPath;
+  public String filter;
 
   public TestKubernetesExtension() {
     javaProject = mock(JavaProject.class, RETURNS_DEEP_STUBS);
@@ -56,7 +58,7 @@ public class TestKubernetesExtension extends KubernetesExtension {
 
   @Override
   public Property<String> getFilter() {
-    return property(String.class);
+    return property(String.class).value(filter);
   }
 
   @Override
@@ -151,7 +153,7 @@ public class TestKubernetesExtension extends KubernetesExtension {
 
   @Override
   public Property<Boolean> getUseProjectClassPath() {
-    return property(Boolean.class);
+    return property(Boolean.class).value(isUseProjectClassPath);
   }
 
   @Override
