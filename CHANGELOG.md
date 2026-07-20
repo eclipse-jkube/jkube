@@ -22,7 +22,8 @@ Usage:
 ```
 
 ### 1.20-SNAPSHOT
-* Fix #3930: Gradle `k8sWatch`/`ocWatch` now resolves generators in WATCH mode, activating Spring Boot DevTools wiring that was previously only functional in the Maven plugin
+* Fix #3923: Jetty 12 hot deployment in `k8s:watch`/`oc:watch` copy mode (`scanInterval=1` set by the Jetty handler when watch mode is `copy`)
+* Fix #3923: Gradle `k8sWatch`/`ocWatch` now resolve generators in WATCH mode (previously BUILD), activating Spring Boot DevTools wiring that was previously only functional in the Maven plugin
 * Fix #3947: Spring Boot DevTools watcher resolves `application.properties` from `project.resourcesOutputDirectory` for Gradle compatibility
 * Fix #3916: Add explicit base-image JDK selection via `jkube.java.version` property for Java generators
 * Fix #3925: StatefulSet selector.matchLabels no longer includes version label (immutable field, prevented redeploy after version bump)
