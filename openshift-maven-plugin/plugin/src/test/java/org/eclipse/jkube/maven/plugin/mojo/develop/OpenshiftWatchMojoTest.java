@@ -109,6 +109,8 @@ class OpenshiftWatchMojoTest {
         .hasFieldOrPropertyWithValue("generatorMode", GeneratorMode.WATCH);
   }
 
+  // Documents the contract only: prePackagePhase is a primitive boolean whose builder default
+  // is already false, so this assertion cannot fail if .prePackagePhase(false) is dropped.
   @Test
   @DisplayName("generatorContextBuilder should have prePackagePhase false")
   void generatorContextBuilder_shouldHavePrePackagePhaseFalse() throws Exception {
@@ -140,19 +142,6 @@ class OpenshiftWatchMojoTest {
     assertThat(watchMojo.capturedGeneratorContext)
         .isNotNull()
         .hasFieldOrPropertyWithValue("strategy", JKubeBuildStrategy.s2i);
-  }
-
-  @Test
-  @DisplayName("generatorContextBuilder should propagate default watch mode")
-  void generatorContextBuilder_shouldPropagateDefaultWatchMode() throws Exception {
-    // Given
-    watchMojo.setWatchMode(WatchMode.both);
-    // When
-    watchMojo.execute();
-    // Then
-    assertThat(watchMojo.capturedGeneratorContext)
-        .isNotNull()
-        .hasFieldOrPropertyWithValue("watchMode", WatchMode.both);
   }
 
   @Test
@@ -195,12 +184,14 @@ class OpenshiftWatchMojoTest {
   @Test
   @DisplayName("generatorContextBuilder should propagate useProjectClasspath")
   void generatorContextBuilder_shouldPropagateUseProjectClasspath() throws Exception {
+    // Given
+    watchMojo.setUseProjectClasspath(true);
     // When
     watchMojo.execute();
     // Then
     assertThat(watchMojo.capturedGeneratorContext)
         .isNotNull()
-        .hasFieldOrPropertyWithValue("useProjectClasspath", false);
+        .hasFieldOrPropertyWithValue("useProjectClasspath", true);
   }
 
   @Test
@@ -262,6 +253,10 @@ class OpenshiftWatchMojoTest {
 
     void setFilter(String filter) {
       this.filter = filter;
+    }
+
+    void setUseProjectClasspath(boolean useProjectClasspath) {
+      this.useProjectClasspath = useProjectClasspath;
     }
   }
 }

@@ -137,6 +137,8 @@ class OpenShiftWatchTaskTest {
         .hasFieldOrPropertyWithValue("generatorMode", GeneratorMode.WATCH);
   }
 
+  // Documents the contract only: prePackagePhase is a primitive boolean whose builder default
+  // is already false, so this assertion cannot fail if .prePackagePhase(false) is dropped.
   @Test
   @DisplayName("generatorContextBuilder should have prePackagePhase false")
   void generatorContextBuilder_shouldHavePrePackagePhaseFalse() throws Exception {
@@ -242,6 +244,7 @@ class OpenShiftWatchTaskTest {
   @DisplayName("generatorContextBuilder should propagate useProjectClasspath")
   void generatorContextBuilder_shouldPropagateUseProjectClasspath() throws Exception {
     // Given
+    extension.isUseProjectClassPath = true;
     taskEnvironment.withOpenShiftManifest();
     final TestOpenShiftWatchTask watchTask = new TestOpenShiftWatchTask(OpenShiftExtension.class);
     // When
@@ -249,7 +252,7 @@ class OpenShiftWatchTaskTest {
     // Then
     assertThat(watchTask.capturedGeneratorContext)
         .isNotNull()
-        .hasFieldOrPropertyWithValue("useProjectClasspath", false);
+        .hasFieldOrPropertyWithValue("useProjectClasspath", true);
   }
 
   @Test
@@ -267,8 +270,23 @@ class OpenShiftWatchTaskTest {
   }
 
   @Test
-  @DisplayName("generatorContextBuilder should have null filter when not configured")
+  @DisplayName("generatorContextBuilder should propagate configured filter")
   void generatorContextBuilder_shouldPropagateFilter() throws Exception {
+    // Given
+    extension.filter = "my-image";
+    taskEnvironment.withOpenShiftManifest();
+    final TestOpenShiftWatchTask watchTask = new TestOpenShiftWatchTask(OpenShiftExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("filter", "my-image");
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should have null filter when not configured")
+  void generatorContextBuilder_shouldHaveNullFilterWhenNotConfigured() throws Exception {
     // Given
     taskEnvironment.withOpenShiftManifest();
     final TestOpenShiftWatchTask watchTask = new TestOpenShiftWatchTask(OpenShiftExtension.class);

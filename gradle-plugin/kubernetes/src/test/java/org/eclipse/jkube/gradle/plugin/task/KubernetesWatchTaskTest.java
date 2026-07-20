@@ -148,6 +148,8 @@ class KubernetesWatchTaskTest {
         .hasFieldOrPropertyWithValue("generatorMode", GeneratorMode.WATCH);
   }
 
+  // Documents the contract only: prePackagePhase is a primitive boolean whose builder default
+  // is already false, so this assertion cannot fail if .prePackagePhase(false) is dropped.
   @Test
   @DisplayName("generatorContextBuilder should have prePackagePhase false")
   void generatorContextBuilder_shouldHavePrePackagePhaseFalse() throws Exception {
@@ -253,6 +255,7 @@ class KubernetesWatchTaskTest {
   @DisplayName("generatorContextBuilder should propagate useProjectClasspath")
   void generatorContextBuilder_shouldPropagateUseProjectClasspath() throws Exception {
     // Given
+    extension.isUseProjectClassPath = true;
     taskEnvironment.withKubernetesManifest();
     final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
     // When
@@ -260,7 +263,7 @@ class KubernetesWatchTaskTest {
     // Then
     assertThat(watchTask.capturedGeneratorContext)
         .isNotNull()
-        .hasFieldOrPropertyWithValue("useProjectClasspath", false);
+        .hasFieldOrPropertyWithValue("useProjectClasspath", true);
   }
 
   @Test
@@ -278,8 +281,23 @@ class KubernetesWatchTaskTest {
   }
 
   @Test
-  @DisplayName("generatorContextBuilder should have null filter when not configured")
+  @DisplayName("generatorContextBuilder should propagate configured filter")
   void generatorContextBuilder_shouldPropagateFilter() throws Exception {
+    // Given
+    extension.filter = "my-image";
+    taskEnvironment.withKubernetesManifest();
+    final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
+    // When
+    watchTask.runTask();
+    // Then
+    assertThat(watchTask.capturedGeneratorContext)
+        .isNotNull()
+        .hasFieldOrPropertyWithValue("filter", "my-image");
+  }
+
+  @Test
+  @DisplayName("generatorContextBuilder should have null filter when not configured")
+  void generatorContextBuilder_shouldHaveNullFilterWhenNotConfigured() throws Exception {
     // Given
     taskEnvironment.withKubernetesManifest();
     final TestKubernetesWatchTask watchTask = new TestKubernetesWatchTask(KubernetesExtension.class);
