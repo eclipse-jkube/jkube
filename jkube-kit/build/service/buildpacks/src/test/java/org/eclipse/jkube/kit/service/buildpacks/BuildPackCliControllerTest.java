@@ -21,14 +21,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.ArgumentCaptor;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
@@ -42,10 +48,10 @@ class BuildPackCliControllerTest {
   private File temporaryFolder;
 
   @BeforeEach
-  void setUp() {
+  void setUp() throws URISyntaxException {
     kitLogger = spy(new KitLogger.SilentLogger());
     String validPackBinary = EnvUtil.isWindows() ? "pack.bat" : "pack";
-    pack = new File(Objects.requireNonNull(getClass().getResource(String.format("/%s", validPackBinary))).getFile());
+    pack = resourceAsFile(String.format("/%s", validPackBinary));
     buildPackCliController = new BuildPackCliController(pack, kitLogger);
     buildOptions = BuildPackBuildOptions.builder()
         .imageName("foo/bar:latest")
@@ -53,6 +59,11 @@ class BuildPackCliControllerTest {
         .creationTime("now")
         .path(temporaryFolder.getAbsolutePath())
         .build();
+  }
+
+  private File resourceAsFile(String resourcePath) throws URISyntaxException {
+    URL url = Objects.requireNonNull(getClass().getResource(resourcePath));
+    return new File(url.toURI());
   }
 
   @Nested
@@ -100,19 +111,21 @@ class BuildPackCliControllerTest {
   @DisplayName("pack command fails")
   class CommandFails {
     @BeforeEach
-    void setUp() {
+    void setUp() throws URISyntaxException {
       String invalidPackBinary = EnvUtil.isWindows() ? "invalid-pack.bat" : "invalid-pack";
-      pack = new File(Objects.requireNonNull(BuildPackCliControllerTest.class.getResource(String.format("/%s", invalidPackBinary))).getFile());
+      pack = resourceAsFile(String.format("/%s", invalidPackBinary));
       buildPackCliController = new BuildPackCliController(pack, kitLogger);
     }
 
     @Test
-    @DisplayName("build, throws exception")
+    @DisplayName("build, throws exception without logging to error when stderr is blank")
     void build_whenCommandFailed_thenThrowException() {
       // When + Then
       assertThatIllegalStateException()
           .isThrownBy(() -> buildPackCliController.build(buildOptions))
           .withMessageContaining("Process Existed With : 1");
+      // No spurious [ERROR] line when pack writes nothing to stderr
+      verify(kitLogger, never()).error(anyString(), (Object) any());
     }
 
     @Test
@@ -123,6 +136,37 @@ class BuildPackCliControllerTest {
 
       // Then
       assertThat(version).isNull();
+    }
+  }
+
+  @Nested
+  @DisplayName("pack command fails with stderr output")
+  class CommandFailsWithStderr {
+    @BeforeEach
+    void setUp() throws URISyntaxException {
+      String invalidPackBinaryWithError = EnvUtil.isWindows() ? "invalid-pack-with-error.bat" : "invalid-pack-with-error";
+      pack = resourceAsFile(String.format("/%s", invalidPackBinaryWithError));
+      buildPackCliController = new BuildPackCliController(pack, kitLogger);
+    }
+
+    @Test
+    @DisplayName("build, logs stderr via kitLogger.error when pack CLI writes to stderr")
+    void build_whenCommandFailedWithStderr_thenStderrLoggedViaKitLogger() {
+      // When + Then
+      assertThatIllegalStateException()
+          .isThrownBy(() -> buildPackCliController.build(buildOptions))
+          .withMessageContaining("Process Existed With : 1");
+
+      // Capture the argument passed to kitLogger.error to verify stderr content.
+      // Using contains() rather than exact equality keeps the assertion robust across
+      // environments (locale warnings, line-separator differences) and locks in the
+      // "%s" format-string wrapper that prevents UnknownFormatConversionException on
+      // pack output containing literal % characters.
+      ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+      verify(kitLogger).error(anyString(), captor.capture());
+      String logged = (String) captor.getValue();
+      assertThat(logged).contains("builder image not found");
+      assertThat(logged).contains("100%");
     }
   }
 }

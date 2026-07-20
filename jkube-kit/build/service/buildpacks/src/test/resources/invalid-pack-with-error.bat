@@ -1,0 +1,5 @@
+@echo off
+echo ERROR: pack CLI failed: builder image not found>&2
+echo goroutine 1 [running]: 100%% complete>&2
+EXIT /b 1
+

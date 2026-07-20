@@ -50,7 +50,7 @@ public class BuildPackCommand extends ExternalCommand {
 
   @Override
   public void processError(String error) {
-    errorBuilder.append(error);
+    errorBuilder.append(error).append(System.lineSeparator());
   }
 
   public String getError() {
