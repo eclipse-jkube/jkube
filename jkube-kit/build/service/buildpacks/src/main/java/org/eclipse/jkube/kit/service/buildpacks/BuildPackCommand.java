@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 public class BuildPackCommand extends ExternalCommand {
   private final File packCli;
   private final List<String> commandLineArgs;
-  private final StringBuilder errorBuilder;
+  private final StringBuffer errorBuilder;
   private final Consumer<String> commandOutputConsumer;
 
   public BuildPackCommand(KitLogger log, File packCli, List<String> cmdArgs, Consumer<String> outputConsumer) {
@@ -32,7 +32,7 @@ public class BuildPackCommand extends ExternalCommand {
     this.packCli = packCli;
     this.commandLineArgs = cmdArgs;
     this.commandOutputConsumer = outputConsumer;
-    this.errorBuilder = new StringBuilder();
+    this.errorBuilder = new StringBuffer();
   }
 
   @Override
@@ -50,7 +50,7 @@ public class BuildPackCommand extends ExternalCommand {
 
   @Override
   public void processError(String error) {
-    errorBuilder.append(error).append(System.lineSeparator());
+    errorBuilder.append(error + System.lineSeparator());
   }
 
   public String getError() {
