@@ -21,7 +21,7 @@ Usage:
 ./scripts/extract-changelog-for-version.sh 1.3.37 5
 ```
 
-### 1.20-SNAPSHOT
+### 1.20.0 (2026-07-21)
 * Fix #3903: Log pack CLI stderr output via kitLogger.error on buildpacks build failure
 * Fix #3923: Jetty 12 hot deployment in `k8s:watch`/`oc:watch` copy mode (`scanInterval=1` set by the Jetty handler when watch mode is `copy`)
 * Fix #3923: Gradle `k8sWatch`/`ocWatch` now resolve generators in WATCH mode (previously BUILD), activating Spring Boot DevTools wiring that was previously only functional in the Maven plugin
