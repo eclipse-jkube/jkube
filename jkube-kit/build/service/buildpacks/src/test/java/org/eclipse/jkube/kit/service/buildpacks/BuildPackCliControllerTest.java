@@ -22,17 +22,20 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.PrintStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 
 class BuildPackCliControllerTest {
+  private ByteArrayOutputStream out;
   private KitLogger kitLogger;
   private BuildPackCliController buildPackCliController;
   private BuildPackBuildOptions buildOptions;
@@ -42,10 +45,11 @@ class BuildPackCliControllerTest {
   private File temporaryFolder;
 
   @BeforeEach
-  void setUp() {
-    kitLogger = spy(new KitLogger.SilentLogger());
+  void setUp() throws URISyntaxException {
+    out = new ByteArrayOutputStream();
+    kitLogger = new KitLogger.PrintStreamLogger(new PrintStream(out));
     String validPackBinary = EnvUtil.isWindows() ? "pack.bat" : "pack";
-    pack = new File(Objects.requireNonNull(getClass().getResource(String.format("/%s", validPackBinary))).getFile());
+    pack = resourceAsFile(String.format("/%s", validPackBinary));
     buildPackCliController = new BuildPackCliController(pack, kitLogger);
     buildOptions = BuildPackBuildOptions.builder()
         .imageName("foo/bar:latest")
@@ -53,6 +57,11 @@ class BuildPackCliControllerTest {
         .creationTime("now")
         .path(temporaryFolder.getAbsolutePath())
         .build();
+  }
+
+  private File resourceAsFile(String resourcePath) throws URISyntaxException {
+    URL url = Objects.requireNonNull(getClass().getResource(resourcePath));
+    return new File(url.toURI());
   }
 
   @Nested
@@ -65,7 +74,9 @@ class BuildPackCliControllerTest {
       buildPackCliController.build(buildOptions);
 
       // Then
-      verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder foo/builder:base --creation-time now --path " + temporaryFolder.getAbsolutePath());
+      assertThat(out.toString())
+          .contains("[INFO] [[s]]build foo/bar:latest --builder foo/builder:base --creation-time now --path "
+              + temporaryFolder.getAbsolutePath());
     }
 
     @Test
@@ -82,7 +93,19 @@ class BuildPackCliControllerTest {
       // When
       buildPackCliController.build(buildOptions);
       // Then
-      verify(kitLogger).info("[[s]]%s", "build foo/bar:latest --builder foo/builder:base --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true --clear-cache --path " + temporaryFolder.getAbsolutePath());
+      assertThat(out.toString())
+          .contains("[INFO] [[s]]build foo/bar:latest --builder foo/builder:base --creation-time now --pull-policy if-not-present --volume /tmp/volume:/platform/volume:ro --tag foo/bar:t1 --tag foo/bar:t2 --tag foo/bar:t3 --env BP_SPRING_CLOUD_BINDINGS_DISABLED=true --clear-cache --path "
+              + temporaryFolder.getAbsolutePath());
+    }
+
+    @Test
+    @DisplayName("build, should not log any error")
+    void build_whenCommandSucceeds_thenNothingLoggedAsError() {
+      // When
+      buildPackCliController.build(buildOptions);
+
+      // Then
+      assertThat(out.toString()).doesNotContain("[ERROR]");
     }
 
     @Test
@@ -100,19 +123,23 @@ class BuildPackCliControllerTest {
   @DisplayName("pack command fails")
   class CommandFails {
     @BeforeEach
-    void setUp() {
+    void setUp() throws URISyntaxException {
       String invalidPackBinary = EnvUtil.isWindows() ? "invalid-pack.bat" : "invalid-pack";
-      pack = new File(Objects.requireNonNull(BuildPackCliControllerTest.class.getResource(String.format("/%s", invalidPackBinary))).getFile());
+      pack = resourceAsFile(String.format("/%s", invalidPackBinary));
       buildPackCliController = new BuildPackCliController(pack, kitLogger);
     }
 
     @Test
-    @DisplayName("build, throws exception")
+    @DisplayName("build, throws exception and logs no empty error when pack writes nothing to stderr")
     void build_whenCommandFailed_thenThrowException() {
       // When + Then
       assertThatIllegalStateException()
           .isThrownBy(() -> buildPackCliController.build(buildOptions))
           .withMessageContaining("Process Existed With : 1");
+      // Without the isNotBlank guard, a blank stderr would be rendered as an empty "[ERROR] " record.
+      // Asserting on that (rather than on the absence of any error) keeps the test independent from
+      // whatever the shell running the fixture may write to stderr on its own (locale warnings, ...).
+      assertThat(out.toString()).doesNotContain("[ERROR] " + System.lineSeparator());
     }
 
     @Test
@@ -123,6 +150,33 @@ class BuildPackCliControllerTest {
 
       // Then
       assertThat(version).isNull();
+    }
+  }
+
+  @Nested
+  @DisplayName("pack command fails with stderr output")
+  class CommandFailsWithStderr {
+    @BeforeEach
+    void setUp() throws URISyntaxException {
+      String invalidPackBinaryWithError = EnvUtil.isWindows() ? "invalid-pack-with-error.bat" : "invalid-pack-with-error";
+      pack = resourceAsFile(String.format("/%s", invalidPackBinaryWithError));
+      buildPackCliController = new BuildPackCliController(pack, kitLogger);
+    }
+
+    @Test
+    @DisplayName("build, logs the pack CLI stderr as error, preserving line boundaries")
+    void build_whenCommandFailedWithStderr_thenStderrLogged() {
+      // When + Then
+      assertThatIllegalStateException()
+          .isThrownBy(() -> buildPackCliController.build(buildOptions))
+          .withMessageContaining("Process Existed With : 1");
+      // Asserting on the rendered output (rather than the format string and its arguments)
+      // also covers the "%s" wrapper: passing the stderr as the format string instead would
+      // make printf fail on the literal % below.
+      assertThat(out.toString())
+          .contains("[ERROR] ")
+          .contains("ERROR: pack CLI failed: builder image not found" + System.lineSeparator()
+              + "goroutine 1 [running]: 100% complete");
     }
   }
 }

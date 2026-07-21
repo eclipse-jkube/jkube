@@ -46,6 +46,10 @@ public class BuildPackCliController implements BuildPackController {
     try {
       buildPackCommand.execute();
     } catch (IOException e) {
+      String stderr = buildPackCommand.getError();
+      if (StringUtils.isNotBlank(stderr)) {
+        kitLogger.error("%s", stderr.trim());
+      }
       throw new IllegalStateException("Process Existed With : " + buildPackCommand.getExitCode() + " [" + e.getMessage() + "]", e);
     }
   }
@@ -57,6 +61,10 @@ public class BuildPackCliController implements BuildPackController {
     try {
       versionCommand.execute();
     } catch (IOException e) {
+      String stderr = versionCommand.getError();
+      if (StringUtils.isNotBlank(stderr)) {
+        kitLogger.error("%s", stderr.trim());
+      }
       kitLogger.warn(e.getMessage());
     }
     if (StringUtils.isNotBlank(versionRef.get())) {
