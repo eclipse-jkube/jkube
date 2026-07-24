@@ -34,7 +34,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <version.bouncycastle.bcpkix>1.82</version.bouncycastle.bcpkix>
+    <version.bouncycastle>1.85</version.bouncycastle>
     <version.commons-codec>1.22.0</version.commons-codec>
     <version.commons-lang3>3.20.0</version.commons-lang3>
     <version.commons-text>1.15.0</version.commons-text>
@@ -571,7 +571,17 @@
       <dependency>
         <groupId>org.bouncycastle</groupId>
         <artifactId>bcpkix-jdk18on</artifactId>
-        <version>${version.bouncycastle.bcpkix}</version>
+        <version>${version.bouncycastle}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcprov-jdk18on</artifactId>
+        <version>${version.bouncycastle}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.bouncycastle</groupId>
+        <artifactId>bcutil-jdk18on</artifactId>
+        <version>${version.bouncycastle}</version>
       </dependency>
 
       <dependency>
