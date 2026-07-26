@@ -15,6 +15,7 @@ package org.eclipse.jkube.kit.service.buildpacks;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
@@ -53,6 +54,7 @@ abstract class AbstractBuildPackCliDownloaderTest {
   abstract String getInvalidApplicablePackBinary();
   abstract String getPlatform();
   abstract String getProcessorArchitecture();
+  abstract String getApplicableArtifactFileName();
 
   @BeforeEach
   void setUp() {
@@ -139,15 +141,91 @@ abstract class AbstractBuildPackCliDownloaderTest {
       @DisplayName("copy downloaded binary to user's .jkube folder and return path")
       void jKubeDirPathIsReturned() {
         assertThat(pack.toPath())
-            .isEqualTo(temporaryFolder.toPath().resolve(".jkube").resolve(getApplicablePackBinary()));
+                .isEqualTo(temporaryFolder.toPath().resolve(".jkube").resolve(getApplicablePackBinary()));
       }
 
       @Test
       @DisplayName("copied downloaded binary exists and has the right size")
       void fileExistsAndHasTheRightSize() {
         assertThat(pack)
-            .exists()
-            .satisfies(p -> assertThat(p).isNotEmpty());
+                .exists()
+                .satisfies(p -> assertThat(p).isNotEmpty());
+      }
+    }
+
+    @Nested
+    @DisplayName("checksum verification")
+    class ChecksumVerification {
+
+      @Test
+      @DisplayName("matching checksum, then download succeeds and binary is valid")
+      void givenMatchingChecksum_thenDownloadSucceeds() {
+        // Given - server already serves a correct .sha256 for every fixture artifact by default
+
+        // When
+        File pack = buildPackCliDownloader.getPackCLIIfPresentOrDownload();
+
+        // Then
+        assertThat(pack).exists();
+        assertThat(pack.toPath())
+                .isEqualTo(temporaryFolder.toPath().resolve(".jkube").resolve(getApplicablePackBinary()));
+      }
+
+      @Test
+      @DisplayName("checksum mismatch, then download fails and falls back to local binary lookup")
+      void givenChecksumMismatch_thenDownloadFailsAndFallsBackToLocal() throws IOException {
+        // Given
+        corruptChecksumFile();
+
+        // When + Then
+        assertThatIllegalStateException()
+                .isThrownBy(buildPackCliDownloader::getPackCLIIfPresentOrDownload)
+                .withMessage("No local pack binary found");
+
+        ArgumentCaptor<String> downloadFailureMessage = ArgumentCaptor.forClass(String.class);
+        verify(kitLogger).warn(downloadFailureMessage.capture());
+        assertThat(downloadFailureMessage.getValue()).contains("Checksum mismatch");
+      }
+
+      @Test
+      @DisplayName("checksum file missing (404), then download fails and falls back to local binary lookup")
+      void givenMissingChecksumFile_thenDownloadFailsAndFallsBackToLocal() throws IOException {
+        // Given
+        deleteChecksumFile();
+
+        // When + Then
+        assertThatIllegalStateException()
+                .isThrownBy(buildPackCliDownloader::getPackCLIIfPresentOrDownload)
+                .withMessage("No local pack binary found");
+
+        verify(kitLogger).warn(org.mockito.ArgumentMatchers.contains("Not able to download pack CLI"));
+      }
+
+      @Test
+      @DisplayName("checksum mismatch but valid local binary exists, then local binary is used")
+      void givenChecksumMismatchButValidLocalBinaryExists_thenLocalBinaryReturned() throws IOException {
+        // Given
+        corruptChecksumFile();
+        givenPackCliPresentOnUserPath(String.format("/%s", getApplicablePackBinary()));
+
+        // When
+        File downloadedCli = buildPackCliDownloader.getPackCLIIfPresentOrDownload();
+
+        // Then
+        assertThat(downloadedCli)
+                .isEqualTo(temporaryFolder.toPath().resolve("bin").resolve(getApplicablePackBinary()).toFile());
+      }
+
+      private void corruptChecksumFile() throws IOException {
+        File checksumFile = new File(server.getArtifactsDir(), getApplicableArtifactFileName() + ".sha256");
+        Files.write(checksumFile.toPath(),
+                ("0000000000000000000000000000000000000000000000000000000000000000  " + getApplicableArtifactFileName())
+                        .getBytes(StandardCharsets.UTF_8));
+      }
+
+      private void deleteChecksumFile() throws IOException {
+        File checksumFile = new File(server.getArtifactsDir(), getApplicableArtifactFileName() + ".sha256");
+        Files.delete(checksumFile.toPath());
       }
     }
 
@@ -190,8 +268,8 @@ abstract class AbstractBuildPackCliDownloaderTest {
       void givenNoLocalPackBinaryInUserPath_thenThrowException() {
         // When + Then
         assertThatIllegalStateException()
-            .isThrownBy(buildPackCliDownloader::getPackCLIIfPresentOrDownload)
-            .withMessage("No local pack binary found");
+                .isThrownBy(buildPackCliDownloader::getPackCLIIfPresentOrDownload)
+                .withMessage("No local pack binary found");
       }
 
       @Test
@@ -215,16 +293,16 @@ abstract class AbstractBuildPackCliDownloaderTest {
 
         // When + Then
         assertThatIllegalStateException()
-            .isThrownBy(buildPackCliDownloader::getPackCLIIfPresentOrDownload)
-            .withMessage("No local pack binary found");
+                .isThrownBy(buildPackCliDownloader::getPackCLIIfPresentOrDownload)
+                .withMessage("No local pack binary found");
       }
+    }
 
-      private void givenPackCliPresentOnUserPath(String packResource) throws IOException {
-        File bin = new File(temporaryFolder, "bin");
-        File pack = new File(Objects.requireNonNull(getClass().getResource(packResource)).getFile());
-        Files.createDirectory(bin.toPath());
-        Files.copy(pack.toPath(), bin.toPath().resolve(pack.getName()), COPY_ATTRIBUTES);
-      }
+    private void givenPackCliPresentOnUserPath(String packResource) throws IOException {
+      File bin = new File(temporaryFolder, "bin");
+      File pack = new File(Objects.requireNonNull(getClass().getResource(packResource)).getFile());
+      Files.createDirectory(bin.toPath());
+      Files.copy(pack.toPath(), bin.toPath().resolve(pack.getName()), COPY_ATTRIBUTES);
     }
   }
 

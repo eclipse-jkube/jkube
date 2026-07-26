@@ -86,7 +86,10 @@ gradle {task-prefix}Build -Djkube.build.strategy=buildpacks
 endif::[]
 
 {plugin} downloads https://buildpacks.io/docs/tools/pack/[Pack CLI] to the user's `$HOME/.jkube` folder and starts the
-`pack build` process. If the download for the https://buildpacks.io/docs/tools/pack/[Pack CLI] binary fails, {plugin} looks for any locally installed https://buildpacks.io/docs/tools/pack/[Pack CLI] version.
+`pack build` process. The downloaded archive is verified against its published SHA-256 checksum to ensure integrity; the build
+fails with a clear error message if the checksums do not match. If the download or verification for the
+https://buildpacks.io/docs/tools/pack/[Pack CLI] binary fails, {plugin} looks for any locally installed
+https://buildpacks.io/docs/tools/pack/[Pack CLI] version.
 
 === Buildpack Builder Image
 - If no builder image is configured, then {plugin} uses `paketobuildpacks/builder-jammy-base` as the default builder image.
