@@ -154,7 +154,7 @@ public class JibService implements AutoCloseable {
   }
 
   private void containerize(JibContainerBuilder from, Containerizer to) {
-    to.setAllowInsecureRegistries(true);
+    to.setAllowInsecureRegistries(configuration.getPullRegistryConfig().isAllowInsecureRegistries());
     to.setExecutorService(executorService);
     to.addEventHandler(LogEvent.class, jibLogger);
     to.addEventHandler(ProgressEvent.class, jibLogger.progressEventHandler());

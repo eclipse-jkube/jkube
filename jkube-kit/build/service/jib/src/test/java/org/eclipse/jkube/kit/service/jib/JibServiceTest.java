@@ -67,7 +67,9 @@ class JibServiceTest {
     jibLogger = new JibLogger(new KitLogger.SilentLogger());
     testAuthConfigFactory = new TestAuthConfigFactory();
     configuration = JKubeConfiguration.builder()
-      .pullRegistryConfig(RegistryConfig.builder().build())
+      .pullRegistryConfig(RegistryConfig.builder()
+        .allowInsecureRegistries(true)
+        .build())
       .pushRegistryConfig(RegistryConfig.builder()
         .registry(remoteOciServer.getUrl())
         .settings(Collections.singletonList(RegistryServerConfiguration.builder()
@@ -194,6 +196,19 @@ class JibServiceTest {
           .hasMessageContaining("Unable to containerize image using Jib: Unauthorized for")
           .cause()
           .isInstanceOf(RegistryUnauthorizedException.class);
+      }
+    }
+
+    @Test
+    @DisplayName("push with allowInsecureRegistries disabled should reject insecure registry")
+    void pushWithInsecureRegistriesDisabled() throws Exception {
+      configuration = configuration.toBuilder()
+        .pullRegistryConfig(RegistryConfig.builder().build())
+        .build();
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        assertThatThrownBy(jibService::push)
+          .isInstanceOf(JKubeException.class)
+          .hasMessageContaining("only secure connections are allowed");
       }
     }
 
