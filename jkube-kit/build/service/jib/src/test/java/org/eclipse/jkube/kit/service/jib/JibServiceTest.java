@@ -201,7 +201,7 @@ class JibServiceTest {
 
     @Test
     @DisplayName("push with allowInsecureRegistries disabled should reject insecure registry")
-    void pushWithInsecureRegistriesDisabled() throws Exception {
+    void pushWithInsecureRegistriesDisabled() {
       configuration = configuration.toBuilder()
         .pullRegistryConfig(RegistryConfig.builder().build())
         .build();
