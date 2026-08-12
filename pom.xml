@@ -99,7 +99,7 @@
     <version.guava>33.4.0-jre</version.guava>
     <version.error_prone_annotations>2.50.0</version.error_prone_annotations>
     <version.jackson>2.22.1</version.jackson>
-    <version.jacoco>0.8.14</version.jacoco>
+    <version.jacoco>0.8.15</version.jacoco>
     <version.json-smart>2.6.0</version.json-smart> <!-- Transitive dependency  required by citrus -->
     <version.junit5>5.11.4</version.junit5>
     <version.kube-api-test>7.8.0</version.kube-api-test>
