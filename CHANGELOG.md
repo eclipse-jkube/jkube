@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.21-SNAPSHOT
+* Fix #3975: JIB build strategy no longer allows insecure registries by default (was hard-coded to `true`). Set `jkube.docker.allowInsecureRegistries=true` to restore previous behavior.
 
 ### 1.20.0 (2026-07-21)
 * Fix #3903: Log pack CLI stderr output via kitLogger.error on buildpacks build failure

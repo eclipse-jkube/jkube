@@ -154,7 +154,12 @@ public class JibService implements AutoCloseable {
   }
 
   private void containerize(JibContainerBuilder from, Containerizer to) {
-    to.setAllowInsecureRegistries(true);
+    final boolean allowInsecure = configuration.getPullRegistryConfig().isAllowInsecureRegistries()
+      || configuration.getPushRegistryConfig().isAllowInsecureRegistries();
+    if (allowInsecure) {
+      jibLogger.logger.warn("JIB insecure registries are enabled — TLS certificate validation is disabled for all registry connections in this operation");
+    }
+    to.setAllowInsecureRegistries(allowInsecure);
     to.setExecutorService(executorService);
     to.addEventHandler(LogEvent.class, jibLogger);
     to.addEventHandler(ProgressEvent.class, jibLogger.progressEventHandler());
