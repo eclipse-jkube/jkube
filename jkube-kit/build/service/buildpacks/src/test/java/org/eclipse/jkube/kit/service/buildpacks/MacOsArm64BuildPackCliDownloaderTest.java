@@ -37,4 +37,9 @@ public class MacOsArm64BuildPackCliDownloaderTest extends AbstractBuildPackCliDo
   String getProcessorArchitecture() {
     return "aarch64";
   }
+
+  @Override
+  String getApplicableArtifactFileName() {
+    return "pack-v0.32.1-macos-arm64.tgz";
+  }
 }
