@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.21-SNAPSHOT
+* Fix #3978: Spring Boot generator now supports Spring Boot 4.1+ by using the correct jarmode (tools vs layertools) for layer extraction based on version detection
 
 ### 1.20.0 (2026-07-21)
 * Fix #3903: Log pack CLI stderr output via kitLogger.error on buildpacks build failure

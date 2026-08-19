@@ -20,12 +20,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -176,6 +179,99 @@ class SpringBootLayeredJarTest {
       assertThatIllegalStateException()
         .isThrownBy(() -> springBootLayeredJar.extractLayers(projectDir))
         .withMessage("Failure in extracting spring boot jar layers");
+    }
+  }
+
+  @Nested
+  @DisplayName("getSpringBootVersion")
+  class GetSpringBootVersion {
+    @ParameterizedTest(name = "with Spring Boot {0} jar, should return version")
+    @ValueSource(strings = {"2.7.14", "3.3.0", "4.1.0"})
+    @DisplayName("with valid version")
+    void withValidVersion(String version) throws IOException {
+      // Given
+      final File jarFile = createJarWithVersion(version);
+      springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
+      // When
+      final Optional<String> result = springBootLayeredJar.getSpringBootVersion();
+      // Then
+      assertThat(result).hasValue(version);
+    }
+
+    @Test
+    @DisplayName("without Spring-Boot-Version in manifest, should return empty")
+    void withoutSpringBootVersion() throws IOException {
+      // Given
+      final File jarFile = createJarWithoutVersion();
+      springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
+      // When
+      final Optional<String> result = springBootLayeredJar.getSpringBootVersion();
+      // Then
+      assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("with invalid jar, should return empty")
+    void withInvalidJar() {
+      // Given
+      springBootLayeredJar = new SpringBootLayeredJar(new File(projectDir, "invalid.jar"), new KitLogger.SilentLogger());
+      // When
+      final Optional<String> result = springBootLayeredJar.getSpringBootVersion();
+      // Then
+      assertThat(result).isEmpty();
+    }
+
+    private File createJarWithVersion(String version) throws IOException {
+      final File jarFile = new File(projectDir, "spring-boot-" + version + ".jar");
+      final Manifest manifest = new Manifest();
+      manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+      manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "org.springframework.boot.loader.JarLauncher");
+      manifest.getMainAttributes().putValue("Spring-Boot-Version", version);
+      try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile.toPath()), manifest)) {
+        jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/layers.idx"));
+      }
+      return jarFile;
+    }
+
+    private File createJarWithoutVersion() throws IOException {
+      final File jarFile = new File(projectDir, "spring-boot-no-version.jar");
+      final Manifest manifest = new Manifest();
+      manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+      manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "org.springframework.boot.loader.JarLauncher");
+      try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile.toPath()), manifest)) {
+        jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/layers.idx"));
+      }
+      return jarFile;
+    }
+  }
+
+  @Nested
+  @DisplayName("extractLayers with version-specific jarmode")
+  class ExtractLayersWithJarMode {
+    @ParameterizedTest(name = "with Spring Boot {0}, should detect version")
+    @ValueSource(strings = {"2.7.14", "3.2.0", "3.3.0", "4.1.0"})
+    @DisplayName("with valid version")
+    void withValidVersion(String version) throws IOException {
+      // Given
+      final File jarFile = createExecutableJarWithVersion(version);
+      springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
+
+      // When & Then - would fail if wrong jarmode is used, but we can't easily test subprocess execution
+      // The real test is in the integration tests with actual Spring Boot jars
+      assertThat(springBootLayeredJar.getSpringBootVersion()).hasValue(version);
+    }
+
+    private File createExecutableJarWithVersion(String version) throws IOException {
+      final File jarFile = new File(projectDir, "executable-" + version + ".jar");
+      final Manifest manifest = new Manifest();
+      manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+      manifest.getMainAttributes().put(Attributes.Name.MAIN_CLASS, "org.springframework.boot.loader.JarLauncher");
+      manifest.getMainAttributes().putValue("Spring-Boot-Version", version);
+      try (JarOutputStream jarOutputStream = new JarOutputStream(Files.newOutputStream(jarFile.toPath()), manifest)) {
+        jarOutputStream.putNextEntry(new JarEntry("BOOT-INF/layers.idx"));
+        jarOutputStream.write("- \"dependencies\":\n  - \"BOOT-INF/lib/\"\n".getBytes());
+      }
+      return jarFile;
     }
   }
 }

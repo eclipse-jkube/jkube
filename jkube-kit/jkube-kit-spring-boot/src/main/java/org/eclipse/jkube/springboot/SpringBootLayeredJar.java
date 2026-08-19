@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
@@ -65,6 +66,23 @@ public class SpringBootLayeredJar {
     return null;
   }
 
+  public Optional<String> getSpringBootVersion() {
+    try (JarFile jarFile = new JarFile(layeredJar)) {
+      final ZipEntry manifest = jarFile.getEntry("META-INF/MANIFEST.MF");
+      if (manifest == null) {
+        return Optional.empty();
+      }
+      final Properties properties = new Properties();
+      try (InputStream manifestInputStream = jarFile.getInputStream(manifest)) {
+        properties.load(manifestInputStream);
+        return Optional.ofNullable(properties.getProperty("Spring-Boot-Version"));
+      }
+    } catch(Exception e) {
+      kitLogger.debug("Couldn't determine Spring Boot jar's (%s) version ", layeredJar.getName(), e);
+    }
+    return Optional.empty();
+  }
+
   public List<String> listLayers() {
     try (JarFile jarFile = new JarFile(layeredJar)) {
       List<Map<String, List<String>>> layers = Serialization.unmarshal(jarFile.getInputStream(jarFile.getEntry("BOOT-INF/layers.idx")), List.class);
@@ -81,26 +99,74 @@ public class SpringBootLayeredJar {
   }
 
   public void extractLayers(File extractionDir) {
-    try {
-      new LayerToolsCommand(kitLogger, extractionDir, layeredJar,  "extract").execute();
-    } catch (IOException ioException) {
-      throw new IllegalStateException("Failure in extracting spring boot jar layers", ioException);
+    String jarMode = determineJarMode();
+    if (jarMode != null) {
+      try {
+        new LayerToolsCommand(kitLogger, extractionDir, layeredJar, jarMode, "extract").execute();
+        return;
+      } catch (IOException ioException) {
+        throw new IllegalStateException("Failure in extracting spring boot jar layers", ioException);
+      }
     }
+
+    // Fallback: try both jarmodes (tools first for forward compatibility)
+    IOException lastException = null;
+    for (String fallbackJarMode : new String[]{"tools", "layertools"}) {
+      try {
+        kitLogger.debug("Trying jarmode=%s for layer extraction", fallbackJarMode);
+        new LayerToolsCommand(kitLogger, extractionDir, layeredJar, fallbackJarMode, "extract").execute();
+        return;
+      } catch (IOException ioException) {
+        kitLogger.debug("Failed with jarmode=%s: %s", fallbackJarMode, ioException.getMessage());
+        lastException = ioException;
+      }
+    }
+    throw new IllegalStateException("Failure in extracting spring boot jar layers", lastException);
+  }
+
+  // Package-private for testing
+  boolean isVersion330OrNewer(String version) {
+    try {
+      String[] parts = version.split("[.-]");
+      if (parts.length < 2) {
+        return false;
+      }
+      int major = Integer.parseInt(parts[0]);
+      int minor = Integer.parseInt(parts[1]);
+
+      return major > 3 || (major == 3 && minor >= 3);
+    } catch (NumberFormatException e) {
+      kitLogger.debug("Unable to parse Spring Boot version: %s", version, e);
+      return false;
+    }
+  }
+
+  // Package-private for testing
+  String determineJarMode() {
+    Optional<String> version = getSpringBootVersion();
+    if (version.isPresent() && isVersion330OrNewer(version.get())) {
+      return "tools";
+    } else if (version.isPresent()) {
+      return "layertools";
+    }
+    return null;
   }
 
   private static class LayerToolsCommand extends ExternalCommand {
     private final File layeredJar;
     private final String[] args;
+    private final String jarMode;
 
-    protected LayerToolsCommand(KitLogger log, File workDir, File layeredJar, String... args) {
+    protected LayerToolsCommand(KitLogger log, File workDir, File layeredJar, String jarMode, String... args) {
       super(log, workDir);
       this.layeredJar = layeredJar;
+      this.jarMode = jarMode;
       this.args = args;
     }
 
     @Override
     protected String[] getArgs() {
-      return ArrayUtils.addAll(new String[] { "java", "-Djarmode=layertools", "-jar", layeredJar.getAbsolutePath()}, args);
+      return ArrayUtils.addAll(new String[] { "java", "-Djarmode=" + jarMode, "-jar", layeredJar.getAbsolutePath()}, args);
     }
   }
 
