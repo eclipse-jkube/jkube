@@ -22,7 +22,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
@@ -65,10 +64,8 @@ class SpringBootVersionComparisonTest {
     final File jarFile = createJarWithVersion(version);
     springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
 
-    // When - use reflection to call private method
-    Method method = SpringBootLayeredJar.class.getDeclaredMethod("isVersion330OrNewer", String.class);
-    method.setAccessible(true);
-    boolean result = (boolean) method.invoke(springBootLayeredJar, version);
+    // When
+    boolean result = springBootLayeredJar.isVersion330OrNewer(version);
 
     // Then
     assertThat(result).isEqualTo(expected);
@@ -76,15 +73,12 @@ class SpringBootVersionComparisonTest {
 
   @Test
   @DisplayName("with malformed version, should return false")
-  void withMalformedVersion() throws Exception {
+  void withMalformedVersion() {
     // Given
-    final File jarFile = createJarWithVersion("invalid");
-    springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
+    springBootLayeredJar = new SpringBootLayeredJar(new File(projectDir, "test.jar"), new KitLogger.SilentLogger());
 
     // When
-    Method method = SpringBootLayeredJar.class.getDeclaredMethod("isVersion330OrNewer", String.class);
-    method.setAccessible(true);
-    boolean result = (boolean) method.invoke(springBootLayeredJar, "invalid");
+    boolean result = springBootLayeredJar.isVersion330OrNewer("invalid");
 
     // Then
     assertThat(result).isFalse();
@@ -92,14 +86,12 @@ class SpringBootVersionComparisonTest {
 
   @Test
   @DisplayName("with version containing only major, should return false")
-  void withMajorOnlyVersion() throws Exception {
+  void withMajorOnlyVersion() {
     // Given
     springBootLayeredJar = new SpringBootLayeredJar(new File(projectDir, "test.jar"), new KitLogger.SilentLogger());
 
     // When
-    Method method = SpringBootLayeredJar.class.getDeclaredMethod("isVersion330OrNewer", String.class);
-    method.setAccessible(true);
-    boolean result = (boolean) method.invoke(springBootLayeredJar, "3");
+    boolean result = springBootLayeredJar.isVersion330OrNewer("3");
 
     // Then
     assertThat(result).isFalse();
@@ -108,19 +100,19 @@ class SpringBootVersionComparisonTest {
   @ParameterizedTest(name = "determineJarMode with Spring Boot {0} should return {1}")
   @CsvSource({
     "2.7.14, layertools",
+    "3.2.9, layertools",
     "3.3.0, tools",
-    "4.1.0, tools"
+    "4.1.0, tools",
+    "4.1.0-M1, tools"
   })
   @DisplayName("determineJarMode with valid version")
-  void determineJarModeWithValidVersion(String version, String expectedJarMode) throws Exception {
+  void determineJarModeWithValidVersion(String version, String expectedJarMode) throws IOException {
     // Given
     final File jarFile = createJarWithVersion(version);
     springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
 
     // When
-    Method method = SpringBootLayeredJar.class.getDeclaredMethod("determineJarMode");
-    method.setAccessible(true);
-    String result = (String) method.invoke(springBootLayeredJar);
+    String result = springBootLayeredJar.determineJarMode();
 
     // Then
     assertThat(result).isEqualTo(expectedJarMode);
@@ -128,15 +120,13 @@ class SpringBootVersionComparisonTest {
 
   @Test
   @DisplayName("determineJarMode with no version should return null for fallback")
-  void determineJarModeWithNoVersion() throws Exception {
+  void determineJarModeWithNoVersion() throws IOException {
     // Given
     final File jarFile = createJarWithoutVersion();
     springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
 
     // When
-    Method method = SpringBootLayeredJar.class.getDeclaredMethod("determineJarMode");
-    method.setAccessible(true);
-    String result = (String) method.invoke(springBootLayeredJar);
+    String result = springBootLayeredJar.determineJarMode();
 
     // Then
     assertThat(result).isNull();

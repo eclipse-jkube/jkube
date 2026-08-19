@@ -124,7 +124,8 @@ public class SpringBootLayeredJar {
     throw new IllegalStateException("Failure in extracting spring boot jar layers", lastException);
   }
 
-  private boolean isVersion330OrNewer(String version) {
+  // Package-private for testing
+  boolean isVersion330OrNewer(String version) {
     try {
       String[] parts = version.split("[.-]");
       if (parts.length < 2) {
@@ -140,7 +141,8 @@ public class SpringBootLayeredJar {
     }
   }
 
-  private String determineJarMode() {
+  // Package-private for testing
+  String determineJarMode() {
     Optional<String> version = getSpringBootVersion();
     if (version.isPresent() && isVersion330OrNewer(version.get())) {
       return "tools";
