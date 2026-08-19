@@ -18,6 +18,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,55 +71,26 @@ class SpringBootLayeredJarFallbackTest {
       .containsExactly("tools", "layertools");
   }
 
-  @Test
-  @DisplayName("when version is 2.7.14, should use layertools without fallback")
-  void whenVersion2714_shouldUseLayertoolsWithoutFallback() throws IOException {
-    // Given - JAR with Spring Boot 2.7.14
-    final File jarFile = createJarWithVersion("2.7.14");
+  @ParameterizedTest(name = "when version is {0}, should use {1} without fallback")
+  @CsvSource({
+    "2.7.14, layertools",
+    "3.3.0, tools",
+    "4.1.0, tools"
+  })
+  @DisplayName("with valid version")
+  void whenValidVersion_shouldUseCorrectJarmodeWithoutFallback(String version, String expectedJarMode) throws IOException {
+    // Given - JAR with specific Spring Boot version
+    final File jarFile = createJarWithVersion(version);
     springBootLayeredJar = new TestableSpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
 
     // When - extractLayers is called (will fail but we track the jarmode used)
     assertThatCode(() -> springBootLayeredJar.extractLayers(extractionDir))
       .isInstanceOf(IllegalStateException.class);
 
-    // Then - verify only layertools was tried (no fallback)
+    // Then - verify only the expected jarmode was tried (no fallback)
     assertThat(springBootLayeredJar.attemptedJarModes)
-      .as("Spring Boot 2.7.14 should use 'layertools' directly, no fallback")
-      .containsExactly("layertools");
-  }
-
-  @Test
-  @DisplayName("when version is 3.3.0, should use tools without fallback")
-  void whenVersion330_shouldUseToolsWithoutFallback() throws IOException {
-    // Given - JAR with Spring Boot 3.3.0
-    final File jarFile = createJarWithVersion("3.3.0");
-    springBootLayeredJar = new TestableSpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
-
-    // When - extractLayers is called (will fail but we track the jarmode used)
-    assertThatCode(() -> springBootLayeredJar.extractLayers(extractionDir))
-      .isInstanceOf(IllegalStateException.class);
-
-    // Then - verify only tools was tried (no fallback)
-    assertThat(springBootLayeredJar.attemptedJarModes)
-      .as("Spring Boot 3.3.0 should use 'tools' directly, no fallback")
-      .containsExactly("tools");
-  }
-
-  @Test
-  @DisplayName("when version is 4.1.0, should use tools without fallback")
-  void whenVersion410_shouldUseToolsWithoutFallback() throws IOException {
-    // Given - JAR with Spring Boot 4.1.0
-    final File jarFile = createJarWithVersion("4.1.0");
-    springBootLayeredJar = new TestableSpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
-
-    // When - extractLayers is called (will fail but we track the jarmode used)
-    assertThatCode(() -> springBootLayeredJar.extractLayers(extractionDir))
-      .isInstanceOf(IllegalStateException.class);
-
-    // Then - verify only tools was tried (no fallback)
-    assertThat(springBootLayeredJar.attemptedJarModes)
-      .as("Spring Boot 4.1.0 should use 'tools' directly, no fallback")
-      .containsExactly("tools");
+      .as("Spring Boot %s should use '%s' directly, no fallback", version, expectedJarMode)
+      .containsExactly(expectedJarMode);
   }
 
   private File createJarWithVersion(String version) throws IOException {
