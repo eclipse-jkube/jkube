@@ -20,6 +20,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -183,40 +185,17 @@ class SpringBootLayeredJarTest {
   @Nested
   @DisplayName("getSpringBootVersion")
   class GetSpringBootVersion {
-    @Test
-    @DisplayName("with Spring Boot 2.7.14 jar, should return version")
-    void withSpringBoot2714() throws IOException {
+    @ParameterizedTest(name = "with Spring Boot {0} jar, should return version")
+    @ValueSource(strings = {"2.7.14", "3.3.0", "4.1.0"})
+    @DisplayName("with valid version")
+    void withValidVersion(String version) throws IOException {
       // Given
-      final File jarFile = createJarWithVersion("2.7.14");
+      final File jarFile = createJarWithVersion(version);
       springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
       // When
       final Optional<String> result = springBootLayeredJar.getSpringBootVersion();
       // Then
-      assertThat(result).hasValue("2.7.14");
-    }
-
-    @Test
-    @DisplayName("with Spring Boot 3.3.0 jar, should return version")
-    void withSpringBoot330() throws IOException {
-      // Given
-      final File jarFile = createJarWithVersion("3.3.0");
-      springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
-      // When
-      final Optional<String> result = springBootLayeredJar.getSpringBootVersion();
-      // Then
-      assertThat(result).hasValue("3.3.0");
-    }
-
-    @Test
-    @DisplayName("with Spring Boot 4.1.0 jar, should return version")
-    void withSpringBoot410() throws IOException {
-      // Given
-      final File jarFile = createJarWithVersion("4.1.0");
-      springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
-      // When
-      final Optional<String> result = springBootLayeredJar.getSpringBootVersion();
-      // Then
-      assertThat(result).hasValue("4.1.0");
+      assertThat(result).hasValue(version);
     }
 
     @Test
@@ -269,50 +248,17 @@ class SpringBootLayeredJarTest {
   @Nested
   @DisplayName("extractLayers with version-specific jarmode")
   class ExtractLayersWithJarMode {
-    @Test
-    @DisplayName("with Spring Boot 2.7.14, should use layertools jarmode")
-    void withSpringBoot2714UsesLayertools() throws IOException {
+    @ParameterizedTest(name = "with Spring Boot {0}, should detect version")
+    @ValueSource(strings = {"2.7.14", "3.2.0", "3.3.0", "4.1.0"})
+    @DisplayName("with valid version")
+    void withValidVersion(String version) throws IOException {
       // Given
-      final File jarFile = createExecutableJarWithVersion("2.7.14");
-      final File extractionDir = Files.createDirectory(new File(projectDir, "extracted-2714").toPath()).toFile();
+      final File jarFile = createExecutableJarWithVersion(version);
       springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
 
       // When & Then - would fail if wrong jarmode is used, but we can't easily test subprocess execution
       // The real test is in the integration tests with actual Spring Boot jars
-      assertThat(springBootLayeredJar.getSpringBootVersion()).hasValue("2.7.14");
-    }
-
-    @Test
-    @DisplayName("with Spring Boot 3.2.0, should use layertools jarmode")
-    void withSpringBoot320UsesLayertools() throws IOException {
-      // Given
-      final File jarFile = createExecutableJarWithVersion("3.2.0");
-      springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
-
-      // When & Then
-      assertThat(springBootLayeredJar.getSpringBootVersion()).hasValue("3.2.0");
-    }
-
-    @Test
-    @DisplayName("with Spring Boot 3.3.0, should use tools jarmode")
-    void withSpringBoot330UsesTools() throws IOException {
-      // Given
-      final File jarFile = createExecutableJarWithVersion("3.3.0");
-      springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
-
-      // When & Then
-      assertThat(springBootLayeredJar.getSpringBootVersion()).hasValue("3.3.0");
-    }
-
-    @Test
-    @DisplayName("with Spring Boot 4.1.0, should use tools jarmode")
-    void withSpringBoot410UsesTools() throws IOException {
-      // Given
-      final File jarFile = createExecutableJarWithVersion("4.1.0");
-      springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
-
-      // When & Then
-      assertThat(springBootLayeredJar.getSpringBootVersion()).hasValue("4.1.0");
+      assertThat(springBootLayeredJar.getSpringBootVersion()).hasValue(version);
     }
 
     private File createExecutableJarWithVersion(String version) throws IOException {

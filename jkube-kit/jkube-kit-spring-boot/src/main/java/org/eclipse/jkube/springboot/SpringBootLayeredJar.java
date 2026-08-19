@@ -133,13 +133,7 @@ public class SpringBootLayeredJar {
       int major = Integer.parseInt(parts[0]);
       int minor = Integer.parseInt(parts[1]);
 
-      if (major > 3) {
-        return true;
-      }
-      if (major == 3 && minor >= 3) {
-        return true;
-      }
-      return false;
+      return major > 3 || (major == 3 && minor >= 3);
     } catch (NumberFormatException e) {
       kitLogger.debug("Unable to parse Spring Boot version: %s", version, e);
       return false;

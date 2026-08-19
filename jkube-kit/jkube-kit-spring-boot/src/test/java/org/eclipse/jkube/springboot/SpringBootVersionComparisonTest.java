@@ -14,7 +14,6 @@
 package org.eclipse.jkube.springboot;
 
 import org.eclipse.jkube.kit.common.KitLogger;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -106,11 +105,16 @@ class SpringBootVersionComparisonTest {
     assertThat(result).isFalse();
   }
 
-  @Test
-  @DisplayName("determineJarMode with Spring Boot 2.7.14 should return layertools")
-  void determineJarModeWithSpringBoot2714() throws Exception {
+  @ParameterizedTest(name = "determineJarMode with Spring Boot {0} should return {1}")
+  @CsvSource({
+    "2.7.14, layertools",
+    "3.3.0, tools",
+    "4.1.0, tools"
+  })
+  @DisplayName("determineJarMode with valid version")
+  void determineJarModeWithValidVersion(String version, String expectedJarMode) throws Exception {
     // Given
-    final File jarFile = createJarWithVersion("2.7.14");
+    final File jarFile = createJarWithVersion(version);
     springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
 
     // When
@@ -119,39 +123,7 @@ class SpringBootVersionComparisonTest {
     String result = (String) method.invoke(springBootLayeredJar);
 
     // Then
-    assertThat(result).isEqualTo("layertools");
-  }
-
-  @Test
-  @DisplayName("determineJarMode with Spring Boot 3.3.0 should return tools")
-  void determineJarModeWithSpringBoot330() throws Exception {
-    // Given
-    final File jarFile = createJarWithVersion("3.3.0");
-    springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
-
-    // When
-    Method method = SpringBootLayeredJar.class.getDeclaredMethod("determineJarMode");
-    method.setAccessible(true);
-    String result = (String) method.invoke(springBootLayeredJar);
-
-    // Then
-    assertThat(result).isEqualTo("tools");
-  }
-
-  @Test
-  @DisplayName("determineJarMode with Spring Boot 4.1.0 should return tools")
-  void determineJarModeWithSpringBoot410() throws Exception {
-    // Given
-    final File jarFile = createJarWithVersion("4.1.0");
-    springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
-
-    // When
-    Method method = SpringBootLayeredJar.class.getDeclaredMethod("determineJarMode");
-    method.setAccessible(true);
-    String result = (String) method.invoke(springBootLayeredJar);
-
-    // Then
-    assertThat(result).isEqualTo("tools");
+    assertThat(result).isEqualTo(expectedJarMode);
   }
 
   @Test
