@@ -1,5 +1,8 @@
 [[build-openshift]]
 
+Unlike Kubernetes builds (<<build-kubernetes>>), which default to a **local** Docker daemon, OpenShift builds run **in the OpenShift cluster**.
+The default strategy is S2I. Setting `buildStrategy` to `docker` still performs an OpenShift Docker build on the cluster, not on your machine.
+
 For the `openshift` mode, OpenShift specific
 https://docs.openshift.com/enterprise/latest/architecture/core_concepts/builds_and_image_streams.html[builds] will be performed.
 These are so called
