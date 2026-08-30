@@ -35,7 +35,7 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             access.redhat.com:443
-            api.adoptopenjdk.net:443
+            api.adoptium.net:443
             downloads.gradle.org:443
             downloads.gradle-dn.com:443
             github.com:443
@@ -54,7 +54,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Setup Java 17
-        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c
         with:
           java-version: '17'
           distribution: 'temurin'
