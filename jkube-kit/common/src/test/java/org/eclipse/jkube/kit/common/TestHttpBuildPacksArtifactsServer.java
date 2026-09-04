@@ -19,6 +19,10 @@ import org.eclipse.jkube.kit.common.util.FileUtil;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 
 public class TestHttpBuildPacksArtifactsServer implements Closeable {
@@ -28,6 +32,7 @@ public class TestHttpBuildPacksArtifactsServer implements Closeable {
   private static final String MACOS_ARTIFACT = "pack-v0.32.1-macos.tgz";
   private static final String MACOS_ARM64_ARTIFACT = "pack-v0.32.1-macos-arm64.tgz";
   private static final String WINDOWS_ARTIFACT = "pack-v0.32.1-windows.zip";
+  private static final String SHA256_SUFFIX = ".sha256";
   private final File remoteBuildPackArtifactsDir;
 
   public TestHttpBuildPacksArtifactsServer() {
@@ -58,6 +63,9 @@ public class TestHttpBuildPacksArtifactsServer implements Closeable {
   public String getBaseUrl() {
     return String.format("http://localhost:%d", testHttpStaticServer.getPort());
   }
+  public File getArtifactsDir() {
+    return remoteBuildPackArtifactsDir;
+  }
 
   private String createUrlForArtifact(String artifactName) {
     return String.format("%s/%s", getBaseUrl(), artifactName);
@@ -67,15 +75,47 @@ public class TestHttpBuildPacksArtifactsServer implements Closeable {
     try {
       File artifactDir = FileUtil.createTempDirectory();
 
-      FileUtils.copyInputStreamToFile(Objects.requireNonNull(TestHttpBuildPacksArtifactsServer.class.getResourceAsStream(String.format("/buildpack-download-artifacts/%s", LINUX_ARTIFACT))), new File(artifactDir, LINUX_ARTIFACT));
-      FileUtils.copyInputStreamToFile(Objects.requireNonNull(TestHttpBuildPacksArtifactsServer.class.getResourceAsStream(String.format("/buildpack-download-artifacts/%s", LINUX_ARM64_ARTIFACT))), new File(artifactDir, LINUX_ARM64_ARTIFACT));
-      FileUtils.copyInputStreamToFile(Objects.requireNonNull(TestHttpBuildPacksArtifactsServer.class.getResourceAsStream(String.format("/buildpack-download-artifacts/%s", MACOS_ARTIFACT))), new File(artifactDir, MACOS_ARTIFACT));
-      FileUtils.copyInputStreamToFile(Objects.requireNonNull(TestHttpBuildPacksArtifactsServer.class.getResourceAsStream(String.format("/buildpack-download-artifacts/%s", MACOS_ARM64_ARTIFACT))), new File(artifactDir, MACOS_ARM64_ARTIFACT));
-      FileUtils.copyInputStreamToFile(Objects.requireNonNull(TestHttpBuildPacksArtifactsServer.class.getResourceAsStream(String.format("/buildpack-download-artifacts/%s", WINDOWS_ARTIFACT))), new File(artifactDir, WINDOWS_ARTIFACT));
+      copyArtifactWithChecksum(artifactDir, LINUX_ARTIFACT);
+      copyArtifactWithChecksum(artifactDir, LINUX_ARM64_ARTIFACT);
+      copyArtifactWithChecksum(artifactDir, MACOS_ARTIFACT);
+      copyArtifactWithChecksum(artifactDir, MACOS_ARM64_ARTIFACT);
+      copyArtifactWithChecksum(artifactDir, WINDOWS_ARTIFACT);
       return artifactDir;
     } catch (IOException ioException) {
       throw new IllegalStateException("Failure in creating build pack artifacts server : ", ioException);
     }
+  }
+
+  private void copyArtifactWithChecksum(File artifactDir, String artifactName) throws IOException {
+    File artifactFile = new File(artifactDir, artifactName);
+    FileUtils.copyInputStreamToFile(
+            Objects.requireNonNull(TestHttpBuildPacksArtifactsServer.class.getResourceAsStream(
+                    String.format("/buildpack-download-artifacts/%s", artifactName))),
+            artifactFile);
+
+    File checksumFile = new File(artifactDir, artifactName + SHA256_SUFFIX);
+    String checksum = calculateSha256(artifactFile);
+    Files.write(checksumFile.toPath(),
+            (checksum + "  " + artifactName + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
+  }
+
+  private static String calculateSha256(File file) throws IOException {
+    MessageDigest digest;
+    try {
+      digest = MessageDigest.getInstance("SHA-256");
+    } catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException("SHA-256 algorithm not available", e);
+    }
+    digest.update(Files.readAllBytes(file.toPath()));
+    StringBuilder hexString = new StringBuilder();
+    for (byte b : digest.digest()) {
+      String hex = Integer.toHexString(0xff & b);
+      if (hex.length() == 1) {
+        hexString.append('0');
+      }
+      hexString.append(hex);
+    }
+    return hexString.toString();
   }
 
   @Override

@@ -20,6 +20,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -84,6 +85,21 @@ public class IoUtil {
         download(downloadUrl, response -> {
             try (InputStream is = response.body()) {
                 extractArchive(is, target);
+            }
+        });
+    }
+
+    /**
+     * Download the contents of a URL and save them to a file.
+     *
+     * @param downloadUrl the URL to download from
+     * @param target the file to write the downloaded content to
+     * @throws IOException in case of error while downloading
+     */
+    public static void downloadFile(URL downloadUrl, File target) throws IOException {
+        download(downloadUrl, response -> {
+            try (InputStream is = response.body()) {
+                Files.copy(is, target.toPath(), StandardCopyOption.REPLACE_EXISTING);
             }
         });
     }

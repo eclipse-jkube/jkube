@@ -38,4 +38,9 @@ class LinuxBuildPackCliDownloaderTest extends AbstractBuildPackCliDownloaderTest
   String getProcessorArchitecture() {
     return "amd64";
   }
+
+  @Override
+  String getApplicableArtifactFileName() {
+    return "pack-v0.32.1-linux.tgz";
+  }
 }

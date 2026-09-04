@@ -37,4 +37,9 @@ class WindowsBuildPackCliDownloaderTest extends AbstractBuildPackCliDownloaderTe
   String getProcessorArchitecture() {
     return "amd64";
   }
+
+  @Override
+  String getApplicableArtifactFileName() {
+    return "pack-v0.32.1-windows.zip";
+  }
 }
