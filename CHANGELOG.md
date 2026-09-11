@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.21-SNAPSHOT
+* Fix #1528: Document that `oc:build` defaults to cluster S2I, not a local Docker daemon
 
 ### 1.20.0 (2026-07-21)
 * Fix #3903: Log pack CLI stderr output via kitLogger.error on buildpacks build failure

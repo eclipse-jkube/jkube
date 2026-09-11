@@ -1,6 +1,14 @@
 | *buildStrategy*
 a| Defines what build strategy to choose while building container image.
+
+ifeval::["{goal-prefix}" == "k8s"]
 Possible values are `docker`, `buildpacks` and `jib` out of which `docker` is default.
+Docker builds run against the local Docker daemon (`DOCKER_HOST` / `dockerHost`).
+endif::[]
+ifeval::["{task-prefix}" == "k8s"]
+Possible values are `docker`, `buildpacks` and `jib` out of which `docker` is default.
+Docker builds run against the local Docker daemon (`DOCKER_HOST` / `dockerHost`).
+endif::[]
 
 ifeval::["{goal-prefix}" == "oc"]
 include::_openshift_s2i_buildstrategy_entry.adoc[]

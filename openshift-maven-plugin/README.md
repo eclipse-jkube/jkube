@@ -24,7 +24,7 @@ To enable OpenShift maven plugin on your project just add this to the plugins se
 | Goal                                                                                          | Description                                                                                    |
 |-----------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|
 | [`oc:resource`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:resource)     | Create Kubernetes resource descriptors                                                         |
-| [`oc:build`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:build)           | Build Docker images                                                                            |
+| [`oc:build`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:build)           | Build images on the OpenShift cluster (S2I by default)                                         |
 | [`oc:push`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:push)             | Push Docker images to a registry                                                               |
 | [`oc:deploy`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:deploy)         | Deploy Kubernetes resource objects to a cluster                                                |
 | [`oc:helm`](https://www.eclipse.dev/jkube/docs/openshift-maven-plugin#jkube:helm)             | Generate Helm charts for your application                                                      |
