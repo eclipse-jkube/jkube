@@ -37,4 +37,9 @@ class MacOsBuildPackCliDownloaderTest extends AbstractBuildPackCliDownloaderTest
   String getProcessorArchitecture() {
     return "amd64";
   }
+
+  @Override
+  String getApplicableArtifactFileName() {
+    return "pack-v0.32.1-macos.tgz";
+  }
 }

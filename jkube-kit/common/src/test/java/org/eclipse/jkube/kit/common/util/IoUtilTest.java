@@ -181,4 +181,52 @@ class IoUtilTest {
         }
     }
 
+    @Test
+    void downloadFile_whenRemoteFileAvailable_thenSaveToTargetFile() throws IOException {
+        File remoteDirectory = new File(getClass().getResource("/remote-resources").getFile());
+        try (TestHttpStaticServer http = new TestHttpStaticServer(remoteDirectory)) {
+            // Given
+            URL downloadUrl = new URL(String.format("http://localhost:%d/deployment.yaml", http.getPort()));
+            File targetFile = new File(temporaryFolder, "deployment.yaml");
+
+            // When
+            IoUtil.downloadFile(downloadUrl, targetFile);
+
+            // Then
+            assertThat(targetFile).exists().isNotEmpty();
+        }
+    }
+
+    @Test
+    void downloadFile_whenRemoteFileNotAvailable_thenThrowIOException() throws IOException {
+        File remoteDirectory = new File(getClass().getResource("/remote-resources").getFile());
+        try (TestHttpStaticServer http = new TestHttpStaticServer(remoteDirectory)) {
+            // Given
+            URL downloadUrl = new URL(String.format("http://localhost:%d/does-not-exist.yaml", http.getPort()));
+            File targetFile = new File(temporaryFolder, "does-not-exist.yaml");
+
+            // When + Then
+            assertThatIOException()
+                    .isThrownBy(() -> IoUtil.downloadFile(downloadUrl, targetFile))
+                    .withMessageContaining("Got (404) while downloading from URL");
+        }
+    }
+
+    @Test
+    void downloadFile_whenTargetFileAlreadyExists_thenOverwriteIt() throws IOException {
+        File remoteDirectory = new File(getClass().getResource("/remote-resources").getFile());
+        try (TestHttpStaticServer http = new TestHttpStaticServer(remoteDirectory)) {
+            // Given
+            URL downloadUrl = new URL(String.format("http://localhost:%d/deployment.yaml", http.getPort()));
+            File targetFile = new File(temporaryFolder, "deployment.yaml");
+            assertThat(targetFile.createNewFile()).isTrue();
+
+            // When
+            IoUtil.downloadFile(downloadUrl, targetFile);
+
+            // Then
+            assertThat(targetFile).exists().isNotEmpty();
+        }
+    }
+
 }

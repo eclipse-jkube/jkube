@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.21-SNAPSHOT
+* Fix #3910: Add SHA-256 checksum verification for pack CLI binary downloads to prevent MITM/integrity attacks
 
 ### 1.20.0 (2026-07-21)
 * Fix #3903: Log pack CLI stderr output via kitLogger.error on buildpacks build failure
