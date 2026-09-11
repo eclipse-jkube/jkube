@@ -148,7 +148,7 @@ class LayeredJarGeneratorTest {
       // Given
       File layeredJar = createRealLayeredJar();
       createExtractedLayersStructure(targetDir);
-      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, layeredJar);
+      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, nonExtractingJar(layeredJar));
       List<AssemblyFileSet> defaultFileSets = Collections.singletonList(
           AssemblyFileSet.builder().directory(new File("src/main/resources")).build()
       );
@@ -169,7 +169,7 @@ class LayeredJarGeneratorTest {
       // Given
       File layeredJar = createRealLayeredJar();
       createExtractedLayersStructure(targetDir);
-      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, layeredJar);
+      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, nonExtractingJar(layeredJar));
 
       // When
       AssemblyConfiguration config = generator.createAssemblyConfiguration(Collections.emptyList());
@@ -188,7 +188,7 @@ class LayeredJarGeneratorTest {
       // Given
       File layeredJar = createRealLayeredJar();
       createExtractedLayersStructure(targetDir);
-      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, layeredJar);
+      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, nonExtractingJar(layeredJar));
 
       // When
       AssemblyConfiguration config = generator.createAssemblyConfiguration(Collections.emptyList());
@@ -207,7 +207,7 @@ class LayeredJarGeneratorTest {
       // Given
       File layeredJar = createRealLayeredJar();
       createExtractedLayersStructure(targetDir);
-      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, layeredJar);
+      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, nonExtractingJar(layeredJar));
 
       // When
       AssemblyConfiguration config = generator.createAssemblyConfiguration(Collections.emptyList());
@@ -222,7 +222,7 @@ class LayeredJarGeneratorTest {
       // Given
       File layeredJar = createRealLayeredJar();
       createExtractedLayersStructure(targetDir);
-      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, layeredJar);
+      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, nonExtractingJar(layeredJar));
 
       List<AssemblyFileSet> defaultFileSets = new ArrayList<>();
       defaultFileSets.add(AssemblyFileSet.builder().directory(new File("src/main/jkube")).build());
@@ -246,7 +246,7 @@ class LayeredJarGeneratorTest {
       // Given - With --destination . flag, layers extract directly to buildPackageDirectory (not subdirectories)
       File layeredJar = createRealLayeredJar();
       createExtractedLayersStructure(targetDir);
-      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, layeredJar);
+      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, nonExtractingJar(layeredJar));
 
       // When
       AssemblyConfiguration config = generator.createAssemblyConfiguration(Collections.emptyList());
@@ -301,38 +301,7 @@ class LayeredJarGeneratorTest {
       // Pre-create custom layer directories (simulating successful extraction with custom names)
       createCustomLayersStructure(targetDir, "libs", "loader", "snapshots", "app");
 
-      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, customLayeredJar) {
-        @Override
-        public AssemblyConfiguration createAssemblyConfiguration(List<AssemblyFileSet> defaultFileSets) {
-          // Skip actual extraction since we pre-created the directories
-          getLogger().info("Spring Boot layered jar detected");
-          final List<Assembly> layerAssemblies = new ArrayList<>();
-          layerAssemblies.add(Assembly.builder().id("jkube-includes").fileSets(defaultFileSets).build());
-
-          File buildPackageDirectory = getProject().getBuildPackageDirectory();
-
-          // Directly iterate through layers without calling extractLayers()
-          for (String springBootLayer : new SpringBootLayeredJar(customLayeredJar, getLogger()).listLayers()) {
-            File layerDir = new File(buildPackageDirectory, springBootLayer);
-
-            layerAssemblies.add(Assembly.builder()
-                    .id(springBootLayer)
-                    .fileSet(AssemblyFileSet.builder()
-                        .directory(org.eclipse.jkube.kit.common.util.FileUtil.getRelativePath(getProject().getBaseDirectory(), layerDir))
-                        .outputDirectory(new File("."))
-                        .exclude("*")
-                        .fileMode("0640")
-                        .build())
-                .build());
-          }
-
-          return AssemblyConfiguration.builder()
-              .targetDir(getTargetDir())
-              .excludeFinalOutputArtifact(true)
-              .layers(layerAssemblies)
-              .build();
-        }
-      };
+      LayeredJarGenerator generator = new LayeredJarGenerator(generatorContext, generatorConfig, nonExtractingJar(customLayeredJar));
 
       // When
       AssemblyConfiguration config = generator.createAssemblyConfiguration(Collections.emptyList());
@@ -362,6 +331,21 @@ class LayeredJarGeneratorTest {
 
 
   // Helper methods
+
+  /**
+   * A {@link SpringBootLayeredJar} that reads the real jar (manifest, layers.idx) but performs no
+   * extraction. Layer extraction forks a JVM and is covered by
+   * {@code SpringBootLayeredJarTest}/{@code SpringBootLayeredJarFallbackTest}; these tests are about
+   * the {@link AssemblyConfiguration} built around it.
+   */
+  private SpringBootLayeredJar nonExtractingJar(File layeredJar) {
+    return new SpringBootLayeredJar(layeredJar, new KitLogger.SilentLogger()) {
+      @Override
+      public void extractLayers(File extractionDir) {
+        // no-op
+      }
+    };
+  }
 
   private File createLayeredJar(String mainClass) throws IOException {
     File jarFile = new File(tempDir.toFile(), "layered.jar");

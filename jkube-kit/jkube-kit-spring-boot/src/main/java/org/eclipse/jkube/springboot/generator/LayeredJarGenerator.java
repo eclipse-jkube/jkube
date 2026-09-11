@@ -33,8 +33,14 @@ public class LayeredJarGenerator extends AbstractSpringBootNestedGenerator {
   private final SpringBootLayeredJar springBootLayeredJar;
 
   public LayeredJarGenerator(GeneratorContext generatorContext, GeneratorConfig generatorConfig, File layeredJar) {
+    this(generatorContext, generatorConfig, new SpringBootLayeredJar(layeredJar, generatorContext.getLogger()));
+  }
+
+  // Package-private seam for testing: lets tests supply a SpringBootLayeredJar whose extraction
+  // is stubbed, so the assembly configuration can be verified without forking a JVM per test.
+  LayeredJarGenerator(GeneratorContext generatorContext, GeneratorConfig generatorConfig, SpringBootLayeredJar springBootLayeredJar) {
     super(generatorContext, generatorConfig);
-    springBootLayeredJar = new SpringBootLayeredJar(layeredJar, getLogger());
+    this.springBootLayeredJar = springBootLayeredJar;
   }
 
   @Override
@@ -76,5 +82,4 @@ public class LayeredJarGenerator extends AbstractSpringBootNestedGenerator {
         .layers(layerAssemblies)
         .build();
   }
-
 }
