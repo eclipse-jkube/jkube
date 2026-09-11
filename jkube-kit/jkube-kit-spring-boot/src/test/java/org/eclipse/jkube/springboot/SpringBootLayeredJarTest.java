@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
@@ -266,15 +265,13 @@ class SpringBootLayeredJarTest {
           .containsExactly("extract", "--launcher", "--layers", "--destination", ".", "--force");
     }
 
-    @ParameterizedTest(name = "with ''{0}'' jarmode, should return extract with --destination (no --force for non-tools)")
-    @NullAndEmptySource
-    @ValueSource(strings = {"layertools", "unknown"})
-    @DisplayName("with non-tools jarmode")
-    void withNonToolsJarMode(String jarMode) {
+    @Test
+    @DisplayName("with layertools jarmode, should return extract with --destination but no --force")
+    void withLayertoolsJarMode() {
       // When
-      String[] result = springBootLayeredJar.getExtractArgs(jarMode);
+      String[] result = springBootLayeredJar.getExtractArgs("layertools");
 
-      // Then - layertools (Spring Boot < 4.1) and null/unknown modes only support --destination, not --force
+      // Then - layertools (Spring Boot < 4.1) supports --destination but not --force
       assertThat(result)
           .hasSize(3)
           .containsExactly("extract", "--destination", ".");

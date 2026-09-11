@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Optional;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -104,24 +105,24 @@ class SpringBootVersionComparisonTest {
     springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
 
     // When
-    String result = springBootLayeredJar.determineJarMode();
+    final Optional<String> result = springBootLayeredJar.determineJarMode();
 
     // Then
-    assertThat(result).isEqualTo(expectedJarMode);
+    assertThat(result).hasValue(expectedJarMode);
   }
 
   @Test
-  @DisplayName("determineJarMode with no version should return null for fallback")
+  @DisplayName("determineJarMode with no version should be empty, triggering fallback")
   void determineJarModeWithNoVersion() throws IOException {
     // Given
     final File jarFile = createJarWithoutVersion();
     springBootLayeredJar = new SpringBootLayeredJar(jarFile, new KitLogger.SilentLogger());
 
     // When
-    String result = springBootLayeredJar.determineJarMode();
+    final Optional<String> result = springBootLayeredJar.determineJarMode();
 
     // Then
-    assertThat(result).isNull();
+    assertThat(result).isEmpty();
   }
 
   private File createJarWithVersion(String version) throws IOException {

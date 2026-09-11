@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.stream.Collectors;
 
 public class SpringBootLayeredJar {
@@ -59,8 +60,9 @@ public class SpringBootLayeredJar {
 
   private Optional<String> getManifestAttribute(String attributeName) {
     try (JarFile jarFile = new JarFile(layeredJar)) {
-      if (jarFile.getManifest() != null) {
-        return Optional.ofNullable(jarFile.getManifest().getMainAttributes().getValue(attributeName));
+      final Manifest manifest = jarFile.getManifest();
+      if (manifest != null) {
+        return Optional.ofNullable(manifest.getMainAttributes().getValue(attributeName));
       }
     } catch (IOException e) {
       kitLogger.debug("Couldn't read %s from %s: %s", attributeName, layeredJar.getName(), e.getMessage());
@@ -86,23 +88,21 @@ public class SpringBootLayeredJar {
   public void extractLayers(File extractionDir) {
     // Execute jarmode to extract layers
     // Note: Requires Maven/Gradle JDK to be compatible with application target JDK
-    String jarMode = determineJarMode();
+    final Optional<String> jarMode = determineJarMode();
     IOException primaryException = null;
 
-    if (jarMode != null) {
+    if (jarMode.isPresent()) {
       try {
-        String[] extractArgs = getExtractArgs(jarMode);
-        executeLayerToolsCommand(extractionDir, jarMode, extractArgs);
-        kitLogger.info("Extracted Spring Boot layers using jarmode=%s", jarMode);
+        String[] extractArgs = getExtractArgs(jarMode.get());
+        executeLayerToolsCommand(extractionDir, jarMode.get(), extractArgs);
+        kitLogger.info("Extracted Spring Boot layers using jarmode=%s", jarMode.get());
         return;
       } catch (IOException ioException) {
-        kitLogger.debug("Failed with jarmode=%s: %s", jarMode, ioException.getMessage());
+        kitLogger.debug("Failed with jarmode=%s: %s", jarMode.get(), ioException.getMessage());
         primaryException = ioException;
       }
-    }
-
-    // Fallback: try both jarmodes only if version detection failed
-    if (jarMode == null) {
+    } else {
+      // Version couldn't be detected: try both jarmodes, newest first
       for (String fallbackJarMode : new String[]{JARMODE_TOOLS, JARMODE_LAYERTOOLS}) {
         try {
           kitLogger.debug("Trying jarmode=%s for layer extraction", fallbackJarMode);
@@ -157,15 +157,15 @@ public class SpringBootLayeredJar {
     }
   }
 
-  // Package-private for testing
-  String determineJarMode() {
-    Optional<String> version = getSpringBootVersion();
-    if (version.isPresent() && isVersion410OrNewer(version.get())) {
-      return JARMODE_TOOLS;
-    } else if (version.isPresent()) {
-      return JARMODE_LAYERTOOLS;
-    }
-    return null;
+  /**
+   * The jarmode to use for layer extraction. Package-private for testing.
+   *
+   * @return the jarmode to use, or empty if the Spring Boot version can't be determined from the
+   *         jar manifest, in which case {@link #extractLayers(File)} tries both jarmodes.
+   */
+  Optional<String> determineJarMode() {
+    return getSpringBootVersion()
+        .map(version -> isVersion410OrNewer(version) ? JARMODE_TOOLS : JARMODE_LAYERTOOLS);
   }
 
   /**
