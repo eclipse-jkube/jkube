@@ -28,8 +28,9 @@ permissions:
 jobs:
   generate-sbom:
     runs-on: ubuntu-latest
-    outputs:
-      project-version: ${{ steps.version.outputs.PROJECT_VERSION }}
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -68,17 +69,8 @@ jobs:
           echo "Product version: $VERSION"
 
       - name: Upload sbom
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: eclipse-csi/workflows/upload-sbom@20e3c63807b2bd61b7f1a9f438e5ce588c054efc # main
         with:
-          name: sbom
-          path: ${{ env.PRODUCT_PATH }}/target/bom.json
-
-  store-sbom-data: # stores sbom and metadata in a predefined format for otterdog to pick up
-    needs: ['generate-sbom']
-    uses: eclipse-csi/workflows/.github/workflows/store-sbom-data.yml@main
-    with:
-      projectName: 'jkube'
-      projectVersion: ${{ needs.generate-sbom.outputs.project-version }}
-      bomArtifact: 'sbom'
-      bomFilename: 'bom.json'
-      parentProject: '6081f72a-5a7c-4c00-aa29-b2289c3f404c'
+          sbom-file: ${{ env.PRODUCT_PATH }}/target/bom.json
+          product-name: 'jkube'
+          product-version: ${{ steps.version.outputs.PROJECT_VERSION }}
