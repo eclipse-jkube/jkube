@@ -55,7 +55,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Install dependencies
-        run: ./mvnw -V -B -e -DskipTests install
+        run: ./mvnw -V -B -e -DskipTests -DskipITs install
 
       - name: Run Eclipse Dash Tool
         env:
