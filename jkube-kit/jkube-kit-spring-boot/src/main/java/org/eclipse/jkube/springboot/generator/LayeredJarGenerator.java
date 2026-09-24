@@ -33,8 +33,14 @@ public class LayeredJarGenerator extends AbstractSpringBootNestedGenerator {
   private final SpringBootLayeredJar springBootLayeredJar;
 
   public LayeredJarGenerator(GeneratorContext generatorContext, GeneratorConfig generatorConfig, File layeredJar) {
+    this(generatorContext, generatorConfig, new SpringBootLayeredJar(layeredJar, generatorContext.getLogger()));
+  }
+
+  // Package-private seam for testing: lets tests supply a SpringBootLayeredJar whose extraction
+  // is stubbed, so the assembly configuration can be verified without forking a JVM per test.
+  LayeredJarGenerator(GeneratorContext generatorContext, GeneratorConfig generatorConfig, SpringBootLayeredJar springBootLayeredJar) {
     super(generatorContext, generatorConfig);
-    springBootLayeredJar = new SpringBootLayeredJar(layeredJar, getLogger());
+    this.springBootLayeredJar = springBootLayeredJar;
   }
 
   @Override
@@ -49,15 +55,21 @@ public class LayeredJarGenerator extends AbstractSpringBootNestedGenerator {
     getLogger().info("Spring Boot layered jar detected");
     final List<Assembly> layerAssemblies = new ArrayList<>();
     layerAssemblies.add(Assembly.builder().id("jkube-includes").fileSets(defaultFileSets).build());
-    springBootLayeredJar.extractLayers(getProject().getBuildPackageDirectory());
 
+    File buildPackageDirectory = getProject().getBuildPackageDirectory();
+    getLogger().debug("Extracting Spring Boot layers to: %s", buildPackageDirectory.getAbsolutePath());
+    springBootLayeredJar.extractLayers(buildPackageDirectory);
+
+    // With --destination . flag, layers are always extracted directly to buildPackageDirectory
+    // No need to search for subdirectories - the extraction destination is controlled
     for (String springBootLayer : springBootLayeredJar.listLayers()) {
-      File layerDir = new File(getProject().getBuildPackageDirectory(), springBootLayer);
+      File layerDir = new File(buildPackageDirectory, springBootLayer);
+
       layerAssemblies.add(Assembly.builder()
               .id(springBootLayer)
               .fileSet(AssemblyFileSet.builder()
-                  .outputDirectory(new File("."))
                   .directory(getRelativePath(getProject().getBaseDirectory(), layerDir))
+                  .outputDirectory(new File("."))  // Flat: all layers → /deployments
                   .exclude("*")
                   .fileMode("0640")
                   .build())
