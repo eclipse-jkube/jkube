@@ -59,7 +59,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
       - name: Install JKube
-        run: mvn -f pom.xml -B -DskipTests clean install
+        run: mvn -f pom.xml -B -DskipTests -DskipITs clean install
       - name: Change version to current JKube version
         run: |
           ./scripts/quickstarts.sh version
