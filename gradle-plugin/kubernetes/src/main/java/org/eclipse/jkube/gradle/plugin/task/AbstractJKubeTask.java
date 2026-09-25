@@ -131,6 +131,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
                 .settings(Collections.emptyList())
                 .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
                 .skipExtendedAuth(kubernetesExtension.getSkipExtendedAuth().getOrElse(false))
+                .allowInsecureRegistries(kubernetesExtension.getAllowInsecureRegistriesOrDefault())
                 .passwordDecryptionMethod(s -> s)
                 .registry(kubernetesExtension.getPullRegistryOrDefault())
                 .build())
@@ -138,6 +139,7 @@ public abstract class AbstractJKubeTask extends DefaultTask implements Kubernete
                 .settings(Collections.emptyList())
                 .authConfig(kubernetesExtension.authConfig != null ? kubernetesExtension.authConfig.toMap() : null)
                 .skipExtendedAuth(kubernetesExtension.getSkipExtendedAuth().getOrElse(false))
+                .allowInsecureRegistries(kubernetesExtension.getAllowInsecureRegistriesOrDefault())
                 .passwordDecryptionMethod(s -> s)
                 .registry(kubernetesExtension.getPushRegistryOrNull() != null ?
                   kubernetesExtension.getPushRegistryOrNull() : kubernetesExtension.getRegistryOrDefault())
