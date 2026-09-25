@@ -54,10 +54,12 @@ public class NameEnricher extends BaseEnricher {
     builder.accept(new TypedVisitor<ObjectMetaBuilder>() {
       @Override
       public void visit(ObjectMetaBuilder resource) {
-        if (StringUtils.isNotBlank(configuredName)) {
-          resource.withName(configuredName);
-        } else if (StringUtils.isBlank(resource.getName())) {
-          resource.withName(defaultName);
+        if(StringUtils.isBlank(resource.getName())) {
+          if (StringUtils.isNotBlank(configuredName)) {
+            resource.withName(configuredName);
+          } else {
+            resource.withName(defaultName);
+          }
         }
       }
     });
