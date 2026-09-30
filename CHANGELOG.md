@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.21-SNAPSHOT
+* Fix #3975: JIB build strategy no longer allows insecure registries by default (was hard-coded to `true`). Set `jkube.docker.allowInsecureRegistries=true` to restore previous behavior.
 * Fix #3978: Spring Boot generator now supports Spring Boot 4.1+ which removed the `layertools` jarmode. The generator automatically detects Spring Boot version and uses the appropriate jarmode: `tools` (with `--launcher --layers --destination . --force` flags) for Spring Boot 4.1+, or `layertools` (with `--destination .`) for earlier versions. Layer extraction now uses `--destination .` to ensure consistent output location across all versions.
 
 ### 1.20.0 (2026-07-21)

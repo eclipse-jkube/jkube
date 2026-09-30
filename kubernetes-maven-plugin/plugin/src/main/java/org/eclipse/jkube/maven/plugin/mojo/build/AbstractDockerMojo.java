@@ -204,6 +204,9 @@ public abstract class AbstractDockerMojo extends AbstractMojo
     @Parameter(property = "jkube.docker.skip.extendedAuth", defaultValue = "false")
     protected boolean skipExtendedAuth;
 
+    @Parameter(property = "jkube.docker.allowInsecureRegistries", defaultValue = "false")
+    protected boolean allowInsecureRegistries;
+
     @Parameter
     protected Map<String, String> buildArgs;
 
@@ -440,6 +443,7 @@ public abstract class AbstractDockerMojo extends AbstractMojo
                 .settings(MavenUtil.getRegistryServerFromMavenSettings(settings))
                 .authConfig(authConfig != null ? authConfig.toMap() : null)
                 .skipExtendedAuth(skipExtendedAuth)
+                .allowInsecureRegistries(allowInsecureRegistries)
                 .registry(specificRegistry != null ? specificRegistry : registry)
                 .passwordDecryptionMethod(this::decrypt)
                 .build();

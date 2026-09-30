@@ -91,7 +91,7 @@ class JibImageBuildServicePushTest {
       .buildServiceConfig(BuildServiceConfig.builder().build())
       .configuration(JKubeConfiguration.builder()
         .project(JavaProject.builder().baseDirectory(temporaryFolder.toFile()).build())
-        .pullRegistryConfig(RegistryConfig.builder().settings(Collections.emptyList()).build())
+        .pullRegistryConfig(RegistryConfig.builder().settings(Collections.emptyList()).allowInsecureRegistries(true).build())
         .pushRegistryConfig(RegistryConfig.builder()
           .registry(remoteOciServer.getUrl())
           .settings(Collections.singletonList(
