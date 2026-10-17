@@ -101,6 +101,24 @@ class AbstractDockerMojoTest {
     assertThat(config.getRegistry()).isEqualTo("my-registry.io");
   }
 
+  @Test
+  void getRegistryConfig_withAllowInsecureRegistries_shouldSetAllowInsecureRegistries() {
+    // Given
+    mojo.allowInsecureRegistries = true;
+    // When
+    RegistryConfig config = mojo.getRegistryConfig(null);
+    // Then
+    assertThat(config.isAllowInsecureRegistries()).isTrue();
+  }
+
+  @Test
+  void getRegistryConfig_withDefaultAllowInsecureRegistries_shouldBeFalse() {
+    // When
+    RegistryConfig config = mojo.getRegistryConfig(null);
+    // Then
+    assertThat(config.isAllowInsecureRegistries()).isFalse();
+  }
+
   private static class TestMojo extends AbstractDockerMojo {
     @Override
     protected void executeInternal() throws IOException {

@@ -40,6 +40,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -55,6 +56,7 @@ class JibServiceTest {
   @TempDir
   private Path tempDir;
   private TestOciServer remoteOciServer;
+  private List<String> warnMessages;
   private JibLogger jibLogger;
   private TestAuthConfigFactory testAuthConfigFactory;
   private JKubeConfiguration configuration;
@@ -64,10 +66,18 @@ class JibServiceTest {
   void setUp() {
     remoteOciServer = new TestOciServer();
     remoteOciServer.start();
-    jibLogger = new JibLogger(new KitLogger.SilentLogger());
+    warnMessages = new ArrayList<>();
+    jibLogger = new JibLogger(new KitLogger.SilentLogger() {
+      @Override
+      public void warn(String format, Object... params) {
+        warnMessages.add(format);
+      }
+    });
     testAuthConfigFactory = new TestAuthConfigFactory();
     configuration = JKubeConfiguration.builder()
-      .pullRegistryConfig(RegistryConfig.builder().build())
+      .pullRegistryConfig(RegistryConfig.builder()
+        .allowInsecureRegistries(true)
+        .build())
       .pushRegistryConfig(RegistryConfig.builder()
         .registry(remoteOciServer.getUrl())
         .settings(Collections.singletonList(RegistryServerConfiguration.builder()
@@ -198,10 +208,55 @@ class JibServiceTest {
     }
 
     @Test
+    @DisplayName("push with allowInsecureRegistries disabled should reject insecure registry")
+    void pushWithInsecureRegistriesDisabled() {
+      configuration = configuration.toBuilder()
+        .pullRegistryConfig(RegistryConfig.builder().build())
+        .build();
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        assertThatThrownBy(jibService::push)
+          .isInstanceOf(JKubeException.class)
+          .hasMessageContaining("only secure connections are allowed");
+      }
+      assertThat(warnMessages).isEmpty();
+    }
+
+    @Test
+    @DisplayName("push with allowInsecureRegistries only on push config should succeed")
+    void pushWithInsecureRegistriesOnlyOnPushConfig() throws Exception {
+      configuration = configuration.toBuilder()
+        .pullRegistryConfig(RegistryConfig.builder().build())
+        .pushRegistryConfig(RegistryConfig.builder()
+          .registry(remoteOciServer.getUrl())
+          .settings(Collections.singletonList(RegistryServerConfiguration.builder()
+            .id(remoteOciServer.getUrl())
+            .username(remoteOciServer.getUser())
+            .password(remoteOciServer.getPassword())
+            .build()))
+          .allowInsecureRegistries(true)
+          .build())
+        .build();
+      try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
+        jibService.push();
+      }
+      assertThat(warnMessages).singleElement()
+        .isEqualTo("JIB insecure registries are enabled — TLS certificate validation is disabled for all registry connections in this operation");
+      final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer.getUrl() + "/v2/the-image-name/tags/list")
+        .openConnection();
+      connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
+      connection.connect();
+      assertThat(connection.getResponseCode()).isEqualTo(200);
+      assertThat(IOUtils.toString(connection.getInputStream(), StandardCharsets.UTF_8))
+        .contains("{\"name\":\"the-image-name\",\"tags\":[\"latest\"]}");
+    }
+
+    @Test
     void push() throws Exception {
       try (JibService jibService = new JibService(jibLogger, testAuthConfigFactory, configuration, imageConfiguration)) {
         jibService.push();
       }
+      assertThat(warnMessages).singleElement()
+        .isEqualTo("JIB insecure registries are enabled — TLS certificate validation is disabled for all registry connections in this operation");
       final HttpURLConnection connection = (HttpURLConnection) new URL("http://" + remoteOciServer.getUrl() + "/v2/the-image-name/tags/list")
         .openConnection();
       connection.setRequestProperty("Authorization", "Basic " + Base64.encodeBase64String("oci-user:oci-password".getBytes()));
