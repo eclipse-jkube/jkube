@@ -84,7 +84,8 @@ public class ImageName {
         if(fullName.contains("@sha256") || fullName.contains("@sha512")) { // Of it contains digest
             String[] digestParts = fullName.split("@");
             digest = digestParts[1];
-            fullName = digestParts[0];
+            // The digest identifies the image, so an empty tag before it ("name:@sha256:...") is dropped
+            fullName = StringUtils.removeEnd(digestParts[0], ":");
         }
 
         // check for tag
