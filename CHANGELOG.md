@@ -23,6 +23,7 @@ Usage:
 
 ### 1.21-SNAPSHOT
 * Fix #3978: Spring Boot generator now supports Spring Boot 4.1+ which removed the `layertools` jarmode. The generator automatically detects Spring Boot version and uses the appropriate jarmode: `tools` (with `--launcher --layers --destination . --force` flags) for Spring Boot 4.1+, or `layertools` (with `--destination .`) for earlier versions. Layer extraction now uses `--destination .` to ensure consistent output location across all versions.
+* Fix #4024: `currentContext` (`jkube.currentContext`) loads the cluster, credentials, and namespace from the selected kubeconfig context and fails if the context doesn't exist
 
 ### 1.20.0 (2026-07-21)
 * Fix #3903: Log pack CLI stderr output via kitLogger.error on buildpacks build failure
