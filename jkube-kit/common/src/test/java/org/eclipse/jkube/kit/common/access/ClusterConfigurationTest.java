@@ -13,16 +13,77 @@
  */
 package org.eclipse.jkube.kit.common.access;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Properties;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
 import io.fabric8.kubernetes.api.model.NamedContextBuilder;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import org.junit.jupiter.api.Test;
-
-import java.util.Properties;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class ClusterConfigurationTest {
+
+  private String originalKubeConfig;
+
+  @BeforeEach
+  void setUp(@TempDir Path temporaryFolder) throws IOException {
+    originalKubeConfig = System.getProperty(Config.KUBERNETES_KUBECONFIG_FILE);
+    final Path kubeConfig = temporaryFolder.resolve("config");
+    Files.write(kubeConfig, String.join("\n",
+      "apiVersion: v1",
+      "kind: Config",
+      "current-context: dev-context",
+      "clusters:",
+      "- name: dev-cluster",
+      "  cluster:",
+      "    server: https://dev.example.com",
+      "- name: prod-cluster",
+      "  cluster:",
+      "    server: https://prod.example.com",
+      "users:",
+      "- name: dev-user",
+      "  user:",
+      "    username: dev-username",
+      "    password: dev-password",
+      "- name: prod-user",
+      "  user:",
+      "    username: prod-username",
+      "    password: prod-password",
+      "contexts:",
+      "- name: dev-context",
+      "  context:",
+      "    cluster: dev-cluster",
+      "    user: dev-user",
+      "    namespace: dev-namespace",
+      "- name: prod-context",
+      "  context:",
+      "    cluster: prod-cluster",
+      "    user: prod-user",
+      "    namespace: prod-namespace"
+    ).getBytes(StandardCharsets.UTF_8));
+    System.setProperty(Config.KUBERNETES_KUBECONFIG_FILE, kubeConfig.toString());
+  }
+
+  @AfterEach
+  void tearDown() {
+    if (originalKubeConfig == null) {
+      System.clearProperty(Config.KUBERNETES_KUBECONFIG_FILE);
+    } else {
+      System.setProperty(Config.KUBERNETES_KUBECONFIG_FILE, originalKubeConfig);
+    }
+  }
 
   @Test
   void should_load_configuration_from_properties() {
@@ -33,7 +94,7 @@ class ClusterConfigurationTest {
     properties.put("jkube.namespace", "myns1");
     properties.put("jkube.masterUrl", "https://example.com");
     properties.put("jkube.corner-case", "corner");
-    properties.put("jkube.currentContext", "ctx1");
+    properties.put("jkube.currentContext", "prod-context");
     properties.put("manufactur8.jkube.corner-case", "cased");
     // When
     final Config config = ClusterConfiguration.from(properties).build().getConfig();
@@ -42,7 +103,7 @@ class ClusterConfigurationTest {
             .hasFieldOrPropertyWithValue("username", "user name")
             .hasFieldOrPropertyWithValue("password", "the pa$$w*rd")
             .hasFieldOrPropertyWithValue("namespace", "myns1")
-            .hasFieldOrPropertyWithValue("currentContext.name", "ctx1")
+            .hasFieldOrPropertyWithValue("currentContext.name", "prod-context")
             .hasFieldOrPropertyWithValue("currentContext.context.namespace", "myns1")
             .hasFieldOrPropertyWithValue("masterUrl", "https://example.com/");
   }
@@ -110,7 +171,7 @@ class ClusterConfigurationTest {
       .withClientKeyData("clientKeyData")
       .withClientKeyAlgo("clientKeyAlgo")
       .withClientKeyPassphrase("clientKeyPassphrase")
-      .withCurrentContext(new NamedContextBuilder().withName("ctx1").build())
+      .withCurrentContext(new NamedContextBuilder().withName("prod-context").build())
       .withTrustStoreFile("trustStoreFile")
       .withTrustStorePassphrase("trustStorePassphrase")
       .withKeyStoreFile("keyStoreFile")
@@ -133,11 +194,127 @@ class ClusterConfigurationTest {
       .hasFieldOrPropertyWithValue("clientKeyData", "clientKeyData")
       .hasFieldOrPropertyWithValue("clientKeyAlgo", "clientKeyAlgo")
       .hasFieldOrPropertyWithValue("clientKeyPassphrase", "clientKeyPassphrase")
-      .hasFieldOrPropertyWithValue("currentContext", new NamedContextBuilder().withName("ctx1").withNewContext().withNamespace("namespace").endContext().build())
+      .hasFieldOrPropertyWithValue("currentContext", new NamedContextBuilder().withName("prod-context").withNewContext()
+        .withCluster("prod-cluster").withUser("prod-user").withNamespace("namespace").endContext().build())
       .hasFieldOrPropertyWithValue("trustStoreFile", "trustStoreFile")
       .hasFieldOrPropertyWithValue("trustStorePassphrase", "trustStorePassphrase")
       .hasFieldOrPropertyWithValue("keyStoreFile", "keyStoreFile")
       .hasFieldOrPropertyWithValue("keyStorePassphrase", "keyStorePassphrase")
       .hasFieldOrPropertyWithValue("trustCerts", true);
+  }
+
+  @Nested
+  @DisplayName("with kubeconfig containing multiple contexts")
+  class MultipleContexts {
+
+    @Test
+    @DisplayName("without currentContext, should use kubeconfig current-context")
+    void withoutCurrentContext() {
+      // When
+      final Config config = ClusterConfiguration.builder().build().getConfig();
+      // Then
+      assertThat(config)
+        .hasFieldOrPropertyWithValue("masterUrl", "https://dev.example.com/")
+        .hasFieldOrPropertyWithValue("username", "dev-username")
+        .hasFieldOrPropertyWithValue("password", "dev-password")
+        .hasFieldOrPropertyWithValue("namespace", "dev-namespace")
+        .hasFieldOrPropertyWithValue("currentContext.name", "dev-context");
+    }
+
+    @Test
+    @DisplayName("with currentContext, should use cluster, credentials and namespace of selected context")
+    void withCurrentContext() {
+      // When
+      final Config config = ClusterConfiguration.builder().currentContext("prod-context").build().getConfig();
+      // Then
+      assertThat(config)
+        .hasFieldOrPropertyWithValue("masterUrl", "https://prod.example.com/")
+        .hasFieldOrPropertyWithValue("username", "prod-username")
+        .hasFieldOrPropertyWithValue("password", "prod-password")
+        .hasFieldOrPropertyWithValue("namespace", "prod-namespace")
+        .hasFieldOrPropertyWithValue("currentContext.name", "prod-context")
+        .hasFieldOrPropertyWithValue("currentContext.context.cluster", "prod-cluster")
+        .hasFieldOrPropertyWithValue("currentContext.context.user", "prod-user")
+        .hasFieldOrPropertyWithValue("currentContext.context.namespace", "prod-namespace");
+    }
+
+    @Test
+    @DisplayName("with currentContext from properties, should use selected context")
+    void withCurrentContextFromProperties() {
+      // Given
+      final Properties properties = new Properties();
+      properties.put("jkube.currentContext", "prod-context");
+      // When
+      final Config config = ClusterConfiguration.from(properties).build().getConfig();
+      // Then
+      assertThat(config)
+        .hasFieldOrPropertyWithValue("masterUrl", "https://prod.example.com/")
+        .hasFieldOrPropertyWithValue("username", "prod-username");
+    }
+
+    @Test
+    @DisplayName("with currentContext and explicit values, explicit values should take precedence")
+    void withCurrentContextAndExplicitValues() {
+      // When
+      final Config config = ClusterConfiguration.builder()
+        .currentContext("prod-context")
+        .masterUrl("https://override.example.com")
+        .namespace("override-namespace")
+        .build().getConfig();
+      // Then
+      assertThat(config)
+        .hasFieldOrPropertyWithValue("masterUrl", "https://override.example.com/")
+        .hasFieldOrPropertyWithValue("username", "prod-username")
+        .hasFieldOrPropertyWithValue("namespace", "override-namespace")
+        .hasFieldOrPropertyWithValue("currentContext.context.cluster", "prod-cluster")
+        .hasFieldOrPropertyWithValue("currentContext.context.namespace", "override-namespace");
+    }
+
+    @Test
+    @DisplayName("getNamespace with currentContext, should return namespace of selected context")
+    void getNamespaceWithCurrentContext() {
+      // When
+      final String namespace = ClusterConfiguration.builder().currentContext("prod-context").build().getNamespace();
+      // Then
+      assertThat(namespace).isEqualTo("prod-namespace");
+    }
+
+    @Test
+    @DisplayName("with unknown currentContext, should throw exception instead of using kubeconfig current-context")
+    void withUnknownCurrentContext() {
+      // Given
+      final ClusterConfiguration clusterConfiguration = ClusterConfiguration.builder().currentContext("unknown-context").build();
+      // When + Then
+      assertThatIllegalArgumentException()
+        .isThrownBy(clusterConfiguration::getConfig)
+        .withMessage("Context 'unknown-context' not found in kubeconfig. Available contexts: [dev-context, prod-context]");
+    }
+
+    @Test
+    @DisplayName("with unknown currentContext and explicit masterUrl, should not use kubeconfig current-context")
+    void withUnknownCurrentContextAndExplicitMasterUrl() {
+      // When
+      final Config config = ClusterConfiguration.builder()
+        .currentContext("unknown-context")
+        .masterUrl("https://explicit.example.com")
+        .build().getConfig();
+      // Then
+      assertThat(config)
+        .hasFieldOrPropertyWithValue("masterUrl", "https://explicit.example.com/")
+        .hasFieldOrPropertyWithValue("username", null)
+        .hasFieldOrPropertyWithValue("password", null)
+        .hasFieldOrPropertyWithValue("currentContext.name", "unknown-context");
+    }
+
+    @Test
+    @DisplayName("getNamespace with unknown currentContext, should throw exception")
+    void getNamespaceWithUnknownCurrentContext() {
+      // Given
+      final ClusterConfiguration clusterConfiguration = ClusterConfiguration.builder().currentContext("unknown-context").build();
+      // When + Then
+      assertThatIllegalArgumentException()
+        .isThrownBy(clusterConfiguration::getNamespace)
+        .withMessageStartingWith("Context 'unknown-context' not found in kubeconfig");
+    }
   }
 }
