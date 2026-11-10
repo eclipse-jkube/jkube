@@ -107,6 +107,11 @@ public class TestKubernetesExtension extends KubernetesExtension {
   }
 
   @Override
+  public Property<Boolean> getAllowInsecureRegistries() {
+    return property(Boolean.class);
+  }
+
+  @Override
   public Property<String> getPullRegistry() {
     return property(String.class);
   }
