@@ -164,6 +164,32 @@ class ImageNameTest {
       }
     }
 
+    @Nested
+    @DisplayName("with empty tag")
+    class EmptyTag {
+      @Test
+      @DisplayName("and digest, should drop the empty tag and keep the digest")
+      void withDigest_shouldDropEmptyTagAndKeepDigest() {
+        // Given
+        final String name = "registry.example.com/hello-world:@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9";
+        // When
+        final ImageName imageName = new ImageName(name);
+        // Then
+        assertThat(imageName)
+          .returns(null, ImageName::getTag)
+          .returns("sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9", ImageName::getDigest)
+          .returns("registry.example.com/hello-world", ImageName::getNameWithoutTag)
+          .returns("registry.example.com/hello-world@sha256:b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9", ImageName::getFullName);
+      }
+
+      @Test
+      @DisplayName("and no digest, should throw exception")
+      void withoutDigest_shouldThrowException() {
+        assertThatIllegalArgumentException()
+          .isThrownBy(() -> new ImageName("registry.example.com/hello-world:"));
+      }
+    }
+
     @Test
     void testImageNameWithUsernameHavingPeriods() {
         // Given
