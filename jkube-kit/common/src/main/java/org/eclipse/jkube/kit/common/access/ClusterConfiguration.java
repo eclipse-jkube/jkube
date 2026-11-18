@@ -20,9 +20,11 @@ import io.fabric8.kubernetes.client.ConfigBuilder;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.AllArgsConstructor;
@@ -62,11 +64,17 @@ public class ClusterConfiguration implements Serializable {
   private Boolean trustCerts;
 
   public String getNamespace() {
-    return Optional.ofNullable(namespace).orElse(KubernetesHelper.getDefaultNamespace());
+    if (namespace != null) {
+      return namespace;
+    }
+    if (StringUtils.isNotBlank(currentContext)) {
+      return Optional.ofNullable(loadCurrentContextConfig().getNamespace()).orElse("default");
+    }
+    return KubernetesHelper.getDefaultNamespace();
   }
 
   public Config getConfig() {
-    final ConfigBuilder configBuilder = new ConfigBuilder();
+    final ConfigBuilder configBuilder = initConfigBuilder();
 
     if (StringUtils.isNotBlank(this.username)) {
       configBuilder.withUsername(this.username);
@@ -141,9 +149,11 @@ public class ClusterConfiguration implements Serializable {
     }
 
     if (StringUtils.isNotBlank(this.currentContext)) {
-      configBuilder.withCurrentContext(new NamedContextBuilder()
-          .withName(this.currentContext)
-          .withNewContext()
+      final NamedContext resolvedContext = Optional.ofNullable(configBuilder.getCurrentContext())
+        .filter(ctx -> this.currentContext.equals(ctx.getName()))
+        .orElse(new NamedContextBuilder().withName(this.currentContext).build());
+      configBuilder.withCurrentContext(new NamedContextBuilder(resolvedContext)
+          .editOrNewContext()
           .withNamespace(getNamespace())
           .endContext()
         .build());
@@ -151,6 +161,29 @@ public class ClusterConfiguration implements Serializable {
 
     return configBuilder.build();
 
+  }
+
+  private ConfigBuilder initConfigBuilder() {
+    if (StringUtils.isNotBlank(this.currentContext)) {
+      return new ConfigBuilder(loadCurrentContextConfig()).withAutoConfigure(false);
+    }
+    return new ConfigBuilder();
+  }
+
+  private Config loadCurrentContextConfig() {
+    final Config config = Config.autoConfigure(this.currentContext);
+    final boolean contextFound = Optional.ofNullable(config.getCurrentContext())
+      .map(NamedContext::getName)
+      .filter(this.currentContext::equals)
+      .isPresent();
+    if (!contextFound && StringUtils.isBlank(this.masterUrl)) {
+      throw new IllegalArgumentException(String.format(
+        "Context '%s' not found in kubeconfig. Available contexts: %s",
+        this.currentContext,
+        Optional.ofNullable(config.getContexts()).orElse(Collections.emptyList()).stream()
+          .map(NamedContext::getName).collect(Collectors.toList())));
+    }
+    return config;
   }
 
   public static ClusterConfigurationBuilder from(Config kubernetesConfig) {

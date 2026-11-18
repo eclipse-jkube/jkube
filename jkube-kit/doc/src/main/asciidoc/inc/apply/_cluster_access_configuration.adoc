@@ -89,7 +89,10 @@ endif::[]
 | `jkube.clientKeyPassphrase`
 
 | *currentContext*
-| Client Kubernetes Context that is currently in use
+| Name of the kubeconfig context to use.
+The cluster, credentials, and namespace are loaded from this context instead of the kubeconfig's `current-context`.
+If not provided, the kubeconfig's `current-context` is used.
+The build fails if the context doesn't exist in the kubeconfig (unless `masterUrl` is explicitly provided).
 | `jkube.currentContext`
 
 | *trustStoreFile*
