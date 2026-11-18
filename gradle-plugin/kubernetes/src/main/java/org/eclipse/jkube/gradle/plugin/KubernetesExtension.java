@@ -148,6 +148,8 @@ public abstract class KubernetesExtension {
 
   public abstract Property<Boolean> getSkipExtendedAuth();
 
+  public abstract Property<Boolean> getAllowInsecureRegistries();
+
   public abstract Property<String> getPullRegistry();
 
   public abstract Property<String> getBuildSourceDirectory();
@@ -558,6 +560,10 @@ public abstract class KubernetesExtension {
 
   public boolean getSkipExtendedAuthOrDefault() {
     return getOrDefaultBoolean("jkube.docker.skip.extendedAuth", this::getSkipExtendedAuth, false);
+  }
+
+  public boolean getAllowInsecureRegistriesOrDefault() {
+    return getOrDefaultBoolean("jkube.docker.allowInsecureRegistries", this::getAllowInsecureRegistries, false);
   }
 
   public Integer getMaxConnectionsOrDefault() {
