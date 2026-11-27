@@ -22,6 +22,7 @@ Usage:
 ```
 
 ### 1.21-SNAPSHOT
+* Fix #4028: `ResourceValidator` no longer logs `Unknown keyword serializer` / `Unknown keyword deserializer` warnings during `k8s:resource`/`oc:resource` (`serializer` and `deserializer` are now registered as `NonValidationKeyword`s in the JSON meta schema)
 * Fix #3978: Spring Boot generator now supports Spring Boot 4.1+ which removed the `layertools` jarmode. The generator automatically detects Spring Boot version and uses the appropriate jarmode: `tools` (with `--launcher --layers --destination . --force` flags) for Spring Boot 4.1+, or `layertools` (with `--destination .`) for earlier versions. Layer extraction now uses `--destination .` to ensure consistent output location across all versions.
 
 ### 1.20.0 (2026-07-21)

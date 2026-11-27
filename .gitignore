@@ -1,4 +1,5 @@
 .idea
+.openidea
 .gradle
 target/
 !**/src/main/**/target/
