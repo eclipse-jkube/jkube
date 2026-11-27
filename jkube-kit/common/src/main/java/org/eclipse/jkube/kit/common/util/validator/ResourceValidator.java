@@ -205,6 +205,8 @@ public class ResourceValidator {
         nonValidationKeywords.add(new NonValidationKeyword("javaOmitEmpty"));
         nonValidationKeywords.add(new NonValidationKeyword("existingJavaType"));
         nonValidationKeywords.add(new NonValidationKeyword("$module"));
+        nonValidationKeywords.add(new NonValidationKeyword("serializer"));
+        nonValidationKeywords.add(new NonValidationKeyword("deserializer"));
         return nonValidationKeywords;
     }
 

@@ -77,7 +77,8 @@ class ResourceValidatorTest {
     // Then
     assertThat(nonValidationKeywordList)
         .extracting(AbstractKeyword::getValue)
-        .containsExactlyInAnyOrder("javaType", "javaInterfaces", "resources", "javaOmitEmpty", "existingJavaType", "$module");
+        .containsExactlyInAnyOrder("javaType", "javaInterfaces", "resources", "javaOmitEmpty", "existingJavaType", "$module",
+            "serializer", "deserializer");
   }
 
   private static final class HasErrMessage extends Condition<Throwable> {
