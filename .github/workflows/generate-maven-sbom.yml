@@ -69,7 +69,7 @@ jobs:
           echo "Product version: $VERSION"
 
       - name: Upload sbom
-        uses: eclipse-csi/workflows/upload-sbom@20e3c63807b2bd61b7f1a9f438e5ce588c054efc # main
+        uses: eclipse-csi/workflows/upload-sbom@d2d3dbbc0a1907f41892c1698b3c6353235c87cb # main
         with:
           sbom-file: ${{ env.PRODUCT_PATH }}/target/bom.json
           product-name: 'jkube'
